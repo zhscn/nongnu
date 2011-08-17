@@ -73,14 +73,17 @@
       (
         (target-symbol (symbol-at-point))
         (target (symbol-name target-symbol)))
-      (when
+      (if
         (and
           target-symbol (not (in-string-p))
           ;; TODO: no need to highlight keywords like if
           (not (equal target "end")))
+        (progn
+          (idle-highlight-unhighlight)
+          (setq idle-highlight-regexp (concat "\\<" (regexp-quote target) "\\>"))
+          (highlight-regexp idle-highlight-regexp 'idle-highlight))
         (idle-highlight-unhighlight)
-        (setq idle-highlight-regexp (concat "\\<" (regexp-quote target) "\\>"))
-        (highlight-regexp idle-highlight-regexp 'idle-highlight)))))
+        (setq idle-highlight-regexp nil)))))
 
 (defsubst idle-highlight-unhighlight ()
   (if idle-highlight-regexp
