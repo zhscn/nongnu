@@ -62,10 +62,6 @@
   "Face used to highlight other occurrences of the word at point."
   :group 'idle-highlight)
 
-(defvar idle-highlight-regexp nil "Buffer-local regexp to be idle-highlighted.")
-
-(defvar idle-highlight-global-timer nil "Timer to trigger highlighting.")
-
 (defcustom idle-highlight-exceptions '("end")
   "List of words to be excepted from highlighting."
   :group 'idle-highlight
@@ -75,6 +71,10 @@
   "Time after which to highlight the word at point."
   :group 'idle-highlight
   :type 'float)
+
+(defvar idle-highlight-regexp nil "Buffer-local regexp to be idle-highlighted.")
+
+(defvar idle-highlight-global-timer nil "Timer to trigger highlighting.")
 
 (defun idle-highlight-word-at-point ()
   "Highlight the word under the point."
