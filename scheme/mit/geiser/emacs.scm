@@ -11,7 +11,9 @@
         (completions '()))
     (for-each-interned-symbol
      (lambda (symbol)
-       (if (and (string-prefix-ci? prefix (symbol-name symbol)) ; was string-prefix?, now defaults to case-insensitive (MIT/GNU Scheme's default)
+       ;; was string-prefix?, now defaults to case-insensitive
+       ;; (MIT/GNU Scheme's default)
+       (if (and (string-prefix-ci? prefix (symbol-name symbol))
                 (environment-bound? environment symbol))
            (set! completions (cons (symbol-name symbol) completions)))
        unspecific))
@@ -23,8 +25,9 @@
                    (let ((binding (environment-lookup env symbol)))
                      (if (and binding
                               (procedure? binding))
-                         (cons symbol (read-from-string (string-trim (with-output-to-string
-                                                                       (lambda () (pa binding))))))
+                         (cons symbol (read-from-string
+                                       (string-trim (with-output-to-string
+                                                      (lambda () (pa binding))))))
                          #f))
                    #f ;; macros
                    )))
@@ -39,7 +42,11 @@
                    (required '())
                    (optional '()))
           (cond ((null? arglist)
-                 `(,operator ("args" (("required" ,@(reverse required)) ("optional" ,@(reverse optional)) ("key"))))) ;; ("module" ,module)
+                 `(,operator ("args" (("required" ,@(reverse required))
+                                      ("optional" ,@(reverse optional))
+                                      ("key")
+                                      ;; ("module" ,module)
+                                      ))))
                 ((symbol? arglist)
                  (loop '()
                        #t
@@ -80,7 +87,9 @@
 (define geiser-repl (nearest-repl))
 
 (define (set-geiser-repl-prompt! env)
-  (set-repl/prompt! geiser-repl (format #f "~s =>" (package/name (environment->package env))))
+  (set-repl/prompt! geiser-repl (format #f
+                                        "~s =>"
+                                        (package/name (environment->package env))))
   env)
 
 (define geiser-env #f)
@@ -110,7 +119,10 @@
     (if (and geiser:mit-scheme-source-directory
              (not (string-null? geiser:mit-scheme-source-directory)))
         (if (string-prefix? default-location filename)
-            (string-append geiser:mit-scheme-source-directory (substring filename (string-length default-location) (string-length filename)))
+            (string-append geiser:mit-scheme-source-directory
+                           (substring filename
+                                      (string-length default-location)
+                                      (string-length filename)))
             filename)
         filename)))
 
@@ -121,11 +133,15 @@
 (define (geiser:eval module form . rest)
   rest
   (let* ((output (open-output-string))
-         (environment (package/environment (find-package (if module module '(user)) #t)))
+         (environment (package/environment (find-package (if module
+                                                             module
+                                                             '(user))
+                                                         #t)))
          (result (with-output-to-port output
                    (lambda ()
                      (eval form environment)))))
-    (write `((result ,(write-to-string result)) (output . ,(get-output-string output))))))
+    (write `((result ,(write-to-string result))
+             (output . ,(get-output-string output))))))
 
 (define (geiser:autodoc ids . rest)
   rest
@@ -135,14 +151,18 @@
         ((not (symbol? (car ids)))
          (geiser:autodoc (cdr ids)))
         (else
-         (let ((details (map (lambda (id) (geiser:operator-arglist id (->environment '(user)))) ids)))
+         (let ((details (map (lambda (id)
+                               (geiser:operator-arglist id (->environment '(user)))
+                               ) ids)))
            details))))
 
 (define (geiser:module-completions prefix . rest)
   rest
   (filter (lambda (pstring)
             (substring? prefix (write-to-string pstring)))
-          (map (lambda (package) (env->pstring (package/environment package))) (all-packages))))
+          (map (lambda (package)
+                 (env->pstring (package/environment package)))
+               (all-packages))))
 
 (define (geiser:completions prefix . rest)
   rest
@@ -167,7 +187,10 @@
                (syntax '())
                (bindings (environment-bindings env)))
       (if (null? bindings)
-          `(("vars" . ,vars) ("procs" . ,procs) ("syntax" . ,syntax) ("modules" . ,(map list children)))
+          `(("vars" . ,vars)
+            ("procs" . ,procs)
+            ("syntax" . ,syntax)
+            ("modules" . ,(map list children)))
           (let* ((binding (car bindings))
                  (name (car binding))
                  (value (if (null? (cdr binding)) 'unassigned (cadr binding)))
@@ -179,7 +202,9 @@
                          (cdr bindings)))
                   ((procedure? value)
                    (loop vars
-                         (cons `(,name ("signature" . ,(geiser:operator-arglist name env))) procs)
+                         (cons
+                          `(,name ("signature" . ,(geiser:operator-arglist name env)))
+                          procs)
                          syntax
                          (cdr bindings)))
                   (else
@@ -203,9 +228,13 @@
            (if (procedure? value)
                (let ((signature (geiser:operator-arglist symbol geiser-env)))
                  `(("signature" . ,signature)
-                   ("docstring" . ,(format #f "Procedure:~%~a~%" (with-output-to-string (lambda () (pp value)))))))
+                   ("docstring" . ,(format #f
+                                           "Procedure:~%~a~%"
+                                           (with-output-to-string (lambda () (pp value)))))))
                `(("signature" ,symbol ("args"))
-                 ("docstring" . ,(format #f "Value:~%~a~%" (with-output-to-string (lambda () (pp value))))))
+                 ("docstring" . ,(format #f
+                                         "Value:~%~a~%"
+                                         (with-output-to-string (lambda () (pp value))))))
                ))
           (else
            `(("signature" ,symbol ("args"))
