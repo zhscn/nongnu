@@ -116,7 +116,7 @@ This function uses `geiser-mit-init-file' if it exists."
 ;; 
 ;; ;;; REPL startup
 
-(defconst geiser-mit-minimum-version "9.2.1")
+(defconst geiser-mit-minimum-version "9.1.1")
 
 (defun geiser-mit--version (binary)
   (shell-command-to-string
