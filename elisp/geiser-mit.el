@@ -16,6 +16,7 @@
 
 (require 'compile)
 (require 'info-look)
+(require 'subr-x)
 
 (eval-when-compile (require 'cl))
 
