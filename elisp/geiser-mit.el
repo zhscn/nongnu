@@ -36,7 +36,7 @@
 (geiser-custom--defcustom geiser-mit-source-directory
     ""
   "The path to the MIT/GNU Scheme sources' src/ directory."
-  :type 'file
+  :type 'directory
   :group 'geiser-mit)
 
 
