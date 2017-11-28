@@ -16,9 +16,10 @@
 
 (require 'compile)
 (require 'info-look)
-(require 'subr-x)
 
-(eval-when-compile (require 'cl))
+
+(eval-when-compile (require 'cl)
+                   (require 'subr-x))
 
 
 ;;; Customization:
