@@ -18,8 +18,7 @@
 (require 'info-look)
 
 
-(eval-when-compile (require 'cl)
-                   (require 'subr-x))
+(eval-when-compile (require 'cl))
 
 
 ;;; Customization:
@@ -133,7 +132,7 @@ This function uses `geiser-mit-init-file' if it exists."
   (let ((geiser-log-verbose-p t))
     (compilation-setup t)
     (when (and (stringp geiser-mit-source-directory)
-               (not (string-empty-p geiser-mit-source-directory)))
+               (not (string= geiser-mit-source-directory "")))
       (geiser-eval--send/wait (format "(geiser:set-mit-scheme-source-directory %S)" geiser-mit-source-directory)))))
 
 ;;; Implementation definition:
