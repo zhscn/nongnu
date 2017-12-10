@@ -3411,8 +3411,9 @@ Replies to the all recipients of the current message.
 @item F (@code{vm-followup-include-text})
 Replies to the all recipients of the current message and provides
 included text.
-@findex vm-mail-to-sender
-@item vm-mail-to-sender
+@kindex m
+@findex vm-mail-from-folder
+@item m (@code{vm-mail-from-folder})
 Writes a message to the sender of the current message.  (This is similar to
 @code{vm-reply} but meant for writing a message about a new subject.)
 @end table
