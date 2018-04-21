@@ -1537,18 +1537,18 @@ as well."
 	    ;; any output to be received first
 	    (if (fboundp 'add-async-timeout)
 		(add-async-timeout 2 'delete-process process)
-	      (run-at-time 2 nil 'delete-process process)))
-	  ;; unwind-protections
-	  ;;----------------------------------
-	  (vm-inform 6 "%s: Closing IMAP session to %s... done"
-		     (if vm-mail-buffer
-			 (buffer-name vm-mail-buffer) 
-		       "vm")
-		     "server")
-
-	  (vm-buffer-type:exit)
-	  ;;----------------------------------
-	  )))
+	      (run-at-time 2 nil 'delete-process process))))
+      ;; unwind-protections
+      ;;----------------------------------
+      (vm-inform 6 "%s: Closing IMAP session to %s... done"
+		 (if vm-mail-buffer
+		     (buffer-name vm-mail-buffer) 
+		   "vm")
+		 "server")
+      
+      (vm-buffer-type:exit)
+      ;;----------------------------------
+      ))
   (when (and imap-buffer (buffer-live-p imap-buffer))
     (if (and (null vm-imap-keep-trace-buffer) (not keep-buffer))
 	(kill-buffer imap-buffer)
