@@ -1111,6 +1111,8 @@ of the current folder, or nil if none has been recorded."
 ;; -- lower level I/O
 ;; vm-imap-send-command: (process command &optional tag no-tag) ->
 ;; 				void
+;; vm-imap-send-string: (process string &optional tag no-tag) ->
+;; 				void
 ;; vm-imap-select-mailbox: (process & mailbox &optional bool bool) -> 
 ;;				(int int uid-validity bool bool (flag list))
 ;; vm-imap-read-capability-response: process -> ?
@@ -1593,6 +1595,29 @@ as well."
   (if no-tag
       (process-send-string process (format "%s\r\n" command))
     (process-send-string process (format "%s %s\r\n" (or tag "VM") command))))
+
+(defun vm-imap-send-string (process string)
+  (vm-imap-log-token 'send)
+  ;;------------------------------
+  (vm-buffer-type:assert 'process)
+  ;;------------------------------
+  (vm-imap-check-connection process)
+  (if (not (= (point) (point-max)))
+      (vm-imap-log-tokens (list 'send1 (point) (point-max))))
+  (goto-char (point-max))
+  ;; try if it makes a difference to get pending output here, use timeout
+  ;; (accept-process-output process 0 0.01)
+  ;; (if (not (= (point) (point-max)))
+  ;;     (vm-imap-log-tokens (list 'send2 (point) (point-max))))
+  ;; (goto-char (point-max))
+  (setq vm-imap-read-point (point))
+  ;; send the string line by line
+  (let ((lines (split-string string "\r\n")))
+    (mapcar (function
+	     (lambda (line)
+	       (process-send-string process (format "%s\r\n" line))))
+	    lines))
+  )
 
 (defun vm-imap-select-mailbox (process mailbox &optional 
 				       just-retrieve just-examine)
@@ -4699,7 +4724,7 @@ May throw exceptions."
 	(mailboxes nil)
 	(fcc-string (vm-mail-get-header-contents "FCC:" ","))
 	fcc-list fcc maildrop spec-list 
-	process flags response string m
+	process flags response composition m
 	(vm-imap-ok-to-ask t))
     (if (null mailbox)
 	(setq mailboxes nil)
@@ -4743,10 +4768,10 @@ May throw exceptions."
     
     (goto-char (point-min))
     (re-search-forward (concat "^" (regexp-quote mail-header-separator) "$"))
-    (setq string (concat (buffer-substring (point-min) (match-beginning 0))
+    (setq composition (concat (buffer-substring (point-min) (match-beginning 0))
 			 (buffer-substring
 			  (match-end 0) (point-max))))
-    (setq string (vm-imap-subst-CRLF-for-LF string))
+    (setq composition (vm-imap-subst-CRLF-for-LF composition))
     
     (while mailboxes
       (setq mailbox (car (car mailboxes)))
@@ -4774,7 +4799,7 @@ May throw exceptions."
 	     (format "APPEND %s %s {%d}"
 		     (vm-imap-quote-mailbox-name mailbox)
 		     (if flags flags "()")
-		     (length string)))
+		     (length composition)))
 	    ;; could these be done with vm-imap-read-boolean-response?
 	    (let ((need-plus t) response)
 	      (while need-plus
@@ -4793,7 +4818,7 @@ May throw exceptions."
 		 ((vm-imap-response-matches response '+)
 		  (setq need-plus nil)))))
 
-	    (vm-imap-send-command process string nil t)
+	    (vm-imap-send-string process composition)
 	    (let ((need-ok t) response)
 	      (while need-ok
 
