@@ -632,7 +632,7 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
 		 (subrp (symbol-function 'base64-decode-region))
 		 ;; The FSF Emacs version of this is unforgiving
 		 ;; of errors, which is not in the spirit of the
-		 ;; MIME spec, so avoid using it.
+		 ;; MIME spec, so avoid using it. - Kyle Jones
 		 ;; Let us try it out now.  USR, 2012-10-19
 		 ;; (not vm-fsfemacs-p)
 		 )
@@ -2800,9 +2800,12 @@ is not successful.                                   USR, 2011-03-25"
 	    ;; if the handler returns t, overwrite the layout type
 	    (vm-mime-rewrite-with-inferred-type layout infered-type))
 
-	   ((and (vm-mime-internally-displayable layout)
-		 (vm-mime-display-internal layout type primary-type))
-	    ;; if the handler returns t, we are done
+	   ((or (and (vm-mime-internally-displayable layout)
+		     (vm-mime-display-internal layout type primary-type))
+		;; if the handler returns t, we are done
+		;; otherwise, unless the user chooses external, we quit
+		(not
+		 (y-or-n-p "Internal display failed; use external viewer?")))
 	    )
 
 	   ((and vm-infer-mime-types infered-type
