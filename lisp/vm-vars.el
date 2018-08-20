@@ -5726,8 +5726,10 @@ named by `vm-movemail-program'."
   :type '(choice (const :tag "None" nil)
 		 file))
 
-(defcustom vm-firefox-client-program-switches '("-remote")
+(defcustom vm-firefox-client-program-switches nil
   "*List of command line switches to pass to Mozilla Firefox client."
+  ;; -remote is obsolete
+  ;; https://developer.mozilla.org/en-US/docs/Mozilla/Command_Line_Options#Remote_Control
   :group 'vm-helpers
   :type '(choice (const :tag "None" nil) 
 		 (repeat string)))

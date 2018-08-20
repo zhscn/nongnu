@@ -363,9 +363,11 @@ Mouse'."
   (if new-window
       (apply 'vm-run-background-command vm-firefox-program
 	     (append vm-firefox-program-switches (list url)))
+    ;; OpenUrl is obsolete
+    ;; https://developer.mozilla.org/en-US/docs/Mozilla/Command_Line_Options#Remote_Control
     (or (equal 0 (apply 'vm-run-command vm-firefox-client-program
 			(append vm-firefox-client-program-switches
-				(list (format "openURL(%s)" url)))))
+				(list url))))
 	(vm-mouse-send-url-to-firefox url t)))
   (vm-inform 5 "Sending URL to Mozilla Firefox... done"))
 
