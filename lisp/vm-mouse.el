@@ -360,10 +360,10 @@ Mouse'."
 
 (defun vm-mouse-send-url-to-firefox (url &optional new-window)
   (vm-inform 5 "Sending URL to Mozilla Firefox...")
-  (if new-window
+  (if t					; new-window parameter ignored
       (apply 'vm-run-background-command vm-firefox-program
 	     (append vm-firefox-program-switches (list url)))
-    ;; OpenUrl is obsolete
+    ;; OpenURL is obsolete
     ;; https://developer.mozilla.org/en-US/docs/Mozilla/Command_Line_Options#Remote_Control
     (or (equal 0 (apply 'vm-run-command vm-firefox-client-program
 			(append vm-firefox-client-program-switches
