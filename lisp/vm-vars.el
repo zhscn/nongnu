@@ -829,6 +829,20 @@ timing out.  It can be set to nil to never time out."
   :type '(choice (const :tag "Never" nil) 
 		 (integer :tag "Seconds")))
 
+(defcustom vm-imap-connection-mode 'online
+  "*The mode of connection to the IMAP server.  Possible values
+are: 'online, 'offline and 'autoconnect.  In the 'online mode,
+synchronization works normally and message bodies of external
+messages are fetched when needed.  In 'offline mode, no
+connection is established to the IMAP server and message bodies
+are not fetched.  In the 'autoconnect mode, a connection is
+established whenever a synchronization operation is performed and the
+connection mode is then turned into 'online."
+  :group 'vm-imap
+  :type '(choice (const :tag "online" online)
+		 (const :tag "offline" offline)
+		 (const :tag "autoconnect" autoconnect)))
+
 (defcustom vm-imap-ensure-active-sessions t
   "*If non-NIL, ensures that an IMAP session is active before issuing
 commands to the server.  If it is not active, a new session is

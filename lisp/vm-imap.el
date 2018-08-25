@@ -495,15 +495,7 @@ thrown.  In such a situation, typically VM cannot proceed."
 ;; Mollify the pesky compiler
 (defvar selectable-only)
 
-(defvar vm-imap-connection-mode 'online
-  "* The mode of connection to the IMAP server.  Possible values
-are: 'online, 'offline and 'autoconnect.  In the 'online mode,
-synchronization works normally and message bodies of external
-messages are fetched when needed.  In 'offline mode, no
-connection is established to the IMAP server and message bodies
-are not fetched.  In the 'autoconnect mode, a connection is
-established whenever a synchronization operation is performed and the
-connection mode is then turned into 'online.")
+;; (defvar vm-imap-connection-mode 'online)  ; moved to vm-vars.el
 
 
 ;; -----------------------------------------------------------------------
