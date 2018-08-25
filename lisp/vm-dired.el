@@ -1,4 +1,4 @@
-;;; vm-reply.el --- Mailing, forwarding, and replying commands
+;;; vm-dired.el --- VM interface to dired
 ;;
 ;; This file is part of VM
 ;;

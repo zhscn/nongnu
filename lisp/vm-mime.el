@@ -7905,6 +7905,8 @@ Returns marker pointing to the start of the encoded MIME part."
 ;;      (funcall function (car list)))
 ;;    (setq list (cdr list))))
 
+(defvar vm-mime-layout nil)		; used with dynamic binding
+
 (defun vm-mime-sprintf (format layout)
   ;; compile the format into an eval'able s-expression
   ;; if it hasn't been compiled already.

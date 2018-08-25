@@ -718,6 +718,8 @@ Also move the cursor (point and window-point)."
       (if (or (eq vm-auto-center-summary t) (not (one-window-p t)))
 	  (recenter '(4)))))
 
+(defvar vm-su-message nil)		; used for dynamic binding
+
 (defun vm-summary-sprintf (format message &optional tokenize)
   "Generates a summary in FORMAT for MESSAGE and return the
 result.  The optional argument TOKENIZE says whether the summary
@@ -2176,6 +2178,8 @@ Call this function if you made changes to `vm-summary-format'."
 	  (vm-set-fs-unread-count-of fs (int-to-string (nth 2 totals)))
 	  (vm-set-fs-deleted-count-of fs (int-to-string (nth 3 totals)))))
       (vm-mark-for-folders-summary-update folder))))
+
+(defvar vm-folder-summary nil)		; used with dynamic binding
 
 (defun vm-folders-summary-sprintf (format layout)
   ;; compile the format into an eval'able s-expression
