@@ -1260,8 +1260,8 @@ summary buffer to select a folder."
   (if (null vm-folders-summary-database)
       (error "'vm-folders-summary-database' must be non-nil to run this command"))
   (if (null vm-folders-summary-buffer)
-      (let ((folder-buffer (and (eq major-mode 'vm-mode)
-				(current-buffer)))
+      (let ((_folder-buffer (and (eq major-mode 'vm-mode)
+				 (current-buffer)))
 	    (summary-buffer-name "VM Folders Summary"))
 	(setq vm-folders-summary-buffer
 	      (or (get-buffer summary-buffer-name)
@@ -1330,12 +1330,12 @@ summary buffer to select a folder."
   (require 'vm-reply)
   (if continue
       (vm-continue-composing-message)
-    (let ((buffer (vm-mail-internal
-		   :buffer-name (if to
-				    (format "message to %s"
-					    (vm-truncate-roman-string to 20))
-				  nil)
-		   :to to :subject subject)))
+    (let ((_buffer (vm-mail-internal
+		    :buffer-name (if to
+				     (format "message to %s"
+					     (vm-truncate-roman-string to 20))
+				   nil)
+		    :to to :subject subject)))
       (goto-char (point-min))
       (re-search-forward (concat "^" mail-header-separator "$"))
       (beginning-of-line)
@@ -1372,6 +1372,14 @@ summary buffer to select a folder."
       (make-local-variable 'mail-return-action)
       (setq mail-return-action return-action))))
 
+;; Dynamically bound variables for sanitized data in the bug report
+
+(defvar vm-bug-imap-auto-expunge-alist nil)
+(defvar vm-bug-pop-auto-expunge-alist nil)
+(defvar vm-bug-imap-account-alist nil)
+(defvar vm-bug-pop-folder-alist nil)
+(defvar vm-bug-spool-files nil)
+
 ;;;###autoload
 (defun vm-submit-bug-report (&optional pre-hooks post-hooks)
   "Submit a bug report, with pertinent information to the VM bug list."
@@ -1383,7 +1391,7 @@ summary buffer to select a folder."
   ;; is what the user wants to complain about.  But most of the
   ;; time we'll be fine and users like to use MIME to attach
   ;; stuff to the reports.
-  (let ((reporter-mailer '(vm-mail))
+  (let ((_reporter-mailer '(vm-mail))	; this is probably not needed
 	(mail-user-agent 'vm-user-agent)
         (varlist nil)
 	(errors 0))
@@ -1424,7 +1432,7 @@ summary buffer to select a folder."
 	     vm-imap-auto-expunge-alist
 	     ))
 	  ;; delete any passwords stored in maildrop strings
-	  (vm-spool-files-sanitized
+	  (vm-bug-spool-files
 	   (condition-case nil
 	       (if (listp (car vm-spool-files))
 		   (vm-mapcar 
@@ -1434,7 +1442,7 @@ summary buffer to select a folder."
 		 (vm-mapcar (function vm-maildrop-sans-personal-info)
 			    vm-spool-files))
 	     (error (vm-increment errors) vm-spool-files)))
-	  (vm-pop-folder-alist-sanitized
+	  (vm-bug-pop-folder-alist
 	   (condition-case nil
 	       (vm-maildrop-alist-sans-personal-info
 		vm-pop-folder-alist)
@@ -1445,17 +1453,17 @@ summary buffer to select a folder."
 	  ;; 	 (vm-mapcar (function vm-maildrop-sans-personal-info) 
 	  ;; 		    vm-imap-server-list)
 	  ;;      (error (vm-increment errors) vm-imap-server-list))))
-	  (vm-imap-account-alist-sanitized
+	  (vm-bug-imap-account-alist
 	   (condition-case nil
 	       (vm-maildrop-alist-sans-personal-info
 		vm-imap-account-alist)
 	     (error (vm-increment errors) vm-imap-account-alist)))
-	  (vm-pop-auto-expunge-alist-sanitized
+	  (vm-bug-pop-auto-expunge-alist
 	   (condition-case nil
 	       (vm-maildrop-alist-sans-personal-info
 		vm-pop-auto-expunge-alist)
 	     (error (vm-increment errors) vm-pop-auto-expunge-alist)))
-	  (vm-imap-auto-expunge-alist-sanitized
+	  (vm-bug-imap-auto-expunge-alist
 	   (condition-case nil
 	       (vm-maildrop-alist-sans-personal-info
 		vm-imap-auto-expunge-alist)
@@ -1466,11 +1474,11 @@ summary buffer to select a folder."
       ;; see what the user had loaded
       (setq varlist
 	    (append (list 'features)
-		    (list 'vm-spool-files-sanitized
-			  'vm-pop-folder-alist-sanitized
-			  'vm-imap-account-alist-sanitized
-			  'vm-pop-auto-expunge-alist-sanitized
-			  'vm-imap-auto-expunge-alist-sanitized)
+		    (list 'vm-bug-spool-files
+			  'vm-bug-pop-folder-alist
+			  'vm-bug-imap-account-alist
+			  'vm-bug-pop-auto-expunge-alist
+			  'vm-bug-imap-auto-expunge-alist)
 		    varlist))
       (delete-other-windows)
       (reporter-submit-bug-report
