@@ -1747,7 +1747,7 @@ chosen."
                  (cons (const favorite) (repeat string))
                  (cons (const favorite-internal) (repeat string))))
 
-(defcustom vm-mime-alternative-yank-method 'best-internal
+(defcustom vm-mime-alternative-yank-method nil
   "*Value tells how to choose which alternative to yank, i.e.,
 include, in replies, when it yanks a mesage with
 \"multipart/alternative\" content.  (It is similar to
@@ -1780,7 +1780,8 @@ that matches an alternative that can be displayed internally will be
 chosen."
 
   :group 'vm-mime
-  :type '(choice (choice (const best-internal)
+  :type '(choice (const nil :tag "Use vm-mime-alternative-show-method")
+		 (choice (const best-internal)
                          (const best)
                          (const all))
                  (cons (const favorite) (repeat string))

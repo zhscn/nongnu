@@ -537,8 +537,10 @@ specified by `vm-included-text-headers' and
 	(vm-decode-mime-message-headers))
 
       ;; Use normal MIME decoding but override normal parameter settings
-      (let (;; override the alternative-select-method
-	    (vm-mime-alternative-show-method vm-mime-alternative-yank-method)
+      (let (;; override the alternative-select-method if necessary
+	    (vm-mime-alternative-show-method
+	     (or vm-mime-alternative-yank-method
+		 vm-mime-alternative-show-method))
 	    ;; include only text and message/rfc822 types
 	    ;; message/external-body should not be included
 	    (vm-auto-displayed-mime-content-types '("text" "message/rfc822"))
