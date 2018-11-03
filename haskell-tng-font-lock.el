@@ -18,29 +18,29 @@
 ;;
 ;;; Code:
 
-(defgroup haskell-tng-font-lock:faces nil
+(defgroup haskell-tng:faces nil
   "Haskell font faces."
   :group 'haskell-tng)
 
-(defface haskell-tng-font-lock:keyword
+(defface haskell-tng:keyword
   '((t :inherit font-lock-keyword-face))
   "Haskell reserved names and operators."
-  :group 'haskell-tng-font-lock:faces)
+  :group 'haskell-tng:faces)
 
-(defface haskell-tng-font-lock:package
+(defface haskell-tng:package
   '((t :inherit font-lock-variable-name-face :weight bold))
   "Haskell packages."
-  :group 'haskell-tng-font-lock:faces)
+  :group 'haskell-tng:faces)
 
-(defface haskell-tng-font-lock:type
+(defface haskell-tng:type
   '((t :inherit font-lock-type-face))
   "Haskell types."
-  :group 'haskell-tng-font-lock:faces)
+  :group 'haskell-tng:faces)
 
-(defface haskell-tng-font-lock:constructor
+(defface haskell-tng:constructor
   '((t :inherit font-lock-constant-face))
   "Haskell constructors."
-  :group 'haskell-tng-font-lock:faces)
+  :group 'haskell-tng:faces)
 
 ;; TODO: types (signatures, classes and imports)
 ;;
@@ -52,33 +52,33 @@
 ;; that obfuscate the meaning, plus we could use DRY.
 
 (setq
- haskell-tng-font-lock:keywords
+ haskell-tng:keywords
  `((,(regexp-opt '("case" "class" "data" "default" "deriving" "do" "else"
                    "foreign" "if" "import" "in" "infix" "infixl"
                    "infixr" "instance" "let" "module" "newtype" "of"
                    "then" "type" "where" "_")
                  'words)
-    . 'haskell-tng-font-lock:keyword) ;; reservedid
+    . 'haskell-tng:keyword) ;; reservedid
    (,(regexp-opt '(".." ":" "::" "=" "|" "<-" ">" "->" "@" "~" "=>")
                  'symbols)
-    . 'haskell-tng-font-lock:keyword) ;; reservedop
+    . 'haskell-tng:keyword) ;; reservedop
    ;; lambda syntax may be followed by a trailing symbol
-   ("\\_<\\(\\\\\\)" . 'haskell-tng-font-lock:keyword)
+   ("\\_<\\(\\\\\\)" . 'haskell-tng:keyword)
 
    ;; TODO: contextual / multiline support for the import region.
    ;; qualified/hiding/as are keywords when used in imports
-   ("\\_<import\\_>[[:space:]]+\\_<\\(qualified\\)\\_>" 1 'haskell-tng-font-lock:keyword)
-   ("\\_<import\\_>[^(]+?\\_<\\(hiding\\|as\\)\\_>" 1 'haskell-tng-font-lock:keyword)
+   ("\\_<import\\_>[[:space:]]+\\_<\\(qualified\\)\\_>" 1 'haskell-tng:keyword)
+   ("\\_<import\\_>[^(]+?\\_<\\(hiding\\|as\\)\\_>" 1 'haskell-tng:keyword)
    ("\\_<import\\_>\\(?:[[:space:]]\\|qualified\\)+\\_<\\([[:upper:]]\\(?:\\.\\|\\w\\)*\\)\\_>"
-    1 'haskell-tng-font-lock:package)
+    1 'haskell-tng:package)
    ("\\_<import\\_>[^(]+?\\_<as[[:space:]]+\\([[:upper:]]\\w+\\)"
-    1 'haskell-tng-font-lock:package)
+    1 'haskell-tng:package)
 
    ("\\_<\\(\\(?:[[:upper:]]\\w*\\.\\)+\\)"
-    . 'haskell-tng-font-lock:package) ;; uses of F.Q.N.s
+    . 'haskell-tng:package) ;; uses of F.Q.N.s
 
-   ("\\_<\\([[:upper:]]\\w*\\)\\_>" 0 'haskell-tng-font-lock:constructor) ;; conid
-   ("\\_<\\(:\\s_+\\)\\_>" 0 'haskell-tng-font-lock:constructor) ;; consym
+   ("\\_<\\([[:upper:]]\\w*\\)\\_>" 0 'haskell-tng:constructor) ;; conid
+   ("\\_<\\(:\\s_+\\)\\_>" 0 'haskell-tng:constructor) ;; consym
    ))
 
 (provide 'haskell-tng-font-lock)

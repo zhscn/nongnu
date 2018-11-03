@@ -22,7 +22,7 @@
 (define-derived-mode haskell-tng-mode prog-mode "Hask"
   "Major mode for editing Haskell programs."
   :group 'haskell-tng
-  :syntax-table haskell-tng-syntax:table
+  :syntax-table haskell-tng:syntax-table
 
   ;; TODO paragraph-start, paragraph-separate, fill-paragraph-function
   ;;
@@ -41,11 +41,10 @@
    dabbrev-case-replace nil
 
    words-include-escapes t
-   syntax-propertize-function #'haskell-tng-syntax:propertize
+   syntax-propertize-function #'haskell-tng:syntax-propertize
    parse-sexp-lookup-properties t
 
-   font-lock-defaults '(haskell-tng-font-lock:keywords
-                        nil nil nil)
+   font-lock-defaults '(haskell-tng:keywords nil nil nil)
 
    ;; whitespace is meaningful, no electric indentation
    electric-indent-inhibit t))
