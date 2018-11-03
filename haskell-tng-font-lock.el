@@ -27,9 +27,9 @@
   "Haskell reserved names and operators."
   :group 'haskell-tng:faces)
 
-(defface haskell-tng:package
+(defface haskell-tng:module
   '((t :inherit font-lock-variable-name-face :weight bold))
-  "Haskell packages."
+  "Haskell modules (packages)."
   :group 'haskell-tng:faces)
 
 (defface haskell-tng:type
@@ -53,36 +53,50 @@
 
 (setq
  haskell-tng:keywords
- `((,(regexp-opt '("case" "class" "data" "default" "deriving" "do" "else"
-                   "foreign" "if" "import" "in" "infix" "infixl"
-                   "infixr" "instance" "let" "module" "newtype" "of"
-                   "then" "type" "where" "_")
-                 'words)
-    . 'haskell-tng:keyword) ;; reservedid
-   (,(regexp-opt '(".." ":" "::" "=" "|" "<-" ">" "->" "@" "~" "=>")
-                 'symbols)
-    . 'haskell-tng:keyword) ;; reservedop
-   ;; lambda syntax may be followed by a trailing symbol
-   ("\\_<\\(\\\\\\)" . 'haskell-tng:keyword)
+ ;; These regexps use the `rx' library so we can reuse common subpatterns. It
+ ;; also increases the readability of the code and, in many cases, allows us to
+ ;; do more work in a single regexp instead of multiple passes.
+ (let ((conid '(: upper (* wordchar)))
+       (consym '(: ":" (+ (syntax symbol)))))
+   `(;; reservedid / reservedop
+     (,(rx-to-string
+        '(|
+          (: word-start
+             (| "case" "class" "data" "default" "deriving" "do" "else"
+                "foreign" "if" "import" "in" "infix" "infixl"
+                "infixr" "instance" "let" "module" "newtype" "of"
+                "then" "type" "where" "_")
+             word-end)
+          (: symbol-start
+             (| ".." ":" "::" "=" "|" "<-" ">" "->" "@" "~" "=>")
+             symbol-end)
+          (: symbol-start (char ?\\))))
+      . 'haskell-tng:keyword)
 
-   ;; TODO: contextual / multiline support for the import region.
-   ;; qualified/hiding/as are keywords when used in imports
-   ("\\_<import\\_>[[:space:]]+\\_<\\(qualified\\)\\_>" 1 'haskell-tng:keyword)
-   ("\\_<import\\_>[^(]+?\\_<\\(hiding\\|as\\)\\_>" 1 'haskell-tng:keyword)
-   ("\\_<import\\_>\\(?:[[:space:]]\\|qualified\\)+\\_<\\([[:upper:]]\\(?:\\.\\|\\w\\)*\\)\\_>"
-    1 'haskell-tng:package)
-   ("\\_<import\\_>[^(]+?\\_<as[[:space:]]+\\([[:upper:]]\\w+\\)"
-    1 'haskell-tng:package)
+     ;; TODO: anchored matchers
+     ;; TODO: contextual / multiline support for the import region.
+     ;; qualified/hiding/as are keywords when used in imports
+     ("\\_<import\\_>[[:space:]]+\\_<\\(qualified\\)\\_>" 1 'haskell-tng:keyword)
+     ("\\_<import\\_>[^(]+?\\_<\\(hiding\\|as\\)\\_>" 1 'haskell-tng:keyword)
+     ("\\_<import\\_>\\(?:[[:space:]]\\|qualified\\)+\\_<\\([[:upper:]]\\(?:\\.\\|\\w\\)*\\)\\_>"
+      1 'haskell-tng:module)
+     ("\\_<import\\_>[^(]+?\\_<as[[:space:]]+\\([[:upper:]]\\w+\\)"
+      1 'haskell-tng:module)
 
-   ("\\_<module\\_>[[:space:]]+\\_<\\([[:upper:]]\\w*\\)\\_>"
-    1 'haskell-tng:package) ;; introducing modules
+     ;; introducing modules
+     (,(rx-to-string '(: symbol-start "module" symbol-end (+ space)
+                         symbol-start (group upper (* wordchar)) symbol-end))
+      1 'haskell-tng:module)
 
-   ("\\_<\\(\\(?:[[:upper:]]\\w*\\.\\)+\\)"
-    . 'haskell-tng:package) ;; uses of F.Q.N.s
+     ;; uses of F.Q.N.s
+     (,(rx-to-string `(: symbol-start (+ (: ,conid "."))))
+      . 'haskell-tng:module)
 
-   ("\\_<\\([[:upper:]]\\w*\\)\\_>" 0 'haskell-tng:constructor) ;; conid
-   ("\\_<\\(:\\s_+\\)\\_>" 0 'haskell-tng:constructor) ;; consym
-   ))
+     ;; constructors
+     (,(rx-to-string `(: symbol-start (| ,conid ,consym) symbol-end))
+      . 'haskell-tng:constructor)
+
+     )))
 
 (provide 'haskell-tng-font-lock)
 ;;; haskell-tng-font-lock.el ends here
