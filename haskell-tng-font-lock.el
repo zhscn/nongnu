@@ -74,6 +74,9 @@
    ("\\_<import\\_>[^(]+?\\_<as[[:space:]]+\\([[:upper:]]\\w+\\)"
     1 'haskell-tng:package)
 
+   ("\\_<module\\_>[[:space:]]+\\_<\\([[:upper:]]\\w*\\)\\_>"
+    1 'haskell-tng:package) ;; introducing modules
+
    ("\\_<\\(\\(?:[[:upper:]]\\w*\\.\\)+\\)"
     . 'haskell-tng:package) ;; uses of F.Q.N.s
 
