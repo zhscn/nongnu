@@ -48,8 +48,11 @@
   "Haskell constructors."
   :group 'haskell-tng:faces)
 
-;; TODO: types (signatures, classes and imports)
-;;
+(defface haskell-tng:toplevel
+  '((t :inherit font-lock-function-name-face))
+  "Haskell top level declarations."
+  :group 'haskell-tng:faces)
+
 ;; TODO: pragmas
 ;;
 ;; TODO: numeric / char primitives?
@@ -79,6 +82,22 @@
           (: symbol-start (char ?\\))))
       . 'haskell-tng:keyword)
 
+     ;; types
+     ;; TODO TypeApplications
+     ;; TODO bracketed types (when are these allowed)
+     ;; TODO class definitions
+     ;; TODO types (not constructors) in imports
+     (,(rx-to-string '(: (|
+                          (: line-start (+ space) "->")
+                          (: symbol-start "::" symbol-end))
+                         (+ space)
+                         (group (+? (not (syntax comment-start))))
+                         (| (syntax comment-start) line-end)))
+      (1 'haskell-tng:type keep))
+     (,(rx-to-string `(: line-start "data" (+ space)
+                         (group (| ,conid ,consym))))
+      (1 'haskell-tng:type))
+
      ;; modules
      (,(rx-to-string `(: symbol-start "module" symbol-end (+ space)
                          symbol-start (group (opt ,qual) ,conid) symbol-end))
@@ -96,6 +115,14 @@
                           word-start (group (| "hiding" "as")) word-end
                           (opt (+ space) word-start (group ,conid) word-end)))
        nil nil (1 'haskell-tng:keyword) (2 'haskell-tng:module nil t)))
+
+     ;; top-level
+     (,(rx-to-string `(: line-start
+                         (group (|
+                                 (: (any lower ?_) (* wordchar))
+                                 (: "(" (+? (syntax symbol)) ")")))
+                         symbol-end))
+      . 'haskell-tng:toplevel)
 
      ;; uses of F.Q.N.s
      (,(rx-to-string `(: symbol-start (+ (: ,conid "."))))
