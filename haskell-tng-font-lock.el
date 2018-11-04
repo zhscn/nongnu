@@ -77,7 +77,7 @@
                 "then" "type" "where" "_")
              word-end)
           (: symbol-start
-             (| ".." ":" "::" "=" "|" "<-" ">" "->" "@" "~" "=>")
+             (| ".." ":" "::" "=" "|" "<-" "->" "@" "~" "=>")
              symbol-end)
           (: symbol-start (char ?\\))))
       . 'haskell-tng:keyword)
