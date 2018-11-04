@@ -14,12 +14,6 @@
 ;;  parsing, but until that day, we do it the idiomatic Emacs way (with hacks
 ;;  and more hacks).
 ;;
-;;  We try very hard to use only single line fontifications, since multiline
-;;  introduces both a performance and maintenance penalty. For this reason, some
-;;  very unusual styles of Haskell, although valid, may not be supported. For
-;;  example, comments in unusual positions and line breaks after contextual
-;;  markers (e.g. multiline imports may pick up incorrect colours).
-;;
 ;;  https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#Font-Lock-Mode
 ;;
 ;;; Code:
@@ -57,7 +51,13 @@
 ;;
 ;; TODO: numeric / char primitives?
 ;;
-;; TODO: haddock
+;; TODO: haddock, different face vs line comments, and some markup.
+;;
+;; TODO: multiline support for imports and type detection.
+;;
+;; TODO: consider comments where we currently check for spaces.
+;;
+;; TODO: consider ; in the "until the end of the line" searches.
 
 (setq
  haskell-tng:keywords
@@ -82,20 +82,25 @@
           (: symbol-start (char ?\\))))
       . 'haskell-tng:keyword)
 
-     ;; types
-     ;; TODO TypeApplications
+     ;; types (multi-line support would improve this)
      ;; TODO bracketed types (when are these allowed)
-     ;; TODO class definitions
-     ;; TODO types (not constructors) in imports
      (,(rx-to-string '(: (|
                           (: line-start (+ space) "->")
                           (: symbol-start "::" symbol-end))
                          (+ space)
                          (group (+? (not (syntax comment-start))))
-                         (| (syntax comment-start) line-end)))
+                         (| ?\; (syntax comment-start) line-end)))
       (1 'haskell-tng:type keep))
      (,(rx-to-string `(: line-start "data" (+ space)
                          (group (| ,conid ,consym))))
+      (1 'haskell-tng:type))
+     (,(rx-to-string `(: line-start (| "class" "instance") (+ space)
+                         (group (+? anything))
+                         (+ space) "where"))
+      (1 'haskell-tng:type keep))
+     ;; TypeApplications
+     (,(rx-to-string `(: symbol-start "@" (+ space)
+                         (group (opt ,qual) (| ,conid ,consym))))
       (1 'haskell-tng:type))
 
      ;; modules
@@ -103,7 +108,7 @@
                          symbol-start (group (opt ,qual) ,conid) symbol-end))
       1 'haskell-tng:module)
 
-     ;; imports
+     ;; imports (multi-line support would improve this)
      (,(rx-to-string '(: word-start "import" word-end)) ;; anchor matcher
       (,(rx-to-string `(: point (+ space) (group word-start "qualified" word-end)))
        nil nil (1 'haskell-tng:keyword))
@@ -114,7 +119,12 @@
       (,(rx-to-string `(: point (+? (not (any ?\()))
                           word-start (group (| "hiding" "as")) word-end
                           (opt (+ space) word-start (group ,conid) word-end)))
-       nil nil (1 'haskell-tng:keyword) (2 'haskell-tng:module nil t)))
+       nil nil (1 'haskell-tng:keyword) (2 'haskell-tng:module nil t))
+      (,(rx-to-string `(: symbol-start (group (| ,conid ,consym)) symbol-end
+                          (* space) "(..)"))
+       nil nil (1 'haskell-tng:constructor))
+      (,(rx-to-string `(: symbol-start (group (| ,conid ,consym)) symbol-end))
+       nil nil (1 'haskell-tng:type)))
 
      ;; top-level
      (,(rx-to-string `(: line-start
