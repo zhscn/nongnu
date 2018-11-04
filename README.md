@@ -1,14 +1,12 @@
 # Haskell Mode: The Next Generation
 
-This is an exploratory alternative to [`haskell-mode`](https://github.com/haskell/haskell-mode/) that answers the question
-
-> How would we support Haskell in GNU Emacs if we started today?
+This is an exploratory alternative to [`haskell-mode`](https://github.com/haskell/haskell-mode/) that answers the question *how would we support Haskell in GNU Emacs if we started today?*
 
 ## Why?
 
-`haskell-mode` is almost 30 years old and has accumulated more than 25,000 lines of code. Nobody wants to maintain that.
+`haskell-mode` is almost 30 years old and has accumulated more than 25,000 lines of code. It's too much to handle.
 
-The GNU Emacs ecosystem has evolved to provide many features that `haskell-mode` independently implemented, such as [`projectile`](https://github.com/bbatsov/projectile), [`comint-mode`](https://masteringemacs.org/article/comint-writing-command-interpreter), [`highlight-symbol`](https://melpa.org/##/highlight-symbol), [`company-mode`](http://company-mode.github.io), [`yasnippet`](http://joaotavora.github.io/yasnippet/), [`polymode`](https://github.com/polymode/polymode), [`smartparens`](https://github.com/Fuco1/smartparens), [SMIE](https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html) and [LSP](https://github.com/emacs-lsp/lsp-mode/), to name just a few.
+Meanwhile, the GNU Emacs ecosystem has evolved to provide many features that `haskell-mode` independently implemented, such as [`projectile`](https://github.com/bbatsov/projectile), [`comint-mode`](https://masteringemacs.org/article/comint-writing-command-interpreter), [`highlight-symbol`](https://melpa.org/##/highlight-symbol), [`pretty-symbols`](https://github.com/drothlis/pretty-symbols), [`company-mode`](http://company-mode.github.io), [`yasnippet`](http://joaotavora.github.io/yasnippet/), [`polymode`](https://github.com/polymode/polymode), [`smartparens`](https://github.com/Fuco1/smartparens), [SMIE](https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html) and [LSP](https://github.com/emacs-lsp/lsp-mode/), to name just a few.
 
 ## Approach
 
@@ -54,7 +52,7 @@ This is the status of core features:
   - [ ] `yasnippet` templates
   - [ ] `smartparens` compatibility (or something from stdlib)
   - [ ] `LANGUAGE` management
-  - [ ] `import` management
+  - [ ] `import` management (via hoogle and [`hsimport`](https://hackage.haskell.org/package/hsimport))
 - Compiling:
   - [ ] `haskell-compile` for build tool agnostic interaction with `ghc`
   - [ ] `comint-mode` based `ghc` repl

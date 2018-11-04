@@ -27,9 +27,12 @@
   ;; TODO paragraph-start, paragraph-separate, fill-paragraph-function
   ;;
   ;; TODO comment-start, comment-padding, comment-start-skip, comment-end,
-  ;;      comment-end-skip, comment-auto-fill-only-comments, parse-sexp-ignore-comments
+  ;;      comment-end-skip, comment-auto-fill-only-comments,
+  ;;      parse-sexp-ignore-comments (it is annoying that we must specify
+  ;;      comments here AND in the syntax table)
   ;;
-  ;; (it is annoying that we specify comments here AND in the syntax table)
+  ;; TODO mark-defun
+  ;; TODO font-lock-mark-block-function
 
   (setq
    ;; TAB is evil

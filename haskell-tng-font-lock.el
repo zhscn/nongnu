@@ -14,6 +14,12 @@
 ;;  parsing, but until that day, we do it the idiomatic Emacs way (with hacks
 ;;  and more hacks).
 ;;
+;;  We try very hard to use only single line fontifications, since multiline
+;;  introduces both a performance and maintenance penalty. For this reason, some
+;;  very unusual styles of Haskell, although valid, may not be supported. For
+;;  example, comments in unusual positions and line breaks after contextual
+;;  markers (e.g. multiline imports may pick up incorrect colours).
+;;
 ;;  https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#Font-Lock-Mode
 ;;
 ;;; Code:
@@ -47,17 +53,17 @@
 ;; TODO: pragmas
 ;;
 ;; TODO: numeric / char primitives?
-
-;; FIXME: consider using rx instead of regexes... there are a lot of escapes
-;; that obfuscate the meaning, plus we could use DRY.
+;;
+;; TODO: haddock
 
 (setq
  haskell-tng:keywords
  ;; These regexps use the `rx' library so we can reuse common subpatterns. It
  ;; also increases the readability of the code and, in many cases, allows us to
  ;; do more work in a single regexp instead of multiple passes.
- (let ((conid '(: upper (* wordchar)))
-       (consym '(: ":" (+ (syntax symbol)))))
+ (let* ((conid '(: upper (* wordchar)))
+        (qual `(: (+ (: ,conid (char ?.)))))
+        (consym '(: ":" (+ (syntax symbol)))))
    `(;; reservedid / reservedop
      (,(rx-to-string
         '(|
@@ -73,20 +79,23 @@
           (: symbol-start (char ?\\))))
       . 'haskell-tng:keyword)
 
-     ;; TODO: anchored matchers
-     ;; TODO: contextual / multiline support for the import region.
-     ;; qualified/hiding/as are keywords when used in imports
-     ("\\_<import\\_>[[:space:]]+\\_<\\(qualified\\)\\_>" 1 'haskell-tng:keyword)
-     ("\\_<import\\_>[^(]+?\\_<\\(hiding\\|as\\)\\_>" 1 'haskell-tng:keyword)
-     ("\\_<import\\_>\\(?:[[:space:]]\\|qualified\\)+\\_<\\([[:upper:]]\\(?:\\.\\|\\w\\)*\\)\\_>"
-      1 'haskell-tng:module)
-     ("\\_<import\\_>[^(]+?\\_<as[[:space:]]+\\([[:upper:]]\\w+\\)"
+     ;; modules
+     (,(rx-to-string `(: symbol-start "module" symbol-end (+ space)
+                         symbol-start (group (opt ,qual) ,conid) symbol-end))
       1 'haskell-tng:module)
 
-     ;; introducing modules
-     (,(rx-to-string '(: symbol-start "module" symbol-end (+ space)
-                         symbol-start (group upper (* wordchar)) symbol-end))
-      1 'haskell-tng:module)
+     ;; imports
+     (,(rx-to-string '(: word-start "import" word-end)) ;; anchor matcher
+      (,(rx-to-string `(: point (+ space) (group word-start "qualified" word-end)))
+       nil nil (1 'haskell-tng:keyword))
+      (,(rx-to-string `(: point
+                          (opt (+ space) word-start "qualified" word-end)
+                          (+ space) word-start (group (opt ,qual) ,conid) word-end))
+       nil nil (1 'haskell-tng:module))
+      (,(rx-to-string `(: point (+? (not (any ?\()))
+                          word-start (group (| "hiding" "as")) word-end
+                          (opt (+ space) word-start (group ,conid) word-end)))
+       nil nil (1 'haskell-tng:keyword) (2 'haskell-tng:module nil t)))
 
      ;; uses of F.Q.N.s
      (,(rx-to-string `(: symbol-start (+ (: ,conid "."))))
