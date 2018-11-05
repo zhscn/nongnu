@@ -47,6 +47,10 @@
   "Haskell top level declarations."
   :group 'haskell-tng:faces)
 
+;; TODO: a macro to call rx-to-string at runtime that doesn't need (: )
+;;
+;; TODO: regression tests https://github.com/Lindydancer/faceup
+;;
 ;; TODO: pragmas
 ;;
 ;; TODO: numeric / char primitives?
@@ -59,14 +63,24 @@
 ;;
 ;; TODO: consider ; in the "until the end of the line" searches.
 
+(defconst haskell-tng:conid '(: upper (* wordchar)))
+(defconst haskell-tng:consym '(: ":" (+ (syntax symbol))))
+(defconst haskell-tng:toplevel
+  `(: line-start (group (| (: (any lower ?_) (* wordchar))
+                           (: "(" (+? (syntax symbol)) ")")))
+      symbol-end))
+
+;; TODO a macro that wraps these consts with short-form names
+
 (setq
  haskell-tng:keywords
  ;; These regexps use the `rx' library so we can reuse common subpatterns. It
  ;; also increases the readability of the code and, in many cases, allows us to
  ;; do more work in a single regexp instead of multiple passes.
- (let* ((conid '(: upper (* wordchar)))
-        (qual `(: (+ (: ,conid (char ?.)))))
-        (consym '(: ":" (+ (syntax symbol)))))
+ (let ((conid haskell-tng:conid)
+       (qual `(: (+ (: ,haskell-tng:conid (char ?.)))))
+       (consym haskell-tng:consym)
+       (toplevel haskell-tng:toplevel))
    `(;; reservedid / reservedop
      (,(rx-to-string
         '(|
@@ -107,6 +121,8 @@
      (,(rx-to-string `(: symbol-start "module" symbol-end (+ space)
                          symbol-start (group (opt ,qual) ,conid) symbol-end))
       1 'haskell-tng:module)
+     ;; TODO types vs constructor highlighting.
+     ;; needs a multi-line anchor.
 
      ;; imports (multi-line support would improve this)
      (,(rx-to-string '(: word-start "import" word-end)) ;; anchor matcher
@@ -127,11 +143,7 @@
        nil nil (1 'haskell-tng:type)))
 
      ;; top-level
-     (,(rx-to-string `(: line-start
-                         (group (|
-                                 (: (any lower ?_) (* wordchar))
-                                 (: "(" (+? (syntax symbol)) ")")))
-                         symbol-end))
+     (,(rx-to-string toplevel)
       . 'haskell-tng:toplevel)
 
      ;; uses of F.Q.N.s
@@ -143,6 +155,36 @@
       . 'haskell-tng:constructor)
 
      )))
+
+;; TODO: consider previous/next symbol instead of whole line detection in
+;; font-lock-extend-region-functions for super duper hyper perf.
+
+(defun haskell-tng:multiline-faces ()
+  "For use in `font-lock-extend-region-functions'.
+
+Detects multiline patterns, such as multiline `module', `import'
+and type signatures, setting `font-lock-beg' / `font-lock-end'
+appropriately, returning nil."
+  (defvar font-lock-beg)
+  (defvar font-log-end)
+  (save-excursion
+    (goto-char font-lock-beg)
+
+    ;; TODO: detect :: and extend forwards as necessary
+    ;; TODO: detect -> and check if it's a type, then extend both ways
+    ;; TODO: detect module / import and check if its multiline
+    )
+  nil)
+
+(defun haskell-tng:mark-block ()
+  ;; TODO: this is kinda obscure, replace with mark-defun when it is defined
+  "For use as `font-lock-mark-block-function'."
+  (let ((toplevel (rx-to-string haskell-tng:toplevel)))
+    (right-char)
+    (re-search-forward toplevel (point-max) 'max)
+    (move-beginning-of-line nil)
+    (set-mark (point))
+    (re-search-forward toplevel (point-min) 'min -1)))
 
 (provide 'haskell-tng-font-lock)
 ;;; haskell-tng-font-lock.el ends here

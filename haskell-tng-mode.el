@@ -47,10 +47,15 @@
    syntax-propertize-function #'haskell-tng:syntax-propertize
    parse-sexp-lookup-properties t
 
-   font-lock-defaults '(haskell-tng:keywords nil nil nil)
+   font-lock-defaults '(haskell-tng:keywords
+                        nil nil nil nil
+                        (font-lock-mark-block-function . haskell-tng:mark-block))
+   font-lock-extend-region-functions '(font-lock-extend-region-wholelines
+                                       haskell-tng:multiline-faces)
 
    ;; whitespace is meaningful, no electric indentation
-   electric-indent-inhibit t))
+   electric-indent-inhibit t)
+  )
 
 (defcustom haskell-tng-mode-hook nil
   "List of functions to run after `haskell-tng-mode' is enabled."
