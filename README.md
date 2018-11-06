@@ -10,7 +10,7 @@ Meanwhile, the GNU Emacs ecosystem has evolved to provide many features that `ha
 
 ## Approach
 
-The goal of this friendly fork is to produce software that any Haskell developer can use, understand and build upon ([Emacs Lisp](https://www.gnu.org/software/emacs/manual/elisp.html) is fun to learn).
+The goal of this friendly rewrite is to produce software that any Haskell developer can use, understand and build upon ([Emacs Lisp](https://www.gnu.org/software/emacs/manual/elisp.html) is fun to learn).
 
 This can be achieved by preferring a simple and small codebase targeting [Haskell2010](https://www.haskell.org/onlinereport/haskell2010/), with automated tests for every feature.
 

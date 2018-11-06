@@ -18,6 +18,8 @@
 ;;
 ;;; Code:
 
+(require 'subr-x)
+
 (defgroup haskell-tng:faces nil
   "Haskell font faces."
   :group 'haskell-tng)
@@ -159,32 +161,66 @@
 ;; TODO: consider previous/next symbol instead of whole line detection in
 ;; font-lock-extend-region-functions for super duper hyper perf.
 
+(eval-when-compile
+  (defvar font-lock-beg)
+  (defvar font-lock-end))
+
 (defun haskell-tng:multiline-faces ()
   "For use in `font-lock-extend-region-functions'.
 
 Detects multiline patterns, such as multiline `module', `import'
 and type signatures, setting `font-lock-beg' / `font-lock-end'
 appropriately, returning nil."
-  (defvar font-lock-beg)
-  (defvar font-log-end)
   (save-excursion
-    (goto-char font-lock-beg)
+    ;; TODO break this logic into multiple deffuns so we can use the replay
+    ;; logic as intended.
+    (goto-char font-lock-end)
+    (let ((detect-type (rx (| (: symbol-start "::" symbol-end)
+                              (: line-start (+ space) "->" symbol-end)))))
+      (when (re-search-backward detect-type font-lock-beg t)
+       ;; we're in the middle of a type signature. Close any dangling parens or
+       ;; scan until we see a line that doesn't start with ->
+        (if-let (close (haskell-tng:closing-paren))
+            (when (< font-lock-end close)
+              (haskell-tng:debug-extend close)
+              (setq font-lock-end close))
+          ;; TODO scan forward
+          nil)))
 
-    ;; TODO: detect :: and extend forwards as necessary
-    ;; TODO: detect -> and check if it's a type, then extend both ways
+    ;; TODO: detect -> and move to the start of the type (unless its a lambda)
     ;; TODO: detect module / import and check if its multiline
-    )
-  nil)
+    ;; TODO: detect unbalanced parens and scan back for import
+    ))
+
+(defun haskell-tng:debug-extend (to)
+  (message "extending `%s' to `%s'!"
+           (buffer-substring-no-properties font-lock-beg font-lock-end)
+           (buffer-substring-no-properties font-lock-end to)))
+
+;; TODO: this feels like something that would be in the stdlib...
+(defun haskell-tng:closing-paren ()
+  "If point is in an unbalanced parenthesis return the point that
+closes it, otherwise nil."
+  (let* ((scan (syntax-ppss))
+         (open (nth 1 scan)))
+    (when open
+      (save-excursion
+        (goto-char open)
+        (when (looking-at "(")
+          (ignore-errors
+            (forward-list)
+            (backward-char)
+            (point)))))))
 
 (defun haskell-tng:mark-block ()
   ;; TODO: this is kinda obscure, replace with mark-defun when it is defined
   "For use as `font-lock-mark-block-function'."
   (let ((toplevel (rx-to-string haskell-tng:toplevel)))
     (right-char)
-    (re-search-forward toplevel (point-max) 'max)
+    (re-search-forward toplevel (point-max) 'limit)
     (move-beginning-of-line nil)
     (set-mark (point))
-    (re-search-forward toplevel (point-min) 'min -1)))
+    (re-search-backward toplevel (point-min) 'limit)))
 
 (provide 'haskell-tng-font-lock)
 ;;; haskell-tng-font-lock.el ends here
