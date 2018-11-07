@@ -8238,7 +8238,8 @@ This is a destructive operation and cannot be undone!"
     (vm-retrieve-operable-messages count mlist :fail t)
     (save-excursion
       (while mlist
-        (let ((count (vm-nuke-alternative-text/html-internal (car mlist))))
+        (let* ((m (vm-real-message-of (car mlist)))
+	      (count (vm-nuke-alternative-text/html-internal m)))
           (when (vm-interactive-p)
             (if (= count 0)
                 (vm-inform 5 "No text/html parts found.")
