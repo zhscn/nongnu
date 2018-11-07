@@ -173,10 +173,8 @@
 Expand the region to include the opening parenthesis.
 The caller loops until everything is opened."
   (goto-char font-lock-beg)
-  (let* ((scan (syntax-ppss))
-         (open (nth 1 scan)))
-    (when (and open
-               (goto-char open)
+  (when-let (open (nth 1 (syntax-ppss)))
+    (when (and (goto-char open)
                (looking-at "("))
       ;;(haskell-tng:debug-extend (point))
       (setq font-lock-beg (point)))))
@@ -186,14 +184,12 @@ The caller loops until everything is opened."
 Expand the region to include a closing parenthesis.
 The caller loops until everything is closed."
   (goto-char font-lock-end)
-  (let* ((scan (syntax-ppss))
-         (open (nth 1 scan)))
-    (when (and open
-               (goto-char open)
+  (when-let (open (nth 1 (syntax-ppss)))
+    (when (and (goto-char open)
                (looking-at "(")
                (goto-char font-lock-end)
                (re-search-forward ")" (point-max) t))
-      (haskell-tng:debug-extend (point))
+      ;;(haskell-tng:debug-extend (point))
       (setq font-lock-end (point)))))
 
 (defun haskell-tng:multiline-faces ()
