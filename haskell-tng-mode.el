@@ -51,6 +51,8 @@
                         nil nil nil nil
                         (font-lock-mark-block-function . haskell-tng:mark-block))
    font-lock-extend-region-functions '(font-lock-extend-region-wholelines
+                                       haskell-tng:extend-parens-open
+                                       haskell-tng:extend-parens-close
                                        haskell-tng:multiline-faces)
 
    ;; whitespace is meaningful, no electric indentation

@@ -75,22 +75,20 @@
 
 (defun haskell-tng:propertize-char-delims (start end)
   "Matching apostrophes are string delimiters (literal chars)."
-  (save-excursion
-    (goto-char start)
-    (while (re-search-forward "'\\\\?.'" end t)
-      (let ((open (match-beginning 0))
-            (close (- (point) 1)))
-        (put-text-property open (1+ open) 'syntax-table '(7 . ?\'))
-        (put-text-property close (1+ close) 'syntax-table '(7 . ?\'))))))
+  (goto-char start)
+  (while (re-search-forward "'\\\\?.'" end t)
+    (let ((open (match-beginning 0))
+          (close (- (point) 1)))
+      (put-text-property open (1+ open) 'syntax-table '(7 . ?\'))
+      (put-text-property close (1+ close) 'syntax-table '(7 . ?\')))))
 
 (defun haskell-tng:propertize-escapes (start end)
   "Backslash inside String is an escape character."
-  (save-excursion
-    (goto-char start)
-    (while (re-search-forward "\\\\" end t)
-      (when (nth 3 (syntax-ppss))
-        (put-text-property (- (point) 1) (point)
-                           'syntax-table '(9 . ?\\))))))
+  (goto-char start)
+  (while (re-search-forward "\\\\" end t)
+    (when (nth 3 (syntax-ppss))
+      (put-text-property (- (point) 1) (point)
+                         'syntax-table '(9 . ?\\)))))
 
 (provide 'haskell-tng-syntax)
 ;;; haskell-tng-syntax.el ends here
