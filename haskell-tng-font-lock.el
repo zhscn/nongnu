@@ -61,12 +61,13 @@
 ;;
 ;; TODO: multiline support for imports and type detection.
 ;;
-;; TODO: consider comments where we currently check for spaces.
+;; TODO: consider comments and newlines where we currently check for spaces.
 ;;
 ;; TODO: consider ; in the "until the end of the line" searches.
 
 (defconst haskell-tng:conid '(: upper (* wordchar)))
-(defconst haskell-tng:consym '(: ":" (+ (syntax symbol))))
+(defconst haskell-tng:qual `(: (+ (: ,haskell-tng:conid (char ?.)))))
+(defconst haskell-tng:consym '(: ":" (+ (syntax symbol)))) ;; TODO exclude ::
 (defconst haskell-tng:toplevel
   `(: line-start (group (| (: (any lower ?_) (* wordchar))
                            (: "(" (+? (syntax symbol)) ")")))
@@ -80,7 +81,7 @@
  ;; also increases the readability of the code and, in many cases, allows us to
  ;; do more work in a single regexp instead of multiple passes.
  (let ((conid haskell-tng:conid)
-       (qual `(: (+ (: ,haskell-tng:conid (char ?.)))))
+       (qual haskell-tng:qual)
        (consym haskell-tng:consym)
        (toplevel haskell-tng:toplevel))
    `(;; reservedid / reservedop
@@ -173,6 +174,7 @@
 Expand the region to include the opening parenthesis.
 The caller loops until everything is opened."
   (goto-char font-lock-beg)
+  ;; TODO: exit early if in comment
   (when-let (open (nth 1 (syntax-ppss)))
     (when (and (goto-char open)
                (looking-at "("))
@@ -184,6 +186,7 @@ The caller loops until everything is opened."
 Expand the region to include a closing parenthesis.
 The caller loops until everything is closed."
   (goto-char font-lock-end)
+  ;; TODO: exit early if in comment
   (when-let (open (nth 1 (syntax-ppss)))
     (when (and (goto-char open)
                (looking-at "(")
@@ -192,16 +195,77 @@ The caller loops until everything is closed."
       ;;(haskell-tng:debug-extend (point))
       (setq font-lock-end (point)))))
 
-(defun haskell-tng:multiline-faces ()
+(defun haskell-tng:extend-type-open ()
   "For use in `font-lock-extend-region-functions'.
+Ensures that multiline type signatures are opened."
+  (goto-char font-lock-beg)
+  ;; TODO: exit early if in comment
+  (when (and (re-search-forward
+              (rx symbol-start "->" symbol-end)
+              font-lock-end t)
+             (re-search-backward
+              (rx symbol-start "::" symbol-end)
+              (point-min) t)
+             (let ((beg (match-beginning 0)))
+               (haskell-tng:type-end)
+               (when (< font-lock-beg (point))
+                 (haskell-tng:debug-extend (point))
+                 (setq font-lock-end (point)))))))
 
-Detects multiline patterns, such as multiline `module', `import'
-and type signatures, setting `font-lock-beg' / `font-lock-end'
-appropriately, returning nil."
-  ;; TODO: detect -> and move to the start of the type (unless its a lambda)
-  ;; TODO: detect module / import (including from the parens block)
-  nil
-  )
+(defun haskell-tng:type-end ()
+  "Move to the end of this type signature."
+  ;; TODO literal types and generic lists ... eek!
+  (let ((conid haskell-tng:conid)
+        (qual haskell-tng:qual)
+        (consym haskell-tng:consym)
+        (toplevel haskell-tng:toplevel))
+    (re-search-forward
+     ;; TODO cache this regex
+     (rx-to-string `(: point
+                       (| (+ (| space (syntax comment-end)))
+                          (: symbol-start
+                             "--" ;; TODO comment-delimiter
+                             (+? anything)
+                             (+ (syntax comment-end)))
+                          (any ?\( ?\))
+                          (: symbol-start
+                             (| "->"
+                                (+ lower ?_)
+                                (: (opt ,qual) (| ,conid ,consym)))
+                             symbol-end))))
+     (point-max) t)))
+
+;; FIXME: this is matching fooBar
+;; (re-search-forward
+;;  (rx (: point
+;;         symbol-start
+;;         upper (* wordchar)
+;;         symbol-end)))
+
+(defun haskell-tng:extend-type-close ()
+  "For use in `font-lock-extend-region-functions'.
+Ensures that multiline type signatures are closed."
+  nil)
+
+(defun haskell-tng:extend-module-open ()
+  "For use in `font-lock-extend-region-functions'.
+Ensures that multiline `module' definitions are opened."
+  nil)
+
+(defun haskell-tng:extend-module-close ()
+  "For use in `font-lock-extend-region-functions'.
+Ensures that multiline `module' definitions are closed."
+  nil)
+
+(defun haskell-tng:extend-import-open ()
+  "For use in `font-lock-extend-region-functions'.
+Ensures that multiline `import' definitions are opened."
+  nil)
+
+(defun haskell-tng:extend-import-close ()
+  "For use in `font-lock-extend-region-functions'.
+Ensures that multiline `import' definitions are closed."
+  nil)
 
 (defun haskell-tng:debug-extend (to)
   (message "extending `%s' to include `%s'!"

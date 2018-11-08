@@ -53,7 +53,12 @@
    font-lock-extend-region-functions '(font-lock-extend-region-wholelines
                                        haskell-tng:extend-parens-open
                                        haskell-tng:extend-parens-close
-                                       haskell-tng:multiline-faces)
+                                       haskell-tng:extend-type-open
+                                       haskell-tng:extend-type-close
+                                       haskell-tng:extend-module-open
+                                       haskell-tng:extend-module-close
+                                       haskell-tng:extend-import-open
+                                       haskell-tng:extend-import-close)
 
    ;; whitespace is meaningful, no electric indentation
    electric-indent-inhibit t)
