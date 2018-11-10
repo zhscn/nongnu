@@ -67,7 +67,7 @@
 
 (defconst haskell-tng:conid '(: upper (* wordchar)))
 (defconst haskell-tng:qual `(: (+ (: ,haskell-tng:conid (char ?.)))))
-(defconst haskell-tng:consym '(: ":" (+ (syntax symbol)))) ;; TODO exclude ::
+(defconst haskell-tng:consym '(: ":" (+ (syntax symbol)))) ;; TODO exclude ::, limited symbol set
 (defconst haskell-tng:toplevel
   `(: line-start (group (| (: (any lower ?_) (* wordchar))
                            (: "(" (+? (syntax symbol)) ")")))
@@ -205,42 +205,47 @@ Ensures that multiline type signatures are opened."
               font-lock-end t)
              (re-search-backward
               (rx symbol-start "::" symbol-end)
-              (point-min) t)
-             (let ((beg (match-beginning 0)))
-               (haskell-tng:type-end)
-               (when (< font-lock-beg (point))
-                 (haskell-tng:debug-extend (point))
-                 (setq font-lock-end (point)))))))
+              (point-min) t))
+    (goto-char (match-beginning 0))
+    (let ((beg (point)))
+      (haskell-tng:type-end)
+      (when (< font-lock-beg (point))
+        (haskell-tng:debug-extend beg)
+        (setq font-lock-beg beg)
+        (when (< font-lock-end (point))
+          (haskell-tng:debug-extend (point))
+          (setq font-lock-end (point))))))
+  nil
+  )
+
+;; note that \n has syntax `comment-end'
+(defconst haskell-tng:newline
+  '(| (syntax comment-end)
+      (: symbol-start
+         "--"
+         (+ (not (syntax comment-end)))
+         (+ (syntax comment-end))))
+  "Newline or line comment.")
+
+;; TODO literal types and generic lists ... eek!
+(defconst haskell-tng:type
+  (let ((typepart `(| (+ (| ?\( ?\)))
+                      (+ (| lower ?_))
+                      (: (opt ,haskell-tng:qual)
+                         (| "::" ,haskell-tng:conid ,haskell-tng:consym)))))
+    `(: (opt ,haskell-tng:newline) (+ (| space ,typepart))
+        (* (opt ,haskell-tng:newline (+ space)) "->" (+ (| space ,typepart)))))
+  "An explicit type")
 
 (defun haskell-tng:type-end ()
   "Move to the end of this type signature."
-  ;; TODO literal types and generic lists ... eek!
-  (let ((conid haskell-tng:conid)
-        (qual haskell-tng:qual)
-        (consym haskell-tng:consym)
-        (toplevel haskell-tng:toplevel))
+  (interactive)
+  (let* ((case-fold-search nil))
     (re-search-forward
-     ;; TODO cache this regex
-     (rx-to-string `(: point
-                       (| (+ (| space (syntax comment-end)))
-                          (: symbol-start
-                             "--" ;; TODO comment-delimiter
-                             (+? anything)
-                             (+ (syntax comment-end)))
-                          (any ?\( ?\))
-                          (: symbol-start
-                             (| "->"
-                                (+ lower ?_)
-                                (: (opt ,qual) (| ,conid ,consym)))
-                             symbol-end))))
+     (rx-to-string `(: point "::" (* space) ,haskell-tng:type))
      (point-max) t)))
 
-;; FIXME: this is matching fooBar
-;; (re-search-forward
-;;  (rx (: point
-;;         symbol-start
-;;         upper (* wordchar)
-;;         symbol-end)))
+;; also consider multiline data / newtype / type definitions to the equals sign
 
 (defun haskell-tng:extend-type-close ()
   "For use in `font-lock-extend-region-functions'.
