@@ -103,23 +103,18 @@
           (: symbol-start (char ?\\))))
       . 'haskell-tng:keyword)
 
-     ;; types
+     ;; Types.
      (haskell-tng:explicit-type
       (0 'haskell-tng:type keep))
      (haskell-tng:topdecl
       (1 'haskell-tng:type keep))
 
-     ;; ;; TODO multiline data/newtype/class/instance types
-     ;; (,(rx-to-string `(: line-start "data" (+ space)
-     ;;                     (group (| ,conid ,consym))))
-     ;;  (1 'haskell-tng:type))
-     ;; (,(rx-to-string `(: line-start (| "class" "instance") (+ space)
-     ;;                     (group (+? anything))
-     ;;                     (+ space) "where"))
-     ;;  (1 'haskell-tng:type keep))
+     ;; TODO types in deriving sections
+     ;; TODO types in import / export statements
+     ;; TODO ExplicitNamespaces to disambiguate TypeOperators
+
      ;; ;; TypeApplications
      ;; (,(rx-to-string `(: symbol-start "@" (* space)
-     ;;                     ;; TODO: more liberal type application
      ;;                     (group (opt ,qual) (| ,conid ,consym))))
      ;;  (1 'haskell-tng:type))
 
@@ -214,7 +209,8 @@
   (defvar font-lock-beg)
   (defvar font-lock-end))
 
-;; TODO: more aggressive non-type chars
+;; TODO: more aggressive non-type chars (these are technically allowed in string
+;;       literals and TypeOperators messes up everything)
 (defconst haskell-tng:non-type "[^\\{}]")
 
 (defconst haskell-tng:extend-explicit-type-regexp
@@ -254,9 +250,6 @@ Ensures that multiline module definitions are opened."
   "For use in `font-lock-extend-region-functions'.
 Ensures that multiline import definitions are opened."
   nil)
-
-;; TODO multiline data / newtype / type definitions
-;; TODO delete the paren and type extender and rely on growing from a seed
 
 (defun haskell-tng:debug-extend (to)
   (message "extending `%s' to include `%s'!"
