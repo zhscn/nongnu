@@ -80,7 +80,6 @@
          (+ (not (syntax comment-end)))
          (+ (syntax comment-end))))
   "Newline or line comment.")
-;; note that type matching must be bounded for inline occurences
 (defconst haskell-tng:type
   ;; TODO literal types and generic lists ... eek!
   (let ((typepart `(| (+ (any ?\( ?\)))
@@ -118,15 +117,10 @@
           (: symbol-start (char ?\\))))
       . 'haskell-tng:keyword)
 
-     ;; types (multi-line support would improve this)
-     ;; TODO bracketed types (when are these allowed)
-     (,(rx-to-string '(: (|
-                          (: line-start (+ space) "->")
-                          (: symbol-start "::" symbol-end))
-                         (+ space)
-                         (group (+? (not (syntax comment-start))))
-                         (| ?\; (syntax comment-start) line-end)))
-      (1 'haskell-tng:type keep))
+     ;; types
+     (,(rx-to-string '(: symbol-start "::" symbol-end)) .
+      (haskell-tng:explicit-type-paint
+       (backward-char 2) nil (0 'haskell-tng:type keep)))
      (,(rx-to-string `(: line-start "data" (+ space)
                          (group (| ,conid ,consym))))
       (1 'haskell-tng:type))
@@ -181,11 +175,24 @@
 (defvar haskell-tng:explicit-type-regex
   (rx-to-string `(: point "::" (* space) ,haskell-tng:type))
   "Cache of a regex internal to `haskell-tng:explicit-type'")
-(defun haskell-tng:explicit-type ()
+(defun haskell-tng:explicit-type (limit)
   "Matches an explicit type at point, bounded by a closing paren."
-  (re-search-forward
-   haskell-tng:explicit-type-regex
-   (or (haskell-tng:paren-close) (point-max)) t))
+  (let ((end (min limit (or (haskell-tng:paren-close) limit))))
+    (re-search-forward haskell-tng:explicit-type-regex end t)))
+
+;; FIXME: this is for debugging only
+(defun haskell-tng:explicit-type-paint (limit)
+  "Matches an explicit type at point, bounded by a closing paren."
+  (let ((end (min limit (or (haskell-tng:paren-close) limit))))
+    ;; FIXME: why do we sometimes get empty searches? Or without the backward 2?
+    (message "explicit-type-paint in %s" (buffer-substring-no-properties (point) end))
+    (re-search-forward haskell-tng:explicit-type-regex end t)))
+
+;; FIXME FIXME FIXME: for interactive debugging
+(defun type ()
+  (interactive)
+  (let ((case-fold-search nil))
+    (haskell-tng:explicit-type (point-max))))
 
 (eval-when-compile
   ;; available inside font-lock-extend-region-functions procedures.
@@ -193,19 +200,24 @@
   (defvar font-lock-beg)
   (defvar font-lock-end))
 
-;; TODO optimise extend-parens-* to just module / import / types
+(defconst haskell-tng:non-import
+  ;; TODO: exclude more non-import/export characters. ideas: dots that aren't
+  ;; (..) or part of a symbolic import, symbolic operators that are not
+  ;; surrounded by parens.
+  (rx (| ?\" ?\\))
+  "Matches that should never exist in the parens of an import or export")
 (defun haskell-tng:extend-parens-open ()
   "For use in `font-lock-extend-region-functions'.
 Expand the region to include the opening parenthesis.
 The caller loops until everything is opened."
   (goto-char font-lock-beg)
   ;; TODO: exit early if in comment
-  ;; TODO: use a bounded search-backward to exclude non-package characters
   (when-let (open (nth 1 (syntax-ppss)))
     (goto-char open)
     (when (looking-at "(")
-      ;;(haskell-tng:debug-extend (point))
-      (setq font-lock-beg (point)))))
+      (unless (re-search-forward haskell-tng:non-import font-lock-beg t)
+        (haskell-tng:debug-extend open)
+        (setq font-lock-beg open)))))
 
 (defun haskell-tng:extend-parens-close ()
   "For use in `font-lock-extend-region-functions'.
@@ -213,10 +225,12 @@ Expand the region to include a closing parenthesis.
 The caller loops until everything is closed."
   (goto-char font-lock-end)
   ;; TODO: exit early if in comment
-  ;; TODO: use a bounded search-forward to exclude non-package characters
   (when-let (close (haskell-tng:paren-close))
-    ;;(haskell-tng:debug-extend (point))
-    (setq font-lock-end (+ 1 close))))
+    (let ((end (+ 1 close)))
+      (goto-char end)
+      (unless (re-search-backward haskell-tng:non-import font-lock-end t)
+        (haskell-tng:debug-extend end)
+        (setq font-lock-end end)))))
 
 (defun haskell-tng:paren-close ()
   "Return the position of the next `)', if it closes the current paren depth."
@@ -227,41 +241,47 @@ The caller loops until everything is closed."
       (when (looking-at ")")
         (point)))))
 
+(setq
+ haskell-tng:beg-type
+ ;; TODO: more restrictive search, do not scan past non-type constructs
+ (rx symbol-start "::" symbol-end))
 (defun haskell-tng:extend-type-open ()
   "For use in `font-lock-extend-region-functions'.
 Ensures that multiline type signatures are opened."
   (goto-char font-lock-beg)
   ;; TODO: exit early if in comment
-  (when (re-search-backward
-         ;; TODO: replace \ with a larger list of non-type chars
-         (rx symbol-start "::" symbol-end (*? (not (any ?\\))) point)
-         (point-min) t)
+  ;; TODO: maximum lookback for a type
+  (when (re-search-backward haskell-tng:beg-type (point-min) t)
     (let ((beg (match-beginning 0)))
       (when (< beg font-lock-beg)
         (goto-char beg)
+        (message "checking for types at %s" (buffer-substring-no-properties beg (+ beg 10)))
         ;; validate that it's actually a type
-        (haskell-tng:explicit-type) ;; is this needed if we trust the non-lambda backscan?
-        (when (< font-lock-beg (point))
+        (haskell-tng:explicit-type (point-max)) ;; is this needed if we trust the non-lambda backscan?
+        (message "found one %s from %s to %s in (%s, %s) "
+                 (match-string 0)
+                 (match-beginning 0) (match-end 0)
+                 font-lock-beg font-lock-end)
+        (when (<= font-lock-beg (match-end 0))
+          ;; FIXME FIXME FIXME this is never triggering, is the re-search-backward going too far back?
           (haskell-tng:debug-extend beg)
-          (setq font-lock-beg beg)))))
-  nil)
+          (setq font-lock-beg beg)
+          nil)))))
 
 (defun haskell-tng:extend-type-close ()
   "For use in `font-lock-extend-region-functions'.
 Ensures that multiline type signatures are closed."
   (goto-char font-lock-end)
   ;; TODO: exit early if in comment
-  (when (re-search-backward
-         ;; TODO: replace \ with a larger list of non-type chars
-         (rx symbol-start "::" symbol-end (*? (not (any ?\\))) point)
-         font-lock-beg t)
+  (when (re-search-backward haskell-tng:beg-type font-lock-beg t)
     (let ((beg (match-beginning 0)))
       (goto-char beg)
-      (haskell-tng:explicit-type)
-      (when (< font-lock-end (point))
-        (haskell-tng:debug-extend (point))
-        (setq font-lock-beg (point)))))
-  nil)
+      (haskell-tng:explicit-type (point-max))
+      (let ((end (match-end 0)))
+        (when (< font-lock-end end)
+          (haskell-tng:debug-extend end)
+          (setq font-lock-beg end)
+          nil)))))
 
 (defun haskell-tng:extend-module-open ()
   "For use in `font-lock-extend-region-functions'.
