@@ -165,7 +165,7 @@
 ;; Avoid compiling any regexes (i.e. `rx-to-string'), prefer `defconst' and `rx'.
 
 (defconst haskell-tng:type
-  ;; TODO literal types and generic lists ... eek!
+  ;; TODO literal types, TypeOperators, and generic lists ... eek!
   ;; TODO be more explicit about where class constraints can appear
   (let ((newline haskell-tng:newline)
         (typepart `(| (+ (any ?\( ?\) ?\[ ?\]))
