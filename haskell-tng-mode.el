@@ -47,14 +47,14 @@
    syntax-propertize-function #'haskell-tng:syntax-propertize
    parse-sexp-lookup-properties t
 
-   font-lock-defaults '(haskell-tng:keywords
-                        nil nil nil nil
-                        (font-lock-mark-block-function . haskell-tng:mark-block))
+   font-lock-defaults '(haskell-tng:keywords)
+   font-lock-multiline t
    font-lock-extend-region-functions '(font-lock-extend-region-wholelines
                                        haskell-tng:extend-parens-open
                                        haskell-tng:extend-parens-close
                                        haskell-tng:extend-type-open
                                        haskell-tng:extend-type-close
+                                       haskell-tng:extend-defns
                                        haskell-tng:extend-module-open
                                        haskell-tng:extend-module-close
                                        haskell-tng:extend-import-open
