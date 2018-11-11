@@ -82,7 +82,7 @@
   "Newline or line comment.")
 (defconst haskell-tng:type
   ;; TODO literal types and generic lists ... eek!
-  (let ((typepart `(| (+ (any ?\( ?\)))
+  (let ((typepart `(| (+ (any ?\( ?\) ?\[ ?\]))
                       (+ (any lower ?_))
                       (: (opt ,haskell-tng:qual)
                          (| "::" ,haskell-tng:conid ,haskell-tng:consym)))))
