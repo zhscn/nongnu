@@ -51,7 +51,7 @@
    font-lock-multiline t
    font-lock-extend-region-functions '(font-lock-extend-region-wholelines
                                        haskell-tng:extend-explicit-type
-                                       haskell-tng:extend-defns
+                                       haskell-tng:extend-topdecl
                                        haskell-tng:extend-module
                                        haskell-tng:extend-import)
 
