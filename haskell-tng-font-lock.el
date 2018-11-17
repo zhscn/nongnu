@@ -182,40 +182,41 @@ Automatically populated by `haskell-tng:font:multiline'")
 (defmacro haskell-tng:font:multiline (name trigger find &rest limiters)
   "Defines `font-lock-keywords' / `font-lock-extend-region-functions' entries.
 
-TRIGGER is a referentially transparent form that produces a regexp.
+TRIGGER and FIND are forms that produce a regexp, which is
+memoised by this macro. FIND typically begins by repeating
+TRIGGER.
 
-FIND is a form that must behave the same as `re-search-forward',
-i.e. setting the match groups and placing point after the match.
-The variable `limit' is dynamically bound within this form.
-
-The generated `haskell-tng:PREFIX-extend' searches backwards from
-the end of the proposed region for TRIGGER. If a match is found,
-FIND is called with a limit until the end of the buffer, which
-may extend the region.
+The generated `haskell-tng:PREFIX-extend' searches backwards for
+TRIGGER from the end of the region. If a match is found, FIND is
+called with no limit, which will extend the region if there is a
+match.
 
 The generated `haskell-tng:PREFIX-keyword' searches forward for
-TRIGGER within the fontification limit. The point is reset to the
-beginning of the TRIGGER's match and FIND is evaluated.
+TRIGGER, limited to the fontification region. The point is reset
+to the beginning of the TRIGGER's match and FIND is then
+searched. This function is ideal for inclusion in the mode's
+`font-lock-keywords' list and behaves like a regexp.
 
-The LIMITERS are function names that will be called when the
-TRIGGER succeeds and may return a more restrictive limit than the
-defaults for FIND."
+The LIMITERS are function names that are called if the TRIGGER
+succeeds and may further restrict the FIND search limit."
   (declare (indent defun))
   (let* ((sname (concat "haskell-tng:font:" (symbol-name name)))
-         (regexp (intern (concat sname ":trigger")))
+         (regexp-1 (intern (concat sname ":trigger")))
+         (regexp-2 (intern (concat sname ":matcher")))
          (keyword (intern (concat sname ":keyword")))
          (extend (intern (concat sname ":extend"))))
     (cl-flet
         ((finder (lim)
                  `(re-search-forward
-                   ,find
+                   ,regexp-2
                    (-min (cons ,lim (-non-nil (-map 'funcall ',limiters))))
                    t)))
       `(progn
-         (defconst ,regexp ,trigger)
+         (defconst ,regexp-1 ,trigger)
+         (defconst ,regexp-2 ,find)
          (defun ,extend ()
            (goto-char font-lock-end)
-           (when (re-search-backward ,regexp font-lock-beg t)
+           (when (re-search-backward ,regexp-1 font-lock-beg t)
              ,(finder '(point-max))
              (when (< font-lock-end (point))
                (when haskell-tng:font:debug-extend
@@ -223,7 +224,7 @@ defaults for FIND."
                (setq font-lock-end (point))
                nil)))
          (defun ,keyword (limit)
-           (when (re-search-forward ,regexp limit t)
+           (when (re-search-forward ,regexp-1 limit t)
              (goto-char (match-beginning 0))
              ,(finder 'limit)))
          (add-to-list 'haskell-tng:extend-region-functions ',extend t)))))
