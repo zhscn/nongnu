@@ -21,6 +21,7 @@
 ;; TODO: regression tests https://github.com/Lindydancer/faceup
 ;; TODO use levels so users can turn off type fontification
 
+(require 'dash)
 (require 'haskell-tng-util)
 
 (defgroup haskell-tng:faces nil
@@ -172,10 +173,13 @@
   "Print debugging when the font-lock region is extended."
   :type 'boolean)
 
-;; TODO (perf) don't call FIND or extend if there is a multiline property
-;; TODO simplify FIND to use paren-close / indent-close automatically?
-;; TODO option to avoid the initial regexp in -keyword if it overlaps
-(defmacro haskell-tng:font:multiline (name trigger find)
+(defconst haskell-tng:extend-region-functions
+  '(font-lock-extend-region-wholelines)
+  "Used in `font-lock-extend-region-functions'.
+Automatically populated by `haskell-tng:font:multiline'")
+
+;; TODO (perf) don't extend if the TRIGGER has a multiline prop
+(defmacro haskell-tng:font:multiline (name trigger find &rest limiters)
   "Defines `font-lock-keywords' / `font-lock-extend-region-functions' entries.
 
 TRIGGER is a referentially transparent form that produces a regexp.
@@ -184,76 +188,81 @@ FIND is a form that must behave the same as `re-search-forward',
 i.e. setting the match groups and placing point after the match.
 The variable `limit' is dynamically bound within this form.
 
-Both TRIGGER and FIND should be optimised as they will be called
-repeatedly as the user is entering text and navigating the code.
-
-The generated `haskell-tng:PREFIX-extend' uses searches
-backwards from the end of the proposed region with TRIGGER. If a
-match is found, then FIND is evaluated with an unlimited limit to
-calculate the end position, which may extend the region.
+The generated `haskell-tng:PREFIX-extend' searches backwards from
+the end of the proposed region for TRIGGER. If a match is found,
+FIND is called with a limit until the end of the buffer, which
+may extend the region.
 
 The generated `haskell-tng:PREFIX-keyword' searches forward for
 TRIGGER within the fontification limit. The point is reset to the
-beginning of the TRIGGER's match and FIND is evaluated."
+beginning of the TRIGGER's match and FIND is evaluated.
+
+The LIMITERS are function names that will be called when the
+TRIGGER succeeds and may return a more restrictive limit than the
+defaults for FIND."
   (declare (indent defun))
   (let* ((sname (concat "haskell-tng:font:" (symbol-name name)))
          (regexp (intern (concat sname ":trigger")))
          (keyword (intern (concat sname ":keyword")))
          (extend (intern (concat sname ":extend"))))
-    `(progn
-       (defconst ,regexp ,trigger)
-       (defun ,keyword (limit)
-         (when (re-search-forward ,regexp limit t)
-           (goto-char (match-beginning 0))
-           ,find))
-       (defun ,extend ()
-         (goto-char font-lock-end)
-         (when (re-search-backward ,regexp font-lock-beg t)
-           (let ((limit (point-max))) ,find)
-           (when (< font-lock-end (point))
-             (when haskell-tng:font:debug-extend
-               (haskell-tng:font:debug-extend (point)))
-             (setq font-lock-end (point))
-             nil))))))
+    (cl-flet
+        ((finder (lim)
+                 `(re-search-forward
+                   ,find
+                   (-min (cons ,lim (-non-nil (-map 'funcall ',limiters))))
+                   t)))
+      `(progn
+         (defconst ,regexp ,trigger)
+         (defun ,extend ()
+           (goto-char font-lock-end)
+           (when (re-search-backward ,regexp font-lock-beg t)
+             ,(finder '(point-max))
+             (when (< font-lock-end (point))
+               (when haskell-tng:font:debug-extend
+                 (haskell-tng:font:debug-extend (point)))
+               (setq font-lock-end (point))
+               nil)))
+         (defun ,keyword (limit)
+           (when (re-search-forward ,regexp limit t)
+             (goto-char (match-beginning 0))
+             ,(finder 'limit)))
+         (add-to-list 'haskell-tng:extend-region-functions ',extend t)))))
 
 (haskell-tng:font:multiline explicit-type
   (rx symbol-start "::" symbol-end)
-  (let ((paren (haskell-tng:paren-close))
-        (indent (haskell-tng:indent-close (- (point) 1))))
-    (re-search-forward
-     (rx symbol-start "::" symbol-end (group (+ anything)))
-     (min limit (or paren limit) (or indent limit)) t)))
+  (rx symbol-start "::" symbol-end (group (+ anything)))
+  haskell-tng:paren-close
+  haskell-tng:font:explicit-type:indent)
+
+(defun haskell-tng:font:explicit-type:indent ()
+  "Indentation closing the previous symbol."
+  (save-excursion
+    (forward-symbol -1)
+    (haskell-tng:indent-close)))
 
 (haskell-tng:font:multiline topdecl
   (rx line-start (| "data" "newtype" "class" "instance") symbol-end)
-  (re-search-forward
-   (rx line-start (| "data" "newtype" "class" "instance") symbol-end
-       (group (+? anything))
-       (| (: line-start symbol-start)
-          (: symbol-start (| "where" "=") symbol-end)))
-   limit t))
+  (rx line-start (| "data" "newtype" "class" "instance") symbol-end
+      (group (+? anything))
+      (| (: line-start symbol-start)
+         (: symbol-start (| "where" "=") symbol-end))))
 
 (haskell-tng:font:multiline type
   (rx line-start "type" symbol-end)
-  (let ((indent (haskell-tng:indent-close)))
-    (re-search-forward
-     (rx line-start "type" symbol-end (+ space) (group (+ anything)))
-     (min limit (or indent limit)))))
+  (rx line-start "type" symbol-end (+ space) (group (+ anything)))
+  haskell-tng:indent-close)
 
+;; DeriveAnyClass
+;; DerivingStrategies
+;; GeneralizedNewtypeDeriving
+;; TODO DerivingVia
+;; TODO StandaloneDeriving
 (haskell-tng:font:multiline deriving
   (rx symbol-start "deriving" symbol-end)
-  ;; DeriveAnyClass
-  ;; DerivingStrategies
-  ;; GeneralizedNewtypeDeriving
-  ;; TODO DerivingVia
-  ;; TODO StandaloneDeriving
-  (let ((indent (haskell-tng:indent-close)))
-    (re-search-forward
-     (rx
-      symbol-start "deriving" (+ space)
-      (group (opt (| "anyclass" "stock" "newtype"))) (* space)
-      ?\( (group (* anything)) ?\))
-     (min limit (or indent limit)) t)))
+  (rx symbol-start "deriving" symbol-end
+      (+ space) (group (opt (| "anyclass" "stock" "newtype")))
+      (* space) ?\( (group (* anything)) ?\))
+  haskell-tng:indent-close)
 
 ;; TODO modules
 ;; TODO imports

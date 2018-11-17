@@ -49,11 +49,7 @@
 
    font-lock-defaults '(haskell-tng:keywords)
    font-lock-multiline t
-   font-lock-extend-region-functions '(font-lock-extend-region-wholelines
-                                       haskell-tng:font:explicit-type:extend
-                                       haskell-tng:font:topdecl:extend
-                                       haskell-tng:font:type:extend
-                                       haskell-tng:font:deriving:extend)
+   font-lock-extend-region-functions haskell-tng:extend-region-functions
 
    ;; whitespace is meaningful, no electric indentation
    electric-indent-inhibit t)
