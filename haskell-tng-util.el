@@ -31,5 +31,11 @@
             (throw 'closed (point))))
         nil))))
 
+(defun haskell-tng:indent-close-previous ()
+  "Indentation closing the previous symbol."
+  (save-excursion
+    (forward-symbol -1)
+    (haskell-tng:indent-close)))
+
 (provide 'haskell-tng-util)
 ;;; haskell-tng-util.el ends here

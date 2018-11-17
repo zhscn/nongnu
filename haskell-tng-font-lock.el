@@ -232,13 +232,7 @@ defaults for FIND."
   (rx symbol-start "::" symbol-end)
   (rx symbol-start "::" symbol-end (group (+ anything)))
   haskell-tng:paren-close
-  haskell-tng:font:explicit-type:indent)
-
-(defun haskell-tng:font:explicit-type:indent ()
-  "Indentation closing the previous symbol."
-  (save-excursion
-    (forward-symbol -1)
-    (haskell-tng:indent-close)))
+  haskell-tng:indent-close-previous)
 
 (haskell-tng:font:multiline topdecl
   (rx line-start (| "data" "newtype" "class" "instance") symbol-end)
