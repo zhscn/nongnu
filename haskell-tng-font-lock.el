@@ -104,7 +104,7 @@
       . 'haskell-tng:keyword)
 
      ;; Types
-     (haskell-tng:explicit-type
+     (haskell-tng:explicit-type-keyword
       (1 'haskell-tng:type keep))
      (haskell-tng:topdecl
       (1 'haskell-tng:type keep))
@@ -170,16 +170,6 @@
 ;; space" rather than to detect valid entries. Language extensions almost always
 ;; scupper any plan, e.g. TypeOperators and type literals.
 
-(defun haskell-tng:explicit-type (limit)
-  "Matches an explicit type, bounded by a closing paren."
-  (when (re-search-forward (rx symbol-start "::" symbol-end) limit t)
-    (goto-char (match-beginning 0))
-    (let ((paren (haskell-tng:paren-close))
-          (indent (haskell-tng:indent-close (- (point) 1))))
-      (re-search-forward
-       (rx symbol-start "::" symbol-end (group (+ anything)))
-       (min limit (or paren limit) (or indent limit)) t))))
-
 (defun haskell-tng:topdecl (limit)
   "Matches the left hand side of a data, newtype, class or instance in group 1."
   (re-search-forward
@@ -209,6 +199,7 @@
   ;; DerivingStrategies
   ;; GeneralizedNewtypeDeriving
   ;; TODO DerivingVia
+  ;; TODO StandaloneDeriving
   (when (re-search-forward
          (rx symbol-start "deriving" symbol-end)
          limit t)
@@ -230,17 +221,69 @@
   (defvar font-lock-beg)
   (defvar font-lock-end))
 
-;; TODO: remove duplication in extend-* (and also the trigger duplication)
+(defmacro haskell-tng:multiline (prefix trigger find)
+  "Defines `font-lock-keywords' / `font-lock-extend-region-functions' entries.
 
-(defun haskell-tng:extend-explicit-type ()
-  "Multiline explicit type signatures are considered."
-  (goto-char font-lock-end)
-  (when (re-search-backward
-         (rx symbol-start "::" symbol-end)
-         font-lock-beg t)
-    (goto-char (match-beginning 0))
-    (haskell-tng:explicit-type (point-max))
-    (haskell-tng:extend)))
+TRIGGER is a referentially transparent form that produces a regexp.
+
+FIND is a form that must behave the same as `re-search-forward',
+i.e. setting the match groups and placing point after the match.
+The variable `limit' is dynamically bound within this form.
+
+The generated `haskell-tng:PREFIX-extend' uses searches
+backwards from the end of the proposed region with TRIGGER. If a
+match is found, then FIND is evaluated with an unlimited limit to
+calculate the end position, which may extend the region.
+
+The generated `haskell-tng:PREFIX-keyword' searches forward for
+TRIGGER within the fontification limit. The point is reset to the
+beginning of the TRIGGER's match and FIND is evaluated.
+
+`font-lock-multiline' ensures that the full match is painted with
+the multiline property and should not not require further
+expansion.
+
+Use `pp-macroexpand-expression' to debug."
+  ;; TODO (perf) don't call FIND or extend if there is a multiline property
+  ;; TODO simplify FIND to use paren-close / indent-close automatically?
+  (let* ((name (symbol-name prefix))
+         (regexp (intern (concat name "-regexp")))
+         (match (intern (concat name "-keyword")))
+         (extend (intern (concat name "-extend"))))
+    `(progn
+       (defconst ,regexp ,trigger)
+       (defun ,match (limit)
+         (when (re-search-forward ,regexp limit t)
+           (goto-char (match-beginning 0))
+           ,find))
+       (defun ,extend ()
+         (goto-char font-lock-end)
+         (when (re-search-backward ,regexp font-lock-beg t)
+           (goto-char (match-beginning 0)) ;; is this needed?
+           (let ((limit (point-max))) ,find)
+           (when (< font-lock-end (point))
+             ;;(haskell-tng:debug-extend (point))
+             (setq font-lock-end (point))
+             nil))))))
+
+(pp-macroexpand-expression
+ '(haskell-tng:multiline
+   haskell-tng:explicit-type
+   (rx symbol-start "::" symbol-end)
+   (let ((paren (haskell-tng:paren-close))
+         (indent (haskell-tng:indent-close (- (point) 1))))
+     (re-search-forward
+      (rx symbol-start "::" symbol-end (group (+ anything)))
+      (min limit (or paren limit) (or indent limit)) t))))
+
+(haskell-tng:multiline
+ haskell-tng:explicit-type
+ (rx symbol-start "::" symbol-end)
+ (let ((paren (haskell-tng:paren-close))
+       (indent (haskell-tng:indent-close (- (point) 1))))
+   (re-search-forward
+    (rx symbol-start "::" symbol-end (group (+ anything)))
+    (min limit (or paren limit) (or indent limit)) t)))
 
 (defun haskell-tng:extend-topdecl ()
   "Multiline data, newtype, class and instance top level definitions."
@@ -304,10 +347,11 @@ Ensures that multiline import definitions are opened."
             (throw 'closed (point))))
         nil))))
 
+;; TODO: should these be in the macro?
 (defun haskell-tng:extend ()
   "Extend the `font-lock-end' if point is further ahead."
   (when (< font-lock-end (point))
-                                        ;(haskell-tng:debug-extend (point))
+    ;;(haskell-tng:debug-extend (point))
     (setq font-lock-end (point))
     nil))
 

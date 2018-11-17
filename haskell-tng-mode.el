@@ -50,7 +50,7 @@
    font-lock-defaults '(haskell-tng:keywords)
    font-lock-multiline t
    font-lock-extend-region-functions '(font-lock-extend-region-wholelines
-                                       haskell-tng:extend-explicit-type
+                                       haskell-tng:explicit-type-extend
                                        haskell-tng:extend-topdecl
                                        haskell-tng:extend-type
                                        haskell-tng:extend-deriving
