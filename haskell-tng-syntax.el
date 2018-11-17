@@ -15,7 +15,7 @@
 
 (require 'dash)
 
-(defvar haskell-tng:syntax-table
+(defconst haskell-tng:syntax-table
   (let ((table (make-syntax-table)))
     (map-char-table
      #'(lambda (k v)
@@ -70,10 +70,10 @@
 
 (defun haskell-tng:syntax-propertize (start end)
   "For some context-sensitive syntax entries."
-  (haskell-tng:propertize-char-delims start end)
-  (haskell-tng:propertize-escapes start end))
+  (haskell-tng:syntax:char-delims start end)
+  (haskell-tng:syntax:escapes start end))
 
-(defun haskell-tng:propertize-char-delims (start end)
+(defun haskell-tng:syntax:char-delims (start end)
   "Matching apostrophes are string delimiters (literal chars)."
   (goto-char start)
   (while (re-search-forward "'\\\\?.'" end t)
@@ -82,7 +82,7 @@
       (put-text-property open (1+ open) 'syntax-table '(7 . ?\'))
       (put-text-property close (1+ close) 'syntax-table '(7 . ?\')))))
 
-(defun haskell-tng:propertize-escapes (start end)
+(defun haskell-tng:syntax:escapes (start end)
   "Backslash inside String is an escape character."
   (goto-char start)
   (while (re-search-forward "\\\\" end t)
