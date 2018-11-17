@@ -50,12 +50,10 @@
    font-lock-defaults '(haskell-tng:keywords)
    font-lock-multiline t
    font-lock-extend-region-functions '(font-lock-extend-region-wholelines
-                                       haskell-tng:explicit-type-extend
-                                       haskell-tng:extend-topdecl
-                                       haskell-tng:extend-type
-                                       haskell-tng:extend-deriving
-                                       haskell-tng:extend-module
-                                       haskell-tng:extend-import)
+                                       haskell-tng:font:explicit-type:extend
+                                       haskell-tng:font:topdecl:extend
+                                       haskell-tng:font:type:extend
+                                       haskell-tng:font:deriving:extend)
 
    ;; whitespace is meaningful, no electric indentation
    electric-indent-inhibit t)

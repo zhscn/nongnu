@@ -19,16 +19,9 @@
 ;;; Code:
 
 ;; TODO: regression tests https://github.com/Lindydancer/faceup
-;;
-;; TODO: pragmas
-;;
-;; TODO: numeric / char primitives?
-;;
-;; TODO: haddock, different face vs line comments, and some markup.
-;;
 ;; TODO use levels so users can turn off type fontification
 
-(require 'subr-x)
+(require 'haskell-tng-util)
 
 (defgroup haskell-tng:faces nil
   "Haskell font faces."
@@ -61,15 +54,15 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here are `rx' patterns that are reused as a very simple form of BNF grammar
-(defconst haskell-tng:conid '(: upper (* wordchar)))
-(defconst haskell-tng:qual `(: (+ (: ,haskell-tng:conid (char ?.)))))
-(defconst haskell-tng:consym '(: ":" (+ (syntax symbol)))) ;; TODO exclude ::, limited symbol set
-(defconst haskell-tng:toplevel
+(defconst haskell-tng:rx:conid '(: upper (* wordchar)))
+(defconst haskell-tng:rx:qual `(: (+ (: ,haskell-tng:rx:conid (char ?.)))))
+(defconst haskell-tng:rx:consym '(: ":" (+ (syntax symbol)))) ;; TODO exclude ::, limited symbol set
+(defconst haskell-tng:rx:toplevel
   `(: line-start (group (| (: (any lower ?_) (* wordchar))
                            (: "(" (+? (syntax symbol)) ")")))
       symbol-end))
 ;; note that \n has syntax `comment-end'
-(defconst haskell-tng:newline
+(defconst haskell-tng:rx:newline
   '(| (syntax comment-end)
       (: symbol-start
          "--"
@@ -84,10 +77,10 @@
  ;; These regexps use the `rx' library so we can reuse common subpatterns. It
  ;; also increases the readability of the code and, in many cases, allows us to
  ;; do more work in a single regexp instead of multiple passes.
- (let ((conid haskell-tng:conid)
-       (qual haskell-tng:qual)
-       (consym haskell-tng:consym)
-       (toplevel haskell-tng:toplevel))
+ (let ((conid haskell-tng:rx:conid)
+       (qual haskell-tng:rx:qual)
+       (consym haskell-tng:rx:consym)
+       (toplevel haskell-tng:rx:toplevel))
    `(;; reservedid / reservedop
      (,(rx-to-string
         '(|
@@ -104,25 +97,20 @@
       . 'haskell-tng:keyword)
 
      ;; Types
-     (haskell-tng:explicit-type-keyword
+     (haskell-tng:font:explicit-type:keyword
       (1 'haskell-tng:type keep))
-     (haskell-tng:topdecl
+     (haskell-tng:font:topdecl:keyword
       (1 'haskell-tng:type keep))
-     (haskell-tng:type
+     (haskell-tng:font:type:keyword
       (1 'haskell-tng:type keep))
-     (haskell-tng:deriving
+     (haskell-tng:font:deriving:keyword
       (1 'haskell-tng:keyword keep)
       (2 'haskell-tng:type keep))
 
-     ;; TODO types in import / export statements
-     ;; TODO ExplicitNamespaces to disambiguate TypeOperators
-
-     ;; TypeApplications (very conservative)
+     ;; TypeApplications
      (,(rx-to-string `(: symbol-start "@" (* space)
                          (group (opt ,qual) (| ,conid ,consym))))
       (1 'haskell-tng:type))
-
-     ;; TODO: multiline module / import sections
 
      ;; modules
      ;; (,(rx-to-string `(: symbol-start "module" symbol-end (+ space)
@@ -147,6 +135,10 @@
      ;;  (,(rx-to-string `(: symbol-start (group (| ,conid ,consym)) symbol-end))
      ;;   nil nil (1 'haskell-tng:type)))
 
+     ;; TODO: pragmas
+     ;; TODO: numeric / char primitives?
+     ;; TODO: haddock, different face vs line comments, and some markup.
+
      ;; top-level
      (,(rx-to-string toplevel)
       . 'haskell-tng:toplevel)
@@ -162,66 +154,28 @@
      )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Here are `function' matchers for use in `font-lock-keywords', and reusable in
-;; the `font-lock-extend-region-functions' below. These set the match region and
-;; return nil if there is not match in the limited search.
+;; Here are `function' matchers for use in `font-lock-keywords' and
+;; `font-lock-extend-region-functions' procedures for extending the region.
 ;;
 ;; For these more complicated structures, the general rule is to find "negative
 ;; space" rather than to detect valid entries. Language extensions almost always
 ;; scupper any plan, e.g. TypeOperators and type literals.
-
-(defun haskell-tng:topdecl (limit)
-  "Matches the left hand side of a data, newtype, class or instance in group 1."
-  (re-search-forward
-   (rx
-    line-start (| "data" "newtype" "class" "instance") symbol-end
-    (group (+? anything))
-    (|
-     (: line-start symbol-start)
-     (: symbol-start (| "where" "=") symbol-end)))
-   limit t))
-
-(defun haskell-tng:type (limit)
-  "Matches types in group 1."
-  (when (re-search-forward
-         (rx line-start "type" symbol-end)
-         limit t)
-    (goto-char (match-beginning 0))
-    (let ((indent (haskell-tng:indent-close)))
-      (re-search-forward
-       (rx line-start "type" symbol-end
-           (+ space) (group (+ anything)))
-       (min limit (or indent limit))))))
-
-(defun haskell-tng:deriving (limit)
-  "Matches a deriving section putting keywords in group 1, types in group 2."
-  ;; DeriveAnyClass
-  ;; DerivingStrategies
-  ;; GeneralizedNewtypeDeriving
-  ;; TODO DerivingVia
-  ;; TODO StandaloneDeriving
-  (when (re-search-forward
-         (rx symbol-start "deriving" symbol-end)
-         limit t)
-    (goto-char (match-beginning 0))
-    (let ((indent (haskell-tng:indent-close)))
-      (re-search-forward
-       (rx
-        symbol-start "deriving" (+ space)
-        (group (opt (| "anyclass" "stock" "newtype"))) (* space)
-        ?\( (group (* anything)) ?\))
-       (min limit (or indent limit)) t))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Here are `font-lock-extend-region-functions' procedures for extending the
-;; region. Note that because we are using `font-lock-multiline' then multiline
-;; patterns will always be rehighlighted as a group.
+;;
+;; Note that because we are using `font-lock-multiline', multiline patterns will
+;; always be re-highlighted as a group.
 (eval-when-compile
   ;; NOTE: font-lock-end is non-inclusive.
   (defvar font-lock-beg)
   (defvar font-lock-end))
 
-(defmacro haskell-tng:multiline (prefix trigger find)
+(defcustom haskell-tng:font:debug-extend nil
+  "Print debugging when the font-lock region is extended."
+  :type 'boolean)
+
+;; TODO (perf) don't call FIND or extend if there is a multiline property
+;; TODO simplify FIND to use paren-close / indent-close automatically?
+;; TODO option to avoid the initial regexp in -keyword if it overlaps
+(defmacro haskell-tng:font:multiline (name trigger find)
   "Defines `font-lock-keywords' / `font-lock-extend-region-functions' entries.
 
 TRIGGER is a referentially transparent form that produces a regexp.
@@ -230,6 +184,9 @@ FIND is a form that must behave the same as `re-search-forward',
 i.e. setting the match groups and placing point after the match.
 The variable `limit' is dynamically bound within this form.
 
+Both TRIGGER and FIND should be optimised as they will be called
+repeatedly as the user is entering text and navigating the code.
+
 The generated `haskell-tng:PREFIX-extend' uses searches
 backwards from the end of the proposed region with TRIGGER. If a
 match is found, then FIND is evaluated with an unlimited limit to
@@ -237,125 +194,75 @@ calculate the end position, which may extend the region.
 
 The generated `haskell-tng:PREFIX-keyword' searches forward for
 TRIGGER within the fontification limit. The point is reset to the
-beginning of the TRIGGER's match and FIND is evaluated.
-
-`font-lock-multiline' ensures that the full match is painted with
-the multiline property and should not not require further
-expansion.
-
-Use `pp-macroexpand-expression' to debug."
-  ;; TODO (perf) don't call FIND or extend if there is a multiline property
-  ;; TODO simplify FIND to use paren-close / indent-close automatically?
-  (let* ((name (symbol-name prefix))
-         (regexp (intern (concat name "-regexp")))
-         (match (intern (concat name "-keyword")))
-         (extend (intern (concat name "-extend"))))
+beginning of the TRIGGER's match and FIND is evaluated."
+  (declare (indent defun))
+  (let* ((sname (concat "haskell-tng:font:" (symbol-name name)))
+         (regexp (intern (concat sname ":trigger")))
+         (keyword (intern (concat sname ":keyword")))
+         (extend (intern (concat sname ":extend"))))
     `(progn
        (defconst ,regexp ,trigger)
-       (defun ,match (limit)
+       (defun ,keyword (limit)
          (when (re-search-forward ,regexp limit t)
            (goto-char (match-beginning 0))
            ,find))
        (defun ,extend ()
          (goto-char font-lock-end)
          (when (re-search-backward ,regexp font-lock-beg t)
-           (goto-char (match-beginning 0)) ;; is this needed?
            (let ((limit (point-max))) ,find)
            (when (< font-lock-end (point))
-             ;;(haskell-tng:debug-extend (point))
+             (when haskell-tng:font:debug-extend
+               (haskell-tng:font:debug-extend (point)))
              (setq font-lock-end (point))
              nil))))))
 
-(pp-macroexpand-expression
- '(haskell-tng:multiline
-   haskell-tng:explicit-type
-   (rx symbol-start "::" symbol-end)
-   (let ((paren (haskell-tng:paren-close))
-         (indent (haskell-tng:indent-close (- (point) 1))))
-     (re-search-forward
-      (rx symbol-start "::" symbol-end (group (+ anything)))
-      (min limit (or paren limit) (or indent limit)) t))))
+(haskell-tng:font:multiline explicit-type
+  (rx symbol-start "::" symbol-end)
+  (let ((paren (haskell-tng:paren-close))
+        (indent (haskell-tng:indent-close (- (point) 1))))
+    (re-search-forward
+     (rx symbol-start "::" symbol-end (group (+ anything)))
+     (min limit (or paren limit) (or indent limit)) t)))
 
-(haskell-tng:multiline
- haskell-tng:explicit-type
- (rx symbol-start "::" symbol-end)
- (let ((paren (haskell-tng:paren-close))
-       (indent (haskell-tng:indent-close (- (point) 1))))
-   (re-search-forward
-    (rx symbol-start "::" symbol-end (group (+ anything)))
-    (min limit (or paren limit) (or indent limit)) t)))
+(haskell-tng:font:multiline topdecl
+  (rx line-start (| "data" "newtype" "class" "instance") symbol-end)
+  (re-search-forward
+   (rx line-start (| "data" "newtype" "class" "instance") symbol-end
+       (group (+? anything))
+       (| (: line-start symbol-start)
+          (: symbol-start (| "where" "=") symbol-end)))
+   limit t))
 
-(defun haskell-tng:extend-topdecl ()
-  "Multiline data, newtype, class and instance top level definitions."
-  (goto-char font-lock-end)
-  (when (re-search-backward
-         (rx line-start (| "data" "newtype" "class" "instance") symbol-end)
-         font-lock-beg t)
-    (goto-char (match-beginning 0))
-    (haskell-tng:topdecl (point-max))
-    (haskell-tng:extend)))
+(haskell-tng:font:multiline type
+  (rx line-start "type" symbol-end)
+  (let ((indent (haskell-tng:indent-close)))
+    (re-search-forward
+     (rx line-start "type" symbol-end (+ space) (group (+ anything)))
+     (min limit (or indent limit)))))
 
-(defun haskell-tng:extend-type ()
-  "Multiline type top-level definitions."
-  (goto-char font-lock-end)
-  (when (re-search-backward
-         (rx line-start "type" symbol-end)
-         font-lock-beg t)
-    (goto-char (match-beginning 0))
-    (haskell-tng:type (point-max))
-    (haskell-tng:extend)))
+(haskell-tng:font:multiline deriving
+  (rx symbol-start "deriving" symbol-end)
+  ;; DeriveAnyClass
+  ;; DerivingStrategies
+  ;; GeneralizedNewtypeDeriving
+  ;; TODO DerivingVia
+  ;; TODO StandaloneDeriving
+  (let ((indent (haskell-tng:indent-close)))
+    (re-search-forward
+     (rx
+      symbol-start "deriving" (+ space)
+      (group (opt (| "anyclass" "stock" "newtype"))) (* space)
+      ?\( (group (* anything)) ?\))
+     (min limit (or indent limit)) t)))
 
-(defun haskell-tng:extend-deriving ()
-  "Multiline deriving definitions."
-  (goto-char font-lock-end)
-  (when (re-search-backward
-         (rx symbol-start "deriving" symbol-end)
-         font-lock-beg t)
-    (goto-char (match-beginning 0))
-    (haskell-tng:deriving (point-max))
-    (haskell-tng:extend)))
-
-(defun haskell-tng:extend-module ()
-  "For use in `font-lock-extend-region-functions'.
-Ensures that multiline module definitions are opened."
-  nil)
-
-(defun haskell-tng:extend-import ()
-  "For use in `font-lock-extend-region-functions'.
-Ensures that multiline import definitions are opened."
-  nil)
+;; TODO modules
+;; TODO imports
+;; TODO ExplicitNamespaces
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
-(defun haskell-tng:paren-close (&optional pos)
-  "The next `)', if it closes `POS's paren depth."
-  (save-excursion
-    (goto-char (or pos (point)))
-    (when-let (close (ignore-errors (scan-lists (point) 1 1)))
-      (goto-char (- close 1))
-      (when (looking-at ")")
-        (point)))))
 
-(defun haskell-tng:indent-close (&optional pos)
-  "The beginning of the line with indentation that closes `POS'."
-  (save-excursion
-    (goto-char (or pos (point)))
-    (let ((level (current-column)))
-      (catch 'closed
-        (while (and (forward-line) (not (eobp)))
-          (when (<= (current-indentation) level)
-            (throw 'closed (point))))
-        nil))))
-
-;; TODO: should these be in the macro?
-(defun haskell-tng:extend ()
-  "Extend the `font-lock-end' if point is further ahead."
-  (when (< font-lock-end (point))
-    ;;(haskell-tng:debug-extend (point))
-    (setq font-lock-end (point))
-    nil))
-
-(defun haskell-tng:debug-extend (to)
+(defun haskell-tng:font:debug-extend (to)
   (message "extending `%s' to include `%s'!"
            (buffer-substring-no-properties font-lock-beg font-lock-end)
            (if (<= to font-lock-beg)
