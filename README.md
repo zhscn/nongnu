@@ -6,7 +6,7 @@ This is an exploratory alternative to [`haskell-mode`](https://github.com/haskel
 
 `haskell-mode` is almost 30 years old and has accumulated more than 25,000 lines of code. It's too much to handle.
 
-Meanwhile, the GNU Emacs ecosystem has evolved to provide many features that `haskell-mode` independently implemented, such as [`projectile`](https://github.com/bbatsov/projectile), [`comint`](https://masteringemacs.org/article/comint-writing-command-interpreter), [`highlight-symbol`](https://melpa.org/##/highlight-symbol), [`pretty-symbols`](https://github.com/drothlis/pretty-symbols), [`company`](http://company-mode.github.io), [`yasnippet`](http://joaotavora.github.io/yasnippet/), [`polymode`](https://github.com/polymode/polymode), [`smartparens`](https://github.com/Fuco1/smartparens), [SMIE](https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html) and [LSP](https://github.com/emacs-lsp/lsp-mode/), to name just a few.
+Meanwhile, the GNU Emacs ecosystem has evolved to provide many features that `haskell-mode` independently implemented, such as [`projectile`](https://github.com/bbatsov/projectile), [`comint`](https://masteringemacs.org/article/comint-writing-command-interpreter), [`highlight-symbol`](https://melpa.org/##/highlight-symbol), [`pretty-symbols`](https://github.com/drothlis/pretty-symbols), [`company`](http://company-mode.github.io), [`yasnippet`](http://joaotavora.github.io/yasnippet/), [`polymode`](https://github.com/polymode/polymode), [`paredit`](https://www.emacswiki.org/emacs/ParEdit) / [`smartparens`](https://github.com/Fuco1/smartparens), [SMIE](https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html) and [LSP](https://github.com/emacs-lsp/lsp-mode/), to name just a few.
 
 ## Approach
 
@@ -41,7 +41,7 @@ This is the status of core features:
 
 - Navigation:
   - [x] performance-minded `syntax-table`
-  - [ ] `font-lock` to visually distinguish types and values
+  - [x] `font-lock` to visually distinguish types and values
   - [ ] `sexp` navigation (SMIE)
   - [ ] `projectile` / [`fast-tags`](https://github.com/elaforge/fast-tags) integration for `TAGS`
   - [ ] hoogle CLI jump-to-source
@@ -50,7 +50,7 @@ This is the status of core features:
   - [ ] indentation (SMIE)
   - [ ] `abbrev` table
   - [ ] `yasnippet` templates
-  - [ ] `smartparens` compatibility (or something from stdlib)
+  - [ ] `smartparens` / `paredit` rules
   - [ ] `LANGUAGE` management
   - [ ] `import` management (via hoogle and [`hsimport`](https://hackage.haskell.org/package/hsimport))
 - Compiling:

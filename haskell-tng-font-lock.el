@@ -68,7 +68,7 @@
       (: symbol-start
          "--"
          (+ (not (syntax comment-end)))
-         (+ (syntax comment-end))))
+         (syntax comment-end)))
   "Newline or line comment.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -81,7 +81,8 @@
  (let ((conid haskell-tng:rx:conid)
        (qual haskell-tng:rx:qual)
        (consym haskell-tng:rx:consym)
-       (toplevel haskell-tng:rx:toplevel))
+       (toplevel haskell-tng:rx:toplevel)
+       (bigspace `(| space ,haskell-tng:rx:newline)))
    `(;; reservedid / reservedop
      (,(rx-to-string
         '(|
@@ -113,28 +114,26 @@
                          (group (opt ,qual) (| ,conid ,consym))))
       (1 'haskell-tng:type))
 
-     ;; modules
-     ;; (,(rx-to-string `(: symbol-start "module" symbol-end (+ space)
-     ;;                     symbol-start (group (opt ,qual) ,conid) symbol-end))
-     ;;  1 'haskell-tng:module)
+     ;; TODO modules
 
      ;; imports
-     ;; (,(rx-to-string '(: word-start "import" word-end)) ;; anchor matcher
-     ;;  (,(rx-to-string `(: point (+ space) (group word-start "qualified" word-end)))
-     ;;   nil nil (1 'haskell-tng:keyword))
-     ;;  (,(rx-to-string `(: point
-     ;;                      (opt (+ space) word-start "qualified" word-end)
-     ;;                      (+ space) word-start (group (opt ,qual) ,conid) word-end))
-     ;;   nil nil (1 'haskell-tng:module))
-     ;;  (,(rx-to-string `(: point (+? (not (any ?\()))
-     ;;                      word-start (group (| "hiding" "as")) word-end
-     ;;                      (opt (+ space) word-start (group ,conid) word-end)))
-     ;;   nil nil (1 'haskell-tng:keyword) (2 'haskell-tng:module nil t))
-     ;;  (,(rx-to-string `(: symbol-start (group (| ,conid ,consym)) symbol-end
-     ;;                      (* space) "(..)"))
-     ;;   nil nil (1 'haskell-tng:constructor))
-     ;;  (,(rx-to-string `(: symbol-start (group (| ,conid ,consym)) symbol-end))
-     ;;   nil nil (1 'haskell-tng:type)))
+     (haskell-tng:font:import:keyword
+      (,(rx-to-string
+         `(: line-start "import" (+ space)
+             (group (opt word-start "qualified" word-end)) (* space)
+             ;; TODO PackageImports
+             ;; TODO Safe / Trustworthy / Unsafe
+             (group symbol-start (* ,conid ".") ,conid symbol-end) (* ,bigspace)
+             (group (opt word-start "as" word-end (* space)))
+             (group (opt word-start "hiding" word-end (* space)))))
+       (haskell-tng:font:multiline:pre) nil
+       (1 'haskell-tng:keyword)
+       (2 'haskell-tng:module)
+       (3 'haskell-tng:keyword)
+       (4 'haskell-tng:keyword))
+      ;; TODO constructors vs types in import brackets
+      ;; TODO ExplicitNamespaces
+      )
 
      ;; TODO: pragmas
      ;; TODO: numeric / char primitives?
@@ -153,6 +152,11 @@
       . 'haskell-tng:constructor)
 
      )))
+
+(defun haskell-tng:font:multiline:pre ()
+  "Multiline MATCH-ANCHORED forms must move point and return LIMIT."
+  (goto-char (match-beginning 0))
+  (match-end 0))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here are `function' matchers for use in `font-lock-keywords' and
@@ -236,15 +240,15 @@ succeeds and may further restrict the FIND search limit."
   haskell-tng:indent-close-previous)
 
 (haskell-tng:font:multiline topdecl
-  (rx line-start (| "data" "newtype" "class" "instance") symbol-end)
-  (rx line-start (| "data" "newtype" "class" "instance") symbol-end
+  (rx line-start (| "data" "newtype" "class" "instance") word-end)
+  (rx line-start (| "data" "newtype" "class" "instance") word-end
       (group (+? anything))
       (| (: line-start symbol-start)
          (: symbol-start (| "where" "=") symbol-end))))
 
 (haskell-tng:font:multiline type
-  (rx line-start "type" symbol-end)
-  (rx line-start "type" symbol-end (+ space) (group (+ anything)))
+  (rx line-start "type" word-end)
+  (rx line-start "type" word-end (group (+ anything)))
   haskell-tng:indent-close)
 
 ;; DeriveAnyClass
@@ -253,15 +257,21 @@ succeeds and may further restrict the FIND search limit."
 ;; TODO DerivingVia
 ;; TODO StandaloneDeriving
 (haskell-tng:font:multiline deriving
-  (rx symbol-start "deriving" symbol-end)
-  (rx symbol-start "deriving" symbol-end
-      (+ space) (group (opt (| "anyclass" "stock" "newtype")))
+  (rx word-start "deriving" word-end)
+  (rx word-start "deriving" word-end
+      (+ space) (group (opt (| "anyclass" "stock" "newtype") word-end))
       (* space) ?\( (group (* anything)) ?\))
   haskell-tng:indent-close)
 
-;; TODO modules
-;; TODO imports
-;; TODO ExplicitNamespaces
+(haskell-tng:font:multiline import
+  (rx line-start "import" word-end)
+  (rx line-start "import" word-end (group (+ anything)))
+  haskell-tng:indent-close)
+
+(haskell-tng:font:multiline module
+  (rx line-start "module" word-end)
+  (rx line-start "module" word-end (group (+ anything)))
+  haskell-tng:indent-close)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
