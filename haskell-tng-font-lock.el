@@ -14,7 +14,15 @@
 ;;  parsing, but until that day, we do it the idiomatic Emacs way (with hacks
 ;;  and more hacks).
 ;;
+;;  Some very useful tools to assist with keywords and extend-region:
+;;
+;;  - https://github.com/Lindydancer/highlight-refontification
+;;  - https://github.com/Lindydancer/font-lock-profiler
+;;  - https://github.com/Lindydancer/font-lock-studio
+;;
+;;  The Emacs Lisp manual should be consulted
 ;;  https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#Font-Lock-Mode
+;;  in addition to `C-h f font-lock-keywords'
 ;;
 ;;; Code:
 
@@ -173,10 +181,6 @@
   (defvar font-lock-beg)
   (defvar font-lock-end))
 
-(defcustom haskell-tng:font:debug-extend nil
-  "Print debugging when the font-lock region is extended."
-  :type 'boolean)
-
 (defconst haskell-tng:extend-region-functions
   '(font-lock-extend-region-wholelines)
   "Used in `font-lock-extend-region-functions'.
@@ -223,8 +227,6 @@ succeeds and may further restrict the FIND search limit."
            (when (re-search-backward ,regexp-1 font-lock-beg t)
              ,(finder '(point-max))
              (when (< font-lock-end (point))
-               (when haskell-tng:font:debug-extend
-                 (haskell-tng:font:debug-extend (point)))
                (setq font-lock-end (point))
                nil)))
          (defun ,keyword (limit)
@@ -272,18 +274,6 @@ succeeds and may further restrict the FIND search limit."
   (rx line-start "module" word-end)
   (rx line-start "module" word-end (group (+ anything)))
   haskell-tng:indent-close)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Helpers
-
-(defun haskell-tng:font:debug-extend (to)
-  (message "extending `%s' to include `%s'!"
-           (buffer-substring-no-properties font-lock-beg font-lock-end)
-           (if (<= to font-lock-beg)
-               (buffer-substring-no-properties to font-lock-beg)
-             (if (<= font-lock-end to)
-                 (buffer-substring-no-properties font-lock-end to)
-               "BADNESS! Reduced the region"))))
 
 (provide 'haskell-tng-font-lock)
 ;;; haskell-tng-font-lock.el ends here
