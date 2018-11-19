@@ -6,7 +6,15 @@
 ;;; Commentary:
 ;;
 ;;  A fontification scheme for Haskell with a goal to visually differentiate
-;;  between values and types, requiring multi-line analysis.
+;;  between values and types.
+;;
+;;  It is not possible to be completely accurate for all language extensions.
+;;  For example TypeOperators and TypeApplications allow constructs that can
+;;  only be disambiguated by semantic rules, e.g. having access to the symbol
+;;  table from the imported module.
+;;
+;;  If an extension has been considered, but not implemented, the marker EXT
+;;  will appear with the extension name near the relevant lines of code.
 ;;
 ;;  The detection of complex language constructs is not considered, for
 ;;  simplicity and speed. Maybe one day we could use
@@ -14,7 +22,7 @@
 ;;  parsing, but until that day, we do it the idiomatic Emacs way (with hacks
 ;;  and more hacks).
 ;;
-;;  Some very useful tools to assist with keywords and extend-region:
+;;  Some useful tools to assist with keywords and extend-region:
 ;;
 ;;  - https://github.com/Lindydancer/highlight-refontification
 ;;  - https://github.com/Lindydancer/font-lock-profiler
@@ -117,7 +125,11 @@
       (1 'haskell-tng:keyword keep)
       (2 'haskell-tng:type keep))
 
-     ;; TypeApplications
+     ;; EXT:TypeFamilies (just paint the whole thing)
+
+     ;; TypeApplications: Unfortunately it is not possible to disambiguate
+     ;; between type applications when the following type is in parentheses, as
+     ;; it could also be a value extractor in a pattern.
      (,(rx-to-string `(: symbol-start "@" (* space)
                          (group (opt ,qual) (| ,conid ,consym))))
       (1 'haskell-tng:type))
@@ -129,8 +141,8 @@
       (,(rx-to-string
          `(: line-start "import" (+ space)
              (group (opt word-start "qualified" word-end)) (* space)
-             ;; TODO PackageImports
-             ;; TODO Safe / Trustworthy / Unsafe
+             ;; EXT:PackageImports
+             ;; EXT:Safe, EXT:Trustworthy, EXT:Unsafe
              (group symbol-start (* ,conid ".") ,conid symbol-end) (* ,bigspace)
              (group (opt word-start "as" word-end (* space)))
              (group (opt word-start "hiding" word-end (* space)))))
@@ -140,7 +152,7 @@
        (3 'haskell-tng:keyword)
        (4 'haskell-tng:keyword))
       ;; TODO constructors vs types in import brackets
-      ;; TODO ExplicitNamespaces
+      ;; EXT:ExplicitNamespaces
       )
 
      ;; TODO: pragmas
@@ -256,8 +268,8 @@ succeeds and may further restrict the FIND search limit."
 ;; DeriveAnyClass
 ;; DerivingStrategies
 ;; GeneralizedNewtypeDeriving
-;; TODO DerivingVia
-;; TODO StandaloneDeriving
+;; EXT:DerivingVia
+;; EXT:StandaloneDeriving
 (haskell-tng:font:multiline deriving
   (rx word-start "deriving" word-end)
   (rx word-start "deriving" word-end
