@@ -29,8 +29,8 @@ Instead, and following the [anarchical spirit of Haskell](https://www.microsoft.
 Check out the source code repository, type `cask build`, and add to your load path:
 
 ```lisp
-(add-to-list 'load-path (expand-file-name "~/Projects/haskell-mode"))
-(require 'haskell-mode-autoloads)
+(add-to-list 'load-path (expand-file-name "~/Projects/haskell-tng.el/"))
+(require 'haskell-tng-mode)
 ```
 
 There are no plans to distribute any other way: this encourages contributor engagement.
