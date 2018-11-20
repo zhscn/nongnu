@@ -114,6 +114,10 @@
           (: symbol-start (char ?\\))))
       . 'haskell-tng:keyword)
 
+     ;; TypeFamilies
+     (,(rx word-start "type" (+ space) (group "family") word-end)
+      (1 'haskell-tng:keyword))
+
      ;; Types
      (haskell-tng:font:explicit-type:keyword
       (1 'haskell-tng:type keep))
