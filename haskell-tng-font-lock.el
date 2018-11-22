@@ -10,11 +10,11 @@
 ;;
 ;;  It is not possible to be completely accurate for all language extensions.
 ;;  For example TypeOperators and TypeApplications allow constructs that can
-;;  only be disambiguated by semantic rules, e.g. having access to the symbol
-;;  table from the imported module.
+;;  only be disambiguated by semantic rules via the symbol table from the
+;;  imported modules.
 ;;
-;;  If an extension has been considered, but not implemented, the marker EXT
-;;  will appear with the extension name near the relevant lines of code.
+;;  If an extension has been considered, but not implemented, the marker EXT:
+;;  will appear with the extension name.
 ;;
 ;;  The detection of complex language constructs is not considered, for
 ;;  simplicity and speed. Maybe one day we could use
@@ -155,7 +155,16 @@
        (2 'haskell-tng:module)
        (3 'haskell-tng:keyword)
        (4 'haskell-tng:keyword))
-      ;; TODO constructors vs types in import brackets
+      (,(rx word-start "as" (+ space) (group (+ word) word-end))
+       (haskell-tng:font:multiline:pre) nil
+       (1 'haskell-tng:module))
+      ;; (haskell-tng:font:paren-search-forward
+      ;;  (haskell-tng:font:multiline:pre 1 0) nil
+      ;;  (0 'haskell-tng:constructor))
+      ;;  TODO FIXME the paren in group 1
+      ;; (,(rx-to-string `(: word-start ,conid word-end))
+      ;;  (haskell-tng:font:multiline:pre 1) nil
+      ;;  (0 'haskell-tng:type))
       ;; EXT:ExplicitNamespaces
       )
 
@@ -177,10 +186,29 @@
 
      )))
 
-(defun haskell-tng:font:multiline:pre ()
-  "Multiline MATCH-ANCHORED forms must move point and return LIMIT."
-  (goto-char (match-beginning 0))
+(defun haskell-tng:font:multiline:pre (&optional group jump)
+  "MATCH-ANCHORED moving point to group beginning (plus JUMP) and extend LIMIT."
+  (setq group (or group 0))
+  ;; TODO: does a group inside an opt give nil? That would be better
+  (when (match-string group)
+    (when (< 0 group)
+     (message "MATCHED GROUP %s AS %s"
+              group
+              (match-string group)))
+    (goto-char (match-beginning group))
+    (when jump
+      (forward-char jump)
+      (message "JUMPING FOR %s TO %s"
+               (match-string group)
+               (buffer-substring-no-properties (point) (+ 10 (point))))))
   (match-end 0))
+
+(defun haskell-tng:font:paren-search-forward (limit)
+  "Match the contents of balanced parenthesis."
+  (when (re-search-forward "(" limit t)
+    (when-let (close (haskell-tng:paren-close))
+      (when (<= close limit)
+        (re-search-forward (rx (+ anything)) close t)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here are `function' matchers for use in `font-lock-keywords' and
@@ -283,7 +311,10 @@ succeeds and may further restrict the FIND search limit."
 
 (haskell-tng:font:multiline import
   (rx line-start "import" word-end)
-  (rx line-start "import" word-end (group (+ anything)))
+  (rx line-start "import" word-end
+      (+? anything)
+      (opt (group "(" (+ anything)))
+      (* anything))
   haskell-tng:indent-close)
 
 (haskell-tng:font:multiline module
