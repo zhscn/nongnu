@@ -144,24 +144,26 @@
      (haskell-tng:font:import:keyword
       (,(rx-to-string
          `(: line-start "import" (+ space)
+             ;; FIXME qualified is being missed when there is an `as'
              (group (opt word-start "qualified" word-end)) (* space)
              ;; EXT:PackageImports
              ;; EXT:Safe, EXT:Trustworthy, EXT:Unsafe
              (group symbol-start (* ,conid ".") ,conid symbol-end) (* ,bigspace)
-             (group (opt word-start "as" word-end (* space)))
-             (group (opt word-start "hiding" word-end (* space)))))
+             (group (opt word-start "as" word-end)) (* space)
+             (group (opt word-start "hiding" word-end))))
        (haskell-tng:font:multiline:pre) nil
        (1 'haskell-tng:keyword)
        (2 'haskell-tng:module)
        (3 'haskell-tng:keyword)
        (4 'haskell-tng:keyword))
-      (,(rx word-start "as" (+ space) (group (+ word) word-end))
+      (,(rx-to-string `(: word-start "as" (+ space)
+                          word-start (group ,conid) word-end))
        (haskell-tng:font:multiline:pre) nil
        (1 'haskell-tng:module))
       ;; (haskell-tng:font:paren-search-forward
-      ;;  (haskell-tng:font:multiline:pre 1 0) nil
+      ;;  (haskell-tng:font:multiline:pre 1) nil
       ;;  (0 'haskell-tng:constructor))
-      ;;  TODO FIXME the paren in group 1
+      ;; FIXME: the import incorrectly detected
       ;; (,(rx-to-string `(: word-start ,conid word-end))
       ;;  (haskell-tng:font:multiline:pre 1) nil
       ;;  (0 'haskell-tng:type))
@@ -189,26 +191,24 @@
 (defun haskell-tng:font:multiline:pre (&optional group jump)
   "MATCH-ANCHORED moving point to group beginning (plus JUMP) and extend LIMIT."
   (setq group (or group 0))
-  ;; TODO: does a group inside an opt give nil? That would be better
   (when (match-string group)
-    (when (< 0 group)
-     (message "MATCHED GROUP %s AS %s"
-              group
-              (match-string group)))
     (goto-char (match-beginning group))
+    ;; (when (< 0 group)
+    ;;   (message "MATCHED GROUP %s to %s, limiting %s"
+    ;;            group (match-string group)
+    ;;            (buffer-substring (match-beginning group) (match-end 0))))
     (when jump
-      (forward-char jump)
-      (message "JUMPING FOR %s TO %s"
-               (match-string group)
-               (buffer-substring-no-properties (point) (+ 10 (point))))))
+      (forward-char jump)))
   (match-end 0))
 
 (defun haskell-tng:font:paren-search-forward (limit)
   "Match the contents of balanced parenthesis."
   (when (re-search-forward "(" limit t)
-    (when-let (close (haskell-tng:paren-close))
-      (when (<= close limit)
-        (re-search-forward (rx (+ anything)) close t)))))
+    (let ((open (point)))
+      (when-let (close (haskell-tng:paren-close))
+        (when (<= close limit)
+          (goto-char open)
+          (re-search-forward (rx (+ anything)) close t))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here are `function' matchers for use in `font-lock-keywords' and
@@ -312,9 +312,8 @@ succeeds and may further restrict the FIND search limit."
 (haskell-tng:font:multiline import
   (rx line-start "import" word-end)
   (rx line-start "import" word-end
-      (+? anything)
-      (opt (group "(" (+ anything)))
-      (* anything))
+      (+ (not (any ?\( )))
+      (opt "(" (group (+ anything)) ")"))
   haskell-tng:indent-close)
 
 (haskell-tng:font:multiline module
