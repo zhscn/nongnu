@@ -114,27 +114,27 @@
           (: symbol-start (char ?\\))))
       . 'haskell-tng:keyword)
 
-     ;; TypeFamilies
-     (,(rx word-start "type" (+ space) (group "family") word-end)
-      (1 'haskell-tng:keyword))
+     ;; ;; TypeFamilies
+     ;; (,(rx word-start "type" (+ space) (group "family") word-end)
+     ;;  (1 'haskell-tng:keyword))
+     ;; ;; EXT:TypeFamilies (associated types, is this the right extension?)
 
-     ;; Types
-     (haskell-tng:font:explicit-type:keyword
-      (1 'haskell-tng:type keep))
-     (haskell-tng:font:topdecl:keyword
-      (1 'haskell-tng:type keep))
-     (haskell-tng:font:type:keyword
-      (1 'haskell-tng:type keep))
-     (haskell-tng:font:deriving:keyword
-      (1 'haskell-tng:keyword keep)
-      (2 'haskell-tng:type keep))
-
-     ;; EXT:TypeFamilies (just paint the whole thing)
+     ;; ;; Types
+     ;; (haskell-tng:font:explicit-type:keyword
+     ;;  (1 'haskell-tng:type keep))
+     ;; (haskell-tng:font:topdecl:keyword
+     ;;  (1 'haskell-tng:type keep))
+     ;; (haskell-tng:font:type:keyword
+     ;;  (1 'haskell-tng:type keep))
+     ;; (haskell-tng:font:deriving:keyword
+     ;;  (1 'haskell-tng:keyword keep)
+     ;;  (2 'haskell-tng:type keep))
 
      ;; TypeApplications: Unfortunately it is not possible to disambiguate
      ;; between type applications when the following type is in parentheses, as
-     ;; it could also be a value extractor in a pattern.
+     ;; it could also be a value extractor in a pattern. We could add more hacks
      (,(rx-to-string `(: symbol-start "@" (* space)
+                         ;; TODO: support type parameters here
                          (group (opt ,qual) (| ,conid ,consym))))
       (1 'haskell-tng:type))
 
@@ -144,29 +144,32 @@
      (haskell-tng:font:import:keyword
       (,(rx-to-string
          `(: line-start "import" (+ space)
-             ;; FIXME qualified is being missed when there is an `as'
              (group (opt word-start "qualified" word-end)) (* space)
              ;; EXT:PackageImports
              ;; EXT:Safe, EXT:Trustworthy, EXT:Unsafe
              (group symbol-start (* ,conid ".") ,conid symbol-end) (* ,bigspace)
-             (group (opt word-start "as" word-end)) (* space)
-             (group (opt word-start "hiding" word-end))))
-       (haskell-tng:font:multiline:pre) nil
+             (group (opt word-start "hiding" word-end)) (* space)))
+       (haskell-tng:font:multiline:anchor-rewind) nil
        (1 'haskell-tng:keyword)
        (2 'haskell-tng:module)
-       (3 'haskell-tng:keyword)
-       (4 'haskell-tng:keyword))
-      (,(rx-to-string `(: word-start "as" (+ space)
+       (3 'haskell-tng:keyword))
+      (,(rx-to-string `(: word-start (group "as") word-end (+ space)
                           word-start (group ,conid) word-end))
-       (haskell-tng:font:multiline:pre) nil
-       (1 'haskell-tng:module))
-      ;; (haskell-tng:font:paren-search-forward
-      ;;  (haskell-tng:font:multiline:pre 1) nil
-      ;;  (0 'haskell-tng:constructor))
-      ;; FIXME: the import incorrectly detected
-      ;; (,(rx-to-string `(: word-start ,conid word-end))
-      ;;  (haskell-tng:font:multiline:pre 1) nil
-      ;;  (0 'haskell-tng:type))
+       (haskell-tng:font:multiline:anchor-rewind) nil
+       (1 'haskell-tng:keyword)
+       (2 'haskell-tng:module))
+      (haskell-tng:font:paren-search-forward
+       (haskell-tng:font:multiline:anchor-rewind 1)
+       (haskell-tng:font:multiline:anchor-rewind)
+       (0 'haskell-tng:constructor))
+      ;; TODO the parens around constructors shouldn't be coloured. Is there a
+      ;; way to return an arbitrary number of groups and colour all of them?
+      ;; Otherwise this may need a standalone matcher outside the anchor, or a
+      ;; cleanup job.
+      (,(rx-to-string `(: word-start ,conid word-end))
+       (haskell-tng:font:multiline:anchor-rewind 1)
+       (haskell-tng:font:multiline:anchor-rewind)
+       (0 'haskell-tng:type))
       ;; EXT:ExplicitNamespaces
       )
 
@@ -174,41 +177,43 @@
      ;; TODO: numeric / char primitives?
      ;; TODO: haddock, different face vs line comments, and some markup.
 
-     ;; top-level
-     (,(rx-to-string toplevel)
-      . 'haskell-tng:toplevel)
+     ;; ;; top-level
+     ;; (,(rx-to-string toplevel)
+     ;;  . 'haskell-tng:toplevel)
 
-     ;; uses of F.Q.N.s
-     (,(rx-to-string `(: symbol-start (+ (: ,conid "."))))
-      . 'haskell-tng:module)
+     ;; ;; uses of F.Q.N.s
+     ;; (,(rx-to-string `(: symbol-start (+ (: ,conid "."))))
+     ;;  . 'haskell-tng:module)
 
-     ;; constructors
-     (,(rx-to-string `(: symbol-start (| ,conid ,consym) symbol-end))
-      . 'haskell-tng:constructor)
+     ;; ;; constructors
+     ;; (,(rx-to-string `(: symbol-start (| ,conid ,consym) symbol-end))
+     ;;  . 'haskell-tng:constructor)
 
      )))
 
-(defun haskell-tng:font:multiline:pre (&optional group jump)
-  "MATCH-ANCHORED moving point to group beginning (plus JUMP) and extend LIMIT."
+(defun haskell-tng:font:multiline:anchor-rewind (&optional group jump)
+  "MATCH-ANCHORED moving point to group beginning (plus JUMP) and declaring LIMIT.
+Can be used as PRE-FORM or POST-FORM, allowing anchors to
+refontify the previously matched region.
+
+If there is no match for GROUP, move to the end of the line, canceling this ANCHOR."
   (setq group (or group 0))
-  (when (match-string group)
+  (if (not (match-string group))
+      (end-of-line)
     (goto-char (match-beginning group))
-    ;; (when (< 0 group)
-    ;;   (message "MATCHED GROUP %s to %s, limiting %s"
-    ;;            group (match-string group)
-    ;;            (buffer-substring (match-beginning group) (match-end 0))))
     (when jump
-      (forward-char jump)))
-  (match-end 0))
+      (forward-char jump))
+    (match-end 0)))
 
 (defun haskell-tng:font:paren-search-forward (limit)
   "Match the contents of balanced parenthesis."
-  (when (re-search-forward "(" limit t)
-    (let ((open (point)))
-      (when-let (close (haskell-tng:paren-close))
-        (when (<= close limit)
-          (goto-char open)
-          (re-search-forward (rx (+ anything)) close t))))))
+  (let ((start (point)))
+    (when (re-search-forward "(" limit t)
+      (let ((open (point)))
+        (when-let (close (haskell-tng:paren-close))
+          (when (<= close limit)
+            (goto-char open)
+            (re-search-forward (rx (+ anything)) close t)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here are `function' matchers for use in `font-lock-keywords' and
@@ -313,7 +318,7 @@ succeeds and may further restrict the FIND search limit."
   (rx line-start "import" word-end)
   (rx line-start "import" word-end
       (+ (not (any ?\( )))
-      (opt "(" (group (+ anything)) ")"))
+      (opt "(" (group (+ anything))))
   haskell-tng:indent-close)
 
 (haskell-tng:font:multiline module
