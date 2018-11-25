@@ -114,21 +114,22 @@
           (: symbol-start (char ?\\))))
       . 'haskell-tng:keyword)
 
-     ;; ;; TypeFamilies
-     ;; (,(rx word-start "type" (+ space) (group "family") word-end)
-     ;;  (1 'haskell-tng:keyword))
-     ;; ;; EXT:TypeFamilies (associated types, is this the right extension?)
+     ;; TypeFamilies
+     (,(rx word-start "type" (+ space) (group "family") word-end)
+      (1 'haskell-tng:keyword))
+     ;; EXT:TypeFamilies (associated types, is this the right extension?)
 
-     ;; ;; Types
-     ;; (haskell-tng:font:explicit-type:keyword
-     ;;  (1 'haskell-tng:type keep))
-     ;; (haskell-tng:font:topdecl:keyword
-     ;;  (1 'haskell-tng:type keep))
-     ;; (haskell-tng:font:type:keyword
-     ;;  (1 'haskell-tng:type keep))
-     ;; (haskell-tng:font:deriving:keyword
-     ;;  (1 'haskell-tng:keyword keep)
-     ;;  (2 'haskell-tng:type keep))
+     ;; Types
+     (haskell-tng:font:explicit-type:keyword
+      (1 'haskell-tng:type keep))
+     (haskell-tng:font:topdecl:keyword
+      (1 'haskell-tng:type keep))
+     (haskell-tng:font:type:keyword
+      (1 'haskell-tng:type keep))
+     (haskell-tng:font:deriving:keyword
+      (1 'haskell-tng:keyword keep)
+      (2 'haskell-tng:type keep))
+     ;; TODO don't colour parens
 
      ;; TypeApplications: Unfortunately it is not possible to disambiguate
      ;; between type applications when the following type is in parentheses, as
@@ -158,7 +159,7 @@
        (haskell-tng:font:multiline:anchor-rewind) nil
        (1 'haskell-tng:keyword)
        (2 'haskell-tng:module))
-      (haskell-tng:font:paren-search-forward
+      (haskell-tng:font:explicit-constructors
        (haskell-tng:font:multiline:anchor-rewind 1)
        (haskell-tng:font:multiline:anchor-rewind)
        (0 'haskell-tng:constructor))
@@ -177,17 +178,22 @@
      ;; TODO: numeric / char primitives?
      ;; TODO: haddock, different face vs line comments, and some markup.
 
-     ;; ;; top-level
-     ;; (,(rx-to-string toplevel)
-     ;;  . 'haskell-tng:toplevel)
+     ;; top-level
+     (,(rx-to-string toplevel)
+      . 'haskell-tng:toplevel)
 
-     ;; ;; uses of F.Q.N.s
-     ;; (,(rx-to-string `(: symbol-start (+ (: ,conid "."))))
-     ;;  . 'haskell-tng:module)
+     ;; uses of F.Q.N.s
+     (,(rx-to-string `(: symbol-start (+ (: ,conid "."))))
+      . 'haskell-tng:module)
 
-     ;; ;; constructors
-     ;; (,(rx-to-string `(: symbol-start (| ,conid ,consym) symbol-end))
-     ;;  . 'haskell-tng:constructor)
+     ;; constructors
+     (,(rx-to-string `(: symbol-start (| ,conid ,consym) symbol-end))
+      . 'haskell-tng:constructor)
+
+     ;; some things look nicer without faces
+     (,(rx (any ?\( ?\) ?\[ ?\] ?\{ ?\} ?,))
+      (0 'default t))
+     ;; TODO: remove faces instead of adding 'default
 
      )))
 
@@ -205,10 +211,13 @@ If there is no match for GROUP, move to the end of the line, canceling this ANCH
       (forward-char jump))
     (match-end 0)))
 
-(defun haskell-tng:font:paren-search-forward (limit)
-  "Match the contents of balanced parenthesis."
+(defun haskell-tng:font:explicit-constructors (limit)
+  "Finds paren blocks of constructors when in an import statement.
+Some complexity to avoid matching on operators."
   (let ((start (point)))
-    (when (re-search-forward "(" limit t)
+    (when (re-search-forward
+           (rx (any lower) (* space) "(")
+           limit t)
       (let ((open (point)))
         (when-let (close (haskell-tng:paren-close))
           (when (<= close limit)
