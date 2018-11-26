@@ -163,10 +163,6 @@
        (haskell-tng:font:multiline:anchor-rewind 1)
        (haskell-tng:font:multiline:anchor-rewind)
        (0 'haskell-tng:constructor))
-      ;; TODO the parens around constructors shouldn't be coloured. Is there a
-      ;; way to return an arbitrary number of groups and colour all of them?
-      ;; Otherwise this may need a standalone matcher outside the anchor, or a
-      ;; cleanup job.
       (,(rx-to-string `(: word-start ,conid word-end))
        (haskell-tng:font:multiline:anchor-rewind 1)
        (haskell-tng:font:multiline:anchor-rewind)
@@ -332,7 +328,8 @@ succeeds and may further restrict the FIND search limit."
 
 (haskell-tng:font:multiline module
   (rx line-start "module" word-end)
-  (rx line-start "module" word-end (group (+ anything)))
+  (rx line-start "module" word-end (group (+ anything))
+      word-start "where" word-end)
   haskell-tng:indent-close)
 
 (provide 'haskell-tng-font-lock)
