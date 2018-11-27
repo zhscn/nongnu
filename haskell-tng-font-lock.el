@@ -114,6 +114,10 @@
           (: symbol-start (char ?\\))))
       . 'haskell-tng:keyword)
 
+     ;; some things look nicer without faces
+     (,(rx (any ?\( ?\) ?\[ ?\] ?\{ ?\} ?,))
+      (0 'default))
+
      ;; TypeFamilies
      (,(rx word-start "type" (+ space) (group "family") word-end)
       (1 'haskell-tng:keyword))
@@ -139,8 +143,6 @@
                          (group (opt ,qual) (| ,conid ,consym))))
       (1 'haskell-tng:type))
 
-     ;; TODO modules
-
      ;; imports
      (haskell-tng:font:import:keyword
       (,(rx-to-string
@@ -162,13 +164,28 @@
       (haskell-tng:font:explicit-constructors
        (haskell-tng:font:multiline:anchor-rewind 1)
        (haskell-tng:font:multiline:anchor-rewind)
-       (0 'haskell-tng:constructor))
+       (0 'haskell-tng:constructor keep))
       (,(rx-to-string `(: word-start ,conid word-end))
        (haskell-tng:font:multiline:anchor-rewind 1)
        (haskell-tng:font:multiline:anchor-rewind)
-       (0 'haskell-tng:type))
+       (0 'haskell-tng:type keep))
       ;; EXT:ExplicitNamespaces
       )
+
+     (haskell-tng:font:module:keyword
+      (,(rx-to-string `(: word-start "module" word-end (+ space)
+                          (group symbol-start (* ,conid ".") ,conid symbol-end)))
+       (haskell-tng:font:multiline:anchor-rewind)
+       (haskell-tng:font:multiline:anchor-rewind)
+       (1 'haskell-tng:module))
+      (haskell-tng:font:explicit-constructors
+       (haskell-tng:font:multiline:anchor-rewind 1)
+       (haskell-tng:font:multiline:anchor-rewind)
+       (0 'haskell-tng:constructor keep))
+      (,(rx-to-string `(: word-start ,conid word-end))
+       (haskell-tng:font:multiline:anchor-rewind 1)
+       (haskell-tng:font:multiline:anchor-rewind)
+       (0 'haskell-tng:type keep)))
 
      ;; TODO: pragmas
      ;; TODO: numeric / char primitives?
@@ -185,11 +202,6 @@
      ;; constructors
      (,(rx-to-string `(: symbol-start (| ,conid ,consym) symbol-end))
       . 'haskell-tng:constructor)
-
-     ;; some things look nicer without faces
-     (haskell-tng:font:none
-      (0 'default t))
-     ;; TODO: remove faces instead of adding 'default
 
      )))
 
@@ -219,16 +231,6 @@ Some complexity to avoid matching on operators."
           (when (<= close limit)
             (goto-char open)
             (re-search-forward (rx (+ anything)) close t)))))))
-
-(defun haskell-tng:font:none (limit)
-  "Things that should not be fontified."
-  (when-let ((p (re-search-forward
-                 (rx (any ?\( ?\) ?\[ ?\] ?\{ ?\} ?,))
-                 limit t))
-             (pp (syntax-ppss)))
-    (if (or (nth 3 pp) (nth 4 pp))
-        (haskell-tng:font:none limit)
-      p)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here are `function' matchers for use in `font-lock-keywords' and
