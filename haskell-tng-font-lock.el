@@ -187,7 +187,7 @@
       . 'haskell-tng:constructor)
 
      ;; some things look nicer without faces
-     (,(rx (any ?\( ?\) ?\[ ?\] ?\{ ?\} ?,))
+     (haskell-tng:font:none
       (0 'default t))
      ;; TODO: remove faces instead of adding 'default
 
@@ -219,6 +219,16 @@ Some complexity to avoid matching on operators."
           (when (<= close limit)
             (goto-char open)
             (re-search-forward (rx (+ anything)) close t)))))))
+
+(defun haskell-tng:font:none (limit)
+  "Things that should not be fontified."
+  (when-let ((p (re-search-forward
+                 (rx (any ?\( ?\) ?\[ ?\] ?\{ ?\} ?,))
+                 limit t))
+             (pp (syntax-ppss)))
+    (if (or (nth 3 pp) (nth 4 pp))
+        (haskell-tng:font:none limit)
+      p)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here are `function' matchers for use in `font-lock-keywords' and
