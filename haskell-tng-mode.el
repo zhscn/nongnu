@@ -60,9 +60,9 @@
   :group 'haskell-tng
   :type 'hook)
 
-;; (progn
-;;   (add-to-list 'auto-mode-alist '("\\.hs\\'" . haskell-tng-mode))
-;;   (modify-coding-system-alist 'file "\\.hs\\'" 'utf-8))
+(progn
+  (add-to-list 'auto-mode-alist '("\\.hs\\'" . haskell-tng-mode))
+  (modify-coding-system-alist 'file "\\.hs\\'" 'utf-8))
 
 (provide 'haskell-tng-mode)
 ;;; haskell-tng-mode.el ends here

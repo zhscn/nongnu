@@ -34,9 +34,6 @@
 ;;
 ;;; Code:
 
-;; TODO: regression tests https://github.com/Lindydancer/faceup
-;; TODO use levels so users can turn off type fontification
-
 (require 'dash)
 (require 'haskell-tng-util)
 
@@ -73,7 +70,8 @@
 ;; Here are `rx' patterns that are reused as a very simple form of BNF grammar
 (defconst haskell-tng:rx:conid '(: upper (* wordchar)))
 (defconst haskell-tng:rx:qual `(: (+ (: ,haskell-tng:rx:conid (char ?.)))))
-(defconst haskell-tng:rx:consym '(: ":" (+ (syntax symbol)))) ;; TODO exclude ::, limited symbol set
+(defconst haskell-tng:rx:consym '(: ":" (+ (syntax symbol))))
+;; TODO restrictive consym, e.g. no :: , @
 (defconst haskell-tng:rx:toplevel
   `(: line-start (group (| (: (any lower ?_) (* wordchar))
                            (: "(" (+? (syntax symbol)) ")")))
@@ -114,9 +112,10 @@
           (: symbol-start (char ?\\))))
       . 'haskell-tng:keyword)
 
-     ;; some things look nicer without faces
+     ;; Some things are not technically keywords but are always special so make
+     ;; sense to be fontified as such.
      (,(rx (any ?\( ?\) ?\[ ?\] ?\{ ?\} ?,))
-      (0 'default))
+      (0 'haskell-tng:keyword))
 
      ;; TypeFamilies
      (,(rx word-start "type" (+ space) (group "family") word-end)
@@ -133,15 +132,12 @@
      (haskell-tng:font:deriving:keyword
       (1 'haskell-tng:keyword keep)
       (2 'haskell-tng:type keep))
-     ;; TODO don't colour parens
 
-     ;; TypeApplications: Unfortunately it is not possible to disambiguate
-     ;; between type applications when the following type is in parentheses, as
-     ;; it could also be a value extractor in a pattern. We could add more hacks
-     (,(rx-to-string `(: symbol-start "@" (* space)
-                         ;; TODO: support type parameters here
-                         (group (opt ,qual) (| ,conid ,consym))))
-      (1 'haskell-tng:type))
+     ;; EXT:TypeApplications: It is not easy to disambiguate between type
+     ;; applications and value extractor in a pattern. Needs work.
+     ;; (,(rx-to-string `(: symbol-start "@" (* space)
+     ;;                     (group (opt ,qual) (| ,conid ,consym))))
+     ;;  (1 'haskell-tng:type))
 
      ;; imports
      (haskell-tng:font:import:keyword
@@ -252,7 +248,7 @@ Some complexity to avoid matching on operators."
   "Used in `font-lock-extend-region-functions'.
 Automatically populated by `haskell-tng:font:multiline'")
 
-;; TODO (perf) don't extend if the TRIGGER has a multiline prop
+;; TODO (perf) don't extend if the TRIGGER has a multiline prop already
 (defmacro haskell-tng:font:multiline (name trigger find &rest limiters)
   "Defines `font-lock-keywords' / `font-lock-extend-region-functions' entries.
 

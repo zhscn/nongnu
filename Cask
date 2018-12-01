@@ -20,10 +20,12 @@
 ;;; Code:
 
 (source melpa-stable)
+(source melpa) ;; for faceup
 
 (package-file "haskell-tng-mode.el")
 
 (development
+ (depends-on "faceup")
  (depends-on "ert-runner")
  (depends-on "undercover"))
 
