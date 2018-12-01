@@ -90,7 +90,5 @@
       (put-text-property (- (point) 1) (point)
                          'syntax-table '(9 . ?\\)))))
 
-;; TODO newlines should be whitespace if there is no comment to close
-
 (provide 'haskell-tng-syntax)
 ;;; haskell-tng-syntax.el ends here

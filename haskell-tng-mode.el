@@ -31,8 +31,7 @@
   ;;      parse-sexp-ignore-comments (it is annoying that we must specify
   ;;      comments here AND in the syntax table)
   ;;
-  ;; TODO mark-defun
-  ;; TODO font-lock-mark-block-function
+  ;; TODO mark-defun / font-lock-mark-block-function
 
   (setq
    ;; TAB is evil

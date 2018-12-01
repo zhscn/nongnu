@@ -183,9 +183,9 @@
        (haskell-tng:font:multiline:anchor-rewind)
        (0 'haskell-tng:type keep)))
 
-     ;; TODO: pragmas
-     ;; TODO: numeric / char primitives?
-     ;; TODO: haddock, different face vs line comments, and some markup.
+     ;; TODO pragmas
+     ;; TODO numeric / char primitives?
+     ;; TODO haddock, different face vs line comments, and some markup.
 
      ;; top-level
      (,(rx-to-string toplevel)
