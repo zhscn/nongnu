@@ -17,6 +17,6 @@
 (faceup-defexplainer have-expected-faces)
 
 (ert-deftest haskell-tng-font-lock-file-tests ()
-  (should (have-expected-faces "faces/medley.hs")) )
+  (should (have-expected-faces "faces/medley.hs")))
 
 ;;; haskell-tng-font-lock-test.el ends here
