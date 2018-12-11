@@ -70,10 +70,12 @@ Some blue sky features are being considered but may be best as independent proje
   - `:browse` `company-backend`
   - `:doc` at point
 - [`flycheck`](http://www.flycheck.org/en/latest/) integration with `haskell-compile`
+  - `ghc` / `cabal v2-exec ghc --` for red squiggles, getting the correct info from [`cabal-helper`](http://hackage.haskell.org/package/cabal-helper)
   - and [`hlint`](https://github.com/ndmitchell/hlint)
   - and for faster feedback, [`ghcid`](https://github.com/ndmitchell/ghcid)
 - [visualise values as types](https://twitter.com/jyothsnasrin/status/1039530556080283648)
 - [`djinn`](https://hackage.haskell.org/package/djinn) / [`justdoit`](https://hackage.haskell.org/package/ghc-justdoit) integration
+- [`pointfree`](https://hackage.haskell.org/package/pointfree) integration
 - is there a solution to thinking "right to left" vs writing "left to right"?
 - identify trivial / helper functions and forward their `edit-definition` to another location.
 - Code gen
