@@ -6,32 +6,63 @@
 (require 'haskell-tng-mode)
 
 (require 'ert)
-(require 'faceup)
+(require 's)
 
-(defun haskell-tng-smie:lex-forward-buffer ()
+(defmacro haskell-tng-smie:this-lisp-directory ()
+  (expand-file-name
+   (if load-file-name
+       (file-name-directory load-file-name)
+     default-directory)))
+
+(defvar smie-forward-token-function)
+;; TODO make this behave consistently interactive / non-interactive
+;; (maybe wrap it)
+(defun haskell-tng-smie:forward-token-to-buffer ()
+  "Forward lex the current buffer using SMIE lexer and dump to a buffer."
+  (interactive)
   (let* ((buf (current-buffer))
-         (work (switch-to-buffer (concat (buffer-file-name) ".lexer.forward"))))
-    (switch-to-buffer buf)
+         (work (generate-new-buffer (buffer-name))))
     (goto-char (point-min))
+    (while (not (eobp))
+      (let* ((start (point))
+             (token (apply smie-forward-token-function ())))
+        (when (= (point) start)
+          (unless (or (s-present? token) (eobp))
+            (setq token (char-to-string (char-after (point)))))
+          (forward-char))
+        (with-current-buffer work
+          (insert token "\n"))))
+    (if (called-interactively-p 'interactive)
+      (switch-to-buffer work)
+      work)))
 
-    ;; FIXME progress through the buf writing the returned values to work
-    ;; maybe with a character to indicate invocations, maybe newlines.
-
-    ))
-
-(defun have-expected-forward-lexer (file)
-  (let* ((filename (expand-file-name
+(defun have-expected-forward-lex (file)
+  (let* ((backup-inhibited t)
+         (filename (expand-file-name
                     file
-                    (eval-when-compile (faceup-this-file-directory))))
-         (golden (concat filename ".lexer.forward")))
-
-    ;; FIXME run the lex-forward-buffer and compare the result with the version
-    ;; on disk, perhaps a trimmed diff.
-
-    ))
+                    (haskell-tng-smie:this-lisp-directory)))
+         (golden (concat filename ".forward"))
+         (expected (with-temp-buffer
+                     (insert-file-contents golden)
+                     (buffer-string)))
+         (lexed (with-temp-buffer
+                  ;; TODO load this buffer correctly, to id the mode
+                  (haskell-tng-mode)
+                  (insert-file-contents filename)
+                  (haskell-tng-smie:forward-token-to-buffer)))
+         (got (with-current-buffer lexed (buffer-string))))
+    (unwind-protect
+        (or (s-equals? got expected)
+            ;; TODO make this a parameter
+            ;; writes out the new version on failure
+            (progn
+              (with-current-buffer lexed
+                (write-file golden))
+              nil))
+      (kill-buffer lexed))))
 
 (ert-deftest haskell-tng-smie-file-tests ()
-  (should (have-expected-forward-lexer "faces/medley.hs")))
+  (should (have-expected-forward-lex "faces/medley.hs")))
 
 ;; ideas for an indentation tester
 ;; https://github.com/elixir-editors/emacs-elixir/blob/master/test/test-helper.el#L52-L63

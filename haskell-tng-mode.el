@@ -15,8 +15,10 @@
 ;;; Code:
 
 (require 'dabbrev)
+
 (require 'haskell-tng-syntax)
 (require 'haskell-tng-font-lock)
+(require 'haskell-tng-smie)
 
 ;;;###autoload
 (define-derived-mode haskell-tng-mode prog-mode "Hask"
@@ -52,7 +54,8 @@
 
    ;; whitespace is meaningful, no electric indentation
    electric-indent-inhibit t)
-  )
+
+  (haskell-tng-smie:setup))
 
 (defcustom haskell-tng-mode-hook nil
   "List of functions to run after `haskell-tng-mode' is enabled."
