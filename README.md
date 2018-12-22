@@ -69,6 +69,7 @@ Some blue sky features are being considered but may be best as independent proje
   - `:type` at point
   - `:browse` `company-backend`
   - `:doc` at point
+  - expand type definitions (e.g. to show full ADT)
 - [`flycheck`](http://www.flycheck.org/en/latest/) integration with `haskell-compile`
   - `ghc` / `cabal v2-exec ghc --` for red squiggles, getting the correct info from [`cabal-helper`](http://hackage.haskell.org/package/cabal-helper)
   - and [`hlint`](https://github.com/ndmitchell/hlint)

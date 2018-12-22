@@ -19,6 +19,11 @@
 ;;  Users may consult the SMIE manual to customise their indentation rules:
 ;;  https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE
 ;;
+;;  The Haskell2010 report's sections 2.7 and 10.3 are particularly pertinent:
+;;
+;;  https://www.haskell.org/onlinereport/haskell2010/haskellch2.html
+;;  https://www.haskell.org/onlinereport/haskell2010/haskellch10.html
+;;
 ;;; Code:
 
 (require 'smie)
@@ -47,6 +52,8 @@
        (point)
        (progn (skip-syntax-forward "w_")
               (point))))))
+
+;; 
 
 ;; TODO a haskell grammar
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Grammar
