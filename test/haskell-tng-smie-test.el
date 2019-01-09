@@ -26,12 +26,12 @@
     (while (not (eobp))
       (let* ((start (point))
              (token (apply smie-forward-token-function ())))
-        (when (= (point) start)
-          (unless (or (s-present? token) (eobp))
-            (setq token (char-to-string (char-after (point)))))
+        (when (and (= (point) start) (not token))
+          (setq token (concat "SYNTAX_" (char-to-string (char-after (point)))))
           (forward-char))
-        (with-current-buffer work
-          (insert token "\n"))))
+        (when (s-present? token)
+          (with-current-buffer work
+            (insert token "\n")))))
     (if (called-interactively-p 'interactive)
       (switch-to-buffer work)
       work)))

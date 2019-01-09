@@ -86,6 +86,22 @@
   "Newline or line comment.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Here are compiled regexps that are reused
+(defconst haskell-tng:regexp:reserved
+  (rx (|
+       (: word-start
+          (| "case" "class" "data" "default" "deriving" "do" "else"
+             "foreign" "if" "import" "in" "infix" "infixl"
+             "infixr" "instance" "let" "module" "newtype" "of"
+             "then" "type" "where" "_")
+          word-end)
+       (: symbol-start
+          (| ".." ":" "::" "=" "|" "<-" "->" "@" "~" "=>")
+          symbol-end)
+       (: symbol-start (char ?\\))))
+  "reservedid / reservedop")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here is the `font-lock-keywords' table of matchers and highlighters.
 (defvar
  haskell-tng:keywords
@@ -98,18 +114,7 @@
        (toplevel haskell-tng:rx:toplevel)
        (bigspace `(| space ,haskell-tng:rx:newline)))
    `(;; reservedid / reservedop
-     (,(rx-to-string
-        '(|
-          (: word-start
-             (| "case" "class" "data" "default" "deriving" "do" "else"
-                "foreign" "if" "import" "in" "infix" "infixl"
-                "infixr" "instance" "let" "module" "newtype" "of"
-                "then" "type" "where" "_")
-             word-end)
-          (: symbol-start
-             (| ".." ":" "::" "=" "|" "<-" "->" "@" "~" "=>")
-             symbol-end)
-          (: symbol-start (char ?\\))))
+     (,haskell-tng:regexp:reserved
       . 'haskell-tng:keyword)
 
      ;; Some things are not technically keywords but are always special so make

@@ -27,33 +27,39 @@
 ;;; Code:
 
 (require 'smie)
+(require 'haskell-tng-font-lock)
 
-(defvar haskell-tng-smie:keywords
-  (regexp-opt '("+" "*" "=")))
-
-;; TODO custom Haskell lexer
-;; TODO convert significant whitespace to semicolons
-;;
 ;; Function to scan forward for the next token.
 ;; - Called with no argument should return a token and move to its end.
 ;; - If no token is found, return nil or the empty string.
 ;; - It can return nil when bumping into a parenthesis, which lets SMIE
-;; - use syntax-tables to handle them in efficient C code.
+;;   use syntax-tables to handle them in efficient C code.
 ;;
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Lexer
 (defun haskell-tng-smie:forward-token ()
   (interactive) ;; for testing
   (forward-comment (point-max))
-  (cond
-   ((looking-at haskell-tng-smie:keywords)
-    (goto-char (match-end 0))
-    (match-string-no-properties 0))
-   (t (buffer-substring-no-properties
-       (point)
-       (progn (skip-syntax-forward "w_")
-              (point))))))
+  (unless (eobp)
+    (let ((case-fold-search nil)
+          (syntax (char-syntax (char-after))))
+      (cond
+       ;; TODO detect newlines with significant whitespace
 
-;; 
+       ;; parens
+       ((or (= syntax ?\() (= syntax ?\))) nil)
+
+       ;; TODO match paired delimiters
+
+       ;; regexps
+       ((or
+         ;; known identifiers
+         (looking-at haskell-tng:regexp:reserved)
+         ;; symbols
+         (looking-at (rx (+ (| (syntax word) (syntax symbol)))))
+         ;; whatever the current syntax class is
+         (looking-at (rx-to-string `(+ (syntax ,syntax)))))
+        (goto-char (match-end 0))
+        (match-string-no-properties 0))))))
 
 ;; TODO a haskell grammar
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Grammar
