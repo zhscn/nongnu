@@ -20,6 +20,10 @@
 (require 'haskell-tng-font-lock)
 (require 'haskell-tng-smie)
 
+(defgroup haskell-tng ()
+  "Haskell support: The Next Generation."
+  :group 'languages)
+
 ;;;###autoload
 (define-derived-mode haskell-tng-mode prog-mode "Hask"
   "Major mode for editing Haskell programs."
@@ -35,6 +39,7 @@
   ;;
   ;; TODO mark-defun / font-lock-mark-block-function
 
+  ;; TODO use setq-local (write a macro to allow multiple parameters)
   (setq
    ;; TAB is evil
    indent-tabs-mode nil
@@ -57,11 +62,7 @@
 
   (haskell-tng-smie:setup))
 
-(defcustom haskell-tng-mode-hook nil
-  "List of functions to run after `haskell-tng-mode' is enabled."
-  :group 'haskell-tng
-  :type 'hook)
-
+;; TODO: autoload this when I'm ready to use tng instead of regular
 (progn
   (add-to-list 'auto-mode-alist '("\\.hs\\'" . haskell-tng-mode))
   (modify-coding-system-alist 'file "\\.hs\\'" 'utf-8))

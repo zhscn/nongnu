@@ -38,6 +38,7 @@
     (--each (string-to-list "!#$%&*+./<=>?@\\^|-~:")
       (modify-syntax-entry it "_" table))
 
+    ;; FIXME: should be iff _ is alone or first char
     ;; small (underscore is a lowercase letter)
     (modify-syntax-entry ?_ "w" table)
 
@@ -73,6 +74,9 @@
   (haskell-tng:syntax:char-delims start end)
   (haskell-tng:syntax:escapes start end))
 
+;; TODO doesn't handle the following correctly
+;;
+;;   foo' 'a' 2
 (defun haskell-tng:syntax:char-delims (start end)
   "Matching apostrophes are string delimiters (literal chars)."
   (goto-char start)
@@ -89,6 +93,8 @@
     (when (nth 3 (syntax-ppss))
       (put-text-property (- (point) 1) (point)
                          'syntax-table '(9 . ?\\)))))
+
+;; EXT:ExplicitForAll should turn dots into punctuation
 
 (provide 'haskell-tng-syntax)
 ;;; haskell-tng-syntax.el ends here

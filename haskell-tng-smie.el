@@ -46,9 +46,7 @@
        ;; TODO detect newlines with significant whitespace
 
        ;; parens
-       ((or (= syntax ?\() (= syntax ?\))) nil)
-
-       ;; TODO match paired delimiters
+       ((member syntax '(?\( ?\) ?\" ?$)) nil)
 
        ;; regexps
        ((or
