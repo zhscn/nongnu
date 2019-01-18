@@ -38,26 +38,43 @@
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Lexer
 (defun haskell-tng-smie:forward-token ()
   (interactive) ;; for testing
-  (forward-comment (point-max))
-  (unless (eobp)
-    (let ((case-fold-search nil)
-          (syntax (char-syntax (char-after))))
-      (cond
-       ;; TODO detect newlines with significant whitespace
+  (let ((start (point)))
+    (forward-comment (point-max))
+    (unless (eobp)
+      (let ((start-line (line-number-at-pos start))
+            (this-line (line-number-at-pos))
+            (case-fold-search nil)
+            (syntax (char-syntax (char-after))))
+        (cond
+         ;; TODO brace inference
+         ((and
+           (not (eq start-line this-line))
+           (<=
+            (haskell-tng-smie:indentation-level (point))
+            (haskell-tng-smie:indentation-level start))
+           ";"))
 
-       ;; parens
-       ((member syntax '(?\( ?\) ?\" ?$)) nil)
+         ;; parens
+         ((member syntax '(?\( ?\) ?\" ?$)) nil)
 
-       ;; regexps
-       ((or
-         ;; known identifiers
-         (looking-at haskell-tng:regexp:reserved)
-         ;; symbols
-         (looking-at (rx (+ (| (syntax word) (syntax symbol)))))
-         ;; whatever the current syntax class is
-         (looking-at (rx-to-string `(+ (syntax ,syntax)))))
-        (goto-char (match-end 0))
-        (match-string-no-properties 0))))))
+         ;; regexps
+         ((or
+           ;; known identifiers
+           (looking-at haskell-tng:regexp:reserved)
+           ;; symbols
+           (looking-at (rx (+ (| (syntax word) (syntax symbol)))))
+           ;; whatever the current syntax class is
+           (looking-at (rx-to-string `(+ (syntax ,syntax)))))
+          (goto-char (match-end 0))
+          (match-string-no-properties 0)))))))
+
+(defun haskell-tng-smie:indentation-level (p)
+  "Calculates the indentation level of the most inner part of the given point's line."
+  ;; FIXME this is a hack for now, look for `let', `do' and friends according to
+  ;; the Haskell2010 report.
+  (save-excursion
+    (goto-char p)
+    (current-indentation)))
 
 ;; TODO a haskell grammar
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Grammar
