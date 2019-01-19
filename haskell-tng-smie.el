@@ -46,16 +46,26 @@
             (case-fold-search nil)
             (syntax (char-syntax (char-after))))
         (cond
-         ;; TODO brace inference
-         ((and
-           (not (eq start-line this-line))
-           (<=
-            (haskell-tng-smie:indentation-level (point))
-            (haskell-tng-smie:indentation-level start))
-           ";"))
+         ;; layout: semicolon inference
+         ((not (eq start-line this-line))
+          (let ((start-layout (haskell-tng-smie:layout-level start-line))
+                (this-layout (current-indentation)))
+            (cond
+             ((null start-layout) ""
+              (eq start-layout this-layout) ";"
+              t ""))))
 
          ;; parens
          ((member syntax '(?\( ?\) ?\" ?$)) nil)
+
+         ;; TODO brace inference ("offside" rule).
+         ;;
+         ;; Starting braces are trivial, there is a known list of keywords, so
+         ;; we just need to do a lookback when we hit a non-{ lexeme. Ending
+         ;; braces are a lot harder, as we need to calculate "do we need to
+         ;; close a brace here" every time the indentation level decreases. A
+         ;; possible solution is to calculate and cache the closing brace when
+         ;; discovering an open brace, but that just introduces more problems.
 
          ;; regexps
          ((or
@@ -68,12 +78,19 @@
           (goto-char (match-end 0))
           (match-string-no-properties 0)))))))
 
-(defun haskell-tng-smie:indentation-level (p)
-  "Calculates the indentation level of the most inner part of the given point's line."
-  ;; FIXME this is a hack for now, look for `let', `do' and friends according to
-  ;; the Haskell2010 report.
+(defun haskell-tng-smie:layout-level (line)
+  "Calculates the layout indentation of the most inner part of
+the given point's line."
+  ;; FIXME should the input be the line numbers?
+  ;;
+  ;; TODO starting at the end of the line, look backwards for wldo (where, let, do, of).
+  ;; If the wldo is the last lexeme, then the layout level is set by the next line (return nil).
+  ;; If the wldo is followed by a non-brace lexeme, set the layout level.
+  ;;
+  ;; If there is no wldo, the layout level is set by the indentation level
+  ;; (think about this some more)
   (save-excursion
-    (goto-char p)
+    (goto-line line)
     (current-indentation)))
 
 ;; TODO a haskell grammar
