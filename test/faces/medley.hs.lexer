@@ -25,6 +25,7 @@ module
 Bloo.Foo
 SYNTAX_)
 where
+{
 import
 Control.Applicative
 SYNTAX_(
@@ -204,6 +205,7 @@ Get
 a
 s
 where
+{
 get
 ::
 Set
@@ -219,6 +221,7 @@ a
 s
 SYNTAX_)
 where
+{
 get
 SYNTAX_(
 Ext
@@ -240,6 +243,7 @@ b
 s
 SYNTAX_)
 where
+{
 get
 SYNTAX_(
 Ext
@@ -289,6 +293,7 @@ SYNTAX_)
 Ord
 a
 where
+{
 SYNTAX_(
 <
 SYNTAX_)
@@ -332,6 +337,7 @@ Tree
 a
 SYNTAX_)
 where
+{
 Leaf
 a
 ==
@@ -388,6 +394,7 @@ family
 G
 a
 where
+{
 G
 Int
 =

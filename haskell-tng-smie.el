@@ -29,7 +29,23 @@
 (require 'smie)
 (require 'haskell-tng-font-lock)
 
+;; FIXME: the "massive hack"s only work for a full forward parse of a file. If
+;; these hacks can't be removed it may be the death of SMIE, and we'll need a
+;; custom s-expression parser and indentation engine.
+;;
+;; Maybe we could create state for a block of code (maybe top-level), hashed by
+;; the content. Then context-less forward/backward-token requests would always
+;; be able to consult the state without having to update it.
+
+;; FIXME: massive hack. Holds an ordered list of positions that close an
+;; inferred layout block.
+(defvar haskell-tng-smie:wldos nil)
+
+;; FIXME: massive hack. t if the previous lexeme was a WLDO
+(defvar haskell-tng-smie:wldo nil)
+
 ;; Function to scan forward for the next token.
+;;
 ;; - Called with no argument should return a token and move to its end.
 ;; - If no token is found, return nil or the empty string.
 ;; - It can return nil when bumping into a parenthesis, which lets SMIE
@@ -38,7 +54,9 @@
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Lexer
 (defun haskell-tng-smie:forward-token ()
   (interactive) ;; for testing
-  (let ((start (point)))
+  (let ((start (point))
+        (wldo haskell-tng-smie:wldo))
+    (setq haskell-tng-smie:wldo nil)
     (forward-comment (point-max))
     (unless (eobp)
       (let ((start-line (line-number-at-pos start))
@@ -46,26 +64,39 @@
             (case-fold-search nil)
             (syntax (char-syntax (char-after))))
         (cond
-         ;; layout: semicolon inference
+         ;; layout of wldo blocks: braces
+         ;;
+         ;; Starting braces can be detected with a lookback when we hit a non-{
+         ;; lexeme following a WLDO. Ending braces are a lot harder, as we need
+         ;; to calculate "do we need to close a brace here" every time the
+         ;; indentation level decreases.
+         ;;
+         ;; A hacky solution is to calculate and cache the closing brace when
+         ;; discovering an open brace, but that just introduces more problems.
+         ((and wldo (not (looking-at "{")))
+          (message "WLDO was at %s" start)
+          ;; TODO find the closing brace and add to the state
+          "{")
+
+         ;; TODO should only trigger inside a WLDO block
+         ;; layout of wldo blocks: semicolons
          ((not (eq start-line this-line))
           (let ((start-layout (haskell-tng-smie:layout-level start-line))
                 (this-layout (current-indentation)))
+            ;;(message "LAYOUT %s %s" start-layout this-layout)
             (cond
-             ((null start-layout) ""
-              (eq start-layout this-layout) ";"
-              t ""))))
+             ((null start-layout) "")
+             ;;((eq start-layout this-layout) ";")
+             (t ""))))
 
          ;; parens
          ((member syntax '(?\( ?\) ?\" ?$)) nil)
 
-         ;; TODO brace inference ("offside" rule).
-         ;;
-         ;; Starting braces are trivial, there is a known list of keywords, so
-         ;; we just need to do a lookback when we hit a non-{ lexeme. Ending
-         ;; braces are a lot harder, as we need to calculate "do we need to
-         ;; close a brace here" every time the indentation level decreases. A
-         ;; possible solution is to calculate and cache the closing brace when
-         ;; discovering an open brace, but that just introduces more problems.
+         ;; layout, wldo detection
+         ((looking-at (rx word-start (| "where" "let" "do" "of") word-end))
+          (message "WLDO is at %s" (point))
+          (setq haskell-tng-smie:wldo t)
+          (haskell-tng-smie:last-match))
 
          ;; regexps
          ((or
@@ -75,14 +106,30 @@
            (looking-at (rx (+ (| (syntax word) (syntax symbol)))))
            ;; whatever the current syntax class is
            (looking-at (rx-to-string `(+ (syntax ,syntax)))))
-          (goto-char (match-end 0))
-          (match-string-no-properties 0)))))))
+          (haskell-tng-smie:last-match)))))))
+
+(defun haskell-tng-smie:looking-back-wldo (p)
+  "t if the previous token before point P is `where', `let', `do' or `of'."
+  ;; FIXME this is really hacky, it tries to reparse the last token. We should
+  ;; doing a backwards token parse to take comments into account, or at least
+  ;; caching the previous token.
+  (save-excursion
+    (goto-char p)
+    (let ((hit (looking-back
+                (rx word-start (| "where" "let" "do" "of") word-end point)
+                nil
+                ;;(- p 5)
+                )))
+      (message "WLDO is %s at `...%s'" hit (buffer-substring-no-properties (- p 5) p))
+      hit)))
+
+(defun haskell-tng-smie:last-match ()
+  (goto-char (match-end 0))
+  (match-string-no-properties 0))
 
 (defun haskell-tng-smie:layout-level (line)
-  "Calculates the layout indentation of the most inner part of
-the given point's line."
-  ;; FIXME should the input be the line numbers?
-  ;;
+  "Calculates the layout indentation at the end of the given line."
+
   ;; TODO starting at the end of the line, look backwards for wldo (where, let, do, of).
   ;; If the wldo is the last lexeme, then the layout level is set by the next line (return nil).
   ;; If the wldo is followed by a non-brace lexeme, set the layout level.
@@ -90,7 +137,8 @@ the given point's line."
   ;; If there is no wldo, the layout level is set by the indentation level
   ;; (think about this some more)
   (save-excursion
-    (goto-line line)
+    (forward-line (- line (line-number-at-pos)))
+    ;; now at start of line
     (current-indentation)))
 
 ;; TODO a haskell grammar
