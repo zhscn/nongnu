@@ -1,615 +1,127 @@
-module
-Foo.Bar.Main
-SYNTAX_(
+
+
+
+
+module Foo.Bar.Main
+_( Wibble _( .. _) , Wobble _( Wobb , _( !!! _) _) , Woo
+
+, getFooByBar , getWibbleByWobble
+, module Bloo.Foo
+_) where
+
+{ import Control.Applicative _( many , optional , pure , _( <*> _) , _( <|> _) _)
+import Data.Foldable _( traverse_ _)
+import Data.Functor _( _( <$> _) _)
+import Data.List _( intercalate _)
+import Data.Monoid _( _( <> _) _)
+import qualified Options.Monad
+import qualified Options.Applicative as Opts
+import qualified Options.Divisible
+as Div
+import qualified ProfFile.App hiding _( as , hiding , qualified _)
+import ProfFile.App _( as , hiding , qualified _)
+import ProfFile.App hiding _( as , hiding , qualified _)
+import qualified ProfFile.App _( as , hiding , qualified _)
+import System.Exit _( ExitCode _( .. _) , exitFailure , qualified ,
+Typey ,
+wibble ,
+Wibble _)
+import System.FilePath _( replaceExtension , Foo _( Bar , _( :< _) _)
+import System.IO _( IOMode _( .. _) , hClose , hGetContents ,
+hPutStr , hPutStrLn , openFile , stderr ,
+stdout , MoarTypey _)
+import System.Process _( CreateProcess _( .. _) , StdStream _( .. _) ,
+createProcess , proc , waitForProcess _)
+
+
+_'c' _'\n' _'\''
+
+foo = _"wobble (wibble)"
+
+class Get a s where
+{ get :: Set s -> a
+
+} instance Get a _( a ': s _) where
+{ get _( Ext a _ _) = a
+
+} instance Get a s => Get a _( b ': s _) where
+{ get _( Ext _ xs _) = get xs
+
+} data Options = Options
+_{ optionsReportType :: ReportType
+, optionsProfFile :: Maybe FilePath
+, optionsOutputFile :: Maybe FilePath
+, optionsFlamegraphFlags :: _[ String _]
+_} deriving _( Eq , Show _)
+
+class _( Eq a _) => Ord a where
+{ _( < _) , _( <= _) , _( >= _) , _( > _) :: a -> a -> Bool
+max @Foo , min :: a -> a -> a
+
+} instance _( Eq a _) => Eq _( Tree a _) where
+{ Leaf a == Leaf b = a == b
+_( Branch l1 r1 _) == _( Branch l2 r2 _) = _( l1==l2 _) && _( r1==r2 _)
+_ == _ = False
+
+} data ReportType = Alloc
+| Entries
+| Time
+| Ticks
+| Bytes
+deriving _( Eq , Show _)
+
+type family G a where
+{ G Int = Bool
+G a = Char
+
+} data Flobble = Flobble
+deriving _( Eq _) via _( NonNegative _( Large Int _) _)
+deriving stock _( Floo _)
+deriving anyclass _( WibblyWoo , OtherlyWoo _)
+
+newtype Flobby = Flobby
+
+foo ::
 Wibble
-SYNTAX_(
-..
-SYNTAX_)
-,
-Wobble
-SYNTAX_(
-Wobb
-,
-SYNTAX_(
-!!!
-SYNTAX_)
-SYNTAX_)
-,
-Woo
-,
-getFooByBar
-,
-getWibbleByWobble
-,
-module
-Bloo.Foo
-SYNTAX_)
-where
-{
-import
-Control.Applicative
-SYNTAX_(
-many
-,
-optional
-,
-pure
-,
-SYNTAX_(
-<*>
-SYNTAX_)
-,
-SYNTAX_(
-<|>
-SYNTAX_)
-SYNTAX_)
-import
-Data.Foldable
-SYNTAX_(
-traverse_
-SYNTAX_)
-import
-Data.Functor
-SYNTAX_(
-SYNTAX_(
-<$>
-SYNTAX_)
-SYNTAX_)
-import
-Data.List
-SYNTAX_(
-intercalate
-SYNTAX_)
-import
-Data.Monoid
-SYNTAX_(
-SYNTAX_(
-<>
-SYNTAX_)
-SYNTAX_)
-import
-qualified
-Options.Monad
-import
-qualified
-Options.Applicative
-as
-Opts
-import
-qualified
-Options.Divisible
-as
-Div
-import
-qualified
-ProfFile.App
-hiding
-SYNTAX_(
-as
-,
-hiding
-,
-qualified
-SYNTAX_)
-import
-ProfFile.App
-SYNTAX_(
-as
-,
-hiding
-,
-qualified
-SYNTAX_)
-import
-ProfFile.App
-hiding
-SYNTAX_(
-as
-,
-hiding
-,
-qualified
-SYNTAX_)
-import
-qualified
-ProfFile.App
-SYNTAX_(
-as
-,
-hiding
-,
-qualified
-SYNTAX_)
-import
-System.Exit
-SYNTAX_(
-ExitCode
-SYNTAX_(
-..
-SYNTAX_)
-,
-exitFailure
-,
-qualified
-,
-Typey
-,
-wibble
-,
-Wibble
-SYNTAX_)
-import
-System.FilePath
-SYNTAX_(
-replaceExtension
-,
-Foo
-SYNTAX_(
-Bar
-,
-SYNTAX_(
-:<
-SYNTAX_)
-SYNTAX_)
-import
-System.IO
-SYNTAX_(
-IOMode
-SYNTAX_(
-..
-SYNTAX_)
-,
-hClose
-,
-hGetContents
-,
-hPutStr
-,
-hPutStrLn
-,
-openFile
-,
-stderr
-,
-stdout
-,
-MoarTypey
-SYNTAX_)
-import
-System.Process
-SYNTAX_(
-CreateProcess
-SYNTAX_(
-..
-SYNTAX_)
-,
-StdStream
-SYNTAX_(
-..
-SYNTAX_)
-,
-createProcess
-,
-proc
-,
-waitForProcess
-SYNTAX_)
-SYNTAX_'c'
-SYNTAX_'\n'
-SYNTAX_'\''
-foo
-=
-SYNTAX_"wobble (wibble)"
-class
-Get
-a
-s
-where
-{
-get
-::
-Set
-s
-->
-a
-}
-instance
-Get
-a
-SYNTAX_(
-a
-':
-s
-SYNTAX_)
-where
-{
-get
-SYNTAX_(
-Ext
-a
-_
-SYNTAX_)
-=
-a
-}
-instance
-Get
-a
-s
-=>
-Get
-a
-SYNTAX_(
-b
-':
-s
-SYNTAX_)
-where
-{
-get
-SYNTAX_(
-Ext
-_
-xs
-SYNTAX_)
-=
-get
-xs
-}
-data
-Options
-=
-Options
-SYNTAX_{
-optionsReportType
-::
-ReportType
-,
-optionsProfFile
-::
-Maybe
-FilePath
-,
-optionsOutputFile
-::
-Maybe
-FilePath
-,
-optionsFlamegraphFlags
-::
-SYNTAX_[
-String
-SYNTAX_]
-SYNTAX_}
-deriving
-SYNTAX_(
-Eq
-,
-Show
-SYNTAX_)
-class
-SYNTAX_(
-Eq
-a
-SYNTAX_)
-=>
-Ord
-a
-where
-{
-SYNTAX_(
-<
-SYNTAX_)
-,
-SYNTAX_(
-<=
-SYNTAX_)
-,
-SYNTAX_(
->=
-SYNTAX_)
-,
-SYNTAX_(
->
-SYNTAX_)
-::
-a
-->
-a
-->
-Bool
-max
-@Foo
-,
-min
-::
-a
-->
-a
-->
-a
-}
-instance
-SYNTAX_(
-Eq
-a
-SYNTAX_)
-=>
-Eq
-SYNTAX_(
-Tree
-a
-SYNTAX_)
-where
-{
-Leaf
-a
-==
-Leaf
-b
-=
-a
-==
-b
-SYNTAX_(
-Branch
-l1
-r1
-SYNTAX_)
-==
-SYNTAX_(
-Branch
-l2
-r2
-SYNTAX_)
-=
-SYNTAX_(
-l1==l2
-SYNTAX_)
-&&
-SYNTAX_(
-r1==r2
-SYNTAX_)
-_
-==
-_
-=
-False
-}
-data
-ReportType
-=
-Alloc
-|
-Entries
-|
-Time
-|
-Ticks
-|
-Bytes
-deriving
-SYNTAX_(
-Eq
-,
-Show
-SYNTAX_)
-type
-family
-G
-a
-where
-{
-G
-Int
-=
-Bool
-G
-a
-=
-Char
-}
-data
-Flobble
-=
-Flobble
-deriving
-SYNTAX_(
-Eq
-SYNTAX_)
-via
-SYNTAX_(
-NonNegative
-SYNTAX_(
-Large
-Int
-SYNTAX_)
-SYNTAX_)
-deriving
-stock
-SYNTAX_(
-Floo
-SYNTAX_)
-deriving
-anyclass
-SYNTAX_(
-WibblyWoo
-,
-OtherlyWoo
-SYNTAX_)
-newtype
-Flobby
-=
-Flobby
-foo
-::
-Wibble
-->
-Wobble
-->
-Wobble
-->
-Wobble
-->
-SYNTAX_(
-wob
-::
-Wobble
-SYNTAX_)
-->
-SYNTAX_(
-Wobble
-a
-b
-c
-SYNTAX_)
-SYNTAX_(
-foo
-::
-SYNTAX_(
-Wibble
-Wobble
-SYNTAX_)
-SYNTAX_)
-foo
-newtype
-TestApp
-SYNTAX_(
-logger
-::
-TestLogger
-SYNTAX_)
-SYNTAX_(
-scribe
-::
-TestScribe
-SYNTAX_)
+-> Wobble
+-> Wobble
+-> Wobble
+-> _( wob :: Wobble _)
+-> _( Wobble
+a b c _)
+
+_( foo :: _( Wibble Wobble _) _) foo
+
+newtype TestApp
+_( logger :: TestLogger _)
+_( scribe :: TestScribe _)
 config
 a
-=
-TestApp
-a
-optionsParser
-::
-Opts.Parser
-Options
-optionsParser
-=
-Options
-<$>
-SYNTAX_(
-Opts.flag'
-Alloc
-SYNTAX_(
-Opts.long
-SYNTAX_"alloc"
-<>
-Opts.help
-SYNTAX_"wibble"
-SYNTAX_)
-<|>
-Opts.flag'
-Entries
-SYNTAX_(
-Opts.long
-SYNTAX_"entry"
-<>
-Opts.help
-SYNTAX_"wobble"
-SYNTAX_)
-<|>
-Opts.flag'
-Bytes
-SYNTAX_(
-Opts.long
-SYNTAX_"bytes"
-<>
-Opts.help
-SYNTAX_"i'm a fish"
-SYNTAX_)
-SYNTAX_)
-<*>
-optional
-SYNTAX_(
-Opts.strArgument
-SYNTAX_(
-Opts.metavar
-SYNTAX_"MY-FILE"
-<>
-Opts.help
-SYNTAX_"meh"
-SYNTAX_)
-SYNTAX_)
-type
-PhantomThing
-type
-SomeApi
-=
-SYNTAX_"thing"
-:>
-Capture
-SYNTAX_"bar"
-Index
-:>
-QueryParam
-SYNTAX_"wibble"
-Text
-:>
-QueryParam
-SYNTAX_"wobble"
-Natural
-:>
-Header
-TracingHeader
-TracingId
-:>
-ThingHeader
-:>
-Get
-'
-SYNTAX_[
-JSON
-SYNTAX_]
-SYNTAX_(
-The
-ReadResult
-SYNTAX_)
-:<|>
-SYNTAX_"thing"
-:>
-ReqBody
-'
-SYNTAX_[
-JSON
-SYNTAX_]
-Request
-:>
-Header
-TracingHeader
-TracingId
-:>
-SpecialHeader
-:>
-Post
-'
-SYNTAX_[
-JSON
-SYNTAX_]
-SYNTAX_(
-The
-Response
-SYNTAX_)
-deriving
-instance
-FromJSONKey
-StateName
-deriving
-anyclass
-instance
-FromJSON
-Base
-deriving
-newtype
-instance
-FromJSON
-Treble
+= TestApp a
+
+optionsParser :: Opts.Parser Options
+optionsParser = Options
+<$> _( Opts.flag' Alloc _( Opts.long _"alloc" <> Opts.help _"wibble" _)
+<|> Opts.flag' Entries _( Opts.long _"entry" <> Opts.help _"wobble" _)
+<|> Opts.flag' Bytes _( Opts.long _"bytes" <> Opts.help _"i'm a fish" _) _)
+<*> optional
+_( Opts.strArgument
+_( Opts.metavar _"MY-FILE" <>
+Opts.help _"meh" _) _)
+
+type PhantomThing
+
+type SomeApi =
+_"thing" :> Capture _"bar" Index :> QueryParam _"wibble" Text
+:> QueryParam _"wobble" Natural
+:> Header TracingHeader TracingId
+:> ThingHeader
+:> Get ' _[ JSON _] _( The ReadResult _)
+:<|> _"thing" :> ReqBody ' _[ JSON _] Request
+:> Header TracingHeader TracingId
+:> SpecialHeader
+:> Post ' _[ JSON _] _( The Response _)
+
+deriving instance FromJSONKey StateName
+deriving anyclass instance FromJSON Base
+deriving newtype instance FromJSON Treble

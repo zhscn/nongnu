@@ -5,6 +5,7 @@
 
 (require 'haskell-tng-mode)
 
+(require 'dash)
 (require 'ert)
 (require 's)
 
@@ -14,15 +15,14 @@
        (file-name-directory load-file-name)
      default-directory)))
 
-;; FIXME return a list of lines, each a list of tokens. It produces a much
-;; cleaner output for regression testing.
 (defun haskell-tng-smie:forward-tokens (&optional display)
-  "Forward lex the current buffer using SMIE lexer and return the list of tokens.
+  "Forward lex the current buffer using SMIE lexer and return the list of lines,
+where each line is a list of tokens.
 
 When called interactively, shows the tokens in a buffer."
   (interactive '(t))
   (defvar smie-forward-token-function)
-  (let* ((tokens '()))
+  (let* ((lines '(())))
     (goto-char (point-min))
     (while (not (eobp))
       (let* ((start (point))
@@ -33,19 +33,24 @@ When called interactively, shows the tokens in a buffer."
           (unless token
             (setq token (buffer-substring-no-properties start (point))))
           ;; differentiate that these tokens come from the syntax table
-          (setq token (concat "SYNTAX_" token)))
+          (setq token (concat "_" token)))
+        (let ((line-diff (- (line-number-at-pos (point))
+                            (line-number-at-pos start))))
+          (unless (<= line-diff 0)
+            (setq lines (append (-repeat line-diff nil) lines))))
         (unless (member token '(nil ""))
-          (push token tokens))))
-    (if display
-        (haskell-tng-smie:display-tokens tokens)
-      (nreverse tokens))))
+          (push token (car lines)))))
+    (let ((ordered (reverse (--map (reverse it) lines))))
+      (if display
+          (haskell-tng-smie:display-tokens ordered)
+        ordered))))
 
-(defun haskell-tng-smie:tokens-to-string (tokens)
-  (concat (mapconcat #'identity tokens "\n") "\n"))
+(defun haskell-tng-smie:tokens-to-string (lines)
+  (s-join "\n" (--map (s-join " " it) lines)))
 
-(defun haskell-tng-smie:display-tokens (tokens)
+(defun haskell-tng-smie:display-tokens (lines)
   (with-current-buffer (get-buffer-create "*Haskell-TNG-SMIE-test*")
-    (insert (haskell-tng-smie:tokens-to-string tokens))
+    (insert (haskell-tng-smie:tokens-to-string lines))
     (pop-to-buffer (current-buffer))))
 
 (defun have-expected-forward-lex (file)
@@ -64,7 +69,7 @@ When called interactively, shows the tokens in a buffer."
                   (haskell-tng-smie:forward-tokens)))
          (got (haskell-tng-smie:tokens-to-string lexed)))
     (or (equal got expected)
-        ;; TODO make this a parameter
+        ;; TODO make this a setting
         ;; writes out the new version on failure
         (progn
           (write-region got nil golden)
@@ -74,8 +79,7 @@ When called interactively, shows the tokens in a buffer."
 
 (ert-deftest haskell-tng-smie-file-tests ()
   (should (have-expected-forward-lex "faces/medley.hs"))
-  ;; FIXME this is the real test
-  ;;(should (have-expected-forward-lex "lexer/layout.hs"))
+  (should (have-expected-forward-lex "lexer/layout.hs"))
   )
 
 ;; ideas for an indentation tester
