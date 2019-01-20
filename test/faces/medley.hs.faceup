@@ -34,7 +34,7 @@
                                       createProcess«:haskell-tng:keyword:,» proc«:haskell-tng:keyword:,» waitForProcess«:haskell-tng:keyword:)»
 
 «x:-- some chars that should be propertized
-»«s:'c'» «s:'\n'» «s:'\''»
+»«:haskell-tng:toplevel:chars» «:haskell-tng:keyword:=» «:haskell-tng:keyword:[»«s:'c'»«:haskell-tng:keyword:,» «s:'\n'»«:haskell-tng:keyword:,» «s:'\''»«:haskell-tng:keyword:]»
 
 «:haskell-tng:toplevel:foo» «:haskell-tng:keyword:=» «s:"wobble (wibble)"»
 

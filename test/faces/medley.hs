@@ -34,7 +34,7 @@ import           System.Process      (CreateProcess (..), StdStream (..),
                                       createProcess, proc, waitForProcess)
 
 -- some chars that should be propertized
-'c' '\n' '\''
+chars = ['c', '\n', '\'']
 
 foo = "wobble (wibble)"
 

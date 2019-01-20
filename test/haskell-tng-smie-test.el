@@ -46,7 +46,7 @@ When called interactively, shows the tokens in a buffer."
         ordered))))
 
 (defun haskell-tng-smie:tokens-to-string (lines)
-  (s-join "\n" (--map (s-join " " it) lines)))
+  (concat (s-join "\n" (--map (s-join " " it) lines)) "\n"))
 
 (defun haskell-tng-smie:display-tokens (lines)
   (with-current-buffer (get-buffer-create "*Haskell-TNG-SMIE-test*")

@@ -10,78 +10,78 @@ _( Wibble _( .. _) , Wobble _( Wobb , _( !!! _) _) , Woo
 _) where
 
 { import Control.Applicative _( many , optional , pure , _( <*> _) , _( <|> _) _)
-import Data.Foldable _( traverse_ _)
-import Data.Functor _( _( <$> _) _)
-import Data.List _( intercalate _)
-import Data.Monoid _( _( <> _) _)
-import qualified Options.Monad
-import qualified Options.Applicative as Opts
-import qualified Options.Divisible
+; import Data.Foldable _( traverse_ _)
+; import Data.Functor _( _( <$> _) _)
+; import Data.List _( intercalate _)
+; import Data.Monoid _( _( <> _) _)
+; import qualified Options.Monad
+; import qualified Options.Applicative as Opts
+; import qualified Options.Divisible
 as Div
-import qualified ProfFile.App hiding _( as , hiding , qualified _)
-import ProfFile.App _( as , hiding , qualified _)
-import ProfFile.App hiding _( as , hiding , qualified _)
-import qualified ProfFile.App _( as , hiding , qualified _)
-import System.Exit _( ExitCode _( .. _) , exitFailure , qualified ,
+; import qualified ProfFile.App hiding _( as , hiding , qualified _)
+; import ProfFile.App _( as , hiding , qualified _)
+; import ProfFile.App hiding _( as , hiding , qualified _)
+; import qualified ProfFile.App _( as , hiding , qualified _)
+; import System.Exit _( ExitCode _( .. _) , exitFailure , qualified ,
 Typey ,
 wibble ,
 Wibble _)
-import System.FilePath _( replaceExtension , Foo _( Bar , _( :< _) _)
-import System.IO _( IOMode _( .. _) , hClose , hGetContents ,
+; import System.FilePath _( replaceExtension , Foo _( Bar , _( :< _) _)
+; import System.IO _( IOMode _( .. _) , hClose , hGetContents ,
 hPutStr , hPutStrLn , openFile , stderr ,
 stdout , MoarTypey _)
-import System.Process _( CreateProcess _( .. _) , StdStream _( .. _) ,
+; import System.Process _( CreateProcess _( .. _) , StdStream _( .. _) ,
 createProcess , proc , waitForProcess _)
 
 
-_'c' _'\n' _'\''
+; chars = _[ _'c' , _'\n' , _'\'' _]
 
-foo = _"wobble (wibble)"
+; foo = _"wobble (wibble)"
 
-class Get a s where
+; class Get a s where
 { get :: Set s -> a
 
-} instance Get a _( a ': s _) where
+} ; instance Get a _( a ': s _) where
 { get _( Ext a _ _) = a
 
-} instance Get a s => Get a _( b ': s _) where
+} ; instance Get a s => Get a _( b ': s _) where
 { get _( Ext _ xs _) = get xs
 
-} data Options = Options
+} ; data Options = Options
 _{ optionsReportType :: ReportType
 , optionsProfFile :: Maybe FilePath
 , optionsOutputFile :: Maybe FilePath
 , optionsFlamegraphFlags :: _[ String _]
 _} deriving _( Eq , Show _)
 
-class _( Eq a _) => Ord a where
-{ _( < _) , _( <= _) , _( >= _) , _( > _) :: a -> a -> Bool
-max @Foo , min :: a -> a -> a
+; class _( Eq a _) => Ord a where
+{ _; < _) , _( <= _) , _( >= _) , _( > _) :: a -> a -> Bool
+; max @Foo , min :: a -> a -> a
 
-} instance _( Eq a _) => Eq _( Tree a _) where
+} ; instance _( Eq a _) => Eq _( Tree a _) where
 { Leaf a == Leaf b = a == b
-_( Branch l1 r1 _) == _( Branch l2 r2 _) = _( l1==l2 _) && _( r1==r2 _)
-_ == _ = False
+; _; Branch l1 r1 _) == _( Branch l2 r2 _) = _( l1==l2 _) && _( r1==r2 _)
+; _ == _ = False
 
-} data ReportType = Alloc
+} ; data ReportType = Alloc
 | Entries
 | Time
 | Ticks
 | Bytes
 deriving _( Eq , Show _)
 
-type family G a where
+; type family G a where
 { G Int = Bool
-G a = Char
+; G a = Char
 
-} data Flobble = Flobble
+} ; data Flobble = Flobble
 deriving _( Eq _) via _( NonNegative _( Large Int _) _)
 deriving stock _( Floo _)
 deriving anyclass _( WibblyWoo , OtherlyWoo _)
 
-newtype Flobby = Flobby
+; newtype Flobby = Flobby
 
-foo ::
+; foo ::
 Wibble
 -> Wobble
 -> Wobble
@@ -90,17 +90,17 @@ Wibble
 -> _( Wobble
 a b c _)
 
-_( foo :: _( Wibble Wobble _) _) foo
+; _; foo :: _( Wibble Wobble _) _) foo
 
-newtype TestApp
+; newtype TestApp
 _( logger :: TestLogger _)
 _( scribe :: TestScribe _)
 config
 a
 = TestApp a
 
-optionsParser :: Opts.Parser Options
-optionsParser = Options
+; optionsParser :: Opts.Parser Options
+; optionsParser = Options
 <$> _( Opts.flag' Alloc _( Opts.long _"alloc" <> Opts.help _"wibble" _)
 <|> Opts.flag' Entries _( Opts.long _"entry" <> Opts.help _"wobble" _)
 <|> Opts.flag' Bytes _( Opts.long _"bytes" <> Opts.help _"i'm a fish" _) _)
@@ -109,9 +109,9 @@ _( Opts.strArgument
 _( Opts.metavar _"MY-FILE" <>
 Opts.help _"meh" _) _)
 
-type PhantomThing
+; type PhantomThing
 
-type SomeApi =
+; type SomeApi =
 _"thing" :> Capture _"bar" Index :> QueryParam _"wibble" Text
 :> QueryParam _"wobble" Natural
 :> Header TracingHeader TracingId
@@ -122,6 +122,7 @@ _"thing" :> Capture _"bar" Index :> QueryParam _"wibble" Text
 :> SpecialHeader
 :> Post ' _[ JSON _] _( The Response _)
 
-deriving instance FromJSONKey StateName
-deriving anyclass instance FromJSON Base
-deriving newtype instance FromJSON Treble
+; deriving instance FromJSONKey StateName
+; deriving anyclass instance FromJSON Base
+; deriving newtype instance FromJSON Treble
+}
