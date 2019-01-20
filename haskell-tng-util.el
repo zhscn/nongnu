@@ -20,6 +20,7 @@
       (when (looking-at ")")
         (point)))))
 
+;; FIXME comment aware
 (defun haskell-tng:indent-close (&optional pos)
   "The beginning of the line with indentation that closes `POS'."
   (save-excursion
@@ -28,6 +29,20 @@
       (catch 'closed
         (while (and (forward-line) (not (eobp)))
           (when (<= (current-indentation) level)
+            (throw 'closed (point))))
+        nil))))
+
+;; FIXME comment aware
+;; TODO share with haskell-tng:indent-close?
+(defun haskell-tng:layout-close (&optional pos)
+  "The point with indentation that closes `POS'."
+  (save-excursion
+    (goto-char (or pos (point)))
+    (let ((level (current-column)))
+      (catch 'closed
+        (while (and (forward-line) (not (eobp)))
+          (when (< (current-indentation) level)
+            (forward-char (current-indentation))
             (throw 'closed (point))))
         nil))))
 

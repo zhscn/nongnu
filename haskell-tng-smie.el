@@ -74,9 +74,16 @@
          ;; A hacky solution is to calculate and cache the closing brace when
          ;; discovering an open brace, but that just introduces more problems.
          ((and wldo (not (looking-at "{")))
-          (message "WLDO was at %s" start)
-          ;; TODO find the closing brace and add to the state
+          (let ((close (haskell-tng:layout-close)))
+            (message "WLDO opened at %s setting level to %s, closing at %s"
+                     start (current-column) close)
+            (push close haskell-tng-smie:wldos))
           "{")
+         ((when-let (close (car haskell-tng-smie:wldos))
+            (>= (point) close))
+          (message "WLDO closed at %s" (point))
+          (pop haskell-tng-smie:wldos)
+          "}")
 
          ;; TODO should only trigger inside a WLDO block
          ;; layout of wldo blocks: semicolons

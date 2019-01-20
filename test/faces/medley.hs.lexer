@@ -212,6 +212,7 @@ Set
 s
 ->
 a
+}
 instance
 Get
 a
@@ -230,6 +231,7 @@ _
 SYNTAX_)
 =
 a
+}
 instance
 Get
 a
@@ -253,6 +255,7 @@ SYNTAX_)
 =
 get
 xs
+}
 data
 Options
 =
@@ -325,6 +328,7 @@ a
 a
 ->
 a
+}
 instance
 SYNTAX_(
 Eq
@@ -371,6 +375,7 @@ _
 _
 =
 False
+}
 data
 ReportType
 =
@@ -403,6 +408,7 @@ G
 a
 =
 Char
+}
 data
 Flobble
 =
