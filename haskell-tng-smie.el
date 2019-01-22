@@ -30,17 +30,16 @@
 (require 'haskell-tng-font-lock)
 
 ;; FIXME: massive hack. Holds an ordered list of (position . level) that close
-;; an inferred layout block. This could be turned into a (cached) function call
-;; plus some state in wldo-state.
+;; an inferred layout block. Convert into a (cached) function call to calculate
+;; the relevant WLDOs for a given point.
 (defvar-local haskell-tng-smie:wldos nil)
 
-;; FIXME: massive hack. State of previous lexeme. Unsure how to remove this.
-;; Ideally we would be able to return multiple tokens to SMIE and we wouldn't
-;; need this.
+;; State: a list of tokens to return at the current point ending with `t' as an
+;; indicator that all virtual tokens have been processed. `nil' means to proceed
+;; as normal.
 ;;
-;; TODO: refactor so this stores the list of tokens to return at the current
-;; point, and some information allowing cache invalidation.
-(defvar-local haskell-tng-smie:wldo-state nil)
+;; FIXME cache invalidation
+(defvar-local haskell-tng-smie:multi nil)
 
 ;; Function to scan forward for the next token.
 ;;
@@ -52,48 +51,61 @@
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Lexer
 (defun haskell-tng-smie:forward-token ()
   (interactive) ;; for testing
-  (forward-comment (point-max))
-  (if (eobp)
-      "}"
-    (let ((case-fold-search nil)
+  (forward-comment (point-max)) ;; TODO: move to after virtual token generation
+  (cond
+   ;; TODO: remove this hack
+   ((eobp)
+    "}")
+
+   ;; reading from state
+   ((stringp (car haskell-tng-smie:multi))
+    (pop haskell-tng-smie:multi))
+
+   (t
+    (let ((done-multi (pop haskell-tng-smie:multi))
+          (case-fold-search nil)
           (syntax (char-syntax (char-after)))
-          (wldo-state haskell-tng-smie:wldo-state)
           (offside (car haskell-tng-smie:wldos)))
-      (setq haskell-tng-smie:wldo-state nil)
-      (cond
-       ;; layout
-       ((and (eq wldo-state 'start) (not (looking-at "{")))
-        (push (haskell-tng:layout-close-and-level) haskell-tng-smie:wldos)
-        (setq haskell-tng-smie:wldo-state 'middle)
-        "{")
-       ((when-let (close (car offside))
-          (= (point) close))
-        (pop haskell-tng-smie:wldos)
-        "}")
-       ((when-let (level (cdr offside))
-          (and
-           (= (current-column) level)
-           (not (eq wldo-state 'middle))))
-        (setq haskell-tng-smie:wldo-state 'middle)
-        ";")
+      (cl-flet ((virtual-end () (= (point) (car offside)))
+                (virtual-semicolon () (= (current-column) (cdr offside))))
+        (cond
+         ;; layout
+         ((and offside
+               (not done-multi)
+               (or (virtual-end) (virtual-semicolon)))
+          (setq haskell-tng-smie:multi '(t))
+          (while (and offside (virtual-end))
+            (push "}" haskell-tng-smie:multi)
+            (pop haskell-tng-smie:wldos)
+            (setq offside (car haskell-tng-smie:wldos)))
+          (when (and offside (virtual-semicolon))
+            (setq haskell-tng-smie:multi
+                  (-insert-at (- (length haskell-tng-smie:multi) 1)
+                              ";" haskell-tng-smie:multi)))
+          (pop haskell-tng-smie:multi))
 
-       ;; parens
-       ((member syntax '(?\( ?\) ?\" ?$)) nil)
+         ;; parens
+         ((member syntax '(?\( ?\) ?\" ?$)) nil)
 
-       ;; layout detection
-       ((looking-at (rx word-start (| "where" "let" "do" "of") word-end))
-        (setq haskell-tng-smie:wldo-state 'start)
-        (haskell-tng-smie:last-match))
+         ;; layout detection
+         ((looking-at (rx word-start (| "where" "let" "do" "of") word-end))
+          (save-match-data
+            (forward-word)
+            (forward-comment (point-max))
+            (when (not (looking-at "{"))
+              (push (haskell-tng:layout-close-and-level) haskell-tng-smie:wldos)
+              (setq haskell-tng-smie:multi '("{" t))))
+          (haskell-tng-smie:last-match))
 
-       ;; regexps
-       ((or
-         ;; known identifiers
-         (looking-at haskell-tng:regexp:reserved)
-         ;; symbols
-         (looking-at (rx (+ (| (syntax word) (syntax symbol)))))
-         ;; whatever the current syntax class is
-         (looking-at (rx-to-string `(+ (syntax ,syntax)))))
-        (haskell-tng-smie:last-match))))))
+         ;; regexps
+         ((or
+           ;; known identifiers
+           (looking-at haskell-tng:regexp:reserved)
+           ;; symbols
+           (looking-at (rx (+ (| (syntax word) (syntax symbol)))))
+           ;; whatever the current syntax class is
+           (looking-at (rx-to-string `(+ (syntax ,syntax)))))
+          (haskell-tng-smie:last-match))))))))
 
 (defun haskell-tng:layout-of-next-token ()
   (save-excursion
