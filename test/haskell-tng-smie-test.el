@@ -15,6 +15,23 @@
        (file-name-directory load-file-name)
      default-directory)))
 
+;; copy/pasta of `smie-indent-forward-token' but rendering lexed tokens in a way
+;; more ammenable to regression testing (e.g. syntax table usage)
+(defun haskell-tng-smie:indent-forward-token ()
+  (let ((tok (funcall smie-forward-token-function)))
+    (cond
+     ((< 0 (length tok)) tok)
+     ((looking-at (rx (| (syntax open-parenthesis)
+                         (syntax close-parenthesis))))
+      (concat "_" (haskell-tng-smie:last-match)))
+     ((looking-at (rx (| (syntax string-quote)
+                         (syntax string-delimiter))))
+      (let ((start (point)))
+        (forward-sexp 1)
+        (concat "_" (buffer-substring-no-properties start (point)))))
+     ((eobp) nil)
+     (t (error "Bumped into unknown token")))))
+
 (defun haskell-tng-smie:forward-tokens (&optional display)
   "Forward lex the current buffer using SMIE lexer and return the list of lines,
 where each line is a list of tokens.
@@ -26,19 +43,12 @@ When called interactively, shows the tokens in a buffer."
     (goto-char (point-min))
     (while (not (eobp))
       (let* ((start (point))
-             (token (funcall smie-forward-token-function)))
-        (when (and (not token) (= (point) start))
-          (setq token (car (smie-indent-forward-token)))
-          (when (= start (point)) (forward-char 1))
-          (unless token
-            (setq token (buffer-substring-no-properties start (point))))
-          ;; differentiate that these tokens come from the syntax table
-          (setq token (concat "_" token)))
+             (token (haskell-tng-smie:indent-forward-token)))
         (let ((line-diff (- (line-number-at-pos (point))
                             (line-number-at-pos start))))
           (unless (<= line-diff 0)
             (setq lines (append (-repeat line-diff nil) lines))))
-        (unless (member token '(nil ""))
+        (unless (s-blank? token)
           (push token (car lines)))))
     (let ((ordered (reverse (--map (reverse it) lines))))
       (if display

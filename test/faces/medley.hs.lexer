@@ -55,12 +55,12 @@ _{ optionsReportType :: ReportType
 _} deriving _( Eq , Show _)
 
 ; class _( Eq a _) => Ord a where
-{ _; < _) , _( <= _) , _( >= _) , _( > _) :: a -> a -> Bool
+{ _( < _) , _( <= _) , _( >= _) , _( > _) :: a -> a -> Bool
 ; max @Foo , min :: a -> a -> a
 
 } ; instance _( Eq a _) => Eq _( Tree a _) where
 { Leaf a == Leaf b = a == b
-; _; Branch l1 r1 _) == _( Branch l2 r2 _) = _( l1==l2 _) && _( r1==r2 _)
+; _( Branch l1 r1 _) == _( Branch l2 r2 _) = _( l1==l2 _) && _( r1==r2 _)
 ; _ == _ = False
 
 } ; data ReportType = Alloc
@@ -90,7 +90,7 @@ Wibble
 -> _( Wobble
 a b c _)
 
-; _; foo :: _( Wibble Wobble _) _) foo
+; _( foo :: _( Wibble Wobble _) _) foo
 
 ; newtype TestApp
 _( logger :: TestLogger _)
@@ -125,4 +125,10 @@ _"thing" :> Capture _"bar" Index :> QueryParam _"wibble" Text
 ; deriving instance FromJSONKey StateName
 ; deriving anyclass instance FromJSON Base
 ; deriving newtype instance FromJSON Treble
+
+; foo = bar
+where { baz = _
+
+
+; _( + _) = _
 }

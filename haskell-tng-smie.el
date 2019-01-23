@@ -64,7 +64,6 @@
    (t
     (let ((done-multi (pop haskell-tng-smie:multi))
           (case-fold-search nil)
-          (syntax (char-syntax (char-after)))
           (offside (car haskell-tng-smie:wldos)))
       (cl-flet ((virtual-end () (= (point) (car offside)))
                 (virtual-semicolon () (= (current-column) (cdr offside))))
@@ -84,8 +83,12 @@
                               ";" haskell-tng-smie:multi)))
           (pop haskell-tng-smie:multi))
 
-         ;; parens
-         ((member syntax '(?\( ?\) ?\" ?$)) nil)
+         ;; syntax tables (supported by `smie-indent-forward-token')
+         ((looking-at (rx (| (syntax open-parenthesis)
+                             (syntax close-parenthesis)
+                             (syntax string-quote)
+                             (syntax string-delimiter))))
+          nil)
 
          ;; layout detection
          ((looking-at (rx word-start (| "where" "let" "do" "of") word-end))
@@ -102,10 +105,13 @@
            ;; known identifiers
            (looking-at haskell-tng:regexp:reserved)
            ;; symbols
-           (looking-at (rx (+ (| (syntax word) (syntax symbol)))))
-           ;; whatever the current syntax class is
-           (looking-at (rx-to-string `(+ (syntax ,syntax)))))
-          (haskell-tng-smie:last-match))))))))
+           (looking-at (rx (+ (| (syntax word) (syntax symbol))))))
+          (haskell-tng-smie:last-match))
+
+         ;; single char
+         (t
+          (forward-char)
+          (string (char-before)))))))))
 
 (defun haskell-tng:layout-of-next-token ()
   (save-excursion

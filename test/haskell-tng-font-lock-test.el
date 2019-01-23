@@ -16,6 +16,7 @@
     (eval-when-compile (faceup-this-file-directory)))))
 (faceup-defexplainer have-expected-faces)
 
+;; to generate .faceup files, use faceup-view-buffer
 (ert-deftest haskell-tng-font-lock-file-tests ()
   (should (have-expected-faces "faces/medley.hs")))
 

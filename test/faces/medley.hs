@@ -125,3 +125,9 @@ type SomeApi =
 deriving instance FromJSONKey StateName
 deriving anyclass instance FromJSON Base
 deriving newtype instance FromJSON Treble
+
+foo = bar
+  where baz = _
+  -- checking that comments are ignored in layout
+  -- and that a starting syntax entry is ok
+        (+) = _

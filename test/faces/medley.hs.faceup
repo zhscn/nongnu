@@ -125,3 +125,9 @@
 «:haskell-tng:keyword:deriving» «:haskell-tng:keyword:instance» «:haskell-tng:constructor:FromJSONKey» «:haskell-tng:constructor:StateName»
 «:haskell-tng:keyword:deriving» anyclass «:haskell-tng:keyword:instance» «:haskell-tng:constructor:FromJSON» «:haskell-tng:constructor:Base»
 «:haskell-tng:keyword:deriving» «:haskell-tng:keyword:newtype» «:haskell-tng:keyword:instance» «:haskell-tng:constructor:FromJSON» «:haskell-tng:constructor:Treble»
+
+«:haskell-tng:toplevel:foo» «:haskell-tng:keyword:=» bar
+  «:haskell-tng:keyword:where» baz «:haskell-tng:keyword:=» «:haskell-tng:keyword:_»
+  «x:-- checking that comments are ignored in layout
+»  «x:-- and that a starting syntax entry is ok
+»        «:haskell-tng:keyword:(»+«:haskell-tng:keyword:)» «:haskell-tng:keyword:=» «:haskell-tng:keyword:_»
