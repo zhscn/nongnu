@@ -1,6 +1,6 @@
-;;; haskell-tng-smie-test.el --- Tests for fontification -*- lexical-binding: t -*-
+;;; haskell-tng-smie-test.el --- Tests for navigation and indentation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018 Tseen She
+;; Copyright (C) 2018-2019 Tseen She
 ;; License: GPL 3 or any later version
 
 (require 'haskell-tng-mode)
@@ -88,8 +88,8 @@ When called interactively, shows the tokens in a buffer."
 ;; TODO the backwards test should simply assert consistency
 
 (ert-deftest haskell-tng-smie-file-tests ()
-  (should (have-expected-forward-lex "faces/medley.hs"))
-  (should (have-expected-forward-lex "lexer/layout.hs"))
+  (should (have-expected-forward-lex "src/medley.hs"))
+  (should (have-expected-forward-lex "src/layout.hs"))
   )
 
 ;; ideas for an indentation tester

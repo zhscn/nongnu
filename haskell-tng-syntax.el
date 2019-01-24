@@ -1,6 +1,6 @@
 ;;; haskell-tng-syntax.el --- Syntax Table for Haskell -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018 Tseen She
+;; Copyright (C) 2018-2019 Tseen She
 ;; License: GPL 3 or any later version
 
 ;;; Commentary:
@@ -38,7 +38,7 @@
     (--each (string-to-list "!#$%&*+./<=>?@\\^|-~:")
       (modify-syntax-entry it "_" table))
 
-    ;; FIXME: should be iff _ is alone or first char
+    ;; TODO: should be iff _ is alone or first char
     ;; small (underscore is a lowercase letter)
     (modify-syntax-entry ?_ "w" table)
 

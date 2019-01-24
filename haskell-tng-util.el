@@ -1,6 +1,6 @@
 ;;; haskell-tng-util.el --- Helpful Utilities -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018 Tseen She
+;; Copyright (C) 2018-2019 Tseen She
 ;; License: GPL 3 or any later version
 
 ;;; Commentary:
