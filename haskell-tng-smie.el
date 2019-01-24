@@ -29,9 +29,7 @@
 (require 'smie)
 (require 'haskell-tng-font-lock)
 
-;; FIXME: massive hack. Holds an ordered list of (position . level) that close
-;; an inferred layout block. Convert into a (cached) function call to calculate
-;; the relevant WLDOs for a given point.
+;; FIXME: this is all broken, use haskell-tng-layout
 (defvar-local haskell-tng-smie:wldos nil)
 
 ;; State: a list of tokens to return at the current point ending with `t' as an
@@ -112,27 +110,6 @@
          (t
           (forward-char)
           (string (char-before)))))))))
-
-(defun haskell-tng:layout-of-next-token ()
-  (save-excursion
-    (forward-comment (point-max))
-    (current-column)))
-
-(defun haskell-tng:layout-close-and-level (&optional pos)
-  "A cons cell of the closing point for the layout beginning at POS, and level."
-  (save-excursion
-    (goto-char (or pos (point)))
-    (let ((level (current-column))
-          (close (or (haskell-tng:paren-close) (point-max))))
-      (catch 'closed
-        (while (not (eobp))
-          (forward-line)
-          (forward-comment (point-max))
-          (when (< close (point))
-            (throw 'closed (cons close level)))
-          (when (< (current-column) level)
-            (throw 'closed (cons (point) level))))
-        (cons (point-max) level)))))
 
 (defun haskell-tng-smie:last-match ()
   (goto-char (match-end 0))
