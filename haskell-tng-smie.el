@@ -27,16 +27,13 @@
 ;;; Code:
 
 (require 'smie)
+
 (require 'haskell-tng-font-lock)
+(require 'haskell-tng-layout)
 
 ;; FIXME: this is all broken, use haskell-tng-layout
-(defvar-local haskell-tng-smie:wldos nil)
 
-;; State: a list of tokens to return at the current point ending with `t' as an
-;; indicator that all virtual tokens have been processed. `nil' means to proceed
-;; as normal.
-;;
-;; FIXME cache invalidation
+;; TODO: invalidate this state when the lexer jumps around or the user edits
 (defvar-local haskell-tng-smie:multi nil)
 
 ;; Function to scan forward for the next token.
@@ -49,17 +46,11 @@
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Lexer
 (defun haskell-tng-smie:forward-token ()
   (interactive) ;; for testing
-  (forward-comment (point-max)) ;; TODO: move to after virtual token generation
-  (cond
-   ;; TODO: remove this hack
-   ((eobp)
-    "}")
+  (if (stringp (car haskell-tng-smie:multi))
+      ;; reading from state
+      (pop haskell-tng-smie:multi)
 
-   ;; reading from state
-   ((stringp (car haskell-tng-smie:multi))
-    (pop haskell-tng-smie:multi))
-
-   (t
+    (forward-comment (point-max))
     (let ((done-multi (pop haskell-tng-smie:multi))
           (case-fold-search nil)
           (offside (car haskell-tng-smie:wldos)))
@@ -109,7 +100,7 @@
          ;; single char
          (t
           (forward-char)
-          (string (char-before)))))))))
+          (string (char-before))))))))
 
 (defun haskell-tng-smie:last-match ()
   (goto-char (match-end 0))

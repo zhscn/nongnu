@@ -19,16 +19,18 @@
 
 ;; Notes on caching
 ;;
-;; The easiest cache is to parse the entire buffer, invalidated on any change.
+;; Small brain is to parse the entire buffer, invalidated on any change.
 ;;
-;; A more efficient cache would store a record of the region that has been
-;; edited and reparse only the layouts that have changed. The invalidation may
-;; be a simple case of dismissing everything (including CLOSE parts) after any
-;; point that has been edited or trying to track insertions.
+;; Big brain would store a record of the region that has been edited and reparse
+;; only the layouts that have changed. The invalidation may be a simple case of
+;; dismissing everything (including CLOSE parts) after any point that has been
+;; edited or trying to track insertions.
 ;;
 ;; Galaxy brain caching would use properties and put dirty markers on inserted
 ;; or deleted regions. Also this could give lightning fast lookup at point on
 ;; cache hits.
+;;
+;; Anything more complicated that small brain needs improved testing.
 
 (require 'haskell-tng-util)
 
@@ -37,7 +39,9 @@
 
 ;; TODO invalidate the cache on change
 
-(defun haskell-tng-layout:virtuals-at-point (&optional pos)
+;; TODO a visual debugging option would be great, showing virtuals as overlays
+
+(defun haskell-tng-layout:virtuals-at-point ()
   "List of virtual `{' `}' and `;' at point, according to the
 Haskell2010 Layout rules.
 
@@ -45,8 +49,24 @@ Designed to be called repeatedly, managing its own caching."
   (unless haskell-tng-layout:cache
     (haskell-tng-layout:rebuild-cache-full))
 
-  ;; FIXME lookup in cache
-  )
+  (let ((pos (point)))
+   (catch 'done
+     (let (breaks
+           closes)
+       (dolist (block haskell-tng-layout:cache)
+         (let ((open (car block))
+               (close (cadr block))
+               (lines (cddr block)))
+           ;;(message "BLOCK = %S (%s, %s, %s)" block open close lines)
+           (when (and (<= open pos) (<= pos close))
+             (when (= open pos)
+               (throw 'done '("{")))
+             (when (= close pos)
+               (push "}" closes))
+             (dolist (line lines)
+               (when (= line pos)
+                 (push ";" breaks))))))
+       (append (reverse closes) (reverse breaks))))))
 
 (defun haskell-tng-layout:rebuild-cache-full ()
   (let (case-fold-search
@@ -55,7 +75,7 @@ Designed to be called repeatedly, managing its own caching."
       (goto-char 0)
       (while (not (eobp))
         (when-let (wldo (haskell-tng-layout:next-wldo))
-          (push haskell-tng-layout:cache cache))))
+          (push wldo cache))))
     (setq haskell-tng-layout:cache (reverse cache))))
 
 (defun haskell-tng-layout:next-wldo ()

@@ -9,12 +9,6 @@
 (require 'ert)
 (require 's)
 
-(defmacro haskell-tng-smie:this-lisp-directory ()
-  (expand-file-name
-   (if load-file-name
-       (file-name-directory load-file-name)
-     default-directory)))
-
 ;; copy/pasta of `smie-indent-forward-token' but rendering lexed tokens in a way
 ;; more ammenable to regression testing (e.g. syntax table usage)
 (defun haskell-tng-smie:indent-forward-token ()
@@ -67,7 +61,7 @@ When called interactively, shows the tokens in a buffer."
   (let* ((backup-inhibited t)
          (filename (expand-file-name
                     file
-                    (haskell-tng-smie:this-lisp-directory)))
+                    (haskell-tng:this-lisp-directory)))
          (golden (concat filename ".lexer"))
          (expected (with-temp-buffer
                      (insert-file-contents golden)
