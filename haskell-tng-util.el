@@ -11,12 +11,6 @@
 
 (require 'subr-x)
 
-(defmacro haskell-tng:this-lisp-directory ()
-  (expand-file-name
-   (if load-file-name
-       (file-name-directory load-file-name)
-     default-directory)))
-
 (defun haskell-tng:paren-close (&optional pos)
   "The next `)', if it closes `POS's paren depth."
   (save-excursion

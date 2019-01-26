@@ -131,3 +131,4 @@ module Foo.Bar.Main
   -- checking that comments are ignored in layout
   -- and that a starting syntax entry is ok
         ;(+) = _
+}}

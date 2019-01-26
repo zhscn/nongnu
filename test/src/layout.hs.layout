@@ -17,3 +17,4 @@ module AStack( Stack, push, pop, top, size ) where
 
 ;top :: Stack a -> a
 ;top (MkStack x s) = x                     -- (top Empty) is an error
+}

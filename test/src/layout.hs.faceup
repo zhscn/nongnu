@@ -1,0 +1,20 @@
+«x:-- Figure 2.1 from the Haskell2010 report
+»«:haskell-tng:keyword:module» «:haskell-tng:module:AStack»«:haskell-tng:keyword:(»«:haskell-tng:constructor: Stack»«:haskell-tng:keyword:,»«:haskell-tng:constructor: push»«:haskell-tng:keyword:,»«:haskell-tng:constructor: pop»«:haskell-tng:keyword:,»«:haskell-tng:constructor: top»«:haskell-tng:keyword:,»«:haskell-tng:constructor: size »«:haskell-tng:keyword:)» «:haskell-tng:keyword:where»
+«:haskell-tng:keyword:data»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Empty»
+             «:haskell-tng:keyword:|» «:haskell-tng:constructor:MkStack» a «:haskell-tng:keyword:(»«:haskell-tng:constructor:Stack» a«:haskell-tng:keyword:)»
+
+«:haskell-tng:toplevel:push» «:haskell-tng:keyword:::»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:->»«:haskell-tng:type: Stack a
+»«:haskell-tng:toplevel:push» x s «:haskell-tng:keyword:=» «:haskell-tng:constructor:MkStack» x s
+
+«:haskell-tng:toplevel:size» «:haskell-tng:keyword:::»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:->»«:haskell-tng:type: Int
+»«:haskell-tng:toplevel:size» s «:haskell-tng:keyword:=» length «:haskell-tng:keyword:(»stkToLst s«:haskell-tng:keyword:)»  «:haskell-tng:keyword:where»
+           stkToLst  «:haskell-tng:constructor:Empty»         «:haskell-tng:keyword:=» «:haskell-tng:keyword:[]»
+           stkToLst «:haskell-tng:keyword:(»«:haskell-tng:constructor:MkStack» x s«:haskell-tng:keyword:)»  «:haskell-tng:keyword:=» x:xs «:haskell-tng:keyword:where» xs «:haskell-tng:keyword:=» stkToLst s
+
+«:haskell-tng:toplevel:pop» «:haskell-tng:keyword:::»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:->»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:a»«:haskell-tng:keyword:,»«:haskell-tng:type: Stack a»«:haskell-tng:keyword:)»«:haskell-tng:type:
+»«:haskell-tng:toplevel:pop» «:haskell-tng:keyword:(»«:haskell-tng:constructor:MkStack» x s«:haskell-tng:keyword:)»
+  «:haskell-tng:keyword:=» «:haskell-tng:keyword:(»x«:haskell-tng:keyword:,» «:haskell-tng:keyword:case» s «:haskell-tng:keyword:of» r «:haskell-tng:keyword:->» i r «:haskell-tng:keyword:where» i x «:haskell-tng:keyword:=» x«:haskell-tng:keyword:)» «x:-- (pop Empty) is an error
+»
+«:haskell-tng:toplevel:top» «:haskell-tng:keyword:::»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:->»«:haskell-tng:type: a
+»«:haskell-tng:toplevel:top» «:haskell-tng:keyword:(»«:haskell-tng:constructor:MkStack» x s«:haskell-tng:keyword:)» «:haskell-tng:keyword:=» x                     «x:-- (top Empty) is an error
+»
