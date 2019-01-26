@@ -6,23 +6,16 @@
 ;;; Commentary:
 ;;
 ;;  SMIE lexer, precedence table (providing s-expression navigation), and
-;;  indentation rules.
+;;  indentation rules. The lexer is stateful in order to support virtual tokens,
+;;  and Layout aware, see `haskell-tng-layout.el' for more details.
 ;;
-;;  Note that we don't need to support every aspect of the Haskell language in
-;;  these grammar rules: only the parts that are relevant for the features that
-;;  are provided.
-;;
-;;  If we had access to all the operators in scope, and their fixity, we could
-;;  create file-specific precendences. However, the complexity-to-benefit payoff
-;;  is minimal.
+;;  Note that we don't support every aspect of the Haskell language. e.g. if we
+;;  had access to all the operators in scope, and their fixity, we could create
+;;  file-specific precendences. However, the complexity-to-benefit payoff is
+;;  minimal.
 ;;
 ;;  Users may consult the SMIE manual to customise their indentation rules:
 ;;  https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE
-;;
-;;  The Haskell2010 report's sections 2.7 and 10.3 are particularly pertinent:
-;;
-;;  https://www.haskell.org/onlinereport/haskell2010/haskellch2.html
-;;  https://www.haskell.org/onlinereport/haskell2010/haskellch10.html
 ;;
 ;;; Code:
 
@@ -31,12 +24,14 @@
 (require 'haskell-tng-font-lock)
 (require 'haskell-tng-layout)
 
-;; FIXME: this is all broken, use haskell-tng-layout
-
+;; The list of virtual tokens that must be played back at point, or `t' to
+;; indicate that virtual tokens have already been played back at point and
+;; normal lexing may continue.
+;;
 ;; TODO: invalidate this state when the lexer jumps around or the user edits
-(defvar-local haskell-tng-smie:multi nil)
+(defvar-local haskell-tng-smie:virtuals nil)
 
-;; Function to scan forward for the next token.
+;; Implementation of `smie-forward-token' for Haskell, i.e.
 ;;
 ;; - Called with no argument should return a token and move to its end.
 ;; - If no token is found, return nil or the empty string.
@@ -44,63 +39,53 @@
 ;;   use syntax-tables to handle them in efficient C code.
 ;;
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Lexer
+;;
+;; Note that this implementation is stateful as it can play back multiple
+;; virtual tokens at a single point. This lexer could be made stateless if SMIE
+;; were to support a 4th return type: a list of any of the above.
 (defun haskell-tng-smie:forward-token ()
-  (interactive) ;; for testing
-  (if (stringp (car haskell-tng-smie:multi))
-      ;; reading from state
-      (pop haskell-tng-smie:multi)
+  (let (case-fold-search)
+    (if (consp haskell-tng-smie:virtuals)
+        ;; continue replaying virtual tokens
+        (haskell-tng-smie:replay-virtual)
 
-    (forward-comment (point-max))
-    (let ((done-multi (pop haskell-tng-smie:multi))
-          (case-fold-search nil)
-          (offside (car haskell-tng-smie:wldos)))
-      (cl-flet ((virtual-end () (= (point) (car offside)))
-                (virtual-semicolon () (= (current-column) (cdr offside))))
-        (cond
-         ;; layout
-         ((and offside
-               (not done-multi)
-               (or (virtual-end) (virtual-semicolon)))
-          (setq haskell-tng-smie:multi '(t))
-          (while (and offside (virtual-end))
-            (push "}" haskell-tng-smie:multi)
-            (pop haskell-tng-smie:wldos)
-            (setq offside (car haskell-tng-smie:wldos)))
-          (when (and offside (virtual-semicolon))
-            (setq haskell-tng-smie:multi
-                  (-insert-at (- (length haskell-tng-smie:multi) 1)
-                              ";" haskell-tng-smie:multi)))
-          (pop haskell-tng-smie:multi))
+      (forward-comment (point-max))
+      ;; TODO: performance. Only request virtuals when they make sense... e.g.
+      ;; on newlines, or following a WLDO (assuming a lookback is faster).
+      (setq haskell-tng-smie:virtuals
+            (and (not haskell-tng-smie:virtuals)
+                 (haskell-tng-layout:virtuals-at-point)))
+      (cond
+       ;; new virtual tokens
+       (haskell-tng-smie:virtuals
+        (haskell-tng-smie:replay-virtual))
 
-         ;; syntax tables (supported by `smie-indent-forward-token')
-         ((looking-at (rx (| (syntax open-parenthesis)
-                             (syntax close-parenthesis)
-                             (syntax string-quote)
-                             (syntax string-delimiter))))
-          nil)
+       ;; syntax tables (supported by `smie-indent-forward-token')
+       ((looking-at (rx (| (syntax open-parenthesis)
+                           (syntax close-parenthesis)
+                           (syntax string-quote)
+                           (syntax string-delimiter))))
+        nil)
 
-         ;; layout detection
-         ((looking-at (rx word-start (| "where" "let" "do" "of") word-end))
-          (save-match-data
-            (forward-word)
-            (forward-comment (point-max))
-            (when (not (looking-at "{"))
-              (push (haskell-tng:layout-close-and-level) haskell-tng-smie:wldos)
-              (setq haskell-tng-smie:multi '("{" t))))
-          (haskell-tng-smie:last-match))
+       ;; regexps
+       ((or
+         ;; known identifiers
+         (looking-at haskell-tng:regexp:reserved)
+         ;; symbols
+         (looking-at (rx (+ (| (syntax word) (syntax symbol))))))
+        (haskell-tng-smie:last-match))
 
-         ;; regexps
-         ((or
-           ;; known identifiers
-           (looking-at haskell-tng:regexp:reserved)
-           ;; symbols
-           (looking-at (rx (+ (| (syntax word) (syntax symbol))))))
-          (haskell-tng-smie:last-match))
+       ;; single char
+       (t
+        (forward-char)
+        (string (char-before)))))))
 
-         ;; single char
-         (t
-          (forward-char)
-          (string (char-before))))))))
+(defun haskell-tng-smie:replay-virtual ()
+  ";; read a virtual token from state, set 't when all done"
+  (unwind-protect
+      (pop haskell-tng-smie:virtuals)
+    (unless haskell-tng-smie:virtuals
+      (setq haskell-tng-smie:virtuals 't))))
 
 (defun haskell-tng-smie:last-match ()
   (goto-char (match-end 0))
