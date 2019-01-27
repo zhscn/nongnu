@@ -32,9 +32,26 @@
 
 (ert-deftest haskell-tng-layout-file-tests ()
   ;; the Haskell2010 test case
-  (should (have-expected-layout "src/layout.hs"))
+  (should (have-expected-layout (testdata "src/layout.hs")))
 
-  (should (have-expected-layout "src/medley.hs"))
+  (should (have-expected-layout (testdata "src/medley.hs")))
   )
+
+(ert-deftest haskell-tng-layout-cache-invalidation-tests ()
+  (with-temp-buffer
+    (insert-file-contents (testdata "src/layout.hs"))
+    (haskell-tng-mode)
+
+    (goto-char 317)
+    (should
+     (equal
+      (haskell-tng-layout:virtuals-at-point)
+      '(";")))
+
+    (insert " ")
+    (goto-char 317)
+    (should
+     (not
+      (haskell-tng-layout:virtuals-at-point)))))
 
 ;;; haskell-tng-layout-test.el ends here

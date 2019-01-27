@@ -24,9 +24,9 @@
 
 ;; to generate .faceup files, use faceup-view-buffer
 (ert-deftest haskell-tng-font-lock-file-tests ()
-  (should (have-expected-faces "src/medley.hs"))
+  (should (have-expected-faces (testdata "src/medley.hs")))
 
-  (should (have-expected-faces "src/layout.hs"))
+  (should (have-expected-faces (testdata "src/layout.hs")))
   )
 
 ;;; haskell-tng-font-lock-test.el ends here

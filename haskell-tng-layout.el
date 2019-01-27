@@ -37,7 +37,12 @@
 ;; Easiest cache... full buffer parse with full invalidation on any insertion.
 (defvar-local haskell-tng-layout:cache nil)
 
-;; TODO invalidate the cache on change
+(defun haskell-tng-layout:cache-invalidation (_beg _end _pre-length)
+  "For use in `after-change-functions' to invalidate the state of
+the layout engine."
+  (when haskell-tng-layout:cache
+    (message "INVALIDATING LAYOUT CACHE")
+    (setq haskell-tng-layout:cache nil)))
 
 ;; TODO a visual debugging option would be great, showing virtuals as overlays
 

@@ -61,12 +61,14 @@ When called interactively, shows the tokens in a buffer."
    #'haskell-tng-smie-test:parse-to-string
    "lexer"))
 
-;; TODO the backwards test should simply assert consistency
-
 (ert-deftest haskell-tng-smie-file-tests ()
-  (should (have-expected-forward-lex "src/medley.hs"))
-  (should (have-expected-forward-lex "src/layout.hs"))
+  (should (have-expected-forward-lex (testdata "src/medley.hs")))
+  (should (have-expected-forward-lex (testdata "src/layout.hs")))
   )
+
+;; TODO the backwards test should assert consistency with forward
+
+;; FIXME test for cache invalidation
 
 ;; ideas for an indentation tester
 ;; https://github.com/elixir-editors/emacs-elixir/blob/master/test/test-helper.el#L52-L63

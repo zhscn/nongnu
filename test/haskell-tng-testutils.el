@@ -20,16 +20,12 @@
   "For FILE, enable MODE and run TO-STRING and compare with the golden data in FILE.SUFFIX.
 
 Will fail and write out the expected version to FILE.SUFFIX."
-  (let* ((backup-inhibited t)
-         (filename (expand-file-name
-                    file
-                    (haskell-tng-testutils:this-lisp-directory)))
-         (golden (concat filename "." suffix))
+  (let* ((golden (concat file "." suffix))
          (expected (with-temp-buffer
                      (insert-file-contents golden)
                      (buffer-string)))
          (got (with-temp-buffer
-                  (insert-file-contents filename)
+                  (insert-file-contents file)
                   (funcall mode)
                   (funcall to-string))))
     (or (equal got expected)
@@ -37,6 +33,11 @@ Will fail and write out the expected version to FILE.SUFFIX."
         (progn
           (write-region got nil golden)
           nil))))
+
+(defun testdata (file)
+  (expand-file-name
+   file
+   (haskell-tng-testutils:this-lisp-directory)))
 
 (provide 'haskell-tng-testutils)
 ;;; haskell-tng-testutils.el ends here

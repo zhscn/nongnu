@@ -27,9 +27,19 @@
 ;; The list of virtual tokens that must be played back at point, or `t' to
 ;; indicate that virtual tokens have already been played back at point and
 ;; normal lexing may continue.
-;;
-;; TODO: invalidate this state when the lexer jumps around or the user edits
 (defvar-local haskell-tng-smie:virtuals nil)
+
+;; A cons cell of the last known direction and point when forward or backward
+;; lexing was called. Used to invalidate `haskell-tng-smie:virtuals' during
+;; read-only navigation.
+(defvar-local haskell-tng-smie:last nil)
+
+(defun haskell-tng-smie:virtuals-invalidation (_beg _end _pre-length)
+  "For use in `after-change-functions' to invalidate the state of
+the lexer."
+  (when haskell-tng-smie:virtuals
+    (message "INVALIDATING SMIE VIRTUALS")
+    (setq haskell-tng-smie:virtuals nil)))
 
 ;; Implementation of `smie-forward-token' for Haskell, i.e.
 ;;
@@ -44,41 +54,51 @@
 ;; virtual tokens at a single point. This lexer could be made stateless if SMIE
 ;; were to support a 4th return type: a list of any of the above.
 (defun haskell-tng-smie:forward-token ()
-  (let (case-fold-search)
-    (if (consp haskell-tng-smie:virtuals)
-        ;; continue replaying virtual tokens
-        (haskell-tng-smie:replay-virtual)
+  (unwind-protect
+      (let (case-fold-search)
+        (when (and haskell-tng-smie:virtuals
+                   (not (equal haskell-tng-smie:last `(forward . ,(point)))))
+          (message "INVALIDATING SMIE VIRTUALS DUE TO JUMP")
+          (setq haskell-tng-smie:virtuals nil))
 
-      (forward-comment (point-max))
-      ;; TODO: performance. Only request virtuals when they make sense... e.g.
-      ;; on newlines, or following a WLDO (assuming a lookback is faster).
-      (setq haskell-tng-smie:virtuals
-            (and (not haskell-tng-smie:virtuals)
-                 (haskell-tng-layout:virtuals-at-point)))
-      (cond
-       ;; new virtual tokens
-       (haskell-tng-smie:virtuals
-        (haskell-tng-smie:replay-virtual))
+        (if (consp haskell-tng-smie:virtuals)
+            ;; continue replaying virtual tokens
+            (haskell-tng-smie:replay-virtual)
 
-       ;; syntax tables (supported by `smie-indent-forward-token')
-       ((looking-at (rx (| (syntax open-parenthesis)
-                           (syntax close-parenthesis)
-                           (syntax string-quote)
-                           (syntax string-delimiter))))
-        nil)
+          (forward-comment (point-max))
+          ;; TODO: performance. Only request virtuals when they make sense...
+          ;; e.g. on newlines, or following a WLDO (assuming a lookback is
+          ;; faster).
+          (setq haskell-tng-smie:virtuals
+                (and (not haskell-tng-smie:virtuals)
+                     (haskell-tng-layout:virtuals-at-point)))
+          (cond
+           ;; new virtual tokens
+           (haskell-tng-smie:virtuals
+            (haskell-tng-smie:replay-virtual))
 
-       ;; regexps
-       ((or
-         ;; known identifiers
-         (looking-at haskell-tng:regexp:reserved)
-         ;; symbols
-         (looking-at (rx (+ (| (syntax word) (syntax symbol))))))
-        (haskell-tng-smie:last-match))
+           ;; syntax tables (supported by `smie-indent-forward-token')
+           ((looking-at (rx (| (syntax open-parenthesis)
+                               (syntax close-parenthesis)
+                               (syntax string-quote)
+                               (syntax string-delimiter))))
+            nil)
 
-       ;; single char
-       (t
-        (forward-char)
-        (string (char-before)))))))
+           ;; regexps
+           ((or
+             ;; known identifiers
+             (looking-at haskell-tng:regexp:reserved)
+             ;; symbols
+             (looking-at (rx (+ (| (syntax word) (syntax symbol))))))
+            (haskell-tng-smie:last-match))
+
+           ;; single char
+           (t
+            (forward-char)
+            (string (char-before))))))
+
+    ;; save the state
+    (setq haskell-tng-smie:last `(forward . ,(point)))))
 
 (defun haskell-tng-smie:replay-virtual ()
   ";; read a virtual token from state, set 't when all done"
@@ -116,6 +136,14 @@
 (defvar haskell-tng-smie:rules nil)
 
 (defun haskell-tng-smie:setup ()
+  (add-to-list
+   'after-change-functions
+   #'haskell-tng-layout:cache-invalidation)
+
+  (add-to-list
+   'after-change-functions
+   #'haskell-tng-smie:virtuals-invalidation)
+
   (smie-setup
    haskell-tng-smie:grammar
    haskell-tng-smie:rules
