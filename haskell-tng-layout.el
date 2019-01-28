@@ -41,7 +41,6 @@
   "For use in `after-change-functions' to invalidate the state of
 the layout engine."
   (when haskell-tng-layout:cache
-    (message "INVALIDATING LAYOUT CACHE")
     (setq haskell-tng-layout:cache nil)))
 
 ;; TODO a visual debugging option would be great, showing virtuals as overlays

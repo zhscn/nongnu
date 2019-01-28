@@ -27,19 +27,18 @@
 ;; The list of virtual tokens that must be played back at point, or `t' to
 ;; indicate that virtual tokens have already been played back at point and
 ;; normal lexing may continue.
-(defvar-local haskell-tng-smie:virtuals nil)
+(defvar-local haskell-tng-smie:state nil)
 
 ;; A cons cell of the last known direction and point when forward or backward
-;; lexing was called. Used to invalidate `haskell-tng-smie:virtuals' during
+;; lexing was called. Used to invalidate `haskell-tng-smie:state' during
 ;; read-only navigation.
 (defvar-local haskell-tng-smie:last nil)
 
-(defun haskell-tng-smie:virtuals-invalidation (_beg _end _pre-length)
+(defun haskell-tng-smie:state-invalidation (_beg _end _pre-length)
   "For use in `after-change-functions' to invalidate the state of
 the lexer."
-  (when haskell-tng-smie:virtuals
-    (message "INVALIDATING SMIE VIRTUALS")
-    (setq haskell-tng-smie:virtuals nil)))
+  (when haskell-tng-smie:state
+    (setq haskell-tng-smie:state nil)))
 
 ;; Implementation of `smie-forward-token' for Haskell, i.e.
 ;;
@@ -56,25 +55,26 @@ the lexer."
 (defun haskell-tng-smie:forward-token ()
   (unwind-protect
       (let (case-fold-search)
-        (when (and haskell-tng-smie:virtuals
+        (when (and haskell-tng-smie:state
                    (not (equal haskell-tng-smie:last `(forward . ,(point)))))
-          (message "INVALIDATING SMIE VIRTUALS DUE TO JUMP")
-          (setq haskell-tng-smie:virtuals nil))
+          (setq haskell-tng-smie:state nil))
 
-        (if (consp haskell-tng-smie:virtuals)
+        (if (consp haskell-tng-smie:state)
             ;; continue replaying virtual tokens
             (haskell-tng-smie:replay-virtual)
 
           (forward-comment (point-max))
+
           ;; TODO: performance. Only request virtuals when they make sense...
-          ;; e.g. on newlines, or following a WLDO (assuming a lookback is
-          ;; faster).
-          (setq haskell-tng-smie:virtuals
-                (and (not haskell-tng-smie:virtuals)
-                     (haskell-tng-layout:virtuals-at-point)))
+          ;; e.g. on newlines, or following a WLDO (assuming a comment-aware
+          ;; lookback is fast).
+          (setq haskell-tng-smie:state
+                (unless haskell-tng-smie:state
+                  (haskell-tng-layout:virtuals-at-point)))
+
           (cond
            ;; new virtual tokens
-           (haskell-tng-smie:virtuals
+           (haskell-tng-smie:state
             (haskell-tng-smie:replay-virtual))
 
            ;; syntax tables (supported by `smie-indent-forward-token')
@@ -103,9 +103,9 @@ the lexer."
 (defun haskell-tng-smie:replay-virtual ()
   ";; read a virtual token from state, set 't when all done"
   (unwind-protect
-      (pop haskell-tng-smie:virtuals)
-    (unless haskell-tng-smie:virtuals
-      (setq haskell-tng-smie:virtuals 't))))
+      (pop haskell-tng-smie:state)
+    (unless haskell-tng-smie:state
+      (setq haskell-tng-smie:state 't))))
 
 (defun haskell-tng-smie:last-match ()
   (goto-char (match-end 0))
@@ -142,13 +142,13 @@ the lexer."
 
   (add-to-list
    'after-change-functions
-   #'haskell-tng-smie:virtuals-invalidation)
+   #'haskell-tng-smie:state-invalidation)
 
   (smie-setup
    haskell-tng-smie:grammar
    haskell-tng-smie:rules
    :forward-token #'haskell-tng-smie:forward-token
-   ;; TODO :backward-token #'haskell-tng-smie:backward-token
+   ;; FIXME :backward-token #'haskell-tng-smie:backward-token
    ))
 
 (provide 'haskell-tng-smie)

@@ -66,9 +66,53 @@ When called interactively, shows the tokens in a buffer."
   (should (have-expected-forward-lex (testdata "src/layout.hs")))
   )
 
-;; TODO the backwards test should assert consistency with forward
+(ert-deftest haskell-tng-smie-state-invalidation-tests ()
+  (with-temp-buffer
+    (insert-file-contents (testdata "src/layout.hs"))
+    (haskell-tng-mode)
 
-;; FIXME test for cache invalidation
+    ;; three parses at this position will produce a virtual token and a real
+    ;; token, then move the point for another token.
+    (goto-char 317)
+    (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
+    (should (= 317 (point)))
+    (should (equal (haskell-tng-smie-test:indent-forward-token) "stkToLst"))
+    (should (= 325 (point)))
+    (should (equal (haskell-tng-smie-test:indent-forward-token) "_("))
+    (should (= 327 (point)))
+
+    ;; repeating the above, but with a user edit, should reset the state
+    (goto-char 317)
+    (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
+    (should (= 317 (point)))
+    (save-excursion
+      (goto-char (point-max))
+      (insert " "))
+    (should (= 317 (point)))
+    (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
+    (should (= 317 (point)))
+    (should (equal (haskell-tng-smie-test:indent-forward-token) "stkToLst"))
+    (should (= 325 (point)))
+    (should (equal (haskell-tng-smie-test:indent-forward-token) "_("))
+    (should (= 327 (point)))
+
+    ;; repeating again, but jumping the lexer, should reset the state
+    (goto-char 317)
+    (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
+    (should (= 317 (point)))
+    (goto-char 327)
+    (should (equal (haskell-tng-smie-test:indent-forward-token) "MkStack"))
+    (should (= 334 (point)))
+    (goto-char 317)
+    (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
+    (should (= 317 (point)))
+    (should (equal (haskell-tng-smie-test:indent-forward-token) "stkToLst"))
+    (should (= 325 (point)))
+    (should (equal (haskell-tng-smie-test:indent-forward-token) "_("))
+    (should (= 327 (point)))
+    ))
+
+;; TODO the backwards test should assert consistency with forward
 
 ;; ideas for an indentation tester
 ;; https://github.com/elixir-editors/emacs-elixir/blob/master/test/test-helper.el#L52-L63
