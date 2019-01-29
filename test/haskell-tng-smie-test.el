@@ -17,6 +17,7 @@
   (let ((tok (funcall smie-forward-token-function)))
     (cond
      ((< 0 (length tok)) tok)
+     ((eobp) nil)
      ((looking-at (rx (| (syntax open-parenthesis)
                          (syntax close-parenthesis))))
       (concat "_" (haskell-tng-smie:last-match)))
@@ -25,45 +26,76 @@
       (let ((start (point)))
         (forward-sexp 1)
         (concat "_" (buffer-substring-no-properties start (point)))))
-     ((eobp) nil)
      (t (error "Bumped into unknown token")))))
 
-(defun haskell-tng-smie-test:forward-tokens ()
-  "Forward lex the current buffer using SMIE lexer and return the list of lines,
+;; same as above, but for `smie-indent-backward-token'
+(defun haskell-tng-smie-test:indent-backward-token ()
+  (let ((tok (funcall smie-backward-token-function)))
+    (cond
+     ((< 0 (length tok)) tok)
+     ((bobp) nil)
+     ((looking-back (rx (| (syntax open-parenthesis)
+                           (syntax close-parenthesis)))
+                    (- (point) 1))
+      (concat "_" (haskell-tng-smie:last-match 'reverse)))
+     ((looking-back (rx (| (syntax string-quote)
+                           (syntax string-delimiter)))
+                    (- (point) 1))
+      (let ((start (point)))
+        (backward-sexp 1)
+        (concat "_" (buffer-substring-no-properties (point) start))))
+     (t (error "Bumped into unknown token")))))
+
+(defun haskell-tng-smie-test:tokens (&optional reverse)
+  "Lex the current buffer using SMIE and return the list of lines,
 where each line is a list of tokens.
 
 When called interactively, shows the tokens in a buffer."
-  (defvar smie-forward-token-function)
-  (let* ((lines '(())))
-    (goto-char (point-min))
-    (while (not (eobp))
+  (let ((lines (list nil))
+        quit)
+    (goto-char (if reverse (point-max) (point-min)))
+    (while (not quit)
       (let* ((start (point))
-             (token (haskell-tng-smie-test:indent-forward-token)))
+             (token (if reverse
+                        (haskell-tng-smie-test:indent-backward-token)
+                      (haskell-tng-smie-test:indent-forward-token))))
         (let ((line-diff (- (line-number-at-pos (point))
                             (line-number-at-pos start))))
-          (unless (<= line-diff 0)
-            (setq lines (append (-repeat line-diff nil) lines))))
-        (unless (s-blank? token)
-          (push token (car lines)))))
-    (reverse (--map (reverse it) lines))))
+          (unless (= line-diff 0)
+            (setq lines (append (-repeat (abs line-diff) nil) lines))))
+        (if (and (not token) (if reverse (bobp) (eobp)))
+            (setq quit 't)
+          (unless (s-blank? token)
+            (push token (car lines))))))
+    (if reverse
+        lines
+      (reverse (--map (reverse it) lines)))))
 
 (defun haskell-tng-smie-test:tokens-to-string (lines)
   (concat (s-join "\n" (--map (s-join " " it) lines)) "\n"))
-
-(defun haskell-tng-smie-test:parse-to-string ()
-  (haskell-tng-smie-test:tokens-to-string
-   (haskell-tng-smie-test:forward-tokens)))
 
 (defun have-expected-forward-lex (file)
   (haskell-tng-testutils:assert-file-contents
    file
    #'haskell-tng-mode
-   #'haskell-tng-smie-test:parse-to-string
+   (lambda () (haskell-tng-smie-test:tokens-to-string
+          (haskell-tng-smie-test:tokens)))
+   "lexer"))
+
+(defun have-expected-backward-lex (file)
+  (haskell-tng-testutils:assert-file-contents
+   file
+   #'haskell-tng-mode
+   (lambda () (haskell-tng-smie-test:tokens-to-string
+          (haskell-tng-smie-test:tokens 'reverse)))
    "lexer"))
 
 (ert-deftest haskell-tng-smie-file-tests ()
-  (should (have-expected-forward-lex (testdata "src/medley.hs")))
-  (should (have-expected-forward-lex (testdata "src/layout.hs")))
+  ;;(should (have-expected-forward-lex (testdata "src/medley.hs")))
+  ;;(should (have-expected-forward-lex (testdata "src/layout.hs")))
+
+  (should (have-expected-backward-lex (testdata "src/medley.hs")))
+  (should (have-expected-backward-lex (testdata "src/layout.hs")))
   )
 
 (ert-deftest haskell-tng-smie-state-invalidation-tests ()
@@ -75,44 +107,60 @@ When called interactively, shows the tokens in a buffer."
     ;; token, then move the point for another token.
     (goto-char 317)
     (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
-    (should (= 317 (point)))
     (should (equal (haskell-tng-smie-test:indent-forward-token) "stkToLst"))
-    (should (= 325 (point)))
     (should (equal (haskell-tng-smie-test:indent-forward-token) "_("))
-    (should (= 327 (point)))
 
     ;; repeating the above, but with a user edit, should reset the state
     (goto-char 317)
     (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
-    (should (= 317 (point)))
     (save-excursion
       (goto-char (point-max))
       (insert " "))
-    (should (= 317 (point)))
     (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
-    (should (= 317 (point)))
     (should (equal (haskell-tng-smie-test:indent-forward-token) "stkToLst"))
-    (should (= 325 (point)))
     (should (equal (haskell-tng-smie-test:indent-forward-token) "_("))
-    (should (= 327 (point)))
 
     ;; repeating again, but jumping the lexer, should reset the state
     (goto-char 317)
     (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
-    (should (= 317 (point)))
     (goto-char 327)
     (should (equal (haskell-tng-smie-test:indent-forward-token) "MkStack"))
-    (should (= 334 (point)))
     (goto-char 317)
     (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
-    (should (= 317 (point)))
     (should (equal (haskell-tng-smie-test:indent-forward-token) "stkToLst"))
-    (should (= 325 (point)))
     (should (equal (haskell-tng-smie-test:indent-forward-token) "_("))
-    (should (= 327 (point)))
-    ))
 
-;; TODO the backwards test should assert consistency with forward
+    ;; repeating those tests, but for the backward lexer
+    (goto-char 317)
+    (should (equal (haskell-tng-smie-test:indent-backward-token) ";"))
+    (should (equal (haskell-tng-smie-test:indent-backward-token) "_]"))
+    (should (equal (haskell-tng-smie-test:indent-backward-token) "_["))
+
+    (goto-char 317)
+    (should (equal (haskell-tng-smie-test:indent-backward-token) ";"))
+    (save-excursion
+      (goto-char (point-max))
+      (insert " "))
+    (should (equal (haskell-tng-smie-test:indent-backward-token) ";"))
+    (should (equal (haskell-tng-smie-test:indent-backward-token) "_]"))
+    (should (equal (haskell-tng-smie-test:indent-backward-token) "_["))
+
+    (goto-char 317)
+    (should (equal (haskell-tng-smie-test:indent-backward-token) ";"))
+    (goto-char 327)
+    (should (equal (haskell-tng-smie-test:indent-backward-token) "_("))
+    (goto-char 317)
+    (should (equal (haskell-tng-smie-test:indent-backward-token) ";"))
+    (should (equal (haskell-tng-smie-test:indent-backward-token) "_]"))
+    (should (equal (haskell-tng-smie-test:indent-backward-token) "_["))
+
+    ;; jumping between forward and backward at point should reset state
+    (goto-char 317)
+    (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
+    (should (equal (haskell-tng-smie-test:indent-backward-token) ";"))
+    (should (equal (haskell-tng-smie-test:indent-forward-token) ";"))
+    (should (equal (haskell-tng-smie-test:indent-backward-token) ";"))
+    ))
 
 ;; ideas for an indentation tester
 ;; https://github.com/elixir-editors/emacs-elixir/blob/master/test/test-helper.el#L52-L63
