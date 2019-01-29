@@ -21,7 +21,7 @@
           (setq exit t)
         (push (string (char-after)) tokens)
         (forward-char)))
-   (s-join "" (reverse tokens))))
+    (s-join "" (reverse tokens))))
 
 (defun have-expected-layout (file)
   (haskell-tng-testutils:assert-file-contents

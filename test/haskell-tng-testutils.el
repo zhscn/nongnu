@@ -16,7 +16,7 @@
      default-directory)))
 
 (defun haskell-tng-testutils:assert-file-contents
-  (file mode to-string suffix)
+    (file mode to-string suffix)
   "For FILE, enable MODE and run TO-STRING and compare with the golden data in FILE.SUFFIX.
 
 Will fail and write out the expected version to FILE.SUFFIX."
@@ -25,9 +25,9 @@ Will fail and write out the expected version to FILE.SUFFIX."
                      (insert-file-contents golden)
                      (buffer-string)))
          (got (with-temp-buffer
-                  (insert-file-contents file)
-                  (funcall mode)
-                  (funcall to-string))))
+                (insert-file-contents file)
+                (funcall mode)
+                (funcall to-string))))
     (or (equal got expected)
         ;; writes out the new version on failure
         (progn

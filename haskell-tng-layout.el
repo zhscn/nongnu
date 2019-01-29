@@ -54,23 +54,23 @@ Designed to be called repeatedly, managing its own caching."
     (haskell-tng-layout:rebuild-cache-full))
 
   (let ((pos (point)))
-   (catch 'done
-     (let (breaks
-           closes)
-       (dolist (block haskell-tng-layout:cache)
-         (let ((open (car block))
-               (close (cadr block))
-               (lines (cddr block)))
-           ;;(message "BLOCK = %S (%s, %s, %s)" block open close lines)
-           (when (and (<= open pos) (<= pos close))
-             (when (= open pos)
-               (throw 'done '("{")))
-             (when (= close pos)
-               (push "}" closes))
-             (dolist (line lines)
-               (when (= line pos)
-                 (push ";" breaks))))))
-       (append (reverse closes) (reverse breaks))))))
+    (catch 'done
+      (let (breaks
+            closes)
+        (dolist (block haskell-tng-layout:cache)
+          (let ((open (car block))
+                (close (cadr block))
+                (lines (cddr block)))
+            ;;(message "BLOCK = %S (%s, %s, %s)" block open close lines)
+            (when (and (<= open pos) (<= pos close))
+              (when (= open pos)
+                (throw 'done '("{")))
+              (when (= close pos)
+                (push "}" closes))
+              (dolist (line lines)
+                (when (= line pos)
+                  (push ";" breaks))))))
+        (append (reverse closes) (reverse breaks))))))
 
 (defun haskell-tng-layout:rebuild-cache-full ()
   (let (case-fold-search

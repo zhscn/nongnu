@@ -104,107 +104,107 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here is the `font-lock-keywords' table of matchers and highlighters.
 (defvar
- haskell-tng:keywords
- ;; These regexps use the `rx' library so we can reuse common subpatterns. It
- ;; also increases the readability of the code and, in many cases, allows us to
- ;; do more work in a single regexp instead of multiple passes.
- (let ((conid haskell-tng:rx:conid)
-       (qual haskell-tng:rx:qual)
-       (consym haskell-tng:rx:consym)
-       (toplevel haskell-tng:rx:toplevel)
-       (bigspace `(| space ,haskell-tng:rx:newline)))
-   `(;; reservedid / reservedop
-     (,haskell-tng:regexp:reserved
-      . 'haskell-tng:keyword)
+  haskell-tng:keywords
+  ;; These regexps use the `rx' library so we can reuse common subpatterns. It
+  ;; also increases the readability of the code and, in many cases, allows us to
+  ;; do more work in a single regexp instead of multiple passes.
+  (let ((conid haskell-tng:rx:conid)
+        (qual haskell-tng:rx:qual)
+        (consym haskell-tng:rx:consym)
+        (toplevel haskell-tng:rx:toplevel)
+        (bigspace `(| space ,haskell-tng:rx:newline)))
+    `(;; reservedid / reservedop
+      (,haskell-tng:regexp:reserved
+       . 'haskell-tng:keyword)
 
-     ;; Some things are not technically keywords but are always special so make
-     ;; sense to be fontified as such.
-     (,(rx (any ?\( ?\) ?\[ ?\] ?\{ ?\} ?,))
-      (0 'haskell-tng:keyword))
+      ;; Some things are not technically keywords but are always special so make
+      ;; sense to be fontified as such.
+      (,(rx (any ?\( ?\) ?\[ ?\] ?\{ ?\} ?,))
+       (0 'haskell-tng:keyword))
 
-     ;; TypeFamilies
-     (,(rx word-start "type" (+ space) (group "family") word-end)
-      (1 'haskell-tng:keyword))
-     ;; EXT:TypeFamilies (associated types, is this the right extension?)
+      ;; TypeFamilies
+      (,(rx word-start "type" (+ space) (group "family") word-end)
+       (1 'haskell-tng:keyword))
+      ;; EXT:TypeFamilies (associated types, is this the right extension?)
 
-     ;; Types
-     (haskell-tng:font:explicit-type:keyword
-      (1 'haskell-tng:type keep))
-     (haskell-tng:font:topdecl:keyword
-      (1 'haskell-tng:type keep))
-     (haskell-tng:font:type:keyword
-      (1 'haskell-tng:type keep))
-     (haskell-tng:font:deriving:keyword
-      (1 'haskell-tng:keyword keep)
-      (2 'haskell-tng:type keep))
+      ;; Types
+      (haskell-tng:font:explicit-type:keyword
+       (1 'haskell-tng:type keep))
+      (haskell-tng:font:topdecl:keyword
+       (1 'haskell-tng:type keep))
+      (haskell-tng:font:type:keyword
+       (1 'haskell-tng:type keep))
+      (haskell-tng:font:deriving:keyword
+       (1 'haskell-tng:keyword keep)
+       (2 'haskell-tng:type keep))
 
-     ;; EXT:TypeApplications: It is not easy to disambiguate between type
-     ;; applications and value extractor in a pattern. Needs work.
-     ;; (,(rx-to-string `(: symbol-start "@" (* space)
-     ;;                     (group (opt ,qual) (| ,conid ,consym))))
-     ;;  (1 'haskell-tng:type))
+      ;; EXT:TypeApplications: It is not easy to disambiguate between type
+      ;; applications and value extractor in a pattern. Needs work.
+      ;; (,(rx-to-string `(: symbol-start "@" (* space)
+      ;;                     (group (opt ,qual) (| ,conid ,consym))))
+      ;;  (1 'haskell-tng:type))
 
-     ;; imports
-     (haskell-tng:font:import:keyword
-      (,(rx-to-string
-         `(: line-start "import" (+ space)
-             (group (opt word-start "qualified" word-end)) (* space)
-             ;; EXT:PackageImports
-             ;; EXT:Safe, EXT:Trustworthy, EXT:Unsafe
-             (group symbol-start (* ,conid ".") ,conid symbol-end) (* ,bigspace)
-             (group (opt word-start "hiding" word-end)) (* space)))
-       (haskell-tng:font:multiline:anchor-rewind) nil
-       (1 'haskell-tng:keyword)
-       (2 'haskell-tng:module)
-       (3 'haskell-tng:keyword))
-      (,(rx-to-string `(: word-start (group "as") word-end (+ space)
-                          word-start (group ,conid) word-end))
-       (haskell-tng:font:multiline:anchor-rewind) nil
-       (1 'haskell-tng:keyword)
-       (2 'haskell-tng:module))
-      (haskell-tng:font:explicit-constructors
-       (haskell-tng:font:multiline:anchor-rewind 1)
-       (haskell-tng:font:multiline:anchor-rewind)
-       (0 'haskell-tng:constructor keep))
-      (,(rx-to-string `(: word-start ,conid word-end))
-       (haskell-tng:font:multiline:anchor-rewind 1)
-       (haskell-tng:font:multiline:anchor-rewind)
-       (0 'haskell-tng:type keep))
-      ;; EXT:ExplicitNamespaces
-      )
+      ;; imports
+      (haskell-tng:font:import:keyword
+       (,(rx-to-string
+          `(: line-start "import" (+ space)
+              (group (opt word-start "qualified" word-end)) (* space)
+              ;; EXT:PackageImports
+              ;; EXT:Safe, EXT:Trustworthy, EXT:Unsafe
+              (group symbol-start (* ,conid ".") ,conid symbol-end) (* ,bigspace)
+              (group (opt word-start "hiding" word-end)) (* space)))
+        (haskell-tng:font:multiline:anchor-rewind) nil
+        (1 'haskell-tng:keyword)
+        (2 'haskell-tng:module)
+        (3 'haskell-tng:keyword))
+       (,(rx-to-string `(: word-start (group "as") word-end (+ space)
+                           word-start (group ,conid) word-end))
+        (haskell-tng:font:multiline:anchor-rewind) nil
+        (1 'haskell-tng:keyword)
+        (2 'haskell-tng:module))
+       (haskell-tng:font:explicit-constructors
+        (haskell-tng:font:multiline:anchor-rewind 1)
+        (haskell-tng:font:multiline:anchor-rewind)
+        (0 'haskell-tng:constructor keep))
+       (,(rx-to-string `(: word-start ,conid word-end))
+        (haskell-tng:font:multiline:anchor-rewind 1)
+        (haskell-tng:font:multiline:anchor-rewind)
+        (0 'haskell-tng:type keep))
+       ;; EXT:ExplicitNamespaces
+       )
 
-     (haskell-tng:font:module:keyword
-      (,(rx-to-string `(: word-start "module" word-end (+ space)
-                          (group symbol-start (* ,conid ".") ,conid symbol-end)))
-       (haskell-tng:font:multiline:anchor-rewind)
-       (haskell-tng:font:multiline:anchor-rewind)
-       (1 'haskell-tng:module))
-      (haskell-tng:font:explicit-constructors
-       (haskell-tng:font:multiline:anchor-rewind 1)
-       (haskell-tng:font:multiline:anchor-rewind)
-       (0 'haskell-tng:constructor keep))
-      (,(rx-to-string `(: word-start ,conid word-end))
-       (haskell-tng:font:multiline:anchor-rewind 1)
-       (haskell-tng:font:multiline:anchor-rewind)
-       (0 'haskell-tng:type keep)))
+      (haskell-tng:font:module:keyword
+       (,(rx-to-string `(: word-start "module" word-end (+ space)
+                           (group symbol-start (* ,conid ".") ,conid symbol-end)))
+        (haskell-tng:font:multiline:anchor-rewind)
+        (haskell-tng:font:multiline:anchor-rewind)
+        (1 'haskell-tng:module))
+       (haskell-tng:font:explicit-constructors
+        (haskell-tng:font:multiline:anchor-rewind 1)
+        (haskell-tng:font:multiline:anchor-rewind)
+        (0 'haskell-tng:constructor keep))
+       (,(rx-to-string `(: word-start ,conid word-end))
+        (haskell-tng:font:multiline:anchor-rewind 1)
+        (haskell-tng:font:multiline:anchor-rewind)
+        (0 'haskell-tng:type keep)))
 
-     ;; TODO pragmas
-     ;; TODO numeric / char primitives?
-     ;; TODO haddock, different face vs line comments, and some markup.
+      ;; TODO pragmas
+      ;; TODO numeric / char primitives?
+      ;; TODO haddock, different face vs line comments, and some markup.
 
-     ;; top-level
-     (,(rx-to-string toplevel)
-      . 'haskell-tng:toplevel)
+      ;; top-level
+      (,(rx-to-string toplevel)
+       . 'haskell-tng:toplevel)
 
-     ;; uses of F.Q.N.s
-     (,(rx-to-string `(: symbol-start (+ (: ,conid "."))))
-      . 'haskell-tng:module)
+      ;; uses of F.Q.N.s
+      (,(rx-to-string `(: symbol-start (+ (: ,conid "."))))
+       . 'haskell-tng:module)
 
-     ;; constructors
-     (,(rx-to-string `(: symbol-start (| ,conid ,consym) symbol-end))
-      . 'haskell-tng:constructor)
+      ;; constructors
+      (,(rx-to-string `(: symbol-start (| ,conid ,consym) symbol-end))
+       . 'haskell-tng:constructor)
 
-     )))
+      )))
 
 (defun haskell-tng:font:multiline:anchor-rewind (&optional group jump)
   "MATCH-ANCHORED moving point to group beginning (plus JUMP) and declaring LIMIT.
@@ -303,22 +303,22 @@ succeeds and may further restrict the FIND search limit."
          (add-to-list 'haskell-tng:extend-region-functions ',extend t)))))
 
 (haskell-tng:font:multiline explicit-type
-  (rx symbol-start "::" symbol-end)
-  (rx symbol-start "::" symbol-end (group (+ anything)))
-  haskell-tng:paren-close
-  haskell-tng:indent-close-previous)
+                            (rx symbol-start "::" symbol-end)
+                            (rx symbol-start "::" symbol-end (group (+ anything)))
+                            haskell-tng:paren-close
+                            haskell-tng:indent-close-previous)
 
 (haskell-tng:font:multiline topdecl
-  (rx line-start (| "data" "newtype" "class" "instance") word-end)
-  (rx line-start (| "data" "newtype" "class" "instance") word-end
-      (group (+? anything))
-      (| (: line-start symbol-start)
-         (: symbol-start (| "where" "=") symbol-end))))
+                            (rx line-start (| "data" "newtype" "class" "instance") word-end)
+                            (rx line-start (| "data" "newtype" "class" "instance") word-end
+                                (group (+? anything))
+                                (| (: line-start symbol-start)
+                                   (: symbol-start (| "where" "=") symbol-end))))
 
 (haskell-tng:font:multiline type
-  (rx line-start "type" word-end)
-  (rx line-start "type" word-end (group (+ anything)))
-  haskell-tng:indent-close)
+                            (rx line-start "type" word-end)
+                            (rx line-start "type" word-end (group (+ anything)))
+                            haskell-tng:indent-close)
 
 ;; DeriveAnyClass
 ;; DerivingStrategies
@@ -326,24 +326,24 @@ succeeds and may further restrict the FIND search limit."
 ;; EXT:DerivingVia
 ;; EXT:StandaloneDeriving
 (haskell-tng:font:multiline deriving
-  (rx word-start "deriving" word-end)
-  (rx word-start "deriving" word-end
-      (+ space) (group (opt (| "anyclass" "stock" "newtype") word-end))
-      (* space) ?\( (group (* anything)) ?\))
-  haskell-tng:indent-close)
+                            (rx word-start "deriving" word-end)
+                            (rx word-start "deriving" word-end
+                                (+ space) (group (opt (| "anyclass" "stock" "newtype") word-end))
+                                (* space) ?\( (group (* anything)) ?\))
+                            haskell-tng:indent-close)
 
 (haskell-tng:font:multiline import
-  (rx line-start "import" word-end)
-  (rx line-start "import" word-end
-      (+ (not (any ?\( )))
-      (opt "(" (group (+ anything))))
-  haskell-tng:indent-close)
+                            (rx line-start "import" word-end)
+                            (rx line-start "import" word-end
+                                (+ (not (any ?\( )))
+                                (opt "(" (group (+ anything))))
+                            haskell-tng:indent-close)
 
 (haskell-tng:font:multiline module
-  (rx line-start "module" word-end)
-  (rx line-start "module" word-end (group (+ anything))
-      word-start "where" word-end)
-  haskell-tng:indent-close)
+                            (rx line-start "module" word-end)
+                            (rx line-start "module" word-end (group (+ anything))
+                                word-start "where" word-end)
+                            haskell-tng:indent-close)
 
 (provide 'haskell-tng-font-lock)
 ;;; haskell-tng-font-lock.el ends here
