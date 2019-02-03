@@ -11,6 +11,16 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
+(ert-deftest haskell-tng-layout-file-tests ()
+  ;; the Haskell2010 test case
+  (should (have-expected-layout (testdata "src/layout.hs")))
+
+  (should (have-expected-layout (testdata "src/medley.hs")))
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Testing utilities
+
 (defun haskell-tng-layout-test:parse-to-string ()
   (goto-char 0)
   (let (tokens exit)
@@ -29,13 +39,6 @@
    #'haskell-tng-mode
    #'haskell-tng-layout-test:parse-to-string
    "layout"))
-
-(ert-deftest haskell-tng-layout-file-tests ()
-  ;; the Haskell2010 test case
-  (should (have-expected-layout (testdata "src/layout.hs")))
-
-  (should (have-expected-layout (testdata "src/medley.hs")))
-  )
 
 (ert-deftest haskell-tng-layout-cache-invalidation-tests ()
   (with-temp-buffer

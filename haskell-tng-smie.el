@@ -45,6 +45,9 @@
 
 ;; TODO indentation rules
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Indentation
+;;
+;; ideas for an indentation tester
+;; https://github.com/elixir-editors/emacs-elixir/blob/master/test/test-helper.el#L52-L63
 (defvar haskell-tng-smie:rules nil)
 
 (defun haskell-tng-smie:setup ()

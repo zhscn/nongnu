@@ -22,7 +22,8 @@
 Will fail and write out the expected version to FILE.SUFFIX."
   (let* ((golden (concat file "." suffix))
          (expected (with-temp-buffer
-                     (insert-file-contents golden)
+                     (when (file-exists-p golden)
+                       (insert-file-contents golden))
                      (buffer-string)))
          (got (with-temp-buffer
                 (insert-file-contents file)
