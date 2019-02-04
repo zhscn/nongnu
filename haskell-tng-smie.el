@@ -9,9 +9,8 @@
 ;;  rules.
 ;;
 ;;  Note that we don't support every aspect of the Haskell language. e.g. if we
-;;  had access to all the operators in scope, and their fixity, we could create
-;;  file-specific precendences. However, the complexity-to-benefit payoff is
-;;  minimal.
+;;  had access to the fixity of operators in scope we could create file-specific
+;;  rules.
 ;;
 ;;  Users may consult the SMIE manual to customise their indentation rules:
 ;;  https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE
@@ -23,25 +22,65 @@
 (require 'haskell-tng-font-lock)
 (require 'haskell-tng-lexer)
 
-;; FIXME a haskell grammar
+;; FIXME a haskell grammar that doesn't have warnings during the tests
+
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Grammar
+;; https://www.haskell.org/onlinereport/haskell2010/haskellch3.html
 (defvar haskell-tng-smie:grammar
   (smie-prec2->grammar
    (smie-bnf->prec2
     '((id)
-      (inst ("if" exp "then" inst "else" inst)
-            (id "<-" exp)
-            (id "=" exp)
-            (exp))
-      (insts (insts ";" insts) (inst))
-      (exp (exp "+" exp)
-           (exp "*" exp)
-           ("(" exps ")")
-           ("{" insts "}"))
-      (exps (exps "," exps) (exp)))
-    '((assoc ";"))
-    '((assoc ","))
-    '((assoc "+") (assoc "*")))))
+      (exp
+       ;; TODO context
+       ;;(infixexp "::" context "=>" type)
+       (infixexp "::" type)
+       (infixexp))
+
+      ;; TODO monkey patch `smie-indent-forward' to support regexps in `assoc'
+      (infixexp
+       (lexp "$" infixexp) ;; TODO arrange by fixity
+       (lexp "+" infixexp)
+       (lexp "-" infixexp)
+       (lexp "*" infixexp)
+       (lexp "/" infixexp)
+       (lexp "<$>" infixexp)
+       (lexp "<*>" infixexp)
+       (lexp ">>=" infixexp)
+       (lexp "`should`" infixexp)
+       (lexp "&" infixexp)
+       ("-" infixexp)
+       (lexp))
+
+      (lexp
+       ;; TODO apats, it is hard to formalise...
+       ;;("\\" apats "->" exp)
+       ("let" "{" decls "}" "in" exp)
+       ("if" exp "then" exp "else" exp)
+       ("case" exp "of" "{" alts "}")
+       ("do" "{" stmts "}")
+       ;; TODO fexp
+       )
+
+      ;; TODO formal decls definition
+      (decls
+       (decls ";" decls)
+       (decl))
+      (decl
+       (id "=" exp))
+      ;; TODO formal alts definition
+      (alts
+       (alts ";" alts)
+       (alt))
+      (alt
+       (id "->" exp))
+      ;; TODO formal stmts definition
+      (stmts
+       (stmts ";" stmts)
+       (stmt))
+      (stmt
+       (id "<-" exp))
+
+      ))))
 
 ;; TODO indentation rules
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Indentation
