@@ -89,6 +89,12 @@ the lexer."
              (looking-at (rx (+ (| (syntax word) (syntax symbol))))))
             (haskell-tng-lexer:last-match))
 
+           ;; TODO infix operators should be converted to a virtual token
+           ;; (with some important ones allowed through for fixity)
+
+           ;; TODO virtual tokens for pattern matches. Would be even better if
+           ;; it was in the syntax table so fontification could benefit.
+
            ;; single char
            (t
             (forward-char)

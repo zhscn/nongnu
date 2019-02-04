@@ -36,7 +36,7 @@
        (infixexp "::" type)
        (infixexp))
 
-      ;; TODO monkey patch `smie-indent-forward' to support regexps in `assoc'
+      ;; TODO update the lexer to provide a virtual token for infix
       (infixexp
        (lexp "$" infixexp) ;; TODO arrange by fixity
        (lexp "+" infixexp)
@@ -80,6 +80,7 @@
       (stmt
        (id "<-" exp))
 
+      ;; TODO operator precedences
       ))))
 
 ;; TODO indentation rules

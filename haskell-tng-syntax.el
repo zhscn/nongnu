@@ -86,6 +86,9 @@
       (put-text-property open (1+ open) 'syntax-table '(7 . ?\'))
       (put-text-property close (1+ close) 'syntax-table '(7 . ?\')))))
 
+;; TODO or look for non-string backslashes. While we're at it, we could mark
+;; everything up to the -> with an apat property / category. Alternatively this
+;; would need to be in the lexer (and fontification would miss out).
 (defun haskell-tng:syntax:escapes (start end)
   "Backslash inside String is an escape character."
   (goto-char start)

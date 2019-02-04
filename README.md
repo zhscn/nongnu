@@ -65,7 +65,7 @@ Some blue sky features are being considered but may be best as independent proje
 
 - `.cabal` editing / navigation
 - [`.hie`](https://ghc.haskell.org/trac/ghc/wiki/HIEFiles) files as a parser backend and many type based queries.
-- lightweight interactive commands ([`dante`](https://github.com/jyp/dante) / [`intero`](https://github.com/commercialhaskell/intero)) (or perhaps redundant with `.hie`).
+- lightweight interactive commands ([`dante`](https://github.com/jyp/dante) / [`intero`](https://github.com/commercialhaskell/intero) / [`hhp`](https://github.com/kazu-yamamoto/hhp)), will be made redundant with `.hie`:
   - `:type` at point
   - `:browse` `company-backend`
   - `:doc` at point
@@ -86,3 +86,5 @@ Some blue sky features are being considered but may be best as independent proje
   - be compatible with [`apply-refact`](https://github.com/mpickering/apply-refact) / [`hlint-refactor-mode`](https://github.com/mpickering/hlint-refactor-mode)
   - convert wildcard import to explicit list
   - insert explicit list of exports
+- Reviewing
+  - hide changes to imports when reviewing diffs
