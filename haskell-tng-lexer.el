@@ -92,6 +92,8 @@ the lexer."
            ;; TODO infix operators should be converted to a virtual token
            ;; (with some important ones allowed through for fixity)
 
+           ;; TODO virtual paren tokens for top level blocks, depend on imenu
+
            ;; TODO virtual tokens for pattern matches. Would be even better if
            ;; it was in the syntax table so fontification could benefit.
 
