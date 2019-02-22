@@ -45,7 +45,8 @@
               (forward-sexp)
               (let ((forward (point)))
                 (backward-sexp)
-                (cons (point) forward)))))
+                (unless (= (point) forward)
+                  (cons (point) forward))))))
          (backward-forward
           (ignore-errors
             (save-excursion
@@ -53,7 +54,8 @@
               (backward-sexp)
               (let ((backward (point)))
                 (forward-sexp)
-                (cons backward (point)))))))
+                (unless (= backward (point))
+                 (cons backward (point))))))))
     (when forward-backward
       (push forward-backward sexps))
     (when backward-forward

@@ -36,9 +36,10 @@
        (infixexp "::" type)
        (infixexp))
 
-      ;; TODO update the lexer to provide a virtual token for infix
+      ;; TODO update the lexer to provide a virtual token for infix but keep
+      ;; popular operators with important fixity.
       (infixexp
-       (lexp "$" infixexp) ;; TODO arrange by fixity
+       (lexp "$" infixexp)
        (lexp "+" infixexp)
        (lexp "-" infixexp)
        (lexp "*" infixexp)
@@ -48,40 +49,55 @@
        (lexp ">>=" infixexp)
        (lexp "`should`" infixexp)
        (lexp "&" infixexp)
-       ("-" infixexp)
-       (lexp))
-
-      (lexp
-       ;; TODO apats, it is hard to formalise...
-       ;;("\\" apats "->" exp)
-       ("let" "{" decls "}" "in" exp)
-       ("if" exp "then" exp "else" exp)
-       ("case" exp "of" "{" alts "}")
-       ("do" "{" stmts "}")
-       ;; TODO fexp
+       ;;("-" infixexp) ;; can't be opener and neither
+       ;;(lexp)
        )
 
-      ;; TODO formal decls definition
-      (decls
-       (decls ";" decls)
-       (decl))
-      (decl
-       (id "=" exp))
-      ;; TODO formal alts definition
-      (alts
-       (alts ";" alts)
-       (alt))
-      (alt
-       (id "->" exp))
-      ;; TODO formal stmts definition
-      (stmts
-       (stmts ";" stmts)
-       (stmt))
-      (stmt
-       (id "<-" exp))
+      ;; ;; FIXME these seem to break everything
+      ;; (lexp
+      ;;  ;; TODO apats
+      ;;  ;;("let" decls "in" exp)
+      ;;  ;;("if" exp "then" exp "else" exp)
+      ;;  ;;("case" exp "of" alts)
+      ;;  ;;("do" stmts)
+      ;;  ;; TODO where?
+      ;;  ;; TODO fexp
+      ;;  )
 
-      ;; TODO operator precedences
-      ))))
+      ;; (decls
+      ;;  ;;("{" decls "}")
+      ;;  (decls ";" decls)
+      ;;  (decl))
+      ;; (decl
+      ;;  (id "=" exp))
+      ;; (alts
+      ;;  ;;("{" alts "}")
+      ;;  (alts ";" alts)
+      ;;  (alt))
+      ;; (alt
+      ;;  (id "->" exp))
+      ;; (stmts
+      ;;  ;;("{" stmts "}")
+      ;;  (stmts ";" stmts)
+      ;;  (stmt))
+      ;; (stmt
+      ;;  (id "<-" exp))
+
+      )
+
+    ;; operator precedences
+    ;; TODO arrange by fixity
+    '((left "$"))
+    '((left "+"))
+    '((left "-"))
+    '((left "*"))
+    '((left "/"))
+    '((left "<$>"))
+    '((left "<*>"))
+    '((left ">>="))
+    '((left "&"))
+
+    )))
 
 ;; TODO indentation rules
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Indentation
