@@ -26,6 +26,35 @@
 
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Grammar
 ;; https://www.haskell.org/onlinereport/haskell2010/haskellch3.html
+;;
+;; exp       infixexp :: [context =>] type         (expression type signature)
+;;     |     infixexp
+;;
+;; infixexp  lexp qop infixexp                     (infix operator application)
+;;     |     - infixexp                            (prefix negation)
+;;     |     lexp
+;;
+;; lexp      \ apat1 … apatn -> exp                (lambda abstraction, n ≥ 1)
+;;     |     let decls in exp                      (let expression)
+;;     |     if exp [;] then exp [;] else exp      (conditional)
+;;     |     case exp of { alts }                  (case expression)
+;;     |     do { stmts }                          (do expression)
+;;     |     fexp
+;;
+;; fexp      [fexp] aexp                           (function application)
+;;
+;; aexp      qvar                                  (variable)
+;;     |     gcon                                  (general constructor)
+;;     |     literal
+;;     |     ( exp )                               (parenthesized expression)
+;;     |     ( exp1 , … , expk )                   (tuple, k ≥ 2)
+;;     |     [ exp1 , … , expk ]                   (list, k ≥ 1)
+;;     |     [ exp1 [, exp2] .. [exp3] ]           (arithmetic sequence)
+;;     |     [ exp | qual1 , … , qualn ]           (list comprehension, n ≥ 1)
+;;     |     ( infixexp qop )                      (left section)
+;;     |     ( qop⟨-⟩ infixexp )                   (right section)
+;;     |     qcon { fbind1 , … , fbindn }          (labeled construction, n ≥ 0)
+;;     |     aexp⟨qcon⟩ { fbind1 , … , fbindn }    (labeled update, n  ≥  1)
 (defvar haskell-tng-smie:grammar
   (smie-prec2->grammar
    (smie-bnf->prec2
@@ -34,7 +63,8 @@
        ;; TODO context
        ;;(infixexp "::" context "=>" type)
        (infixexp "::" type)
-       (infixexp))
+       (infixexp)
+       )
 
       ;; TODO update the lexer to provide a virtual token for infix but keep
       ;; popular operators with important fixity.
@@ -42,27 +72,31 @@
        (lexp "$" infixexp)
        (lexp "+" infixexp)
        (lexp "-" infixexp)
-       (lexp "*" infixexp)
-       (lexp "/" infixexp)
-       (lexp "<$>" infixexp)
-       (lexp "<*>" infixexp)
-       (lexp ">>=" infixexp)
-       (lexp "`should`" infixexp)
-       (lexp "&" infixexp)
+       ;; (lexp "*" infixexp)
+       ;; (lexp "/" infixexp)
+       ;; (lexp "<$>" infixexp)
+       ;; (lexp "<*>" infixexp)
+       ;; (lexp ">>=" infixexp)
+       ;; (lexp "`should`" infixexp)
+       ;; (lexp "&" infixexp)
+
        ;;("-" infixexp) ;; can't be opener and neither
-       ;;(lexp)
+       (lexp)
        )
 
+      ;; TODO to support terminators as separators
+      ;;(insts (insts ";" insts) (inst))
+
       ;; ;; FIXME these seem to break everything
-      ;; (lexp
-      ;;  ;; TODO apats
-      ;;  ;;("let" decls "in" exp)
-      ;;  ;;("if" exp "then" exp "else" exp)
-      ;;  ;;("case" exp "of" alts)
-      ;;  ;;("do" stmts)
-      ;;  ;; TODO where?
-      ;;  ;; TODO fexp
-      ;;  )
+      (lexp
+       ("if" exp "then" exp "else" exp)
+       ;; TODO apats
+       ;;("let" decls "in" exp)
+       ;;("case" exp "of" alts)
+       ;;("do" stmts)
+       ;; TODO where?
+       ;; TODO fexp
+       )
 
       ;; (decls
       ;;  ;;("{" decls "}")
@@ -86,16 +120,17 @@
       )
 
     ;; operator precedences
+    ;;'((assoc ";"))
+    ;;'((assoc ","))
     ;; TODO arrange by fixity
-    '((left "$"))
-    '((left "+"))
-    '((left "-"))
-    '((left "*"))
-    '((left "/"))
-    '((left "<$>"))
-    '((left "<*>"))
-    '((left ">>="))
-    '((left "&"))
+    '((assoc "$"))
+    '((assoc "+") (assoc "-"))
+    ;; '((assoc "*"))
+    ;; '((assoc "/"))
+    ;; '((assoc "<$>"))
+    ;; '((assoc "<*>"))
+    ;; '((assoc ">>="))
+    ;; '((assoc "&"))
 
     )))
 
