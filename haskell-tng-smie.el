@@ -84,10 +84,9 @@
        (lexp)
        )
 
-      ;; TODO to support terminators as separators
+      ;; TODO should we support terminators as separators?
       ;;(insts (insts ";" insts) (inst))
 
-      ;; ;; FIXME these seem to break everything
       (lexp
        ("if" exp "then" exp "else" exp)
        ;; TODO apats
@@ -122,15 +121,19 @@
     ;; operator precedences
     ;;'((assoc ";"))
     ;;'((assoc ","))
-    ;; TODO arrange by fixity
-    '((assoc "$"))
-    '((assoc "+") (assoc "-"))
+    '((assoc "else" "::") ;; TODO keywords here
+      (assoc "$")
+      ;; TODO arrange by fixity
+      (assoc "+" "-"))
     ;; '((assoc "*"))
     ;; '((assoc "/"))
     ;; '((assoc "<$>"))
     ;; '((assoc "<*>"))
     ;; '((assoc ">>="))
     ;; '((assoc "&"))
+
+;; Read the "<" and ">" as parentheses: when confronted with "... else E $ ..."
+;;SMIE is not sure if you meant "... else E) $ ..." or "... else (E $ ...".
 
     )))
 
