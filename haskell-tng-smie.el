@@ -22,10 +22,12 @@
 (require 'haskell-tng-font-lock)
 (require 'haskell-tng-lexer)
 
-;; FIXME a haskell grammar that doesn't have warnings during the tests
-
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Grammar
 ;; https://www.haskell.org/onlinereport/haskell2010/haskellch3.html
+;;
+;; Transcribed here. Many of these grammar rules cannot be expressed in SMIE
+;; because Haskell uses whitespace separators a lot, whereas the BNF must use
+;; non-terminals.
 ;;
 ;; exp       infixexp :: [context =>] type         (expression type signature)
 ;;     |     infixexp
@@ -60,80 +62,43 @@
    (smie-bnf->prec2
     '((id)
       (exp
-       ;; TODO context
-       ;;(infixexp "::" context "=>" type)
+       (infixexp "::" context "=>" type)
        (infixexp "::" type)
-       (infixexp)
-       )
+       (infixexp))
 
-      ;; TODO update the lexer to provide a virtual token for infix but keep
-      ;; popular operators with important fixity.
+      (context
+       ("(" context ")")
+       (context "," context))
+
+      ;; TODO the lexer should provide virtual infix operators
       (infixexp
        (lexp "$" infixexp)
-       (lexp "+" infixexp)
-       (lexp "-" infixexp)
-       ;; (lexp "*" infixexp)
-       ;; (lexp "/" infixexp)
-       ;; (lexp "<$>" infixexp)
-       ;; (lexp "<*>" infixexp)
-       ;; (lexp ">>=" infixexp)
-       ;; (lexp "`should`" infixexp)
-       ;; (lexp "&" infixexp)
-
-       ;;("-" infixexp) ;; can't be opener and neither
-       (lexp)
-       )
-
-      ;; TODO should we support terminators as separators?
-      ;;(insts (insts ";" insts) (inst))
+       (lexp))
 
       (lexp
        ("if" exp "then" exp "else" exp)
-       ;; TODO apats
-       ;;("let" decls "in" exp)
-       ;;("case" exp "of" alts)
-       ;;("do" stmts)
-       ;; TODO where?
-       ;; TODO fexp
-       )
+       ("where" decls)
+       ("let" decls "in" exp)
+       ("do" stmts)
+       ("case" exp "of" alts))
 
-      ;; (decls
-      ;;  ;;("{" decls "}")
-      ;;  (decls ";" decls)
-      ;;  (decl))
-      ;; (decl
-      ;;  (id "=" exp))
-      ;; (alts
-      ;;  ;;("{" alts "}")
-      ;;  (alts ";" alts)
-      ;;  (alt))
-      ;; (alt
-      ;;  (id "->" exp))
-      ;; (stmts
-      ;;  ;;("{" stmts "}")
-      ;;  (stmts ";" stmts)
-      ;;  (stmt))
-      ;; (stmt
-      ;;  (id "<-" exp))
-
+      (decls
+       ("{" decls "}")
+       (decls ";" decls)
+       (id "=" exp))
+      (alts
+       ("{" alts "}")
+       (alts ";" alts)
+       (id "->" exp))
+      (stmts
+       ("{" stmts "}")
+       (stmts ";" stmts)
+       (id "<-" exp))
       )
 
     ;; operator precedences
-    ;;'((assoc ";"))
-    ;;'((assoc ","))
-    '((assoc "else" "::") ;; TODO keywords here
-      (assoc "$")
-      ;; TODO arrange by fixity
-      (assoc "+" "-"))
-    ;; '((assoc "*"))
-    ;; '((assoc "/"))
-    ;; '((assoc "<$>"))
-    ;; '((assoc "<*>"))
-    ;; '((assoc ">>="))
-    ;; '((assoc "&"))
-
-;; Read the "<" and ">" as parentheses: when confronted with "... else E $ ..."
-;;SMIE is not sure if you meant "... else E) $ ..." or "... else (E $ ...".
+    '((left ";" "," "::" "else" "in" "of" "->" "do" "<-" "where" "=")
+      (left "$"))
 
     )))
 

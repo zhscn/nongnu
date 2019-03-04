@@ -21,9 +21,10 @@
 ;; tokens.
 
 (ert-deftest haskell-tng-sexp-file-tests ()
+  ;; the baselines have some pretty funky stuff in them...
   (should (have-expected-sexps (testdata "src/layout.hs")))
 
-  ;; TODO enable when layout.hs gives better results...
+  ;; to the extent that they aren't even useful
   ;;(should (have-expected-sexps (testdata "src/medley.hs")))
   )
 
@@ -37,24 +38,24 @@
 ;; and `backward-sexp', provided by SMIE.
 (defun haskell-tng-sexp-test:sexps-at-point (p)
   "Return a list of cons cells (start . end)"
-  (let* (sexps
-         (forward-backward
-          (ignore-errors
-            (save-excursion
-              (goto-char p)
-              (forward-sexp)
-              (let ((forward (point)))
-                (backward-sexp)
-                (unless (= (point) forward)
-                  (cons (point) forward))))))
-         (backward-forward
-          (ignore-errors
-            (save-excursion
-              (goto-char p)
-              (backward-sexp)
-              (let ((backward (point)))
-                (forward-sexp)
-                (unless (= backward (point))
+  (let (sexps
+        (forward-backward
+         (ignore-errors
+           (save-excursion
+             (goto-char p)
+             (forward-sexp)
+             (let ((forward (point)))
+               (backward-sexp)
+               (unless (= (point) forward)
+                 (cons (point) forward))))))
+        (backward-forward
+         (ignore-errors
+           (save-excursion
+             (goto-char p)
+             (backward-sexp)
+             (let ((backward (point)))
+               (forward-sexp)
+               (unless (= backward (point))
                  (cons backward (point))))))))
     (when forward-backward
       (push forward-backward sexps))
@@ -67,9 +68,8 @@
   (goto-char (point-min))
   (let (sexps)
     (while (not (eobp))
-      (unless (nth 8 (syntax-ppss)) ;; don't query in comments/strings
-        (let ((here (haskell-tng-sexp-test:sexps-at-point (point))))
-          (setq sexps (append here sexps))))
+      (let ((here (haskell-tng-sexp-test:sexps-at-point (point))))
+        (setq sexps (append here sexps)))
       (forward-char))
     (delete-dups sexps)))
 
@@ -78,10 +78,11 @@
   (let (chars exit)
     (goto-char (point-min))
     (while (not exit)
-      (--each sexps
+      ;; there is ambiguity around multiple parens at the same point
+      (--each (reverse sexps)
         (cond
-         ((= (point) (car it)) (push "(" chars))
          ((= (point) (cdr it)) (push ")" chars))
+         ((= (point) (car it)) (push "(" chars))
          (t nil)))
       (if (eobp)
           (setq exit 't)
