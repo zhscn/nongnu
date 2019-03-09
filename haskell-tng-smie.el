@@ -102,7 +102,7 @@
 
     )))
 
-;; TODO indentation rules
+;; FIXME indentation rules
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Indentation
 ;;
 ;; ideas for an indentation tester
