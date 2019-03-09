@@ -61,19 +61,28 @@
   (smie-prec2->grammar
    (smie-bnf->prec2
     '((id)
-      (exp
-       (infixexp "::" context "=>" type)
-       (infixexp "::" type)
-       (infixexp))
+      ;; We do not include rules that do not have an impact on indentation.
+      ;; Navigation with the more complete grammar is less than satisfactory,
+      ;; therefore there is no reason to maintain it.
+      ;; (exp
+      ;;  (infixexp "::" context "=>" type)
+      ;;  (infixexp "::" type)
+      ;;  (infixexp))
+      (exp (id))
+
+      ;; TODO => and -> may require custom indentation rules
+
+      ;; FIXME don't give up hope yet, first see if exp is useful when type is
+      ;;       defined properly.
 
       (context
        ("(" context ")")
        (context "," context))
 
-      ;; TODO the lexer should provide virtual infix operators
-      (infixexp
-       (lexp "$" infixexp)
-       (lexp))
+      ;; ;; TODO the lexer should provide virtual infix operators
+      ;; (infixexp
+      ;;  (lexp "$" infixexp)
+      ;;  (lexp))
 
       (lexp
        ("if" exp "then" exp "else" exp)
@@ -97,8 +106,12 @@
       )
 
     ;; operator precedences
-    '((left ";" "," "::" "else" "in" "of" "->" "do" "<-" "where" "=")
-      (left "$"))
+    '(;;(left ";" "," "::" "else" "in" "of" "->" "do" "<-" "where" "=")
+      ;;(left ";" ",")
+      (assoc ",") ;; TODO , and ; conflict but what's the correct ordering?
+      (assoc ";")
+;;      (left "$")
+      )
 
     )))
 
