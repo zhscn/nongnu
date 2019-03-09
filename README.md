@@ -72,6 +72,9 @@ Compatibility with `lsp-mode` / [`haskell-ide-engine`](https://github.com/haskel
 Some blue sky features are being considered but may be best as independent projects:
 
 - `.cabal` editing / navigation
+  - helpers to generate version bounds, even if it's just expanding the latest version of a package `cabal gen-bounds`, `cabal outdated`, `cabal-plan`.
+  - project wide grep (including dependencies).
+  - add `build-depends` based on FQNs and a local index of hackage.
 - [`.hie`](https://ghc.haskell.org/trac/ghc/wiki/HIEFiles) files as a parser backend and many type based queries.
 - lightweight interactive commands ([`dante`](https://github.com/jyp/dante) / [`intero`](https://github.com/commercialhaskell/intero) / [`hhp`](https://github.com/kazu-yamamoto/hhp)), will be made redundant with `.hie`:
   - `:type` at point
