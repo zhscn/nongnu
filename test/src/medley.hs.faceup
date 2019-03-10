@@ -1,10 +1,10 @@
 «x:{-# LANGUAGE OverloadedStrings   #-}»
 «x:{-# LANGUAGE ScopedTypeVariables #-}»
 
-«x:-- | This file is a medley of various constructs and some corner cases
+«m:-- »«x:| This file is a medley of various constructs and some corner cases
 »«:haskell-tng:keyword:module» «:haskell-tng:module:Foo.Bar.Main»
   «:haskell-tng:keyword:(» «:haskell-tng:type:Wibble»«:haskell-tng:keyword:(..),» «:haskell-tng:type:Wobble»«:haskell-tng:keyword:(»«:haskell-tng:constructor:Wobb»«:haskell-tng:keyword:,»«:haskell-tng:constructor: »«:haskell-tng:keyword:(»«:haskell-tng:constructor:!!!»«:haskell-tng:keyword:)),» «:haskell-tng:type:Woo»
-  «x:-- * Operations
+  «m:-- »«x:* Operations
 »  «:haskell-tng:keyword:,» getFooByBar«:haskell-tng:keyword:,» getWibbleByWobble
   «:haskell-tng:keyword:,» «:haskell-tng:keyword:module» «:haskell-tng:module:Bloo.Foo»
   «:haskell-tng:keyword:)» «:haskell-tng:keyword:where»
@@ -16,7 +16,7 @@
 «:haskell-tng:keyword:import»           «:haskell-tng:module:Data.Monoid»         «:haskell-tng:keyword:((»<>«:haskell-tng:keyword:))»
 «:haskell-tng:keyword:import» «:haskell-tng:keyword:qualified» «:haskell-tng:module:Options.Monad»
 «:haskell-tng:keyword:import»  «:haskell-tng:keyword:qualified»  «:haskell-tng:module:Options.Applicative»  «:haskell-tng:keyword:as»  «:haskell-tng:module:Opts»
-«:haskell-tng:keyword:import» «:haskell-tng:keyword:qualified» «:haskell-tng:module:Options.Divisible» «x:-- wibble (wobble)
+«:haskell-tng:keyword:import» «:haskell-tng:keyword:qualified» «:haskell-tng:module:Options.Divisible» «m:-- »«x:wibble (wobble)
 »   «:haskell-tng:keyword:as» «:haskell-tng:module:Div»
 «:haskell-tng:keyword:import» «:haskell-tng:keyword:qualified» «:haskell-tng:module:ProfFile.App»        «:haskell-tng:keyword:hiding» «:haskell-tng:keyword:(»as«:haskell-tng:keyword:,» hiding«:haskell-tng:keyword:,» qualified«:haskell-tng:keyword:)»
 «:haskell-tng:keyword:import»           «:haskell-tng:module:ProfFile.App»        «:haskell-tng:keyword:(»as«:haskell-tng:keyword:,» hiding«:haskell-tng:keyword:,» qualified«:haskell-tng:keyword:)»
@@ -33,7 +33,7 @@
 «:haskell-tng:keyword:import»           «:haskell-tng:module:System.Process»      «:haskell-tng:keyword:(»«:haskell-tng:type:CreateProcess» «:haskell-tng:keyword:(..),» «:haskell-tng:type:StdStream» «:haskell-tng:keyword:(..),»
                                       createProcess«:haskell-tng:keyword:,» proc«:haskell-tng:keyword:,» waitForProcess«:haskell-tng:keyword:)»
 
-«x:-- some chars that should be propertized
+«m:-- »«x:some chars that should be propertized
 »«:haskell-tng:toplevel:chars» «:haskell-tng:keyword:=» «:haskell-tng:keyword:[»«s:'c'»«:haskell-tng:keyword:,» «s:'\n'»«:haskell-tng:keyword:,» «s:'\''»«:haskell-tng:keyword:]»
 
 «:haskell-tng:toplevel:foo» «:haskell-tng:keyword:=» «s:"wobble (wibble)"»
@@ -63,11 +63,11 @@
   «:haskell-tng:keyword:(»«:haskell-tng:constructor:Branch» l1 r1«:haskell-tng:keyword:)» == «:haskell-tng:keyword:(»«:haskell-tng:constructor:Branch» l2 r2«:haskell-tng:keyword:)»  «:haskell-tng:keyword:=»  «:haskell-tng:keyword:(»l1==l2«:haskell-tng:keyword:)» && «:haskell-tng:keyword:(»r1==r2«:haskell-tng:keyword:)»
   «:haskell-tng:keyword:_»              == «:haskell-tng:keyword:_»               «:haskell-tng:keyword:=»  «:haskell-tng:constructor:False»
 
-«:haskell-tng:keyword:data»«:haskell-tng:type: ReportType »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Alloc»   «x:-- ^ Report allocations, percent
-»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Entries» «x:-- ^ Report entries, number
-»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Time»    «x:-- ^ Report time spent in closure, percent
-»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Ticks»   «x:-- ^ Report ticks, number
-»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Bytes»   «x:-- ^ Report bytes allocated, number
+«:haskell-tng:keyword:data»«:haskell-tng:type: ReportType »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Alloc»   «m:-- »«x:^ Report allocations, percent
+»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Entries» «m:-- »«x:^ Report entries, number
+»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Time»    «m:-- »«x:^ Report time spent in closure, percent
+»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Ticks»   «m:-- »«x:^ Report ticks, number
+»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Bytes»   «m:-- »«x:^ Report bytes allocated, number
 »                «:haskell-tng:keyword:deriving» «:haskell-tng:keyword:(»«:haskell-tng:type:Eq»«:haskell-tng:keyword:,»«:haskell-tng:type: Show»«:haskell-tng:keyword:)»
 
 «:haskell-tng:keyword:type»«:haskell-tng:type: »«:haskell-tng:keyword:family»«:haskell-tng:type: G a »«:haskell-tng:keyword:where»«:haskell-tng:type:
@@ -82,12 +82,12 @@
 «:haskell-tng:keyword:newtype»«:haskell-tng:type: Flobby »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Flobby»
 
 «:haskell-tng:toplevel:foo» «:haskell-tng:keyword:::»«:haskell-tng:type:
- Wibble »«x:-- wibble
-»«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: Wobble »«x:-- wobble
-»«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: Wobble »«x:-- wobble
-»«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: Wobble »«x:-- wobble
+ Wibble »«m:-- »«x:wibble
+»«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: Wobble »«m:-- »«x:wobble
+»«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: Wobble »«m:-- »«x:wobble
+»«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: Wobble »«m:-- »«x:wobble
 »«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:wob »«:haskell-tng:keyword:::»«:haskell-tng:type: Wobble»«:haskell-tng:keyword:)»«:haskell-tng:type:
-    »«:haskell-tng:keyword:->»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:Wobble »«x:-- wobble
+    »«:haskell-tng:keyword:->»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:Wobble »«m:-- »«x:wobble
 »«:haskell-tng:type:    a b c»«:haskell-tng:keyword:)»«:haskell-tng:type:
 »
 «:haskell-tng:keyword:(»foo «:haskell-tng:keyword:::»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:Wibble Wobble»«:haskell-tng:keyword:))» foo
@@ -128,6 +128,6 @@
 
 «:haskell-tng:toplevel:foo» «:haskell-tng:keyword:=» bar
   «:haskell-tng:keyword:where» baz «:haskell-tng:keyword:=» «:haskell-tng:keyword:_»
-  «x:-- checking that comments are ignored in layout
-»  «x:-- and that a starting syntax entry is ok
+  «m:-- »«x:checking that comments are ignored in layout
+»  «m:-- »«x:and that a starting syntax entry is ok
 »        «:haskell-tng:keyword:(»+«:haskell-tng:keyword:)» «:haskell-tng:keyword:=» «:haskell-tng:keyword:_»

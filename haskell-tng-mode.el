@@ -32,17 +32,13 @@
 
   ;; TODO paragraph-start, paragraph-separate, fill-paragraph-function
   ;;
-  ;; TODO comment-start, comment-padding, comment-start-skip, comment-end,
-  ;;      comment-end-skip, comment-auto-fill-only-comments,
-  ;;      parse-sexp-ignore-comments (it is annoying that we must specify
-  ;;      comments here AND in the syntax table)
-  ;;
   ;; TODO mark-defun / font-lock-mark-block-function
 
   ;; TODO use setq-local (write a macro to allow multiple parameters)
   (setq
    ;; TAB is evil
    indent-tabs-mode nil
+   tab-width 8
 
    ;; case-sensitive language
    dabbrev-case-fold-search nil
@@ -52,6 +48,15 @@
    words-include-escapes t
    syntax-propertize-function #'haskell-tng:syntax-propertize
    parse-sexp-lookup-properties t
+   parse-sexp-ignore-comments t
+
+   ;; annoying that comments need to be defined here and syntax table
+   comment-start "--"
+   comment-padding 1
+   comment-start-skip (rx "-" (+ "-") (* " "))
+   comment-end ""
+   comment-end-skip (rx (* "\s") (group (| (any ?\n) (syntax comment-end))))
+   comment-auto-fill-only-comments t
 
    font-lock-defaults '(haskell-tng:keywords)
    font-lock-multiline t
