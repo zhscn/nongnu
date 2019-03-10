@@ -21,8 +21,11 @@
 ;; tokens.
 
 (ert-deftest haskell-tng-sexp-file-tests ()
-  ;; the baselines have some pretty funky stuff in them...
+  ;; some bizarre output here:
+  ;; 1. `size' definition has an s-exp that extends to the end of `top'
   (should (have-expected-sexps (testdata "src/layout.hs")))
+
+  (should (have-expected-sexps (testdata "src/grammar.hs")))
 
   ;; to the extent that they aren't even useful
   ;;(should (have-expected-sexps (testdata "src/medley.hs")))
@@ -70,8 +73,9 @@
   (goto-char (point-min))
   (let (sexps)
     (while (not (eobp))
-      (let ((here (haskell-tng-sexp-test:sexps-at-point (point))))
-        (setq sexps (append here sexps)))
+      (unless (is-comment-at-point)
+        (let ((here (haskell-tng-sexp-test:sexps-at-point (point))))
+          (setq sexps (append here sexps))))
       (forward-char))
     (delete-dups sexps)))
 
@@ -88,7 +92,10 @@
          (t nil)))
       (if (eobp)
           (setq exit 't)
-        (push (string (char-after)) chars)
+        (let ((c (string (char-after))))
+          ;; output is cleaner if we don't double print parens
+          (unless (member c '("(" ")"))
+            (push c chars)))
         (forward-char)))
     (s-join "" (reverse chars))))
 

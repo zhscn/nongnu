@@ -40,5 +40,13 @@ Will fail and write out the expected version to FILE.SUFFIX."
    file
    (haskell-tng-testutils:this-lisp-directory)))
 
+(defun is-comment-at-point ()
+  ;; this could be sped up by storing all comment regions in an alist
+  (or (nth 8 (syntax-ppss))
+      (looking-at "--")
+      (and (looking-at "-")
+           (looking-back "-" 1)))
+  )
+
 (provide 'haskell-tng-testutils)
 ;;; haskell-tng-testutils.el ends here

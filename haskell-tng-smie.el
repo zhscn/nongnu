@@ -25,92 +25,62 @@
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Grammar
 ;; https://www.haskell.org/onlinereport/haskell2010/haskellch3.html
 ;;
-;; Transcribed here. Many of these grammar rules cannot be expressed in SMIE
-;; because Haskell uses whitespace separators a lot, whereas the BNF must use
-;; non-terminals.
+;; Many of these grammar rules cannot be expressed in SMIE because Haskell uses
+;; whitespace separators a lot, whereas the BNF must use non-terminals.
 ;;
-;; exp       infixexp :: [context =>] type         (expression type signature)
-;;     |     infixexp
+;; Rules that are unbounded on the right tend to misbehave quite badly, since
+;; there is no way to know how to end the s-expression. For example, the BNF
+;; definition of a TYPE will typically extend to an arbitrary point later in the
+;; file. We cannot use `;' to end the TYPE definition, because symbols cannot be
+;; closers and "neither" (i.e. infix) at the same time. An option is always to
+;; push contextual functionality into the lexer, but one must draw a line
+;; somewhere.
 ;;
-;; infixexp  lexp qop infixexp                     (infix operator application)
-;;     |     - infixexp                            (prefix negation)
-;;     |     lexp
-;;
-;; lexp      \ apat1 … apatn -> exp                (lambda abstraction, n ≥ 1)
-;;     |     let decls in exp                      (let expression)
-;;     |     if exp [;] then exp [;] else exp      (conditional)
-;;     |     case exp of { alts }                  (case expression)
-;;     |     do { stmts }                          (do expression)
-;;     |     fexp
-;;
-;; fexp      [fexp] aexp                           (function application)
-;;
-;; aexp      qvar                                  (variable)
-;;     |     gcon                                  (general constructor)
-;;     |     literal
-;;     |     ( exp )                               (parenthesized expression)
-;;     |     ( exp1 , … , expk )                   (tuple, k ≥ 2)
-;;     |     [ exp1 , … , expk ]                   (list, k ≥ 1)
-;;     |     [ exp1 [, exp2] .. [exp3] ]           (arithmetic sequence)
-;;     |     [ exp | qual1 , … , qualn ]           (list comprehension, n ≥ 1)
-;;     |     ( infixexp qop )                      (left section)
-;;     |     ( qop⟨-⟩ infixexp )                   (right section)
-;;     |     qcon { fbind1 , … , fbindn }          (labeled construction, n ≥ 0)
-;;     |     aexp⟨qcon⟩ { fbind1 , … , fbindn }    (labeled update, n  ≥  1)
+;; We do not include rules unless they have an impact on indentation. Navigation
+;; with a more complete grammar has been shown to be less than satisfactory,
+;; therefore there is no reason to do more than is needed.
 (defvar haskell-tng-smie:grammar
   (smie-prec2->grammar
    (smie-bnf->prec2
     '((id)
-      ;; We do not include rules that do not have an impact on indentation.
-      ;; Navigation with the more complete grammar is less than satisfactory,
-      ;; therefore there is no reason to maintain it.
-      ;; (exp
-      ;;  (infixexp "::" context "=>" type)
-      ;;  (infixexp "::" type)
-      ;;  (infixexp))
-      (exp (id))
 
-      ;; TODO => and -> may require custom indentation rules
-
-      ;; FIXME don't give up hope yet, first see if exp is useful when type is
-      ;;       defined properly.
-
+      ;; commas only allowed in brackets
       (context
        ("(" context ")")
        (context "," context))
 
-      ;; ;; TODO the lexer should provide virtual infix operators
-      ;; (infixexp
-      ;;  (lexp "$" infixexp)
-      ;;  (lexp))
+      ;; operators
+      ;; TODO lexer should identify / normalise operators.
+      (infixexp
+       (id "$" infixexp)
+       (id "*" infixexp)
+       (id "+" infixexp)
+       (id))
 
-      (lexp
-       ("if" exp "then" exp "else" exp)
+      ;; WLDOs
+      (wldo
        ("where" decls)
-       ("let" decls "in" exp)
+       ("let" decls)
        ("do" stmts)
-       ("case" exp "of" alts))
-
+       ("of" alts))
       (decls
        ("{" decls "}")
        (decls ";" decls)
-       (id "=" exp))
-      (alts
-       ("{" alts "}")
-       (alts ";" alts)
-       (id "->" exp))
+       (id "=" id))
       (stmts
        ("{" stmts "}")
        (stmts ";" stmts)
-       (id "<-" exp))
+       (id "<-" id))
+      (alts
+       ("{" alts "}")
+       (alts ";" alts)
+       (id "->" id))
+
       )
 
     ;; operator precedences
-    '(;;(left ";" "," "::" "else" "in" "of" "->" "do" "<-" "where" "=")
-      ;;(left ";" ",")
-      (assoc ",") ;; TODO , and ; conflict but what's the correct ordering?
-      (assoc ";")
-;;      (left "$")
+    '((assoc ";")
+      (assoc ",")
       )
 
     )))
