@@ -40,6 +40,7 @@
 ;; with a more complete grammar has been shown to be less than satisfactory,
 ;; therefore there is no reason to do more than is needed.
 (defvar haskell-tng-smie:grammar
+  ;; see docs for `smie-prec2->grammar'
   (smie-prec2->grammar
    (smie-bnf->prec2
     '((id)
@@ -56,6 +57,8 @@
        (id "*" infixexp)
        (id "+" infixexp)
        (id))
+
+      ;; TODO lexer should identify / normalise ids, consid, etc.
 
       ;; WLDOs
       (wldo
@@ -85,14 +88,26 @@
 
     )))
 
-;; FIXME indentation rules
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Indentation
 ;;
 ;; ideas for an indentation tester
 ;; https://github.com/elixir-editors/emacs-elixir/blob/master/test/test-helper.el#L52-L63
-(defvar haskell-tng-smie:rules nil)
+(defun haskell-tng-smie:rules (method arg)
+  ;; see docs for `smie-rules-function'
+  ;; FIXME implement and test indentation
+  (pcase (cons method arg)
+    (`(:elem . basic) smie-indent-basic)
+    (`(,_ . ",") (smie-rule-separator method))
+    (`(:after . "=") smie-indent-basic)
+    (`(:before . ,(or `"(" `"{"))
+     (if (smie-rule-hanging-p) (smie-rule-parent)))
+    (`(:before . "if")
+     (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
+          (smie-rule-parent)))))
 
 (defun haskell-tng-smie:setup ()
+  (setq-local smie-indent-basic 2)
+
   (add-to-list
    'after-change-functions
    #'haskell-tng-layout:cache-invalidation)
@@ -103,7 +118,7 @@
 
   (smie-setup
    haskell-tng-smie:grammar
-   haskell-tng-smie:rules
+   #'haskell-tng-smie:rules
    :forward-token #'haskell-tng-lexer:forward-token
    :backward-token #'haskell-tng-lexer:backward-token))
 
