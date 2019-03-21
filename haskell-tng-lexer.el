@@ -81,21 +81,21 @@ the lexer."
            ;; syntax tables (supported by `smie-indent-forward-token')
            ((looking-at haskell-tng-lexer:fast-syntax) nil)
 
-           ;; regexps
+           ;; known identifiers
+           ((looking-at haskell-tng:regexp:reserved)
+            (haskell-tng-lexer:last-match))
+           ((looking-at haskell-tng:regexp:varid)
+            (haskell-tng-lexer:last-match nil "VARID"))
+           ((looking-at haskell-tng:regexp:conid)
+            (haskell-tng-lexer:last-match nil "CONID"))
+           ;; TODO symid
+
            ((or
              ;; known identifiers
              (looking-at haskell-tng:regexp:reserved)
              ;; symbols
              (looking-at (rx (+ (| (syntax word) (syntax symbol))))))
             (haskell-tng-lexer:last-match))
-
-           ;; TODO infix operators should be converted to a virtual token
-           ;; (with some important ones allowed through for fixity)
-
-           ;; TODO virtual paren tokens for top level blocks, depend on imenu
-
-           ;; TODO virtual tokens for pattern matches. Would be even better if
-           ;; it was in the syntax table so fontification could benefit.
 
            ;; single char
            (t
@@ -117,23 +117,30 @@ the lexer."
 
           (setq haskell-tng-lexer:state
                 (unless haskell-tng-lexer:state
+                  ;; TODO semicolon cannot be used as a separator and a line end
+                  ;; in the grammar rules, so should we emit multiple tokens?
                   (haskell-tng-layout:virtuals-at-point)))
 
           (if haskell-tng-lexer:state
               (haskell-tng-lexer:replay-virtual 'reverse)
 
             (forward-comment (- (point)))
-            (cond
-             ((bobp) nil)
-             ((looking-back haskell-tng-lexer:fast-syntax (- (point) 1)) nil)
-             ((or
-               (looking-back haskell-tng:regexp:reserved (- (point) 8))
-               (looking-back (rx (+ (| (syntax word) (syntax symbol))))
-                             (line-beginning-position) 't))
-              (haskell-tng-lexer:last-match 'reverse))
-             (t
-              (forward-char -1)
-              (string (char-after)))))))
+            (let ((lbp (min (point) (line-beginning-position))))
+             (cond
+              ((bobp) nil)
+              ((looking-back haskell-tng-lexer:fast-syntax (- (point) 1)) nil)
+              ;; known identifiers
+              ((looking-back haskell-tng:regexp:reserved (- (point) 8))
+               (haskell-tng-lexer:last-match 'reverse))
+              ((looking-back haskell-tng:regexp:varid lbp 't)
+               (haskell-tng-lexer:last-match 'reverse "VARID"))
+              ((looking-back haskell-tng:regexp:conid lbp 't)
+               (haskell-tng-lexer:last-match 'reverse "CONID"))
+              ((looking-back (rx (+ (| (syntax word) (syntax symbol)))) lbp 't)
+               (haskell-tng-lexer:last-match 'reverse))
+              (t
+               (forward-char -1)
+               (string (char-after))))))))
 
     (haskell-tng-lexer:set-last 'backward)))
 
@@ -146,7 +153,7 @@ the lexer."
     (setq haskell-tng-lexer:state nil)))
 
 (defun haskell-tng-lexer:replay-virtual (&optional reverse)
-  ";; read a virtual token from state, set 't when all done"
+  "read a virtual token from state, set 't when all done"
   (unwind-protect
       (if reverse
           (unwind-protect
@@ -157,9 +164,9 @@ the lexer."
     (unless haskell-tng-lexer:state
       (setq haskell-tng-lexer:state 't))))
 
-(defun haskell-tng-lexer:last-match (&optional reverse)
+(defun haskell-tng-lexer:last-match (&optional reverse alt)
   (goto-char (if reverse (match-beginning 0) (match-end 0)))
-  (match-string-no-properties 0))
+  (or alt (match-string-no-properties 0)))
 
 (provide 'haskell-tng-lexer)
 ;;; haskell-tng-lexer.el ends here

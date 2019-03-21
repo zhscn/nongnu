@@ -2,132 +2,132 @@
 
 
 
-module Foo.Bar.Main
-_( Wibble _( .. _) , Wobble _( Wobb , _( !!! _) _) , Woo
+module CONID
+_( CONID _( .. _) , CONID _( CONID , _( !!! _) _) , CONID
 
-, getFooByBar , getWibbleByWobble
-, module Bloo.Foo
+, VARID , VARID
+, module CONID
 _) where
 
-{ import Control.Applicative _( many , optional , pure , _( <*> _) , _( <|> _) _)
-; import Data.Foldable _( traverse_ _)
-; import Data.Functor _( _( <$> _) _)
-; import Data.List _( intercalate _)
-; import Data.Monoid _( _( <> _) _)
-; import qualified Options.Monad
-; import qualified Options.Applicative as Opts
-; import qualified Options.Divisible
-as Div
-; import qualified ProfFile.App hiding _( as , hiding , qualified _)
-; import ProfFile.App _( as , hiding , qualified _)
-; import ProfFile.App hiding _( as , hiding , qualified _)
-; import qualified ProfFile.App _( as , hiding , qualified _)
-; import System.Exit _( ExitCode _( .. _) , exitFailure , qualified ,
-Typey ,
-wibble ,
-Wibble _)
-; import System.FilePath _( replaceExtension , Foo _( Bar , _( :< _) _)
-; import System.IO _( IOMode _( .. _) , hClose , hGetContents ,
-hPutStr , hPutStrLn , openFile , stderr ,
-stdout , MoarTypey _)
-; import System.Process _( CreateProcess _( .. _) , StdStream _( .. _) ,
-createProcess , proc , waitForProcess _)
+{ import CONID _( VARID , VARID , VARID , _( <*> _) , _( <|> _) _)
+; import CONID _( VARID _)
+; import CONID _( _( <$> _) _)
+; import CONID _( VARID _)
+; import CONID _( _( <> _) _)
+; import VARID CONID
+; import VARID CONID VARID CONID
+; import VARID CONID
+VARID CONID
+; import VARID CONID VARID _( VARID , VARID , VARID _)
+; import CONID _( VARID , VARID , VARID _)
+; import CONID VARID _( VARID , VARID , VARID _)
+; import VARID CONID _( VARID , VARID , VARID _)
+; import CONID _( CONID _( .. _) , VARID , VARID ,
+CONID ,
+VARID ,
+CONID _)
+; import CONID _( VARID , CONID _( CONID , _( :< _) _)
+; import CONID _( CONID _( .. _) , VARID , VARID ,
+VARID , VARID , VARID , VARID ,
+VARID , CONID _)
+; import CONID _( CONID _( .. _) , CONID _( .. _) ,
+VARID , VARID , VARID _)
 
 
-; chars = _[ _'c' , _'\n' , _'\'' _]
+; VARID = _[ _'c' , _'\n' , _'\'' _]
 
-; foo = _"wobble (wibble)"
+; VARID = _"wobble (wibble)"
 
-; class Get a s where
-{ get :: Set s -> a
+; class CONID VARID VARID where
+{ VARID :: CONID VARID -> VARID
 
-} ; instance Get a _( a ': s _) where
-{ get _( Ext a _ _) = a
+} ; instance CONID VARID _( VARID ': VARID _) where
+{ VARID _( CONID VARID _ _) = VARID
 
-} ; instance Get a s => Get a _( b ': s _) where
-{ get _( Ext _ xs _) = get xs
+} ; instance CONID VARID VARID => CONID VARID _( VARID ': VARID _) where
+{ VARID _( CONID _ VARID _) = VARID VARID
 
-} ; data Options = Options
-_{ optionsReportType :: ReportType
-, optionsProfFile :: Maybe FilePath
-, optionsOutputFile :: Maybe FilePath
-, optionsFlamegraphFlags :: _[ String _]
-_} deriving _( Eq , Show _)
+} ; data CONID = CONID
+_{ VARID :: CONID
+, VARID :: CONID CONID
+, VARID :: CONID CONID
+, VARID :: _[ CONID _]
+_} deriving _( CONID , CONID _)
 
-; class _( Eq a _) => Ord a where
-{ _( < _) , _( <= _) , _( >= _) , _( > _) :: a -> a -> Bool
-; max @Foo , min :: a -> a -> a
+; class _( CONID VARID _) => CONID VARID where
+{ _( < _) , _( <= _) , _( >= _) , _( > _) :: VARID -> VARID -> CONID
+; VARID @Foo , VARID :: VARID -> VARID -> VARID
 
-} ; instance _( Eq a _) => Eq _( Tree a _) where
-{ Leaf a == Leaf b = a == b
-; _( Branch l1 r1 _) == _( Branch l2 r2 _) = _( l1==l2 _) && _( r1==r2 _)
-; _ == _ = False
+} ; instance _( CONID VARID _) => CONID _( CONID VARID _) where
+{ CONID VARID == CONID VARID = VARID == VARID
+; _( CONID VARID VARID _) == _( CONID VARID VARID _) = _( l1==l2 _) && _( r1==r2 _)
+; _ == _ = CONID
 
-} ; data ReportType = Alloc
-| Entries
-| Time
-| Ticks
-| Bytes
-deriving _( Eq , Show _)
+} ; data CONID = CONID
+| CONID
+| CONID
+| CONID
+| CONID
+deriving _( CONID , CONID _)
 
-; type family G a where
-{ G Int = Bool
-; G a = Char
+; type VARID CONID VARID where
+{ CONID CONID = CONID
+; CONID VARID = CONID
 
-} ; data Flobble = Flobble
-deriving _( Eq _) via _( NonNegative _( Large Int _) _)
-deriving stock _( Floo _)
-deriving anyclass _( WibblyWoo , OtherlyWoo _)
+} ; data CONID = CONID
+deriving _( CONID _) VARID _( CONID _( CONID CONID _) _)
+deriving VARID _( CONID _)
+deriving VARID _( CONID , CONID _)
 
-; newtype Flobby = Flobby
+; newtype CONID = CONID
 
-; foo ::
-Wibble
--> Wobble
--> Wobble
--> Wobble
--> _( wob :: Wobble _)
--> _( Wobble
-a b c _)
+; VARID ::
+CONID
+-> CONID
+-> CONID
+-> CONID
+-> _( VARID :: CONID _)
+-> _( CONID
+VARID VARID VARID _)
 
-; _( foo :: _( Wibble Wobble _) _) foo
+; _( VARID :: _( CONID CONID _) _) VARID
 
-; newtype TestApp
-_( logger :: TestLogger _)
-_( scribe :: TestScribe _)
-config
-a
-= TestApp a
+; newtype CONID
+_( VARID :: CONID _)
+_( VARID :: CONID _)
+VARID
+VARID
+= CONID VARID
 
-; optionsParser :: Opts.Parser Options
-; optionsParser = Options
-<$> _( Opts.flag' Alloc _( Opts.long _"alloc" <> Opts.help _"wibble" _)
-<|> Opts.flag' Entries _( Opts.long _"entry" <> Opts.help _"wobble" _)
-<|> Opts.flag' Bytes _( Opts.long _"bytes" <> Opts.help _"i'm a fish" _) _)
-<*> optional
-_( Opts.strArgument
-_( Opts.metavar _"MY-FILE" <>
-Opts.help _"meh" _) _)
+; VARID :: CONID CONID
+; VARID = CONID
+<$> _( VARID CONID _( VARID _"alloc" <> VARID _"wibble" _)
+<|> VARID CONID _( VARID _"entry" <> VARID _"wobble" _)
+<|> VARID CONID _( VARID _"bytes" <> VARID _"i'm a fish" _) _)
+<*> VARID
+_( VARID
+_( VARID _"MY-FILE" <>
+VARID _"meh" _) _)
 
-; type PhantomThing
+; type CONID
 
-; type SomeApi =
-_"thing" :> Capture _"bar" Index :> QueryParam _"wibble" Text
-:> QueryParam _"wobble" Natural
-:> Header TracingHeader TracingId
-:> ThingHeader
-:> Get ' _[ JSON _] _( The ReadResult _)
-:<|> _"thing" :> ReqBody ' _[ JSON _] Request
-:> Header TracingHeader TracingId
-:> SpecialHeader
-:> Post ' _[ JSON _] _( The Response _)
+; type CONID =
+_"thing" :> CONID _"bar" CONID :> CONID _"wibble" CONID
+:> CONID _"wobble" CONID
+:> CONID CONID CONID
+:> CONID
+:> CONID ' _[ CONID _] _( CONID CONID _)
+:<|> _"thing" :> CONID ' _[ CONID _] CONID
+:> CONID CONID CONID
+:> CONID
+:> CONID ' _[ CONID _] _( CONID CONID _)
 
-; deriving instance FromJSONKey StateName
-; deriving anyclass instance FromJSON Base
-; deriving newtype instance FromJSON Treble
+; deriving instance CONID CONID
+; deriving VARID instance CONID CONID
+; deriving newtype instance CONID CONID
 
-; foo = bar
-where { baz = _
+; VARID = VARID
+where { VARID = _
 
 
 ; _( + _) = _

@@ -68,12 +68,14 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here are `rx' patterns that are reused as a very simple form of BNF grammar
-(defconst haskell-tng:rx:conid '(: upper (* wordchar)))
+(defconst haskell-tng:rx:conid '(: upper (* word)))
+(defconst haskell-tng:rx:varid '(: (any lower ?_) (* (any word ?_ ?\'))))
 (defconst haskell-tng:rx:qual `(: (+ (: ,haskell-tng:rx:conid (char ?.)))))
 (defconst haskell-tng:rx:consym '(: ":" (+ (syntax symbol))))
 ;; TODO restrictive consym, e.g. no :: , @
 (defconst haskell-tng:rx:toplevel
-  `(: line-start (group (| (: (any lower ?_) (* wordchar))
+  ;; TODO multi-definitions, e.g. Servant's :<|>
+  `(: line-start (group (| ,haskell-tng:rx:varid
                            (: "(" (+? (syntax symbol)) ")")))
       symbol-end))
 ;; note that \n has syntax `comment-end'
@@ -100,6 +102,13 @@
           symbol-end)
        (: symbol-start (char ?\\))))
   "reservedid / reservedop")
+
+(defconst haskell-tng:regexp:varid
+  (rx-to-string `(: symbol-start (opt ,haskell-tng:rx:qual) ,haskell-tng:rx:varid symbol-end)))
+(defconst haskell-tng:regexp:conid
+  (rx-to-string `(: symbol-start (opt ,haskell-tng:rx:qual) ,haskell-tng:rx:conid symbol-end)))
+(defconst haskell-tng:regexp:consym
+  (rx-to-string `(: ,haskell-tng:rx:consym symbol-end)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here is the `font-lock-keywords' table of matchers and highlighters.
