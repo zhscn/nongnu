@@ -103,11 +103,11 @@
        (: symbol-start (char ?\\))))
   "reservedid / reservedop")
 
-(defconst haskell-tng:regexp:varid
+(defconst haskell-tng:regexp:qvarid
   (rx-to-string `(: symbol-start (opt ,haskell-tng:rx:qual) ,haskell-tng:rx:varid symbol-end)))
-(defconst haskell-tng:regexp:conid
+(defconst haskell-tng:regexp:qconid
   (rx-to-string `(: symbol-start (opt ,haskell-tng:rx:qual) ,haskell-tng:rx:conid symbol-end)))
-(defconst haskell-tng:regexp:consym
+(defconst haskell-tng:regexp:qconsym
   (rx-to-string `(: ,haskell-tng:rx:consym symbol-end)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

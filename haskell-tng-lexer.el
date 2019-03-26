@@ -84,10 +84,12 @@ the lexer."
            ;; known identifiers
            ((looking-at haskell-tng:regexp:reserved)
             (haskell-tng-lexer:last-match))
-           ((looking-at haskell-tng:regexp:varid)
+           ((looking-at haskell-tng:regexp:qvarid)
             (haskell-tng-lexer:last-match nil "VARID"))
-           ((looking-at haskell-tng:regexp:conid)
+           ((looking-at haskell-tng:regexp:qconid)
             (haskell-tng-lexer:last-match nil "CONID"))
+           ((looking-at haskell-tng:regexp:qconsym)
+            (haskell-tng-lexer:last-match nil "CONSYM"))
            ;; TODO symid
            ;; TODO numeric literals
            ;; TODO l1==l2 is not parsed correctly as VARID SYMID VARID
@@ -134,10 +136,12 @@ the lexer."
               ;; known identifiers
               ((looking-back haskell-tng:regexp:reserved (- (point) 8))
                (haskell-tng-lexer:last-match 'reverse))
-              ((looking-back haskell-tng:regexp:varid lbp 't)
+              ((looking-back haskell-tng:regexp:qvarid lbp 't)
                (haskell-tng-lexer:last-match 'reverse "VARID"))
-              ((looking-back haskell-tng:regexp:conid lbp 't)
+              ((looking-back haskell-tng:regexp:qconid lbp 't)
                (haskell-tng-lexer:last-match 'reverse "CONID"))
+              ((looking-back haskell-tng:regexp:qconsym lbp 't)
+               (haskell-tng-lexer:last-match 'reverse "CONSYM"))
               ((looking-back (rx (+ (| (syntax word) (syntax symbol)))) lbp 't)
                (haskell-tng-lexer:last-match 'reverse))
               (t
