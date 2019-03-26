@@ -89,7 +89,8 @@ the lexer."
            ((looking-at haskell-tng:regexp:conid)
             (haskell-tng-lexer:last-match nil "CONID"))
            ;; TODO symid
-           ;; TODO literals
+           ;; TODO numeric literals
+           ;; TODO l1==l2 is not parsed correctly as VARID SYMID VARID
 
            ((or
              ;; known identifiers
