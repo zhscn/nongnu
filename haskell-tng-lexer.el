@@ -89,6 +89,7 @@ the lexer."
            ((looking-at haskell-tng:regexp:conid)
             (haskell-tng-lexer:last-match nil "CONID"))
            ;; TODO symid
+           ;; TODO literals
 
            ((or
              ;; known identifiers

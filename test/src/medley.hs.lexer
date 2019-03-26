@@ -3,64 +3,64 @@
 
 
 module CONID
-_( CONID _( .. _) , CONID _( CONID , _( !!! _) _) , CONID
+« CONID « .. » , CONID « CONID , « !!! » » , CONID
 
 , VARID , VARID
 , module CONID
-_) where
+» where
 
-{ import CONID _( VARID , VARID , VARID , _( <*> _) , _( <|> _) _)
-; import CONID _( VARID _)
-; import CONID _( _( <$> _) _)
-; import CONID _( VARID _)
-; import CONID _( _( <> _) _)
+{ import CONID « VARID , VARID , VARID , « <*> » , « <|> » »
+; import CONID « VARID »
+; import CONID « « <$> » »
+; import CONID « VARID »
+; import CONID « « <> » »
 ; import VARID CONID
 ; import VARID CONID VARID CONID
 ; import VARID CONID
 VARID CONID
-; import VARID CONID VARID _( VARID , VARID , VARID _)
-; import CONID _( VARID , VARID , VARID _)
-; import CONID VARID _( VARID , VARID , VARID _)
-; import VARID CONID _( VARID , VARID , VARID _)
-; import CONID _( CONID _( .. _) , VARID , VARID ,
+; import VARID CONID VARID « VARID , VARID , VARID »
+; import CONID « VARID , VARID , VARID »
+; import CONID VARID « VARID , VARID , VARID »
+; import VARID CONID « VARID , VARID , VARID »
+; import CONID « CONID « .. » , VARID , VARID ,
 CONID ,
 VARID ,
-CONID _)
-; import CONID _( VARID , CONID _( CONID , _( :< _) _)
-; import CONID _( CONID _( .. _) , VARID , VARID ,
+CONID »
+; import CONID « VARID , CONID « CONID , « :< » »
+; import CONID « CONID « .. » , VARID , VARID ,
 VARID , VARID , VARID , VARID ,
-VARID , CONID _)
-; import CONID _( CONID _( .. _) , CONID _( .. _) ,
-VARID , VARID , VARID _)
+VARID , CONID »
+; import CONID « CONID « .. » , CONID « .. » ,
+VARID , VARID , VARID »
 
 
-; VARID = _[ _'c' , _'\n' , _'\'' _]
+; VARID = « § , § , § »
 
-; VARID = _"wobble (wibble)"
+; VARID = §
 
 ; class CONID VARID VARID where
 { VARID :: CONID VARID -> VARID
 
-} ; instance CONID VARID _( VARID ': VARID _) where
-{ VARID _( CONID VARID _ _) = VARID
+} ; instance CONID VARID « VARID ': VARID » where
+{ VARID « CONID VARID _ » = VARID
 
-} ; instance CONID VARID VARID => CONID VARID _( VARID ': VARID _) where
-{ VARID _( CONID _ VARID _) = VARID VARID
+} ; instance CONID VARID VARID => CONID VARID « VARID ': VARID » where
+{ VARID « CONID _ VARID » = VARID VARID
 
 } ; data CONID = CONID
-_{ VARID :: CONID
+« VARID :: CONID
 , VARID :: CONID CONID
 , VARID :: CONID CONID
-, VARID :: _[ CONID _]
-_} deriving _( CONID , CONID _)
+, VARID :: « CONID »
+» deriving « CONID , CONID »
 
-; class _( CONID VARID _) => CONID VARID where
-{ _( < _) , _( <= _) , _( >= _) , _( > _) :: VARID -> VARID -> CONID
+; class « CONID VARID » => CONID VARID where
+{ « < » , « <= » , « >= » , « > » :: VARID -> VARID -> CONID
 ; VARID @Foo , VARID :: VARID -> VARID -> VARID
 
-} ; instance _( CONID VARID _) => CONID _( CONID VARID _) where
+} ; instance « CONID VARID » => CONID « CONID VARID » where
 { CONID VARID == CONID VARID = VARID == VARID
-; _( CONID VARID VARID _) == _( CONID VARID VARID _) = _( l1==l2 _) && _( r1==r2 _)
+; « CONID VARID VARID » == « CONID VARID VARID » = « l1==l2 » && « r1==r2 »
 ; _ == _ = CONID
 
 } ; data CONID = CONID
@@ -68,16 +68,16 @@ _} deriving _( CONID , CONID _)
 | CONID
 | CONID
 | CONID
-deriving _( CONID , CONID _)
+deriving « CONID , CONID »
 
 ; type VARID CONID VARID where
 { CONID CONID = CONID
 ; CONID VARID = CONID
 
 } ; data CONID = CONID
-deriving _( CONID _) VARID _( CONID _( CONID CONID _) _)
-deriving VARID _( CONID _)
-deriving VARID _( CONID , CONID _)
+deriving « CONID » VARID « CONID « CONID CONID » »
+deriving VARID « CONID »
+deriving VARID « CONID , CONID »
 
 ; newtype CONID = CONID
 
@@ -86,41 +86,41 @@ CONID
 -> CONID
 -> CONID
 -> CONID
--> _( VARID :: CONID _)
--> _( CONID
-VARID VARID VARID _)
+-> « VARID :: CONID »
+-> « CONID
+VARID VARID VARID »
 
-; _( VARID :: _( CONID CONID _) _) VARID
+; « VARID :: « CONID CONID » » VARID
 
 ; newtype CONID
-_( VARID :: CONID _)
-_( VARID :: CONID _)
+« VARID :: CONID »
+« VARID :: CONID »
 VARID
 VARID
 = CONID VARID
 
 ; VARID :: CONID CONID
 ; VARID = CONID
-<$> _( VARID CONID _( VARID _"alloc" <> VARID _"wibble" _)
-<|> VARID CONID _( VARID _"entry" <> VARID _"wobble" _)
-<|> VARID CONID _( VARID _"bytes" <> VARID _"i'm a fish" _) _)
+<$> « VARID CONID « VARID § <> VARID § »
+<|> VARID CONID « VARID § <> VARID § »
+<|> VARID CONID « VARID § <> VARID § » »
 <*> VARID
-_( VARID
-_( VARID _"MY-FILE" <>
-VARID _"meh" _) _)
+« VARID
+« VARID § <>
+VARID § » »
 
 ; type CONID
 
 ; type CONID =
-_"thing" :> CONID _"bar" CONID :> CONID _"wibble" CONID
-:> CONID _"wobble" CONID
+§ :> CONID § CONID :> CONID § CONID
+:> CONID § CONID
 :> CONID CONID CONID
 :> CONID
-:> CONID ' _[ CONID _] _( CONID CONID _)
-:<|> _"thing" :> CONID ' _[ CONID _] CONID
+:> CONID ' « CONID » « CONID CONID »
+:<|> § :> CONID ' « CONID » CONID
 :> CONID CONID CONID
 :> CONID
-:> CONID ' _[ CONID _] _( CONID CONID _)
+:> CONID ' « CONID » « CONID CONID »
 
 ; deriving instance CONID CONID
 ; deriving VARID instance CONID CONID
@@ -130,5 +130,5 @@ _"thing" :> CONID _"bar" CONID :> CONID _"wibble" CONID
 where { VARID = _
 
 
-; _( + _) = _
+; « + » = _
 } }

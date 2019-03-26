@@ -29,7 +29,7 @@
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-forward-token) ";"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) "VARID"))
-    (should (equal (haskell-tng-lexer-test:indent-forward-token) "_("))
+    (should (equal (haskell-tng-lexer-test:indent-forward-token) "«"))
 
     ;; repeating the above, but with a user edit, should reset the state
     (goto-char 317)
@@ -39,7 +39,7 @@
       (insert " "))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) ";"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) "VARID"))
-    (should (equal (haskell-tng-lexer-test:indent-forward-token) "_("))
+    (should (equal (haskell-tng-lexer-test:indent-forward-token) "«"))
 
     ;; repeating again, but jumping the lexer, should reset the state
     (goto-char 317)
@@ -49,13 +49,13 @@
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-forward-token) ";"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) "VARID"))
-    (should (equal (haskell-tng-lexer-test:indent-forward-token) "_("))
+    (should (equal (haskell-tng-lexer-test:indent-forward-token) "«"))
 
     ;; repeating those tests, but for the backward lexer
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "_]"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "_["))
+    (should (equal (haskell-tng-lexer-test:indent-backward-token) "»"))
+    (should (equal (haskell-tng-lexer-test:indent-backward-token) "«"))
 
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
@@ -63,17 +63,17 @@
       (goto-char (point-max))
       (insert " "))
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "_]"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "_["))
+    (should (equal (haskell-tng-lexer-test:indent-backward-token) "»"))
+    (should (equal (haskell-tng-lexer-test:indent-backward-token) "«"))
 
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
     (goto-char 327)
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "_("))
+    (should (equal (haskell-tng-lexer-test:indent-backward-token) "«"))
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "_]"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "_["))
+    (should (equal (haskell-tng-lexer-test:indent-backward-token) "»"))
+    (should (equal (haskell-tng-lexer-test:indent-backward-token) "«"))
 
     ;; jumping between forward and backward at point should reset state
     (goto-char 317)
@@ -93,14 +93,16 @@
     (cond
      ((< 0 (length tok)) tok)
      ((eobp) nil)
-     ((looking-at (rx (| (syntax open-parenthesis)
-                         (syntax close-parenthesis))))
-      (concat "_" (haskell-tng-lexer:last-match)))
+     ((looking-at (rx (syntax open-parenthesis)))
+      (haskell-tng-lexer:last-match)
+      "«")
+     ((looking-at (rx (syntax close-parenthesis)))
+      (haskell-tng-lexer:last-match)
+      "»")
      ((looking-at (rx (| (syntax string-quote)
                          (syntax string-delimiter))))
-      (let ((start (point)))
-        (forward-sexp 1)
-        (concat "_" (buffer-substring-no-properties start (point)))))
+      (forward-sexp 1)
+      "§")
      (t (error "Bumped into unknown token")))))
 
 ;; same as above, but for `smie-indent-backward-token'
@@ -109,16 +111,17 @@
     (cond
      ((< 0 (length tok)) tok)
      ((bobp) nil)
-     ((looking-back (rx (| (syntax open-parenthesis)
-                           (syntax close-parenthesis)))
-                    (- (point) 1))
-      (concat "_" (haskell-tng-lexer:last-match 'reverse)))
+     ((looking-back (rx (syntax open-parenthesis)) (- (point) 1))
+      (haskell-tng-lexer:last-match 'reverse)
+      "«")
+     ((looking-back (rx (syntax close-parenthesis)) (- (point) 1))
+      (haskell-tng-lexer:last-match 'reverse)
+      "»")
      ((looking-back (rx (| (syntax string-quote)
                            (syntax string-delimiter)))
                     (- (point) 1))
-      (let ((start (point)))
-        (backward-sexp 1)
-        (concat "_" (buffer-substring-no-properties (point) start))))
+      (backward-sexp 1)
+      "§")
      (t (error "Bumped into unknown token")))))
 
 (defun haskell-tng-lexer-test:tokens (&optional reverse)
