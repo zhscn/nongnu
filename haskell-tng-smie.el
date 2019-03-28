@@ -50,15 +50,10 @@
        ("(" context ")")
        (context "," context))
 
-      ;; operators
-      ;; TODO lexer should identify / normalise operators.
+      ;; operators, we don't care about precedences
       (infixexp
-       (id "$" infixexp)
-       (id "*" infixexp)
-       (id "+" infixexp)
+       (id "SYMID" infixexp)
        (id))
-
-      ;; TODO lexer should identify / normalise ids, consid, etc.
 
       ;; WLDOs
       (wldo

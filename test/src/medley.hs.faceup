@@ -36,6 +36,8 @@
 «m:-- »«x:some chars that should be propertized
 »«:haskell-tng:toplevel:chars» «:haskell-tng:keyword:=» «:haskell-tng:keyword:[»«s:'c'»«:haskell-tng:keyword:,» «s:'\n'»«:haskell-tng:keyword:,» «s:'\''»«:haskell-tng:keyword:]»
 
+«:haskell-tng:toplevel:difficult» «:haskell-tng:keyword:=» foo' «s:'a'» 2
+
 «:haskell-tng:toplevel:foo» «:haskell-tng:keyword:=» «s:"wobble (wibble)"»
 
 «:haskell-tng:keyword:class»«:haskell-tng:type: Get a s »«:haskell-tng:keyword:where»

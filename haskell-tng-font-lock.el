@@ -35,6 +35,7 @@
 ;;; Code:
 
 (require 'dash)
+(require 'haskell-tng-rx)
 (require 'haskell-tng-util)
 
 (defgroup haskell-tng:faces nil
@@ -67,50 +68,6 @@
   :group 'haskell-tng:faces)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Here are `rx' patterns that are reused as a very simple form of BNF grammar
-(defconst haskell-tng:rx:conid '(: upper (* word)))
-(defconst haskell-tng:rx:varid '(: (any lower ?_) (* (any word ?_ ?\'))))
-(defconst haskell-tng:rx:qual `(: (+ (: ,haskell-tng:rx:conid (char ?.)))))
-(defconst haskell-tng:rx:consym '(: ":" (+ (syntax symbol))))
-;; TODO restrictive consym, e.g. no :: , @
-(defconst haskell-tng:rx:toplevel
-  ;; TODO multi-definitions, e.g. Servant's :<|>
-  `(: line-start (group (| ,haskell-tng:rx:varid
-                           (: "(" (+? (syntax symbol)) ")")))
-      symbol-end))
-;; note that \n has syntax `comment-end'
-(defconst haskell-tng:rx:newline
-  '(| (syntax comment-end)
-      (: symbol-start
-         "--"
-         (+ (not (syntax comment-end)))
-         (syntax comment-end)))
-  "Newline or line comment.")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Here are compiled regexps that are reused
-(defconst haskell-tng:regexp:reserved
-  (rx (|
-       (: word-start
-          (| "case" "class" "data" "default" "deriving" "do" "else"
-             "foreign" "if" "import" "in" "infix" "infixl"
-             "infixr" "instance" "let" "module" "newtype" "of"
-             "then" "type" "where" "_")
-          word-end)
-       (: symbol-start
-          (| ".." ":" "::" "=" "|" "<-" "->" "@" "~" "=>")
-          symbol-end)
-       (: symbol-start (char ?\\))))
-  "reservedid / reservedop")
-
-(defconst haskell-tng:regexp:qvarid
-  (rx-to-string `(: symbol-start (opt ,haskell-tng:rx:qual) ,haskell-tng:rx:varid symbol-end)))
-(defconst haskell-tng:regexp:qconid
-  (rx-to-string `(: symbol-start (opt ,haskell-tng:rx:qual) ,haskell-tng:rx:conid symbol-end)))
-(defconst haskell-tng:regexp:qconsym
-  (rx-to-string `(: ,haskell-tng:rx:consym symbol-end)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here is the `font-lock-keywords' table of matchers and highlighters.
 (defvar
   haskell-tng:keywords
@@ -118,7 +75,7 @@
   ;; also increases the readability of the code and, in many cases, allows us to
   ;; do more work in a single regexp instead of multiple passes.
   (let ((conid haskell-tng:rx:conid)
-        (qual haskell-tng:rx:qual)
+        ;;(qual haskell-tng:rx:qual)
         (consym haskell-tng:rx:consym)
         (toplevel haskell-tng:rx:toplevel)
         (bigspace `(| space ,haskell-tng:rx:newline)))
@@ -150,18 +107,18 @@
       ;; EXT:TypeApplications: It is not easy to disambiguate between type
       ;; applications and value extractor in a pattern. Needs work.
       ;; (,(rx-to-string `(: symbol-start "@" (* space)
-      ;;                     (group (opt ,qual) (| ,conid ,consym))))
+      ;;                     (group (? ,qual) (| ,conid ,consym))))
       ;;  (1 'haskell-tng:type))
 
       ;; imports
       (haskell-tng:font:import:keyword
        (,(rx-to-string
           `(: line-start "import" (+ space)
-              (group (opt word-start "qualified" word-end)) (* space)
+              (group (? word-start "qualified" word-end)) (* space)
               ;; EXT:PackageImports
               ;; EXT:Safe, EXT:Trustworthy, EXT:Unsafe
               (group symbol-start (* ,conid ".") ,conid symbol-end) (* ,bigspace)
-              (group (opt word-start "hiding" word-end)) (* space)))
+              (group (? word-start "hiding" word-end)) (* space)))
         (haskell-tng:font:multiline:anchor-rewind) nil
         (1 'haskell-tng:keyword)
         (2 'haskell-tng:module)
@@ -232,15 +189,14 @@ If there is no match for GROUP, move to the end of the line, canceling this ANCH
 (defun haskell-tng:font:explicit-constructors (limit)
   "Finds paren blocks of constructors when in an import statement.
 Some complexity to avoid matching on operators."
-  (let ((start (point)))
-    (when (re-search-forward
-           (rx (any lower) (* space) "(")
-           limit t)
-      (let ((open (point)))
-        (when-let (close (haskell-tng:paren-close))
-          (when (<= close limit)
-            (goto-char open)
-            (re-search-forward (rx (+ anything)) close t)))))))
+  (when (re-search-forward
+         (rx (any lower) (* space) "(")
+         limit t)
+    (let ((open (point)))
+      (when-let (close (haskell-tng:paren-close))
+        (when (<= close limit)
+          (goto-char open)
+          (re-search-forward (rx (+ anything)) close t))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here are `function' matchers for use in `font-lock-keywords' and
@@ -337,7 +293,7 @@ succeeds and may further restrict the FIND search limit."
 (haskell-tng:font:multiline deriving
                             (rx word-start "deriving" word-end)
                             (rx word-start "deriving" word-end
-                                (+ space) (group (opt (| "anyclass" "stock" "newtype") word-end))
+                                (+ space) (group (? (| "anyclass" "stock" "newtype") word-end))
                                 (* space) ?\( (group (* anything)) ?\))
                             haskell-tng:indent-close)
 
@@ -345,7 +301,7 @@ succeeds and may further restrict the FIND search limit."
                             (rx line-start "import" word-end)
                             (rx line-start "import" word-end
                                 (+ (not (any ?\( )))
-                                (opt "(" (group (+ anything))))
+                                (? "(" (group (+ anything))))
                             haskell-tng:indent-close)
 
 (haskell-tng:font:multiline module

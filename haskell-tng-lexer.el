@@ -12,7 +12,7 @@
 
 (require 'smie)
 
-(require 'haskell-tng-font-lock)
+(require 'haskell-tng-rx)
 (require 'haskell-tng-layout)
 
 ;; The list of virtual tokens that must be played back at point, or `t' to
@@ -81,26 +81,31 @@ the lexer."
            ;; syntax tables (supported by `smie-indent-forward-token')
            ((looking-at haskell-tng-lexer:fast-syntax) nil)
 
+           ;; If this ordering is changed, things will break, since many regexps
+           ;; match more than they should.
+
            ;; known identifiers
            ((looking-at haskell-tng:regexp:reserved)
             (haskell-tng-lexer:last-match))
-           ((looking-at haskell-tng:regexp:qvarid)
-            (haskell-tng-lexer:last-match nil "VARID"))
-           ((looking-at haskell-tng:regexp:qconid)
-            (haskell-tng-lexer:last-match nil "CONID"))
-           ((looking-at haskell-tng:regexp:qconsym)
+           ((looking-at haskell-tng:regexp:qual)
+            ;; Matches qualifiers separately from identifiers because the
+            ;; backwards lexer is not greedy enough. Qualifiers are not
+            ;; interesting from a grammar point of view so we ignore them.
+            (haskell-tng-lexer:last-match nil "")
+            (haskell-tng-lexer:forward-token))
+           ((looking-at haskell-tng:regexp:consym)
             (haskell-tng-lexer:last-match nil "CONSYM"))
-           ;; TODO symid
+           ((looking-at haskell-tng:regexp:conid)
+            (haskell-tng-lexer:last-match nil "CONID"))
+           ((looking-at haskell-tng:regexp:varid)
+            (haskell-tng-lexer:last-match nil "VARID"))
+           ((looking-at haskell-tng:regexp:symid)
+            (haskell-tng-lexer:last-match nil "SYMID"))
            ;; TODO numeric literals
-           ;; TODO l1==l2 is not parsed correctly as VARID SYMID VARID
 
-           ((or
-             ;; known identifiers
-             (looking-at haskell-tng:regexp:reserved)
-             ;; symbols
-             (looking-at (rx (+ (| (syntax word) (syntax symbol))))))
+           ;; unknown things
+           ((looking-at (rx (+ (| (syntax word) (syntax symbol)))))
             (haskell-tng-lexer:last-match))
-
            ;; single char
            (t
             (forward-char)
@@ -136,12 +141,17 @@ the lexer."
               ;; known identifiers
               ((looking-back haskell-tng:regexp:reserved (- (point) 8))
                (haskell-tng-lexer:last-match 'reverse))
-              ((looking-back haskell-tng:regexp:qvarid lbp 't)
-               (haskell-tng-lexer:last-match 'reverse "VARID"))
-              ((looking-back haskell-tng:regexp:qconid lbp 't)
-               (haskell-tng-lexer:last-match 'reverse "CONID"))
-              ((looking-back haskell-tng:regexp:qconsym lbp 't)
+              ((looking-back haskell-tng:regexp:qual lbp 't)
+               (haskell-tng-lexer:last-match 'reverse "")
+               (haskell-tng-lexer:backward-token))
+              ((looking-back haskell-tng:regexp:consym lbp 't)
                (haskell-tng-lexer:last-match 'reverse "CONSYM"))
+              ((looking-back haskell-tng:regexp:conid lbp 't)
+               (haskell-tng-lexer:last-match 'reverse "CONID"))
+              ((looking-back haskell-tng:regexp:varid lbp 't)
+               (haskell-tng-lexer:last-match 'reverse "VARID"))
+              ((looking-back haskell-tng:regexp:symid lbp 't)
+               (haskell-tng-lexer:last-match 'reverse "SYMID"))
               ((looking-back (rx (+ (| (syntax word) (syntax symbol)))) lbp 't)
                (haskell-tng-lexer:last-match 'reverse))
               (t

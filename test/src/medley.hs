@@ -36,6 +36,8 @@ import           System.Process      (CreateProcess (..), StdStream (..),
 -- some chars that should be propertized
 chars = ['c', '\n', '\'']
 
+difficult = foo' 'a' 2
+
 foo = "wobble (wibble)"
 
 class Get a s where
