@@ -46,40 +46,35 @@
     '((id)
 
       ;; commas only allowed in brackets
-      (context
-       ("(" context ")")
-       (context "," context))
+      (list
+       ("(" list ")")
+       ("[" list "]")
+       (list "," list))
 
-      ;; operators, we don't care about precedences
+      ;; operators all have the same precedence
       (infixexp
-       (id "SYMID" infixexp)
-       (id))
+       (id "SYMID" infixexp))
 
       ;; WLDOs
       (wldo
-       ("where" decls)
-       ("let" decls)
-       ("do" stmts)
-       ("of" alts))
-      (decls
-       ("{" decls "}")
-       (decls ";" decls)
+       ("where" block)
+       ("let" block "in")
+       ("do" block)
+       ("case" id "of" block))
+      (block
+       ("{" block "}")
+       (block ";" block)
+       (id "<-" id)
+       (id "->" id)
        (id "=" id))
-      (stmts
-       ("{" stmts "}")
-       (stmts ";" stmts)
-       (id "<-" id))
-      (alts
-       ("{" alts "}")
-       (alts ";" alts)
-       (id "->" id))
 
+      (logic
+       ("if" id "then" id "else" id))
       )
 
     ;; operator precedences
     '((assoc ";")
-      (assoc ",")
-      )
+      (assoc ","))
 
     )))
 
