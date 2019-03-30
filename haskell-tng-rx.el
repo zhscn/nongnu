@@ -12,14 +12,13 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here are `rx' patterns that are reused as a very simple form of BNF grammar.
-;; Word/symbol boundaries to help backwards regexp searches to be greedy
-(defconst haskell-tng:rx:consym '(: (or "'" ":") ;; Datakinds
-                                    (+ (syntax symbol))))
-(defconst haskell-tng:rx:conid '(: word-start upper (* word)))
-(defconst haskell-tng:rx:varid '(: word-start (any lower ?_) (* (any word))))
+(defconst haskell-tng:rx:consym '(: ":" (* (syntax symbol))))
+(defconst haskell-tng:rx:conid '(: upper (* word)))
+(defconst haskell-tng:rx:varid '(: (any lower ?_) (* (any word))))
 (defconst haskell-tng:rx:symid '(: (+ (syntax symbol))))
-(defconst haskell-tng:rx:qual `(: symbol-start
-                                  (+ (: ,haskell-tng:rx:conid (char ?.)))))
+(defconst haskell-tng:rx:qual `(+ (: ,haskell-tng:rx:conid (char ?.))))
+(defconst haskell-tng:rx:kindsym `(: "'" ,haskell-tng:rx:consym)) ;; DataKinds
+(defconst haskell-tng:rx:kindid `(: "'" ,haskell-tng:rx:conid)) ;; DataKinds
 
 (defconst haskell-tng:rx:reserved
   '(|
@@ -30,7 +29,8 @@
           "then" "type" "where" "_")
        word-end)
     (: symbol-start
-       (| ".." ":" "::" "=" "|" "<-" "->" "@" "~" "=>")
+       ;; not including : as it works as a regular consym
+       (| ".." "::" "=" "|" "<-" "->" "@" "~" "=>")
        symbol-end)
     (: symbol-start (char ?\\)))
   "reservedid / reservedop")
@@ -51,16 +51,23 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Compiled regexps
+;;
+;; Word/symbol boundaries to help backwards regexp searches to be greedy and
+;; are not in the BNF form as it breaks composability.
 (defconst haskell-tng:regexp:reserved
   (rx-to-string haskell-tng:rx:reserved))
 (defconst haskell-tng:regexp:qual
-  (rx-to-string haskell-tng:rx:qual))
+  (rx-to-string `(: symbol-start ,haskell-tng:rx:qual)))
+(defconst haskell-tng:regexp:kindsym
+  (rx-to-string `(: word-start ,haskell-tng:rx:kindsym)))
+(defconst haskell-tng:regexp:kindid
+  (rx-to-string `(: word-start ,haskell-tng:rx:kindid)))
 (defconst haskell-tng:regexp:consym
   (rx-to-string haskell-tng:rx:consym))
 (defconst haskell-tng:regexp:conid
-  (rx-to-string haskell-tng:rx:conid))
+  (rx-to-string `(: word-start ,haskell-tng:rx:conid)))
 (defconst haskell-tng:regexp:varid
-  (rx-to-string haskell-tng:rx:varid))
+  (rx-to-string `(: word-start ,haskell-tng:rx:varid)))
 (defconst haskell-tng:regexp:symid
   (rx-to-string haskell-tng:rx:symid))
 

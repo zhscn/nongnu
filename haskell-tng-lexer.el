@@ -93,6 +93,14 @@ the lexer."
             ;; interesting from a grammar point of view so we ignore them.
             (haskell-tng-lexer:last-match nil "")
             (haskell-tng-lexer:forward-token))
+           ((looking-at (rx "'["))
+            ;; DataKinds
+            (null (goto-char (+ (point) 1))))
+           ((looking-at haskell-tng:regexp:kindsym)
+            ;; caveat: doesn't include typelevel lists, see fast-syntax
+            (haskell-tng-lexer:last-match nil "KINDSYM"))
+           ((looking-at haskell-tng:regexp:kindid)
+            (haskell-tng-lexer:last-match nil "KINDID"))
            ((looking-at haskell-tng:regexp:consym)
             (haskell-tng-lexer:last-match nil "CONSYM"))
            ((looking-at haskell-tng:regexp:conid)
@@ -144,6 +152,15 @@ the lexer."
               ((looking-back haskell-tng:regexp:qual lbp 't)
                (haskell-tng-lexer:last-match 'reverse "")
                (haskell-tng-lexer:backward-token))
+              ((and (looking-at (rx "["))
+                    (looking-back (rx "'") (- (point) 1)))
+               ;; non-trivial inversion
+               (goto-char (- (point) 1))
+               (haskell-tng-lexer:backward-token))
+              ((looking-back haskell-tng:regexp:kindsym lbp 't)
+               (haskell-tng-lexer:last-match 'reverse "KINDSYM"))
+              ((looking-back haskell-tng:regexp:kindid lbp 't)
+               (haskell-tng-lexer:last-match 'reverse "KINDID"))
               ((looking-back haskell-tng:regexp:consym lbp 't)
                (haskell-tng-lexer:last-match 'reverse "CONSYM"))
               ((looking-back haskell-tng:regexp:conid lbp 't)

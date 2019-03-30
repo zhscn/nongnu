@@ -1,5 +1,5 @@
 -- | Tests for grammar rules i.e. sexps, not indentation
-(module) (Foo.(Bar)) (where
+((module) (Foo.(Bar)) (where)
 
 ((calc) (::) (Int) -> (Int)
 ((calc) (a) = (if (a) < ((10)

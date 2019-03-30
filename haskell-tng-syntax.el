@@ -74,7 +74,6 @@
 (defun haskell-tng:syntax-propertize (start end)
   "For some context-sensitive syntax entries."
   (haskell-tng:syntax:char-delims start end)
-  (haskell-tng:syntax:typelevel-lists start end)
   (haskell-tng:syntax:escapes start end))
 
 (defun haskell-tng:syntax:char-delims (start end)
@@ -86,13 +85,6 @@
           (close (- (point) 1)))
       (put-text-property open (1+ open) 'syntax-table '(7 . ?\'))
       (put-text-property close (1+ close) 'syntax-table '(7 . ?\')))))
-
-(defun haskell-tng:syntax:typelevel-lists (start end)
-  "Apostrophes should be symbols when used in typelevel lists."
-  (goto-char start)
-  (while (re-search-forward (rx space (char ?') (any ?\[ ?:)) end t)
-    (put-text-property (- (point) 1) (point)
-                       'syntax-table '(3 . ?'))))
 
 (defun haskell-tng:syntax:escapes (start end)
   "Backslash inside String is an escape character."

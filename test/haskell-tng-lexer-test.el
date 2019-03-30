@@ -103,7 +103,9 @@
                          (syntax string-delimiter))))
       (forward-sexp 1)
       "§")
-     (t (error "Bumped into unknown token")))))
+     (t (error "Unknown token: '%s' with '%S'"
+               (string (char-after))
+               (syntax-after (point)))))))
 
 ;; same as above, but for `smie-indent-backward-token'
 (defun haskell-tng-lexer-test:indent-backward-token ()
@@ -122,7 +124,9 @@
                     (- (point) 1))
       (backward-sexp 1)
       "§")
-     (t (error "Bumped into unknown token")))))
+     (t (error "Unknown token: '%s' with '%S'"
+               (string (char-before))
+               (syntax-before (point)))))))
 
 (defun haskell-tng-lexer-test:tokens (&optional reverse)
   "Lex the current buffer using SMIE and return the list of lines,

@@ -48,7 +48,7 @@
       ;; commas only allowed in brackets
       (list
        ("(" list ")")
-       ("[" list "]")
+       ("[" list "]") ;; includes DataKinds
        (list "," list))
 
       ;; operators all have the same precedence
@@ -57,24 +57,25 @@
 
       ;; WLDOs
       (wldo
-       ("where" block)
+       (block "where" block)
        ("let" block "in")
        ("do" block)
        ("case" id "of" block))
       (block
        ("{" block "}")
        (block ";" block)
+       (id "=" id)
        (id "<-" id)
        (id "->" id)
-       (id "=" id))
+       )
 
       (logic
        ("if" id "then" id "else" id))
       )
 
     ;; operator precedences
-    '((assoc ";")
-      (assoc ","))
+    '((assoc ";" ",")
+      )
 
     )))
 
