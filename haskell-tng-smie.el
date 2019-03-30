@@ -8,9 +8,11 @@
 ;;  SMIE precedence table, providing s-expression navigation, and indentation
 ;;  rules.
 ;;
-;;  Note that we don't support every aspect of the Haskell language. e.g. if we
-;;  had access to the fixity of operators in scope we could create file-specific
-;;  rules.
+;;  Although SMIE provides the primary indentation suggest (when the user types
+;;  RETURN), we cycle through alternative candidates on TAB. The philosophy is
+;;  not to try and get indentation right 100% of the time, but to get it right
+;;  90% of the time and make it so easy to fix it that it doesn't get in the
+;;  way.
 ;;
 ;;  Users may consult the SMIE manual to customise their indentation rules:
 ;;  https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE
@@ -85,7 +87,7 @@
 ;; https://github.com/elixir-editors/emacs-elixir/blob/master/test/test-helper.el#L52-L63
 (defun haskell-tng-smie:rules (method arg)
   ;; see docs for `smie-rules-function'
-  ;; FIXME implement and test indentation
+  ;; TODO implement indentation
   (pcase (cons method arg)
     (`(:elem . basic) smie-indent-basic)
     (`(,_ . ",") (smie-rule-separator method))
@@ -95,6 +97,36 @@
     (`(:before . "if")
      (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
           (smie-rule-parent)))))
+
+;; FIXME tests for indentation, including the cycled choices
+
+;; TODO decide either to set indent-line-function or to wrap around
+;; smie-indent-calculate with
+
+;; (add-hook 'smie-indent-functions
+;;           #'haskell-tng:smie-indent nil 'local)
+
+(defvar haskell-tng:smie-indent-nested-call nil)
+
+(defun haskell-tng:smie-indent ()
+  (cond
+   ;; When we're not in the top-level call to smie-indent-calculate, so just do
+   ;; nothing and let the other rules do their job.
+   (haskell-tng:smie-indent-nested-call nil)
+   ;; When cycling, return the next indentation.
+   ((eq this-command last-command)
+    (haskell-tng:return-next-stashed-indentation-column))
+   ;; When we're in the top-level call to smie-indent-calculate, take control
+   ;; and return a non-nil value to prevent the other rules from being used.
+   (t
+    (let ((haskell-tng:smie-indent-nested-call t)
+          (n (haskell-tng:get-number-of-closing-braces-at-bol))
+          (indentations ()))
+      (dotimes (i n)
+        (haskell-tng:tell-lexer-there-are-N-closing-braces-at-bol i)
+        (push (smie-indent-calculate) indentations))
+      (haskell-tng:stash-indentation-columns indentations)
+      (haskell-tng:return-next-stashed-indentation-column)))))
 
 (defun haskell-tng-smie:setup ()
   (setq-local smie-indent-basic 2)
