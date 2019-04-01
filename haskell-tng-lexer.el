@@ -10,6 +10,18 @@
 ;;
 ;;; Code:
 
+;; See also (other than the GHC alex lexer)
+;;
+;; https://github.com/carymrobbins/intellij-haskforce/blob/master/src/com/haskforce/parsing/_HaskellParsingLexer.flex
+;; https://github.com/typelead/intellij-eta/blob/eta-ide/plugin/src/main/eta/IntelliJ/Plugin/Eta/Lang/Lexer/EtaParsingLexer.hs
+;;
+;; We could potentially use FFI + Flex to do the lexing for us, giving us access
+;; to much more powerful regexp rules (Emacs doesn't support zero width
+;; matchers, and the backwards regexps are not as greedy as they could be) but
+;; we would probably have to write a SMIE replacement since Flex doesn't do
+;; backwards parsing, and we'd need to write an FFI interface that may introduce
+;; performance problems (converting Emacs buffers into the Flex input format).
+
 (require 'smie)
 
 (require 'haskell-tng-rx)
