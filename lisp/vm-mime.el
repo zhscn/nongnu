@@ -8399,7 +8399,9 @@ buffer."
 	  (buffer-file-coding-system (vm-binary-coding-system))
 	  ;; For NTEmacs 19: need to do this to make
 	  ;; sure CRs aren't eaten.
-	  (file-name-buffer-file-type-alist '(("." . t))))
+	  ;; No need for this any more -- USR 2019-04-01
+	  ;; (file-name-buffer-file-type-alist '(("." . t)))
+	  )
       (condition-case data
 	  (insert-file-contents file)
 	(error
