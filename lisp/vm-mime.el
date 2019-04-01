@@ -2929,8 +2929,8 @@ possible.  Returns a boolean flag indicating success."
   (shell-command-on-region 
    start (1- end)
    ;; (concat vm-lynx-program " -force_html /dev/stdin" )
-   (concat vm-lynx-program " -force_html -dump -pseudo_inlines -stdin"
-	   nil t)))
+   (concat vm-lynx-program " -force_html -dump -pseudo_inlines -stdin")
+   nil t))
 
 (defun vm-mime-display-internal-text/html (layout)
   "Dispatch handling of html to the actual html handler."
