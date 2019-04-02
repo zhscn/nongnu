@@ -1,4 +1,4 @@
-;;; haskell-tng-lexer-test.el --- Tests for navigation and indentation -*- lexical-binding: t -*-
+;;; haskell-tng-lexer-test.el --- Tests for the SMIE lexer -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2018-2019 Tseen She
 ;; License: GPL 3 or any later version
@@ -12,11 +12,11 @@
          "test/haskell-tng-testutils.el")
 
 (ert-deftest haskell-tng-lexer-file-tests ()
-  (should (have-expected-forward-lex (testdata "src/medley.hs")))
   (should (have-expected-forward-lex (testdata "src/layout.hs")))
+  (should (have-expected-forward-lex (testdata "src/medley.hs")))
 
-  (should (have-expected-backward-lex (testdata "src/medley.hs")))
   (should (have-expected-backward-lex (testdata "src/layout.hs")))
+  (should (have-expected-backward-lex (testdata "src/medley.hs")))
   )
 
 (ert-deftest haskell-tng-lexer-state-invalidation-tests ()
@@ -126,7 +126,9 @@
       "§")
      (t (error "Unknown token: '%s' with '%S'"
                (string (char-before))
-               (syntax-before (point)))))))
+               (progn
+                 (backward-char)
+                 (syntax-after (point))))))))
 
 (defun haskell-tng-lexer-test:tokens (&optional reverse)
   "Lex the current buffer using SMIE and return the list of lines,
