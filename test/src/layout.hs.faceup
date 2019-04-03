@@ -9,7 +9,7 @@
 «:haskell-tng:toplevel:size» «:haskell-tng:keyword:::»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:->»«:haskell-tng:type: Int
 »«:haskell-tng:toplevel:size» s «:haskell-tng:keyword:=» length «:haskell-tng:keyword:(»stkToLst s«:haskell-tng:keyword:)»  «:haskell-tng:keyword:where»
            stkToLst  «:haskell-tng:constructor:Empty»         «:haskell-tng:keyword:=» «:haskell-tng:keyword:[]»
-           stkToLst «:haskell-tng:keyword:(»«:haskell-tng:constructor:MkStack» x s«:haskell-tng:keyword:)»  «:haskell-tng:keyword:=» x:xs «:haskell-tng:keyword:where» xs «:haskell-tng:keyword:=» stkToLst s
+           stkToLst «:haskell-tng:keyword:(»«:haskell-tng:constructor:MkStack» x s«:haskell-tng:keyword:)»  «:haskell-tng:keyword:=» x«:haskell-tng:keyword::»xs «:haskell-tng:keyword:where» xs «:haskell-tng:keyword:=» stkToLst s
 
 «:haskell-tng:toplevel:pop» «:haskell-tng:keyword:::»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:->»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:a»«:haskell-tng:keyword:,»«:haskell-tng:type: Stack a»«:haskell-tng:keyword:)»«:haskell-tng:type:
 »«:haskell-tng:toplevel:pop» «:haskell-tng:keyword:(»«:haskell-tng:constructor:MkStack» x s«:haskell-tng:keyword:)»

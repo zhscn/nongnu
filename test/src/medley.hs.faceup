@@ -43,10 +43,10 @@
 «:haskell-tng:keyword:class»«:haskell-tng:type: Get a s »«:haskell-tng:keyword:where»
   get «:haskell-tng:keyword:::»«:haskell-tng:type: Set s »«:haskell-tng:keyword:->»«:haskell-tng:type: a
 »
-«:haskell-tng:keyword:instance»«:haskell-tng:type: »«x:{-# OVERLAPS #-}»«:haskell-tng:type: Get a »«:haskell-tng:keyword:(»«:haskell-tng:type:a ': s»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:where»
+«:haskell-tng:keyword:instance»«:haskell-tng:type: »«x:{-# OVERLAPS #-}»«:haskell-tng:type: Get a »«:haskell-tng:keyword:(»«:haskell-tng:type:a »«:haskell-tng:keyword:':»«:haskell-tng:type: s»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:where»
   get «:haskell-tng:keyword:(»«:haskell-tng:constructor:Ext» a «:haskell-tng:keyword:_)» «:haskell-tng:keyword:=» a
 
-«:haskell-tng:keyword:instance»«:haskell-tng:type: »«x:{-# OVERLAPPABLE #-}»«:haskell-tng:type: Get a s »«:haskell-tng:keyword:=>»«:haskell-tng:type: Get a »«:haskell-tng:keyword:(»«:haskell-tng:type:b ': s»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:where»
+«:haskell-tng:keyword:instance»«:haskell-tng:type: »«x:{-# OVERLAPPABLE #-}»«:haskell-tng:type: Get a s »«:haskell-tng:keyword:=>»«:haskell-tng:type: Get a »«:haskell-tng:keyword:(»«:haskell-tng:type:b »«:haskell-tng:keyword:':»«:haskell-tng:type: s»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:where»
   get «:haskell-tng:keyword:(»«:haskell-tng:constructor:Ext» «:haskell-tng:keyword:_» xs«:haskell-tng:keyword:)» «:haskell-tng:keyword:=» get xs
 
 «:haskell-tng:keyword:data»«:haskell-tng:type: Options »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Options»
@@ -58,7 +58,7 @@
 
 «:haskell-tng:keyword:class»«:haskell-tng:type:  »«:haskell-tng:keyword:(»«:haskell-tng:type:Eq a»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:=>»«:haskell-tng:type: Ord a  »«:haskell-tng:keyword:where»
   «:haskell-tng:keyword:(»<«:haskell-tng:keyword:),» «:haskell-tng:keyword:(»<=«:haskell-tng:keyword:),» «:haskell-tng:keyword:(»>=«:haskell-tng:keyword:),» «:haskell-tng:keyword:(»>«:haskell-tng:keyword:)»  «:haskell-tng:keyword:::»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: Bool
-»  max @Foo«:haskell-tng:keyword:,» min        «:haskell-tng:keyword:::»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a
+»  max «:haskell-tng:keyword:@»Foo«:haskell-tng:keyword:,» min        «:haskell-tng:keyword:::»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a
 »
 «:haskell-tng:keyword:instance»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:Eq a»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:=>»«:haskell-tng:type: Eq »«:haskell-tng:keyword:(»«:haskell-tng:type:Tree a»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:where»
   «:haskell-tng:constructor:Leaf» a         == «:haskell-tng:constructor:Leaf» b          «:haskell-tng:keyword:=»  a == b

@@ -90,15 +90,16 @@ the lexer."
 
            ((eobp) nil)
 
+           ;; reserved keywords take precedence
+           ((looking-at haskell-tng:regexp:reserved-hack)
+            (haskell-tng-lexer:last-match))
+
            ;; syntax tables (supported by `smie-indent-forward-token')
            ((looking-at haskell-tng-lexer:fast-syntax) nil)
 
-           ;; If this ordering is changed, things will break, since many regexps
-           ;; match more than they should.
-
            ;; known identifiers
-           ((looking-at haskell-tng:regexp:reserved)
-            (haskell-tng-lexer:last-match))
+           ;;
+           ;; Ordering is important because regexps are greedy.
            ((looking-at haskell-tng:regexp:qual)
             ;; Matches qualifiers separately from identifiers because the
             ;; backwards lexer is not greedy enough. Qualifiers are not
@@ -157,10 +158,12 @@ the lexer."
             (let ((lbp (min (point) (line-beginning-position))))
              (cond
               ((bobp) nil)
-              ((looking-back haskell-tng-lexer:fast-syntax (- (point) 1)) nil)
-              ;; known identifiers
-              ((looking-back haskell-tng:regexp:reserved (- (point) 8))
+              ((looking-back haskell-tng:regexp:reserved-hack
+                             (max lbp (- (point) 8)) 't)
                (haskell-tng-lexer:last-match 'reverse))
+              ((looking-back haskell-tng-lexer:fast-syntax
+                             (max lbp (- (point) 1)))
+               nil)
               ((looking-back haskell-tng:regexp:qual lbp 't)
                (haskell-tng-lexer:last-match 'reverse "")
                (haskell-tng-lexer:backward-token))

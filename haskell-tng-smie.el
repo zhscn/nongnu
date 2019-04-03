@@ -55,6 +55,8 @@
 
       ;; operators all have the same precedence
       (infixexp
+       (id ":" infixexp) ;; keyword infix
+       (id "':" infixexp) ;; DataKinds
        (id "SYMID" infixexp))
 
       ;; WLDOs

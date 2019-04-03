@@ -54,8 +54,7 @@
     ;; repeating those tests, but for the backward lexer
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "»"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "«"))
+    (should (equal (haskell-tng-lexer-test:indent-backward-token) "[]"))
 
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
@@ -63,8 +62,7 @@
       (goto-char (point-max))
       (insert " "))
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "»"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "«"))
+    (should (equal (haskell-tng-lexer-test:indent-backward-token) "[]"))
 
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
@@ -72,8 +70,7 @@
     (should (equal (haskell-tng-lexer-test:indent-backward-token) "«"))
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "»"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) "«"))
+    (should (equal (haskell-tng-lexer-test:indent-backward-token) "[]"))
 
     ;; jumping between forward and backward at point should reset state
     (goto-char 317)
