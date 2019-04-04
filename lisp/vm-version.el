@@ -62,6 +62,10 @@
   (and (not vm-xemacs-mule-p) (featurep 'mule)
        (fboundp 'set-buffer-file-coding-system)))
 
+(defconst vm-fsf-threads-p
+  (and vm-fsfemacs-p
+       (string-greaterp (emacs-version) "26.0")))
+
 (defun vm-xemacs-p () vm-xemacs-p)
 (defun vm-xemacs-mule-p () vm-xemacs-mule-p)
 (defun vm-xemacs-file-coding-p () vm-xemacs-file-coding-p)

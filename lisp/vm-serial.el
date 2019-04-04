@@ -802,9 +802,9 @@ questions will bother you!"
             (let ((vm-frame-per-composition nil))
 	      ;; temporarily override vm-display; why?
 	      ;; flet is obsolete in Emacs 24.3; use cl-flet instead
-              (flet ((vm-display (buffer display commands configs
-                                         &optional do-not-raise)
-                                 nil))
+              (cl-flet ((vm-display (buffer display commands configs
+                                            &optional do-not-raise)
+                                    nil))
                 (vm-mail-internal :buffer-name vm-serial-send-mail-buffer))
               (get-buffer vm-serial-send-mail-buffer))))
          (source-buffer (current-buffer))

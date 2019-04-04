@@ -558,7 +558,7 @@ do not allow menubar buttons.")
       ["Firefox"
        (vm-mouse-send-url-at-position 
 	(point) 'vm-mouse-send-url-to-firefox)
-       vm-firefox-client-program]
+       vm-firefox-program]
       ["Konqueror"
        (vm-mouse-send-url-at-position 
 	(point) 'vm-mouse-send-url-to-konqueror)
