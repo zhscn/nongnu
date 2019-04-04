@@ -12,61 +12,69 @@
          "test/haskell-tng-testutils.el")
 
 (ert-deftest haskell-tng-indent-file-tests ()
-  ;; Four indentation regression tests are possible:
+  ;; Three indentation regression tests are possible:
   ;;
-  ;;   1. newline-and-indent when writing code
-  ;;   2. ... with subsequent indent-line-function cycles
-  ;;   3. indent-line-function at the beginning of an existing line
-  ;;   4. ... with subsequent indent-line-function cycles
+  ;;   1. newline-and-indent with the rest of the file deleted (append)
+  ;;   2. newline-and-indent with the rest of the file intact (insert)
+  ;;   3. indent-line-function at the beginning of each line (re-indent)
+  ;;
+  ;; each with alternative indentation suggestions.
   ;;
   ;; Expectations could use lines of symbols such as | and . or digits to
-  ;; indicate where the indentation(s) go. 1 and 2 are the most interesting so
-  ;; could be combined into one test. 3 and 4 could also be combined.
+  ;; indicate where the indentation(s) go.
+  ;;
+  ;; Test 1 involves a lot of buffer refreshing and will be very slow.
 
-  ;; (should (have-expected-newline-indent (testdata "src/layout.hs")))
-  ;; (should (have-expected-indent (testdata "src/layout.hs")))
-
-  ;; (should (have-expected-newline-indent (testdata "src/medley.hs")))
-  ;; (should (have-expected-indent (testdata "src/medley.hs")))
-
+  (should (have-expected-newline-indent-insert (testdata "src/layout.hs")))
+  (should (have-expected-newline-indent-insert (testdata "src/medley.hs")))
+  ;; TODO more tests
   )
 
-(defun haskell-tng-indent-test:newline-indents ()
-  ;; FIXME
-  )
+(defun current-line-string ()
+  (buffer-substring-no-properties
+   (line-beginning-position)
+   (- (line-beginning-position 2) 1)))
+(defun next-line-string ()
+  (buffer-substring-no-properties
+   (line-beginning-position 2)
+   (- (line-beginning-position 3) 1)))
 
-(defun haskell-tng-indent-test:indents ()
-  ;; FIXME
-  )
+(defun haskell-tng-indent-test:newline-indent-insert ()
+  (let (indents)
+    (while (not (eobp))
+      (end-of-line)
+      (let ((indent (list (current-line-string)))
+            (next (next-line-string)))
+        (newline-and-indent)
+        (push (current-column) indent)
+        ;; FIXME alts go here
+        (push (reverse indent) indents)
+        (kill-whole-line)))
+    (reverse indents)))
 
 (defun haskell-tng-indent-test:indents-to-string (indents)
-  "INDENTS is a list of INDENT which are a non-empty list of
-column numbers indicating the suggested indentation levels. The
-head entry is the newline-and-indent and the rest are the
-indent-line-function cycles."
-  ;; FIXME
-  )
+  "INDENTS is a list of INDENT.
+
+INDENT is a non-empty list of (LINE . (INDENT . ALTS)) where LINE
+is the string line of code before the indentation, INDENT is the
+integer suggested next line indentation column and ALTS is a list
+of integer alternative indentations."
+  (s-join "\n" (-flatten
+                (-map #'haskell-tng-indent-test:indent-to-string indents))))
 
 (defun haskell-tng-indent-test:indent-to-string (indent)
-  ;; FIXME
-  )
+  (let ((line (car indent))
+        (indent (cadr indent))
+        (alts (cddr indent)))
+    (list line (concat (s-repeat indent " ") "v"))))
 
-(defun have-expected-newline-indent (file)
+(defun have-expected-newline-indent-insert (file)
   (haskell-tng-testutils:assert-file-contents
    file
    #'haskell-tng-mode
    (lambda ()
      (haskell-tng-indent-test:indents-to-string
-      (haskell-tng-indent-test:newline-indents)))
-   "newline-indent"))
-
-(defun have-expected-indent (file)
-  (haskell-tng-testutils:assert-file-contents
-   file
-   #'haskell-tng-mode
-   (lambda ()
-     (haskell-tng-indent-test:indents-to-string
-      (haskell-tng-indent-test:indents)))
-   "indent"))
+      (haskell-tng-indent-test:newline-indent-insert)))
+   "insert.indent"))
 
 ;;; haskell-tng-indent-test.el ends here
