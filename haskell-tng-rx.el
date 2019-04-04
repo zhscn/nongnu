@@ -14,8 +14,9 @@
 ;; Here are `rx' patterns that are reused as a very simple form of BNF grammar.
 (defconst haskell-tng:rx:consym '(: ":" (+ (syntax symbol))))
 (defconst haskell-tng:rx:conid '(: upper (* word)))
-(defconst haskell-tng:rx:varid '(: (any lower ?_) (* (any word))))
-(defconst haskell-tng:rx:symid '(: (+ (syntax symbol))))
+(defconst haskell-tng:rx:varid '(: (any lower ?_) (* word)))
+(defconst haskell-tng:rx:symid `(| (+ (syntax symbol))
+                                   (: "`" ,haskell-tng:rx:varid "`")))
 (defconst haskell-tng:rx:qual `(+ (: ,haskell-tng:rx:conid (char ?.))))
 (defconst haskell-tng:rx:kindsym `(: "'" ,haskell-tng:rx:consym)) ;; DataKinds
 (defconst haskell-tng:rx:kindid `(: "'" ,haskell-tng:rx:conid)) ;; DataKinds

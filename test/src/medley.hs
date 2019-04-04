@@ -133,3 +133,5 @@ foo = bar
   -- checking that comments are ignored in layout
   -- and that a starting syntax entry is ok
         (+) = _
+
+test = 1 `shouldBe` 1

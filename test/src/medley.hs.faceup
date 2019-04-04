@@ -133,3 +133,5 @@
   «m:-- »«x:checking that comments are ignored in layout
 »  «m:-- »«x:and that a starting syntax entry is ok
 »        «:haskell-tng:keyword:(»+«:haskell-tng:keyword:)» «:haskell-tng:keyword:=» «:haskell-tng:keyword:_»
+
+«:haskell-tng:toplevel:test» «:haskell-tng:keyword:=» 1 `shouldBe` 1

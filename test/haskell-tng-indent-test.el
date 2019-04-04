@@ -23,7 +23,7 @@
   ;; indicate where the indentation(s) go. 1 and 2 are the most interesting so
   ;; could be combined into one test. 3 and 4 could also be combined.
 
-  (should (have-expected-newline-indent (testdata "src/layout.hs")))
+  ;; (should (have-expected-newline-indent (testdata "src/layout.hs")))
   ;; (should (have-expected-indent (testdata "src/layout.hs")))
 
   ;; (should (have-expected-newline-indent (testdata "src/medley.hs")))

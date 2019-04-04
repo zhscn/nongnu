@@ -127,7 +127,6 @@ the lexer."
            ((looking-at haskell-tng:regexp:symid)
             (haskell-tng-lexer:last-match nil "SYMID"))
            ;; TODO numeric literals
-           ;; TODO `infix_varid`
 
            ;; unknown things
            ((looking-at (rx (+ (| (syntax word) (syntax symbol)))))

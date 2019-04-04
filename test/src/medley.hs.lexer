@@ -133,4 +133,6 @@ where { VARID = _
 
 
 ; « SYMID » = _
-} }
+
+} ; VARID = 1 SYMID 1
+}
