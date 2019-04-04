@@ -26,6 +26,7 @@
 
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Grammar
 ;; https://www.haskell.org/onlinereport/haskell2010/haskellch3.html
+;; https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/parser/Parser.y
 ;;
 ;; Many of these grammar rules cannot be expressed in SMIE because Haskell uses
 ;; whitespace separators a lot, whereas the BNF must use non-terminals.
