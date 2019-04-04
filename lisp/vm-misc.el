@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; vm-misc.el --- Miscellaneous functions for VM
 ;;
 ;; This file is part of VM
@@ -610,7 +611,7 @@ LIST2 satisfying PRED and return the position"
       (cond (vm-xemacs-p 'device-type)
 	    (vm-fsfemacs-p 'vm-fsfemacs-device-type)))
 
-(defun vm-fsfemacs-device-type (&optional device)
+(defun vm-fsfemacs-device-type (&optional _device)
   "An FSF Emacs emulation for XEmacs `device-type' function.  Returns
 the type of the current screen device: one of 'x, 'gtk, 'w32, 'ns and
 'pc.  The optional argument DEVICE is ignored."
@@ -1128,7 +1129,8 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
 	(fset 'vm-disable-extents 'remove-overlays)
       ;; XEamcs doesn't need to disable extents because they don't
       ;; slow things down
-      (fset 'vm-disable-extents (lambda (&optional beg end name val) nil))))
+      (fset 'vm-disable-extents
+	    (lambda (&optional _beg _end _name _val) nil))))
 
 (if (not (fboundp 'vm-extent-properties))
     (if vm-fsfemacs-p
@@ -1142,11 +1144,13 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
 	    to (point-max)))
     (map-extents function buffer from to)))
 
-(defun vm-fsfemacs-map-extents (function &optional buffer)
+(defun vm-fsfemacs-map-extents (function &optional _buffer)
   "Map FUNCTION over the extents in BUFFER.
 FUNCTION is called with two arguments: an extent and a dummy argument
 which should be ignored.  (This is included for compatibility with XEmacs)."
-  (let (o-lists o p)
+;; This is based on old code in vm-page.el, rev. 1335
+;; BUFFER is being ignored, possibly yet to be handled. USR, 2019-04-04
+  (let (o-lists p)
     (setq o-lists (overlay-lists))
     (setq p (car o-lists))
     (while p
@@ -1506,9 +1510,9 @@ filling of GNU Emacs does not work correctly here."
 	    (fill-prefix nil)
 	    ;; (use-hard-newlines t)
 	    (filled 0)
-	    (message (if (car vm-message-pointer)
-			 (vm-su-subject (car vm-message-pointer))
-		       (buffer-name)))
+	    (_message (if (car vm-message-pointer)
+			  (vm-su-subject (car vm-message-pointer))
+			(buffer-name)))
 	    (needmsg (> (- end start) 12000)))
       
 	(if needmsg
@@ -1547,7 +1551,7 @@ filling of GNU Emacs does not work correctly here."
   (defvar longlines-mode-off-hook nil)
   (unless (functionp 'replace-regexp-in-string)
     (defun replace-regexp-in-string (regexp rep string
-                                            &optional fixedcase literal)
+                                            &optional _fixedcase literal)
       (vm-replace-in-string string regexp rep literal)))
   (unless (functionp 'line-end-position)
     (defun line-end-position ()
@@ -1560,7 +1564,7 @@ filling of GNU Emacs does not work correctly here."
         (point)))
     (unless (functionp 'replace-regexp-in-string)
       (defun replace-regexp-in-string (regexp rep string
-                                              &optional fixedcase literal)
+                                              &optional _fixedcase literal)
         (vm-replace-in-string string regexp rep literal))))
   ;; now do the filling
   (let ((buffer-read-only nil)
@@ -1600,10 +1604,12 @@ being the maximum number of buffers kept.  If necessary, the
 RING-VARIABLE is pruned.  If the optional argument string
 RENAME-PREFIX is given BUFFER is renamed by adding the prefix at the
 front before adding it to the RING-VARIABLE."
+  (unless rename-prefix
+    (setq rename-prefix "saved "))
   (if (memq buffer (symbol-value ring-variable))
       (set ring-variable (delq buffer (symbol-value ring-variable)))
     (with-current-buffer buffer
-      (rename-buffer (concat "saved " (buffer-name)) t)))
+      (rename-buffer (concat rename-prefix (buffer-name)) t)))
   (set ring-variable (cons buffer (symbol-value ring-variable)))
   (set ring-variable (vm-delete 'buffer-name
 				(symbol-value ring-variable) t))
@@ -1654,7 +1660,7 @@ front before adding it to the RING-VARIABLE."
 			   (?C . 12)  (?D . 13)  (?E . 14)  (?F . 15)
 			   (?a . 10)  (?b . 11)  (?c . 12)  (?d . 13)
 			   (?e . 14)  (?f . 15)))
-	char)
+	)
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward "%[0-9A-F][0-9A-F]" nil t)
@@ -1671,7 +1677,7 @@ front before adding it to the RING-VARIABLE."
       (process-kill-without-query process flag)
     (set-process-query-on-exit-flag process flag)))
 
-(defun vm-process-sentinel-kill-buffer (process what-happened)
+(defun vm-process-sentinel-kill-buffer (process _what-happened)
   (kill-buffer (process-buffer process)))
 
 (defun vm-fsfemacs-scroll-bar-width ()
