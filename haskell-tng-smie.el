@@ -101,35 +101,20 @@
      (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
           (smie-rule-parent)))))
 
-;; FIXME tests for indentation, including the cycled choices
-
-;; TODO decide either to set indent-line-function or to wrap around
-;; smie-indent-calculate with
-
-;; (add-hook 'smie-indent-functions
-;;           #'haskell-tng:smie-indent nil 'local)
-
-(defvar haskell-tng:smie-indent-nested-call nil)
-
-(defun haskell-tng:smie-indent ()
-  (cond
-   ;; When we're not in the top-level call to smie-indent-calculate, so just do
-   ;; nothing and let the other rules do their job.
-   (haskell-tng:smie-indent-nested-call nil)
-   ;; When cycling, return the next indentation.
-   ((eq this-command last-command)
-    (haskell-tng:return-next-stashed-indentation-column))
-   ;; When we're in the top-level call to smie-indent-calculate, take control
-   ;; and return a non-nil value to prevent the other rules from being used.
-   (t
-    (let ((haskell-tng:smie-indent-nested-call t)
-          (n (haskell-tng:get-number-of-closing-braces-at-bol))
-          (indentations ()))
-      (dotimes (i n)
-        (haskell-tng:tell-lexer-there-are-N-closing-braces-at-bol i)
-        (push (smie-indent-calculate) indentations))
-      (haskell-tng:stash-indentation-columns indentations)
-      (haskell-tng:return-next-stashed-indentation-column)))))
+(defun haskell-tng:indent-cycle ()
+  "Returns the next alternative indentation level from a ring."
+  (when (and
+         (eq major-mode 'haskell-tng-mode) ;; smie-indent-functions is global
+         (eq this-command last-command)
+         (or
+          ;; FIXME detecting double TAB is really hard...
+          ;;(and (message "THIS=%s LAST=%s" this-command last-command) nil)
+          (eq this-command #'indent-for-tab-command)
+          ;; maybe other typical TAB bindings here
+             ))
+    ;; TODO implement
+    (message "CALLING INDENT CYCLE FROM %s" this-command)
+    2))
 
 (defun haskell-tng-smie:setup ()
   (setq-local smie-indent-basic 2)
@@ -141,6 +126,10 @@
   (add-to-list
    'after-change-functions
    #'haskell-tng-lexer:state-invalidation)
+
+  (add-to-list
+   'smie-indent-functions
+   #'haskell-tng:indent-cycle)
 
   (smie-setup
    haskell-tng-smie:grammar

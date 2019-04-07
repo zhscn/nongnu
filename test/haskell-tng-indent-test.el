@@ -34,22 +34,33 @@
   (buffer-substring-no-properties
    (line-beginning-position)
    (- (line-beginning-position 2) 1)))
-(defun next-line-string ()
-  (buffer-substring-no-properties
-   (line-beginning-position 2)
-   (- (line-beginning-position 3) 1)))
 
 (defun haskell-tng-indent-test:newline-indent-insert ()
   (let (indents)
     (while (not (eobp))
       (end-of-line)
       (let ((indent (list (current-line-string)))
-            (next (next-line-string)))
-        (newline-and-indent)
+            alts tmp-this tmp-last)
+        (funcall-interactively #'newline-and-indent)
         (push (current-column) indent)
-        ;; FIXME alts go here
-        (push (reverse indent) indents)
-        (kill-whole-line)))
+
+        ;; TODO a better way to get the alts
+        (while (< (length alts) 10)
+          (funcall-interactively #'indent-for-tab-command)
+          (push (current-column) alts))
+
+        (setq indent
+              (delete-dups
+               (append (reverse indent) (reverse alts))))
+
+        (push indent indents)
+        (setq
+         tmp-this this-command
+         tmp-last last-command)
+        (kill-whole-line)
+        (setq
+         this-command tmp-this
+         last-command tmp-last)))
     (reverse indents)))
 
 (defun haskell-tng-indent-test:indents-to-string (indents)
@@ -65,7 +76,8 @@ of integer alternative indentations."
 (defun haskell-tng-indent-test:indent-to-string (indent)
   (let ((line (car indent))
         (indent (cadr indent))
-        (alts (cddr indent)))
+        (_alts (cddr indent)))
+    ;; FIXME show alts
     (list line (concat (s-repeat indent " ") "v"))))
 
 (defun have-expected-newline-indent-insert (file)
