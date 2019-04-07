@@ -40,13 +40,14 @@
     (while (not (eobp))
       (end-of-line)
       (let ((indent (list (current-line-string)))
-            alts tmp-this tmp-last)
-        (funcall-interactively #'newline-and-indent)
+            alts)
+        (call-interactively #'newline-and-indent)
         (push (current-column) indent)
 
         ;; TODO a better way to get the alts
-        (while (< (length alts) 10)
-          (funcall-interactively #'indent-for-tab-command)
+        (while (< (length alts) 1)
+          (message "LOOPING %s %s" this-command last-command)
+          (call-interactively #'indent-for-tab-command)
           (push (current-column) alts))
 
         (setq indent
@@ -54,13 +55,7 @@
                (append (reverse indent) (reverse alts))))
 
         (push indent indents)
-        (setq
-         tmp-this this-command
-         tmp-last last-command)
-        (kill-whole-line)
-        (setq
-         this-command tmp-this
-         last-command tmp-last)))
+        (kill-whole-line)))
     (reverse indents)))
 
 (defun haskell-tng-indent-test:indents-to-string (indents)
