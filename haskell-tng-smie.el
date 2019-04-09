@@ -102,51 +102,35 @@
           (smie-rule-parent)))))
 
 (defvar-local haskell-tng-smie:indenting nil
-  "Stores if the last command was an indentation.
-
-This works around `this-command' / `last-command' being nil in
-the tests and also covering the multitude of indentation commands
-that will inevitably call `smie-indent'.")
-(defun haskell-tng-smie:indent-invalidation (_beg _end _pre-length)
-  (setq haskell-tng-smie:indenting nil))
+  )
 
 (defun haskell-tng-smie:indent-cycle ()
   "Returns the next alternative indentation level from a ring."
-  ;; detecting newline then TAB, or double TAB, is really hard... needs to not
-  ;; consider double newline. TODO make the detection better.
-  (message "CHECKING INDENT CYCLE %s" haskell-tng-smie:indenting)
-
-  (if (not haskell-tng-smie:indenting)
-      (setq haskell-tng-smie:indenting 't)
-
-    (when (and
-         (eq major-mode 'haskell-tng-mode) ;; smie-indent-functions is global
-         (eq this-command last-command)
-         nil)
+  (when (and
+         (not (eq this-command #'newline-and-indent))
+         (eq this-command last-command))
+    ;; TODO invalidate the cycle
     ;; TODO implement
-    (message "CALLING INDENT CYCLE FROM %s" this-command)
-    2)))
+    ;; (message "CALLING INDENT CYCLE FROM %s" this-command)
+    2))
 
 (defun haskell-tng-smie:setup ()
   (setq-local smie-indent-basic 2)
 
-  (add-to-list
+  (add-hook
    'after-change-functions
-   #'haskell-tng-layout:cache-invalidation)
+   #'haskell-tng-layout:cache-invalidation
+   nil 'local)
 
-  (add-to-list
+  (add-hook
    'after-change-functions
-   #'haskell-tng-lexer:state-invalidation)
+   #'haskell-tng-lexer:state-invalidation
+   nil 'local)
 
-  (add-to-list
+  (add-hook
    'smie-indent-functions
-   #'haskell-tng-smie:indent-cycle)
-
-  ;; FIXME this isn't the correct invalidation as it will fire while cycling
-  ;; through TAB.
-  (add-to-list
-   'after-change-functions
-   #'haskell-tng-smie:indent-invalidation)
+   #'haskell-tng-smie:indent-cycle
+   nil 'local)
 
   (smie-setup
    haskell-tng-smie:grammar

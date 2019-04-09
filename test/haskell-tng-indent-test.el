@@ -4,6 +4,7 @@
 ;; License: GPL 3 or any later version
 
 (require 'ert)
+(require 'ert-x)
 (require 's)
 
 (require 'haskell-tng-mode)
@@ -41,13 +42,14 @@
       (end-of-line)
       (let ((indent (list (current-line-string)))
             alts)
-        (call-interactively #'newline-and-indent)
+        ;; simulating the command loop is necessary for this-command and
+        ;; last-command to work correctly.
+        (ert-simulate-command '(newline-and-indent))
         (push (current-column) indent)
 
-        ;; TODO a better way to get the alts
-        (while (< (length alts) 1)
-          (message "LOOPING %s %s" this-command last-command)
-          (call-interactively #'indent-for-tab-command)
+        ;; FIXME a better way to get the full cycle of alts, with a limit
+        (while (< (length alts) 2)
+          (ert-simulate-command '(indent-for-tab-command))
           (push (current-column) alts))
 
         (setq indent
@@ -55,6 +57,8 @@
                (append (reverse indent) (reverse alts))))
 
         (push indent indents)
+        ;; unfortunately killing resets this-command so we don't test double
+        ;; newline insertions, which could accidentally trigger alts only.
         (kill-whole-line)))
     (reverse indents)))
 
@@ -69,11 +73,21 @@ of integer alternative indentations."
                 (-map #'haskell-tng-indent-test:indent-to-string indents))))
 
 (defun haskell-tng-indent-test:indent-to-string (indent)
-  (let ((line (car indent))
-        (indent (cadr indent))
-        (_alts (cddr indent)))
-    ;; FIXME show alts
-    (list line (concat (s-repeat indent " ") "v"))))
+  (let* ((line (car indent))
+         (prime (cadr indent))
+         (alts (cddr indent))
+         (widest (-max (cdr indent)))
+         repr)
+    (list line
+          (s-join ""
+           (reverse
+            (dotimes (i (+ 1 widest) repr)
+              (push
+               (cond
+                ((eq i prime) "v")
+                ((member i alts) ".")
+                (t " "))
+               repr)))))))
 
 (defun have-expected-newline-indent-insert (file)
   (haskell-tng-testutils:assert-file-contents
