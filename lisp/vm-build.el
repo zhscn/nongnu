@@ -1,7 +1,7 @@
 ;; Add the current dir to the load-path
 (setq load-path (cons default-directory load-path))
 ;(setq debug-on-error t)
-;(setq debug-ignored-errors nil)
+(setq debug-ignored-errors nil)
 ;(message "load-path: %S" load-path)
 
 (defun vm-fix-cygwin-path (path)

@@ -432,30 +432,31 @@ specified by `vm-included-text-headers' and
 	(start (point))
         (end (point-marker)))
      (save-excursion
-      (cond ((and vm-include-text-from-presentation
-		  (not (vm-mime-plain-message-p message))
-		  (or (eq message (car vm-message-pointer))
-		      (progn
-			(message 
-			 (concat "Can yank presentation for only the "
-				 "current message.  Using default yank."))
-			(sit-for 2)
-			nil)))
-	     (vm-yank-message-presentation)
-	     (setq end (point-marker)))
-	    (vm-include-text-basic
-	     (vm-yank-message-text message layout)
-	     (setq end (point-marker)))
-	    (t
-	     (vm-yank-message-mime message layout)
-	     (setq end (point-marker)))
-	    )
-      ;; decode MIME encoded words so supercite and other
-      ;; mail-citation-hook denizens won't have to eat 'em.
-      (when vm-display-using-mime
-	(save-restriction
-	  (narrow-to-region start end)
-	  (vm-decode-mime-encoded-words))))
+       ;; yank the message body as per settings
+       (cond ((and vm-include-text-from-presentation
+		   (not (vm-mime-plain-message-p message))
+		   (or (eq message (car vm-message-pointer))
+		       (progn
+			 (message 
+			  (concat "Can yank presentation for only the "
+				  "current message.  Using default yank."))
+			 (sit-for 2)
+			 nil)))
+	      (vm-yank-message-presentation)
+	      (setq end (point-marker)))
+	     (vm-include-text-basic
+	      (vm-yank-message-text message layout)
+	      (setq end (point-marker)))
+	     (t
+	      (vm-yank-message-mime message layout)
+	      (setq end (point-marker)))
+	     )
+       ;; decode MIME encoded words so supercite and other
+       ;; mail-citation-hook denizens won't have to eat 'em.
+       (when vm-display-using-mime
+	 (save-restriction
+	   (narrow-to-region start end)
+	   (vm-decode-mime-encoded-words))))
     ;; get rid of read-only text properties on the text, as
     ;; they will only cause trouble.
     (let ((inhibit-read-only t))

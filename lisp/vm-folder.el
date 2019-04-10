@@ -1200,7 +1200,7 @@ vm-folder-type is initialized here."
 ;; are ordered according to the order of the keep list.
 
 ;;;###autoload
-(defun* vm-reorder-message-headers (message &optional
+(defun* vm-reorder-message-headers (message ; &optional
 				   &key (keep-list nil)
 				   (discard-regexp nil))
   (interactive

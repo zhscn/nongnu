@@ -1780,10 +1780,10 @@ that matches an alternative that can be displayed internally will be
 chosen."
 
   :group 'vm-mime
-  :type '(choice (const nil :tag "Use vm-mime-alternative-show-method")
-		 (choice (const best-internal)
-                         (const best)
-                         (const all))
+  :type '(choice (const :tag "Use vm-mime-alternative-show-method" nil)
+		 (const best-internal)
+                 (const best)
+                 (const all)
                  (cons (const favorite) (repeat string))
                  (cons (const favorite-internal) (repeat string))))
 
