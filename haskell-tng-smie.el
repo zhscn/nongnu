@@ -101,41 +101,35 @@
      (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
           (smie-rule-parent)))))
 
-(defvar-local haskell-tng-smie:indenting nil
-  )
+(defconst haskell-tng-smie:dont-cycle '(newline-and-indent)
+  "Users with custom newlines should add their command.")
 
+(defvar-local haskell-tng-smie:indentations nil)
 (defun haskell-tng-smie:indent-cycle ()
-  "Returns the next alternative indentation level from a ring."
-  (when (and
-         (eq this-command last-command)
-         ;; TODO allow users to define the blacklist, incase they have a custom
-         ;; newline+tab command.
-         (not (eq this-command #'newline-and-indent)))
-    ;; TODO invalidation of any caches
-    ;; TODO record the smie indent level (recursing like in stefan's code)
-    ;; TODO implement
-    ;; (message "CALLING INDENT CYCLE FROM %s" this-command)
-    2))
+  "When invoked more than once, returns an alternative indentation level."
+  ;; There is a design choice here: either we compute all the indentation levels
+  ;; (including a recursive call to `smie-indent-calculate') and put them into a
+  ;; ring that we cycle, or we push/pop with recalculation. We choose the
+  ;; latter, because cache invalidation is unclear for the former
+  (if (or (not (eq this-command last-command))
+          (member this-command haskell-tng-smie:dont-cycle))
+      (setq haskell-tng-smie:indentations nil)
 
-;; (defun haskell-tng:smie-indent ()
-;;   (cond
-;;    ;; When we're not in the top-level call to smie-indent-calculate, so just do
-;;    ;; nothing and let the other rules do their job.
-;;    (haskell-tng:smie-indent-nested-call nil)
-;;    ;; When cycling, return the next indentation.
-;;    ((eq this-command last-command)
-;;     (haskell-tng:return-next-stashed-indentation-column))
-;;    ;; When we're in the top-level call to smie-indent-calculate, take control
-;;    ;; and return a non-nil value to prevent the other rules from being used.
-;;    (t
-;;     (let ((haskell-tng:smie-indent-nested-call t)
-;;           (n (haskell-tng:get-number-of-closing-braces-at-bol))
-;;           (indentations ()))
-;;       (dotimes (i n)
-;;         (haskell-tng:tell-lexer-there-are-N-closing-braces-at-bol i)
-;;         (push (smie-indent-calculate) indentations))
-;;       (haskell-tng:stash-indentation-columns indentations)
-;;       (haskell-tng:return-next-stashed-indentation-column)))))
+    (when (null haskell-tng-smie:indentations)
+      ;; avoid recalculating the prime indentation level
+      (let ((prime (current-column)))
+        (setq haskell-tng-smie:indentations
+              (append (-remove-item prime (haskell-tng-smie:indent-alts))
+                      (list prime)))))
+
+    (pop haskell-tng-smie:indentations)))
+
+(defun haskell-tng-smie:indent-alts ()
+  "Returns a list of alternative indentation levels for the
+  current line."
+  ;; FIXME implement
+  '(2)
+ )
 
 (defun haskell-tng-smie:setup ()
   (setq-local smie-indent-basic 2)
