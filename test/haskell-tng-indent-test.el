@@ -40,26 +40,25 @@
   (let (indents)
     (while (not (eobp))
       (end-of-line)
-      (let ((indent (list (current-line-string)))
-            alts)
-        ;; simulating the command loop is necessary for this-command and
-        ;; last-command to work correctly.
-        (ert-simulate-command '(newline-and-indent))
-        (push (current-column) indent)
+      ;; the command loop is necessary for this/last-command
+      (cl-flet ((RET ()
+                     (ert-simulate-command '(newline-and-indent))
+                     (current-column))
+                (TAB ()
+                     (ert-simulate-command '(indent-for-tab-command))
+                     (current-column)))
 
-        ;; FIXME a better way to get the full cycle of alts, with a limit
-        (while (< (length alts) 2)
-          (ert-simulate-command '(indent-for-tab-command))
-          (push (current-column) alts))
-
-        (setq indent
-              (delete-dups
-               (append (reverse indent) (reverse alts))))
-
-        (push indent indents)
-        ;; unfortunately killing resets this-command so we don't test double
-        ;; newline insertions, which could accidentally trigger alts only.
-        (kill-whole-line)))
+        (let ((line (current-line-string))
+              (prime (RET))
+              alts)
+          (while (and (TAB)
+                      (not (eq (current-column) prime))
+                      (not (member (current-column) alts)))
+            (push (current-column) alts))
+          (push `(,line . (,prime . ,(reverse alts))) indents)
+          ;; unfortunately killing resets this-command so we don't test double
+          ;; newline insertions, which could accidentally trigger alts only.
+          (kill-whole-line))))
     (reverse indents)))
 
 (defun haskell-tng-indent-test:indents-to-string (indents)
@@ -78,16 +77,14 @@ of integer alternative indentations."
          (alts (cddr indent))
          (widest (-max (cdr indent)))
          repr)
-    (list line
-          (s-join ""
-           (reverse
-            (dotimes (i (+ 1 widest) repr)
-              (push
-               (cond
-                ((eq i prime) "v")
-                ((member i alts) ".")
-                (t " "))
-               repr)))))))
+    (--dotimes (+ 1 widest)
+      (push
+       (cond
+        ((eq it prime) "v")
+        ((member it alts) ".")
+        (t " "))
+       repr))
+    (list line (s-join "" (reverse repr)))))
 
 (defun have-expected-newline-indent-insert (file)
   (haskell-tng-testutils:assert-file-contents

@@ -62,13 +62,13 @@
 
       ;; WLDOs
       (wldo
-       (block "where" block)
-       ("let" block "in")
-       ("do" block)
-       ("case" id "of" block))
-      (block
-       ("{" block "}")
-       (block ";" block)
+       (blk "where" blk)
+       ("let" blk "in")
+       ("do" blk)
+       ("case" id "of" blk))
+      (blk
+       ("{" blk "}")
+       (blk ";" blk)
        (id "=" id)
        (id "<-" id)
        (id "->" id)
@@ -90,7 +90,7 @@
 ;; https://github.com/elixir-editors/emacs-elixir/blob/master/test/test-helper.el#L52-L63
 (defun haskell-tng-smie:rules (method arg)
   ;; see docs for `smie-rules-function'
-  ;; TODO implement indentation
+  ;; FIXME implement prime indentation
   (pcase (cons method arg)
     (`(:elem . basic) smie-indent-basic)
     (`(,_ . ",") (smie-rule-separator method))
@@ -101,7 +101,7 @@
      (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
           (smie-rule-parent)))))
 
-(defconst haskell-tng-smie:dont-cycle '(newline-and-indent)
+(defconst haskell-tng-smie:return '(newline-and-indent)
   "Users with custom newlines should add their command.")
 
 (defvar-local haskell-tng-smie:indentations nil)
@@ -110,26 +110,39 @@
   ;; There is a design choice here: either we compute all the indentation levels
   ;; (including a recursive call to `smie-indent-calculate') and put them into a
   ;; ring that we cycle, or we push/pop with recalculation. We choose the
-  ;; latter, because cache invalidation is unclear for the former
-  (if (or (not (eq this-command last-command))
-          (member this-command haskell-tng-smie:dont-cycle))
+  ;; latter, because cache invalidation is easier.
+  (if (member this-command haskell-tng-smie:return)
       (setq haskell-tng-smie:indentations nil)
-
-    (when (null haskell-tng-smie:indentations)
+    (when (and
+           (null haskell-tng-smie:indentations)
+           (or
+            ;; TAB+TAB and RETURN+TAB
+            (eq this-command last-command)
+            (member last-command haskell-tng-smie:return)))
       ;; avoid recalculating the prime indentation level
       (let ((prime (current-column)))
         (setq haskell-tng-smie:indentations
-              (append (-remove-item prime (haskell-tng-smie:indent-alts))
-                      (list prime)))))
-
-    (pop haskell-tng-smie:indentations)))
+              (append
+               ;; TODO backtab, does the cycle in reverse (use a local flag)
+               (-remove-item prime (haskell-tng-smie:indent-alts))
+               (list prime))))))
+  (pop haskell-tng-smie:indentations))
 
 (defun haskell-tng-smie:indent-alts ()
   "Returns a list of alternative indentation levels for the
-  current line."
-  ;; FIXME implement
-  '(2)
- )
+current line."
+  (save-excursion
+    (let ((end (line-number-at-pos))
+          indents)
+      (when (re-search-backward haskell-tng:regexp:toplevel nil t)
+        (while (< (line-number-at-pos) end)
+          ;; TODO add positions of WLDOS
+          ;; TODO special cases for import (unless grammar handles it)
+          ;; TODO special cases for multiple whitespaces (implies alignment)
+          ;; TODO end +- 2
+          (push (current-indentation) indents)
+          (forward-line))
+        (-distinct (-sort '< indents))))))
 
 (defun haskell-tng-smie:setup ()
   (setq-local smie-indent-basic 2)

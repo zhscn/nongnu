@@ -44,6 +44,7 @@ give false positives." `(|
     (: ,(if hack
             '(| symbol-start word-end point)
           '(| symbol-start word-end))
+       ;; EXT:UnicodeSyntax (also grammar)
        (| ".." "::" ":" "=" "|" "<-" "->" "@" "~" "=>")
        ,(if hack
             '(| symbol-end word-start point)
@@ -89,6 +90,8 @@ give false positives." `(|
   (rx-to-string `(: word-start ,haskell-tng:rx:varid)))
 (defconst haskell-tng:regexp:symid
   (rx-to-string haskell-tng:rx:symid))
+(defconst haskell-tng:regexp:toplevel
+  (rx-to-string haskell-tng:rx:toplevel))
 
 (provide 'haskell-tng-rx)
 ;;; haskell-tng-rx.el ends here
