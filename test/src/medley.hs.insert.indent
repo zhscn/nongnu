@@ -17,9 +17,9 @@ module Foo.Bar.Main
   , module Bloo.Foo
 . .             v
   ) where
-v .
+. v
 
-v .
+. v
 import           Control.Applicative (many, optional, pure, (<*>), (<|>))
 v
 import           Data.Foldable       (traverse_)
@@ -83,19 +83,19 @@ foo = "wobble (wibble)"
 
 v
 class Get a s where
-.                                     v
+.                                       v
   get :: Set s -> a
 . .                 v
 
 . v
 instance {-# OVERLAPS #-} Get a (a ': s) where
-. v
+.   v
   get (Ext a _) = a
 . .                 v
 
 . v
 instance {-# OVERLAPPABLE #-} Get a s => Get a (b ': s) where
-. v
+.   v
   get (Ext _ xs) = get xs
 . .                    v
 
@@ -115,7 +115,7 @@ data Options = Options
 
 v .
 class  (Eq a) => Ord a  where
-. v
+.   v
   (<), (<=), (>=), (>)  :: a -> a -> Bool
 . .                                    v
   max @Foo, min        :: a -> a -> a
@@ -123,7 +123,7 @@ class  (Eq a) => Ord a  where
 
 . v
 instance (Eq a) => Eq (Tree a) where
-. v
+.   v
   Leaf a         == Leaf b          =  a == b
 . .                                           v
   (Branch l1 r1) == (Branch l2 r2)  =  (l1==l2) && (r1==r2)
@@ -147,7 +147,7 @@ data ReportType = Alloc   -- ^ Report allocations, percent
 
 v               .
 type family G a where
-. v
+.   v
   G Int = Bool
 . .         v
   G a   = Char

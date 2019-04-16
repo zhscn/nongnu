@@ -85,21 +85,26 @@
     )))
 
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Indentation
-;;
-;; ideas for an indentation tester
-;; https://github.com/elixir-editors/emacs-elixir/blob/master/test/test-helper.el#L52-L63
 (defun haskell-tng-smie:rules (method arg)
   ;; see docs for `smie-rules-function'
   ;; FIXME implement prime indentation
-  (pcase (cons method arg)
-    (`(:elem . basic) smie-indent-basic)
-    (`(,_ . ",") (smie-rule-separator method))
-    (`(:after . "=") smie-indent-basic)
-    (`(:before . ,(or `"(" `"{"))
-     (if (smie-rule-hanging-p) (smie-rule-parent)))
-    (`(:before . "if")
-     (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
-          (smie-rule-parent)))))
+;;  (message "INDENT %S %S" method arg)
+  (pcase method
+    (:elem
+     (pcase arg
+       ('basic smie-indent-basic)
+       ))
+
+    (:after
+     (pcase arg
+       ((or "::" "=" "where" "let" "do" "of")
+        ;; TODO module where should have column 0
+        ;; TODO wtf is happening with the line "class Get a s where"
+        smie-indent-basic)
+       ))
+
+    ;; TODO :before rules
+    ))
 
 (defconst haskell-tng-smie:return '(newline-and-indent)
   "Users with custom newlines should add their command.")

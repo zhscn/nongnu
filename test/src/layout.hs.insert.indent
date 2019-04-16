@@ -1,7 +1,7 @@
 -- Figure 2.1 from the Haskell2010 report
 v
 module AStack( Stack, push, pop, top, size ) where
-v
+. v
 data Stack a = Empty
 .                v
              | MkStack a (Stack a)
@@ -17,7 +17,7 @@ v
 size :: Stack a -> Int
 v
 size s = length (stkToLst s)  where
-v
+. v
            stkToLst  Empty         = []
 .          .                           v
            stkToLst (MkStack x s)  = x:xs where xs = stkToLst s

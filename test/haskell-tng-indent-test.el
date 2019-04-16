@@ -31,6 +31,22 @@
   ;; TODO more tests
   )
 
+;; TODO enable this test and get it passing, which requires a TAB command that
+;; will insert whitespace and move point to end. Workaround is to use abbrevs or
+;; yasnippets for things like "import" that have fixed indentations.
+;;
+;; (ert-deftest haskell-tng-indent-custom-tests ()
+;;   (with-temp-buffer
+;;     (insert-file-contents (testdata "src/medley.hs"))
+;;     (haskell-tng-mode)
+;;     ;; import TAB should jump to column 17
+;;     (goto-char 511)
+;;     (ert-simulate-command '(forward-word))
+;;     (ert-simulate-command '(indent-for-tab-command))
+;;     (ert-simulate-command '(indent-for-tab-command))
+;;     (should (equal (point) 528))
+;;     ))
+
 (defun current-line-string ()
   (buffer-substring-no-properties
    (line-beginning-position)
