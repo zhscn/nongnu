@@ -26,7 +26,7 @@ VARID CONID
 CONID ,
 VARID ,
 CONID »
-; import CONID « VARID , CONID « CONID , « CONSYM » »
+; import CONID « VARID , CONID « CONID , « CONSYM » » »
 ; import CONID « CONID « .. » , VARID , VARID ,
 VARID , VARID , VARID , VARID ,
 VARID , CONID »

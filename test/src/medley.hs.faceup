@@ -26,7 +26,7 @@
                                       «:haskell-tng:type:Typey»«:haskell-tng:keyword:,»
                                       wibble«:haskell-tng:keyword:,»
                                       «:haskell-tng:type:Wibble»«:haskell-tng:keyword:)»
-«:haskell-tng:keyword:import»           «:haskell-tng:module:System.FilePath»     «:haskell-tng:keyword:(»replaceExtension«:haskell-tng:keyword:,» «:haskell-tng:type:Foo»«:haskell-tng:keyword:(»«:haskell-tng:constructor:Bar»«:haskell-tng:keyword:,»«:haskell-tng:constructor: »«:haskell-tng:keyword:(»«:haskell-tng:constructor::<»«:haskell-tng:keyword:))»
+«:haskell-tng:keyword:import»           «:haskell-tng:module:System.FilePath»     «:haskell-tng:keyword:(»replaceExtension«:haskell-tng:keyword:,» «:haskell-tng:type:Foo»«:haskell-tng:keyword:(»«:haskell-tng:constructor:Bar»«:haskell-tng:keyword:,»«:haskell-tng:constructor: »«:haskell-tng:keyword:(»«:haskell-tng:constructor::<»«:haskell-tng:keyword:)))»
 «:haskell-tng:keyword:import»           «:haskell-tng:module:System.IO»           «:haskell-tng:keyword:(»«:haskell-tng:type:IOMode» «:haskell-tng:keyword:(..),» hClose«:haskell-tng:keyword:,» hGetContents«:haskell-tng:keyword:,»
                                       hPutStr«:haskell-tng:keyword:,» hPutStrLn«:haskell-tng:keyword:,» openFile«:haskell-tng:keyword:,» stderr«:haskell-tng:keyword:,»
                                       stdout«:haskell-tng:keyword:,» «:haskell-tng:type:MoarTypey»«:haskell-tng:keyword:)»

@@ -54,8 +54,8 @@ import           System.Exit         (ExitCode (..), exitFailure, qualified,
 .                                     v
                                       Wibble)
 v                                     .
-import           System.FilePath     (replaceExtension, Foo(Bar, (:<))
-.                                     v
+import           System.FilePath     (replaceExtension, Foo(Bar, (:<)))
+v
 import           System.IO           (IOMode (..), hClose, hGetContents,
 .                                     v
                                       hPutStr, hPutStrLn, openFile, stderr,
@@ -83,7 +83,7 @@ foo = "wobble (wibble)"
 
 v
 class Get a s where
-.                                       v
+. v
   get :: Set s -> a
 . .                 v
 
@@ -271,4 +271,4 @@ foo = bar
 
 . .     v
 test = 1 `shouldBe` 1
-.                                     v
+v

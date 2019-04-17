@@ -26,7 +26,7 @@ import           System.Exit         (ExitCode (..), exitFailure, qualified,
                                       Typey,
                                       wibble,
                                       Wibble)
-import           System.FilePath     (replaceExtension, Foo(Bar, (:<))
+import           System.FilePath     (replaceExtension, Foo(Bar, (:<)))
 import           System.IO           (IOMode (..), hClose, hGetContents,
                                       hPutStr, hPutStrLn, openFile, stderr,
                                       stdout, MoarTypey)
