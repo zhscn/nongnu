@@ -106,7 +106,8 @@
     ;; TODO :before rules
     ))
 
-(defconst haskell-tng-smie:return '(newline-and-indent)
+(defconst haskell-tng-smie:return
+  '(newline-and-indent newline)
   "Users with custom newlines should add their command.")
 
 (defvar-local haskell-tng-smie:indentations nil)
