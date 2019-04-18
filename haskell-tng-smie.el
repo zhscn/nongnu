@@ -174,5 +174,19 @@ current line."
    :forward-token #'haskell-tng-lexer:forward-token
    :backward-token #'haskell-tng-lexer:backward-token))
 
+;; SMIE wishlist, in order of desirability:
+;;
+;; 1. if the lexer could return lists of tokens.
+;;
+;; 2. exposing the parse tree so that s-expression navigation could be
+;;    implemented and tests could be easier to write.
+;;
+;; 3. if the Emacs regexps allowed arbitrary zero length matches, especially if
+;;    syntax "categories" were allowed.
+;;
+;; 4. ambiguous tokens. e.g. the word "via" is a keyword in a specific location,
+;;    but can otherwise be used as a varid. I'd like to be able to lex it as (or
+;;    "via" "VARID") so that it can appear in multiple places in the grammar.
+
 (provide 'haskell-tng-smie)
 ;;; haskell-tng-smie.el ends here
