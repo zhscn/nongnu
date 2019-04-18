@@ -29,6 +29,7 @@
   (should (have-expected-newline-indent-insert (testdata "src/layout.hs")))
   (should (have-expected-newline-indent-insert (testdata "src/medley.hs")))
   ;; TODO more tests
+  ;; https://raw.githubusercontent.com/kadena-io/chainweb-node/master/test/Chainweb/Test/TreeDB.hs
   )
 
 ;; TODO enable this test and get it passing, which requires a TAB command that
@@ -97,7 +98,11 @@ of integer alternative indentations."
       (push
        (cond
         ((eq it prime) "v")
-        ((member it alts) ".")
+        ((member it alts)
+         (let ((i (-elem-index it alts)))
+           (if (< i 9)
+               (number-to-string (+ 1 i))
+             ".")))
         (t " "))
        repr))
     (list line (s-join "" (reverse repr)))))

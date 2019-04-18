@@ -88,13 +88,14 @@
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Indentation
 (defun haskell-tng-smie:rules (method arg)
   ;; see docs for `smie-rules-function'
-  ;; FIXME implement prime indentation
 ;;  (message "INDENT %S %S" method arg)
   (pcase method
     (:elem
      (pcase arg
        ('basic smie-indent-basic)
        ))
+
+    ;; TODO implement more indentation rules
 
     (:after
      (pcase arg

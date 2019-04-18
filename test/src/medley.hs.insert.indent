@@ -7,19 +7,19 @@ v
 -- | This file is a medley of various constructs and some corner cases
 v
 module Foo.Bar.Main
-. .              v
+2 1              v
   ( Wibble(..), Wobble(Wobb, (!!!)), Woo
-. .                                    v
+2 1                                    v
   -- * Operations
-. .                                    v
+2 1                                    v
   , getFooByBar, getWibbleByWobble
-. .                v
+2 1                v
   , module Bloo.Foo
-. .               v
+2 1               v
   ) where
-v .
+v 1
 
-v .
+v 1
 import           Control.Applicative (many, optional, pure, (<*>), (<|>))
 v
 import           Data.Foldable       (traverse_)
@@ -35,9 +35,9 @@ v
 import  qualified  Options.Applicative  as  Opts
 v
 import qualified Options.Divisible -- wibble (wobble)
-.  .   v
+2  1   v
    as Div
-v  .
+v  1
 import qualified ProfFile.App        hiding (as, hiding, qualified)
 v
 import           ProfFile.App        (as, hiding, qualified)
@@ -47,228 +47,228 @@ v
 import qualified ProfFile.App        (as, hiding, qualified)
 v
 import           System.Exit         (ExitCode (..), exitFailure, qualified,
-.                                     v
+1                                     v
                                       Typey,
-.                                     v
+1                                     v
                                       wibble,
-.                                     v
+1                                     v
                                       Wibble)
-v                                     .
+v                                     1
 import           System.FilePath     (replaceExtension, Foo(Bar, (:<)))
 v
 import           System.IO           (IOMode (..), hClose, hGetContents,
-.                                     v
+1                                     v
                                       hPutStr, hPutStrLn, openFile, stderr,
-.                                     v
+1                                     v
                                       stdout, MoarTypey)
-v                                     .
+v                                     1
 import           System.Process      (CreateProcess (..), StdStream (..),
-.                                     v
+1                                     v
                                       createProcess, proc, waitForProcess)
-.                       v             .
+1                       v             2
 
-.                       v             .
+1                       v             2
 -- some chars that should be propertized
-v                                     .
+v                                     1
 chars = ['c', '\n', '\'']
-.         v
+1         v
 
 v
 difficult = foo' 'a' 2
-.                v
+1                v
 
 v
 foo = "wobble (wibble)"
-.       v
+1       v
 
 v
 class Get a s where
-. v
+1 v
   get :: Set s -> a
-. .                 v
+1 2                 v
 
-. v
+1 v
 instance {-# OVERLAPS #-} Get a (a ': s) where
-. . v
+2 1 v
   get (Ext a _) = a
-. .                 v
+1 2                 v
 
-. v
+1 v
 instance {-# OVERLAPPABLE #-} Get a s => Get a (b ': s) where
-. . v
+2 1 v
   get (Ext _ xs) = get xs
-. .                    v
+1 2                    v
 
-. v
+1 v
 data Options = Options
-. .              v
+2 1              v
   { optionsReportType      :: ReportType
-. .                        v
+2 1                        v
   , optionsProfFile        :: Maybe FilePath
-. .                        v
+2 1                        v
   , optionsOutputFile      :: Maybe FilePath
-. .                        v
+2 1                        v
   , optionsFlamegraphFlags :: [String]
-. .                        v
+2 1                        v
   } deriving (Eq, Show)
-. v
+1 v
 
-v .
+v 1
 class  (Eq a) => Ord a  where
-. . v
+2 1 v
   (<), (<=), (>=), (>)  :: a -> a -> Bool
-. .                                    v
+2 1                                    v
   max @Foo, min        :: a -> a -> a
-. .                                   v
+1 2                                   v
 
-. v
+1 v
 instance (Eq a) => Eq (Tree a) where
-. . v
+2 1 v
   Leaf a         == Leaf b          =  a == b
-. .                                           v
+2 1                                           v
   (Branch l1 r1) == (Branch l2 r2)  =  (l1==l2) && (r1==r2)
-. .                                                  v
+2 1                                                  v
   _              == _               =  False
-. .                                      v
+1 2                                      v
 
-. v
+1 v
 data ReportType = Alloc   -- ^ Report allocations, percent
-.               .   v
+2               1   v
                 | Entries -- ^ Report entries, number
-.               v
+1               v
                 | Time    -- ^ Report time spent in closure, percent
-.               v
+1               v
                 | Ticks   -- ^ Report ticks, number
-.               v
+1               v
                 | Bytes   -- ^ Report bytes allocated, number
-.               v
+1               v
                 deriving (Eq, Show)
-.               v
+1               v
 
-v               .
+v               1
 type family G a where
-. . v
+2 1 v
   G Int = Bool
-. .         v
+2 1         v
   G a   = Char
-. .         v
+1 2         v
 
-. v
+1 v
 data Flobble = Flobble
-. .              v
+2 1              v
   deriving (Eq) via (NonNegative (Large Int))
-. v
+1 v
   deriving stock (Floo)
-. v
+1 v
   deriving anyclass (WibblyWoo, OtherlyWoo)
-. v
+1 v
 
-v .
+v 1
 newtype Flobby = Flobby
-.                  v
+1                  v
 
 v
 foo ::
-..  v
+21  v
  Wibble -- wibble
-.v  .
+2v  1
     -> Wobble -- wobble
-..  .    v
+32  1    v
     -> Wobble -- wobble
-..  .    v
+32  1    v
     -> Wobble -- wobble
-..  .    v
+32  1    v
     -> (wob :: Wobble)
-..  .    v
+32  1    v
     -> (Wobble -- wobble
-..  .     v
+32  1     v
     a b c)
-..  .    v
+13  2    v
 
-v.  .
+v2  1
 (foo :: (Wibble Wobble)) foo
-..  .                    v
+13  2                    v
 
-v.  .
+v2  1
 newtype TestApp
-.  .    v
+2  1    v
    (logger :: TestLogger)
-.  v
+1  v
    (scribe :: TestScribe)
-.  v
+1  v
    config
-.  v
+1  v
    a
-.  v
+1  v
    = TestApp a
-.  .         v
+1  2         v
 
-v  .
+v  1
 optionsParser :: Opts.Parser Options
 v
 optionsParser = Options
-. .               v
+2 1               v
   <$> (Opts.flag' Alloc (Opts.long "alloc" <> Opts.help "wibble")
-. .    .          v
+3 2    1          v
        <|> Opts.flag' Entries (Opts.long "entry" <> Opts.help "wobble")
-. .    .              v
+3 2    1              v
        <|> Opts.flag' Bytes   (Opts.long "bytes" <> Opts.help "i'm a fish"))
-. .    .v
+3 1    2v
   <*> optional
-. .    .v
+3 1    2v
         (Opts.strArgument
-. .    .. .     v
+5 3    42 1     v
           (Opts.metavar "MY-FILE" <>
-. .    .. ..    v
+6 4    53 21    v
            Opts.help "meh"))
-. .    .v ..
+1 4    5v 32
 
-. .   v.. ..
+1 5   v64 32
 type PhantomThing
-.    v
+1    v
 
 v
 type SomeApi =
-. v    .
+2 v    1
        "thing" :> Capture "bar" Index :> QueryParam "wibble" Text
-.      .       v                               .
+3      2       v                               1
                                                :> QueryParam "wobble" Natural
-.      .                                       v
+2      1                                       v
                                                :> Header TracingHeader TracingId
-.      .                                       v
+2      1                                       v
                                                :> ThingHeader
-.      .                                       v
+2      1                                       v
                                                :> Get '[JSON] (The ReadResult)
-. .    .                                       v
+3 1    2                                       v
   :<|> "thing" :> ReqBody '[JSON] Request
-. v    .              .                        .
+4 v    3              1                        2
                       :> Header TracingHeader TracingId
-. .    .              v                        .
+4 1    3              v                        2
                       :> SpecialHeader
-. .    .              v                        .
+4 1    3              v                        2
                       :> Post '[JSON] (The Response)
-. .    .              v                        .
+1 2    4              v                        3
 
-v .    .              .                        .
+v 2    4              1                        3
 deriving instance FromJSONKey StateName
 v
 deriving anyclass instance FromJSON Base
 v
 deriving newtype instance FromJSON Treble
-.        v
+1        v
 
 v
 foo = bar
-. .     v
+2 1     v
   where baz = _
-. .     .       v
+3 2     1       v
   -- checking that comments are ignored in layout
-. .     .       v
+3 2     1       v
   -- and that a starting syntax entry is ok
-. .     .       v
+3 2     1       v
         (+) = _
-. .     .       v
+1 3     2       v
 
-. .     v
+1 2     v
 test = 1 `shouldBe` 1
 v

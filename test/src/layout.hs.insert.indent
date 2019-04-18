@@ -3,35 +3,35 @@ v
 module AStack( Stack, push, pop, top, size ) where
 v
 data Stack a = Empty
-.            .   v
+2            1   v
              | MkStack a (Stack a)
-.            v
+1            v
 
-v            .
+v            1
 push :: a -> Stack a -> Stack a
 v
 push x s = MkStack x s
-.                  v
+1                  v
 
 v
 size :: Stack a -> Int
 v
 size s = length (stkToLst s)  where
-. v        .
+2 v        1
            stkToLst  Empty         = []
-.          .                           v
+2          1                           v
            stkToLst (MkStack x s)  = x:xs where xs = stkToLst s
-.          .                                                  v
+1          2                                                  v
 
-.          .                                                  v
+1          2                                                  v
 pop :: Stack a -> (a, Stack a)
 v
 pop (MkStack x s)
-. . v
+2 1 v
   = (x, case s of r -> i r where i x = x) -- (pop Empty) is an error
-. .   v
+1 2   v
 
-v .
+v 1
 top :: Stack a -> a
 v
 top (MkStack x s) = x                     -- (top Empty) is an error
