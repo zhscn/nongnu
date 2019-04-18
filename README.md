@@ -50,19 +50,18 @@ This is the status of core features:
 - Navigation:
   - [x] performance-minded `syntax-table`
   - [x] `font-lock` to visually distinguish types and values
-  - [ ] `sexp` navigation (SMIE) **IN PROGRESS**
+  - [x] `sexp` navigation (SMIE)
   - [ ] `projectile` / [`fast-tags`](https://github.com/elaforge/fast-tags) integration for `TAGS`
   - [ ] hoogle CLI jump-to-source
   - [ ] `imenu` population
 - Editing:
-  - [ ] indentation (SMIE)
+  - [ ] indentation (SMIE) (IN PROGRESS)
   - [ ] `abbrev` table
   - [ ] `yasnippet` templates
-  - [ ] `smartparens` / `paredit` rules
   - [ ] `LANGUAGE` management
   - [ ] `import` management (via hoogle and [`hsimport`](https://hackage.haskell.org/package/hsimport))
 - Compiling:
-  - [ ] `haskell-compile` for build tool agnostic interaction with `ghc`
+  - [ ] `compilation-mode` for `cabal` batch commands (IN PROGRESS)
   - [ ] `comint-mode` based `ghc` repl
 
 Compatibility with `lsp-mode` / [`haskell-ide-engine`](https://github.com/haskell/haskell-ide-engine) is important for more advanced IDE features.
