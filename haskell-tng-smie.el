@@ -138,17 +138,24 @@
   "Returns a list of alternative indentation levels for the
 current line."
   (save-excursion
-    (let ((end (line-number-at-pos))
+    (let ((the-line (line-number-at-pos))
           indents)
       (when (re-search-backward haskell-tng:regexp:toplevel nil t)
-        (while (< (line-number-at-pos) end)
+        (while (< (line-number-at-pos) the-line)
           ;; TODO add positions of WLDOS
           ;; TODO special cases for import (unless grammar handles it)
           ;; TODO special cases for multiple whitespaces (implies alignment)
-          ;; TODO end +- 2
+          ;; TODO the-line +- 2
           (push (current-indentation) indents)
-          (forward-line))
-        (-distinct (-sort '< indents))))))
+          (forward-line)))
+
+      ;; indentation of the next line is common for insert edits
+      (forward-line)
+      (forward-comment (point-max))
+      (when (not (eq the-line (line-number-at-pos)))
+        (push (current-indentation) indents))
+
+      (-distinct indents))))
 
 (defun haskell-tng-smie:setup ()
   (setq-local smie-indent-basic 2)

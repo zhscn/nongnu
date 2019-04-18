@@ -7,7 +7,7 @@ v
 -- | This file is a medley of various constructs and some corner cases
 v
 module Foo.Bar.Main
-.              v
+. .            v
   ( Wibble(..), Wobble(Wobb, (!!!)), Woo
 . .                                    v
   -- * Operations
@@ -35,7 +35,7 @@ v
 import  qualified  Options.Applicative  as  Opts
 v
 import qualified Options.Divisible -- wibble (wobble)
-.      v
+.  .   v
    as Div
 v  .
 import qualified ProfFile.App        hiding (as, hiding, qualified)
@@ -89,19 +89,19 @@ class Get a s where
 
 . v
 instance {-# OVERLAPS #-} Get a (a ': s) where
-.   v
+. . v
   get (Ext a _) = a
 . .                 v
 
 . v
 instance {-# OVERLAPPABLE #-} Get a s => Get a (b ': s) where
-.   v
+. . v
   get (Ext _ xs) = get xs
 . .                    v
 
 . v
 data Options = Options
-.                v
+. .              v
   { optionsReportType      :: ReportType
 . .                        v
   , optionsProfFile        :: Maybe FilePath
@@ -115,7 +115,7 @@ data Options = Options
 
 v .
 class  (Eq a) => Ord a  where
-.   v
+. . v
   (<), (<=), (>=), (>)  :: a -> a -> Bool
 . .                                    v
   max @Foo, min        :: a -> a -> a
@@ -123,7 +123,7 @@ class  (Eq a) => Ord a  where
 
 . v
 instance (Eq a) => Eq (Tree a) where
-.   v
+. . v
   Leaf a         == Leaf b          =  a == b
 . .                                           v
   (Branch l1 r1) == (Branch l2 r2)  =  (l1==l2) && (r1==r2)
@@ -133,7 +133,7 @@ instance (Eq a) => Eq (Tree a) where
 
 . v
 data ReportType = Alloc   -- ^ Report allocations, percent
-.                   v
+.               .   v
                 | Entries -- ^ Report entries, number
 .               v
                 | Time    -- ^ Report time spent in closure, percent
@@ -147,7 +147,7 @@ data ReportType = Alloc   -- ^ Report allocations, percent
 
 v               .
 type family G a where
-.   v
+. . v
   G Int = Bool
 . .         v
   G a   = Char
@@ -155,7 +155,7 @@ type family G a where
 
 . v
 data Flobble = Flobble
-.                v
+. .              v
   deriving (Eq) via (NonNegative (Large Int))
 . v
   deriving stock (Floo)
@@ -169,9 +169,9 @@ newtype Flobby = Flobby
 
 v
 foo ::
-.   v
+..  v
  Wibble -- wibble
-.v
+.v  .
     -> Wobble -- wobble
 ..  .    v
     -> Wobble -- wobble
@@ -191,7 +191,7 @@ v.  .
 
 v.  .
 newtype TestApp
-.       v
+.  .    v
    (logger :: TestLogger)
 .  v
    (scribe :: TestScribe)
@@ -207,9 +207,9 @@ v  .
 optionsParser :: Opts.Parser Options
 v
 optionsParser = Options
-.                 v
-  <$> (Opts.flag' Alloc (Opts.long "alloc" <> Opts.help "wibble")
 . .               v
+  <$> (Opts.flag' Alloc (Opts.long "alloc" <> Opts.help "wibble")
+. .    .          v
        <|> Opts.flag' Entries (Opts.long "entry" <> Opts.help "wobble")
 . .    .              v
        <|> Opts.flag' Bytes   (Opts.long "bytes" <> Opts.help "i'm a fish"))
@@ -217,9 +217,9 @@ optionsParser = Options
   <*> optional
 . .    .v
         (Opts.strArgument
-. .    ..       v
-          (Opts.metavar "MY-FILE" <>
 . .    .. .     v
+          (Opts.metavar "MY-FILE" <>
+. .    .. ..    v
            Opts.help "meh"))
 . .    .v ..
 
@@ -229,9 +229,9 @@ type PhantomThing
 
 v
 type SomeApi =
-. v
+. v    .
        "thing" :> Capture "bar" Index :> QueryParam "wibble" Text
-.      .       v
+.      .       v                               .
                                                :> QueryParam "wobble" Natural
 .      .                                       v
                                                :> Header TracingHeader TracingId
@@ -239,9 +239,9 @@ type SomeApi =
                                                :> ThingHeader
 .      .                                       v
                                                :> Get '[JSON] (The ReadResult)
-.      .                                       v
+. .    .                                       v
   :<|> "thing" :> ReqBody '[JSON] Request
-. v    .                                       .
+. v    .              .                        .
                       :> Header TracingHeader TracingId
 . .    .              v                        .
                       :> SpecialHeader
@@ -259,13 +259,13 @@ deriving newtype instance FromJSON Treble
 
 v
 foo = bar
-.       v
+. .     v
   where baz = _
-. .             v
+. .     .       v
   -- checking that comments are ignored in layout
-. .             v
+. .     .       v
   -- and that a starting syntax entry is ok
-. .             v
+. .     .       v
         (+) = _
 . .     .       v
 
