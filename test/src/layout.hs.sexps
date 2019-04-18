@@ -1,5 +1,5 @@
 -- Figure 2.1 from the Haskell2010 report
-((module) (AStack)( (Stack), (push), (pop), (top), (size) ) (where)
+((module (AStack)( (Stack), (push), (pop), (top), (size) ) (where)
 (((data) (Stack) (a) = (Empty)
              (|) (MkStack) (a) ((Stack) (a))
 
@@ -17,4 +17,4 @@
 
 ((top) (::) (Stack) (a) -> (a))
 ((top) ((MkStack) (x) (s)) = (x)))                     -- top Empty is an error
-))
+)))

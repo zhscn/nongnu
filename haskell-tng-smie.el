@@ -62,6 +62,7 @@
 
       ;; WLDOs
       (wldo
+       ("module" blk "where" blk)
        (blk "where" blk)
        ("let" blk "in")
        ("do" blk)
@@ -97,9 +98,11 @@
 
     (:after
      (pcase arg
-       ((or "::" "=" "where" "let" "do" "of")
-        ;; TODO module where should have column 0
-        ;; TODO wtf is happening with the line "class Get a s where"
+       ("where"
+        (if (smie-rule-parent-p "module")
+            '(column . 0)
+          smie-indent-basic))
+       ((or "::" "=" "let" "do" "of")
         smie-indent-basic)
        ))
 
@@ -174,6 +177,8 @@ current line."
    'smie-indent-functions
    #'haskell-tng-smie:indent-cycle
    nil 'local)
+
+  ;; TODO alternative to indent-for-tab-command that does alignment
 
   (smie-setup
    haskell-tng-smie:grammar

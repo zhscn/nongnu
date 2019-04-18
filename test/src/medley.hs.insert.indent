@@ -7,7 +7,7 @@ v
 -- | This file is a medley of various constructs and some corner cases
 v
 module Foo.Bar.Main
-. .            v
+. .              v
   ( Wibble(..), Wobble(Wobb, (!!!)), Woo
 . .                                    v
   -- * Operations
@@ -15,11 +15,11 @@ module Foo.Bar.Main
   , getFooByBar, getWibbleByWobble
 . .                v
   , module Bloo.Foo
-. .             v
+. .               v
   ) where
-. v
+v .
 
-. v
+v .
 import           Control.Applicative (many, optional, pure, (<*>), (<|>))
 v
 import           Data.Foldable       (traverse_)
