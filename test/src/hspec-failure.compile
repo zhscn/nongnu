@@ -1,0 +1,743 @@
+Build profile: -w ghc-8.4.4 -O0
+In order, the following will be built (use -v for more details):
+ - hpack-0.31.2 (test:spec) (first run)
+Preprocessing test suite 'spec' for hpack-0.31.2..
+Building test suite 'spec' for hpack-0.31.2..
+Running 1 test suites...
+Test suite spec: RUNNING...
+
+Data.Aeson.Config.FromValue
+  fromValue
+    with a record
+      decodes a record
+      captures unrecognized fields
+      captures nested unrecognized fields
+      ignores fields that start with an underscore
+      fails on missing field
+      fails on invalid field value
+    with (,)
+      captures unrecognized fields
+    with []
+      captures unrecognized fields
+    with Map
+      captures unrecognized fields
+Data.Aeson.Config.Types
+  fromValue
+    List
+      when parsing single values
+        returns the value in a singleton list
+        returns error messages from element parsing
+      when parsing a list of values
+        returns the list
+        propagates parse error messages of invalid elements
+Data.Aeson.Config.Util
+  hyphenize
+    hyphenizes
+    ignores leading underscores
+    when given a type name
+      strips type name
+      ignores trailing underscores in type name
+EndToEnd
+  hpack
+    ignores fields that start with an underscore
+    warns on duplicate fields
+    spec-version
+      accepts spec-version
+      fails on malformed spec-version
+      fails on unsupported spec-version
+      fails on unsupported spec-version from defaults
+    data-files
+      accepts data-files
+    data-dir
+      accepts data-dir
+    github
+      accepts owner/repo
+      accepts owner/repo/path
+    homepage
+      accepts homepage URL
+      with github
+        gives homepage URL precedence
+        omits homepage URL if it is null
+    bug-reports
+      accepts bug-reports URL
+      with github
+        gives bug-reports URL precedence
+        omits bug-reports URL if it is null
+    defaults
+      accepts global defaults
+      accepts library defaults
+      accepts a list of defaults
+      accepts defaults recursively
+      fails on cyclic defaults
+      fails if defaults don't exist
+        # PENDING: No reason given
+      fails on parse error
+      warns on unknown fields
+      accepts defaults from local files
+    version
+      accepts string
+      accepts number
+      rejects other values
+    license
+      accepts cabal-style licenses
+      accepts SPDX licenses
+      with an ambiguous license
+        treats it as a cabal-style license
+      when cabal-version >= 2.2
+        maps license to SPDX license identifier
+        doesn't touch unknown licenses
+      with a LICENSE file
+        infers license
+        when license can not be inferred
+          warns
+        when license is null
+          does not infer license
+    build-type
+      accept Simple
+      accept Configure
+      accept Make
+      accept Custom
+      rejects invalid values
+    extra-doc-files
+      accepts a list of files
+      accepts glob patterns
+      warns if a glob pattern does not match anything
+    build-tools
+      adds known build tools to build-tools
+      adds other build tools to build-tool-depends
+      when the name of a build tool matches an executable from the same package
+        adds it to build-tools
+        gives per-section unqualified names precedence over global qualified names
+        gives per-section qualified names precedence over global unqualified names
+      when the name of a build tool matches a legacy system build tool
+        adds it to build-tools
+    system-build-tools
+      adds system build tools to build-tools
+      with hpc
+        infers cabal-version 1.14
+      with ghcjs
+        infers cabal-version 1.22
+      with an unknown system build tool
+        infers cabal-version 2.0
+    dependencies
+      accepts single dependency
+      accepts list of dependencies
+      with both global and section specific dependencies
+        combines dependencies
+        gives section specific dependencies precedence
+    pkg-config-dependencies
+      accepts pkg-config-dependencies
+    include-dirs
+      accepts include-dirs
+    install-includes
+      accepts install-includes
+    js-sources
+      accepts js-sources
+      accepts global js-sources
+    cxx-options
+      accepts cxx-options
+      when used inside a nested conditional
+        infers correct cabal-version
+    cxx-sources
+      accepts cxx-sources
+    extra-lib-dirs
+      accepts extra-lib-dirs
+    extra-libraries
+      accepts extra-libraries
+    extra-frameworks-dirs
+      accepts extra-frameworks-dirs
+    frameworks
+      accepts frameworks
+    c-sources
+      keeps declaration order
+      accepts glob patterns
+      warns when a glob pattern does not match any files
+      quotes filenames with special characters
+    custom-setup
+      warns on unknown fields
+      accepts dependencies
+      leaves build-type alone, if it exists
+    library
+      accepts reexported-modules
+      accepts signatures
+      when package.yaml contains duplicate modules
+        generates a cabal file with duplicate modules
+      when inferring modules
+        with exposed-modules
+          infers other-modules
+        with other-modules
+          infers exposed-modules
+        with both exposed-modules and other-modules
+          doesn't infer any modules
+        with neither exposed-modules nor other-modules
+          infers exposed-modules
+        with a conditional
+          doesn't infer any modules mentioned in that conditional
+          with a source-dir inside the conditional
+            infers other-modules
+            does not infer outer modules
+        with generated modules
+          includes generated modules in autogen-modules
+          does not infer any mentioned generated modules
+          does not infer any generated modules mentioned inside conditionals
+      mixins
+        sets cabal-version to 2.0 if mixins are used
+    internal-libraries
+      accepts internal-libraries
+      warns on unknown fields
+      warns on missing source-dirs
+    executables
+      accepts arbitrary entry points as main
+      when inferring modules
+        infers other-modules
+        allows to specify other-modules
+        does not infer any mentioned generated modules
+        with conditional
+          doesn't infer any modules mentioned in that conditional
+          infers other-modules
+      with conditional
+        does not apply global options
+        accepts executable-specific fields
+    when
+      accepts conditionals
+      warns on unknown fields
+      when parsing conditionals with else-branch
+        accepts conditionals with else-branch
+        rejects invalid conditionals
+        rejects invalid conditionals
+        warns on unknown fields
+    verbatim
+      accepts strings
+      accepts multi-line strings as field values
+      allows to null out existing fields
+      when specified globally
+        overrides header fields
+        overrides other fields
+        is not propagated into sections
+      within a section
+        overrides section fields
+    default value of maintainer
+      gives maintainer precedence
+      with author
+        uses author if maintainer is not specified
+        omits maintainer if it is null
+Hpack.CabalFile
+  readCabalFile
+    includes hash
+    accepts cabal-version at the beginning of the file
+  extractVersion
+    extracts Hpack version from a cabal file
+    is agnostic to file name
+    is total
+  parseVersion
+    is inverse to showVersion
+      +++ OK, passed 100 tests.
+  removeGitConflictMarkers
+    remove git conflict markers (git checkout --ours)
+Hpack.Config
+  pathsModuleFromPackageName
+    replaces dashes with underscores in package name
+  fromLibrarySectionInConditional
+    when inferring modules
+      infers other-modules
+      with exposed-modules
+        infers nothing
+      with other-modules
+        infers nothing
+  renamePackage
+    renames a package
+    renames dependencies on self
+  renameDependencies
+    renames dependencies
+    renames dependency in conditionals
+  getModules
+    returns Haskell modules in specified source directory
+    when source directory is '.'
+      ignores Setup
+    when source directory is './.'
+      ignores Setup
+  toBuildTool
+    with an UnqualifiedBuildTool
+      when name does not match a local executable
+        returns a BuildTool
+      when name matches a local executable
+        returns a LocalBuildTool
+      when name matches a legacy executable
+        warns
+      when name matches a legacy system build tool
+        warns
+    with a QualifiedBuildTool
+      when only package matches the current package
+        returns a BuildTool
+      when only executable matches a local executable
+        returns a BuildTool
+      when both package matches the current package and executable matches a local executable
+        returns a LocalBuildTool
+  readPackageConfig
+    warns on missing name
+    infers name
+    accepts name
+    accepts version
+    accepts synopsis
+    accepts description
+    accepts category
+    accepts author
+    accepts maintainer
+    accepts copyright
+    accepts stability
+    accepts license
+    infers license file
+    accepts license file
+    accepts list of license files
+    accepts flags
+    accepts extra-source-files
+    accepts arbitrary git URLs as source repository
+    accepts CPP options
+    accepts cc-options
+    accepts ghcjs-options
+    accepts ld-options
+    accepts buildable
+    allows yaml merging and overriding fields
+    when reading library section
+      accepts source-dirs
+      accepts default-extensions
+      accepts global default-extensions
+      accepts global source-dirs
+      allows to specify exposed
+    when reading executable section
+      reads executables section
+      reads executable section
+      with both executable and executables
+        gives executable precedence
+        warns
+      accepts source-dirs
+      accepts global source-dirs
+      accepts default-extensions
+      accepts global default-extensions
+      accepts GHC options
+      accepts global GHC options
+      accepts GHC profiling options
+      accepts global GHC profiling options
+    when reading test section
+      reads test section
+    when a specified source directory does not exist
+      warns
+    when package.yaml can not be parsed
+      returns an error
+    when package.yaml is invalid
+      returns an error
+    when package.yaml does not exist
+      returns an error
+  fromValue
+    with Cond
+      accepts Strings
+      accepts True
+      accepts False
+      rejects other values
+  formatOrList
+    formats a singleton list
+    formats a 2-element list
+    formats an n-element list
+Hpack.Defaults
+  ensure
+    fails when local file does not exist
+  ensureFile
+    downloads file if missing
+      # PENDING: No reason given
+    with existing file
+      does nothing
+    with 404
+      does not create any files
+        # PENDING: No reason given
+Hpack.Haskell
+  isModule
+    accepts module names
+    rejects the empty list
+  isQualifiedIdentifier
+    accepts qualified Haskell identifiers
+    rejects invalid input
+  isIdentifier
+    accepts Haskell identifiers
+    rejects reserved keywords
+    rejects invalid input
+Hpack.License
+  parseLicense
+    parses GPL
+    parses GPL-2
+    parses GPL-3
+    parses LGPL
+    parses LGPL-2.1
+    parses LGPL-3
+    parses AGPL
+    parses AGPL-3
+    parses BSD2
+    parses BSD3
+    parses BSD4
+    parses MIT
+    parses ISC
+    parses MPL-2.0
+    parses Apache
+    parses Apache-2.0
+    parses PublicDomain
+    parses OtherLicense
+    parses AllRightsReserved
+    parses GPL-2.0-or-later
+    parses some-license
+Hpack.Options
+  parseOptions
+    with --help
+      returns Help
+    with --version
+      returns PrintVersion
+    by default
+      returns Run
+      includes target
+      with superfluous arguments
+        returns ParseError
+      with --silent
+        sets optionsVerbose to NoVerbose
+      with --force
+        sets optionsForce to Force
+      with -f
+        sets optionsForce to Force
+      with -
+        sets optionsToStdout to True, implies Force and NoVerbose
+        rejects - for target
+  expandTarget
+    when target is Nothing
+      return default file
+    when target is a file
+      return file
+    when target is a directory
+      appends default file
+    when target file does not exist
+      return target file
+    when target directory does not exist
+      appends default file
+    when target is the empty string
+      return default file
+Hpack.Render.Dsl
+  render
+    when rendering a Stanza
+      renders stanza
+      omits empty fields
+      allows to customize indentation
+      renders nested stanzas
+    when rendering a Field
+      when rendering a MultipleLines value
+        takes nesting into account
+        when value is empty
+          returns an empty list
+      when rendering a SingleLine value
+        returns a single line
+        takes nesting into account
+        takes alignment into account
+        when value is empty
+          returns an empty list
+  renderValue
+    renders WordList
+    renders CommaSeparatedList
+    renders LineSeparatedList
+    when renderSettingsCommaStyle is TrailingCommas
+      renders CommaSeparatedList with trailing commas
+      renders LineSeparatedList without padding
+  sortFieldsBy
+    sorts fields
+    keeps existing field order
+      +++ OK, passed 100 tests.
+    is stable
+      +++ OK, passed 100 tests.
+  addSortKey
+    adds sort key
+Hpack.Render.Hints
+  extractFieldOrder
+    extracts field order hints
+  extractSectionsFieldOrder
+    splits input into sections
+  sanitize
+    removes empty lines
+    removes trailing whitespace
+    removes cabal-version
+  unindent
+    unindents
+  sniffAlignment
+    sniffs field alignment from given cabal file
+    ignores fields without a value on the same line
+  splitField
+    splits fields
+    accepts fields names with dashes
+    rejects fields names with spaces
+    rejects invalid fields
+  sniffIndentation
+    sniff alignment from executable section
+    sniff alignment from library section
+    ignores empty lines
+    ignores whitespace lines
+  sniffCommaStyle
+    detects leading commas
+    detects trailing commas
+    when detection fails
+      returns Nothing
+Hpack.Render
+  renderPackageWith
+    renders a package
+    aligns fields
+    includes description
+    aligns description
+    includes stability
+    includes license-file
+    aligns license-files
+    includes copyright holder
+    aligns copyright holders
+    includes extra-source-files
+    includes buildable
+    when rendering library section
+      renders library section
+    when given list of existing fields
+      retains field order
+      uses default field order for new fields
+      retains section field order
+    when rendering executable section
+      includes dependencies
+      includes GHC options
+      includes frameworks
+      includes extra-framework-dirs
+      includes GHC profiling options
+  renderConditional
+    renders conditionals
+    renders conditionals with else-branch
+    renders nested conditionals
+    conditionalises both build-depends and mixins
+  renderFlag
+    renders flags
+  formatDescription
+    formats description
+    takes specified alignment into account
+    formats empty lines
+  renderSourceRepository
+    renders source-repository without subdir correctly
+    renders source-repository with subdir
+  renderDirectories
+    replaces . with ./. (for compatibility with cabal syntax)
+  renderDependencies
+    renders build-depends
+    renders build-depends with versions
+    renders mixins and build-depends for multiple modules
+Hpack.Syntax.BuildTools
+  fromValue
+    when parsing BuildTools
+      with a scalar
+        accepts qualified names
+        accepts qualified names with a version
+        accepts unqualified names
+        accepts unqualified names with a version
+      with a mapping
+        accepts qualified names
+        accepts unqualified names
+      with a list
+        accepts a list of build tools
+        accepts source dependencies with a qualified name
+        accepts source dependencies with an unqualified name
+    when parsing SystemBuildTools
+      with a scalar
+        accepts system build tools
+        accepts system build tools with a version
+      with a mapping
+        accepts system build tools
+      with a list
+        accepts a list of system build tools
+        accepts objects with name and version
+Hpack.Syntax.Defaults
+  isValidOwner
+    rejects the empty string
+    accepts valid owner names
+    rejects dots
+    rejects multiple consecutive hyphens
+    rejects hyphens at the beginning
+    rejects hyphens at the end
+  isValidRepo
+    rejects the empty string
+    rejects .
+    rejects ..
+    accepts underscores
+    accepts dots
+    accepts hyphens
+  fromValue
+    when parsing Defaults
+      with Object
+        fails when neither github nor local is present
+        accepts Defaults from GitHub
+        rejects invalid owner names
+        rejects invalid repository names
+        rejects invalid Git references
+        rejects \ in path
+        rejects : in path
+        rejects absolute paths
+        rejects .. in path
+      with String
+        accepts Defaults from GitHub
+        rejects invalid owner names
+        rejects invalid repository names
+        rejects invalid Git references
+        rejects missing Git reference
+      with neither Object nor String
+        fails
+Hpack.Syntax.Dependencies
+  fromValue
+    when parsing Dependencies
+      with a scalar
+        accepts dependencies without constraints
+        accepts dependencies with constraints
+        with invalid constraint
+          returns an error message
+      with a list
+        accepts dependencies without constraints
+        accepts dependencies with constraints
+        accepts ^>=
+        accepts objects with name and version
+        accepts git dependencies with version
+        accepts git dependencies
+        accepts github dependencies
+        accepts an optional subdirectory for git dependencies
+        accepts local dependencies
+        when ref is missing
+          produces accurate error messages
+        when both git and github are missing
+          produces accurate error messages
+      with a mapping from dependency names to constraints
+        accepts dependencies without constraints
+        rejects invalid values
+        when the constraint is a Number
+          accepts 1
+          accepts 1.0
+          accepts 0.11
+          accepts 0.110
+          accepts 1e2
+        when the constraint is a String
+          accepts version ranges
+          accepts specific versions
+          accepts wildcard versions
+          accepts ^>=
+          reports parse errors
+        when the constraint is an Object
+          accepts explicit version field
+          accepts github dependencies
+          ignores names in nested hashes
+          defaults to any version
+          with a version key
+            rejects objects
+            accepts a string
+            accepts a specific version as a number
+            accepts a specific version as a string
+          with mixin
+            accepts a single value
+            accepts a list
+Hpack.Syntax.Git
+  isValidRef
+    accepts slashes
+    rejects the empty string
+    accepts .lock as a substring
+    rejects .lock at the end of a component
+    rejects . at the biginning of a component
+    rejects two consecutive dots ..
+    rejects ASCII control characters
+    rejects space
+    rejects ~
+    rejects ^
+    rejects :
+    rejects ?
+    rejects *
+    rejects [
+    rejects \
+    rejects multiple consecutive slashes
+    rejects slash at beginning
+    rejects slash at end
+    rejects . at end
+    rejects @{
+    rejects the single character @
+Hpack.Utf8
+  readFile
+    with a file that uses CRLF newlines
+      applies newline conversion
+  writeFile
+    uses system specific newline encoding
+Hpack.Util
+  sort
+    sorts lexicographically
+  parseMain
+    accepts source file
+    accepts literate source file
+    accepts module
+    accepts hierarchical module
+    accepts qualified identifier
+  toModule
+    maps .hs paths to module names
+    maps .lhs paths to module names
+    maps .hsc paths to module names
+    rejects invalid module names
+  getModuleFilesRecursive
+    gets all files from given directory
+    descends into subdirectories
+    when a subdirectory is not a valid module name
+      does not descend
+  tryReadFile
+    reads file
+    returns Nothing if file does not exist
+  expandGlobs
+    accepts literal files
+    keeps declaration order for literal files
+    removes duplicates
+    rejects directories
+    rejects character ranges
+    when expanding *
+      expands by extension
+      rejects dot-files
+      accepts dot-files when explicitly asked to
+      matches at most one directory component
+    when expanding **
+      matches arbitrary many directory components
+    when a pattern does not match anything
+      warns
+    when a pattern only matches a directory
+      warns
+    when a literal file does not exist
+      warns and keeps the file
+Hpack
+  hpackResult
+    with existing cabal file
+      when cabal file was created manually
+        does not overwrite existing cabal file
+        with --force
+          overwrites existing cabal file
+      when cabal file was created with hpack < 0.20.0
+        overwrites existing cabal file
+      when cabal file was created with hpack >= 0.20.0
+        when hash is missing
+          does not overwrite existing cabal file
+        when hash is present
+          when exsting cabal file was generated with a newer version of hpack
+            does not overwrite existing cabal file FAILED [1]
+          when cabal file was modified manually
+            does not overwrite existing cabal file
+          when only the hpack version in the cabal file header changed
+            does not overwrite existing cabal file
+            does not complain if it's newer
+
+Failures:
+
+  test/HpackSpec.hs:80:15: 
+  1) Hpack.hpackResult, with existing cabal file, when cabal file was created with hpack >= 0.20.0, when hash is present, when exsting cabal file was generated with a newer version of hpack, does not overwrite existing cabal file
+       not expected: "cabal-version: 1.12\n\n-- This file has been generated from package.yaml by hpack version 0.22.0.\n--\n-- see: https://github.com/sol/hpack\n--\n-- hash: 224b158530d1d066069f18794673f6a7a41f689d26f27fe8cd505cef259f35a9\n\nname:           foo\nversion:        0.1.0\nbuild-type:     Simple\n"
+
+  To rerun use: --match "/Hpack/hpackResult/with existing cabal file/when cabal file was created with hpack >= 0.20.0/when hash is present/when exsting cabal file was generated with a newer version of hpack/does not overwrite existing cabal file/"
+
+Randomized with seed 625441262
+
+Finished in 0.2159 seconds
+469 examples, 1 failure, 3 pending
+Test suite spec: FAIL
+Test suite logged to:
+/home/tseenshe/hpack/dist-newstyle/build/x86_64-linux/ghc-8.4.4/hpack-0.31.2/t/spec/noopt/test/hpack-0.31.2-spec.log
+0 of 1 test suites (0 of 1 test cases) passed.
+cabal: Tests failed for test:spec from hpack-0.31.2.
+

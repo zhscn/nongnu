@@ -1,0 +1,23 @@
+Resolving dependencies...
+Build profile: -w ghc-8.4.4 -O0
+In order, the following will be built (use -v for more details):
+ - stackage-to-hackage-1.1.0 (lib) (first run)
+ - stackage-to-hackage-1.1.0 (exe:stackage-to-hackage) (first run)
+ - stack2cabal-1.0.2 (exe:stack2cabal) (first run)
+Configuring library for stackage-to-hackage-1.1.0..
+Preprocessing library for stackage-to-hackage-1.1.0..
+Building library for stackage-to-hackage-1.1.0..
+[1 of 2] Compiling StackageToHackage.Stackage ( lib/StackageToHackage/Stackage.hs, /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/noopt/build/StackageToHackage/Stackage.o )
+[2 of 2] Compiling StackageToHackage.Hackage ( lib/StackageToHackage/Hackage.hs, /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/noopt/build/StackageToHackage/Hackage.o )
+
+lib/StackageToHackage/Hackage.hs:33:16: error:
+    parse error on input ‘=’
+    Perhaps you need a 'let' in a 'do' block?
+    e.g. 'let x = 5' instead of 'x = 5'
+   |
+33 |       resolver = sconcat resolvers
+   |                ^
+cabal: Failed to build stackage-to-hackage-1.1.0 (which is required by
+exe:stackage-to-hackage from stackage-to-hackage-1.1.0 and exe:stack2cabal
+from stack2cabal-1.0.2).
+

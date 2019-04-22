@@ -1,0 +1,2756 @@
+Build profile: -w ghc-8.4.4 -O0
+In order, the following will be built (use -v for more details):
+ - course-0.1.4 (test:tasty) (first run)
+Preprocessing test suite 'tasty' for course-0.1.4..
+Building test suite 'tasty' for course-0.1.4..
+Running 1 test suites...
+Test suite tasty: RUNNING...
+Tests
+  Optional
+    mapOptional
+      Empty:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#mapOptional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:31:3 in course-0.1.4-inplace:Course.Optional
+[m      Full:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#mapOptional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:31:3 in course-0.1.4-inplace:Course.Optional
+[m    bindOptional
+      Empty:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#bindOptional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:48:3 in course-0.1.4-inplace:Course.Optional
+[m      even dec, odd inc, even input:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#bindOptional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:48:3 in course-0.1.4-inplace:Course.Optional
+[m      even dec, odd inc, odd input:                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#bindOptional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:48:3 in course-0.1.4-inplace:Course.Optional
+[m    ??
+      Full:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#(??)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:62:3 in course-0.1.4-inplace:Course.Optional
+[m      Empty:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#(??)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:62:3 in course-0.1.4-inplace:Course.Optional
+[m    <+>
+      first Full:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#(<+>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:83:3 in course-0.1.4-inplace:Course.Optional
+[m      both Full:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#(<+>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:83:3 in course-0.1.4-inplace:Course.Optional
+[m      first Empty:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#(<+>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:83:3 in course-0.1.4-inplace:Course.Optional
+[m      both empty:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#(<+>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:83:3 in course-0.1.4-inplace:Course.Optional
+[m    optional
+      replaces full data constructor:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:98:3 in course-0.1.4-inplace:Course.Optional
+[m      replaces empty data constructor:                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Optional#optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Optional.hs:98:3 in course-0.1.4-inplace:Course.Optional
+[m  List
+    headOr
+      headOr on non-empty list:                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#headOr
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+[m      headOr on empty list:                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#headOr
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+[m      headOr on infinity always 0:                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#headOr
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+        0
+        Use --quickcheck-replay=218885 to reproduce.
+[m      headOr on empty list always the default:                                         [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#headOr
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+        0
+        Use --quickcheck-replay=779618 to reproduce.
+[m    productTest
+      product of empty list:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#product
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:95:3 in course-0.1.4-inplace:Course.List
+[m      product of 1..3:                                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#product
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:95:3 in course-0.1.4-inplace:Course.List
+[m      product of 1..4:                                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#product
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:95:3 in course-0.1.4-inplace:Course.List
+[m    sum
+      sum 1..3:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#sum
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:110:3 in course-0.1.4-inplace:Course.List
+[m      sum 1..4:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#sum
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:110:3 in course-0.1.4-inplace:Course.List
+[m      subtracting each element in a list from its sum is always 0:                     [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#sum
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:110:3 in course-0.1.4-inplace:Course.List
+        []
+        Use --quickcheck-replay=345519 to reproduce.
+[m    length
+      length 1..3:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#length
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:122:3 in course-0.1.4-inplace:Course.List
+[m      summing a list of 1s is equal to its length:                                     [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#length
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:122:3 in course-0.1.4-inplace:Course.List
+        []
+        Use --quickcheck-replay=679566 to reproduce.
+[m    map
+      add 10 on list:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#map
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:137:3 in course-0.1.4-inplace:Course.List
+[m      headOr after map:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#headOr
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+        0
+        Use --quickcheck-replay=920194 to reproduce.
+[m      map id is id:                                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#map
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:137:3 in course-0.1.4-inplace:Course.List
+        []
+        Use --quickcheck-replay=666065 to reproduce.
+[m    filter
+      filter even:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#filter
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:154:3 in course-0.1.4-inplace:Course.List
+[m      filter (const True) is identity (headOr):                                        [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#headOr
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+        0
+        Use --quickcheck-replay=149662 to reproduce.
+[m      filter (const True) is identity:                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#filter
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:154:3 in course-0.1.4-inplace:Course.List
+        []
+        Use --quickcheck-replay=914136 to reproduce.
+[m      filter (const False) is the empty list:                                          [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#filter
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:154:3 in course-0.1.4-inplace:Course.List
+        []
+        Use --quickcheck-replay=323113 to reproduce.
+[m    (++)
+      (1..6):                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#(++)
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:173:3 in course-0.1.4-inplace:Course.List
+[m      append empty to infinite:                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#headOr
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+        0
+        Use --quickcheck-replay=525683 to reproduce.
+[m      append anything to infinity:                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#headOr
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+        (0,[])
+        Use --quickcheck-replay=970556 to reproduce.
+[m      associativity:                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#(++)
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:173:3 in course-0.1.4-inplace:Course.List
+        ([],[],[])
+        Use --quickcheck-replay=942050 to reproduce.
+[m      append to empty list:                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#(++)
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:173:3 in course-0.1.4-inplace:Course.List
+        []
+        Use --quickcheck-replay=430345 to reproduce.
+[m    flatten
+      (1..9):                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#flatten
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:191:3 in course-0.1.4-inplace:Course.List
+[m      flatten (infinity :. y):                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#headOr
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+        (0,[])
+        Use --quickcheck-replay=266051 to reproduce.
+[m      flatten (y :. infinity):                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#headOr
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+        (0,[])
+        Use --quickcheck-replay=691387 to reproduce.
+[m      sum of lengths == length of flattened:                                           [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#sum
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:110:3 in course-0.1.4-inplace:Course.List
+        []
+        Use --quickcheck-replay=292173 to reproduce.
+[m    flatMap
+      lists of Integer:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#flatMap
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:208:3 in course-0.1.4-inplace:Course.List
+[m      flatMap id flattens a list of lists:                                             [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#headOr
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+        (0,[])
+        Use --quickcheck-replay=199462 to reproduce.
+[m      flatMap id on a list of lists take 2:                                            [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#headOr
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:79:3 in course-0.1.4-inplace:Course.List
+        (0,[])
+        Use --quickcheck-replay=213627 to reproduce.
+[m      flatMap id == flatten:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#flatMap
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:208:3 in course-0.1.4-inplace:Course.List
+        []
+        Use --quickcheck-replay=413820 to reproduce.
+[m    flattenAgain
+      lists of Integer:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#flatten
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:191:3 in course-0.1.4-inplace:Course.List
+        []
+        Use --quickcheck-replay=279553 to reproduce.
+[m    seqOptional
+      all Full:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#seqOptional
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:246:3 in course-0.1.4-inplace:Course.List
+[m      empty list:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#seqOptional
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:246:3 in course-0.1.4-inplace:Course.List
+[m      contains Empty:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#seqOptional
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:246:3 in course-0.1.4-inplace:Course.List
+[m      Empty at head of infinity:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#seqOptional
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:246:3 in course-0.1.4-inplace:Course.List
+[m    find
+      find no matches:                                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#find
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:269:3 in course-0.1.4-inplace:Course.List
+[m      empty list:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#find
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:269:3 in course-0.1.4-inplace:Course.List
+[m      find only even:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#find
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:269:3 in course-0.1.4-inplace:Course.List
+[m      find first, not second even:                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#find
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:269:3 in course-0.1.4-inplace:Course.List
+[m      find on infinite list:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#find
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:269:3 in course-0.1.4-inplace:Course.List
+[m    lengthGT4
+      list of length 3:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#lengthGT4
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:288:3 in course-0.1.4-inplace:Course.List
+[m      list of length 4:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#lengthGT4
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:288:3 in course-0.1.4-inplace:Course.List
+[m      empty list:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#lengthGT4
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:288:3 in course-0.1.4-inplace:Course.List
+[m      list of length 5:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#lengthGT4
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:288:3 in course-0.1.4-inplace:Course.List
+[m      infinite list:                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#lengthGT4
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:288:3 in course-0.1.4-inplace:Course.List
+[m    reverse
+      empty list:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#reverse
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:305:3 in course-0.1.4-inplace:Course.List
+[m      reverse . reverse on largeList:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.List#reverse
+        CallStack (from HasCallStack):
+          error, called at src/Course/List.hs:305:3 in course-0.1.4-inplace:Course.List
+[m      reverse then append is same as append then reverse:                              [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#(++)
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:173:3 in course-0.1.4-inplace:Course.List
+        ([],[])
+        Use --quickcheck-replay=534070 to reproduce.
+[m      reverse single element list is the list:                                         [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.List#reverse
+          CallStack (from HasCallStack):
+            error, called at src/Course/List.hs:305:3 in course-0.1.4-inplace:Course.List
+        0
+        Use --quickcheck-replay=23999 to reproduce.
+[m    produce
+      increment:                                                                       [32;22mOK[m[32;22m
+[m      double:                                                                          [32;22mOK[m[32;22m
+[m  Functor
+    ExactlyOne:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.Functor (<$>)#instance ExactlyOne
+      CallStack (from HasCallStack):
+        error, called at src/Course/Functor.hs:45:5 in course-0.1.4-inplace:Course.Functor
+[m    List
+      empty list:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Functor (<$>)#instance List
+        CallStack (from HasCallStack):
+          error, called at src/Course/Functor.hs:60:5 in course-0.1.4-inplace:Course.Functor
+[m      increment:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Functor (<$>)#instance List
+        CallStack (from HasCallStack):
+          error, called at src/Course/Functor.hs:60:5 in course-0.1.4-inplace:Course.Functor
+[m    Optional
+      Empty:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Functor (<$>)#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Functor.hs:75:5 in course-0.1.4-inplace:Course.Functor
+[m      Full:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Functor (<$>)#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Functor.hs:75:5 in course-0.1.4-inplace:Course.Functor
+[m    (->):                                                                              [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.Functor (<$>)#((->) t)
+      CallStack (from HasCallStack):
+        error, called at src/Course/Functor.hs:87:5 in course-0.1.4-inplace:Course.Functor
+[m    (<$)
+      Map 7:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Functor#(<$)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Functor.hs:103:3 in course-0.1.4-inplace:Course.Functor
+[m      Always maps a constant value over List:                                          [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Functor#(<$)
+          CallStack (from HasCallStack):
+            error, called at src/Course/Functor.hs:103:3 in course-0.1.4-inplace:Course.Functor
+        0
+        0
+        0
+        0
+        Use --quickcheck-replay=204341 to reproduce.
+[m      Always maps a constant value over Full (Optional):                               [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Functor#(<$)
+          CallStack (from HasCallStack):
+            error, called at src/Course/Functor.hs:103:3 in course-0.1.4-inplace:Course.Functor
+        0
+        0
+        Use --quickcheck-replay=847361 to reproduce.
+[m    void
+      List:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Functor#void
+        CallStack (from HasCallStack):
+          error, called at src/Course/Functor.hs:123:3 in course-0.1.4-inplace:Course.Functor
+[m      Full:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Functor#void
+        CallStack (from HasCallStack):
+          error, called at src/Course/Functor.hs:123:3 in course-0.1.4-inplace:Course.Functor
+[m      Empty:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Functor#void
+        CallStack (from HasCallStack):
+          error, called at src/Course/Functor.hs:123:3 in course-0.1.4-inplace:Course.Functor
+[m      (->):                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Functor#void
+        CallStack (from HasCallStack):
+          error, called at src/Course/Functor.hs:123:3 in course-0.1.4-inplace:Course.Functor
+[m  Applicative
+    ExactlyOne instance
+      pure == ExactlyOne:                                                              [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Applicative pure#instance ExactlyOne
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:51:5 in course-0.1.4-inplace:Course.Applicative
+        0
+        Use --quickcheck-replay=746459 to reproduce.
+[m      Applying within ExactlyOne:                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative (<*>)#instance ExactlyOne
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:57:5 in course-0.1.4-inplace:Course.Applicative
+[m    List instance
+      pure:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Applicative pure#instance List
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:70:5 in course-0.1.4-inplace:Course.Applicative
+        0
+        Use --quickcheck-replay=375608 to reproduce.
+[m      <*>:                                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Apply (<*>)#instance List
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:76:5 in course-0.1.4-inplace:Course.Applicative
+[m    lift1
+      ExactlyOne:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:255:3 in course-0.1.4-inplace:Course.Applicative
+[m      empty List:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:255:3 in course-0.1.4-inplace:Course.Applicative
+[m      List:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:255:3 in course-0.1.4-inplace:Course.Applicative
+[m    Optional instance
+      pure:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Applicative pure#instance Optional
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:95:5 in course-0.1.4-inplace:Course.Applicative
+        0
+        Use --quickcheck-replay=592324 to reproduce.
+[m      Full <*> Full:                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Apply (<*>)#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:101:5 in course-0.1.4-inplace:Course.Applicative
+[m      Empty <*> Full:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Apply (<*>)#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:101:5 in course-0.1.4-inplace:Course.Applicative
+[m      Full <*> Empty:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Apply (<*>)#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:101:5 in course-0.1.4-inplace:Course.Applicative
+[m    Function instance
+      addition:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Apply (<*>)#instance ((->) t)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:132:5 in course-0.1.4-inplace:Course.Applicative
+[m      more addition:                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Apply (<*>)#instance ((->) t)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:132:5 in course-0.1.4-inplace:Course.Applicative
+[m      even more addition:                                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Apply (<*>)#instance ((->) t)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:132:5 in course-0.1.4-inplace:Course.Applicative
+[m      addition and multiplication:                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Apply (<*>)#instance ((->) t)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:132:5 in course-0.1.4-inplace:Course.Applicative
+[m      more addition and multiplcation:                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Apply (<*>)#instance ((->) t)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:132:5 in course-0.1.4-inplace:Course.Applicative
+[m      pure:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Applicative pure#((->) t)
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:126:5 in course-0.1.4-inplace:Course.Applicative
+        0
+        0
+        Use --quickcheck-replay=134543 to reproduce.
+[m    lift2
+      + over ExactlyOne:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift2
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:161:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over List:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift2
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:161:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over Optional - all full:                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift2
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:161:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over Optional - first Empty:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift2
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:161:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over Optional - second Empty:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift2
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:161:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over functions:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift2
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:161:3 in course-0.1.4-inplace:Course.Applicative
+[m    lift3
+      + over ExactlyOne:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift3
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:194:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over List:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift3
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:194:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over Optional:                                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift3
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:194:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over Optional - third Empty:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift3
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:194:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over Optional - first Empty:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift3
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:194:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over Optional - first and second Empty:                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift3
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:194:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over functions:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift3
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:194:3 in course-0.1.4-inplace:Course.Applicative
+[m    lift4
+      + over ExactlyOne:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift4
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:228:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over List:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift4
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:228:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over Optional:                                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift4
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:228:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over Optional - third Empty:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift4
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:228:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over Optional - first Empty:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift4
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:228:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over Optional - first and second Empty:                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift4
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:228:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over functions:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift4
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:228:3 in course-0.1.4-inplace:Course.Applicative
+[m    lift1
+      + over ExactlyOne:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:255:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over empty List:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:255:3 in course-0.1.4-inplace:Course.Applicative
+[m      + over List:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#lift1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:255:3 in course-0.1.4-inplace:Course.Applicative
+[m    rightApply
+      *> over List:                                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#(*>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:281:3 in course-0.1.4-inplace:Course.Applicative
+[m      *> over List:                                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#(*>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:281:3 in course-0.1.4-inplace:Course.Applicative
+[m      another *> over List:                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#(*>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:281:3 in course-0.1.4-inplace:Course.Applicative
+[m      *> over Optional:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#(*>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:281:3 in course-0.1.4-inplace:Course.Applicative
+[m      *> over List property:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Applicative#(*>)
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:281:3 in course-0.1.4-inplace:Course.Applicative
+        0
+        0
+        0
+        0
+        0
+        0
+        Use --quickcheck-replay=449856 to reproduce.
+[m      *> over Optional property:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Applicative#(*>)
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:281:3 in course-0.1.4-inplace:Course.Applicative
+        0
+        0
+        Use --quickcheck-replay=358238 to reproduce.
+[m    leftApply
+      <* over List:                                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#(<*)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:307:3 in course-0.1.4-inplace:Course.Applicative
+[m      another <* over List:                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#(<*)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:307:3 in course-0.1.4-inplace:Course.Applicative
+[m      Yet another <* over List:                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#(<*)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:307:3 in course-0.1.4-inplace:Course.Applicative
+[m      <* over Optional:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#(<*)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:307:3 in course-0.1.4-inplace:Course.Applicative
+[m      <* over List property:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Applicative#(<*)
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:307:3 in course-0.1.4-inplace:Course.Applicative
+        0
+        0
+        0
+        0
+        0
+        0
+        Use --quickcheck-replay=621753 to reproduce.
+[m      <* over Optional property:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Applicative#(<*)
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:307:3 in course-0.1.4-inplace:Course.Applicative
+        0
+        0
+        Use --quickcheck-replay=455616 to reproduce.
+[m    sequence
+      ExactlyOne:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#sequence
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:330:3 in course-0.1.4-inplace:Course.Applicative
+[m      List:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#sequence
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:330:3 in course-0.1.4-inplace:Course.Applicative
+[m      Optional with an empty:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#sequence
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:330:3 in course-0.1.4-inplace:Course.Applicative
+[m      Optional:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#sequence
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:330:3 in course-0.1.4-inplace:Course.Applicative
+[m      (->):                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#sequence
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:330:3 in course-0.1.4-inplace:Course.Applicative
+[m    replicateA
+      ExactlyOne:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#replicateA
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:356:3 in course-0.1.4-inplace:Course.Applicative
+[m      Optional - Full:                                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#replicateA
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:356:3 in course-0.1.4-inplace:Course.Applicative
+[m      Optional - Empty:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#replicateA
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:356:3 in course-0.1.4-inplace:Course.Applicative
+[m      (->):                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#replicateA
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:356:3 in course-0.1.4-inplace:Course.Applicative
+[m      List:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#replicateA
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:356:3 in course-0.1.4-inplace:Course.Applicative
+[m    filtering
+      ExactlyOne:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#filtering
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:384:3 in course-0.1.4-inplace:Course.Applicative
+[m      Optional - all true:                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#filtering
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:384:3 in course-0.1.4-inplace:Course.Applicative
+[m      Optional - some false:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#filtering
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:384:3 in course-0.1.4-inplace:Course.Applicative
+[m      Optional - some empty:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#filtering
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:384:3 in course-0.1.4-inplace:Course.Applicative
+[m      (->):                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#filtering
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:384:3 in course-0.1.4-inplace:Course.Applicative
+[m      List:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative#filtering
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:384:3 in course-0.1.4-inplace:Course.Applicative
+[m  Monad
+    (=<<) for ExactlyOne:                                                              [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.Monad (=<<)#instance ExactlyOne
+      CallStack (from HasCallStack):
+        error, called at src/Course/Monad.hs:40:5 in course-0.1.4-inplace:Course.Monad
+[m    (=<<) for List:                                                                    [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.Monad (=<<)#instance List
+      CallStack (from HasCallStack):
+        error, called at src/Course/Monad.hs:52:5 in course-0.1.4-inplace:Course.Monad
+[m    (=<<) for Optional:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.Monad (=<<)#instance Optional
+      CallStack (from HasCallStack):
+        error, called at src/Course/Monad.hs:64:5 in course-0.1.4-inplace:Course.Monad
+[m    (=<<) for (->):                                                                    [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.Monad (=<<)#instance ((->) t)
+      CallStack (from HasCallStack):
+        error, called at src/Course/Monad.hs:76:5 in course-0.1.4-inplace:Course.Monad
+[m    <**>
+      ExactlyOne:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(<**>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:115:3 in course-0.1.4-inplace:Course.Monad
+[m      List:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(<**>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:115:3 in course-0.1.4-inplace:Course.Monad
+[m      Optional:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(<**>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:115:3 in course-0.1.4-inplace:Course.Monad
+[m      Optional - empty function:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(<**>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:115:3 in course-0.1.4-inplace:Course.Monad
+[m      Optional - empty value:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(<**>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:115:3 in course-0.1.4-inplace:Course.Monad
+[m      (->) 1:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(<**>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:115:3 in course-0.1.4-inplace:Course.Monad
+[m      (->) 2:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(<**>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:115:3 in course-0.1.4-inplace:Course.Monad
+[m      (->) 3:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(<**>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:115:3 in course-0.1.4-inplace:Course.Monad
+[m      (->) 4:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(<**>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:115:3 in course-0.1.4-inplace:Course.Monad
+[m      (->) 5:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(<**>)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:115:3 in course-0.1.4-inplace:Course.Monad
+[m    join
+      List:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#join
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:137:3 in course-0.1.4-inplace:Course.Monad
+[m      Optional with Empty:                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#join
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:137:3 in course-0.1.4-inplace:Course.Monad
+[m      Optional all Full:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#join
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:137:3 in course-0.1.4-inplace:Course.Monad
+[m      (->):                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#join
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:137:3 in course-0.1.4-inplace:Course.Monad
+[m    (>>=):                                                                             [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.Monad#(>>=)
+      CallStack (from HasCallStack):
+        error, called at src/Course/Monad.hs:151:3 in course-0.1.4-inplace:Course.Monad
+[m    kleislyComposition:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.Monad#(<=<)
+      CallStack (from HasCallStack):
+        error, called at src/Course/Monad.hs:167:3 in course-0.1.4-inplace:Course.Monad
+[m  State
+    get:                                                                               [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.State#get
+      CallStack (from HasCallStack):
+        error, called at src/Course/State.hs:61:3 in course-0.1.4-inplace:Course.State
+[m    put:                                                                               [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.State#put
+      CallStack (from HasCallStack):
+        error, called at src/Course/State.hs:71:3 in course-0.1.4-inplace:Course.State
+[m    (<$>):                                                                             [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.State#(<$>)
+      CallStack (from HasCallStack):
+        error, called at src/Course/State.hs:83:5 in course-0.1.4-inplace:Course.State
+[m    Applicative
+      pure:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State pure#instance (State s)
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:100:5 in course-0.1.4-inplace:Course.State
+[m      <*>:                                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State (<*>)#instance (State s)
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:106:5 in course-0.1.4-inplace:Course.State
+[m      complicated <*>:                                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State (<*>)#instance (State s)
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:106:5 in course-0.1.4-inplace:Course.State
+[m    Monad
+      (=<<):                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State (=<<)#instance (State s)
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:121:5 in course-0.1.4-inplace:Course.State
+[m      (>>=):                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(>>=)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:151:3 in course-0.1.4-inplace:Course.Monad
+[m    findM
+      find 'c' in 'a'..'h':                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State#findM
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:143:3 in course-0.1.4-inplace:Course.State
+[m      find 'i' in 'a'..'h':                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State#findM
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:143:3 in course-0.1.4-inplace:Course.State
+[m    firstRepeat
+      'x' is the only repeat:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State#firstRepeat
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:157:3 in course-0.1.4-inplace:Course.State
+[m      'x' is the first repeat:                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State#firstRepeat
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:157:3 in course-0.1.4-inplace:Course.State
+[m      no repeats:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State#firstRepeat
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:157:3 in course-0.1.4-inplace:Course.State
+[m      finds repeats:                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.State#firstRepeat
+          CallStack (from HasCallStack):
+            error, called at src/Course/State.hs:157:3 in course-0.1.4-inplace:Course.State
+        []
+        Use --quickcheck-replay=605194 to reproduce.
+[m      removing repeats matches nub:                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.State#firstRepeat
+          CallStack (from HasCallStack):
+            error, called at src/Course/State.hs:157:3 in course-0.1.4-inplace:Course.State
+        []
+        Use --quickcheck-replay=233318 to reproduce.
+[m    distinct
+      No repeats:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State#distinct
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:170:3 in course-0.1.4-inplace:Course.State
+[m      Every element repeated:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State#distinct
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:170:3 in course-0.1.4-inplace:Course.State
+[m      No repeats after distinct:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.State#firstRepeat
+          CallStack (from HasCallStack):
+            error, called at src/Course/State.hs:157:3 in course-0.1.4-inplace:Course.State
+        []
+        Use --quickcheck-replay=275621 to reproduce.
+[m      Every element repeated:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.State#distinct
+          CallStack (from HasCallStack):
+            error, called at src/Course/State.hs:170:3 in course-0.1.4-inplace:Course.State
+        []
+        Use --quickcheck-replay=224172 to reproduce.
+[m    isHappy
+      4:                                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State#isHappy
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:197:3 in course-0.1.4-inplace:Course.State
+[m      7:                                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State#isHappy
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:197:3 in course-0.1.4-inplace:Course.State
+[m      42:                                                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State#isHappy
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:197:3 in course-0.1.4-inplace:Course.State
+[m      44:                                                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.State#isHappy
+        CallStack (from HasCallStack):
+          error, called at src/Course/State.hs:197:3 in course-0.1.4-inplace:Course.State
+[m  StateT
+    <$>:                                                                               [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT (<$>)#instance (StateT s f)
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:43:5 in course-0.1.4-inplace:Course.StateT
+[m    Applicative
+      List (pure):                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT pure#instance (StateT s f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:66:5 in course-0.1.4-inplace:Course.StateT
+[m      List (<*>):                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (<*>)#instance (StateT s f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:72:5 in course-0.1.4-inplace:Course.StateT
+[m      Optional:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (<*>)#instance (StateT s f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:72:5 in course-0.1.4-inplace:Course.StateT
+[m      List:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (<*>)#instance (StateT s f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:72:5 in course-0.1.4-inplace:Course.StateT
+[m    Monad
+      bind const:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (=<<)#instance (StateT s f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:88:5 in course-0.1.4-inplace:Course.StateT
+[m      modify:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Monad#(>>=)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Monad.hs:151:3 in course-0.1.4-inplace:Course.Monad
+[m    state':                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT#state'
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:102:3 in course-0.1.4-inplace:Course.StateT
+[m    runState':                                                                         [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT#runState'
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:113:3 in course-0.1.4-inplace:Course.StateT
+[m    execTTest:                                                                         [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT#execT
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:125:3 in course-0.1.4-inplace:Course.StateT
+[m    exec'Test:                                                                         [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT#exec'
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:136:3 in course-0.1.4-inplace:Course.StateT
+[m    evalTTest:                                                                         [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT#evalT
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:148:3 in course-0.1.4-inplace:Course.StateT
+[m    eval'Test:                                                                         [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT#eval'
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:159:3 in course-0.1.4-inplace:Course.StateT
+[m    getTTest:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT#getT
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:169:3 in course-0.1.4-inplace:Course.StateT
+[m    putTTest:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT#putT
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:183:3 in course-0.1.4-inplace:Course.StateT
+[m    distinct'
+      removes duplicate 'c's:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT#distinct'
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:195:3 in course-0.1.4-inplace:Course.StateT
+[m      distinct':                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.StateT#distinct'
+          CallStack (from HasCallStack):
+            error, called at src/Course/StateT.hs:195:3 in course-0.1.4-inplace:Course.StateT
+        []
+        Use --quickcheck-replay=48265 to reproduce.
+[m    distinctF
+      Full case:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT#distinctF
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:213:3 in course-0.1.4-inplace:Course.StateT
+[m      Empty case:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT#distinctF
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:213:3 in course-0.1.4-inplace:Course.StateT
+[m    (<$>) for OptionalT:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT (<$>)#instance (OptionalT f)
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:232:5 in course-0.1.4-inplace:Course.StateT
+[m    (<*>) for OptionalT
+      one:                                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (<*>)#instance (OptionalT f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:270:5 in course-0.1.4-inplace:Course.StateT
+[m      two:                                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (<*>)#instance (OptionalT f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:270:5 in course-0.1.4-inplace:Course.StateT
+[m      three:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (<*>)#instance (OptionalT f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:270:5 in course-0.1.4-inplace:Course.StateT
+[m      four:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (<*>)#instance (OptionalT f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:270:5 in course-0.1.4-inplace:Course.StateT
+[m      five:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (<*>)#instance (OptionalT f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:270:5 in course-0.1.4-inplace:Course.StateT
+[m      six:                                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (<*>)#instance (OptionalT f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:270:5 in course-0.1.4-inplace:Course.StateT
+[m      seven:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (<*>)#instance (OptionalT f)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:270:5 in course-0.1.4-inplace:Course.StateT
+[m    (=<<) for OptionalT:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT (=<<)#instance (OptionalT f)
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:282:5 in course-0.1.4-inplace:Course.StateT
+[m    (<$>) for Logger:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT (<$>)#instance (Logger l)
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:299:5 in course-0.1.4-inplace:Course.StateT
+[m    Logger Applicative
+      pure:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT pure#instance (Logger l)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:313:5 in course-0.1.4-inplace:Course.StateT
+[m      <*>:                                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT (<*>)#instance (Logger l)
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:320:5 in course-0.1.4-inplace:Course.StateT
+[m    (=<<) for Logger:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT (=<<)#instance (Logger l)
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:333:5 in course-0.1.4-inplace:Course.StateT
+[m    log1:                                                                              [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.StateT#log1
+      CallStack (from HasCallStack):
+        error, called at src/Course/StateT.hs:344:3 in course-0.1.4-inplace:Course.StateT
+[m    distinctG
+      Full case:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT#distinctG
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:365:3 in course-0.1.4-inplace:Course.StateT
+[m      Empty case:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.StateT#distinctG
+        CallStack (from HasCallStack):
+          error, called at src/Course/StateT.hs:365:3 in course-0.1.4-inplace:Course.StateT
+[m  Validation
+    isError
+      true for errors:                                                                 [32;22mOK[m[32;22m
+[m      false for values:                                                                [32;22mOK[m[32;22m
+[m      not the same as isValue:                                                         [32;22mOK[m[32;22m
+[m[37;22m        +++ OK, passed 100 tests.
+[m    isValue
+      false for errors:                                                                [32;22mOK[m[32;22m
+[m      false for values:                                                                [32;22mOK[m[32;22m
+[m      not the same as isValue:                                                         [32;22mOK[m[32;22m
+[m[37;22m        +++ OK, passed 100 tests.
+[m    mapValidation
+      errors unchanged:                                                                [32;22mOK[m[32;22m
+[m      values changed:                                                                  [32;22mOK[m[32;22m
+[m      map with id causes no change:                                                    [32;22mOK[m[32;22m
+[m[37;22m        +++ OK, passed 100 tests.
+[m    bindValidation
+      error unchanged:                                                                 [32;22mOK[m[32;22m
+[m      odd value:                                                                       [32;22mOK[m[32;22m
+[m      even value:                                                                      [32;22mOK[m[32;22m
+[m      bind with Value causes no change:                                                [32;22mOK[m[32;22m
+[m[37;22m        +++ OK, passed 100 tests.
+[m    valueOr
+      falls through for errors:                                                        [32;22mOK[m[32;22m
+[m      unwraps values:                                                                  [32;22mOK[m[32;22m
+[m      isValue or valueOr falls through:                                                [32;22mOK[m[32;22m
+[m[37;22m        +++ OK, passed 100 tests.
+[m    errorOr
+      unwraps errors:                                                                  [32;22mOK[m[32;22m
+[m      falls through for values:                                                        [32;22mOK[m[32;22m
+[m      isError or errorOr falls through:                                                [32;22mOK[m[32;22m
+[m[37;22m        +++ OK, passed 100 tests.
+[m  Extend
+    ExactlyOne instance:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.Extend (<<=)#instance ExactlyOne
+      CallStack (from HasCallStack):
+        error, called at src/Course/Extend.hs:37:5 in course-0.1.4-inplace:Course.Extend
+[m    List
+      length:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Extend (<<=)#instance List
+        CallStack (from HasCallStack):
+          error, called at src/Course/Extend.hs:55:5 in course-0.1.4-inplace:Course.Extend
+[m      id:                                                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Extend (<<=)#instance List
+        CallStack (from HasCallStack):
+          error, called at src/Course/Extend.hs:55:5 in course-0.1.4-inplace:Course.Extend
+[m      reverse:                                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Extend (<<=)#instance List
+        CallStack (from HasCallStack):
+          error, called at src/Course/Extend.hs:55:5 in course-0.1.4-inplace:Course.Extend
+[m    Optional
+      id Full:                                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Extend (<<=)#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Extend.hs:70:5 in course-0.1.4-inplace:Course.Extend
+[m      id Empty:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Extend (<<=)#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Extend.hs:70:5 in course-0.1.4-inplace:Course.Extend
+[m    cojoin
+      ExactlyOne:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Extend#cojoin
+        CallStack (from HasCallStack):
+          error, called at src/Course/Extend.hs:90:3 in course-0.1.4-inplace:Course.Extend
+[m      List:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Extend#cojoin
+        CallStack (from HasCallStack):
+          error, called at src/Course/Extend.hs:90:3 in course-0.1.4-inplace:Course.Extend
+[m      Full:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Extend#cojoin
+        CallStack (from HasCallStack):
+          error, called at src/Course/Extend.hs:90:3 in course-0.1.4-inplace:Course.Extend
+[m      Empty:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Extend#cojoin
+        CallStack (from HasCallStack):
+          error, called at src/Course/Extend.hs:90:3 in course-0.1.4-inplace:Course.Extend
+[m  Comonad
+    ExactlyOne:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.Comonad copure#instance ExactlyOne
+      CallStack (from HasCallStack):
+        error, called at src/Course/Comonad.hs:33:5 in course-0.1.4-inplace:Course.Comonad
+[m    <$$>:                                                                              [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.Comonad#(<$>)
+      CallStack (from HasCallStack):
+        error, called at src/Course/Comonad.hs:45:3 in course-0.1.4-inplace:Course.Comonad
+[m  Traversable
+    listTest
+      traverse on empty list:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Applicative pure#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:95:5 in course-0.1.4-inplace:Course.Applicative
+[m      traverse on non-empty list:                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Apply (<*>)#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Applicative.hs:101:5 in course-0.1.4-inplace:Course.Applicative
+[m    exactlyOneTest
+      traverse on ExactlyOne:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable traverse#instance ExactlyOne
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:49:5 in course-0.1.4-inplace:Course.Traversable
+[m    optionalTest
+      traverse on Empty:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable traverse#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:58:5 in course-0.1.4-inplace:Course.Traversable
+[m      traverse on Full:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable traverse#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:58:5 in course-0.1.4-inplace:Course.Traversable
+[m    sequenceATest
+      on List over ExactlyOne:                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable#sequenceA
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:75:3 in course-0.1.4-inplace:Course.Traversable
+[m      on Optional over ExactlyOne:                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable#sequenceA
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:75:3 in course-0.1.4-inplace:Course.Traversable
+[m      on Optional over function:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable#sequenceA
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:75:3 in course-0.1.4-inplace:Course.Traversable
+[m    composeTest
+      traverse on Compose Optional List Int:                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable traverse#instance (Compose f g)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:81:5 in course-0.1.4-inplace:Course.Traversable
+[m      traverse on Compose List ExactlyOne Int:                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable traverse#instance (Compose f g)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:81:5 in course-0.1.4-inplace:Course.Traversable
+[m    productFunctorTest
+      fmap on Product Optional List Int:                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable (<$>)#instance (Product f g)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:91:5 in course-0.1.4-inplace:Course.Traversable
+[m      fmap on Product ExactlyOne Optional Int:                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable (<$>)#instance (Product f g)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:91:5 in course-0.1.4-inplace:Course.Traversable
+[m    productTraversableTest
+      traverse on Product Optional List Int:                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable traverse#instance (Product f g)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:97:5 in course-0.1.4-inplace:Course.Traversable
+[m    coProductFunctorTest
+      fmap on InL Optional Int:                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable (<$>)#instance (Coproduct f g)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:108:5 in course-0.1.4-inplace:Course.Traversable
+[m      fmap on InR ExactlyOne Int:                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable (<$>)#instance (Coproduct f g)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:108:5 in course-0.1.4-inplace:Course.Traversable
+[m    coProductTraversableTest
+      traverse on InL Optional Int:                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable traverse#instance (Coproduct f g)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:114:5 in course-0.1.4-inplace:Course.Traversable
+[m      traverse on InR List Int:                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Traversable traverse#instance (Coproduct f g)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Traversable.hs:114:5 in course-0.1.4-inplace:Course.Traversable
+[m  ListZipper
+    ListZipper (<$>):                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.ListZipper (<$>)#instance ListZipper
+      CallStack (from HasCallStack):
+        error, called at src/Course/ListZipper.hs:68:5 in course-0.1.4-inplace:Course.ListZipper
+[m    MaybeListZipper (<$>):                                                             [91;1mFAIL[m[91;1m
+[m[31;22m      Exception: todo: Course.ListZipper (<$>)#instance MaybeListZipper
+      CallStack (from HasCallStack):
+        error, called at src/Course/ListZipper.hs:76:5 in course-0.1.4-inplace:Course.ListZipper
+[m    toList
+      Optional empty list:                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Functor (<$>)#instance Optional
+        CallStack (from HasCallStack):
+          error, called at src/Course/Functor.hs:75:5 in course-0.1.4-inplace:Course.Functor
+[m      empty left:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#toList
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:92:3 in course-0.1.4-inplace:Course.ListZipper
+[m      lefts and rights:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#toList
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:92:3 in course-0.1.4-inplace:Course.ListZipper
+[m    fromList
+      non-empty:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#fromList
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:116:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#fromList
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:116:3 in course-0.1.4-inplace:Course.ListZipper
+[m      round trip:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#fromList
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:116:3 in course-0.1.4-inplace:Course.ListZipper
+        []
+        Use --quickcheck-replay=497955 to reproduce.
+[m    toOptional
+      empty:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#toOptional
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:127:3 in course-0.1.4-inplace:Course.ListZipper
+        []
+        Use --quickcheck-replay=839372 to reproduce.
+[m    withFocus
+      empty left:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#withFocus
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:187:3 in course-0.1.4-inplace:Course.ListZipper
+[m      left and right:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#withFocus
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:187:3 in course-0.1.4-inplace:Course.ListZipper
+[m    setFocus
+      empty left:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#setFocus
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:202:3 in course-0.1.4-inplace:Course.ListZipper
+[m      left and right:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#setFocus
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:202:3 in course-0.1.4-inplace:Course.ListZipper
+[m    hasLeft
+      left and right:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#hasLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:225:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty left:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#hasLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:225:3 in course-0.1.4-inplace:Course.ListZipper
+[m    hasRight
+      left and right:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#hasRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:238:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty right:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#hasRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:238:3 in course-0.1.4-inplace:Course.ListZipper
+[m    findLeft
+      missing element returns IsNotZ:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#fromList
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:116:3 in course-0.1.4-inplace:Course.ListZipper
+        []
+        False
+        Use --quickcheck-replay=632697 to reproduce.
+[m      found in left:                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#findLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:266:3 in course-0.1.4-inplace:Course.ListZipper
+[m      not found:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#findLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:266:3 in course-0.1.4-inplace:Course.ListZipper
+[m      one match in left:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#findLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:266:3 in course-0.1.4-inplace:Course.ListZipper
+[m      multiple matches in left:                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#findLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:266:3 in course-0.1.4-inplace:Course.ListZipper
+[m      elements shifted to right correctly:                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#findLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:266:3 in course-0.1.4-inplace:Course.ListZipper
+[m    findRight
+      missing element returns IsNotZ:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#fromList
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:116:3 in course-0.1.4-inplace:Course.ListZipper
+        []
+        Use --quickcheck-replay=23572 to reproduce.
+[m      found in right:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#findRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:291:3 in course-0.1.4-inplace:Course.ListZipper
+[m      not found:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#findRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:291:3 in course-0.1.4-inplace:Course.ListZipper
+[m      one match in right:                                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#findRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:291:3 in course-0.1.4-inplace:Course.ListZipper
+[m      multiple matches in right:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#findRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:291:3 in course-0.1.4-inplace:Course.ListZipper
+[m    moveLeftLoop
+      with left:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeftLoop
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:304:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty left:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeftLoop
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:304:3 in course-0.1.4-inplace:Course.ListZipper
+[m    moveRightLoop
+      with right:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveRightLoop
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:317:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty right:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveRightLoop
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:317:3 in course-0.1.4-inplace:Course.ListZipper
+[m    moveLeft
+      with left:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:330:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty left:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:330:3 in course-0.1.4-inplace:Course.ListZipper
+[m    moveRight
+      with right:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:343:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty right:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:343:3 in course-0.1.4-inplace:Course.ListZipper
+[m    swapLeft
+      with left:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#swapLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:356:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty left:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#swapLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:356:3 in course-0.1.4-inplace:Course.ListZipper
+[m    swapRight
+      with right:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#swapRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:369:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty right:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#swapRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:369:3 in course-0.1.4-inplace:Course.ListZipper
+[m    dropLeft
+      with left:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#dropLefts
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:384:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty left:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#dropLefts
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:384:3 in course-0.1.4-inplace:Course.ListZipper
+[m      dropLefts empties left of zipper:                                                [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#dropLefts
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:384:3 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        Use --quickcheck-replay=852942 to reproduce.
+[m    dropRights
+      with right:                                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#dropRights
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:399:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty right:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#dropRights
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:399:3 in course-0.1.4-inplace:Course.ListZipper
+[m      dropRights empties right of zipper:                                              [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#dropRights
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:399:3 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        Use --quickcheck-replay=876174 to reproduce.
+[m    moveLeftN
+      positive moves:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeftN
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:413:3 in course-0.1.4-inplace:Course.ListZipper
+[m      negative moves:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeftN
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:413:3 in course-0.1.4-inplace:Course.ListZipper
+[m    moveRightN
+      positive moves:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveRightN
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:427:3 in course-0.1.4-inplace:Course.ListZipper
+[m      negative moves:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveRightN
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:427:3 in course-0.1.4-inplace:Course.ListZipper
+[m    moveLeftN'
+      positive - out of bounds both sides:                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeftN'
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:457:3 in course-0.1.4-inplace:Course.ListZipper
+[m      positive in range:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeftN'
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:457:3 in course-0.1.4-inplace:Course.ListZipper
+[m      moving zero is `Right . id`:                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#moveLeftN'
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:457:3 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        Use --quickcheck-replay=916083 to reproduce.
+[m      negative in range:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeftN'
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:457:3 in course-0.1.4-inplace:Course.ListZipper
+[m      negative out of bounds:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeftN'
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:457:3 in course-0.1.4-inplace:Course.ListZipper
+[m      positive - out of bounds on left only:                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeftN'
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:457:3 in course-0.1.4-inplace:Course.ListZipper
+[m      negative - out of bounds on right only:                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveLeftN'
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:457:3 in course-0.1.4-inplace:Course.ListZipper
+[m    moveRightN'
+      positive - out of bounds both sides:                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveRightN'
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:481:3 in course-0.1.4-inplace:Course.ListZipper
+[m      positive in range:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveRightN'
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:481:3 in course-0.1.4-inplace:Course.ListZipper
+[m      moving zero is `Right . id`:                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#moveRightN'
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:481:3 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        Use --quickcheck-replay=416654 to reproduce.
+[m      negative in range:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveRightN'
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:481:3 in course-0.1.4-inplace:Course.ListZipper
+[m      negative - out of bounds both sides:                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#moveRightN'
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:481:3 in course-0.1.4-inplace:Course.ListZipper
+[m    nth
+      have 1:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#nth
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:498:3 in course-0.1.4-inplace:Course.ListZipper
+[m      have 5:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#nth
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:498:3 in course-0.1.4-inplace:Course.ListZipper
+[m      missing 8:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#nth
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:498:3 in course-0.1.4-inplace:Course.ListZipper
+[m    index
+      index works:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#index
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:510:3 in course-0.1.4-inplace:Course.ListZipper
+[m      Always returns the index on a valid zipper:                                      [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#toOptional
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:127:3 in course-0.1.4-inplace:Course.ListZipper
+        ([] >0< [],0)
+        Use --quickcheck-replay=641600 to reproduce.
+[m    end
+      end:                                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#end
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:524:3 in course-0.1.4-inplace:Course.ListZipper
+[m      end never changes the zipper's contents:                                         [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#toList
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:92:3 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        Use --quickcheck-replay=338045 to reproduce.
+[m      never have rights after calling end:                                             [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#end
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:524:3 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        Use --quickcheck-replay=330761 to reproduce.
+[m    start
+      start:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#start
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:538:3 in course-0.1.4-inplace:Course.ListZipper
+[m      start never changes the zipper's contents:                                       [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#toList
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:92:3 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        Use --quickcheck-replay=837438 to reproduce.
+[m      never have lefts after calling start:                                            [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#start
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:538:3 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        Use --quickcheck-replay=92310 to reproduce.
+[m    deletePullLeft
+      non-empty lefts:                                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#deletePullLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:551:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty lefts:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#deletePullLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:551:3 in course-0.1.4-inplace:Course.ListZipper
+[m    deletePullRight
+      non-empty rights:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#deletePullRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:564:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty rights:                                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#deletePullRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:564:3 in course-0.1.4-inplace:Course.ListZipper
+[m    insertPushLeft
+      non-empty lefts:                                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#insertPushLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:580:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty lefts:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#insertPushLeft
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:580:3 in course-0.1.4-inplace:Course.ListZipper
+[m      deletePullLeft . insertPushLeft == id:                                           [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#toOptional
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:127:3 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        0
+        Use --quickcheck-replay=389162 to reproduce.
+[m    insertPushRight
+      non-empty rights:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#insertPushRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:596:3 in course-0.1.4-inplace:Course.ListZipper
+[m      empty rights:                                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper#insertPushRight
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:596:3 in course-0.1.4-inplace:Course.ListZipper
+[m      deletePullRight . insertPushRight == id:                                         [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper#toOptional
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:127:3 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        0
+        Use --quickcheck-replay=173350 to reproduce.
+[m    Applicative
+      pure produces infinite lefts:                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Apply (<*>)#instance ((->) t)
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:132:5 in course-0.1.4-inplace:Course.Applicative
+        0
+        0
+        Use --quickcheck-replay=568135 to reproduce.
+[m      pure produces infinite rights:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Apply (<*>)#instance ((->) t)
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:132:5 in course-0.1.4-inplace:Course.Applicative
+        0
+        0
+        Use --quickcheck-replay=315523 to reproduce.
+[m      <*> applies functions to corresponding elements in zipper:                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper (<*>)#instance ListZipper
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:614:5 in course-0.1.4-inplace:Course.ListZipper
+[m    Applicative (MaybeListZipper)
+      pure produces infinite lefts:                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Apply (<*>)#instance ((->) t)
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:132:5 in course-0.1.4-inplace:Course.Applicative
+        0
+        0
+        Use --quickcheck-replay=824521 to reproduce.
+[m      pure produces infinite rights:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.Apply (<*>)#instance ((->) t)
+          CallStack (from HasCallStack):
+            error, called at src/Course/Applicative.hs:132:5 in course-0.1.4-inplace:Course.Applicative
+        0
+        0
+        Use --quickcheck-replay=151535 to reproduce.
+[m      IsZ <*> IsZ:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper (<*>)#instance MaybeListZipper
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:640:5 in course-0.1.4-inplace:Course.ListZipper
+[m      IsNotZ <*> IsZ:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper (<*>)#instance MaybeListZipper
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:640:5 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        Use --quickcheck-replay=954645 to reproduce.
+[m      IsNotZ <*> IsNotZ:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper (<*>)#instance MaybeListZipper
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:640:5 in course-0.1.4-inplace:Course.ListZipper
+[m    Extend
+      zipper o' zippers:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper (<<=)#instance ListZipper
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:651:5 in course-0.1.4-inplace:Course.ListZipper
+[m    Extend (MaybeListZipper)
+      IsNotZ:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper (<<=)#instance MaybeListZipper
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:664:5 in course-0.1.4-inplace:Course.ListZipper
+[m      IsZ:                                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper (<<=)#instance MaybeListZipper
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:664:5 in course-0.1.4-inplace:Course.ListZipper
+[m    Comonad
+      copure:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper copure#instance ListZipper
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:673:5 in course-0.1.4-inplace:Course.ListZipper
+[m    Traversable
+      All Full:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper traverse#instance ListZipper
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:686:5 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        Use --quickcheck-replay=575918 to reproduce.
+[m      One Empty:                                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper traverse#instance ListZipper
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:686:5 in course-0.1.4-inplace:Course.ListZipper
+[m    Traversable (MaybeListZipper)
+      IsNotZ:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.ListZipper traverse#instance MaybeListZipper
+        CallStack (from HasCallStack):
+          error, called at src/Course/ListZipper.hs:699:5 in course-0.1.4-inplace:Course.ListZipper
+[m      IsZ Full:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        *** Failed! (after 1 test):
+        Exception:
+          todo: Course.ListZipper traverse#instance MaybeListZipper
+          CallStack (from HasCallStack):
+            error, called at src/Course/ListZipper.hs:699:5 in course-0.1.4-inplace:Course.ListZipper
+        [] >0< []
+        Use --quickcheck-replay=903857 to reproduce.
+[m  Parser
+    constantParserTest
+      can return error result:                                                         [32;22mOK[m[32;22m
+[m      can return ParseResult:                                                          [32;22mOK[m[32;22m
+[m    characterTest
+      parses single character from non-empty string:                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#character
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:123:3 in course-0.1.4-inplace:Course.Parser
+[m      parsing empty string is an error:                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#character
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:123:3 in course-0.1.4-inplace:Course.Parser
+[m    functorTest
+      toUpper <$>:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser (<$>)#instance Parser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:136:6 in course-0.1.4-inplace:Course.Parser
+[m    valueParserTest
+      succeeds with given value:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#valueParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:146:3 in course-0.1.4-inplace:Course.Parser
+[m    alternativeParserTest
+      first fails, second succeeds with no input:                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#(|||)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:170:3 in course-0.1.4-inplace:Course.Parser
+[m      first always fails, second succeeds with no input:                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#(|||)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:170:3 in course-0.1.4-inplace:Course.Parser
+[m      first always fails, second succeeds with input:                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#(|||)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:170:3 in course-0.1.4-inplace:Course.Parser
+[m      takes first parse result when it succeeds:                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#(|||)
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:170:3 in course-0.1.4-inplace:Course.Parser
+[m    parserMonadInstanceTest
+      first parse fails:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser (=<<)#instance Parser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:202:5 in course-0.1.4-inplace:Course.Parser
+[m      second parse fails:                                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser (=<<)#instance Parser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:202:5 in course-0.1.4-inplace:Course.Parser
+[m      bind to valueParser:                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser (=<<)#instance Parser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:202:5 in course-0.1.4-inplace:Course.Parser
+[m      bind to valueParser with no more input:                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser (=<<)#instance Parser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:202:5 in course-0.1.4-inplace:Course.Parser
+[m      bind to character parser with remaining input:                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser (=<<)#instance Parser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:202:5 in course-0.1.4-inplace:Course.Parser
+[m    parserApplicativeInstanceTest
+      pure:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#valueParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:146:3 in course-0.1.4-inplace:Course.Parser
+[m      pure an Optional value:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#valueParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:146:3 in course-0.1.4-inplace:Course.Parser
+[m      pure toUpper <*>:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser (<*>)#instance Parser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:217:5 in course-0.1.4-inplace:Course.Parser
+[m      pure show <*>:                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser (<*>)#instance Parser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:217:5 in course-0.1.4-inplace:Course.Parser
+[m    satisfyTest
+      when character satisfies predicate:                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#satisfy
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:236:3 in course-0.1.4-inplace:Course.Parser
+[m      is error when preidcate not satisfied:                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#satisfy
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:236:3 in course-0.1.4-inplace:Course.Parser
+[m    digitTest
+      is error when input empty:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#digit
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:260:3 in course-0.1.4-inplace:Course.Parser
+[m      is error when character not digit:                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#digit
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:260:3 in course-0.1.4-inplace:Course.Parser
+[m      succeeds when character is a digit  :                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#digit
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:260:3 in course-0.1.4-inplace:Course.Parser
+[m    spaceTest
+      fails when input empty:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#space
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:273:3 in course-0.1.4-inplace:Course.Parser
+[m      fails when character not space:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#space
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:273:3 in course-0.1.4-inplace:Course.Parser
+[m      succeeds when first character is a space:                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#space
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:273:3 in course-0.1.4-inplace:Course.Parser
+[m    listTest
+      succeeds on empty input:                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#list
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:300:3 in course-0.1.4-inplace:Course.Parser
+[m      parses for as long as characters match:                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#list
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:300:3 in course-0.1.4-inplace:Course.Parser
+[m      parses empty value when no matching characters:                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#list
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:300:3 in course-0.1.4-inplace:Course.Parser
+[m      parses entire input if matches:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#list
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:300:3 in course-0.1.4-inplace:Course.Parser
+[m      parses for as long as characters match:                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#list
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:300:3 in course-0.1.4-inplace:Course.Parser
+[m      succeeds on empty input with value parser:                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#list
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:300:3 in course-0.1.4-inplace:Course.Parser
+[m    list1Test
+      succeeds when at least one character matches:                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#list1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:319:3 in course-0.1.4-inplace:Course.Parser
+[m      succeeds when at least one character matches:                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#list1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:319:3 in course-0.1.4-inplace:Course.Parser
+[m      no matching chars fails:                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#list1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:319:3 in course-0.1.4-inplace:Course.Parser
+[m    spaces1Test
+      fails on empty string:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#spaces1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:332:3 in course-0.1.4-inplace:Course.Parser
+[m      consumes single space:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#spaces1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:332:3 in course-0.1.4-inplace:Course.Parser
+[m      consumes multiple spaces:                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#spaces1
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:332:3 in course-0.1.4-inplace:Course.Parser
+[m    lowerTest
+      fails on empty string:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#lower
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:344:3 in course-0.1.4-inplace:Course.Parser
+[m      fails if character is not lowercase:                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#lower
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:344:3 in course-0.1.4-inplace:Course.Parser
+[m      produces lowercase character:                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#lower
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:344:3 in course-0.1.4-inplace:Course.Parser
+[m    upperTest
+      fails on empty string:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#upper
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:356:3 in course-0.1.4-inplace:Course.Parser
+[m      fails if character is not uppercase:                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#upper
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:356:3 in course-0.1.4-inplace:Course.Parser
+[m      produces uppercase character:                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#upper
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:356:3 in course-0.1.4-inplace:Course.Parser
+[m    alphaTest
+      fails on empty string:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#alpha
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:368:3 in course-0.1.4-inplace:Course.Parser
+[m      fails if character is not alpha:                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#alpha
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:368:3 in course-0.1.4-inplace:Course.Parser
+[m      produces alpha character:                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#upper
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:356:3 in course-0.1.4-inplace:Course.Parser
+[m    sequenceParserTest
+      fails on first failing parser:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#sequenceParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:385:3 in course-0.1.4-inplace:Course.Parser
+[m      sequences list of successful parsers:                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#sequenceParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:385:3 in course-0.1.4-inplace:Course.Parser
+[m    thisManyTest
+      fails when not enough matches:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#thisMany
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:402:3 in course-0.1.4-inplace:Course.Parser
+[m      produces n values when matched:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#thisMany
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:402:3 in course-0.1.4-inplace:Course.Parser
+[m    ageParserTest (done for you)
+      fails on invalid age (all letters):                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser (=<<)#instance Parser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:202:5 in course-0.1.4-inplace:Course.Parser
+[m      fails on invalid age (leading '-'):                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser (=<<)#instance Parser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:202:5 in course-0.1.4-inplace:Course.Parser
+[m      parses valid age:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser (=<<)#instance Parser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:202:5 in course-0.1.4-inplace:Course.Parser
+[m    firstNameParserTest
+      fails on first name that doesn't start with a capital:                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#firstNameParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:435:3 in course-0.1.4-inplace:Course.Parser
+[m      parses valid first name:                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#firstNameParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:435:3 in course-0.1.4-inplace:Course.Parser
+[m    surnameParserTest
+      fails on short surname:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#surnameParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:457:3 in course-0.1.4-inplace:Course.Parser
+[m      fails on short surname starting with a lower case letter:                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#surnameParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:457:3 in course-0.1.4-inplace:Course.Parser
+[m      parses shortest valid surname:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#surnameParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:457:3 in course-0.1.4-inplace:Course.Parser
+[m      parses long surname:                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#surnameParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:457:3 in course-0.1.4-inplace:Course.Parser
+[m    smokerParserTest
+      fails on non y/n value:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#smokerParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:476:3 in course-0.1.4-inplace:Course.Parser
+[m      parses y, leaving remaining input:                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#smokerParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:476:3 in course-0.1.4-inplace:Course.Parser
+[m      parses n, leaving remaining input:                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#smokerParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:476:3 in course-0.1.4-inplace:Course.Parser
+[m    phoneBodyParserTest
+      produces empty list when no characters match:                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#phoneBodyParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:498:3 in course-0.1.4-inplace:Course.Parser
+[m      parses valid phone body value:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#phoneBodyParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:498:3 in course-0.1.4-inplace:Course.Parser
+[m      parses up to first letter:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#phoneBodyParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:498:3 in course-0.1.4-inplace:Course.Parser
+[m    phoneParserTest
+      fails without trailing '#':                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#phoneParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:520:3 in course-0.1.4-inplace:Course.Parser
+[m      fails when input starts with a letter:                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#phoneParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:520:3 in course-0.1.4-inplace:Course.Parser
+[m      produces valid phone number:                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#phoneParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:520:3 in course-0.1.4-inplace:Course.Parser
+[m      produces a valid phone number with remaining input:                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#phoneParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:520:3 in course-0.1.4-inplace:Course.Parser
+[m    personParserTest
+      fails on empty string:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m      fails on invalid age:                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m      fails on first name that doesn't start with capital:                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m      fails on surname that is too short:                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m      fails on surname that doesn't start with a capital letter:                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m      fails on invalid smoker value 'x':                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m      fails on phone number containing an 'x':                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m      fails on phone number starting with '-':                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m      fails on phone number without a trailing '#':                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m      produces person for valid input:                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m      produces person for valid input and keeps remaining input:                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m      produces person for valid input containing extra whitespace:                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Parser#personParser
+        CallStack (from HasCallStack):
+          error, called at src/Course/Parser.hs:578:3 in course-0.1.4-inplace:Course.Parser
+[m  MoreParser
+    spacesTest
+      can parse zero spaces:                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#spaces
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:44:3 in course-0.1.4-inplace:Course.MoreParser
+[m      can parse single space:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#spaces
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:44:3 in course-0.1.4-inplace:Course.MoreParser
+[m      can parse multiple spaces:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#spaces
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:44:3 in course-0.1.4-inplace:Course.MoreParser
+[m    tokTest
+      can parse input without spaces:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#tok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:60:3 in course-0.1.4-inplace:Course.MoreParser
+[m      can parse single space:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#tok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:60:3 in course-0.1.4-inplace:Course.MoreParser
+[m      can parse multiple spaces:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#tok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:60:3 in course-0.1.4-inplace:Course.MoreParser
+[m    charTokTest
+      fails when character does not match:                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#charTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:75:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses matching character:                                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#charTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:75:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses matching character, dropping space:                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#charTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:75:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses matching character, dropping spaces:                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#charTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:75:3 in course-0.1.4-inplace:Course.MoreParser
+[m    commaTokTest
+      fails when character is not a comma:                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#commaTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:89:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses leading comma:                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#commaTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:89:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses leading comma, dropping space:                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#commaTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:89:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses leading comma, dropping multiple spaces:                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#commaTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:89:3 in course-0.1.4-inplace:Course.MoreParser
+[m    quoteTest
+      fails when character is not a single or double quote:                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#quote
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:106:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses single quote:                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#quote
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:106:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses double quote:                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#quote
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:106:3 in course-0.1.4-inplace:Course.MoreParser
+[m    stringTest
+      fails when string is not matched:                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#string
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:121:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses matching string, leaves remaining input:                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#string
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:121:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses matching string:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#string
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:121:3 in course-0.1.4-inplace:Course.MoreParser
+[m    stringTokTest
+      fails when string is not matched:                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#stringTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:136:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses matching string followed by zero spaces:                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#stringTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:136:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses matching string followed by many spaces:                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#stringTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:136:3 in course-0.1.4-inplace:Course.MoreParser
+[m    optionTest
+      produces parsed value when parser succeeds:                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#option
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:152:3 in course-0.1.4-inplace:Course.MoreParser
+[m      produces given value when parser fails:                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#option
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:152:3 in course-0.1.4-inplace:Course.MoreParser
+[m    digits1Test
+      fails when no digits at start of input:                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#digits1
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:166:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds on digits:                                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#digits1
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:166:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds on digits, leaves remaining input:                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#digits1
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:166:3 in course-0.1.4-inplace:Course.MoreParser
+[m    oneofTest
+      fails when given character not in string:                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#oneof
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:181:3 in course-0.1.4-inplace:Course.MoreParser
+[m      given character prefixes input:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#oneof
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:181:3 in course-0.1.4-inplace:Course.MoreParser
+[m    noneofTest
+      fails when one of given characters prefixes input:                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#noneof
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:196:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds when none of the given characters in input:                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#noneof
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:196:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds when none of the given characters prefixes input:                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#noneof
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:196:3 in course-0.1.4-inplace:Course.MoreParser
+[m    betweenTest
+      fails when opening parse fails:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#between
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:220:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails when surrounded parser fails:                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#between
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:220:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails when closing parse fails:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#between
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:220:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds: character surrounded by []':                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#between
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:220:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds: digits surrounded by []:                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#between
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:220:3 in course-0.1.4-inplace:Course.MoreParser
+[m    betweenCharTokTest
+      fails when opening character not present:                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenCharTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:243:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails when closing character not present:                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenCharTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:243:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails when surrounded parser fails:                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenCharTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:243:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds: character:                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenCharTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:243:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds: digits1:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenCharTok
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:243:3 in course-0.1.4-inplace:Course.MoreParser
+[m    hexTest
+      fails on invalid hex string --- too short:                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#hex
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:263:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails on invalid hex string --- invalid char (x):                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#hex
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:263:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds on valid hex value:                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#hex
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:263:3 in course-0.1.4-inplace:Course.MoreParser
+[m    hexuTest
+      fails when no u at start:                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#hexu
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:286:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails when not 4 hex digits after u:                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#hexu
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:286:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails on invalid hex digit:                                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#hexu
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:286:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds on valid input --- u0010:                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#hexu
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:286:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds on valid input --- u0a1f:                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#hexu
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:286:3 in course-0.1.4-inplace:Course.MoreParser
+[m    sepby1Test
+      fails when first parser fails:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#sepby1
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:309:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses single character not followed by seperator:                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#sepby1
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:309:3 in course-0.1.4-inplace:Course.MoreParser
+[m      parses multiple matches with separators:                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#sepby1
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:309:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds until two separators:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#sepby1
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:309:3 in course-0.1.4-inplace:Course.MoreParser
+[m    sepbyTest
+      succeeds on empty string:                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#sepby
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:332:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds on single match without seperator:                                      [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#sepby
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:332:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds on multiple matches with seperators:                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#sepby
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:332:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds until two separators:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#sepby
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:332:3 in course-0.1.4-inplace:Course.MoreParser
+[m    eofTest
+      fails when still input left:                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#eof
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:344:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds when no input left:                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#eof
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:344:3 in course-0.1.4-inplace:Course.MoreParser
+[m    satisfyAllTest
+      fails when a predicate fails:                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#satisfyAll
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:368:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails when no predicates satisfied (empty input):                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#satisfyAll
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:368:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails when no predicates satisfied:                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#satisfyAll
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:368:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds when all predicates satisfied: ABC:                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#satisfyAll
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:368:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds when all predicates satisfied: ABc:                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#satisfyAll
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:368:3 in course-0.1.4-inplace:Course.MoreParser
+[m    satisfyAnyTest
+      fails when no predicates satisfied:                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#satisfyAny
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:389:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails when no predicates satisfied (empty input):                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#satisfyAny
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:389:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds when all predicates satisfied:                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#satisfyAny
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:389:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds when one of two predicates satisfied:                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#satisfyAny
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:389:3 in course-0.1.4-inplace:Course.MoreParser
+[m    betweenSepbyCommaTest
+      fails when opening char missing:                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenSepbyComma
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:427:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails when closing char missing:                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenSepbyComma
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:427:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails when input between seperators doesn't match (multiple matches):            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenSepbyComma
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:427:3 in course-0.1.4-inplace:Course.MoreParser
+[m      fails when input between seperators doesn't match:                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenSepbyComma
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:427:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds --- one match:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenSepbyComma
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:427:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds --- nothing between surrounds:                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenSepbyComma
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:427:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds --- 3 matches:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenSepbyComma
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:427:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds --- 3 padded matches:                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenSepbyComma
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:427:3 in course-0.1.4-inplace:Course.MoreParser
+[m      succeeds --- digits1:                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.MoreParser#betweenSepbyComma
+        CallStack (from HasCallStack):
+          error, called at src/Course/MoreParser.hs:427:3 in course-0.1.4-inplace:Course.MoreParser
+[m  JsonParser
+    jsonString
+      parse whole ASCII input:                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonString
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:113:3 in course-0.1.4-inplace:Course.JsonParser
+[m      parse only the first string of input:                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonString
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:113:3 in course-0.1.4-inplace:Course.JsonParser
+[m      parse back slash (\):                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonString
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:113:3 in course-0.1.4-inplace:Course.JsonParser
+[m      parse unicode (\u00abc):                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonString
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:113:3 in course-0.1.4-inplace:Course.JsonParser
+[m      parse unicode (\u00ff):                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonString
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:113:3 in course-0.1.4-inplace:Course.JsonParser
+[m      parse unicode (\u00fa):                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonString
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:113:3 in course-0.1.4-inplace:Course.JsonParser
+[m      parsing string without quotes is an error:                                       [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonString
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:113:3 in course-0.1.4-inplace:Course.JsonParser
+[m      parsing string containing \a is an error - \a isn't a special character:         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonString
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:113:3 in course-0.1.4-inplace:Course.JsonParser
+[m    jsonNumber
+      positive whole:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonNumber
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:142:3 in course-0.1.4-inplace:Course.JsonParser
+[m      negative whole:                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonNumber
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:142:3 in course-0.1.4-inplace:Course.JsonParser
+[m      positive decimal:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonNumber
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:142:3 in course-0.1.4-inplace:Course.JsonParser
+[m      negative whole (2):                                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonNumber
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:142:3 in course-0.1.4-inplace:Course.JsonParser
+[m      negative decimal:                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonNumber
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:142:3 in course-0.1.4-inplace:Course.JsonParser
+[m      negative sign on its own is error:                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonNumber
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:142:3 in course-0.1.4-inplace:Course.JsonParser
+[m      alphabetic characters is error:                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonNumber
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:142:3 in course-0.1.4-inplace:Course.JsonParser
+[m    jsonTrue
+      parses true:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonTrue
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:156:3 in course-0.1.4-inplace:Course.JsonParser
+[m      TRUE (caps) is an error:                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonTrue
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:156:3 in course-0.1.4-inplace:Course.JsonParser
+[m    jsonFalse
+      parses false:                                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonFalse
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:170:3 in course-0.1.4-inplace:Course.JsonParser
+[m      FALSE (caps) is an error:                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonFalse
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:170:3 in course-0.1.4-inplace:Course.JsonParser
+[m    jsonNull
+      parses null:                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonNull
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:184:3 in course-0.1.4-inplace:Course.JsonParser
+[m      NULL (caps) is an error:                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonNull
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:184:3 in course-0.1.4-inplace:Course.JsonParser
+[m    jsonArray
+      []:                                                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonArray
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:207:3 in course-0.1.4-inplace:Course.JsonParser
+[m      [true]:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonArray
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:207:3 in course-0.1.4-inplace:Course.JsonParser
+[m      [true, "abc"]:                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonArray
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:207:3 in course-0.1.4-inplace:Course.JsonParser
+[m      [true, "abc", []]:                                                               [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonArray
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:207:3 in course-0.1.4-inplace:Course.JsonParser
+[m      [true, "abc", [false]]:                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonArray
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:207:3 in course-0.1.4-inplace:Course.JsonParser
+[m    jsonObject
+      empty:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonObject
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:227:3 in course-0.1.4-inplace:Course.JsonParser
+[m      one key:                                                                         [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonObject
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:227:3 in course-0.1.4-inplace:Course.JsonParser
+[m      two keys:                                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonObject
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:227:3 in course-0.1.4-inplace:Course.JsonParser
+[m      two keys and left over input:                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonObject
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:227:3 in course-0.1.4-inplace:Course.JsonParser
+[m    jsonValue
+      true:                                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonValue
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:244:4 in course-0.1.4-inplace:Course.JsonParser
+[m      object:                                                                          [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonObject
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:227:3 in course-0.1.4-inplace:Course.JsonParser
+[m      nested object:                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.JsonParser#jsonObject
+        CallStack (from HasCallStack):
+          error, called at src/Course/JsonParser.hs:227:3 in course-0.1.4-inplace:Course.JsonParser
+[m  Cheque
+    dollars
+      empty:                                                                           [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '1':                                                                     [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '0.1':                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '1.':                                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '0.':                                                                    [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '0.0':                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '.34':                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '0.3456789':                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '1.0':                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '1.01':                                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars 'a1a':                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars 'a1a.a0.7b':                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '100':                                                                   [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '100.0':                                                                 [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '100.00':                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '100.00000':                                                             [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '1000456.13':                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '1001456.13':                                                            [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '16000000456.13':                                                        [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '100.45':                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '100.07':                                                                [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '9abc9def9ghi.jkl9mno':                                                  [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '12345.67':                                                              [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m      dollars '456789123456789012345678901234567890123456789012345678901234567890.12': [91;1mFAIL[m[91;1m
+[m[31;22m        Exception: todo: Course.Cheque#dollars
+        CallStack (from HasCallStack):
+          error, called at src/Course/Cheque.hs:327:3 in course-0.1.4-inplace:Course.Cheque
+[m
+[91;1m568 out of 591 tests failed[m[91;1m (0.06s)
+[m
+Test suite tasty: FAIL
+Test suite logged to:
+/home/tseenshe/fp-course/dist-newstyle/build/x86_64-linux/ghc-8.4.4/course-0.1.4/t/tasty/noopt/test/course-0.1.4-tasty.log
+0 of 1 test suites (0 of 1 test cases) passed.
+cabal: Tests failed for test:tasty from course-0.1.4.
+

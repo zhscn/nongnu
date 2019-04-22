@@ -10,7 +10,17 @@
 ;;
 ;;; Code:
 
+(require 'compile)
+(require 'ansi-color)
+
 ;; FIXME implement batch compilation
+
+;; TODO prettify-symbol rules for home dirs and project dirs, etc
+
+(defvar haskell-tng-compile:regexp-alist
+)
+
+;;(define-compilation-mode )
 
 ;; FIXME how to test batch compilation? Canned responses for the errors and
 ;;       perhaps an interactive call on a small no-dep project, like ffunctor.

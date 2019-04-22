@@ -1,0 +1,29 @@
+Resolving dependencies...
+Build profile: -w ghc-8.4.4 -O0
+In order, the following will be built (use -v for more details):
+ - stackage-to-hackage-1.1.0 (lib) (first run)
+ - stackage-to-hackage-1.1.0 (exe:stackage-to-hackage) (first run)
+ - stack2cabal-1.0.2 (exe:stack2cabal) (first run)
+Configuring library for stackage-to-hackage-1.1.0..
+Preprocessing library for stackage-to-hackage-1.1.0..
+Building library for stackage-to-hackage-1.1.0..
+[1 of 2] Compiling StackageToHackage.Stackage ( lib/StackageToHackage/Stackage.hs, /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/noopt/build/StackageToHackage/Stackage.o )
+[2 of 2] Compiling StackageToHackage.Hackage ( lib/StackageToHackage/Hackage.hs, /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/noopt/build/StackageToHackage/Hackage.o )
+
+lib/StackageToHackage/Hackage.hs:13:1: warning: [-Wunused-imports]
+    The qualified import of ‘Data.ByteString’ is redundant
+      except perhaps to import instances from ‘Data.ByteString’
+    To import instances alone, use: import Data.ByteString()
+   |
+13 | import qualified Data.ByteString              as BS
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Configuring executable 'stackage-to-hackage' for stackage-to-hackage-1.1.0..
+Configuring executable 'stack2cabal' for stack2cabal-1.0.2..
+Preprocessing executable 'stackage-to-hackage' for stackage-to-hackage-1.1.0..
+Building executable 'stackage-to-hackage' for stackage-to-hackage-1.1.0..
+Preprocessing executable 'stack2cabal' for stack2cabal-1.0.2..
+Building executable 'stack2cabal' for stack2cabal-1.0.2..
+[1 of 1] Compiling Main             ( exe/Main.hs, /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/x/stackage-to-hackage/noopt/build/stackage-to-hackage/stackage-to-hackage-tmp/Main.o )
+[1 of 1] Compiling Main             ( exe/Main.hs, /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stack2cabal-1.0.2/x/stack2cabal/noopt/build/stack2cabal/stack2cabal-tmp/Main.o )
+Linking /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stack2cabal-1.0.2/x/stack2cabal/noopt/build/stack2cabal/stack2cabal ...
+Linking /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/x/stackage-to-hackage/noopt/build/stackage-to-hackage/stackage-to-hackage ...
