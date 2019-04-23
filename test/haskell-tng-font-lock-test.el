@@ -10,16 +10,11 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
-;; Not using `faceup-defexplainer' because it doesn't write over files.
-(defun haskell-tng-font-lock-test:parse-to-string ()
-  (font-lock-fontify-region (point-min) (point-max))
-  (faceup-markup-buffer))
-
 (defun have-expected-faces (file)
   (haskell-tng-testutils:assert-file-contents
    file
    #'haskell-tng-mode
-   #'haskell-tng-font-lock-test:parse-to-string
+   #'buffer-to-faceup-string
    "faceup"))
 
 ;; to generate .faceup files, use faceup-view-buffer

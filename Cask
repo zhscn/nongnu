@@ -26,6 +26,7 @@
 
 (development
  (depends-on "faceup")
+ (depends-on "haskell-mode") ;; regression testing
  (depends-on "ert-runner")
  (depends-on "undercover"))
 

@@ -14,16 +14,21 @@
 (require 'ansi-color)
 
 ;; FIXME implement batch compilation
-
 ;; TODO prettify-symbol rules for home dirs and project dirs, etc
+;; TODO set compilation-directory when opening the file
+;; TODO set compilation-environment to include TASTY envvars
 
-(defvar haskell-tng-compile:regexp-alist
-)
+(defvar haskell-tng-compile-error-regexp-alist
+  "The `compilation-error-regexp-alist' for `haskell-tng'."
+  nil
+  )
 
-;;(define-compilation-mode )
+(defun haskell-tng-compile:ansi-color ()
+  (ansi-color-apply-on-region compilation-filter-start (point-max)))
 
-;; FIXME how to test batch compilation? Canned responses for the errors and
-;;       perhaps an interactive call on a small no-dep project, like ffunctor.
+(define-compilation-mode haskell-tng-compilation-mode "haskell-tng-compilation"
+  (add-hook 'compilation-filter-hook
+            'haskell-tng-compile:ansi-color nil t))
 
 (provide 'haskell-tng-compile)
 ;;; haskell-tng-compile.el ends here

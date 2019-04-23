@@ -19,16 +19,23 @@
     (file mode to-string suffix)
   "For FILE, enable MODE and run TO-STRING and compare with the golden data in FILE.SUFFIX.
 
-Will fail and write out the expected version to FILE.SUFFIX."
+Will fail and write out the expected version to FILE.SUFFIX.
+
+Alternatively, if MODE is a buffer object, run TO-STRING there instead."
   (let* ((golden (concat file "." suffix))
          (expected (with-temp-buffer
                      (when (file-exists-p golden)
                        (insert-file-contents golden))
                      (buffer-string)))
-         (got (with-temp-buffer
-                (insert-file-contents file)
-                (funcall mode)
-                (funcall to-string))))
+         (got (cond
+               ((bufferp mode)
+                (with-current-buffer mode
+                  (funcall to-string)))
+               (t
+                (with-temp-buffer
+                  (insert-file-contents file)
+                  (funcall mode)
+                  (funcall to-string))))))
     (or (equal got expected)
         ;; writes out the new version on failure
         (progn
@@ -47,6 +54,11 @@ Will fail and write out the expected version to FILE.SUFFIX."
       (and (looking-at "-")
            (looking-back "-" 1)))
   )
+
+;; Not using `faceup-defexplainer' because it doesn't write over files.
+(defun buffer-to-faceup-string ()
+  (font-lock-fontify-region (point-min) (point-max))
+  (faceup-markup-buffer))
 
 (provide 'haskell-tng-testutils)
 ;;; haskell-tng-testutils.el ends here

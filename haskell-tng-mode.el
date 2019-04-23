@@ -19,6 +19,7 @@
 (require 'haskell-tng-syntax)
 (require 'haskell-tng-font-lock)
 (require 'haskell-tng-smie)
+(require 'haskell-tng-compile)
 
 (defgroup haskell-tng ()
   "Haskell support: The Next Generation."
