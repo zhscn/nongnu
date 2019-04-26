@@ -7,8 +7,6 @@
 (require 'dash)
 (require 'faceup)
 
-(require 'haskell-compile)
-
 (require 'haskell-tng-mode)
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
@@ -16,24 +14,16 @@
 (defun have-expected-errors (file)
   (with-temp-buffer
     (let ((output (current-buffer))
-          ;; compilation-mode uses font-lock-face, not face
           (faceup-default-property 'font-lock-face)
-          ;; maybe add compilation-message ?
-          ;; maybe add overlays ?
           (faceup-properties '(font-lock-face)))
       (compilation-start
        (format "cat %s" file)
-       'haskell-compilation-mode
+       'haskell-tng-compilation-mode
        (lambda (_) output))
 
       (while compilation-in-progress
         (sit-for 0.01))
       (haskell-tng-compile:clean-output)
-
-      ;; (font-lock-fontify-region (point-min) (point-max))
-      ;; (--dotimes (point-max)
-      ;;   (let ((p (+ 1 it)))
-      ;;     (message "POINT=%s PROPS=%S" p (text-properties-at p))))
 
       (haskell-tng-testutils:assert-file-contents
        file
@@ -41,13 +31,20 @@
        #'buffer-to-faceup-string
        "faceup"))))
 
+;; TODO locally scope this override to this test. Would also be good to override
+;;      abbreviate-file-name and current-time-string
+(defun compilation-handle-exit (_1 _2 _3)
+  "Overrides the default behaviour to remove noise")
+
 (defun haskell-tng-compile:clean-output ()
   "Removes timestamps and local file paths"
   (let ((inhibit-read-only t))
     (goto-char (point-min))
     (kill-line 4)
-    (goto-char (point-max))
-    (kill-line -2)))
+    ;; not needed with the custom compilation-handle-exit
+    ;;(goto-char (point-max))
+    ;;(kill-line -2)
+    ))
 
 ;; to generate .faceup files, use faceup-view-buffer
 (ert-deftest haskell-tng-compile-errors-file-tests ()
