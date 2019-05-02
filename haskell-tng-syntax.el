@@ -44,6 +44,10 @@
     ;;       letter)
     (modify-syntax-entry ?_ "w" table)
 
+    ;; TODO consider using categories more heavily, which would involve doing
+    ;; lexing here. It would make the fontification regexps simpler and faster,
+    ;; and would be reused by the SMIE lexer.
+
     ;; some special (treated like punctuation)
     (--each (string-to-list ",;")
       (modify-syntax-entry it "." table))

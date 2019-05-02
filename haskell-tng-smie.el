@@ -194,8 +194,11 @@ current line."
 ;; 2. exposing the parse tree so that s-expression navigation could be
 ;;    implemented and tests could be easier to write.
 ;;
-;; 3. if the Emacs regexps allowed arbitrary zero length matches, especially if
-;;    syntax "categories" were allowed.
+;; 3. if the Emacs regexps allowed arbitrary zero-width matches, especially if
+;;    syntax "categories" were allowed. i.e. in the Java regexp engine these are
+;;    (?=X) (?!X) (?<=X) (?<!X) where X can be an Emacs syntax category. A
+;;    limitation with Emacs regexps is that they only support word-start,
+;;    word-end, symbol-start and symbol-end zero-width matchers.
 ;;
 ;; 4. ambiguous tokens. e.g. the word "via" is a keyword in a specific location,
 ;;    but can otherwise be used as a varid. I'd like to be able to lex it as (or
