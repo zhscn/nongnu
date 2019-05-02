@@ -69,7 +69,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here is the `font-lock-keywords' table of matchers and highlighters.
-(defvar
+(defconst
   haskell-tng:keywords
   ;; These regexps use the `rx' library so we can reuse common subpatterns. It
   ;; also increases the readability of the code and, in many cases, allows us to

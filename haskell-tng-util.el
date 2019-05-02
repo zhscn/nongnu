@@ -39,5 +39,12 @@
     (forward-symbol -1)
     (haskell-tng:indent-close)))
 
+(defun haskell-tng:locate-dominating-file (regexp)
+  "`locate-dominating-file' but starting from `default-directory'
+and taking a regexp."
+  (locate-dominating-file
+   default-directory
+   (lambda (dir) (directory-files dir nil regexp))))
+
 (provide 'haskell-tng-util)
 ;;; haskell-tng-util.el ends here

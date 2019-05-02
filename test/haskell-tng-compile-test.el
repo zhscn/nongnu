@@ -70,4 +70,6 @@
   ;;   fontified            t
   (should (have-expected-errors (testdata "src/tasty-failure.compile"))))
 
+;; TODO test invoking haskell-tng-compile in a real project directory
+
 ;;; haskell-tng-compile-test.el ends here
