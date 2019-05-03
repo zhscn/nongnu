@@ -25,6 +25,16 @@
   "Haskell support: The Next Generation."
   :group 'languages)
 
+(defcustom haskell-tng-mode:prettify-symbols
+  '(("forall" . ?∀))
+ "Integration with `prettify-symbols' giving the impression of UnicodeSyntax.
+
+Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
+ :type 'listp)
+
+;; optional dependency on projectile for TAGS management
+(defvar projectile-tags-command)
+
 ;;;###autoload
 (define-derived-mode haskell-tng-mode prog-mode "Hask"
   "Major mode for editing Haskell programs."
@@ -64,7 +74,12 @@
    font-lock-extend-region-functions haskell-tng:extend-region-functions
 
    ;; whitespace is meaningful, no electric indentation
-   electric-indent-inhibit t)
+   electric-indent-inhibit t
+
+   ;; integrations
+   prettify-symbols-alist haskell-tng-mode:prettify-symbols
+   projectile-tags-command "fast-tags -Re --exclude=dist-newstyle ."
+   )
 
   (haskell-tng-smie:setup))
 

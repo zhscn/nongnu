@@ -38,7 +38,8 @@ command, otherwise the last command is used.
 
 The command history is global across all Haskell files.
 
-A universal argument will invoke `haskell-tng-compile:alt'."
+A universal argument will invoke `haskell-tng-compile:alt', which
+will cause the subsequent call to prompt."
   (interactive "P")
   (save-some-buffers (not compilation-ask-about-save)
                      compilation-save-buffers-predicate)
@@ -50,7 +51,8 @@ A universal argument will invoke `haskell-tng-compile:alt'."
                         "Compile command: "
                         (or last (car haskell-tng-compile:history))
                         '(haskell-tng-compile:history . 1))))))
-    (setq-local haskell-tng-compile:command command)
+    (setq haskell-tng-compile:command
+          (unless (equal command haskell-tng-compile:alt) command))
 
     (when-let (default-directory
                 (haskell-tng:locate-dominating-file

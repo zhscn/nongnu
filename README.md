@@ -51,7 +51,7 @@ This is the status of core features:
   - [x] performance-minded `syntax-table`
   - [x] `font-lock` to visually distinguish types and values
   - [x] `sexp` navigation (SMIE)
-  - [ ] `projectile` / [`fast-tags`](https://github.com/elaforge/fast-tags) integration for `TAGS`
+  - [x] `projectile` / [`fast-tags`](https://github.com/elaforge/fast-tags) integration for `TAGS`
   - [ ] hoogle CLI jump-to-source
   - [ ] `imenu` population
 - Editing:
@@ -60,8 +60,11 @@ This is the status of core features:
   - [ ] `yasnippet` templates
   - [ ] `LANGUAGE` management
   - [ ] `import` management (via hoogle and [`hsimport`](https://hackage.haskell.org/package/hsimport))
+  - [x] `prettify-symbols` emulating `UnicodeSyntax`
+  - [x] `stylish-haskell` support
 - Compiling:
-  - [ ] `compilation-mode` for `cabal` batch commands (IN PROGRESS)
+  - [x] `haskell-tng-compile` for `cabal` batch commands
+  - [x] `stack` support (via `stack2cabal`)
   - [ ] `comint-mode` based `ghc` repl
 
 Compatibility with `lsp-mode` / [`haskell-ide-engine`](https://github.com/haskell/haskell-ide-engine) is important for more advanced IDE features.
