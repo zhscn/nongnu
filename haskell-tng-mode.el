@@ -76,10 +76,9 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
    ;; whitespace is meaningful, no electric indentation
    electric-indent-inhibit t
 
-   ;; integrations
-   prettify-symbols-alist haskell-tng-mode:prettify-symbols
-   projectile-tags-command "fast-tags -Re --exclude=dist-newstyle ."
-   )
+   prettify-symbols-alist haskell-tng-mode:prettify-symbols)
+  (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle .")
+  (setq-local smie-blink-matching-inners nil) ;; c.f. `smie-closer-alist'
 
   (haskell-tng-smie:setup))
 
