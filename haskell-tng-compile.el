@@ -50,6 +50,10 @@ will cause the subsequent call to prompt."
                     (_ (read-shell-command
                         "Compile command: "
                         (or last (car haskell-tng-compile:history))
+                        ;; TODO haskell-tng-compile:command should always be
+                        ;;      first in the prompted history, even if another
+                        ;;      command was used elsewhere. Might require
+                        ;;      mutating / reordering the global history here.
                         '(haskell-tng-compile:history . 1))))))
     (setq haskell-tng-compile:command
           (unless (equal command haskell-tng-compile:alt) command))

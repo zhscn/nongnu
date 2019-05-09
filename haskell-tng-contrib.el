@@ -28,6 +28,7 @@
   (when-let (default-directory
               (locate-dominating-file default-directory "stack.yaml"))
     (call-process "stack2cabal")))
+(defalias 'stack2cabal 'haskell-tng-contrib:stack2cabal)
 
 (provide 'haskell-tng-contrib)
 ;;; haskell-tng-contrib.el ends here

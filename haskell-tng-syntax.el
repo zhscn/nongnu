@@ -36,7 +36,7 @@
       (modify-syntax-entry it " " table))
 
     ;; ascSymbol
-    (--each (string-to-list "!#$%&*+./<=>?@\\^|-~:")
+    (--each (string-to-list "!#$%&*+./<=>?\\^|-~:")
       (modify-syntax-entry it "_" table))
 
     ;; TODO: debatable. User nav vs fonts and lexing. getting "word boundaries"
@@ -49,7 +49,7 @@
     ;; and would be reused by the SMIE lexer.
 
     ;; some special (treated like punctuation)
-    (--each (string-to-list ",;")
+    (--each (string-to-list ",;@")
       (modify-syntax-entry it "." table))
 
     ;; apostrophe as a word, not delimiter
@@ -77,8 +77,10 @@
 
 (defun haskell-tng:syntax-propertize (start end)
   "For some context-sensitive syntax entries."
-  (haskell-tng:syntax:char-delims start end)
-  (haskell-tng:syntax:escapes start end))
+  (let (case-fold-search)
+    (haskell-tng:syntax:char-delims start end)
+    (haskell-tng:syntax:fqn-punct start end)
+    (haskell-tng:syntax:escapes start end)))
 
 (defun haskell-tng:syntax:char-delims (start end)
   "Matching apostrophes are string delimiters (literal chars)."
@@ -90,13 +92,22 @@
       (put-text-property open (1+ open) 'syntax-table '(7 . ?\'))
       (put-text-property close (1+ close) 'syntax-table '(7 . ?\')))))
 
+(defun haskell-tng:syntax:fqn-punct (start end)
+  "dot/period is typically a symbol, unless it is used in a
+module or qualifier, then it is punctuation."
+  (goto-char start)
+  (while (re-search-forward (rx word-end ".") end t)
+    (let ((dot (match-beginning 0)))
+      (put-text-property dot (1+ dot) 'syntax-table '(1)))))
+
+;; TODO somehow is not escaping two escaped quotes together, e.g. in "\"\""
 (defun haskell-tng:syntax:escapes (start end)
-  "Backslash inside String is an escape character."
+  "Backslash inside String is an escape character \n."
   (goto-char start)
   (while (re-search-forward "\\\\" end t)
     (when (nth 3 (syntax-ppss))
       (put-text-property (- (point) 1) (point)
-                         'syntax-table '(9 . ?\\)))))
+                         'syntax-table '(9)))))
 
 (provide 'haskell-tng-syntax)
 ;;; haskell-tng-syntax.el ends here

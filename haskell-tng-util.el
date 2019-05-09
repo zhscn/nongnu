@@ -33,6 +33,12 @@
             (throw 'closed (point))))
         nil))))
 
+(defun haskell-tng:do-bind (&optional pos)
+  "The next `<-'"
+  (save-excursion
+    (goto-char (or pos (point)))
+    (re-search-forward "<-" nil t)))
+
 (defun haskell-tng:indent-close-previous ()
   "Indentation closing the previous symbol."
   (save-excursion

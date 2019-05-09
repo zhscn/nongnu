@@ -51,7 +51,7 @@ give false positives." `(|
           '(| symbol-end word-start))
     )
     (| "[]" "()") ;; empty list / void
-    (: symbol-start (char ?\\))))
+    (: symbol-start (char ?\\)))) ;; TODO only for lambdas, don't include ops like \\
 
 (defconst haskell-tng:rx:toplevel
   ;; TODO multi-definitions, e.g. Servant's :<|>

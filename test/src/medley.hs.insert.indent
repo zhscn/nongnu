@@ -258,8 +258,10 @@ deriving newtype instance FromJSON Treble
 1        v
 
 v
-foo = bar
+foo = do
 2 1     v
+  bar :: Wibble <- baz
+2 1                  v
   where baz = _
 3 2     1       v
   -- checking that comments are ignored in layout
@@ -269,6 +271,6 @@ foo = bar
         (+) = _
 1 3     2       v
 
-1 2     v
+1 3     2       v
 test = 1 `shouldBe` 1
 v

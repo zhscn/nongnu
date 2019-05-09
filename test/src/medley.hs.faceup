@@ -58,7 +58,7 @@
 
 «:haskell-tng:keyword:class»«:haskell-tng:type:  »«:haskell-tng:keyword:(»«:haskell-tng:type:Eq a»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:=>»«:haskell-tng:type: Ord a  »«:haskell-tng:keyword:where»
   «:haskell-tng:keyword:(»<«:haskell-tng:keyword:),» «:haskell-tng:keyword:(»<=«:haskell-tng:keyword:),» «:haskell-tng:keyword:(»>=«:haskell-tng:keyword:),» «:haskell-tng:keyword:(»>«:haskell-tng:keyword:)»  «:haskell-tng:keyword:::»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: Bool
-»  max «:haskell-tng:keyword:@»Foo«:haskell-tng:keyword:,» min        «:haskell-tng:keyword:::»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a
+»  max @«:haskell-tng:constructor:Foo»«:haskell-tng:keyword:,» min        «:haskell-tng:keyword:::»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a
 »
 «:haskell-tng:keyword:instance»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:Eq a»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:=>»«:haskell-tng:type: Eq »«:haskell-tng:keyword:(»«:haskell-tng:type:Tree a»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:where»
   «:haskell-tng:constructor:Leaf» a         == «:haskell-tng:constructor:Leaf» b          «:haskell-tng:keyword:=»  a == b
@@ -128,7 +128,8 @@
 «:haskell-tng:keyword:deriving» anyclass «:haskell-tng:keyword:instance» «:haskell-tng:constructor:FromJSON» «:haskell-tng:constructor:Base»
 «:haskell-tng:keyword:deriving» «:haskell-tng:keyword:newtype» «:haskell-tng:keyword:instance» «:haskell-tng:constructor:FromJSON» «:haskell-tng:constructor:Treble»
 
-«:haskell-tng:toplevel:foo» «:haskell-tng:keyword:=» bar
+«:haskell-tng:toplevel:foo» «:haskell-tng:keyword:=» «:haskell-tng:keyword:do»
+  bar «:haskell-tng:keyword:::»«:haskell-tng:type: Wibble »«:haskell-tng:keyword:<-» baz
   «:haskell-tng:keyword:where» baz «:haskell-tng:keyword:=» «:haskell-tng:keyword:_»
   «m:-- »«x:checking that comments are ignored in layout
 »  «m:-- »«x:and that a starting syntax entry is ok

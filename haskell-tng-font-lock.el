@@ -271,7 +271,8 @@ succeeds and may further restrict the FIND search limit."
                             (rx symbol-start "::" symbol-end)
                             (rx symbol-start "::" symbol-end (group (+ anything)))
                             haskell-tng:paren-close
-                            haskell-tng:indent-close-previous)
+                            haskell-tng:indent-close-previous
+                            haskell-tng:do-bind)
 
 (haskell-tng:font:multiline topdecl
                             (rx line-start (| "data" "newtype" "class" "instance") word-end)
@@ -294,6 +295,7 @@ succeeds and may further restrict the FIND search limit."
                             (rx word-start "deriving" word-end)
                             (rx word-start "deriving" word-end
                                 (+ space) (group (? (| "anyclass" "stock" "newtype") word-end))
+                                ;; TODO support a lone derivation without brackets
                                 (* space) ?\( (group (* anything)) ?\))
                             haskell-tng:indent-close)
 

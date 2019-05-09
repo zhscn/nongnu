@@ -128,11 +128,12 @@ CONSYM CONID « CONID » « CONID CONID »
 ; deriving VARID instance CONID CONID
 ; deriving newtype instance CONID CONID
 
-; VARID = VARID
-where { VARID = _
+; VARID = do
+{ VARID :: CONID <- VARID
+; where { VARID = _
 
 
 ; « SYMID » = _
 
-} ; VARID = 1 SYMID 1
+} } ; VARID = 1 SYMID 1
 }

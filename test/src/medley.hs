@@ -128,7 +128,8 @@ deriving instance FromJSONKey StateName
 deriving anyclass instance FromJSON Base
 deriving newtype instance FromJSON Treble
 
-foo = bar
+foo = do
+  bar :: Wibble <- baz
   where baz = _
   -- checking that comments are ignored in layout
   -- and that a starting syntax entry is ok
