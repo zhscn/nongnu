@@ -36,6 +36,9 @@ import           System.Process      (CreateProcess (..), StdStream (..),
 -- some chars that should be propertized
 chars = ['c', '\n', '\'']
 
+strings = ["", "\"\"", "\n\\ ", "\\"]
+-- knownWrongEscape = "foo"\\"bar"
+
 difficult = foo' 'a' 2
 
 foo = "wobble (wibble)"
