@@ -39,6 +39,11 @@ chars = ['c', '\n', '\'']
 strings = ["", "\"\"", "\n\\ ", "\\"]
 -- knownWrongEscape = "foo"\\"bar"
 
+multiline1 = "\
+        \ "
+multiline2 = "\
+         \"
+
 difficult = foo' 'a' 2
 
 foo = "wobble (wibble)"

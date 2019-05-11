@@ -39,6 +39,11 @@
 «:haskell-tng:toplevel:strings» «:haskell-tng:keyword:=» «:haskell-tng:keyword:[»«s:""»«:haskell-tng:keyword:,» «s:"\"\""»«:haskell-tng:keyword:,» «s:"\n\\ "»«:haskell-tng:keyword:,» «s:"\\"»«:haskell-tng:keyword:]»
 «m:-- »«x:knownWrongEscape = "foo"\\"bar"
 »
+«:haskell-tng:toplevel:multiline1» «:haskell-tng:keyword:=» «s:"\
+        \ "»
+«:haskell-tng:toplevel:multiline2» «:haskell-tng:keyword:=» «s:"\
+         \"»
+
 «:haskell-tng:toplevel:difficult» «:haskell-tng:keyword:=» foo' «s:'a'» 2
 
 «:haskell-tng:toplevel:foo» «:haskell-tng:keyword:=» «s:"wobble (wibble)"»

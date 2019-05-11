@@ -58,13 +58,9 @@ give false positives." `(|
   `(: line-start (group (| ,haskell-tng:rx:varid
                            (: "(" (+? (syntax symbol)) ")")))
       symbol-end))
-;; note that \n has syntax `comment-end'
 (defconst haskell-tng:rx:newline
-  '(| (syntax comment-end)
-      (: symbol-start
-         "--"
-         (+ (not (syntax comment-end)))
-         (syntax comment-end)))
+  '(| ?\n
+      (: symbol-start "--" (+ (not (any ?\n))) ?\n))
   "Newline or line comment.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

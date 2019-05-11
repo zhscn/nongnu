@@ -98,8 +98,11 @@
       "»")
      ((looking-at (rx (| (syntax string-quote)
                          (syntax string-delimiter))))
-      (forward-sexp 1)
-      "§")
+      (let ((start (point)))
+        (forward-sexp 1)
+        (if (= (line-number-at-pos start)
+               (line-number-at-pos (point)))
+            "§" "§§")))
      (t (error "Unknown token: '%s' with '%S'"
                (string (char-after))
                (syntax-after (point)))))))
@@ -119,8 +122,11 @@
      ((looking-back (rx (| (syntax string-quote)
                            (syntax string-delimiter)))
                     (- (point) 1))
-      (backward-sexp 1)
-      "§")
+      (let ((start (point)))
+        (backward-sexp 1)
+        (if (= (line-number-at-pos start)
+               (line-number-at-pos (point)))
+            "§" "§§")))
      (t (error "Unknown token: '%s' with '%S'"
                (string (char-before))
                (progn
@@ -140,14 +146,20 @@ When called interactively, shows the tokens in a buffer."
              (token (if reverse
                         (haskell-tng-lexer-test:indent-backward-token)
                       (haskell-tng-lexer-test:indent-forward-token))))
-        (let ((line-diff (- (line-number-at-pos (point))
-                            (line-number-at-pos start))))
-          (unless (= line-diff 0)
-            (setq lines (append (-repeat (abs line-diff) nil) lines))))
-        (if (and (not token) (if reverse (bobp) (eobp)))
-            (setq quit 't)
-          (unless (s-blank? token)
-            (push token (car lines))))))
+        (let* ((line-diff (- (line-number-at-pos (point))
+                             (line-number-at-pos start)))
+               (multiline (/= line-diff 0))
+               (string-hack (and (not reverse)
+                                 multiline
+                                 (equal "§§" token))))
+          (when string-hack
+            (push token (car lines)))
+          (unless (not multiline)
+            (setq lines (append (-repeat (abs line-diff) nil) lines)))
+          (if (and (not token) (if reverse (bobp) (eobp)))
+              (setq quit 't)
+            (unless (or (s-blank? token) string-hack)
+              (push token (car lines)))))))
     (if reverse
         lines
       (reverse (--map (reverse it) lines)))))

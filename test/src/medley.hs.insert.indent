@@ -80,6 +80,16 @@ strings = ["", "\"\"", "\n\\ ", "\\"]
 1           v
 
 v
+multiline1 = "\
+v       1
+        \ "
+v       1
+multiline2 = "\
+v        1
+         \"
+1        2     v
+
+v        1
 difficult = foo' 'a' 2
 1                v
 
