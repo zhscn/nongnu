@@ -116,40 +116,41 @@ string or char as the 2nd parameter and no whitespace."
           (rx "\\" (syntax string-quote))
           end t)
     (let* ((escape (match-beginning 0))
-           (before (haskell-tng:syntax:count-escapes escape)))
-      (when (and
-             (cl-evenp before) ;; makes sure it's a real escape
-             (not (looking-back ;; and not a whitespace gap terminal
-                   (rx "\\" (+ (| space ?\n)) "\\" (syntax string-quote))
-                   (point-min))))
+           (before (haskell-tng:syntax:count-escapes escape t)))
+      (when (cl-evenp before) ;; makes sure it's a real escape
         (put-text-property escape (1+ escape) 'syntax-table '(9))))))
 
-(defun haskell-tng:syntax:count-escapes (pos)
-  "Count the number of escapes before point.
-Even means the next char is not escaped."
-  (if (or (= 1 pos) (/= ?\\ (char-before pos)))
-      0
-    (1+ (haskell-tng:syntax:count-escapes (1- pos)))))
+(defun haskell-tng:syntax:count-escapes (pos &optional skip-whitespace)
+  "Count the number of escapes before POS.
+Even means the next char is not escaped.
+
+SKIP-WHITESPACE can be used to ignore whitespace gaps."
+  (if (= (point-min) pos) 0
+    (let ((c (char-before pos)))
+      (if (and skip-whitespace (or (= ?\n c) (= 32 (char-syntax c))))
+          (haskell-tng:syntax:count-escapes (1- pos) t)
+        (if (= c ?\\)
+            (1+ (haskell-tng:syntax:count-escapes (1- pos)))
+          0)))))
 
 (defun haskell-tng:syntax:escapes (start end)
   "Backslash inside String is an escape character \n."
   ;; TODO does this pull its weight? (slow, requires a ppss)
   (goto-char start)
   (while (re-search-forward (rx "\\") end t)
-    (unless
-        ;; \...whitespace...\ is not escaped
-        ;; it is tempting to skip ahead here, but it can go beyond `end'
-        (or
-         (looking-at (rx (+ (| space ?\n)) "\\"))
-         (looking-back (rx "\\" (+ (| space ?\n)) "\\") (point-min)))
-      (let ((escape (match-beginning 0)))
-        (when (/= 9 (car (syntax-after escape))) ;; already calculated
-          (let ((before (haskell-tng:syntax:count-escapes escape)))
-            (when (and (cl-evenp before) (nth 3 (syntax-ppss)))
-              (put-text-property escape (1+ escape) 'syntax-table '(9)))))
-        (when (= 9 (car (syntax-after escape)))
-          ;; next char is escaped, so no need to check it
-          (forward-char 1))))))
+    (let ((escape (match-beginning 0)))
+      (if (= 9 (car (syntax-after escape))) ;; already calculated
+          (forward-char 1)
+        (unless (looking-at (rx (+ (| space ?\n)) "\\"))
+          (let ((before (haskell-tng:syntax:count-escapes escape t)))
+            (unless (and (cl-oddp before)
+                         (looking-back (rx (| space ?\n)) (1- escape)))
+              (when (and (cl-evenp before)
+                         (nth 3 (syntax-ppss)))
+                (put-text-property escape (1+ escape) 'syntax-table '(9)))
+              (when (= 9 (car (syntax-after escape)))
+                ;; next char is escaped, so no need to check it
+                (forward-char 1)))))))))
 
 (provide 'haskell-tng-syntax)
 ;;; haskell-tng-syntax.el ends here
