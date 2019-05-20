@@ -104,6 +104,8 @@
        (1 'haskell-tng:keyword keep)
        (2 'haskell-tng:type keep))
 
+      ;; TODO CPP #ifdef would be nice
+
       ;; EXT:TypeApplications: It is not easy to disambiguate between type
       ;; applications and value extractor in a pattern. Needs work.
       ;; (,(rx-to-string `(: symbol-start "@" (* space)
@@ -139,6 +141,7 @@
        ;; EXT:ExplicitNamespaces
        )
 
+      ;; TODO module defn with explicit exports have wrong face (Constructor) for final part
       (haskell-tng:font:module:keyword
        (,(rx-to-string `(: word-start "module" word-end (+ space)
                            (group symbol-start (* ,conid ".") ,conid symbol-end)))
