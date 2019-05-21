@@ -7,7 +7,7 @@
   «m:-- »«x:* Operations
 »  «:haskell-tng:keyword:,» getFooByBar«:haskell-tng:keyword:,» getWibbleByWobble
   «:haskell-tng:keyword:,» «:haskell-tng:keyword:module» «:haskell-tng:module:Bloo.Foo»
-  «:haskell-tng:keyword:)» «:haskell-tng:keyword:where»
+«:haskell-tng:keyword:)» «:haskell-tng:keyword:where»
 
 «:haskell-tng:keyword:import»           «:haskell-tng:module:Control.Applicative» «:haskell-tng:keyword:(»many«:haskell-tng:keyword:,» optional«:haskell-tng:keyword:,» pure«:haskell-tng:keyword:,» «:haskell-tng:keyword:(»<*>«:haskell-tng:keyword:),» «:haskell-tng:keyword:(»<|>«:haskell-tng:keyword:))»
 «:haskell-tng:keyword:import»           «:haskell-tng:module:Data.Foldable»       «:haskell-tng:keyword:(»traverse_«:haskell-tng:keyword:)»

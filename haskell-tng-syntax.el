@@ -47,7 +47,8 @@
 
     ;; TODO consider using categories more heavily, which would involve doing
     ;; lexing here. It would make the fontification regexps simpler and faster,
-    ;; and would be reused by the SMIE lexer.
+    ;; and would be reused by the SMIE lexer. We might not need zero-length
+    ;; matchers because greedy matching will be much simpler.
 
     ;; some special (treated like punctuation)
     (--each (string-to-list ",;@")

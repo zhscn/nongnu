@@ -141,7 +141,9 @@
        ;; EXT:ExplicitNamespaces
        )
 
-      ;; TODO module defn with explicit exports have wrong face (Constructor) for final part
+      ;; FIXME module defn with explicit exports has wrong face (Constructor)
+      ;; for final part of the module name when the closing paren is the first
+      ;; character on the line.
       (haskell-tng:font:module:keyword
        (,(rx-to-string `(: word-start "module" word-end (+ space)
                            (group symbol-start (* ,conid ".") ,conid symbol-end)))
@@ -175,16 +177,20 @@
 
       )))
 
-(defun haskell-tng:font:multiline:anchor-rewind (&optional group jump)
+(defun haskell-tng:font:multiline:anchor-rewind (&optional group jump end)
   "MATCH-ANCHORED moving point to group beginning (plus JUMP) and declaring LIMIT.
 Can be used as PRE-FORM or POST-FORM, allowing anchors to
 refontify the previously matched region.
+
+If END is non-nil, use group end (plus JUMP).
 
 If there is no match for GROUP, move to the end of the line, canceling this ANCHOR."
   (setq group (or group 0))
   (if (not (match-string group))
       (end-of-line)
-    (goto-char (match-beginning group))
+    (goto-char (if end
+                   (match-end group)
+                 (match-beginning group)))
     (when jump
       (forward-char jump))
     (match-end 0)))
@@ -193,6 +199,7 @@ If there is no match for GROUP, move to the end of the line, canceling this ANCH
   "Finds paren blocks of constructors when in an import statement.
 Some complexity to avoid matching on operators."
   (when (re-search-forward
+         ;; TODO word not just lower should be ok
          (rx (any lower) (* space) "(")
          limit t)
     (let ((open (point)))
@@ -270,6 +277,9 @@ succeeds and may further restrict the FIND search limit."
              ,(finder 'limit)))
          (add-to-list 'haskell-tng:extend-region-functions ',extend t)))))
 
+;; TODO if the beginning of a multiline pattern goes off the screen, e.g. for a
+;; large type definition, we can lose the fontification. This seems to be a bug
+;; in Emacs.
 (haskell-tng:font:multiline explicit-type
                             (rx symbol-start "::" symbol-end)
                             (rx symbol-start "::" symbol-end (group (+ anything)))
@@ -311,9 +321,13 @@ succeeds and may further restrict the FIND search limit."
 
 (haskell-tng:font:multiline module
                             (rx line-start "module" word-end)
+                            ;; TODO would be a good idea to capture the FQN name
+                            ;; so that anchors can use END in the PRE-FORM to
+                            ;; avoid overfitting (e.g. explicit constructors
+                            ;; everywhere).
                             (rx line-start "module" word-end (group (+ anything))
                                 word-start "where" word-end)
-                            haskell-tng:indent-close)
+                            haskell-tng:indent-close) ;; FIXME is the indent-close the culprit?
 
 (provide 'haskell-tng-font-lock)
 ;;; haskell-tng-font-lock.el ends here

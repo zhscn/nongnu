@@ -55,6 +55,10 @@ give false positives." `(|
 
 (defconst haskell-tng:rx:toplevel
   ;; TODO multi-definitions, e.g. Servant's :<|>
+  ;;
+  ;; Lexically and grammatically there is nothing special about top-level
+  ;; definitions, since they are just WLDOs for the module's `where'. But they
+  ;; are so common in practice that it's useful to special case them.
   `(: line-start (group (| ,haskell-tng:rx:varid
                            (: "(" (+? (syntax symbol)) ")")))
       symbol-end))

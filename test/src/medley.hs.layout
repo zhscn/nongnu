@@ -7,7 +7,7 @@ module Foo.Bar.Main
   -- * Operations
   , getFooByBar, getWibbleByWobble
   , module Bloo.Foo
-  ) where
+) where
 
 {import           Control.Applicative (many, optional, pure, (<*>), (<|>))
 ;import           Data.Foldable       (traverse_)

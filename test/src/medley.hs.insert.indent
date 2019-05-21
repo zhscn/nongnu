@@ -15,8 +15,8 @@ module Foo.Bar.Main
   , getFooByBar, getWibbleByWobble
 2 1                v
   , module Bloo.Foo
-2 1               v
-  ) where
+1 2               v
+) where
 v 1
 
 v 1
