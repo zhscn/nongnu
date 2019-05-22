@@ -78,6 +78,7 @@
         ;;(qual haskell-tng:rx:qual)
         (consym haskell-tng:rx:consym)
         (toplevel haskell-tng:rx:toplevel)
+        (qual haskell-tng:rx:qual)
         (bigspace `(| space ,haskell-tng:rx:newline)))
     `(;; reservedid / reservedop
       (,haskell-tng:regexp:reserved
@@ -119,7 +120,7 @@
               (group (? word-start "qualified" word-end)) (* space)
               ;; EXT:PackageImports
               ;; EXT:Safe, EXT:Trustworthy, EXT:Unsafe
-              (group symbol-start (* ,conid ".") ,conid symbol-end) (* ,bigspace)
+              (group word-start (* ,qual) ,conid word-end) (* ,bigspace)
               (group (? word-start "hiding" word-end)) (* space)))
         (haskell-tng:font:multiline:anchor-rewind) nil
         (1 'haskell-tng:keyword)
@@ -141,21 +142,18 @@
        ;; EXT:ExplicitNamespaces
        )
 
-      ;; FIXME module defn with explicit exports has wrong face (Constructor)
-      ;; for final part of the module name when the closing paren is the first
-      ;; character on the line.
       (haskell-tng:font:module:keyword
        (,(rx-to-string `(: word-start "module" word-end (+ space)
-                           (group symbol-start (* ,conid ".") ,conid symbol-end)))
+                           (group word-start (* ,qual) ,conid word-end)))
         (haskell-tng:font:multiline:anchor-rewind)
         (haskell-tng:font:multiline:anchor-rewind)
         (1 'haskell-tng:module))
        (haskell-tng:font:explicit-constructors
-        (haskell-tng:font:multiline:anchor-rewind 1)
+        (haskell-tng:font:multiline:anchor-rewind 2)
         (haskell-tng:font:multiline:anchor-rewind)
         (0 'haskell-tng:constructor keep))
        (,(rx-to-string `(: word-start ,conid word-end))
-        (haskell-tng:font:multiline:anchor-rewind 1)
+        (haskell-tng:font:multiline:anchor-rewind 2)
         (haskell-tng:font:multiline:anchor-rewind)
         (0 'haskell-tng:type keep)))
 
@@ -168,7 +166,9 @@
        . 'haskell-tng:toplevel)
 
       ;; uses of F.Q.N.s
-      (,(rx-to-string `(: symbol-start (+ (: ,conid "."))))
+      ;; TODO should perhaps be in a different font than module/import use, e.g.
+      ;; lighter not bolder.
+      (,(rx-to-string `(: symbol-start (+ ,qual)))
        . 'haskell-tng:module)
 
       ;; constructors
@@ -249,6 +249,9 @@ searched. This function is ideal for inclusion in the mode's
 
 The LIMITERS are function names that are called if the TRIGGER
 succeeds and may further restrict the FIND search limit."
+  ;; TODO allow limiters to be the function calls, or regexps, avoiding trivial
+  ;; functions (and refactor existing trivial functions into regexps). Taking a
+  ;; function name is kinda weird.
   (declare (indent defun))
   (let* ((sname (concat "haskell-tng:font:" (symbol-name name)))
          (regexp-1 (intern (concat sname ":trigger")))
@@ -321,13 +324,12 @@ succeeds and may further restrict the FIND search limit."
 
 (haskell-tng:font:multiline module
                             (rx line-start "module" word-end)
-                            ;; TODO would be a good idea to capture the FQN name
-                            ;; so that anchors can use END in the PRE-FORM to
-                            ;; avoid overfitting (e.g. explicit constructors
-                            ;; everywhere).
-                            (rx line-start "module" word-end (group (+ anything))
+                            (rx line-start "module" word-end
+                                (+ space)
+                                (group word-start (+ (not (any space))) word-end)
+                                (group (+ anything))
                                 word-start "where" word-end)
-                            haskell-tng:indent-close) ;; FIXME is the indent-close the culprit?
+                            haskell-tng:next-where)
 
 (provide 'haskell-tng-font-lock)
 ;;; haskell-tng-font-lock.el ends here

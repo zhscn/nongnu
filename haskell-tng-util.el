@@ -34,10 +34,18 @@
         nil))))
 
 (defun haskell-tng:do-bind (&optional pos)
+  ;; trivial, should just be called as an inline regexp
   "The next `<-'"
   (save-excursion
     (goto-char (or pos (point)))
     (re-search-forward "<-" nil t)))
+
+(defun haskell-tng:next-where (&optional pos)
+  ;; trivial, should just be called as an inline regexp
+  "The next `where'"
+  (save-excursion
+    (goto-char (or pos (point)))
+    (re-search-forward (rx word-start "where" word-end) nil t)))
 
 (defun haskell-tng:indent-close-previous ()
   "Indentation closing the previous symbol."

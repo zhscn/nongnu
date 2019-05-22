@@ -1,5 +1,5 @@
 «m:-- »«x:Figure 2.1 from the Haskell2010 report
-»«:haskell-tng:keyword:module» «:haskell-tng:module:AStack»«:haskell-tng:keyword:(»«:haskell-tng:constructor: Stack»«:haskell-tng:keyword:,»«:haskell-tng:constructor: push»«:haskell-tng:keyword:,»«:haskell-tng:constructor: pop»«:haskell-tng:keyword:,»«:haskell-tng:constructor: top»«:haskell-tng:keyword:,»«:haskell-tng:constructor: size »«:haskell-tng:keyword:)» «:haskell-tng:keyword:where»
+»«:haskell-tng:keyword:module» «:haskell-tng:module:AStack»«:haskell-tng:keyword:(» «:haskell-tng:type:Stack»«:haskell-tng:keyword:,» push«:haskell-tng:keyword:,» pop«:haskell-tng:keyword:,» top«:haskell-tng:keyword:,» size «:haskell-tng:keyword:)» «:haskell-tng:keyword:where»
 «:haskell-tng:keyword:data»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Empty»
              «:haskell-tng:keyword:|» «:haskell-tng:constructor:MkStack» a «:haskell-tng:keyword:(»«:haskell-tng:constructor:Stack» a«:haskell-tng:keyword:)»
 
