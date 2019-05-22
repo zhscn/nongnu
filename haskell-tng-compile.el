@@ -17,10 +17,25 @@
 ;; TODO set compilation-directory when opening the file
 ;; TODO set compilation-environment to include TASTY envvars
 
-(defvar haskell-tng-compile-error-regexp-alist
+(defvar haskell-tng-compilation-error-regexp-alist
+  (let ((file '(: (group (+ any) ".hs")))
+        (num '(: (group (+ digit)))))
+    `(;; ghc errors / warnings (including -ferror-spans)
+      (,(rx-to-string `(: bol ,file ":" ,num ":" ,num (? "-" ,num) ": error:"))
+       1 2 (3 . 4) 2 1)
+      (,(rx-to-string `(: bol ,file ":" ,num ":" ,num (? "-" ,num) ": warning:"))
+       1 2 (3 . 4) 1 1)
+      ;; FIXME multi-line error spans (and tests)
+
+      ;; hspec
+      (,(rx-to-string `(: bol (+ space) ,file ":" ,num ":" ,num ":"))
+       1 2 3 2 1)
+      ;; tasty
+      (,(rx-to-string
+         `(: bol (+ space) "error, called at" (+ space) ,file ":" ,num ":" ,num " in "))
+       1 2 3 2 1)
+      ))
   "The `compilation-error-regexp-alist' for `haskell-tng'."
-  ;; FIXME error-regexp-alist
-  nil
   )
 
 (defvar haskell-tng-compile:history '("cabal v2-build -O0"))

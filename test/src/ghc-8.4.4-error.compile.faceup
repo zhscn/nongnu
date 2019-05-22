@@ -10,7 +10,7 @@ Building library for stackage-to-hackage-1.1.0..
 [1 of 2] Compiling StackageToHackage.Stackage ( lib/StackageToHackage/Stackage.hs, /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/noopt/build/StackageToHackage/Stackage.o )
 [2 of 2] Compiling StackageToHackage.Hackage ( lib/StackageToHackage/Hackage.hs, /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/noopt/build/StackageToHackage/Hackage.o )
 
-«U:«:compilation-error:lib/StackageToHackage/Hackage.hs»:«:compilation-line-number:33»:«:compilation-column-number:16»:» error:
+«U:«:compilation-error:lib/StackageToHackage/Hackage.hs»»:«:compilation-line-number:33»:«:compilation-column-number:16»: error:
     parse error on input ‘=’
     Perhaps you need a 'let' in a 'do' block?
     e.g. 'let x = 5' instead of 'x = 5'

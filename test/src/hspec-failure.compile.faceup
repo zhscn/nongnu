@@ -725,7 +725,7 @@ Hpack
 
 Failures:
 
-«U:  «:compilation-error:test/HpackSpec.hs»:«:compilation-line-number:80»:«:compilation-column-number:15»:» 
+  «U:«:compilation-error:test/HpackSpec.hs»»:«:compilation-line-number:80»:«:compilation-column-number:15»: 
   1) Hpack.hpackResult, with existing cabal file, when cabal file was created with hpack >= 0.20.0, when hash is present, when exsting cabal file was generated with a newer version of hpack, does not overwrite existing cabal file
        not expected: "cabal-version: 1.12\n\n-- This file has been generated from package.yaml by hpack version 0.22.0.\n--\n-- see: https://github.com/sol/hpack\n--\n-- hash: 224b158530d1d066069f18794673f6a7a41f689d26f27fe8cd505cef259f35a9\n\nname:           foo\nversion:        0.1.0\nbuild-type:     Simple\n"
 

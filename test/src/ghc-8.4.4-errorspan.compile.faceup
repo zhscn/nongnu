@@ -10,7 +10,7 @@ Building library for stackage-to-hackage-1.1.0..
 [1 of 2] Compiling StackageToHackage.Stackage
 [2 of 2] Compiling StackageToHackage.Hackage
 
-«U:«:compilation-error:lib/StackageToHackage/Hackage.hs»:«:compilation-line-number:35»:«:compilation-column-number:16»-«:compilation-column-number:18»:» error:
+«U:«:compilation-error:lib/StackageToHackage/Hackage.hs»»:«:compilation-line-number:35»:«:compilation-column-number:16»-«:compilation-column-number:18»: error:
     parse error on input ‘...’
    |
 35 |       freeze = ...

@@ -10,7 +10,7 @@ Building library for stackage-to-hackage-1.1.0..
 [1 of 2] Compiling StackageToHackage.Stackage
 [2 of 2] Compiling StackageToHackage.Hackage
 
-«U:«:compilation-warning:lib/StackageToHackage/Hackage.hs»:«:compilation-line-number:13»:«:compilation-column-number:1»-«:compilation-column-number:51»: warning:» [-Wunused-imports]
+«U:«:compilation-warning:lib/StackageToHackage/Hackage.hs»»:«:compilation-line-number:13»:«:compilation-column-number:1»-«:compilation-column-number:51»: warning: [-Wunused-imports]
     The qualified import of ‘Data.ByteString’ is redundant
       except perhaps to import instances from ‘Data.ByteString’
     To import instances alone, use: import Data.ByteString()
