@@ -146,17 +146,24 @@ current line."
           indents)
       (when (re-search-backward haskell-tng:regexp:toplevel nil t)
         (while (< (line-number-at-pos) the-line)
+          ;; FIXME improve the indentation alts
           ;; TODO add positions of WLDOS
+          ;; TODO +- 2 WLDOS
           ;; TODO special cases for import (unless grammar handles it)
           ;; TODO special cases for multiple whitespaces (implies alignment)
           ;; TODO the-line +- 2
           (push (current-indentation) indents)
           (forward-line)))
 
-      ;; indentation of the next line is common for insert edits
+      ;; alts are easier to use when ordered
+      (setq indents (sort indents '<))
+      ;; TODO consider ordering all alts, and cycling the list so the first alt
+      ;; is the next higher than the current indentation level
+
+      ;; indentation of the next line is common for insert edits, top priority
       (forward-line)
       (forward-comment (point-max))
-      (when (not (eq the-line (line-number-at-pos)))
+      (when (/= the-line (line-number-at-pos))
         (push (current-indentation) indents))
 
       (-distinct indents))))

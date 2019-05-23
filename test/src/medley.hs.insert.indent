@@ -189,23 +189,23 @@ foo ::
  Wibble -- wibble
 2v  1
     -> Wobble -- wobble
-32  1    v
+23  1    v
     -> Wobble -- wobble
-32  1    v
+23  1    v
     -> Wobble -- wobble
-32  1    v
+23  1    v
     -> (wob :: Wobble)
-32  1    v
+23  1    v
     -> (Wobble -- wobble
-32  1     v
+23  1     v
     a b c)
-13  2    v
+12  3    v
 
-v2  1
+v1  2
 (foo :: (Wibble Wobble)) foo
-13  2                    v
+12  3                    v
 
-v2  1
+v1  2
 newtype TestApp
 2  1    v
    (logger :: TestLogger)
@@ -225,21 +225,21 @@ v
 optionsParser = Options
 2 1               v
   <$> (Opts.flag' Alloc (Opts.long "alloc" <> Opts.help "wibble")
-3 2    1          v
+2 3    1          v
        <|> Opts.flag' Entries (Opts.long "entry" <> Opts.help "wobble")
-3 2    1              v
+2 3    1              v
        <|> Opts.flag' Bytes   (Opts.long "bytes" <> Opts.help "i'm a fish"))
-3 1    2v
+2 1    3v
   <*> optional
-3 1    2v
+1 2    3v
         (Opts.strArgument
-5 3    42 1     v
+2 3    45 1     v
           (Opts.metavar "MY-FILE" <>
-6 4    53 21    v
+2 3    45 61    v
            Opts.help "meh"))
-1 4    5v 32
+1 2    3v 45
 
-1 5   v64 32
+1 2   v34 56
 type PhantomThing
 1    v
 
@@ -247,25 +247,25 @@ v
 type SomeApi =
 2 v    1
        "thing" :> Capture "bar" Index :> QueryParam "wibble" Text
-3      2       v                               1
+2      3       v                               1
                                                :> QueryParam "wobble" Natural
-2      1                                       v
+1      2                                       v
                                                :> Header TracingHeader TracingId
-2      1                                       v
+1      2                                       v
                                                :> ThingHeader
-2      1                                       v
+1      2                                       v
                                                :> Get '[JSON] (The ReadResult)
-3 1    2                                       v
+2 1    3                                       v
   :<|> "thing" :> ReqBody '[JSON] Request
-4 v    3              1                        2
+2 v    3              1                        4
                       :> Header TracingHeader TracingId
-4 1    3              v                        2
+1 2    3              v                        4
                       :> SpecialHeader
-4 1    3              v                        2
+1 2    3              v                        4
                       :> Post '[JSON] (The Response)
-1 2    4              v                        3
+1 2    3              v                        4
 
-v 2    4              1                        3
+v 1    2              3                        4
 deriving instance FromJSONKey StateName
 v
 deriving anyclass instance FromJSON Base
@@ -279,14 +279,14 @@ foo = do
   bar :: Wibble <- baz
 2 1                  v
   where baz = _
-3 2     1       v
+2 3     1       v
   -- checking that comments are ignored in layout
-3 2     1       v
+2 3     1       v
   -- and that a starting syntax entry is ok
-3 2     1       v
+2 3     1       v
         (+) = _
-1 3     2       v
+1 2     3       v
 
-1 3     2       v
+1 2     3       v
 test = 1 `shouldBe` 1
 v
