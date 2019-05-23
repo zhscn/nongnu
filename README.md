@@ -52,14 +52,13 @@ This is the status of core features:
   - [x] `font-lock` to visually distinguish types and values
   - [x] `sexp` navigation (SMIE)
   - [x] `projectile` / [`fast-tags`](https://github.com/elaforge/fast-tags) integration for `TAGS`
-  - [ ] hoogle CLI jump-to-source
   - [ ] `imenu` population
 - Editing:
   - [ ] indentation (SMIE) (IN PROGRESS)
   - [ ] `abbrev` table
   - [ ] `yasnippet` templates
-  - [ ] `LANGUAGE` management
-  - [ ] `import` management (via hoogle and [`hsimport`](https://hackage.haskell.org/package/hsimport))
+  - [ ] quick add `LANGUAGE` (with auto-populated completions from ghc)
+  - [ ] quick add `import`
   - [x] `prettify-symbols` emulating `UnicodeSyntax`
   - [x] `stylish-haskell` support
 - Compiling:
@@ -73,6 +72,16 @@ Compatibility with `lsp-mode` / [`haskell-ide-engine`](https://github.com/haskel
 
 Some blue sky features are being considered but may be best as independent projects:
 
+- Imports
+  - company-mode backend specific to import sections that detect context, powered by local hoogle cli
+  - expand import list into explicit list (perhaps via `:browse` but better as standalone tool) for symbol-at-point (assuming no shadowing).
+  - convert wildcard import to explicit list
+  - remove unused imports
+- Hoogle integration
+  - build local hoogle database for a project
+  - local cli jump-to-source of symbol-at-point / type-at-point (i.e. explicit fully qualified name)
+  - local cli search
+  - local / remote search with doc in browser
 - `.cabal` editing / navigation
   - helpers to generate version bounds, even if it's just expanding the latest version of a package `cabal gen-bounds`, `cabal outdated`, `cabal-plan`.
   - project wide grep (including dependencies).
@@ -80,7 +89,7 @@ Some blue sky features are being considered but may be best as independent proje
 - [`.hie`](https://ghc.haskell.org/trac/ghc/wiki/HIEFiles) files as a parser backend and many type based queries.
 - lightweight interactive commands ([`dante`](https://github.com/jyp/dante) / [`intero`](https://github.com/commercialhaskell/intero) / [`hhp`](https://github.com/kazu-yamamoto/hhp)), will be made redundant with `.hie`:
   - `:type` at point
-  - `:browse` `company-backend`
+  - `:browse` `company-backend` (see also imports tool above)
   - `:doc` at point
   - expand type definitions (e.g. to show full ADT)
 - [`flycheck`](http://www.flycheck.org/en/latest/) integration with `haskell-compile`
@@ -93,12 +102,9 @@ Some blue sky features are being considered but may be best as independent proje
 - is there a solution to thinking "right to left" vs writing "left to right"?
 - identify trivial / helper functions and forward their `edit-definition` to another location.
 - Code gen
-  - two spaces after an `import` converts to the missing `qualified` (or is this indentation?)
   - `instance` boilerplate
-- Cleanup unused imports
 - Refactoring
   - be compatible with [`apply-refact`](https://github.com/mpickering/apply-refact) / [`hlint-refactor-mode`](https://github.com/mpickering/hlint-refactor-mode)
-  - convert wildcard import to explicit list
   - insert explicit list of exports
 - Reviewing
   - hide changes to imports when reviewing diffs
