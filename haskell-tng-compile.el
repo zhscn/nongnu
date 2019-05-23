@@ -25,7 +25,10 @@
        1 2 (3 . 4) 2 1)
       (,(rx-to-string `(: bol ,file ":" ,num ":" ,num (? "-" ,num) ": warning:"))
        1 2 (3 . 4) 1 1)
-      ;; FIXME multi-line error spans (and tests)
+      (,(rx-to-string `(: bol ,file ":(" ,num "," ,num ")-(" ,num "," ,num ")" ": error:"))
+       1 (2 . 4) (3 . 5) 2 1)
+      (,(rx-to-string `(: bol ,file ":(" ,num "," ,num ")-(" ,num "," ,num ")" ": warning:"))
+       1 (2 . 4) (3 . 5) 1 1)
 
       ;; hspec
       (,(rx-to-string `(: bol (+ space) ,file ":" ,num ":" ,num ":"))
@@ -35,8 +38,7 @@
          `(: bol (+ space) "error, called at" (+ space) ,file ":" ,num ":" ,num " in "))
        1 2 3 2 1)
       ))
-  "The `compilation-error-regexp-alist' for `haskell-tng'."
-  )
+  "The `compilation-error-regexp-alist' for `haskell-tng'.")
 
 (defvar haskell-tng-compile:history '("cabal v2-build -O0"))
 (defvar-local haskell-tng-compile:command nil)

@@ -46,17 +46,17 @@
     ;;(kill-line -2)
     ))
 
-;; to generate .faceup files, use faceup-view-buffer
+;; cabal v2-clean && cabal v2-build -O0 all > ghc-8.4.4-error.compile 2>&1
 (ert-deftest haskell-tng-compile-errors-file-tests ()
-  (should (have-expected-errors (testdata "src/ghc-8.4.4-error.compile")))
-  (should (have-expected-errors (testdata "src/ghc-8.4.4-errorspan.compile"))))
+  (should (have-expected-errors (testdata "compile/ghc-8.4.4-error.compile")))
+  (should (have-expected-errors (testdata "compile/ghc-8.4.4-errorspan.compile"))))
 
 (ert-deftest haskell-tng-compile-warnings-file-tests ()
-  (should (have-expected-errors (testdata "src/ghc-8.4.4-warning.compile")))
-  (should (have-expected-errors (testdata "src/ghc-8.4.4-warningspan.compile"))))
+  (should (have-expected-errors (testdata "compile/ghc-8.4.4-warning.compile")))
+  (should (have-expected-errors (testdata "compile/ghc-8.4.4-warningspan.compile"))))
 
 (ert-deftest haskell-tng-compile-hspec-file-tests ()
-  (should (have-expected-errors (testdata "src/hspec-failure.compile"))))
+  (should (have-expected-errors (testdata "compile/hspec-failure.compile"))))
 
 (ert-deftest haskell-tng-compile-tasty-file-tests ()
   ;; TODO assert on ansi colours, implemented with overlays
@@ -68,7 +68,7 @@
   ;;   modification-hooks   (ansi-color-freeze-overlay)
   ;; There are text properties here:
   ;;   fontified            t
-  (should (have-expected-errors (testdata "src/tasty-failure.compile"))))
+  (should (have-expected-errors (testdata "compile/tasty-failure.compile"))))
 
 ;; TODO test invoking haskell-tng-compile in a real project directory
 

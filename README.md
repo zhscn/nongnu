@@ -95,6 +95,7 @@ Some blue sky features are being considered but may be best as independent proje
 - Code gen
   - two spaces after an `import` converts to the missing `qualified` (or is this indentation?)
   - `instance` boilerplate
+- Cleanup unused imports
 - Refactoring
   - be compatible with [`apply-refact`](https://github.com/mpickering/apply-refact) / [`hlint-refactor-mode`](https://github.com/mpickering/hlint-refactor-mode)
   - convert wildcard import to explicit list
