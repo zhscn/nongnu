@@ -1,38 +1,38 @@
 -- Figure 2.1 from the Haskell2010 report
-v
+v 1
 module AStack( Stack, push, pop, top, size ) where
-v
+v 1                                            2
 data Stack a = Empty
-2            1   v
+2 3          1   v
              | MkStack a (Stack a)
-1            v
+1            v 2
 
-v            1
+v 1          2
 push :: a -> Stack a -> Stack a
-v
+v 1
 push x s = MkStack x s
-1                  v
+1 2                v
 
-v
+v 1
 size :: Stack a -> Int
-v
+v 1
 size s = length (stkToLst s)  where
-2 v        1
+2 v        1                    3
            stkToLst  Empty         = []
-2          1                           v
+2          1 3                  4      v
            stkToLst (MkStack x s)  = x:xs where xs = stkToLst s
-1          2                                                  v
+1          2 3                              4                 v
 
-1          2                                                  v
+1 2        3                                4                 v
 pop :: Stack a -> (a, Stack a)
-v
+v 1
 pop (MkStack x s)
 2 1 v
   = (x, case s of r -> i r where i x = x) -- (pop Empty) is an error
-1 2   v
+1 2 3 v                      4
 
-v 1
+v 1                          2
 top :: Stack a -> a
-v
+v 1
 top (MkStack x s) = x                     -- (top Empty) is an error
-v
+v 1

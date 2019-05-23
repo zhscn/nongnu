@@ -88,7 +88,7 @@
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Indentation
 (defun haskell-tng-smie:rules (method arg)
   ;; see docs for `smie-rules-function'
-;;  (message "INDENT %S %S" method arg)
+  ;;  (message "INDENT %S %S" method arg)
   (pcase method
     (:elem
      (pcase arg
@@ -141,32 +141,38 @@
 (defun haskell-tng-smie:indent-alts ()
   "Returns a list of alternative indentation levels for the
 current line."
-  (save-excursion
-    (let ((the-line (line-number-at-pos))
-          indents)
+  (let ((the-line (line-number-at-pos))
+        indents)
+    (save-excursion
       (when (re-search-backward haskell-tng:regexp:toplevel nil t)
-        (while (< (line-number-at-pos) the-line)
-          ;; FIXME improve the indentation alts
-          ;; TODO add positions of WLDOS
-          ;; TODO +- 2 WLDOS
-          ;; TODO special cases for import (unless grammar handles it)
-          ;; TODO special cases for multiple whitespaces (implies alignment)
-          ;; TODO the-line +- 2
-          (push (current-indentation) indents)
-          (forward-line)))
+        (let ((start (point)))
+          (while (< (line-number-at-pos) the-line)
+            (push (current-indentation) indents) ;; this line's indentation
+            (forward-line))
+          (when (re-search-backward
+                 (rx word-start (| "where" "let" "do" "case") word-end)
+                 start t)
+            ;; TODO the next whitespace level after a WLDO (not a WLDC)
+            (push (+ 2 (current-column)) indents)))))
 
-      ;; alts are easier to use when ordered
-      (setq indents (sort indents '<))
-      ;; TODO consider ordering all alts, and cycling the list so the first alt
-      ;; is the next higher than the current indentation level
+    (save-excursion
+      (forward-line -1)
+      (when (/= the-line (line-number-at-pos))
+        (push (+ 2 (current-indentation)) indents)))
 
-      ;; indentation of the next line is common for insert edits, top priority
+    ;; alts are easier to use when ordered
+    (setq indents (sort indents '<))
+    ;; TODO consider ordering alts, and cycling the list so the first suggestion
+    ;; is the next one higher than the current indentation level.
+
+    ;; indentation of the next line is common for insert edits, top priority
+    (save-excursion
       (forward-line)
       (forward-comment (point-max))
       (when (/= the-line (line-number-at-pos))
-        (push (current-indentation) indents))
+        (push (current-indentation) indents)))
 
-      (-distinct indents))))
+    (-distinct indents)))
 
 (defun haskell-tng-smie:setup ()
   (setq-local smie-indent-basic 2)
