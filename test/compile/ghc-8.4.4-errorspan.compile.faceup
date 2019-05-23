@@ -10,7 +10,7 @@ Building library for stackage-to-hackage-1.1.0..
 [1 of 2] Compiling StackageToHackage.Stackage
 [2 of 2] Compiling StackageToHackage.Hackage
 
-«U:«:compilation-error:lib/StackageToHackage/Hackage.hs»»:«:compilation-line-number:13»:«:compilation-column-number:1»-«:compilation-column-number:53»: error:
+«U:«:compilation-error:lib/StackageToHackage/Hackage.hs»»:«:compilation-line-number:13»:«:compilation-column-number:1»-«:compilation-column-number:53»: «:compilation-error:error»:
     Could not find module ‘Data.ByteStrong’
     Perhaps you meant Data.ByteString (from bytestring-0.10.8.2)
     Use -v to see a list of the files searched for.
@@ -18,7 +18,7 @@ Building library for stackage-to-hackage-1.1.0..
 13 | import qualified Data.ByteStrong                as BS
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-«U:«:compilation-error:lib/StackageToHackage/Hackage.hs»»:(«:compilation-line-number:19»,«:compilation-column-number:1»)-(«:compilation-line-number:20»,«:compilation-column-number:56»): error:
+«U:«:compilation-error:lib/StackageToHackage/Hackage.hs»»:(«:compilation-line-number:19»,«:compilation-column-number:1»)-(«:compilation-line-number:20»,«:compilation-column-number:56»): «:compilation-error:error»:
     Could not find module ‘Data.Moybe’
     Perhaps you meant Data.Maybe (from base-4.11.1.0)
     Use -v to see a list of the files searched for.

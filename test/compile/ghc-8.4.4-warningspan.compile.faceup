@@ -10,7 +10,7 @@ Building library for stackage-to-hackage-1.1.0..
 [1 of 2] Compiling StackageToHackage.Stackage
 [2 of 2] Compiling StackageToHackage.Hackage
 
-«U:«:compilation-warning:lib/StackageToHackage/Hackage.hs»»:«:compilation-line-number:13»:«:compilation-column-number:1»-«:compilation-column-number:53»: warning: [-Wunused-imports]
+«U:«:compilation-warning:lib/StackageToHackage/Hackage.hs»»:«:compilation-line-number:13»:«:compilation-column-number:1»-«:compilation-column-number:53»: «:compilation-warning:warning»: [-Wunused-imports]
     The qualified import of ‘Data.ByteString’ is redundant
       except perhaps to import instances from ‘Data.ByteString’
     To import instances alone, use: import Data.ByteString()
@@ -18,7 +18,7 @@ Building library for stackage-to-hackage-1.1.0..
 13 | import qualified Data.ByteString                as BS
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-«U:«:compilation-warning:lib/StackageToHackage/Hackage.hs»»:(«:compilation-line-number:19»,«:compilation-column-number:1»)-(«:compilation-line-number:20»,«:compilation-column-number:56»): warning: [-Wunused-imports]
+«U:«:compilation-warning:lib/StackageToHackage/Hackage.hs»»:(«:compilation-line-number:19»,«:compilation-column-number:1»)-(«:compilation-line-number:20»,«:compilation-column-number:56»): «:compilation-warning:warning»: [-Wunused-imports]
     The import of ‘isJust’ from module ‘Data.Maybe’ is redundant
    |
 19 | import           Data.Maybe                     (fromMaybe, mapMaybe,

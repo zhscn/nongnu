@@ -19,16 +19,18 @@
 
 (defvar haskell-tng-compilation-error-regexp-alist
   (let ((file '(: (group (+ any) ".hs")))
-        (num '(: (group (+ digit)))))
+        (num '(: (group (+ digit))))
+        (err '(: ": " (group "error") ":"))
+        (war '(: ": " (group "warning") ":")))
     `(;; ghc errors / warnings (including -ferror-spans)
-      (,(rx-to-string `(: bol ,file ":" ,num ":" ,num (? "-" ,num) ": error:"))
-       1 2 (3 . 4) 2 1)
-      (,(rx-to-string `(: bol ,file ":" ,num ":" ,num (? "-" ,num) ": warning:"))
-       1 2 (3 . 4) 1 1)
-      (,(rx-to-string `(: bol ,file ":(" ,num "," ,num ")-(" ,num "," ,num ")" ": error:"))
-       1 (2 . 4) (3 . 5) 2 1)
-      (,(rx-to-string `(: bol ,file ":(" ,num "," ,num ")-(" ,num "," ,num ")" ": warning:"))
-       1 (2 . 4) (3 . 5) 1 1)
+      (,(rx-to-string `(: bol ,file ":" ,num ":" ,num (? "-" ,num) ,err))
+       1 2 (3 . 4) 2 1 (5 'compilation-error))
+      (,(rx-to-string `(: bol ,file ":" ,num ":" ,num (? "-" ,num) ,war))
+       1 2 (3 . 4) 1 1 (5 'compilation-warning))
+      (,(rx-to-string `(: bol ,file ":(" ,num "," ,num ")-(" ,num "," ,num ")" ,err))
+       1 (2 . 4) (3 . 5) 2 1 (6 'compilation-error))
+      (,(rx-to-string `(: bol ,file ":(" ,num "," ,num ")-(" ,num "," ,num ")" ,war))
+       1 (2 . 4) (3 . 5) 1 1 (6 'compilation-warning))
 
       ;; hspec
       (,(rx-to-string `(: bol (+ space) ,file ":" ,num ":" ,num ":"))
