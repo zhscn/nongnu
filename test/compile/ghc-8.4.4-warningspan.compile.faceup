@@ -7,8 +7,8 @@ In order, the following will be built (use -v for more details):
 Configuring library for stackage-to-hackage-1.1.0..
 Preprocessing library for stackage-to-hackage-1.1.0..
 Building library for stackage-to-hackage-1.1.0..
-[1 of 2] Compiling StackageToHackage.Stackage
-[2 of 2] Compiling StackageToHackage.Hackage
+[1 of 2] Compiling «U:«:compilation-info:StackageToHackage.Stackage»»
+[2 of 2] Compiling «U:«:compilation-info:StackageToHackage.Hackage»»
 
 «U:«:compilation-warning:lib/StackageToHackage/Hackage.hs»»:«:compilation-line-number:13»:«:compilation-column-number:1»-«:compilation-column-number:53»: «:compilation-warning:warning»: [-Wunused-imports]
     The qualified import of ‘Data.ByteString’ is redundant
@@ -29,7 +29,7 @@ Preprocessing executable 'stackage-to-hackage' for stackage-to-hackage-1.1.0..
 Building executable 'stackage-to-hackage' for stackage-to-hackage-1.1.0..
 Preprocessing executable 'stack2cabal' for stack2cabal-1.0.2..
 Building executable 'stack2cabal' for stack2cabal-1.0.2..
-[1 of 1] Compiling Main
-[1 of 1] Compiling Main
+[1 of 1] Compiling «U:«:compilation-info:Main»»
+[1 of 1] Compiling «U:«:compilation-info:Main»»
 Linking /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/x/stackage-to-hackage/noopt/build/stackage-to-hackage/stackage-to-hackage ...
 Linking /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stack2cabal-1.0.2/x/stack2cabal/noopt/build/stack2cabal/stack2cabal ...

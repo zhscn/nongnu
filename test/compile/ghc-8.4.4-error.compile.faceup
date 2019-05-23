@@ -7,8 +7,8 @@ In order, the following will be built (use -v for more details):
 Configuring library for stackage-to-hackage-1.1.0..
 Preprocessing library for stackage-to-hackage-1.1.0..
 Building library for stackage-to-hackage-1.1.0..
-[1 of 2] Compiling StackageToHackage.Stackage ( lib/StackageToHackage/Stackage.hs, /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/noopt/build/StackageToHackage/Stackage.o )
-[2 of 2] Compiling StackageToHackage.Hackage ( lib/StackageToHackage/Hackage.hs, /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/noopt/build/StackageToHackage/Hackage.o )
+[1 of 2] Compiling «U:«:compilation-info:StackageToHackage.Stackage»» ( «:compilation-info:lib/StackageToHackage/Stackage.hs», /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/noopt/build/StackageToHackage/Stackage.o )
+[2 of 2] Compiling «U:«:compilation-info:StackageToHackage.Hackage»» ( «:compilation-info:lib/StackageToHackage/Hackage.hs», /home/tseenshe/stack2cabal/dist-newstyle/build/x86_64-linux/ghc-8.4.4/stackage-to-hackage-1.1.0/noopt/build/StackageToHackage/Hackage.o )
 
 «U:«:compilation-error:lib/StackageToHackage/Hackage.hs»»:«:compilation-line-number:33»:«:compilation-column-number:16»: «:compilation-error:error»:
     parse error on input ‘=’

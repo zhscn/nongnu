@@ -13,7 +13,7 @@
 (require 'compile)
 (require 'ansi-color)
 
-;; TODO prettify-symbol rules for home dirs and project dirs, etc
+;; TODO prettify-symbol rules for home dirs, project dirs, and hide .o files, etc
 ;; TODO set compilation-directory when opening the file
 ;; TODO set compilation-environment to include TASTY envvars
 
@@ -39,6 +39,13 @@
       (,(rx-to-string
          `(: bol (+ space) "error, called at" (+ space) ,file ":" ,num ":" ,num " in "))
        1 2 3 2 1)
+
+      ;; ghc information. It's better to not have -fhide-source-paths
+      (,(rx-to-string
+         `(: bol "[" ,num " of " ,num "] Compiling "
+             (group (+ (not (syntax whitespace))))
+             (? (* space) "(" (* space) ,file)))
+       4 nil nil 0 3 (3 'compilation-info))
       ))
   "The `compilation-error-regexp-alist' for `haskell-tng'.")
 

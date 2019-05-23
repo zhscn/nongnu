@@ -9,6 +9,8 @@
 ;;
 ;;; Code:
 
+(require 'faceup)
+
 (defmacro haskell-tng-testutils:this-lisp-directory ()
   (expand-file-name
    (if load-file-name
