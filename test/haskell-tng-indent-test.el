@@ -19,7 +19,7 @@
   ;;   2. newline-and-indent with the rest of the file intact (insert)
   ;;   3. indent-line-function at the beginning of each line (re-indent)
   ;;
-  ;; each with alternative indentation suggestions.
+  ;; each maybe with alternative indentation suggestions.
   ;;
   ;; Expectations could use lines of symbols such as | and . or digits to
   ;; indicate where the indentation(s) go.
@@ -30,6 +30,8 @@
   (should (have-expected-newline-indent-insert (testdata "src/medley.hs")))
   ;; TODO more tests
   ;; https://raw.githubusercontent.com/kadena-io/chainweb-node/master/test/Chainweb/Test/TreeDB.hs
+
+  ;; FIXME type 3 tests without alternatives
   )
 
 ;; TODO enable this test and get it passing, which requires a TAB command that

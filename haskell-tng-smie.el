@@ -85,10 +85,32 @@
 
     )))
 
+(defvar haskell-tng-smie:debug nil)
+(defun haskell-tng-smie:debug (command)
+  "An alternative to RETURN that outputs SMIE debugging
+information, to aid in the creation of new rules."
+  (let ((output " *haskell-tng-smie*"))
+    (when (get-buffer output)
+      (kill-buffer output))
+    (let ((haskell-tng-smie:debug (get-buffer-create output))
+          (inhibit-read-only t))
+      (with-current-buffer haskell-tng-smie:debug
+        (read-only-mode 1))
+      (call-interactively command)
+      (display-buffer output))))
+(defun haskell-tng-smie:debug-newline ()
+  (interactive)
+  (haskell-tng-smie:debug #'newline-and-indent))
+(defun haskell-tng-smie:debug-tab ()
+  (interactive)
+  (haskell-tng-smie:debug #'indent-for-tab-command))
+
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Indentation
 (defun haskell-tng-smie:rules (method arg)
   ;; see docs for `smie-rules-function'
-  ;;  (message "INDENT %S %S" method arg)
+  (when haskell-tng-smie:debug
+    (with-current-buffer haskell-tng-smie:debug
+      (insert (format "INDENT %S %S\n" method arg))))
   (pcase method
     (:elem
      (pcase arg
@@ -104,7 +126,7 @@
         (if (smie-rule-parent-p "module")
             '(column . 0)
           smie-indent-basic))
-       ((or "::" "=" "let" "do" "of")
+       ((or "::" "=" "let" "do" "of" "{")
         smie-indent-basic)
        ))
 
