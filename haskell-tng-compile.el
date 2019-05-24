@@ -40,12 +40,18 @@
          `(: bol (+ space) "error, called at" (+ space) ,file ":" ,num ":" ,num " in "))
        1 2 3 2 1)
 
-      ;; ghc information. It's better to not have -fhide-source-paths
+      ;; ghc information.
       (,(rx-to-string
-         `(: bol "[" ,num " of " ,num "] Compiling "
+         ;; Finds .hs references if `source-paths' are emitted
+         `(: bol "[" (* space) ,num (+ space) "of" (+ space) ,num "] Compiling "
              (group (+ (not (syntax whitespace))))
-             (? (* space) "(" (* space) ,file)))
-       4 nil nil 0 3 (3 'compilation-info))
+             (* space) "(" (* space) ,file))
+       4 nil nil 0 4)
+      (,(rx-to-string
+         ;; Highlights compilation progress
+         `(: bol "[" (* space) ,num (+ space) "of" (+ space) ,num "] Compiling "
+             (group (+ (not (syntax whitespace)))) (group word-end)))
+       nil nil nil 0 4 (1 'compilation-info) (2 'compilation-info) (3 'compilation-info))
       ))
   "The `compilation-error-regexp-alist' for `haskell-tng'.")
 

@@ -97,6 +97,7 @@
 
     ;; TODO implement more indentation rules
 
+    ;; 1. when writing do notation, should we align with the last do line or aim for continuations? sync with alts
     (:after
      (pcase arg
        ("where"
@@ -144,7 +145,9 @@ current line."
   (let ((the-line (line-number-at-pos))
         indents)
     (save-excursion
-      (when (re-search-backward haskell-tng:regexp:toplevel nil t)
+      (when (re-search-backward
+             (rx-to-string `(| ,haskell-tng:rx:toplevel (= 2 ?\n)))
+             nil t)
         (let ((start (point)))
           (while (< (line-number-at-pos) the-line)
             (push (current-indentation) indents) ;; this line's indentation
@@ -152,7 +155,7 @@ current line."
           (when (re-search-backward
                  (rx word-start (| "where" "let" "do" "case") word-end)
                  start t)
-            ;; TODO the next whitespace level after a WLDO (not a WLDC)
+            ;; TODO the next whitespace level after a WLDO (not a WLDC), not +2
             (push (+ 2 (current-column)) indents)))))
 
     (save-excursion
@@ -164,6 +167,8 @@ current line."
     (setq indents (sort indents '<))
     ;; TODO consider ordering alts, and cycling the list so the first suggestion
     ;; is the next one higher than the current indentation level.
+
+    ;; TODO indentation to current WLDO alignment should be a top priority
 
     ;; indentation of the next line is common for insert edits, top priority
     (save-excursion

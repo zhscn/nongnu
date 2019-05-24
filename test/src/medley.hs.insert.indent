@@ -19,7 +19,7 @@ module Foo.Bar.Main
 ) where
 v 1 2
 
-v 1 2
+v 1
 import           Control.Applicative (many, optional, pure, (<*>), (<|>))
 v 1
 import           Data.Foldable       (traverse_)
@@ -103,19 +103,19 @@ class Get a s where
   get :: Set s -> a
 1 2 3           4   v
 
-1 v             2
+1 v
 instance {-# OVERLAPS #-} Get a (a ': s) where
 2 1 v                                      3
   get (Ext a _) = a
 1 2 3               v                      4
 
-1 v                                        2
+1 v
 instance {-# OVERLAPPABLE #-} Get a s => Get a (b ': s) where
 2 1 v                                                     3
   get (Ext _ xs) = get xs
 1 2 3                  v                                  4
 
-1 v                                                       2
+1 v
 data Options = Options
 2 1              v
   { optionsReportType      :: ReportType
@@ -137,7 +137,7 @@ class  (Eq a) => Ord a  where
   max @Foo, min        :: a -> a -> a
 1 2 3                     4           v
 
-1 v                       2
+1 v
 instance (Eq a) => Eq (Tree a) where
 2 1 v                            3
   Leaf a         == Leaf b          =  a == b
@@ -147,7 +147,7 @@ instance (Eq a) => Eq (Tree a) where
   _              == _               =  False
 1 2 3                            4       v
 
-1 v                              2
+1 v
 data ReportType = Alloc   -- ^ Report allocations, percent
 2 3             1   v
                 | Entries -- ^ Report entries, number
@@ -169,7 +169,7 @@ type family G a where
   G a   = Char
 1 2 3       v     4
 
-1 v               2
+1 v
 data Flobble = Flobble
 2 1              v
   deriving (Eq) via (NonNegative (Large Int))
@@ -201,11 +201,11 @@ foo ::
     a b c)
 12  3 4  v
 
-v12 3
+v 1 2
 (foo :: (Wibble Wobble)) foo
-123 4                    v
+1 2 3                    v
 
-v12 3
+v 1
 newtype TestApp
 2 31    v
    (logger :: TestLogger)
@@ -239,7 +239,7 @@ optionsParser = Options
            Opts.help "meh"))
 1 2    3v 45 6
 
-1 2   v34 56
+1 2   v    3
 type PhantomThing
 1 2  v
 
@@ -265,7 +265,7 @@ type SomeApi =
                       :> Post '[JSON] (The Response)
 1 2    3              v 4                      5
 
-v 1    2              3                        4
+v 1                   2
 deriving instance FromJSONKey StateName
 v 1
 deriving anyclass instance FromJSON Base
@@ -287,6 +287,6 @@ foo = do
         (+) = _
 1 2 3   4 5     v
 
-1 2 3   4       v
+1 2     3       v
 test = 1 `shouldBe` 1
 v 1

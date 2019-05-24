@@ -105,6 +105,9 @@
        (1 'haskell-tng:keyword keep)
        (2 'haskell-tng:type keep))
 
+      ;; TODO unnamed newtype fields should be a type, not a constructor
+      ;; TODO bug, multiple standalone instance declarations in a row do not fire
+
       ;; TODO CPP #ifdef would be nice
 
       ;; EXT:TypeApplications: It is not easy to disambiguate between type
