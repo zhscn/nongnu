@@ -1,0 +1,292 @@
+v
+{-# LANGUAGE OverloadedStrings   #-}
+v 1
+{-# LANGUAGE ScopedTypeVariables #-}
+v 1
+
+v 1
+-- | This file is a medley of various constructs and some corner cases
+v 1
+module Foo.Bar.Main
+2 1              v
+  ( Wibble(..), Wobble(Wobb, (!!!)), Woo
+2 1 v
+  -- * Operations
+2 1 v
+  , getFooByBar, getWibbleByWobble
+1 v 2
+  , module Bloo.Foo
+1 v 2
+) where
+v 1 2
+
+1 v
+import           Control.Applicative (many, optional, pure, (<*>), (<|>))
+v 1
+import           Data.Foldable       (traverse_)
+v 1
+import           Data.Functor        ((<$>))
+v 1
+import           Data.List           (intercalate)
+v 1
+import           Data.Monoid         ((<>))
+v 1
+import qualified Options.Monad
+v 1
+import  qualified  Options.Applicative  as  Opts
+v 21
+import qualified Options.Divisible -- wibble (wobble)
+1 2    v
+   as Div
+v  1 2
+import qualified ProfFile.App        hiding (as, hiding, qualified)
+v 1
+import           ProfFile.App        (as, hiding, qualified)
+v 1
+import           ProfFile.App        hiding (as, hiding, qualified)
+v 1
+import qualified ProfFile.App        (as, hiding, qualified)
+v 2                                   1
+import           System.Exit         (ExitCode (..), exitFailure, qualified,
+1 2                                   v
+                                      Typey,
+1                                     v 2
+                                      wibble,
+1                                     v 2
+                                      Wibble)
+v                                     1 2
+import           System.FilePath     (replaceExtension, Foo(Bar, (:<)))
+v 2                                   1
+import           System.IO           (IOMode (..), hClose, hGetContents,
+1 2                                   v
+                                      hPutStr, hPutStrLn, openFile, stderr,
+1                                     v 2
+                                      stdout, MoarTypey)
+v                                     1 2
+import           System.Process      (CreateProcess (..), StdStream (..),
+1 2                                   v
+                                      createProcess, proc, waitForProcess)
+1                       v             2 3
+
+v 1                                   2
+-- some chars that should be propertized
+v 1                                   2
+chars = ['c', '\n', '\'']
+v 1
+
+v 1
+strings = ["", "\"\"", "\n\\ ", "\\"]
+v 1
+-- knownWrongEscape = "foo"\\"bar"
+v 1
+
+v 2     1
+multiline1 = "\
+1 2        v       3
+        \ "
+3 v     425        1
+multiline2 = "\
+1 2        v        3
+         \"
+2 v      3 4        1
+
+v 1      2
+difficult = foo' 'a' 2
+v 1
+
+v 1
+foo = "wobble (wibble)"
+v 1
+
+v 1
+class Get a s where
+1 2 v           3
+  get :: Set s -> a
+1 v 2           3
+
+v 1
+instance {-# OVERLAPS #-} Get a (a ': s) where
+1 2 v                                      3
+  get (Ext a _) = a
+1 v 2                                      3
+
+v 1
+instance {-# OVERLAPPABLE #-} Get a s => Get a (b ': s) where
+1 2 v                                                     3
+  get (Ext _ xs) = get xs
+1 v 2                                                     3
+
+v 1
+data Options = Options
+2 1              v
+  { optionsReportType      :: ReportType
+2 1 v
+  , optionsProfFile        :: Maybe FilePath
+1 v 2
+  , optionsOutputFile      :: Maybe FilePath
+1 v 2
+  , optionsFlamegraphFlags :: [String]
+1 v 2
+  } deriving (Eq, Show)
+v 1 2
+
+v 1
+class  (Eq a) => Ord a  where
+2 1 v                     3
+  (<), (<=), (>=), (>)  :: a -> a -> Bool
+v 1 2                     3
+  max @Foo, min        :: a -> a -> a
+1 v 2                     3
+
+v 1
+instance (Eq a) => Eq (Tree a) where
+2 1 v                            3
+  Leaf a         == Leaf b          =  a == b
+v 1 2                            3
+  (Branch l1 r1) == (Branch l2 r2)  =  (l1==l2) && (r1==r2)
+v 1 2                            3
+  _              == _               =  False
+1 v 2                            3
+
+v 2             1
+data ReportType = Alloc   -- ^ Report allocations, percent
+2 3             1   v
+                | Entries -- ^ Report entries, number
+1               v 2
+                | Time    -- ^ Report time spent in closure, percent
+1               v 2
+                | Ticks   -- ^ Report ticks, number
+1               v 2
+                | Bytes   -- ^ Report bytes allocated, number
+1               v 2
+                deriving (Eq, Show)
+v               1 2
+
+v 1             2
+type family G a where
+2 1 v             3
+  G Int = Bool
+v 1 2             3
+  G a   = Char
+1 v 2             3
+
+v 1
+data Flobble = Flobble
+2 1              v
+  deriving (Eq) via (NonNegative (Large Int))
+1 v 2
+  deriving stock (Floo)
+1 v 2
+  deriving anyclass (WibblyWoo, OtherlyWoo)
+v 1 2
+
+v 1
+newtype Flobby = Flobby
+v 1
+
+v12
+foo ::
+1 2 v
+ Wibble -- wibble
+v2 31
+    -> Wobble -- wobble
+v2  1 3
+    -> Wobble -- wobble
+v2  1 3
+    -> Wobble -- wobble
+v2  1 3
+    -> (wob :: Wobble)
+v2  1 3
+    -> (Wobble -- wobble
+12  3 4   v
+    a b c)
+v1  2 3
+
+v 1 2
+(foo :: (Wibble Wobble)) foo
+v 1 2
+
+v 21
+newtype TestApp
+2 31    v
+   (logger :: TestLogger)
+1  v 2
+   (scribe :: TestScribe)
+1  v 2
+   config
+1  v 2
+   a
+v  1 2
+   = TestApp a
+v  1 2
+
+v 12
+optionsParser :: Opts.Parser Options
+v 1
+optionsParser = Options
+2 3    1        v
+  <$> (Opts.flag' Alloc (Opts.long "alloc" <> Opts.help "wibble")
+2 3 4  1    v
+       <|> Opts.flag' Entries (Opts.long "entry" <> Opts.help "wobble")
+2 1    v 3
+       <|> Opts.flag' Bytes   (Opts.long "bytes" <> Opts.help "i'm a fish"))
+2 v    314
+  <*> optional
+2 3 4  5v 1
+        (Opts.strArgument
+2 3    45 61    v
+          (Opts.metavar "MY-FILE" <>
+1 2    34 5 6   v
+           Opts.help "meh"))
+1 2   v34 56 7
+
+v 1        2
+type PhantomThing
+v 1
+
+v 2    1
+type SomeApi =
+2 v                                            1
+       "thing" :> Capture "bar" Index :> QueryParam "wibble" Text
+2      3 4     v                               1
+                                               :> QueryParam "wobble" Natural
+1      2                                       v 3
+                                               :> Header TracingHeader TracingId
+1      2                                       v 3
+                                               :> ThingHeader
+2 1    3                                       v 4
+                                               :> Get '[JSON] (The ReadResult)
+2      3              1                        v 4
+  :<|> "thing" :> ReqBody '[JSON] Request
+2 v 3  4              1                        5
+                      :> Header TracingHeader TracingId
+1 2    3              v 4                      5
+                      :> SpecialHeader
+1 2    3              v 4                      5
+                      :> Post '[JSON] (The Response)
+v 1    2              3 4                      5
+
+v 1                   2
+deriving instance FromJSONKey StateName
+v 1
+deriving anyclass instance FromJSON Base
+v 1
+deriving newtype instance FromJSON Treble
+v 1
+
+v 1
+foo = do
+2 1 v   3
+  bar :: Wibble <- baz
+v 2 3   1
+  where baz = _
+1 2 3   v
+  -- checking that comments are ignored in layout
+1 2 3   v
+  -- and that a starting syntax entry is ok
+v 1 2
+        (+) = _
+1 2 3   4 5     v
+
+v 1     2
+test = 1 `shouldBe` 1

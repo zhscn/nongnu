@@ -106,6 +106,13 @@ information, to aid in the creation of new rules."
   (haskell-tng-smie:debug #'indent-for-tab-command))
 
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Indentation
+;;
+;; The concept of "virtual indentation" can be confusing. This function is
+;; called multiple times for a single indentation command. `:before' does not
+;; always mean that we are indenting the next token, but could be a request for
+;; the virtual indentation of the previous token. For example, consider a `do'
+;; block, we will get an `:after' and a `:before' on the `do' which may be at
+;; column 20 but virtually at column 0.
 (defun haskell-tng-smie:rules (method arg)
   ;; see docs for `smie-rules-function'
   (when haskell-tng-smie:debug
@@ -117,9 +124,7 @@ information, to aid in the creation of new rules."
        ('basic smie-indent-basic)
        ))
 
-    ;; TODO implement more indentation rules
-
-    ;; 1. when writing do notation, should we align with the last do line or aim for continuations? sync with alts
+    ;; FIXME implement the core indentation rules
     (:after
      (pcase arg
        ("where"
@@ -152,8 +157,10 @@ information, to aid in the creation of new rules."
             ;; TAB+TAB and RETURN+TAB
             (eq this-command last-command)
             (member last-command haskell-tng-smie:return)))
-      ;; avoid recalculating the prime indentation level
+      ;; avoid recalculating the prime indentation level (application of smie rules)
       (let ((prime (current-column)))
+        ;; Note that reindenting loses the original indentation level. This is
+        ;; by design: users can always undo / revert.
         (setq haskell-tng-smie:indentations
               (append
                ;; TODO backtab, does the cycle in reverse (use a local flag)
