@@ -5,14 +5,20 @@
 
 ;;; Commentary:
 ;;
-;;  SMIE precedence table, providing s-expression navigation, and indentation
-;;  rules.
+;;  SMIE precedence table and indentation rules.
 ;;
-;;  Although SMIE provides the primary indentation suggest (when the user types
-;;  RETURN), we cycle through alternative candidates on TAB. The philosophy is
-;;  not to try and get indentation right 100% of the time, but to get it right
-;;  90% of the time and make it so easy to fix it that it doesn't get in the
-;;  way.
+;;  Although SMIE provides the primary indentation suggestion, we cycle through
+;;  heuristic alternative candidates on subsequent presses of TAB.
+;;
+;;  The philosophy is not to get indentation right 100% of the time, but to get
+;;  it right 90% of the time and make it so easy to fix it that it doesn't get
+;;  in the way.
+;;
+;;  Interactive indentation is ambiguous in a whitespace sensitive language
+;;  because it is not known if the user wishes to continue the previous line,
+;;  create a new line at the same level, or close off the block. We try to err
+;;  on the side of "staying at the same level" (not escaping or closing a
+;;  previous line) when we can.
 ;;
 ;;  Users may consult the SMIE manual to customise their indentation rules:
 ;;  https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE
@@ -128,14 +134,14 @@ information, to aid in the creation of new rules."
     (:after
      (pcase arg
        ("where"
+        ;; TODO `module' doesn't trigger when writing a fresh file, it's coming
+        ;; up as before/after `{'.
         (if (smie-rule-parent-p "module")
             '(column . 0)
           smie-indent-basic))
        ((or "::" "=" "let" "do" "of" "{")
         smie-indent-basic)
        ))
-
-    ;; TODO :before rules
     ))
 
 (defconst haskell-tng-smie:return
@@ -225,8 +231,6 @@ current line."
    'smie-indent-functions
    #'haskell-tng-smie:indent-cycle
    nil 'local)
-
-  ;; TODO alternative to indent-for-tab-command that does alignment
 
   (smie-setup
    haskell-tng-smie:grammar

@@ -103,6 +103,7 @@ Some blue sky features are being considered but may be best as independent proje
 - identify trivial / helper functions and forward their `edit-definition` to another location.
 - Code gen
   - `instance` boilerplate
+  - record of functions boilerplate
 - Refactoring
   - be compatible with [`apply-refact`](https://github.com/mpickering/apply-refact) / [`hlint-refactor-mode`](https://github.com/mpickering/hlint-refactor-mode)
   - insert explicit list of exports

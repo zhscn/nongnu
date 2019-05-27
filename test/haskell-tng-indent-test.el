@@ -26,6 +26,8 @@
   ;; Test 1 involves a lot of buffer refreshing and will be very slow.
 
 (ert-deftest haskell-tng-newline-indent-file-tests ()
+  (should (have-expected-newline-indent-insert (testdata "src/indentation.hs")))
+
   (should (have-expected-newline-indent-insert (testdata "src/layout.hs")))
   (should (have-expected-newline-indent-insert (testdata "src/medley.hs")))
   ;; TODO more tests
@@ -33,11 +35,10 @@
   )
 
 (ert-deftest haskell-tng-reindent-file-tests ()
+  (should (have-expected-reindent-insert (testdata "src/indentation.hs")))
+
   (should (have-expected-reindent-insert (testdata "src/layout.hs")))
   (should (have-expected-reindent-insert (testdata "src/medley.hs")))
-
-  ;; FIXME a test file specifically for common indentation situations to
-  ;; define a spec.
   )
 
 (defun current-line-string ()
