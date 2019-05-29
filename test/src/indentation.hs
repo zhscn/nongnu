@@ -3,19 +3,46 @@
 --   Bugs and unexpected behaviour in (re-)indentation may be documented here.
 module Indentation where
 
--- A basic `do` block using virtual indentation to suggest the whitespace
+import Foo.Bar
+import Foo.Baz hiding ( gaz,
+                        baz
+                      )
+
 basic_do = do
-  -- TODO do should have virtual indentation of 0, so this is at 2
-  foo = blah blah blah
-  -- TODO should suggest that bar is a binding
-  bar = blah blah
-        blah -- manual continuation, should be 1st alt TODO
-        blah -- continue what we were doing, should be the SMIE rule
+  foo <- blah blah blah
+  bar <- blah blah -- TODO same level as foo
+         blah -- TODO manual correction
+         blah -- continue the blah
+  sideeffect -- manual correction
+  sideeffect' blah
+  let baz = blah blah
+            blah -- TODO manual correction
+      gaz = blah -- TODO same level as baz
+      haz =      -- TODO same level as gaz
+        blah
+  let -- manual correction
+    waz =
+      blah blah
+  pure faz -- manual correction
 
--- TODO `do` with manual layout
--- TODO nested `do`
+nested_do =
+  do foo <- blah
+     do bar <- blah -- TODO same level as foo
+        baz -- TODO same level as bar
 
+nested_where a b = foo a b
+  where -- TODO 2
+    foo = bar baz -- TODO indented
+    baz = blah blah -- TODO same level as foo
+      where -- manual correction
+        gaz a = blah -- TODO indented
+        faz = blah -- TODO same level as gaz
+
+-- TODO case statements
+-- TODO let / in
 
 -- TODO coproduct definitions, the | should align with =
 
--- TODO lists
+-- TODO lists, records, tuples
+
+-- TODO long type signatures vs definitions

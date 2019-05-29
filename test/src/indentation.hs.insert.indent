@@ -1,42 +1,96 @@
 -- | Idealised indentation scenarios.
-v 1
+v
 --
-v 1
+v
 --   Bugs and unexpected behaviour in (re-)indentation may be documented here.
-v 1
+v
 module Indentation where
-v 1                  2
+v
 
-v 1
--- A basic `do` block using virtual indentation to suggest the whitespace
-v 1           2
+v
+import Foo.Bar
+v
+import Foo.Baz hiding ( gaz,
+1                       v
+                        baz
+2                     1 v
+                      )
+v                     1 2
+
+v                     1 2
 basic_do = do
-2 1          v
-  -- TODO do should have virtual indentation of 0, so this is at 2
-2 1 3       4v
-  foo = blah blah blah
-2 1 3       4v
-  -- TODO should suggest that bar is a binding
-2 1 3       4v
-  bar = blah blah
-2 3 4   1   5v
-        blah -- manual continuation, should be 1st alt TODO
-1 2     v 3 4
-        blah -- continue what we were doing, should be the SMIE rule
-1 2     v 3 4
+1 v
+  foo <- blah blah blah
+2 1      v
+  bar <- blah blah -- TODO same level as foo
+2 1      v
+         blah -- TODO manual correction
+1 2      v
+         blah -- continue the blah
+2 1      v
+  sideeffect -- manual correction
+1 v      2
+  sideeffect' blah
+2 v   1  3
+  let baz = blah blah
+3 2   1  4  v
+            blah -- TODO manual correction
+2 3   1  4  v
+      gaz = blah -- TODO same level as baz
+2 3   1  4  v
+      haz =      -- TODO same level as gaz
+2 3   1 v4  5
+        blah
+2 1   3 v4  5
+  let -- manual correction
+2 1 v 3 45  6
+    waz =
+2 3 1 v 45  6
+      blah blah
+2 1 3 v 45  6
+  pure faz -- manual correction
+1 v 2 3 45  6
 
-1 2     v
--- TODO `do` with manual layout
-1 2     v  3
--- TODO nested `do`
-1 2     v         3
+1 v 2 3 45  6
+nested_do =
+1 v  2
+  do foo <- blah
+3    1  2   v
+     do bar <- blah -- TODO same level as foo
+3    2  1      v
+        baz -- TODO same level as bar
+1    2  v
 
-1 2     v
+1    2  v
+nested_where a b = foo a b
+1                  v
+  where -- TODO 2
+1   v
+    foo = bar baz -- TODO indented
+2   1     v
+    baz = blah blah -- TODO same level as foo
+2   1     v
+      where -- manual correction
+1   2   v
+        gaz a = blah -- TODO indented
+2   3   1       v
+        faz = blah -- TODO same level as gaz
+2   3   1     v
 
-1 2     v
+1   2   3     v
+-- TODO case statements
+1   2   3     v
+-- TODO let / in
+1   2   3     v
+
+1   2   3     v
 -- TODO coproduct definitions, the | should align with =
-1 2     v
+1   2   3     v
 
-1 2     v
--- TODO lists
-1 2     v
+1   2   3     v
+-- TODO lists, records, tuples
+1   2   3     v
+
+1   2   3     v
+-- TODO long type signatures vs definitions
+1   2   3     v

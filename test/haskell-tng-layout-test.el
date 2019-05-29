@@ -15,6 +15,8 @@
   ;; the Haskell2010 test case
   (should (have-expected-layout (testdata "src/layout.hs")))
 
+  (should (have-expected-layout (testdata "src/indentation.hs")))
+
   (should (have-expected-layout (testdata "src/medley.hs")))
   )
 

@@ -30,8 +30,6 @@
 
   (should (have-expected-newline-indent-insert (testdata "src/layout.hs")))
   (should (have-expected-newline-indent-insert (testdata "src/medley.hs")))
-  ;; TODO more tests
-  ;; https://raw.githubusercontent.com/kadena-io/chainweb-node/master/test/Chainweb/Test/TreeDB.hs
   )
 
 (ert-deftest haskell-tng-reindent-file-tests ()

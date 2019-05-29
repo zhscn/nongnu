@@ -45,6 +45,8 @@ the layout engine."
 
 ;; TODO a visual debugging option would be great, showing virtuals as overlays
 
+;; EXT:NonDecreasingIndentation
+
 (defun haskell-tng-layout:virtuals-at-point ()
   "List of virtual `{' `}' and `;' at point, according to the
 Haskell2010 Layout rules.

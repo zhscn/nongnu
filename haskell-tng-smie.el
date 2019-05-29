@@ -123,25 +123,36 @@ information, to aid in the creation of new rules."
   ;; see docs for `smie-rules-function'
   (when haskell-tng-smie:debug
     (with-current-buffer haskell-tng-smie:debug
-      (insert (format "INDENT %S %S\n" method arg))))
+      (insert (format "RULES: %S %S\n" method arg))))
+
+  ;; FIXME core indentation rules
   (pcase method
+
     (:elem
      (pcase arg
-       ('basic smie-indent-basic)
+       ((or 'empty-line-token 'args) 0)
        ))
 
-    ;; FIXME implement the core indentation rules
+    (:list-intro
+     ;; TODO could consult a local table that is populated by an external tool
+     ;; containing the parameter requirements for function calls to let us know
+     ;; if it's a single statement or many.
+     (pcase arg
+       ;; FIXME this should return bool
+       ((or "CONID" "VARID" "}" "<-" "=") 0)
+       ))
+
     (:after
      (pcase arg
-       ("where"
-        ;; TODO `module' doesn't trigger when writing a fresh file, it's coming
-        ;; up as before/after `{'.
-        (if (smie-rule-parent-p "module")
-            '(column . 0)
-          smie-indent-basic))
-       ((or "::" "=" "let" "do" "of" "{")
-        smie-indent-basic)
+       ((or "let" "do" "=") 2)
+       ("where" (if (smie-rule-parent-p "module") 0 2))
        ))
+
+    (:before
+     (pcase arg
+       ((or "{" "where" "do") (smie-rule-parent))
+       ))
+
     ))
 
 (defconst haskell-tng-smie:return
@@ -155,64 +166,64 @@ information, to aid in the creation of new rules."
   ;; (including a recursive call to `smie-indent-calculate') and put them into a
   ;; ring that we cycle, or we push/pop with recalculation. We choose the
   ;; latter, because cache invalidation is easier.
-  (if (member this-command haskell-tng-smie:return)
+  (if (or (member this-command haskell-tng-smie:return)
+          (not
+           (or (eq this-command last-command)
+               (member last-command haskell-tng-smie:return))))
       (setq haskell-tng-smie:indentations nil)
-    (when (and
-           (null haskell-tng-smie:indentations)
-           (or
-            ;; TAB+TAB and RETURN+TAB
-            (eq this-command last-command)
-            (member last-command haskell-tng-smie:return)))
-      ;; avoid recalculating the prime indentation level (application of smie rules)
+    ;; TAB+TAB or RETURN+TAB
+    (when (null haskell-tng-smie:indentations)
       (let ((prime (current-column)))
-        ;; Note that reindenting loses the original indentation level. This is
-        ;; by design: users can always undo / revert.
         (setq haskell-tng-smie:indentations
               (append
-               ;; TODO backtab, does the cycle in reverse (use a local flag)
+               ;; TODO backtab cycle in reverse
                (-remove-item prime (haskell-tng-smie:indent-alts))
                (list prime))))))
+  (when haskell-tng-smie:debug
+    (when-let (alts haskell-tng-smie:indentations)
+      (with-current-buffer haskell-tng-smie:debug
+        (insert (format "ALTS: %S\n" alts)))))
   (pop haskell-tng-smie:indentations))
 
 (defun haskell-tng-smie:indent-alts ()
   "Returns a list of alternative indentation levels for the
 current line."
-  (let ((the-line (line-number-at-pos))
+  (let ((pos (point))
         indents)
     (save-excursion
-      (when (re-search-backward
-             (rx-to-string `(| ,haskell-tng:rx:toplevel (= 2 ?\n)))
-             nil t)
-        (let ((start (point)))
-          (while (< (line-number-at-pos) the-line)
-            (push (current-indentation) indents) ;; this line's indentation
-            (forward-line))
-          (when (re-search-backward
-                 (rx word-start (| "where" "let" "do" "case") word-end)
-                 start t)
-            ;; TODO the next whitespace level after a WLDO (not a WLDC), not +2
-            (push (+ 2 (current-column)) indents)))))
-
-    (save-excursion
-      (forward-line -1)
-      (when (/= the-line (line-number-at-pos))
-        (push (+ 2 (current-indentation)) indents)))
+      (end-of-line 0)
+      (re-search-backward haskell-tng:regexp:toplevel nil t)
+      (when-let (new (haskell-tng-smie:relevant-alts pos))
+        (setq indents (append new indents))))
 
     ;; alts are easier to use when ordered
     (setq indents (sort indents '<))
-    ;; TODO consider ordering alts, and cycling the list so the first suggestion
-    ;; is the next one higher than the current indentation level.
 
-    ;; TODO indentation to current WLDO alignment should be a top priority
-
-    ;; indentation of the next line is common for insert edits, top priority
-    (save-excursion
-      (forward-line)
-      (forward-comment (point-max))
-      (when (/= the-line (line-number-at-pos))
-        (push (current-indentation) indents)))
+    ;; previous / next line should be top priority alts
+    (--each '(1 -1)
+      (save-excursion
+        (forward-line it)
+        (when-let (new (haskell-tng-smie:relevant-alts (point-at-eol)))
+          (setq indents (append new indents)))))
 
     (-distinct indents)))
+
+(defun haskell-tng-smie:relevant-alts (bound)
+  "A list of indentation levels from point to BOUND."
+  (let ((start (point))
+        relevant)
+    (while (< (point) bound)
+      (when (not
+             (looking-at
+              (rx (* space) (| "where" "let" "do") word-end)))
+        (push (current-indentation) relevant))
+      (forward-line))
+    (goto-char start)
+    (while (< (point) bound)
+      (when (haskell-tng-layout:virtuals-at-point)
+        (push (current-column) relevant))
+      (forward-char))
+    relevant))
 
 (defun haskell-tng-smie:setup ()
   (setq-local smie-indent-basic 2)
@@ -236,7 +247,11 @@ current line."
    haskell-tng-smie:grammar
    #'haskell-tng-smie:rules
    :forward-token #'haskell-tng-lexer:forward-token
-   :backward-token #'haskell-tng-lexer:backward-token))
+   :backward-token #'haskell-tng-lexer:backward-token)
+
+  ;; disables blinking paren matching based on grammar
+  (setq smie-closer-alist nil)
+  )
 
 ;; SMIE wishlist, in order of desirability:
 ;;

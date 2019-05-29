@@ -21,9 +21,9 @@
 ;; tokens.
 
 (ert-deftest haskell-tng-sexp-file-tests ()
-  ;; some bizarre output here:
-  ;; 1. `size' definition has an s-exp that extends to the end of `top'
   (should (have-expected-sexps (testdata "src/layout.hs")))
+
+  (should (have-expected-sexps (testdata "src/indentation.hs")))
 
   (should (have-expected-sexps (testdata "src/grammar.hs")))
 
