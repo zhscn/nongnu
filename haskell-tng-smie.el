@@ -57,6 +57,7 @@
       ;; commas only allowed in brackets
       (list
        ("(" list ")")
+       ("{" list "}")
        ("[" list "]") ;; includes DataKinds
        (list "," list))
 
@@ -71,6 +72,7 @@
        ("module" blk "where" blk)
        (blk "where" blk)
        ("let" blk "in")
+       ("let" blk)
        ("do" blk)
        ("case" id "of" blk))
       (blk
@@ -122,8 +124,9 @@ information, to aid in the creation of new rules."
 (defun haskell-tng-smie:rules (method arg)
   ;; see docs for `smie-rules-function'
   (when haskell-tng-smie:debug
-    (with-current-buffer haskell-tng-smie:debug
-      (insert (format "RULES: %S %S\n" method arg))))
+    (let ((sym (symbol-at-point)))
+      (with-current-buffer haskell-tng-smie:debug
+        (insert (format "RULES: %S %S %S\n" method arg sym)))))
 
   ;; FIXME core indentation rules
   (pcase method
@@ -131,15 +134,21 @@ information, to aid in the creation of new rules."
     (:elem
      (pcase arg
        ((or 'empty-line-token 'args) 0)
+       ('basic 0)
        ))
 
+    ;; It looks like all patterns of the form
+    ;;
+    ;;   {TOKEN TOKEN HEAD ; A ; B ; ...}
+    ;;
+    ;; are showing up as `:list-intro "HEAD"` in positions A and B.
     (:list-intro
      ;; TODO could consult a local table that is populated by an external tool
      ;; containing the parameter requirements for function calls to let us know
      ;; if it's a single statement or many.
      (pcase arg
-       ;; FIXME this should return bool
-       ((or "CONID" "VARID" "}" "<-" "=") 0)
+       ;; TODO this is a hack to workaround broken list detection
+       ((or "CONID" "VARID" "}" "<-" "=") t)
        ))
 
     (:after
@@ -226,8 +235,6 @@ current line."
     relevant))
 
 (defun haskell-tng-smie:setup ()
-  (setq-local smie-indent-basic 2)
-
   (add-hook
    'after-change-functions
    #'haskell-tng-layout:cache-invalidation

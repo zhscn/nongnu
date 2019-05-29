@@ -13,9 +13,11 @@
 
 (ert-deftest haskell-tng-lexer-file-tests ()
   (should (have-expected-forward-lex (testdata "src/layout.hs")))
+  (should (have-expected-forward-lex (testdata "src/indentation.hs")))
   (should (have-expected-forward-lex (testdata "src/medley.hs")))
 
   (should (have-expected-backward-lex (testdata "src/layout.hs")))
+  (should (have-expected-backward-lex (testdata "src/indentation.hs")))
   (should (have-expected-backward-lex (testdata "src/medley.hs")))
   )
 

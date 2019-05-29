@@ -1,0 +1,46 @@
+
+
+
+module CONID where
+
+{ import CONID
+; import CONID VARID « VARID ,
+VARID
+»
+
+; VARID = do
+{ VARID <- VARID VARID VARID
+; VARID <- VARID VARID
+VARID
+VARID
+; VARID
+; VARID VARID
+; let { VARID = VARID VARID
+VARID
+; VARID = VARID
+; VARID =
+VARID
+} ; VARID VARID
+
+} ; VARID =
+do { VARID <- VARID
+; do { VARID <- VARID
+; VARID
+
+} } ; VARID VARID VARID = VARID VARID VARID
+where
+{ VARID = VARID VARID
+; VARID = VARID VARID
+where
+{ VARID VARID = VARID
+; VARID = VARID
+
+
+
+
+
+
+
+
+
+} } }

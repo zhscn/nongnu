@@ -42,17 +42,11 @@ v 3   1 24  5
       haz =      -- TODO same level as gaz
 3 2   1 v4  5
         blah
-3 v 2 4 15  6
-  let -- manual correction
-3 1 v 2 45  6
-    waz =
-3 2 1 v 45  6
-      blah blah
-2 v 3 1 45  6
+2 v   3 14  5
   pure faz -- manual correction
-1 v 2 3 45  6
+1 v   2 34  5
 
-v 2 314 56  7
+v 2  13 45  6
 nested_do =
 v       1
   do foo <- blah

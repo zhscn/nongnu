@@ -20,9 +20,6 @@ module Indentation where
       ;gaz = blah -- TODO same level as baz
       ;haz =      -- TODO same level as gaz
         blah
-  };let -- manual correction
-    {waz =
-      blah blah
   };pure faz -- manual correction
 
 };nested_do =
