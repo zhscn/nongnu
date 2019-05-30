@@ -20,8 +20,7 @@
 ;;  on the side of "staying at the same level" (not escaping or closing a
 ;;  previous line) when we can.
 ;;
-;;  Users may consult the SMIE manual to customise their indentation rules:
-;;  https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE
+;;  All the good ideas are from Stefan Monnier, all the bad ones are mine.
 ;;
 ;;; Code:
 
@@ -33,6 +32,9 @@
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Grammar
 ;; https://www.haskell.org/onlinereport/haskell2010/haskellch3.html
 ;; https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/parser/Parser.y
+;;
+;; See also the documentation for `smie-bnf->prec2' which tends to be more up to
+;; date.
 ;;
 ;; Many of these grammar rules cannot be expressed in SMIE because Haskell uses
 ;; whitespace separators a lot, whereas the BNF must use non-terminals.
@@ -115,12 +117,15 @@ information, to aid in the creation of new rules."
 
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Indentation
 ;;
+;; See also the documentation for `smie-rules-function', which tends to be more
+;; up to date.
+;;
 ;; The concept of "virtual indentation" can be confusing. This function is
 ;; called multiple times for a single indentation command. `:before' does not
-;; always mean that we are indenting the next token, but could be a request for
-;; the virtual indentation of the previous token. For example, consider a `do'
-;; block, we will get an `:after' and a `:before' on the `do' which may be at
-;; column 20 but virtually at column 0.
+;; mean that we are indenting the next token, but is a request for the virtual
+;; indentation of that token. For example, consider a `do' block, we may get an
+;; `:after' and a `:before' for `do' which may be at column 20 but virtually at
+;; column 0.
 (defun haskell-tng-smie:rules (method arg)
   ;; see docs for `smie-rules-function'
   (when haskell-tng-smie:debug
@@ -133,22 +138,28 @@ information, to aid in the creation of new rules."
 
     (:elem
      (pcase arg
-       ((or 'empty-line-token 'args) 0)
-       ('basic 0)
+       ((or 'args 'basic) 0)
+
+       ;; TODO consult a local table, populated by an external tool, containing
+       ;; the parameter requirements for function calls. For simple cases, we
+       ;; should be able to infer if the user wants to terminate ; or continue
+       ;; "" the current line.
+       ;;
+       ;; TODO if there is already an empty lines before here, perhaps best to
+       ;;      close out the indentation with a }.
+       ('empty-line-token ";")
        ))
 
-    ;; It looks like all patterns of the form
+    ;; Patterns of the form
     ;;
     ;;   {TOKEN TOKEN HEAD ; A ; B ; ...}
     ;;
-    ;; are showing up as `:list-intro "HEAD"` in positions A and B.
+    ;; get called with `:list-intro "HEAD"` when indenting positions A and B.
     (:list-intro
-     ;; TODO could consult a local table that is populated by an external tool
-     ;; containing the parameter requirements for function calls to let us know
-     ;; if it's a single statement or many.
      (pcase arg
-       ;; TODO this is a hack to workaround broken list detection
-       ((or "CONID" "VARID" "}" "<-" "=") t)
+       ;; TODO work out why we need these list-intro rules. Re-indentation of
+       ;; continued lines in WLDOs don't behave as expected without.
+       ((or "<-" "=") t)
        ))
 
     (:after
@@ -226,6 +237,8 @@ current line."
              (looking-at
               (rx (* space) (| "where" "let" "do") word-end)))
         (push (current-indentation) relevant))
+      ;; TODO when there is a <- add its close +4 (possibly just for the
+      ;; immediately previous line).
       (forward-line))
     (goto-char start)
     (while (< (point) bound)
