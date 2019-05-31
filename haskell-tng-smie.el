@@ -242,7 +242,7 @@ current line."
       (forward-line))
     (goto-char start)
     (while (< (point) bound)
-      (when (haskell-tng-layout:virtuals-at-point)
+      (when (haskell-tng-layout:has-virtual-at-point)
         (push (current-column) relevant))
       (forward-char))
     relevant))

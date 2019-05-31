@@ -73,10 +73,13 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
    font-lock-multiline t
    font-lock-extend-region-functions haskell-tng:extend-region-functions
 
-   ;; whitespace is meaningful, no electric indentation
-   electric-indent-inhibit t
-
    prettify-symbols-alist haskell-tng-mode:prettify-symbols)
+
+  ;; whitespace is meaningful, disable electric indentation. Note that
+  ;; `electric-indent-inhibit' causes a performance regression in SMIE
+  ;; indentation, so it's best to just make sure it is disabled.
+  (electric-indent-mode 0)
+
   (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle .")
   (setq-local smie-blink-matching-inners nil) ;; c.f. `smie-closer-alist'
 

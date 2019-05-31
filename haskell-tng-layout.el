@@ -32,7 +32,13 @@
 ;;
 ;; Anything more complicated that small brain needs improved testing.
 
+(require 'dash)
+
 (require 'haskell-tng-util)
+
+;; FIXME only search up to one line for the WLDO opener, otherwise close it out
+;; with {} This is not valid compiling Haskell code, but it allows SMIE to close
+;; off the s-expression.
 
 ;; Easiest cache... full buffer parse with full invalidation on any insertion.
 (defvar-local haskell-tng-layout:cache nil)
@@ -73,6 +79,14 @@ Designed to be called repeatedly, managing its own caching."
                 (when (= line pos)
                   (push ";" breaks))))))
         (append (reverse closes) (reverse breaks))))))
+
+(defun haskell-tng-layout:has-virtual-at-point ()
+  "t if there is a virtual at POINT"
+  ;; avoids a measured performance hit (append indentation)
+  (unless haskell-tng-layout:cache
+    (haskell-tng-layout:rebuild-cache-full))
+  (--any (member (point) it)
+         haskell-tng-layout:cache))
 
 (defun haskell-tng-layout:rebuild-cache-full ()
   (let (case-fold-search
