@@ -44,6 +44,11 @@ Alternatively, if MODE is a buffer object, run TO-STRING there instead."
           (write-region got nil golden)
           nil))))
 
+(defun haskell-tng-testutils:current-line-string ()
+  (buffer-substring-no-properties
+   (line-beginning-position)
+   (line-end-position)))
+
 (defun testdata (file)
   (expand-file-name
    file

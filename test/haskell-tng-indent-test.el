@@ -26,12 +26,14 @@
 ;; Test 1 involves a lot of buffer refreshing and will be very slow.
 
 (ert-deftest haskell-tng-append-indent-file-tests ()
-  ;; this is a very slow test
-
   ;; (require 'profiler)
   ;; (profiler-start 'cpu)
 
   (should (have-expected-append-indent (testdata "src/indentation.hs")))
+
+  ;;(should (have-expected-append-indent (testdata "src/layout.hs")))
+  ;; this test is slow
+  ;;(should (have-expected-append-indent (testdata "src/medley.hs")))
 
   ;; (profiler-report)
   ;; (profiler-report-write-profile "indentation.profile")
@@ -56,27 +58,22 @@
   ;; (should (have-expected-reindent (testdata "src/medley.hs")))
   )
 
-(defun current-line-string ()
-  (buffer-substring-no-properties
-   (line-beginning-position)
-   (- (line-beginning-position 2) 1)))
 
 (defun haskell-tng-indent-test:work (mode)
-  "MODE can be 'insert, 'reindent, or 'append.
-
-'append is VERY slow."
-  ;; each line could be done in parallel, if emacs allowed such a thing...
-  (let (indents kill)
-    (while (not (eobp))
+  "MODE can be 'insert, 'reindent, or 'append."
+  (let (indents lines)
+    (pcase mode
+      ('append
+       (setq lines (split-string (buffer-string) (rx ?\n)))
+       (delete-region (point-min) (point-max))))
+    (while (pcase mode
+             ('append lines)
+             (_ (not (eobp))))
       ;; the command loop is necessary for this/last-command
+      (when lines
+        (insert (pop lines)))
       (cl-flet ((RET ()
                      (end-of-line)
-                     (pcase mode
-                       ('append
-                        (setq kill ;; kill-region/yank is noisy
-                              (buffer-substring-no-properties
-                               (point) (point-max)))
-                        (delete-region (point) (point-max))))
                      (ert-simulate-command '(newline-and-indent))
                      (current-column))
                 (TAB ()
@@ -84,7 +81,7 @@
                      (current-column)))
 
         (let ((orig (current-indentation))
-              (line (current-line-string))
+              (line (haskell-tng-testutils:current-line-string))
               (prime (pcase mode
                        ((or 'insert 'append) (RET))
                        ('reindent (TAB))))
@@ -99,16 +96,16 @@
           ;; unfortunately killing resets this-command so we can't test double
           ;; newline insertions, which could accidentally trigger alts only.
           (pcase mode
-            ('insert (kill-whole-line))
+            ('insert
+             (beginning-of-line)
+             (when (not (eobp))
+               (kill-whole-line)))
+            ('append
+             (beginning-of-line)
+             (when (not (eobp))
+               (delete-region (point) (point-max))))
             ('reindent
              (indent-line-to orig)
-             (ert-simulate-command '(forward-line)))
-            ('append
-             (forward-line -1)
-             (end-of-line)
-             (save-excursion
-               (insert kill)
-               (delete-region (point) (point-max)))
              (ert-simulate-command '(forward-line)))))))
     (reverse indents)))
 
