@@ -84,19 +84,19 @@ v   2   1
         faz = blah -- same level as gaz
 1   2   v
 
-v   1   2
+1   2   3     v
 -- TODO case statements
-v   1   2
+1   2   3     v
 -- TODO let / in
 1   2   v
 
-v   1   2
+1   2   3     v
 -- TODO coproduct definitions, the | should align with =
 1   2   v
 
-v   1   2
+1   2   3     v
 -- TODO lists, records, tuples
 1   2   v
 
-v   1   2
+1   2   3     v
 -- TODO long type signatures vs definitions

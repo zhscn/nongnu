@@ -144,10 +144,10 @@ information, to aid in the creation of new rules."
        ;; the parameter requirements for function calls. For simple cases, we
        ;; should be able to infer if the user wants to terminate ; or continue
        ;; "" the current line.
-       ;;
-       ;; TODO if there is already an empty lines before here, perhaps best to
-       ;;      close out the indentation with a }.
-       ('empty-line-token ";")
+       ('empty-line-token
+        ;; BUG smie-rule-next-p needs smie--after to be defined
+        (setq smie--after (point))
+        (when (smie-rule-next-p ";" "}") ";"))
        ))
 
     ;; Patterns of the form
@@ -157,8 +157,6 @@ information, to aid in the creation of new rules."
     ;; get called with `:list-intro "HEAD"` when indenting positions A and B.
     (:list-intro
      (pcase arg
-       ;; TODO work out why we need these list-intro rules. Re-indentation of
-       ;; continued lines in WLDOs don't behave as expected without.
        ((or "<-" "=") t)
        ))
 
@@ -268,9 +266,6 @@ current line."
    #'haskell-tng-smie:rules
    :forward-token #'haskell-tng-lexer:forward-token
    :backward-token #'haskell-tng-lexer:backward-token)
-
-  ;; disables blinking paren matching based on grammar
-  (setq smie-closer-alist nil)
   )
 
 ;; SMIE wishlist, in order of desirability:

@@ -35,9 +35,9 @@ basic_do = do
   foo <- blah blah blah
 1 v
   bar <- blah blah
-2 v      1
+2 1      v
          blah -- manual correction
-2 v      1
+1 2      v
          blah -- manual correction
 2 v      1
   sideeffect
@@ -45,7 +45,7 @@ basic_do = do
   sideeffect' blah
 2 v   1  3
   let baz = blah blah
-3 1   v  4  2
+3 2   1  4  v
             blah -- manual correction
 2 3   v  4  1
       gaz = blah
@@ -69,13 +69,13 @@ nested_do = -- manual correction
 
 1    2  v
 nested_where a b = foo a b
-v
+1                  v
   where -- TODO 2
 1   v
     foo = bar baz -- indented
 1   v
     baz = blah blah -- same level as foo
-1   v
+2   1     v
       where -- manual correction
 1   2   v
         gaz a = blah -- indented
