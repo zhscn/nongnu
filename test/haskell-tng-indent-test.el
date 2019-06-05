@@ -26,20 +26,17 @@
 ;; Test 1 involves a lot of buffer refreshing and will be very slow.
 
 (ert-deftest haskell-tng-append-indent-file-tests ()
-  ;; (require 'profiler)
-  ;; (profiler-start 'cpu)
-
   (should (have-expected-append-indent (testdata "src/indentation.hs")))
 
   ;;(should (have-expected-append-indent (testdata "src/layout.hs")))
-  ;; this test is slow
-  ;;(should (have-expected-append-indent (testdata "src/medley.hs")))
 
+  ;; this test is slow
+  ;; (require 'profiler)
+  ;; (profiler-start 'cpu)
+  ;; (should (have-expected-append-indent (testdata "src/medley.hs")))
   ;; (profiler-report)
   ;; (profiler-report-write-profile "indentation.profile")
   ;; (profiler-stop)
-
-  ;; To interactively inspect
   ;; (profiler-find-profile "../indentation.profile")
   )
 
@@ -65,7 +62,12 @@
     (pcase mode
       ('append
        (setq lines (split-string (buffer-string) (rx ?\n)))
-       (delete-region (point-min) (point-max))))
+       (delete-region (point-min) (point-max))
+
+       ;; TODO SMIE doesn't request forward tokens from the lexer when the point
+       ;; is at point-max, so add some whitespace at the end.
+       (save-excursion
+         (insert "\n\n"))))
     (while (pcase mode
              ('append lines)
              (_ (not (eobp))))
@@ -81,7 +83,9 @@
                      (current-column)))
 
         (let ((orig (current-indentation))
-              (line (haskell-tng-testutils:current-line-string))
+              (line (buffer-substring-no-properties
+                     (line-beginning-position)
+                     (line-end-position)))
               (prime (pcase mode
                        ((or 'insert 'append) (RET))
                        ('reindent (TAB))))
@@ -103,7 +107,7 @@
             ('append
              (beginning-of-line)
              (when (not (eobp))
-               (delete-region (point) (point-max))))
+               (delete-region (point) (line-end-position))))
             ('reindent
              (indent-line-to orig)
              (ert-simulate-command '(forward-line)))))))

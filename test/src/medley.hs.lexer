@@ -144,4 +144,6 @@ CONSYM CONID « CONID » « CONID CONID »
 ; « SYMID » = _
 
 } } ; VARID = 1 SYMID 1
-}
+
+; VARID = do
+{ } }

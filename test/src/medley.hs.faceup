@@ -144,3 +144,6 @@
 »        «:haskell-tng:keyword:(»+«:haskell-tng:keyword:)» «:haskell-tng:keyword:=» «:haskell-tng:keyword:_»
 
 «:haskell-tng:toplevel:test» «:haskell-tng:keyword:=» 1 `shouldBe` 1
+
+«:haskell-tng:toplevel:bar» «:haskell-tng:keyword:=» «:haskell-tng:keyword:do» «m:-- »«x:an incomplete do block
+»

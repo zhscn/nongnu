@@ -144,3 +144,5 @@ foo = do
         (+) = _
 
 test = 1 `shouldBe` 1
+
+bar = do -- an incomplete do block

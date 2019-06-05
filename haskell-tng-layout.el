@@ -36,11 +36,9 @@
 
 (require 'haskell-tng-util)
 
-;; FIXME only search up to one line for the WLDO opener, otherwise close it out
-;; with {} This is not valid compiling Haskell code, but it allows SMIE to close
-;; off the s-expression.
-
 ;; Easiest cache... full buffer parse with full invalidation on any insertion.
+;;
+;; A list of (OPEN . (CLOSE . SEPS)) positions, one per inferred block.
 (defvar-local haskell-tng-layout:cache nil)
 
 (defun haskell-tng-layout:cache-invalidation (_beg _end _pre-length)
@@ -52,6 +50,7 @@ the layout engine."
 ;; TODO a visual debugging option would be great, showing virtuals as overlays
 
 ;; EXT:NonDecreasingIndentation
+;; EXT:LambdaCase
 
 (defun haskell-tng-layout:virtuals-at-point ()
   "List of virtual `{' `}' and `;' at point, according to the
@@ -61,24 +60,21 @@ Designed to be called repeatedly, managing its own caching."
   (unless haskell-tng-layout:cache
     (haskell-tng-layout:rebuild-cache-full))
 
-  (let ((pos (point)))
-    (catch 'done
-      (let (breaks
-            closes)
-        (dolist (block haskell-tng-layout:cache)
-          (let ((open (car block))
-                (close (cadr block))
-                (lines (cddr block)))
-            ;;(message "BLOCK = %S (%s, %s, %s)" block open close lines)
-            (when (and (<= open pos) (<= pos close))
-              (when (= open pos)
-                (throw 'done '("{")))
-              (when (= close pos)
-                (push "}" closes))
-              (dolist (line lines)
-                (when (= line pos)
-                  (push ";" breaks))))))
-        (append (reverse closes) (reverse breaks))))))
+  (let ((pos (point))
+        opens breaks closes)
+    (dolist (block haskell-tng-layout:cache)
+      (let ((open (car block))
+            (close (cadr block))
+            (lines (cddr block)))
+        (when (and (<= open pos) (<= pos close))
+          (when (= open pos)
+            (push "{" opens))
+          (when (= close pos)
+            (push "}" closes))
+          (dolist (line lines)
+            (when (= line pos)
+              (push ";" breaks))))))
+    (append opens closes breaks)))
 
 (defun haskell-tng-layout:has-virtual-at-point ()
   "t if there is a virtual at POINT"

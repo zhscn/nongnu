@@ -31,74 +31,74 @@ v                     1 2
 
 v                     1 2
 basic_do = do
-v
+1 v
   foo <- blah blah blah
-v 1
+1 v
   bar <- blah blah
-v 1
+1 v
          blah -- manual correction
-v 2      1
+2 v      1
          blah -- manual correction
-v 2      1
+2 v      1
   sideeffect
-v 1      2
+1 v      2
   sideeffect' blah
-v 1      2
+1 v      2
   let baz = blah blah
-v 2   1  3
+2 1   v  3
             blah -- manual correction
-v 2   3  4  1
+2 3   v  4  1
       gaz = blah
-v 2   1  3  4
+1 2   v  3  4
       haz =
-v 2   1  3  4
+2 3   1 v4  5
         blah
-v 2   3 14  5
+2 3   v 14  5
   pure faz -- manual correction
-v 1   2 34  5
+1 v   2 34  5
 
-v 1   2 34  5
+1 v   2 34  5
 nested_do = -- manual correction
-v
+1 v
   do foo <- blah
-v    1
+1    v
      do bar <- blah -- same level as foo
-v    2  1
+2    1  v
         baz -- same level as bar
-v    2  1
+1    2  v
 
-v    1  2
+1    2  v
 nested_where a b = foo a b
 v
   where -- TODO 2
-v
+1   v
     foo = bar baz -- indented
-v   1
+1   v
     baz = blah blah -- same level as foo
-v   1
+1   v
       where -- manual correction
-v   1
+1   2   v
         gaz a = blah -- indented
-v   2   1
+1   2   v
         faz = blah -- same level as gaz
-v   2   1
+1   2   v
 
-v   1   2
+1   2   v
 -- TODO case statements
-v   1   2
+1   2   v
 -- TODO let / in
-v   1   2
+1   2   v
 
-v   1   2
+1   2   v
 -- TODO coproduct definitions, the | should align with =
-v   1   2
+1   2   v
 
-v   1   2
+1   2   v
 -- TODO lists, records, tuples
-v   1   2
+1   2   v
 
-v   1   2
+1   2   v
 -- TODO long type signatures vs definitions
-v   1   2
+1   2   v
 
-v   1   2
+1   2   v
