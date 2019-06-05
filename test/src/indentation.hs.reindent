@@ -32,7 +32,7 @@ v                     1 2
 
 v 1                   2 3
 basic_do = do
-1 v
+1 v      2
   foo <- blah blah blah
 v 1      2
   bar <- blah blah
@@ -62,13 +62,13 @@ v 2  13 45  6
 nested_do = -- manual correction
 v       1
   do foo <- blah
-v    1  2
+v    1  3   2
      do bar <- blah -- same level as foo
-v    2  1
+v    2  1   4  3
         baz -- same level as bar
-1    2  v
+1    2  v   3  4
 
-v    1  2
+v    1  2   3  4
 nested_where a b = foo a b
 1 v 2
   where -- TODO 2

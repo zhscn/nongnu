@@ -211,7 +211,7 @@ current line."
     (save-excursion
       (end-of-line 0)
       (re-search-backward haskell-tng:regexp:toplevel nil t)
-      (when-let (new (haskell-tng-smie:relevant-alts pos))
+      (when-let (new (haskell-tng-smie:relevant-alts pos t))
         (setq indents (append new indents))))
 
     ;; alts are easier to use when ordered
@@ -221,13 +221,15 @@ current line."
     (--each '(1 -1)
       (save-excursion
         (forward-line it)
-        (when-let (new (haskell-tng-smie:relevant-alts (point-at-eol)))
+        (when-let (new (haskell-tng-smie:relevant-alts (point-at-eol) (< it 0)))
           (setq indents (append new indents)))))
 
     (-distinct indents)))
 
-(defun haskell-tng-smie:relevant-alts (bound)
-  "A list of indentation levels from point to BOUND."
+(defun haskell-tng-smie:relevant-alts (bound before)
+  "A list of indentation levels from point to BOUND.
+
+BEFORE is t if the line appears before the indentation."
   (let ((start (point))
         relevant)
     (while (< (point) bound)
@@ -235,8 +237,14 @@ current line."
              (looking-at
               (rx (* space) (| "where" "let" "do") word-end)))
         (push (current-indentation) relevant))
-      ;; TODO when there is a <- add its close +4 (possibly just for the
-      ;; immediately previous line).
+      (when
+          (and
+           before
+           (re-search-forward
+            (rx symbol-start "<-" (+ " "))
+            (line-end-position)
+            t))
+        (push (current-column) relevant))
       (forward-line))
     (goto-char start)
     (while (< (point) bound)
