@@ -227,7 +227,8 @@ Some complexity to avoid matching on operators."
   (defvar font-lock-end))
 
 (defconst haskell-tng:extend-region-functions
-  '(font-lock-extend-region-wholelines)
+  '(font-lock-extend-region-wholelines
+    font-lock-extend-region-multiline)
   "Used in `font-lock-extend-region-functions'.
 Automatically populated by `haskell-tng:font:multiline'")
 
