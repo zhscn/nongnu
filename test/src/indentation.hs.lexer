@@ -51,7 +51,7 @@ VARID VARID
 { CONID -> §
 ; CONID VARID -> VARID
 
-} ; VARID = \ case
-CONID -> §
-CONID VARID -> VARID
-}
+} ; VARID = \case
+{ CONID -> §
+; CONID VARID -> VARID
+} }

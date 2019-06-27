@@ -106,7 +106,7 @@ v 1
 
 v 1
 lambda_case = \case
-1 2           v
+1 v
   Nothing   -> ""
-2 1            v
+v 1
   Just fish -> fish

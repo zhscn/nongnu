@@ -52,6 +52,6 @@ module Indentation where
   ;Just fish -> fish
 
 };lambda_case = \case
-  Nothing   -> ""
-  Just fish -> fish
-}
+  {Nothing   -> ""
+  ;Just fish -> fish
+}}

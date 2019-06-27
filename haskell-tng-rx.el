@@ -39,6 +39,7 @@ give false positives." `(|
           "infixr" "instance" "let" "module" "newtype" "of"
           "then" "type" "where" "_")
        word-end)
+    (: symbol-start "\\case" word-end) ;; LambdaCase
     (: "{..}") ;; RecordWildCards
     (: word-start "':" symbol-end) ;; DataKinds (consider foo':bar)
     (: ,(if hack

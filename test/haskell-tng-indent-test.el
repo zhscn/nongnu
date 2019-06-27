@@ -12,7 +12,6 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
-;; TODO LambdaCase
 ;; TODO coproduct definitions, the | should align with =
 ;; TODO lists, records, tuples
 ;; TODO long type signatures vs definitions

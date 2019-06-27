@@ -50,7 +50,6 @@ the layout engine."
 ;; TODO a visual debugging option would be great, showing virtuals as overlays
 
 ;; EXT:NonDecreasingIndentation
-;; EXT:LambdaCase
 
 (defun haskell-tng-layout:virtuals-at-point ()
   "List of virtual `{' `}' and `;' at point, according to the
@@ -99,7 +98,10 @@ Designed to be called repeatedly, managing its own caching."
     (while (not (eobp))
       (forward-comment (point-max))
       (cond
-       ((looking-at (rx word-start (| "where" "let" "do" "of") word-end))
+       ((looking-at (rx symbol-start
+                        (| "\\case" ;; LambdaCase
+                           "where" "let" "do" "of")
+                        word-end))
         (goto-char (match-end 0))
         (forward-comment (point-max))
         (when (not (looking-at "{"))

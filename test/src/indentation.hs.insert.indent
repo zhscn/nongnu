@@ -105,8 +105,8 @@ case_of wibble = case wibble of
 
 1 v
 lambda_case = \case
-1 2           v
+1 v
   Nothing   -> ""
-2 1            v
+1 v
   Just fish -> fish
-v 1
+1 v

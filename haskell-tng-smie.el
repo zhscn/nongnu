@@ -76,7 +76,9 @@
        ("let" blk "in")
        ("let" blk)
        ("do" blk)
-       ("case" id "of" blk))
+       ("case" id "of" blk)
+       ("\\case" blk) ;; LambdaCase
+       )
       (blk
        ("{" blk "}")
        (blk ";" blk)
@@ -163,6 +165,7 @@ information, to aid in the creation of new rules."
     (:after
      (pcase arg
        ((or "let" "do" "of" "=" "in") 2)
+       ("\\case" 2) ;; LambdaCase
        ("where" (if (smie-rule-parent-p "module") 0 2))
        ))
 
@@ -179,6 +182,8 @@ information, to aid in the creation of new rules."
        ;; blah = bloo where
        ;;               bloo = blu
        ((or "{" "where" "let" "do" "case")
+        (smie-rule-parent))
+       ("\\case" ;; LambdaCase
         (smie-rule-parent))
        ))
 
