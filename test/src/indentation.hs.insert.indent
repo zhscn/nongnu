@@ -70,7 +70,7 @@ nested_do = -- manual correction
 1    2  v   3  4
 nested_where a b = foo a b
 1                  v
-  where -- TODO 2
+  where -- manual correction
 1   v
     foo = bar baz -- indented
 1   v
@@ -81,22 +81,4 @@ nested_where a b = foo a b
         gaz a = blah -- indented
 1   2   v
         faz = blah -- same level as gaz
-1   2   v
-
-1   2   v
--- TODO case statements
-1   2   v
--- TODO let / in
-1   2   v
-
-1   2   v
--- TODO coproduct definitions, the | should align with =
-1   2   v
-
-1   2   v
--- TODO lists, records, tuples
-1   2   v
-
-1   2   v
--- TODO long type signatures vs definitions
 1   2   v

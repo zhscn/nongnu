@@ -34,19 +34,10 @@ module Indentation where
         ;baz -- same level as bar
 
 }};nested_where a b = foo a b
-  where -- TODO 2
+  where -- manual correction
     {foo = bar baz -- indented
     ;baz = blah blah -- same level as foo
       where -- manual correction
         {gaz a = blah -- indented
         ;faz = blah -- same level as gaz
-
--- TODO case statements
--- TODO let / in
-
--- TODO coproduct definitions, the | should align with =
-
--- TODO lists, records, tuples
-
--- TODO long type signatures vs definitions
 }}}

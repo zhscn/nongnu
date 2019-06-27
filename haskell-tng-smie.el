@@ -174,7 +174,10 @@ information, to aid in the creation of new rules."
     ))
 
 (defconst haskell-tng-smie:return
-  '(newline-and-indent newline)
+  '(comment-indent-new-line
+    newline-and-indent
+    newline
+    haskell-tng-smie:debug-newline)
   "Users with custom newlines should add their command.")
 
 (defvar-local haskell-tng-smie:indentations nil)
@@ -223,6 +226,8 @@ current line."
         (forward-line it)
         (when-let (new (haskell-tng-smie:relevant-alts (point-at-eol) (< it 0)))
           (setq indents (append new indents)))))
+
+    ;; TODO if this list is empty, return current+2
 
     (-distinct indents)))
 
