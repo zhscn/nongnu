@@ -45,3 +45,11 @@ let_in a b = let blah = bloo
                  wobble _ = fish
              in
                flibble blah
+
+case_of wibble = case wibble of
+  Nothing   -> ""
+  Just fish -> fish
+
+lambda_case = \case
+  Nothing   -> ""
+  Just fish -> fish

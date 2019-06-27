@@ -45,4 +45,12 @@ where
 ; VARID _ = VARID
 } in
 VARID VARID
+
+; VARID VARID = case VARID of
+{ CONID -> §
+; CONID VARID -> VARID
+
+} ; VARID = \ case
+CONID -> §
+CONID VARID -> VARID
 }

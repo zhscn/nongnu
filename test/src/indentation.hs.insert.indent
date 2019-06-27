@@ -92,3 +92,19 @@ let_in a b = let blah = bloo
 2            1 v 3
                flibble blah
 v            2 1 3
+
+v            1 2 3
+case_of wibble = case wibble of
+1 v
+  Nothing   -> ""
+1 v
+  Just fish -> fish
+1 v
+
+1 v
+lambda_case = \case
+1 2           v
+  Nothing   -> ""
+2 1            v
+  Just fish -> fish
+v 1

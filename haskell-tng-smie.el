@@ -162,13 +162,14 @@ information, to aid in the creation of new rules."
 
     (:after
      (pcase arg
-       ((or "let" "do" "=" "in") 2)
+       ((or "let" "do" "of" "=" "in") 2)
        ("where" (if (smie-rule-parent-p "module") 0 2))
        ))
 
     (:before
      (pcase arg
-       ((or "{" "where" "do") (smie-rule-parent))
+       ;; encourages WLDOs to move to the left
+       ((or "{" "where" "do" "case") (smie-rule-parent))
        ))
 
     ))

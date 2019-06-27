@@ -12,11 +12,11 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
-;; TODO case statements
 ;; TODO LambdaCase
 ;; TODO coproduct definitions, the | should align with =
 ;; TODO lists, records, tuples
 ;; TODO long type signatures vs definitions
+;; TODO if/then/else
 
 ;; Three indentation regression tests are possible:
 ;;
