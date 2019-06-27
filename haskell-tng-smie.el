@@ -168,8 +168,18 @@ information, to aid in the creation of new rules."
 
     (:before
      (pcase arg
-       ;; encourages WLDOs to move to the left
-       ((or "{" "where" "do" "case") (smie-rule-parent))
+       ;; first entries in a WLDO should aim to have the smallest indentation
+       ;; possible. i.e. prefer
+       ;;
+       ;; blah = bloo where
+       ;;   bloo = blu
+       ;;
+       ;; not
+       ;;
+       ;; blah = bloo where
+       ;;               bloo = blu
+       ((or "{" "where" "let" "do" "case")
+        (smie-rule-parent))
        ))
 
     ))

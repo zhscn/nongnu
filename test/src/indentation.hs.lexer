@@ -41,12 +41,13 @@ where
 { VARID VARID = VARID
 ; VARID = VARID
 
-} } ; VARID VARID VARID = let { VARID = VARID
+} } ; VARID VARID VARID = let
+{ VARID = VARID
 ; VARID _ = VARID
-} in
+; in
 VARID VARID
 
-; VARID VARID = case VARID of
+} ; VARID VARID = case VARID of
 { CONID -> §
 ; CONID VARID -> VARID
 

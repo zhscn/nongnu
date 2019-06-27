@@ -84,16 +84,18 @@ v
 1   2   v
 
 1   2   v
-let_in a b = let blah = bloo
-1                v
-                 wobble _ = fish
-1                v
-             in
-2            1 v 3
-               flibble blah
-v            2 1 3
+let_in a b = let
+1 v
+  blah = bloo
+1 v
+  wobble _ = fish
+1 v
+  in
+2 1 v
+    flibble blah
+2 v 1
 
-v            1 2 3
+1 v 2
 case_of wibble = case wibble of
 1 v
   Nothing   -> ""
