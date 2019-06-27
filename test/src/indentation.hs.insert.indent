@@ -82,3 +82,13 @@ nested_where a b = foo a b
 1   2   v
         faz = blah -- same level as gaz
 1   2   v
+
+2   3   v        1
+let_in a b = let blah = bloo
+1                v
+                 wobble _ = fish
+2            1   v
+             in
+2            1 v 3
+               flibble blah
+v            2 1 3

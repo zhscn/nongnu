@@ -13,7 +13,6 @@
          "test/haskell-tng-testutils.el")
 
 ;; TODO case statements
-;; TODO let / in
 ;; TODO LambdaCase
 ;; TODO coproduct definitions, the | should align with =
 ;; TODO lists, records, tuples

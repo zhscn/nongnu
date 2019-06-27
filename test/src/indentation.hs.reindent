@@ -82,3 +82,13 @@ v   1
         gaz a = blah -- indented
 v   2   1
         faz = blah -- same level as gaz
+2   3   v        1
+
+v   2   3        1
+let_in a b = let blah = bloo
+v            2   1
+                 wobble _ = fish
+v              2 1
+             in
+2            1 v 3
+               flibble blah

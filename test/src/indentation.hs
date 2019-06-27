@@ -40,3 +40,8 @@ nested_where a b = foo a b
       where -- manual correction
         gaz a = blah -- indented
         faz = blah -- same level as gaz
+
+let_in a b = let blah = bloo
+                 wobble _ = fish
+             in
+               flibble blah

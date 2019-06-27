@@ -40,4 +40,9 @@ where
 where
 { VARID VARID = VARID
 ; VARID = VARID
-} } }
+
+} } ; VARID VARID VARID = let { VARID = VARID
+; VARID _ = VARID
+} in
+VARID VARID
+}

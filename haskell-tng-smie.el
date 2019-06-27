@@ -162,7 +162,7 @@ information, to aid in the creation of new rules."
 
     (:after
      (pcase arg
-       ((or "let" "do" "=") 2)
+       ((or "let" "do" "=" "in") 2)
        ("where" (if (smie-rule-parent-p "module") 0 2))
        ))
 
