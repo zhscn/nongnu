@@ -67,6 +67,7 @@
       (infixexp
        (id ":" infixexp) ;; keyword infix
        (id "':" infixexp) ;; DataKinds
+       (id "$" infixexp) ;; special case
        (id "SYMID" infixexp))
 
       ;; WLDOs
@@ -159,12 +160,12 @@ information, to aid in the creation of new rules."
     ;; get called with `:list-intro "HEAD"` when indenting positions A and B.
     (:list-intro
      (pcase arg
-       ((or "<-" "=") t)
+       ((or "<-" "=" "$") t)
        ))
 
     (:after
      (pcase arg
-       ((or "let" "do" "of" "=" "in") 2)
+       ((or "let" "do" "of" "=" "in" "$" "->") 2)
        ("\\case" 2) ;; LambdaCase
        ("where" (if (smie-rule-parent-p "module") 0 2))
        ))
@@ -181,7 +182,7 @@ information, to aid in the creation of new rules."
        ;;
        ;; blah = bloo where
        ;;               bloo = blu
-       ((or "{" "where" "let" "do" "case")
+       ((or "{" "where" "let" "do" "case" "$" "->")
         (smie-rule-parent))
        ("\\case" ;; LambdaCase
         (smie-rule-parent))

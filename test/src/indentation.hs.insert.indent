@@ -110,3 +110,15 @@ lambda_case = \case
 1 v
   Just fish -> fish
 1 v
+
+1 v
+dollars f Nothing = f $
+1 v
+  "" ""
+1 v
+  ""
+1 v
+dollars f (Just a) = f $ \s ->
+1 v
+  a
+v 1

@@ -54,4 +54,10 @@ VARID VARID
 } ; VARID = \case
 { CONID -> §
 ; CONID VARID -> VARID
-} }
+
+} ; VARID VARID CONID = VARID $
+§ §
+§
+; VARID VARID « CONID VARID » = VARID $ \ VARID ->
+VARID
+}

@@ -54,3 +54,9 @@ case_of wibble = case wibble of
 lambda_case = \case
   Nothing   -> ""
   Just fish -> fish
+
+dollars f Nothing = f $
+  "" ""
+  ""
+dollars f (Just a) = f $ \s ->
+  a

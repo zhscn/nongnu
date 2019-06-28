@@ -146,7 +146,7 @@ foo = do
 test = 1 `shouldBe` 1
 
 cases = \case
-  Nothing -> "no"
-  Just _  -> "yes"
+  Nothing -> "no" & toUpper
+  Just _  -> toUpper $ "yes"
 
 bar = do -- an incomplete do block

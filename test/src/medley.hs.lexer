@@ -146,8 +146,8 @@ CONSYM CONID « CONID » « CONID CONID »
 } } ; VARID = 1 SYMID 1
 
 ; VARID = \case
-CONID -> §
-CONID _ -> §
+{ CONID -> § SYMID VARID
+; CONID _ -> VARID $ §
 
-; VARID = do
+} ; VARID = do
 { } }

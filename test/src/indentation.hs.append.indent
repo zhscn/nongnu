@@ -112,3 +112,15 @@ lambda_case = \case
 1 v
 
 1 v
+dollars f Nothing = f $
+1 v
+  "" ""
+1 v
+  ""
+1 v
+dollars f (Just a) = f $ \s ->
+1 v
+  a
+2 1                      v
+
+1 2                      v

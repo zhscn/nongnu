@@ -146,8 +146,8 @@
 «:haskell-tng:toplevel:test» «:haskell-tng:keyword:=» 1 `shouldBe` 1
 
 «:haskell-tng:toplevel:cases» «:haskell-tng:keyword:=» «:haskell-tng:keyword:\case»
-  «:haskell-tng:constructor:Nothing» «:haskell-tng:keyword:->» «s:"no"»
-  «:haskell-tng:constructor:Just» «:haskell-tng:keyword:_»  «:haskell-tng:keyword:->» «s:"yes"»
+  «:haskell-tng:constructor:Nothing» «:haskell-tng:keyword:->» «s:"no"» & toUpper
+  «:haskell-tng:constructor:Just» «:haskell-tng:keyword:_»  «:haskell-tng:keyword:->» toUpper $ «s:"yes"»
 
 «:haskell-tng:toplevel:bar» «:haskell-tng:keyword:=» «:haskell-tng:keyword:do» «m:-- »«x:an incomplete do block
 »
