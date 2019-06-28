@@ -47,6 +47,11 @@ let_in a b = let
   in
     flibble blah
 
+implicit_let foo bar =
+  let ?foo = foo
+      ?bar = bar
+  in  rar
+
 case_of wibble = case wibble of
   Nothing   -> ""
   Just fish -> fish

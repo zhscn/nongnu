@@ -96,6 +96,16 @@ let_in a b = let
 2 v 1
 
 1 v 2
+implicit_let foo bar =
+1 v   2
+  let ?foo = foo
+1     v
+      ?bar = bar
+2 1   v
+  in  rar
+v 1   2
+
+v 1   2
 case_of wibble = case wibble of
 1 v
   Nothing   -> ""

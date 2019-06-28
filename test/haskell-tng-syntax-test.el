@@ -53,6 +53,8 @@
   (should (have-expected-syntax (testdata "src/medley.hs")))
 
   (should (have-expected-syntax (testdata "src/layout.hs")))
+
+  (should (have-expected-syntax (testdata "src/indentation.hs")))
   )
 
 ;;; haskell-tng-syntax-test.el ends here

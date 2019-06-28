@@ -47,7 +47,12 @@ where
 ; in
 VARID VARID
 
-} ; VARID VARID = case VARID of
+} ; VARID VARID VARID =
+let { VARID = VARID
+; VARID = VARID
+} in VARID
+
+; VARID VARID = case VARID of
 { CONID -> §
 ; CONID VARID -> VARID
 

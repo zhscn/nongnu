@@ -88,7 +88,9 @@ give false positives." `(|
 (defconst haskell-tng:regexp:conid
   (rx-to-string `(: word-start ,haskell-tng:rx:conid)))
 (defconst haskell-tng:regexp:varid
-  (rx-to-string `(: word-start ,haskell-tng:rx:varid)))
+  (rx-to-string `(| (: word-start ,haskell-tng:rx:varid)
+                    (: symbol-start (char ??) ,haskell-tng:rx:varid) ;; ImplicitParams
+                    )))
 (defconst haskell-tng:regexp:symid
   (rx-to-string haskell-tng:rx:symid))
 (defconst haskell-tng:regexp:toplevel

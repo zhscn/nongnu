@@ -96,7 +96,17 @@ v 1 2
     flibble blah
 2 v 1
 
-v 1 2
+v 2 3 1
+implicit_let foo bar =
+v     1
+  let ?foo = foo
+v 2   1
+      ?bar = bar
+v     1
+  in  rar
+v 1   2
+
+v 1   2
 case_of wibble = case wibble of
 1 v
   Nothing   -> ""

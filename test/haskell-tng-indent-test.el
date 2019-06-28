@@ -17,7 +17,6 @@
 ;; TODO long type signatures vs definitions
 ;; TODO if/then/else
 ;; TODO following opening bracket in a record defn, shouldn't indent so much
-;; TODO ImplicitParams in let
 
 ;; Three indentation regression tests are possible:
 ;;

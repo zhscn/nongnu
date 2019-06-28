@@ -47,7 +47,12 @@ module Indentation where
   ;in
     flibble blah
 
-};case_of wibble = case wibble of
+};implicit_let foo bar =
+  let {?foo = foo
+      ;?bar = bar
+  }in  rar
+
+;case_of wibble = case wibble of
   {Nothing   -> ""
   ;Just fish -> fish
 
