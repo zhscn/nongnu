@@ -134,3 +134,11 @@ dollars f (Just a) = f $ \s ->
 2 1                      v
 
 1 2                      v
+data Wibble = Wibble Int
+v
+            | Wobble Int
+1           v
+            | Vibble Int
+1           v
+
+v           1

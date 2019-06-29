@@ -12,7 +12,8 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
-;; TODO coproduct definitions, the | should align with =
+;; FIXME implement more indentation rules
+;;
 ;; TODO lists, records, tuples
 ;; TODO long type signatures vs definitions
 ;; TODO if/then/else
@@ -70,8 +71,12 @@
        (setq lines (split-string (buffer-string) (rx ?\n)))
        (delete-region (point-min) (point-max))
 
-       ;; TODO SMIE doesn't request forward tokens from the lexer when the point
-       ;; is at point-max, so add some whitespace at the end.
+       ;; WORKAROUND https://debbugs.gnu.org/cgi/bugreport.cgi?bug=36432
+       ;;
+       ;; SMIE doesn't request forward tokens from the lexer when the point is
+       ;; at point-max, so add some whitespace at the end.
+       ;;
+       ;; TODO fix the bug properly, in SMIE
        (save-excursion
          (insert "\n\n"))))
     (while (pcase mode

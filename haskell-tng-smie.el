@@ -70,6 +70,11 @@
        (id "$" infixexp) ;; special case
        (id "SYMID" infixexp))
 
+      (adt
+       ("data" id "=" cop))
+      (cop
+       (cop "|" cop))
+
       ;; WLDOs
       (wldo
        ("module" blk "where" blk)
@@ -93,7 +98,8 @@
       )
 
     ;; operator precedences
-    '((assoc ";" ",")
+    '((assoc "|")
+      (assoc ";" ",")
       )
 
     )))
@@ -130,37 +136,70 @@ information, to aid in the creation of new rules."
 ;; `:after' and a `:before' for `do' which may be at column 20 but virtually at
 ;; column 0.
 (defun haskell-tng-smie:rules (method arg)
-  ;; see docs for `smie-rules-function'
+  ;; WORKAROUND https://debbugs.gnu.org/cgi/bugreport.cgi?bug=36434
+  ;;
+  ;; smie-rule-next-p needs smie--after to be defined.
+  ;; smile-rule-parent-p doesn't work
+  ;;
+  ;; TODO fix the SMIE bug
+  (defvar smie--after)
+  (defvar smie--parent)
+
   (when haskell-tng-smie:debug
     (let ((sym (symbol-at-point)))
       (with-current-buffer haskell-tng-smie:debug
-        (insert (format "RULES: %S %S %S\n" method arg sym)))))
+        (insert (format "RULES: %S %S %S\n" method arg sym))))
+    (unless (boundp 'smie--parent)
+      (setq smie--parent nil))
+    (when-let (parent (caddr (smie-indent--parent)))
+      (with-current-buffer haskell-tng-smie:debug
+        (insert (format "  PARENT: %S\n" parent))))
+    (when-let (grand (caddr (smie-indent--grandparent)))
+      (with-current-buffer haskell-tng-smie:debug
+        (insert (format "   GRAND: %S\n" grand))))
+    (when-let (prev (caddr (smie-indent--previous-line-start)))
+      (with-current-buffer haskell-tng-smie:debug
+        (insert (format "    PREV: %S\n" prev)))))
 
-  ;; FIXME core indentation rules
   (pcase method
 
     (:elem
      (pcase arg
        ((or 'args 'basic) 0)
 
-       ;; TODO consult a local table, populated by an external tool, containing
-       ;; the parameter requirements for function calls. For simple cases, we
-       ;; should be able to infer if the user wants to terminate ; or continue
-       ;; "" the current line.
        ('empty-line-token
-        ;; BUG smie-rule-next-p needs smie--after to be defined
+        ;; even if these are set, they can be wrong
         (setq smie--after (point))
-        (when (smie-rule-next-p ";" "}") ";"))
-       ))
+        (setq smie--parent nil)
 
-    ;; Patterns of the form
-    ;;
-    ;;   {TOKEN TOKEN HEAD ; A ; B ; ...}
-    ;;
-    ;; get called with `:list-intro "HEAD"` when indenting positions A and B.
+        (cond
+         ((or (smie-rule-parent-p "|")
+              (and (smie-rule-parent-p "=")
+                   (smie-rule-grandparent-p "data"))
+              (smie-rule-previous-line-start-p "|"))
+          "|")
+
+         ((save-excursion
+            (forward-comment (point-max))
+            (eobp))
+          ;; this happens when we're at the end of the buffer. Must use
+          ;; heuristics before we get to this point.
+          ";")
+
+         ((smie-rule-next-p ";" "}")
+          ;; TODO semantic indentation
+          ;;
+          ;; Consult a local table, populated by an external tool, containing
+          ;; the parameter requirements for function calls. For simple cases,
+          ;; we should be able to infer if the user wants to terminate ; or
+          ;; continue "" the current line.
+          ";")
+         ))))
+
     (:list-intro
      (pcase arg
-       ((or "<-" "=" "$") t)
+       ((or "<-" "$") t)
+       ("=" (not (smie-rule-parent-p "data")))
        ))
 
     (:after
@@ -183,9 +222,14 @@ information, to aid in the creation of new rules."
        ;; blah = bloo where
        ;;               bloo = blu
        ((or "{" "where" "let" "do" "case" "$" "->")
+        ;; TODO { here should only be for WLDOs
         (smie-rule-parent))
        ("\\case" ;; LambdaCase
         (smie-rule-parent))
+       ("|"
+        (if (smie-rule-parent-p "=")
+            (smie-rule-parent-column)
+          (smie-rule-separator method)))
        ))
 
     ))
@@ -314,6 +358,44 @@ BEFORE is t if the line appears before the indentation."
 ;; 4. ambiguous tokens. e.g. the word "via" is a keyword in a specific location,
 ;;    but can otherwise be used as a varid. I'd like to be able to lex it as (or
 ;;    "via" "VARID") so that it can appear in multiple places in the grammar.
+
+;; Extensions to SMIE
+(defun smie-rule-parent-column ()
+  "For use inside `smie-rules-function',
+use the column indentation as the parent. Note that
+`smie-rule-parent' may use relative values."
+  (save-excursion
+    (goto-char (cadr (smie-indent--parent)))
+    `(column . ,(current-column))))
+
+(defun smie-indent--grandparent ()
+  "Like `smie-indent--parent' but for the parent's parent."
+  (defvar smie--parent)
+  (let (cache)
+    (save-excursion
+      (goto-char (cadr (smie-indent--parent)))
+      (setq cache smie--parent)
+      (setq smie--parent nil)
+      (let ((res (smie-indent--parent)))
+        (setq smie--parent cache)
+        res))))
+
+(defun smie-rule-grandparent-p (&rest grandparents)
+  "Like `smie-rule-parent-p' but for the parent's parent."
+  (member (nth 2 (smie-indent--grandparent)) grandparents))
+
+(defun smie-indent--previous-line-start ()
+  "Like `smie-indent--parent' but for the previous line's first
+  token."
+  (save-excursion
+    (forward-line -1)
+    (let ((pos (point))
+          (tok (funcall smie-forward-token-function)))
+      (list nil pos tok))))
+
+(defun smie-rule-previous-line-start-p (&rest tokens)
+  "Like `smie-rule-parent-p' but for the parent's parent."
+  (member (nth 2 (smie-indent--previous-line-start)) tokens))
 
 (provide 'haskell-tng-smie)
 ;;; haskell-tng-smie.el ends here

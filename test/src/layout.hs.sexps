@@ -1,7 +1,7 @@
 -- Figure 2.1 from the Haskell2010 report
 ((module (AStack)( (Stack), (push), (pop), (top), (size) ) (where)
-(((data) (Stack) (a) = (Empty)
-             (|) (MkStack) (a) ((Stack) (a))
+((data (Stack) (a) = (Empty)
+             | (MkStack) (a) ((Stack) (a))
 
 ((push) (::) (a) -> (Stack) (a) -> (Stack) (a))
 ((push) (x) (s) = (MkStack) (x) (s))

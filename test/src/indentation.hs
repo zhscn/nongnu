@@ -65,3 +65,7 @@ dollars f Nothing = f $
   ""
 dollars f (Just a) = f $ \s ->
   a
+
+data Wibble = Wibble Int
+            | Wobble Int
+            | Vibble Int
