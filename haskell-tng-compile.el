@@ -32,13 +32,13 @@
       (,(rx-to-string `(: bol ,file ":(" ,num "," ,num ")-(" ,num "," ,num ")" ,war))
        1 (2 . 4) (3 . 5) 1 1 (6 'compilation-warning))
 
-      ;; hspec
-      (,(rx-to-string `(: bol (+ space) ,file ":" ,num ":" ,num ":"))
-       1 2 3 2 1)
-      ;; tasty
+      ;; tasty / hspec
       (,(rx-to-string
-         `(: bol (+ space) "error, called at" (+ space) ,file ":" ,num ":" ,num " in "))
-       1 2 3 2 1)
+         `(: bol (? (+ space) "error, called at") (+ space) ,file ":" ,num ":" ,num (? "-" ,num ":")))
+       1 2 (3 . 4) 2 1)
+      (,(rx-to-string
+         `(: bol (? (+ space) "error, called at") (+ space) ,file ":(" ,num "," ,num ")-(" ,num "," ,num ")"))
+       1 (2 . 4) (3 . 5) 2 1)
 
       ;; ghc information.
       (,(rx-to-string
