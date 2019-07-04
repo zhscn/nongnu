@@ -92,6 +92,8 @@
        (id "<-" id)
        (id "->" id)
        )
+      (lambdas
+       ("\\" id))
 
       (logic
        ("if" id "then" id "else" id))
@@ -157,7 +159,7 @@ information, to aid in the creation of new rules."
     (when-let (grand (caddr (smie-indent--grandparent)))
       (with-current-buffer haskell-tng-smie:debug
         (insert (format "   GRAND: %S\n" grand))))
-    (when-let (prev (caddr (smie-indent--previous-line-start)))
+    (when-let (prev (caddr (smie-indent--prev-line-start)))
       (with-current-buffer haskell-tng-smie:debug
         (insert (format "    PREV: %S\n" prev)))))
 
@@ -176,7 +178,7 @@ information, to aid in the creation of new rules."
          ((or (smie-rule-parent-p "|")
               (and (smie-rule-parent-p "=")
                    (smie-rule-grandparent-p "data"))
-              (smie-rule-previous-line-start-p "|"))
+              (smie-rule-prev-line-start-p "|"))
           "|")
 
          ((save-excursion
@@ -198,15 +200,17 @@ information, to aid in the creation of new rules."
 
     (:list-intro
      (pcase arg
-       ((or "<-" "$") t)
+       ((or "<-" "$" "SYMID") t)
        ("=" (not (smie-rule-parent-p "data")))
        ))
 
     (:after
      (pcase arg
-       ((or "let" "do" "of" "=" "in" "$" "->") 2)
+       ((or "let" "do" "of" "=" "in" "->" "\\") 2)
        ("\\case" 2) ;; LambdaCase
        ("where" (if (smie-rule-parent-p "module") 0 2))
+       ((or "$" "SYMID")
+        (if (smie-rule-hanging-p) 2 (smie-rule-parent)))
        ))
 
     (:before
@@ -221,7 +225,7 @@ information, to aid in the creation of new rules."
        ;;
        ;; blah = bloo where
        ;;               bloo = blu
-       ((or "{" "where" "let" "do" "case" "$" "->")
+       ((or "{" "where" "let" "do" "case" "->" "$" "SYMID")
         ;; TODO { here should only be for WLDOs
         (smie-rule-parent))
        ("\\case" ;; LambdaCase
@@ -230,6 +234,8 @@ information, to aid in the creation of new rules."
         (if (smie-rule-parent-p "=")
             (smie-rule-parent-column)
           (smie-rule-separator method)))
+       (_ (when (smie-rule-parent-p "$" "SYMID")
+            (smie-rule-parent)))
        ))
 
     ))
@@ -240,6 +246,10 @@ information, to aid in the creation of new rules."
     newline
     haskell-tng-smie:debug-newline)
   "Users with custom newlines should add their command.")
+
+;; TODO newline and indent at the beginning of a line should be the same as
+;; newline and indent at the end of the previous line. Newline in the middle of
+;; a line is trickier.
 
 (defvar-local haskell-tng-smie:indentations nil)
 (defun haskell-tng-smie:indent-cycle ()
@@ -384,7 +394,7 @@ use the column indentation as the parent. Note that
   "Like `smie-rule-parent-p' but for the parent's parent."
   (member (nth 2 (smie-indent--grandparent)) grandparents))
 
-(defun smie-indent--previous-line-start ()
+(defun smie-indent--prev-line-start ()
   "Like `smie-indent--parent' but for the previous line's first
   token."
   (save-excursion
@@ -393,9 +403,13 @@ use the column indentation as the parent. Note that
           (tok (funcall smie-forward-token-function)))
       (list nil pos tok))))
 
-(defun smie-rule-previous-line-start-p (&rest tokens)
+(defun smie-rule-prev-line-start-p (&rest tokens)
   "Like `smie-rule-parent-p' but for the parent's parent."
-  (member (nth 2 (smie-indent--previous-line-start)) tokens))
+  (member (nth 2 (smie-indent--prev-line-start)) tokens))
+
+(defun smie-prev-token-p (&rest tokens)
+  "Like `smie-rule-prev-p' but doesn't filter based on the grammar table."
+  (member (save-excursion (funcall smie-backward-token-function)) tokens))
 
 (provide 'haskell-tng-smie)
 ;;; haskell-tng-smie.el ends here

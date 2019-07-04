@@ -53,8 +53,10 @@ implicit_let foo bar =
   in  rar
 
 case_of wibble = case wibble of
-  Nothing   -> ""
-  Just fish -> fish
+  Nothing   ->
+    ""
+  Just fish ->
+    fish
 
 lambda_case = \case
   Nothing   -> ""
@@ -65,6 +67,11 @@ dollars f Nothing = f $
   ""
 dollars f (Just a) = f $ \s ->
   a
+
+not_dollars = do
+  db' <- liftIO $ readMVar db
+  shouldGoHere <$>
+    here
 
 data Wibble = Wibble Int
             | Wobble Int

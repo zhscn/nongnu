@@ -53,8 +53,10 @@ module Indentation where
   }in  rar
 
 ;case_of wibble = case wibble of
-  {Nothing   -> ""
-  ;Just fish -> fish
+  {Nothing   ->
+    ""
+  ;Just fish ->
+    fish
 
 };lambda_case = \case
   {Nothing   -> ""
@@ -66,7 +68,12 @@ module Indentation where
 ;dollars f (Just a) = f $ \s ->
   a
 
-;data Wibble = Wibble Int
+;not_dollars = do
+  {db' <- liftIO $ readMVar db
+  ;shouldGoHere <$>
+    here
+
+};data Wibble = Wibble Int
             | Wobble Int
             | Vibble Int
 }

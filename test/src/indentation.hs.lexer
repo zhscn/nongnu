@@ -53,8 +53,10 @@ let { VARID = VARID
 } in VARID
 
 ; VARID VARID = case VARID of
-{ CONID -> §
-; CONID VARID -> VARID
+{ CONID ->
+§
+; CONID VARID ->
+VARID
 
 } ; VARID = \case
 { CONID -> §
@@ -66,7 +68,12 @@ let { VARID = VARID
 ; VARID VARID « CONID VARID » = VARID $ \ VARID ->
 VARID
 
-; data CONID = CONID CONID
+; VARID = do
+{ VARID <- VARID $ VARID VARID
+; VARID SYMID
+VARID
+
+} ; data CONID = CONID CONID
 | CONID CONID
 | CONID CONID
 }
