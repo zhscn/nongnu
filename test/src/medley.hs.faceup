@@ -34,19 +34,19 @@
                                       createProcess«:haskell-tng:keyword:,» proc«:haskell-tng:keyword:,» waitForProcess«:haskell-tng:keyword:)»
 
 «m:-- »«x:some chars that should be propertized
-»«:haskell-tng:toplevel:chars» «:haskell-tng:keyword:=» «:haskell-tng:keyword:[»«s:'c'»«:haskell-tng:keyword:,» «s:'\n'»«:haskell-tng:keyword:,» «s:'\''»«:haskell-tng:keyword:]»
+»chars «:haskell-tng:keyword:=» «:haskell-tng:keyword:[»«s:'c'»«:haskell-tng:keyword:,» «s:'\n'»«:haskell-tng:keyword:,» «s:'\''»«:haskell-tng:keyword:]»
 
-«:haskell-tng:toplevel:strings» «:haskell-tng:keyword:=» «:haskell-tng:keyword:[»«s:""»«:haskell-tng:keyword:,» «s:"\"\""»«:haskell-tng:keyword:,» «s:"\n\\ "»«:haskell-tng:keyword:,» «s:"\\"»«:haskell-tng:keyword:]»
+strings «:haskell-tng:keyword:=» «:haskell-tng:keyword:[»«s:""»«:haskell-tng:keyword:,» «s:"\"\""»«:haskell-tng:keyword:,» «s:"\n\\ "»«:haskell-tng:keyword:,» «s:"\\"»«:haskell-tng:keyword:]»
 «m:-- »«x:knownWrongEscape = "foo"\\"bar"
 »
-«:haskell-tng:toplevel:multiline1» «:haskell-tng:keyword:=» «s:"\
+multiline1 «:haskell-tng:keyword:=» «s:"\
         \ "»
-«:haskell-tng:toplevel:multiline2» «:haskell-tng:keyword:=» «s:"\
+multiline2 «:haskell-tng:keyword:=» «s:"\
          \"»
 
-«:haskell-tng:toplevel:difficult» «:haskell-tng:keyword:=» foo' «s:'a'» 2
+difficult «:haskell-tng:keyword:=» foo' «s:'a'» 2
 
-«:haskell-tng:toplevel:foo» «:haskell-tng:keyword:=» «s:"wobble (wibble)"»
+foo «:haskell-tng:keyword:=» «s:"wobble (wibble)"»
 
 «:haskell-tng:keyword:class»«:haskell-tng:type: Get a s »«:haskell-tng:keyword:where»
   get «:haskell-tng:keyword:::»«:haskell-tng:type: Set s »«:haskell-tng:keyword:->»«:haskell-tng:type: a
@@ -91,7 +91,7 @@
 
 «:haskell-tng:keyword:newtype»«:haskell-tng:type: Flobby »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Flobby»
 
-«:haskell-tng:toplevel:foo» «:haskell-tng:keyword:::»«:haskell-tng:type:
+foo «:haskell-tng:keyword:::»«:haskell-tng:type:
  Wibble »«m:-- »«x:wibble
 »«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: Wobble »«m:-- »«x:wobble
 »«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: Wobble »«m:-- »«x:wobble
@@ -109,8 +109,8 @@
    a
    »«:haskell-tng:keyword:=» «:haskell-tng:constructor:TestApp» a
 
-«:haskell-tng:toplevel:optionsParser» «:haskell-tng:keyword:::»«:haskell-tng:type: Opts.Parser Options
-»«:haskell-tng:toplevel:optionsParser» «:haskell-tng:keyword:=» «:haskell-tng:constructor:Options»
+optionsParser «:haskell-tng:keyword:::»«:haskell-tng:type: Opts.Parser Options
+»optionsParser «:haskell-tng:keyword:=» «:haskell-tng:constructor:Options»
   <$> «:haskell-tng:keyword:(»«:haskell-tng:module:Opts.»flag' «:haskell-tng:constructor:Alloc» «:haskell-tng:keyword:(»«:haskell-tng:module:Opts.»long «s:"alloc"» <> «:haskell-tng:module:Opts.»help «s:"wibble"»«:haskell-tng:keyword:)»
        <|> «:haskell-tng:module:Opts.»flag' «:haskell-tng:constructor:Entries» «:haskell-tng:keyword:(»«:haskell-tng:module:Opts.»long «s:"entry"» <> «:haskell-tng:module:Opts.»help «s:"wobble"»«:haskell-tng:keyword:)»
        <|> «:haskell-tng:module:Opts.»flag' «:haskell-tng:constructor:Bytes»   «:haskell-tng:keyword:(»«:haskell-tng:module:Opts.»long «s:"bytes"» <> «:haskell-tng:module:Opts.»help «s:"i'm a fish"»«:haskell-tng:keyword:))»
@@ -136,18 +136,18 @@
 «:haskell-tng:keyword:deriving» anyclass «:haskell-tng:keyword:instance» «:haskell-tng:constructor:FromJSON» «:haskell-tng:constructor:Base»
 «:haskell-tng:keyword:deriving» «:haskell-tng:keyword:newtype» «:haskell-tng:keyword:instance» «:haskell-tng:constructor:FromJSON» «:haskell-tng:constructor:Treble»
 
-«:haskell-tng:toplevel:foo» «:haskell-tng:keyword:=» «:haskell-tng:keyword:do»
+foo «:haskell-tng:keyword:=» «:haskell-tng:keyword:do»
   bar «:haskell-tng:keyword:::»«:haskell-tng:type: Wibble »«:haskell-tng:keyword:<-» baz
   «:haskell-tng:keyword:where» baz «:haskell-tng:keyword:=» «:haskell-tng:keyword:_»
   «m:-- »«x:checking that comments are ignored in layout
 »  «m:-- »«x:and that a starting syntax entry is ok
 »        «:haskell-tng:keyword:(»+«:haskell-tng:keyword:)» «:haskell-tng:keyword:=» «:haskell-tng:keyword:_»
 
-«:haskell-tng:toplevel:test» «:haskell-tng:keyword:=» 1 `shouldBe` 1
+test «:haskell-tng:keyword:=» 1 `shouldBe` 1
 
-«:haskell-tng:toplevel:cases» «:haskell-tng:keyword:=» «:haskell-tng:keyword:\case»
+cases «:haskell-tng:keyword:=» «:haskell-tng:keyword:\case»
   «:haskell-tng:constructor:Nothing» «:haskell-tng:keyword:->» «s:"no"» & toUpper
   «:haskell-tng:constructor:Just» «:haskell-tng:keyword:_»  «:haskell-tng:keyword:->» toUpper $ «s:"yes"»
 
-«:haskell-tng:toplevel:bar» «:haskell-tng:keyword:=» «:haskell-tng:keyword:do» «m:-- »«x:an incomplete do block
+bar «:haskell-tng:keyword:=» «:haskell-tng:keyword:do» «m:-- »«x:an incomplete do block
 »

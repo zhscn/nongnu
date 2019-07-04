@@ -274,7 +274,7 @@ current line."
         indents)
     (save-excursion
       (end-of-line 0)
-      (re-search-backward haskell-tng:regexp:toplevel nil t)
+      (re-search-backward (rx bol (not space)) nil t)
       (when-let (new (haskell-tng-smie:relevant-alts pos t))
         (setq indents (append new indents))))
 

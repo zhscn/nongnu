@@ -62,11 +62,6 @@
   "Haskell constructors."
   :group 'haskell-tng:faces)
 
-(defface haskell-tng:toplevel
-  '((t :inherit font-lock-function-name-face))
-  "Haskell top level declarations."
-  :group 'haskell-tng:faces)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here is the `font-lock-keywords' table of matchers and highlighters.
 (defconst
@@ -77,7 +72,6 @@
   (let ((conid haskell-tng:rx:conid)
         ;;(qual haskell-tng:rx:qual)
         (consym haskell-tng:rx:consym)
-        (toplevel haskell-tng:rx:toplevel)
         (qual haskell-tng:rx:qual)
         (bigspace `(| space ,haskell-tng:rx:newline)))
     `(;; reservedid / reservedop
@@ -164,10 +158,6 @@
       ;; TODO numeric / char primitives?
       ;; TODO haddock, different face vs line comments, and some markup.
 
-      ;; top-level
-      (,(rx-to-string toplevel)
-       . 'haskell-tng:toplevel)
-
       ;; uses of F.Q.N.s
       ;; TODO should perhaps be in a different font than module/import use, e.g.
       ;; lighter not bolder.
@@ -232,7 +222,9 @@ Some complexity to avoid matching on operators."
   "Used in `font-lock-extend-region-functions'.
 Automatically populated by `haskell-tng:font:multiline'")
 
-;; TODO (perf) don't extend if the TRIGGER has a multiline prop already
+;; TODO (perf) don't extend if the TRIGGER has a multiline prop already or
+;; consider only using multiline instead of trying to add custom
+;; font-lock-extend-region-functions entries.
 (defmacro haskell-tng:font:multiline (name trigger find &rest limiters)
   "Defines `font-lock-keywords' / `font-lock-extend-region-functions' entries.
 
@@ -284,9 +276,6 @@ succeeds and may further restrict the FIND search limit."
              ,(finder 'limit)))
          (add-to-list 'haskell-tng:extend-region-functions ',extend t)))))
 
-;; TODO if the beginning of a multiline pattern goes off the screen, e.g. for a
-;; large type definition, we can lose the fontification. This seems to be a bug
-;; in Emacs.
 (haskell-tng:font:multiline explicit-type
                             (rx symbol-start "::" symbol-end)
                             (rx symbol-start "::" symbol-end (group (+ anything)))

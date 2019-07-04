@@ -54,15 +54,6 @@ give false positives." `(|
     (| "[]" "()") ;; empty list / void
     (: symbol-start (char ?\\)))) ;; TODO only for lambdas, don't include ops like \\
 
-(defconst haskell-tng:rx:toplevel
-  ;; TODO multi-definitions, e.g. Servant's :<|>
-  ;;
-  ;; Lexically and grammatically there is nothing special about top-level
-  ;; definitions, since they are just WLDOs for the module's `where'. But they
-  ;; are so common in practice that it's useful to special case them.
-  `(: line-start (group (| ,haskell-tng:rx:varid
-                           (: "(" (+? (syntax symbol)) ")")))
-      symbol-end))
 (defconst haskell-tng:rx:newline
   '(| ?\n
       (: symbol-start "--" (+ (not (any ?\n))) ?\n))
@@ -93,8 +84,6 @@ give false positives." `(|
                     )))
 (defconst haskell-tng:regexp:symid
   (rx-to-string haskell-tng:rx:symid))
-(defconst haskell-tng:regexp:toplevel
-  (rx-to-string haskell-tng:rx:toplevel))
 
 (provide 'haskell-tng-rx)
 ;;; haskell-tng-rx.el ends here
