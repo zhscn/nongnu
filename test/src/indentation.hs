@@ -91,3 +91,18 @@ lists2 = [
 
 lists3 = [ foo ,
            bar ]
+
+tuples1 = ( foo
+          , bar
+          , ( blah
+            , blah
+            , blah )
+          )
+
+tuples2 = (
+  foo
+, bar
+)
+
+tuples3 = ( foo ,
+            bar )

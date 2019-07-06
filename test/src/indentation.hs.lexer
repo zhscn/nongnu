@@ -91,4 +91,19 @@ VARID
 
 ; VARID = « VARID ,
 VARID »
+
+; VARID = « VARID
+, VARID
+, « VARID
+, VARID
+, VARID »
+»
+
+; VARID = «
+VARID
+; , VARID
+; »
+
+; VARID = « VARID ,
+VARID »
 }

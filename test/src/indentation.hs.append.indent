@@ -186,3 +186,33 @@ lists3 = [ foo ,
 v          1
 
 v          1
+tuples1 = ( foo
+1         v
+          , bar
+1         v
+          , ( blah
+2         1 v
+            , blah
+1         2 v
+            , blah )
+2         v 1
+          )
+v         1 2
+
+v         1 2
+tuples2 = (
+1 v
+  foo
+v 1
+, bar
+v
+)
+v
+
+v
+tuples3 = ( foo ,
+1           v
+            bar )
+v           1
+
+v           1
