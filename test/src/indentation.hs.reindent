@@ -154,3 +154,33 @@ data Wibble = Wibble Int
             | Wobble Int
 1           v
             | Vibble Int
+v           1
+
+v        1  2
+lists1 = [ foo
+1        v
+         , bar
+2        v 1
+         , [ blah
+2        1 v
+           , blah
+2        1 v
+           , blah ]
+2        v 1
+         ]
+v        1 2
+
+v 1      2 3
+lists2 = [
+1 v
+  foo
+v 1
+, bar
+v
+]
+v
+
+v          1
+lists3 = [ foo ,
+1          v
+           bar ]

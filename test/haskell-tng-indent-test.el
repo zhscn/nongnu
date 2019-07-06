@@ -14,7 +14,6 @@
 
 ;; FIXME implement more indentation rules
 ;;
-;; TODO lists
 ;; TODO tuples
 ;; TODO records
 ;; TODO multiline type signatures

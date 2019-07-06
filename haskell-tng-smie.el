@@ -177,6 +177,8 @@ information, to aid in the creation of new rules."
                 parent grand)))))
 
         (cond
+         ((smie-rule-parent-p "[") ",")
+
          ((or (smie-rule-parent-p "|")
               (and (smie-rule-parent-p "=")
                    (smie-rule-grandparent-p "data"))
@@ -211,6 +213,8 @@ information, to aid in the creation of new rules."
        ((or "let" "do" "of" "=" "in" "->" "\\") 2)
        ("\\case" 2) ;; LambdaCase
        ("where" (if (smie-rule-parent-p "module") 0 2))
+       ("[" 2)
+       ("," (smie-rule-separator method))
        ((or "$" "SYMID")
         (if (smie-rule-hanging-p) 2 (smie-rule-parent)))
        ))
@@ -236,6 +240,9 @@ information, to aid in the creation of new rules."
         (if (smie-rule-parent-p "=")
             (smie-rule-parent-column)
           (smie-rule-separator method)))
+       ("[" (when (smie-rule-hanging-p)
+              (smie-rule-parent)))
+       ("," (smie-rule-separator method))
        (_ (when (smie-rule-parent-p "$" "SYMID")
             (smie-rule-parent)))
        ))

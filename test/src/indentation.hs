@@ -76,3 +76,18 @@ not_dollars = do
 data Wibble = Wibble Int
             | Wobble Int
             | Vibble Int
+
+lists1 = [ foo
+         , bar
+         , [ blah
+           , blah
+           , blah ]
+         ]
+
+lists2 = [
+  foo
+, bar
+]
+
+lists3 = [ foo ,
+           bar ]

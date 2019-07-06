@@ -76,4 +76,19 @@ VARID
 } ; data CONID = CONID CONID
 | CONID CONID
 | CONID CONID
+
+; VARID = « VARID
+, VARID
+, « VARID
+, VARID
+, VARID »
+»
+
+; VARID = «
+VARID
+; , VARID
+; »
+
+; VARID = « VARID ,
+VARID »
 }
