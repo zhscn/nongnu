@@ -14,10 +14,11 @@
 
 ;; FIXME implement more indentation rules
 ;;
-;; TODO lists, records, tuples
-;; TODO long type signatures vs definitions
+;; TODO lists
+;; TODO tuples
+;; TODO records
+;; TODO multiline type signatures
 ;; TODO if/then/else
-;; TODO following opening bracket in a record defn, shouldn't indent so much
 
 ;; Three indentation regression tests are possible:
 ;;

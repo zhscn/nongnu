@@ -47,6 +47,8 @@
   "Haskell reserved names and operators."
   :group 'haskell-tng:faces)
 
+;; TODO module when defining and importing should be different than when using
+;; (which should make the text more subtle rather than highlighted)
 (defface haskell-tng:module
   '((t :inherit font-lock-variable-name-face :weight bold))
   "Haskell modules (packages)."

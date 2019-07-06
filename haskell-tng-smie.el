@@ -138,30 +138,17 @@ information, to aid in the creation of new rules."
 ;; `:after' and a `:before' for `do' which may be at column 20 but virtually at
 ;; column 0.
 (defun haskell-tng-smie:rules (method arg)
-  ;; WORKAROUND https://debbugs.gnu.org/cgi/bugreport.cgi?bug=36434
-  ;;
-  ;; smie-rule-next-p needs smie--after to be defined.
-  ;; smile-rule-parent-p doesn't work
-  ;;
-  ;; TODO fix the SMIE bug
-  (defvar smie--after)
-  (defvar smie--parent)
-
   (when haskell-tng-smie:debug
-    (let ((sym (symbol-at-point)))
+    (let ((sym (symbol-at-point))
+          (parent (and (boundp 'smie--parent)
+                       (caddr (smie-indent--parent))))
+          (grand (and (boundp 'smie--parent)
+                      (caddr (smie-indent--grandparent)))))
       (with-current-buffer haskell-tng-smie:debug
-        (insert (format "RULES: %S %S %S\n" method arg sym))))
-    (unless (boundp 'smie--parent)
-      (setq smie--parent nil))
-    (when-let (parent (caddr (smie-indent--parent)))
-      (with-current-buffer haskell-tng-smie:debug
-        (insert (format "  PARENT: %S\n" parent))))
-    (when-let (grand (caddr (smie-indent--grandparent)))
-      (with-current-buffer haskell-tng-smie:debug
-        (insert (format "   GRAND: %S\n" grand))))
-    (when-let (prev (caddr (smie-indent--prev-line-start)))
-      (with-current-buffer haskell-tng-smie:debug
-        (insert (format "    PREV: %S\n" prev)))))
+        (insert
+         (format
+          "RULES: %S %S %S\n  PARENT: %S\n   GRAND: %S\n"
+          method arg sym parent grand)))))
 
   (pcase method
 
@@ -170,9 +157,24 @@ information, to aid in the creation of new rules."
        ((or 'args 'basic) 0)
 
        ('empty-line-token
-        ;; even if these are set, they can be wrong
+        ;; WORKAROUND https://debbugs.gnu.org/cgi/bugreport.cgi?bug=36434
+        ;;
+        ;; smie-rule-* are not designed be used in :elem because there is no
+        ;; clear current token. We force their use to mean relative to the
+        ;; current empty line, prior to knowing what the expected value should
+        ;; be.
+        (defvar smie--after)
         (setq smie--after (point))
+        (defvar smie--parent)
         (setq smie--parent nil)
+        (when haskell-tng-smie:debug
+          (let ((parent (caddr (smie-indent--parent)))
+                (grand (caddr (smie-indent--grandparent))))
+            (with-current-buffer haskell-tng-smie:debug
+              (insert
+               (format
+                " PARENT': %S\n  GRAND': %S\n"
+                parent grand)))))
 
         (cond
          ((or (smie-rule-parent-p "|")
@@ -181,13 +183,6 @@ information, to aid in the creation of new rules."
               (smie-rule-prev-line-start-p "|"))
           "|")
 
-         ((save-excursion
-            (forward-comment (point-max))
-            (eobp))
-          ;; this happens when we're at the end of the buffer. Must use
-          ;; heuristics before we get to this point.
-          ";")
-
          ((smie-rule-next-p ";" "}")
           ;; TODO semantic indentation
           ;;
@@ -195,6 +190,13 @@ information, to aid in the creation of new rules."
           ;; the parameter requirements for function calls. For simple cases,
           ;; we should be able to infer if the user wants to terminate ; or
           ;; continue "" the current line.
+          ";")
+
+         ((save-excursion
+            (forward-comment (point-max))
+            (eobp))
+          ;; this happens when we're at the end of the buffer. Must use
+          ;; heuristics before we get to this point.
           ";")
          ))))
 
