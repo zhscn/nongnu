@@ -214,6 +214,10 @@ information, to aid in the creation of new rules."
        ("\\case" 2) ;; LambdaCase
        ("where" (if (smie-rule-parent-p "module") 0 2))
        ((or "[" "(") 2)
+       ("{" (when (not (smie-rule-prev-p
+                        "\\case" ;; LambdaCase
+                        "where" "let" "do" "of"))
+              2))
        ("," (smie-rule-separator method))
        ((or "$" "SYMID")
         (if (smie-rule-hanging-p) 2 (smie-rule-parent)))
@@ -231,8 +235,7 @@ information, to aid in the creation of new rules."
        ;;
        ;; blah = bloo where
        ;;               bloo = blu
-       ((or "{" "where" "let" "do" "case" "->" "$" "SYMID")
-        ;; TODO { here should only be for WLDOs
+       ((or "where" "let" "do" "case" "->" "$" "SYMID")
         (smie-rule-parent))
        ("\\case" ;; LambdaCase
         (smie-rule-parent))
@@ -240,7 +243,7 @@ information, to aid in the creation of new rules."
         (if (smie-rule-parent-p "=")
             (smie-rule-parent-column)
           (smie-rule-separator method)))
-       ((or "[" "(")
+       ((or "[" "(" "{")
         (when (smie-rule-hanging-p)
           (smie-rule-parent)))
        ("," (smie-rule-separator method))
