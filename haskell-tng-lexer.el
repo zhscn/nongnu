@@ -113,9 +113,6 @@ the lexer."
            ((looking-at (rx "'["))
             ;; DataKinds
             (null (goto-char (+ (point) 1))))
-           ((looking-at (rx symbol-start "$" symbol-end))
-            ;; special handling of these operators
-            (haskell-tng-lexer:last-match))
            ((looking-at haskell-tng:regexp:kindsym)
             ;; caveat: doesn't include typelevel lists, see fast-syntax
             (haskell-tng-lexer:last-match nil "KINDSYM"))
@@ -179,8 +176,6 @@ the lexer."
                ;; non-trivial inversion
                (goto-char (- (point) 1))
                (haskell-tng-lexer:backward-token))
-              ((looking-back (rx symbol-start "$" symbol-end) lbp 't)
-               (haskell-tng-lexer:last-match 'reverse))
               ((looking-back haskell-tng:regexp:kindsym lbp 't)
                (haskell-tng-lexer:last-match 'reverse "KINDSYM"))
               ((looking-back haskell-tng:regexp:kindid lbp 't)

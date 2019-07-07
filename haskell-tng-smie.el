@@ -67,7 +67,6 @@
       (infixexp
        (id ":" infixexp) ;; keyword infix
        (id "':" infixexp) ;; DataKinds
-       (id "$" infixexp) ;; special case
        (id "SYMID" infixexp))
 
       (adt
@@ -204,7 +203,7 @@ information, to aid in the creation of new rules."
 
     (:list-intro
      (pcase arg
-       ((or "<-" "$" "SYMID") t)
+       ((or "<-" "SYMID") t)
        ("=" (not (smie-rule-parent-p "data")))
        ))
 
@@ -219,7 +218,7 @@ information, to aid in the creation of new rules."
                         "where" "let" "do" "of"))
               2))
        ("," (smie-rule-separator method))
-       ((or "$" "SYMID")
+       ((or "SYMID")
         (if (smie-rule-hanging-p) 2 (smie-rule-parent)))
        ))
 
@@ -235,7 +234,7 @@ information, to aid in the creation of new rules."
        ;;
        ;; blah = bloo where
        ;;               bloo = blu
-       ((or "where" "let" "do" "case" "->" "$" "SYMID")
+       ((or "where" "let" "do" "case" "->" "SYMID")
         (smie-rule-parent))
        ("\\case" ;; LambdaCase
         (smie-rule-parent))
@@ -247,7 +246,7 @@ information, to aid in the creation of new rules."
         (when (smie-rule-hanging-p)
           (smie-rule-parent)))
        ("," (smie-rule-separator method))
-       (_ (when (smie-rule-parent-p "$" "SYMID")
+       (_ (when (smie-rule-parent-p "SYMID")
             (smie-rule-parent)))
        ))
 
