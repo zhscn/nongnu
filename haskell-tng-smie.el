@@ -168,12 +168,13 @@ information, to aid in the creation of new rules."
         (setq smie--parent nil)
         (when haskell-tng-smie:debug
           (let ((parent (caddr (smie-indent--parent)))
-                (grand (caddr (smie-indent--grandparent))))
+                (grand (caddr (smie-indent--grandparent)))
+                (pnonid (caddr (smie-indent--prev-nonid))))
             (with-current-buffer haskell-tng-smie:debug
               (insert
                (format
-                " PARENT': %S\n  GRAND': %S\n"
-                parent grand)))))
+                " PARENT': %S\n  GRAND': %S\n   NONID: %S\n"
+                parent grand pnonid)))))
 
         (cond
          ((or (smie-rule-parent-p "[" "(")
@@ -184,7 +185,10 @@ information, to aid in the creation of new rules."
          ((or (smie-rule-parent-p "|")
               (and (smie-rule-parent-p "=")
                    (smie-rule-grandparent-p "data"))
-              (smie-rule-prev-line-start-p "|"))
+              (smie-rule-prev-nonid-p "|"))
+          (when haskell-tng-smie:debug
+            (with-current-buffer haskell-tng-smie:debug
+              (insert " NEWLINE IS |\n")))
           "|")
 
          ((smie-rule-next-p ";" "}")
@@ -410,22 +414,22 @@ use the column indentation as the parent. Note that
   "Like `smie-rule-parent-p' but for the parent's parent."
   (member (nth 2 (smie-indent--grandparent)) grandparents))
 
-(defun smie-indent--prev-line-start ()
-  "Like `smie-indent--parent' but for the previous line's first
-  token."
+(defun smie-indent--prev-nonid ()
+  "Returns the previous non-identifier s-expression."
   (save-excursion
-    (forward-line -1)
-    (let ((pos (point))
-          (tok (funcall smie-forward-token-function)))
-      (list nil pos tok))))
+    (let (seen)
+      (while (null (setq seen (smie-backward-sexp))))
+      seen)))
 
-(defun smie-rule-prev-line-start-p (&rest tokens)
-  "Like `smie-rule-parent-p' but for the parent's parent."
-  (member (nth 2 (smie-indent--prev-line-start)) tokens))
+(defun smie-rule-prev-nonid-p (&rest tokens)
+  "Non-nil if the previous non-identifier s-expression is one of TOKENS."
+  (member (nth 2 (smie-indent--prev-nonid)) tokens))
 
-(defun smie-prev-token-p (&rest tokens)
-  "Like `smie-rule-prev-p' but doesn't filter based on the grammar table."
-  (member (save-excursion (funcall smie-backward-token-function)) tokens))
+(defun smie-debug-parent ()
+  (interactive)
+  (defvar smie--parent)
+  (setq smie--parent nil)
+  (smie-indent--parent))
 
 (provide 'haskell-tng-smie)
 ;;; haskell-tng-smie.el ends here

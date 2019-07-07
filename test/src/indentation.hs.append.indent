@@ -155,7 +155,7 @@ v
             | Vibble Int
 1           v
 
-v           1
+1           v
 data Record1 = Record1 {
 1 v
   fieldA :: String
