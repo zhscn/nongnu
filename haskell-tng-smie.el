@@ -176,7 +176,10 @@ information, to aid in the creation of new rules."
                 parent grand)))))
 
         (cond
-         ((smie-rule-parent-p "[" "(") ",")
+         ((or (smie-rule-parent-p "[" "(")
+              (and (smie-rule-parent-p "{")
+                   (smie-rule-grandparent-p "=")))
+          ",")
 
          ((or (smie-rule-parent-p "|")
               (and (smie-rule-parent-p "=")
@@ -209,9 +212,10 @@ information, to aid in the creation of new rules."
 
     (:after
      (pcase arg
-       ((or "let" "do" "of" "=" "in" "->" "\\") 2)
+       ((or "let" "do" "of" "in" "->" "\\") 2)
+       ("=" (when (not (smie-rule-parent-p "data")) 2))
        ("\\case" 2) ;; LambdaCase
-       ("where" (if (smie-rule-parent-p "module") 0 2))
+       ("where" (when (not (smie-rule-parent-p "module")) 2))
        ((or "[" "(") 2)
        ("{" (when (not (smie-rule-prev-p
                         "\\case" ;; LambdaCase
@@ -234,7 +238,7 @@ information, to aid in the creation of new rules."
        ;;
        ;; blah = bloo where
        ;;               bloo = blu
-       ((or "where" "let" "do" "case" "->" "SYMID")
+       ((or "where" "let" "do" "case" "=" "->" "SYMID")
         (smie-rule-parent))
        ("\\case" ;; LambdaCase
         (smie-rule-parent))

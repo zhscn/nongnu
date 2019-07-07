@@ -77,6 +77,16 @@ data Wibble = Wibble Int
             | Wobble Int
             | Vibble Int
 
+data Record1 = Record1 {
+  fieldA :: String
+, fieldB :: String
+}
+
+data Record2 = Record2
+  { fieldA :: String
+  , fieldB :: String
+  }
+
 lists1 = [ foo
          , bar
          , [ blah

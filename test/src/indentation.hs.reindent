@@ -156,7 +156,27 @@ data Wibble = Wibble Int
             | Vibble Int
 v           1
 
-v        1  2
+v 1         2
+data Record1 = Record1 {
+1 v
+  fieldA :: String
+v 1
+, fieldB :: String
+v
+}
+v
+
+v 1
+data Record2 = Record2
+1 2            v
+  { fieldA :: String
+1 v
+  , fieldB :: String
+1 v
+  }
+v 1
+
+v 2      1
 lists1 = [ foo
 1        v
          , bar

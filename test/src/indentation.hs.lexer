@@ -77,6 +77,16 @@ VARID
 | CONID CONID
 | CONID CONID
 
+; data CONID = CONID «
+VARID :: CONID
+; , VARID :: CONID
+; »
+
+; data CONID = CONID
+« VARID :: CONID
+, VARID :: CONID
+»
+
 ; VARID = « VARID
 , VARID
 , « VARID

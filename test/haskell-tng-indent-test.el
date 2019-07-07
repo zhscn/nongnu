@@ -14,9 +14,9 @@
 
 ;; FIXME implement more indentation rules
 ;;
-;; TODO records (resolve WLDO ambiguity)
 ;; TODO multiline type signatures
 ;; TODO if/then/else
+;; TODO data: one conid ~> record, multi ~> coproduct
 
 ;; Three indentation regression tests are possible:
 ;;
