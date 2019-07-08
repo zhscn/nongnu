@@ -79,8 +79,8 @@ module Indentation where
 
 ;data Record1 = Record1 {
   fieldA :: String
-;, fieldB :: String
-;}
+, fieldB :: String
+}
 
 ;data Record2 = Record2
   { fieldA :: String
@@ -96,8 +96,8 @@ module Indentation where
 
 ;lists2 = [
   foo
-;, bar
-;]
+, bar
+]
 
 ;lists3 = [ foo ,
            bar ]
@@ -111,8 +111,8 @@ module Indentation where
 
 ;tuples2 = (
   foo
-;, bar
-;)
+, bar
+)
 
 ;tuples3 = ( foo ,
             bar )

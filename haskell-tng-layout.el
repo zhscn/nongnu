@@ -36,14 +36,6 @@
 
 (require 'haskell-tng-util)
 
-;; FIXME incorrect layout for brackets near the edge, don't add semis for commas
-;; and parens.
-;;
-;; ;data Record1 = Record1 {
-;;   fieldA :: String
-;; ;, fieldB :: String
-;; ;}
-
 ;; Easiest cache... full buffer parse with full invalidation on any insertion.
 ;;
 ;; A list of (OPEN . (CLOSE . SEPS)) positions, one per inferred block.
@@ -132,7 +124,9 @@ WLDO that is using the offside rule."
                       (forward-line)
                       (forward-comment (point-max))
                       (when (and (= (current-column) level)
-                                 (not (eobp)))
+                                 (not (eobp))
+                                 (not (looking-at
+                                       (rx bol (or "," ")" "]" "}")))))
                         (push (point) seps))
                       (when (< limit (point))
                         (throw 'closed limit))

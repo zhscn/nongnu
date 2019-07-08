@@ -159,7 +159,7 @@ v           1
 data Record1 = Record1 {
 1 v
   fieldA :: String
-1 v
+v 1
 , fieldB :: String
 v
 }
@@ -193,7 +193,7 @@ v        1 2
 lists2 = [
 1 v
   foo
-1 v
+v 1
 , bar
 v
 ]
@@ -223,7 +223,7 @@ v         1 2
 tuples2 = (
 1 v
   foo
-1 v
+v 1
 , bar
 v
 )
