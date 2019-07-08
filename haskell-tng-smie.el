@@ -18,7 +18,7 @@
 ;;  because it is not known if the user wishes to continue the previous line,
 ;;  create a new line at the same level, or close off the block. We try to err
 ;;  on the side of "staying at the same level" (not escaping or closing a
-;;  previous line) when we can.
+;;  previous line) when we can, but also try to anticipate the next line.
 ;;
 ;;  All the good ideas are from Stefan Monnier, all the bad ones are mine.
 ;;
@@ -156,6 +156,7 @@ information, to aid in the creation of new rules."
      (pcase arg
        ((or 'args 'basic) 0)
 
+       ;; TODO insert the predicted token... code completion!
        ('empty-line-token
         (let* ((parents (save-excursion
                          (haskell-tng-smie:ancestors 2)))
@@ -304,14 +305,14 @@ current line."
     ;; alts are easier to use when ordered
     (setq indents (sort indents '<))
 
-    ;; previous / next line should be top priority alts
-    (--each '(1 -1)
+    ;; TODO SMIE +2 might be good to have
+
+    ;; next / previous line should be top priority alts
+    (--each '(-1 1)
       (save-excursion
         (forward-line it)
         (when-let (new (haskell-tng-smie:relevant-alts (point-at-eol) (< it 0)))
           (setq indents (append new indents)))))
-
-    ;; TODO if this list is empty, return current+2
 
     (-distinct indents)))
 
