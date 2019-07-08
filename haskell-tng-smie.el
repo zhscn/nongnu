@@ -69,10 +69,11 @@
        (id "':" infixexp) ;; DataKinds
        (id "SYMID" infixexp))
 
-      (adt
-       ("data" id "=" cop))
-      (cop
-       (cop "|" cop))
+      (data
+       ("data" id "=" cons))
+      (cons
+       (id "deriving" list)
+       (cons "|" cons))
 
       ;; WLDOs
       (wldo
@@ -164,13 +165,17 @@ information, to aid in the creation of new rules."
                (grand (cadr parents))
                (prev (save-excursion
                        (car (smie-indent-backward-token))))
+               (psexp (save-excursion
+                        (caddr (haskell-tng:until
+                                (smie-backward-sexp)
+                                (bobp)))))
                (next (save-excursion
                        (car (smie-indent-forward-token)))))
 
           (when haskell-tng-smie:debug
             (with-current-buffer haskell-tng-smie:debug
-              (insert (format " ^^: %S\n  ^: %S\n -1: %S\n +1: %S\n"
-                              grand parent prev next))))
+              (insert (format " ^^: %S\n  ^: %S\n -1: %S\n -(: %S\n +1: %S\n"
+                              grand parent prev psexp next))))
 
           (cond
            ((or
@@ -181,11 +186,13 @@ information, to aid in the creation of new rules."
             ",")
 
            ((or (equal parent "|")
-                ;; TODO not if there is a deriving keyword somewhere
                 (and (equal parent "=")
                      (equal grand "data")
                      (not (equal prev "}"))))
             "|")
+
+           ((equal parent "deriving")
+            ";")
 
            ((member next '(";" "}"))
             ;; TODO we could do semantic indentation here

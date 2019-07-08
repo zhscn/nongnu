@@ -176,6 +176,16 @@ data Record2 = Record2
 v 1
 
 v 1
+data Record3 = Record3 String Text
+1            v
+               deriving (Show)
+v              1
+
+v              1
+data Record4 = Record3 String Text deriving (Show)
+v
+
+v
 lists1 = [ foo
 1        v
          , bar

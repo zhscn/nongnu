@@ -14,11 +14,8 @@
 
 ;; FIXME implement more indentation rules
 ;;
-;; TODO records
-;; TODO coproducts
 ;; TODO multiline type signatures
 ;; TODO if/then/else
-;; TODO data: one conid ~> record, multi ~> coproduct
 
 ;; TODO reindenting needs attention, it's all over the radar
 

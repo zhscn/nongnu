@@ -87,6 +87,11 @@ data Record2 = Record2
   , fieldB :: String
   }
 
+data Record3 = Record3 String Text
+               deriving (Show)
+
+data Record4 = Record3 String Text deriving (Show)
+
 lists1 = [ foo
          , bar
          , [ blah
