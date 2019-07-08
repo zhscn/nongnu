@@ -12,6 +12,9 @@
 
 (require 'compile)
 (require 'ansi-color)
+(require 'subr-x)
+
+(require 'haskell-tng-util)
 
 ;; TODO prettify-symbol rules for home dirs, project dirs, and hide .o files, etc
 ;; TODO set compilation-directory when opening the file
@@ -97,7 +100,8 @@ will cause the subsequent call to prompt."
     (when-let (default-directory
                 (haskell-tng:locate-dominating-file
                  (rx (| "cabal.project" "cabal.project.local" "cabal.project.freeze"
-                        (: (+ any) ".cabal")))))
+                        (: (+ any) ".cabal")
+                        "package.yaml" "stack.yaml"))))
       (compilation-start
        command
        'haskell-tng-compilation-mode
