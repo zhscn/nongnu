@@ -10,110 +10,110 @@
 module CONID where
 
 { import CONID
-;; ; import CONID VARID « VARID ,
+; import CONID VARID « VARID ,
 VARID
 »
 
-;; ; VARID = do
+; VARID = do
 { VARID <- VARID VARID VARID
-;; ; VARID <- VARID VARID
+; VARID <- VARID VARID
 VARID
 VARID
-;; ; VARID
-;; ; VARID VARID
-;; ; let { VARID = VARID VARID
+; VARID
+; VARID VARID
+; let { VARID = VARID VARID
 VARID
-;; ; VARID = VARID
-;; ; VARID =
+; VARID = VARID
+; VARID =
 VARID
-;; } ;; ; VARID VARID
+} ; VARID VARID
 
-;; } ;; ; VARID =
+} ; VARID =
 do { VARID <- VARID
-;; ; do { VARID <- VARID
-;; ; VARID
+; do { VARID <- VARID
+; VARID
 
-;; } ;; } ;; ; VARID VARID VARID = VARID VARID VARID
+} } ; VARID VARID VARID = VARID VARID VARID
 where
 { VARID = VARID VARID
-;; ; VARID = VARID VARID
+; VARID = VARID VARID
 where
 { VARID VARID = VARID
-;; ; VARID = VARID
+; VARID = VARID
 
-;; } ;; } ;; ; VARID VARID VARID = let
+} } ; VARID VARID VARID = let
 { VARID = VARID
-;; ; VARID _ = VARID
-;; ; in
+; VARID _ = VARID
+; in
 VARID VARID
 
-;; } ;; ; VARID VARID VARID =
+} ; VARID VARID VARID =
 let { VARID = VARID
-;; ; VARID = VARID
-;; } in VARID
+; VARID = VARID
+} in VARID
 
-;; ; VARID VARID = case VARID of
+; VARID VARID = case VARID of
 { CONID ->
 §
-;; ; CONID VARID ->
+; CONID VARID ->
 VARID
 
-;; } ;; ; VARID = \case
+} ; VARID = \case
 { CONID -> §
-;; ; CONID VARID -> VARID
+; CONID VARID -> VARID
 
-;; } ;; ; VARID VARID CONID = VARID SYMID
+} ; VARID VARID CONID = VARID SYMID
 § §
 §
-;; ; VARID VARID « CONID VARID » = VARID SYMID \ VARID ->
+; VARID VARID « CONID VARID » = VARID SYMID \ VARID ->
 VARID
 
-;; ; VARID = do
+; VARID = do
 { VARID <- VARID SYMID VARID VARID
-;; ; VARID SYMID
+; VARID SYMID
 VARID
 
-;; } ;; ; data CONID = CONID CONID
+} ; data CONID = CONID CONID
 | CONID CONID
 | CONID CONID
 
-;; ; data CONID = CONID «
+; data CONID = CONID «
 VARID :: CONID
-;; ; , VARID :: CONID
-;; ; »
+; , VARID :: CONID
+; »
 
-;; ; data CONID = CONID
+; data CONID = CONID
 « VARID :: CONID
 , VARID :: CONID
 »
 
-;; ; VARID = « VARID
+; VARID = « VARID
 , VARID
 , « VARID
 , VARID
 , VARID »
 »
 
-;; ; VARID = «
+; VARID = «
 VARID
-;; ; , VARID
-;; ; »
+; , VARID
+; »
 
-;; ; VARID = « VARID ,
+; VARID = « VARID ,
 VARID »
 
-;; ; VARID = « VARID
+; VARID = « VARID
 , VARID
 , « VARID
 , VARID
 , VARID »
 »
 
-;; ; VARID = «
+; VARID = «
 VARID
-;; ; , VARID
-;; ; »
+; , VARID
+; »
 
-;; ; VARID = « VARID ,
+; VARID = « VARID ,
 VARID »
-;; }
+}

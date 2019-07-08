@@ -171,7 +171,7 @@ data Record2 = Record2
   { fieldA :: String
 1 v
   , fieldB :: String
-1 v
+2 1 v
   }
 v 1
 

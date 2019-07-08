@@ -10,88 +10,88 @@ module CONID
 » where
 
 { import CONID « VARID , VARID , VARID , « SYMID » , « SYMID » »
-;; ; import CONID « VARID »
-;; ; import CONID « « SYMID » »
-;; ; import CONID « VARID »
-;; ; import CONID « « SYMID » »
-;; ; import VARID CONID
-;; ; import VARID CONID VARID CONID
-;; ; import VARID CONID
+; import CONID « VARID »
+; import CONID « « SYMID » »
+; import CONID « VARID »
+; import CONID « « SYMID » »
+; import VARID CONID
+; import VARID CONID VARID CONID
+; import VARID CONID
 VARID CONID
-;; ; import VARID CONID VARID « VARID , VARID , VARID »
-;; ; import CONID « VARID , VARID , VARID »
-;; ; import CONID VARID « VARID , VARID , VARID »
-;; ; import VARID CONID « VARID , VARID , VARID »
-;; ; import CONID « CONID « .. » , VARID , VARID ,
+; import VARID CONID VARID « VARID , VARID , VARID »
+; import CONID « VARID , VARID , VARID »
+; import CONID VARID « VARID , VARID , VARID »
+; import VARID CONID « VARID , VARID , VARID »
+; import CONID « CONID « .. » , VARID , VARID ,
 CONID ,
 VARID ,
 CONID »
-;; ; import CONID « VARID , CONID « CONID , « CONSYM » » »
-;; ; import CONID « CONID « .. » , VARID , VARID ,
+; import CONID « VARID , CONID « CONID , « CONSYM » » »
+; import CONID « CONID « .. » , VARID , VARID ,
 VARID , VARID , VARID , VARID ,
 VARID , CONID »
-;; ; import CONID « CONID « .. » , CONID « .. » ,
+; import CONID « CONID « .. » , CONID « .. » ,
 VARID , VARID , VARID »
 
 
-;; ; VARID = « § , § , § »
+; VARID = « § , § , § »
 
-;; ; VARID = « § , § , § , § »
-
-
-;; ; VARID = §§
-
-;; ; VARID = §§
+; VARID = « § , § , § , § »
 
 
-;; ; VARID = VARID § 2
+; VARID = §§
 
-;; ; VARID = §
+; VARID = §§
 
-;; ; class CONID VARID VARID where
+
+; VARID = VARID § 2
+
+; VARID = §
+
+; class CONID VARID VARID where
 { VARID :: CONID VARID -> VARID
 
-;; } ;; ; instance CONID VARID « VARID ': VARID » where
+} ; instance CONID VARID « VARID ': VARID » where
 { VARID « CONID VARID _ » = VARID
 
-;; } ;; ; instance CONID VARID VARID => CONID VARID « VARID ': VARID » where
+} ; instance CONID VARID VARID => CONID VARID « VARID ': VARID » where
 { VARID « CONID _ VARID » = VARID VARID
 
-;; } ;; ; data CONID = CONID
+} ; data CONID = CONID
 « VARID :: CONID
 , VARID :: CONID CONID
 , VARID :: CONID CONID
 , VARID :: « CONID »
 » deriving « CONID , CONID »
 
-;; ; class « CONID VARID » => CONID VARID where
+; class « CONID VARID » => CONID VARID where
 { « SYMID » , « SYMID » , « SYMID » , « SYMID » :: VARID -> VARID -> CONID
-;; ; VARID @ CONID , VARID :: VARID -> VARID -> VARID
+; VARID @ CONID , VARID :: VARID -> VARID -> VARID
 
-;; } ;; ; instance « CONID VARID » => CONID « CONID VARID » where
+} ; instance « CONID VARID » => CONID « CONID VARID » where
 { CONID VARID SYMID CONID VARID = VARID SYMID VARID
-;; ; « CONID VARID VARID » SYMID « CONID VARID VARID » = « VARID SYMID VARID » SYMID « VARID SYMID VARID »
-;; ; _ SYMID _ = CONID
+; « CONID VARID VARID » SYMID « CONID VARID VARID » = « VARID SYMID VARID » SYMID « VARID SYMID VARID »
+; _ SYMID _ = CONID
 
-;; } ;; ; data CONID = CONID
+} ; data CONID = CONID
 | CONID
 | CONID
 | CONID
 | CONID
 deriving « CONID , CONID »
 
-;; ; type VARID CONID VARID where
+; type VARID CONID VARID where
 { CONID CONID = CONID
-;; ; CONID VARID = CONID
+; CONID VARID = CONID
 
-;; } ;; ; data CONID = CONID
+} ; data CONID = CONID
 deriving « CONID » VARID « CONID « CONID CONID » »
 deriving VARID « CONID »
 deriving VARID « CONID , CONID »
 
-;; ; newtype CONID = CONID
+; newtype CONID = CONID
 
-;; ; VARID ::
+; VARID ::
 CONID
 -> CONID
 -> CONID
@@ -100,17 +100,17 @@ CONID
 -> « CONID
 VARID VARID VARID »
 
-;; ; « VARID :: « CONID CONID » » VARID
+; « VARID :: « CONID CONID » » VARID
 
-;; ; newtype CONID
+; newtype CONID
 « VARID :: CONID »
 « VARID :: CONID »
 VARID
 VARID
 = CONID VARID
 
-;; ; VARID :: CONID CONID
-;; ; VARID = CONID
+; VARID :: CONID CONID
+; VARID = CONID
 SYMID « VARID CONID « VARID § SYMID VARID § »
 SYMID VARID CONID « VARID § SYMID VARID § »
 SYMID VARID CONID « VARID § SYMID VARID § » »
@@ -119,9 +119,9 @@ SYMID VARID
 « VARID § SYMID
 VARID § » »
 
-;; ; type CONID
+; type CONID
 
-;; ; type CONID =
+; type CONID =
 § CONSYM CONID § CONID CONSYM CONID § CONID
 CONSYM CONID § CONID
 CONSYM CONID CONID CONID
@@ -132,22 +132,22 @@ CONSYM CONID CONID CONID
 CONSYM CONID
 CONSYM CONID « CONID » « CONID CONID »
 
-;; ; deriving instance CONID CONID
-;; ; deriving VARID instance CONID CONID
-;; ; deriving newtype instance CONID CONID
+; deriving instance CONID CONID
+; deriving VARID instance CONID CONID
+; deriving newtype instance CONID CONID
 
-;; ; VARID = do
+; VARID = do
 { VARID :: CONID <- VARID
-;; ; where { VARID = _
+; where { VARID = _
 
 
-;; ; « SYMID » = _
+; « SYMID » = _
 
-;; } ;; } ;; ; VARID = 1 SYMID 1
+} } ; VARID = 1 SYMID 1
 
-;; ; VARID = \case
+; VARID = \case
 { CONID -> § SYMID VARID
-;; ; CONID _ -> VARID SYMID §
+; CONID _ -> VARID SYMID §
 
-;; } ;; ; VARID = do
-{ ;; } ;; }
+} ; VARID = do
+{ } }

@@ -22,7 +22,7 @@ v
 
 v
 import Foo.Bar
-1          v            2
+v                       1
 import Foo.Baz hiding ( gaz,
 1                     2 v
                         baz
@@ -30,125 +30,125 @@ import Foo.Baz hiding ( gaz,
                       )
 v                     1 2
 
-2 1        v          3 4
+v 1                   2 3
 basic_do = do
 1 v      2
   foo <- blah blah blah
-2 1      v      3
+v 1      2
   bar <- blah blah
 2 1      v
          blah -- manual correction
 2 1      v
          blah -- manual correction
-2 1      v
+v 2      1
   sideeffect
-2 v   1  3
+v 1   2  3
   sideeffect' blah
-3 1      4  2 v
+v 1      3  2
   let baz = blah blah
 3 2   1  4  v
             blah -- manual correction
-2 3   1  4  v
+v 3   2  4  1
       gaz = blah
-3 4   1 25  v
+v 3   1 24  5
       haz =
 3 2   1 v4  5
         blah
-2 3   v 14  5
+2 v   3 14  5
   pure faz -- manual correction
 1 v   2 34  5
 
-2 v  13 45  6
+v 2  13 45  6
 nested_do = -- manual correction
 v       1
   do foo <- blah
-3    1  2   v         4
+v    1  3   2
      do bar <- blah -- same level as foo
-3    2  1   4  v
+v    2  1   4  3
         baz -- same level as bar
 1    2  v   3  4
 
-2 1  v  3   4  5
+v    1  2   3  4
 nested_where a b = foo a b
 1 v 2
   where -- manual correction
 1   v
     foo = bar baz -- indented
-2   1     v
+v   1
     baz = blah blah -- same level as foo
 2   v   1
       where -- manual correction
 1   2   v
         gaz a = blah -- indented
-2   3   1       v
+v   2   1
         faz = blah -- same level as gaz
 1   2   v
 
-2 1 v   3
+v 1 2   3
 let_in a b = let
 1 v
   blah = bloo
-2 1      v
+v 1
   wobble _ = fish
-3 1 2        v
+v 1 2
   in
 2 1 v
     flibble blah
 2 v 1
 
-2 v 3 1
+v 2 3 1
 implicit_let foo bar =
 v     1
   let ?foo = foo
-3 2   1      v
+v 2   1
       ?bar = bar
-1     v
+v     1
   in  rar
 v 1   2
 
-1 v   2
+v 1   2
 case_of wibble = case wibble of
 1 v 2
   Nothing   ->
 2 1 v
     ""
-1 2 v
+v 2 1
   Just fish ->
 2 1 v
     fish
 2 v 1
 
-1 v 2
+v 1 2
 lambda_case = \case
 1 v
   Nothing   -> ""
-2 1            v
+v 1
   Just fish -> fish
 1 v
 
-1 v
+v 1
 dollars f Nothing = f $
 1 v
   "" ""
 1 v
   ""
-1 v
+v 1
 dollars f (Just a) = f $ \s ->
 1 v
   a
 v 1
 
-1 v
+v 1
 not_dollars = do
 1 v      2
   db' <- liftIO $ readMVar db
-4 1 3    2        v
+v 1 3    2
   shouldGoHere <$>
 2 1 v    3
     here
 2 v 1    3
 
-2 v 3    4  1
+v 2 3    4  1
 data Wibble = Wibble Int
 1           v
             | Wobble Int
@@ -156,17 +156,17 @@ data Wibble = Wibble Int
             | Vibble Int
 v           1
 
-2 1         3        v
+v 1         2
 data Record1 = Record1 {
 1 v
   fieldA :: String
-2 1      v
+v 1
 , fieldB :: String
 v
 }
 v
 
-2 1            v
+v 1
 data Record2 = Record2
 1 2            v
   { fieldA :: String
@@ -176,7 +176,7 @@ data Record2 = Record2
   }
 v 1
 
-2 v      1
+v 2      1
 lists1 = [ foo
 1        v
          , bar
@@ -190,23 +190,23 @@ lists1 = [ foo
          ]
 v        1 2
 
-2 1      v 3
+v 1      2 3
 lists2 = [
 1 v
   foo
-1 v
+v 1
 , bar
 v
 ]
 v
 
-2        v 1
+v          1
 lists3 = [ foo ,
 1          v
            bar ]
 v          1
 
-2        v13
+v         12
 tuples1 = ( foo
 1         v
           , bar
@@ -220,17 +220,17 @@ tuples1 = ( foo
           )
 v         1 2
 
-2 1       v 3
+v 1       2 3
 tuples2 = (
 1 v
   foo
-1 v
+v 1
 , bar
 v
 )
 v
 
-2         v 1
+v           1
 tuples3 = ( foo ,
 1           v
             bar )

@@ -70,7 +70,7 @@
        (id "SYMID" infixexp))
 
       (adt
-       ("data" id "=" cop ";;"))
+       ("data" id "=" cop))
       (cop
        (cop "|" cop))
 
@@ -191,14 +191,14 @@ information, to aid in the creation of new rules."
               (insert " NEWLINE IS |\n")))
           "|")
 
-         ((smie-rule-next-p ";;" ";" "}")
+         ((smie-rule-next-p ";" "}")
           ;; TODO semantic indentation
           ;;
           ;; Consult a local table, populated by an external tool, containing
           ;; the parameter requirements for function calls. For simple cases,
           ;; we should be able to infer if the user wants to terminate ; or
           ;; continue "" the current line.
-          ";;")
+          ";")
 
          ((save-excursion
             (forward-comment (point-max))
@@ -217,14 +217,14 @@ information, to aid in the creation of new rules."
     (:after
      (pcase arg
        ((or "let" "do" "of" "in" "->" "\\") 2)
-       ((and "=" (guard (not (smie-rule-parent-p "data")))) 2)
+       ("=" (when (not (smie-rule-parent-p "data")) 2))
        ("\\case" 2) ;; LambdaCase
-       ((and "where" (guard (not (smie-rule-parent-p "module")))) 2)
+       ("where" (when (not (smie-rule-parent-p "module")) 2))
        ((or "[" "(") 2)
-       ((and "{" (guard (not (smie-rule-prev-p
-                              "\\case" ;; LambdaCase
-                              "where" "let" "do" "of"))))
-              2)
+       ("{" (when (not (smie-rule-prev-p
+                        "\\case" ;; LambdaCase
+                        "where" "let" "do" "of"))
+              2))
        ("," (smie-rule-separator method))
        ((or "SYMID")
         (if (smie-rule-hanging-p) 2 (smie-rule-parent)))
@@ -250,13 +250,12 @@ information, to aid in the creation of new rules."
         (if (smie-rule-parent-p "=")
             (smie-rule-parent-column)
           (smie-rule-separator method)))
-       ((and (or "[" "(" "{") (guard (smie-rule-hanging-p)))
-        (smie-rule-parent))
+       ((or "[" "(" "{")
+        (when (smie-rule-hanging-p)
+          (smie-rule-parent)))
        ("," (smie-rule-separator method))
-       ((and ";;" (guard (smie-rule-parent-p ",")))
-        (smie-rule-parent))
-       ((guard (smie-rule-parent-p "SYMID"))
-        (smie-rule-parent))
+       (_ (when (smie-rule-parent-p "SYMID")
+            (smie-rule-parent)))
        ))
 
     ))

@@ -26,7 +26,6 @@
 ;; backwards parsing, and we'd need to write an FFI interface that may introduce
 ;; performance problems (converting Emacs buffers into the Flex input format).
 
-(require 'dash)
 (require 'smie)
 
 (require 'haskell-tng-rx)
@@ -86,8 +85,7 @@ the lexer."
           ;; lookback is fast).
           (setq haskell-tng-lexer:state
                 (unless haskell-tng-lexer:state
-                  (haskell-tng-lexer:expand-virtuals
-                   (haskell-tng-layout:virtuals-at-point))))
+                  (haskell-tng-layout:virtuals-at-point)))
 
           (cond
            ;; new virtual tokens
@@ -153,8 +151,9 @@ the lexer."
 
           (setq haskell-tng-lexer:state
                 (unless haskell-tng-lexer:state
-                  (haskell-tng-lexer:expand-virtuals
-                   (haskell-tng-layout:virtuals-at-point))))
+                  ;; TODO semicolon cannot be used as a separator and a line end
+                  ;; in the grammar rules, so should we emit multiple tokens?
+                  (haskell-tng-layout:virtuals-at-point)))
 
           (if haskell-tng-lexer:state
               (haskell-tng-lexer:replay-virtual 'reverse)
@@ -220,23 +219,6 @@ the lexer."
 (defun haskell-tng-lexer:last-match (&optional reverse alt)
   (goto-char (if reverse (match-beginning 0) (match-end 0)))
   (or alt (match-string-no-properties 0)))
-
-(defun haskell-tng-lexer:expand-virtuals (virtuals)
-  "We add an additional `;;' token before every `;' and `}' to
-workaround a limitation of SMIE whereby tokens can only be used
-as openers/closers or separators, but not both.
-
-In particular we would like to use `;' and `}' as terminators,
-and this allows us to do so.
-
-These are not useful in all locations, but it is much simpler to
-add them everywhere than to try and be contextual."
-  (--mapcat
-   (pcase it
-     (";" (list ";;" ";"))
-     ("}" (list ";;" "}"))
-     (other (list other)))
-   virtuals))
 
 (provide 'haskell-tng-lexer)
 ;;; haskell-tng-lexer.el ends here

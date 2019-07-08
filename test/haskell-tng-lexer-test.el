@@ -29,31 +29,26 @@
     ;; three parses at this position will produce a virtual token and a real
     ;; token, then move the point for another token.
     (goto-char 317)
-    (should (equal (haskell-tng-lexer-test:indent-forward-token) ";;"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) ";"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) "VARID"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) "«"))
 
     ;; repeating the above, but with a user edit, should reset the state
     (goto-char 317)
-    (should (equal (haskell-tng-lexer-test:indent-forward-token) ";;"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) ";"))
     (save-excursion
       (goto-char (point-max))
       (insert " "))
-    (should (equal (haskell-tng-lexer-test:indent-forward-token) ";;"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) ";"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) "VARID"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) "«"))
 
     ;; repeating again, but jumping the lexer, should reset the state
     (goto-char 317)
-    (should (equal (haskell-tng-lexer-test:indent-forward-token) ";;"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) ";"))
     (goto-char 327)
     (should (equal (haskell-tng-lexer-test:indent-forward-token) "CONID"))
     (goto-char 317)
-    (should (equal (haskell-tng-lexer-test:indent-forward-token) ";;"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) ";"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) "VARID"))
     (should (equal (haskell-tng-lexer-test:indent-forward-token) "«"))
@@ -61,34 +56,29 @@
     ;; repeating those tests, but for the backward lexer
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) ";;"))
     (should (equal (haskell-tng-lexer-test:indent-backward-token) "[]"))
 
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) ";;"))
     (save-excursion
       (goto-char (point-max))
       (insert " "))
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) ";;"))
     (should (equal (haskell-tng-lexer-test:indent-backward-token) "[]"))
 
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) ";;"))
     (goto-char 327)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) "«"))
     (goto-char 317)
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-backward-token) ";;"))
     (should (equal (haskell-tng-lexer-test:indent-backward-token) "[]"))
 
     ;; jumping between forward and backward at point should reset state
     (goto-char 317)
-    (should (equal (haskell-tng-lexer-test:indent-forward-token) ";;"))
+    (should (equal (haskell-tng-lexer-test:indent-forward-token) ";"))
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
-    (should (equal (haskell-tng-lexer-test:indent-forward-token) ";;"))
+    (should (equal (haskell-tng-lexer-test:indent-forward-token) ";"))
     (should (equal (haskell-tng-lexer-test:indent-backward-token) ";"))
     ))
 
