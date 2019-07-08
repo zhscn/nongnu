@@ -45,7 +45,7 @@ basic_do = do
   sideeffect' blah
 2 v   1  3
   let baz = blah blah
-3 2   1  4  v
+4 2   1  5  3    v
             blah -- manual correction
 2 3   v  4  1
       gaz = blah
@@ -69,13 +69,13 @@ nested_do = -- manual correction
 
 1    2  v   3  4
 nested_where a b = foo a b
-1                  v
+1                      v
   where -- manual correction
 1   v
     foo = bar baz -- indented
 1   v
     baz = blah blah -- same level as foo
-2   1     v
+2   1          v
       where -- manual correction
 1   2   v
         gaz a = blah -- indented
@@ -171,7 +171,7 @@ data Record2 = Record2
   { fieldA :: String
 1 v
   , fieldB :: String
-2 1 v
+1 v
   }
 v 1
 
@@ -179,13 +179,13 @@ v 1
 lists1 = [ foo
 1        v
          , bar
-2        1 v
+1        v
          , [ blah
 2        1 v
            , blah
-2        3 1 v
+1        2 v
            , blah ]
-2        1 v
+2        v 1
          ]
 v        1 2
 
@@ -209,13 +209,13 @@ v          1
 tuples1 = ( foo
 1         v
           , bar
-2         1 v
+1         v
           , ( blah
 2         1 v
             , blah
-2         3 1 v
+1         2 v
             , blah )
-2         1 v
+2         v 1
           )
 v         1 2
 

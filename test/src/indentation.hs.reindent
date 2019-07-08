@@ -46,7 +46,7 @@ v 1   2  3
   sideeffect' blah
 v 1      3  2
   let baz = blah blah
-3 2   1  4  v
+3 2   1  4       v
             blah -- manual correction
 v 3   2  4  1
       gaz = blah

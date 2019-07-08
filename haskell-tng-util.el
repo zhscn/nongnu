@@ -60,5 +60,15 @@ and taking a regexp."
    default-directory
    (lambda (dir) (directory-files dir nil regexp))))
 
+(defmacro haskell-tng:until (form &optional guard)
+  "Runs `while' on FORM until it is non-nil, returning the value.
+
+A guard is provided which may cause the loop to exit early with nil."
+  (let ((res (gensym "res")))
+    `(let (,res)
+       (while (and (not ,guard)
+                   (not (setq ,res ,form))))
+       ,res)))
+
 (provide 'haskell-tng-util)
 ;;; haskell-tng-util.el ends here

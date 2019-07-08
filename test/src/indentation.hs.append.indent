@@ -149,7 +149,7 @@ not_dollars = do
 
 1 v 2    3
 data Wibble = Wibble Int
-v
+1           v
             | Wobble Int
 1           v
             | Vibble Int
@@ -167,7 +167,7 @@ v
 
 v
 data Record2 = Record2
-v
+1            v
   { fieldA :: String
 1 v
   , fieldB :: String

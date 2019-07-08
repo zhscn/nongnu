@@ -136,95 +136,89 @@ information, to aid in the creation of new rules."
 ;; indentation of that token. For example, consider a `do' block, we may get an
 ;; `:after' and a `:before' for `do' which may be at column 20 but virtually at
 ;; column 0.
+;;
+;; NOTE https://debbugs.gnu.org/cgi/bugreport.cgi?bug=36434
+;;
+;; smie-rule-* are not designed be used in :elem or :list-intro
 (defun haskell-tng-smie:rules (method arg)
   (when haskell-tng-smie:debug
     (let ((sym (symbol-at-point))
           (parent (and (boundp 'smie--parent)
-                       (caddr (smie-indent--parent))))
-          (grand (and (boundp 'smie--parent)
-                      (caddr (smie-indent--grandparent)))))
+                       (caddr (smie-indent--parent)))))
       (with-current-buffer haskell-tng-smie:debug
         (insert
          (format
-          "RULES: %S %S %S\n  PARENT: %S\n   GRAND: %S\n"
-          method arg sym parent grand)))))
+          "RULES: %S %S %S\n  P: %S\n"
+          method arg sym parent)))))
 
   (pcase method
-
     (:elem
      (pcase arg
        ((or 'args 'basic) 0)
 
        ('empty-line-token
-        ;; WORKAROUND https://debbugs.gnu.org/cgi/bugreport.cgi?bug=36434
-        ;;
-        ;; smie-rule-* are not designed be used in :elem because there is no
-        ;; clear current token. We force their use to mean relative to the
-        ;; current empty line, prior to knowing what the expected value should
-        ;; be.
-        (defvar smie--after)
-        (setq smie--after (point))
-        (defvar smie--parent)
-        (setq smie--parent nil)
-        (when haskell-tng-smie:debug
-          (let ((parent (caddr (smie-indent--parent)))
-                (grand (caddr (smie-indent--grandparent)))
-                (pnonid (caddr (smie-indent--prev-nonid))))
-            (with-current-buffer haskell-tng-smie:debug
-              (insert
-               (format
-                " PARENT': %S\n  GRAND': %S\n   NONID: %S\n"
-                parent grand pnonid)))))
+        (let* ((parents (save-excursion
+                         (haskell-tng-smie:ancestors 2)))
+               (parent (car parents))
+               (grand (cadr parents))
+               (prev (save-excursion
+                       (car (smie-indent-backward-token))))
+               (next (save-excursion
+                       (car (smie-indent-forward-token)))))
 
-        (cond
-         ((or (smie-rule-parent-p "[" "(")
-              (and (smie-rule-parent-p "{")
-                   (smie-rule-grandparent-p "=")))
-          ",")
-
-         ((or (smie-rule-parent-p "|")
-              (and (smie-rule-parent-p "=")
-                   (smie-rule-grandparent-p "data"))
-              (smie-rule-prev-nonid-p "|"))
           (when haskell-tng-smie:debug
             (with-current-buffer haskell-tng-smie:debug
-              (insert " NEWLINE IS |\n")))
-          "|")
+              (insert (format " ^^: %S\n  ^: %S\n -1: %S\n +1: %S\n"
+                              grand parent prev next))))
 
-         ((smie-rule-next-p ";" "}")
-          ;; TODO semantic indentation
-          ;;
-          ;; Consult a local table, populated by an external tool, containing
-          ;; the parameter requirements for function calls. For simple cases,
-          ;; we should be able to infer if the user wants to terminate ; or
-          ;; continue "" the current line.
-          ";")
+          (cond
+           ((or
+             (equal next ",")
+             (member parent '("[" "(" ","))
+             (and (equal parent "{")
+                  (equal grand "=")))
+            ",")
 
-         ((save-excursion
-            (forward-comment (point-max))
-            (eobp))
-          ;; this happens when we're at the end of the buffer. Must use
-          ;; heuristics before we get to this point.
-          ";")
-         ))))
+           ((or (equal parent "|")
+                ;; TODO not if there is a deriving keyword somewhere
+                (and (equal parent "=")
+                     (equal grand "data")
+                     (not (equal prev "}"))))
+            "|")
+
+           ((member next '(";" "}"))
+            ;; TODO we could do semantic indentation here
+            ;;
+            ;; Consult a local table, populated by an external tool, containing
+            ;; the parameter requirements for function calls. For simple cases,
+            ;; we should be able to infer if the user wants to terminate ; or
+            ;; continue "" the current line.
+            ";")
+
+           ((save-excursion
+              (forward-comment (point-max))
+              (eobp))
+            ;; this happens when we're at the end of the buffer. Must use
+            ;; heuristics before we get to this point.
+            ";")
+           )))))
 
     (:list-intro
      (pcase arg
        ((or "<-" "SYMID") t)
-       ("=" (not (smie-rule-parent-p "data")))
        ))
 
     (:after
      (pcase arg
        ((or "let" "do" "of" "in" "->" "\\") 2)
-       ("=" (when (not (smie-rule-parent-p "data")) 2))
        ("\\case" 2) ;; LambdaCase
-       ("where" (when (not (smie-rule-parent-p "module")) 2))
+       ((and "=" (guard (not (smie-rule-parent-p "data")))) 2)
+       ((and "where" (guard (not (smie-rule-parent-p "module")))) 2)
        ((or "[" "(") 2)
-       ("{" (when (not (smie-rule-prev-p
-                        "\\case" ;; LambdaCase
-                        "where" "let" "do" "of"))
-              2))
+       ((and "{" (guard (not (smie-rule-prev-p
+                              "\\case" ;; LambdaCase
+                              "where" "let" "do" "of"))))
+        2)
        ("," (smie-rule-separator method))
        ((or "SYMID")
         (if (smie-rule-hanging-p) 2 (smie-rule-parent)))
@@ -248,14 +242,13 @@ information, to aid in the creation of new rules."
         (smie-rule-parent))
        ("|"
         (if (smie-rule-parent-p "=")
-            (smie-rule-parent-column)
+            (haskell-tng-smie:rule-parent-column)
           (smie-rule-separator method)))
-       ((or "[" "(" "{")
-        (when (smie-rule-hanging-p)
-          (smie-rule-parent)))
+       ((and (or "[" "(" "{") (guard (smie-rule-hanging-p)))
+        (smie-rule-parent))
        ("," (smie-rule-separator method))
-       (_ (when (smie-rule-parent-p "SYMID")
-            (smie-rule-parent)))
+       ((guard (smie-rule-parent-p "SYMID"))
+        (smie-rule-parent))
        ))
 
     ))
@@ -372,6 +365,33 @@ BEFORE is t if the line appears before the indentation."
    :backward-token #'haskell-tng-lexer:backward-token)
   )
 
+(defun haskell-tng-smie:rule-parent-column ()
+  "For use inside `smie-rules-function',
+use the column indentation as the parent. Note that
+`smie-rule-parent' may use relative values."
+  (save-excursion
+    (goto-char (cadr (smie-indent--parent)))
+    `(column . ,(current-column))))
+
+(defun haskell-tng-smie:ancestors (n)
+  "A list of the Nth non-{identifier, matched paren, string}
+tokens before point, closest first. Leaves the point at the most
+extreme parent.
+
+Inspired by `smie-indent--parent', which can only be used in
+:before and :after."
+  (when-let ((res (or (smie-backward-sexp t)
+                     (haskell-tng:until
+                      (smie-backward-sexp)
+                      (bobp))))
+             (tok (if (car res)
+                      ;; break through open parens
+                      (car (smie-indent-backward-token))
+                    (caddr res))))
+    (if (< 1 n)
+        (cons tok (haskell-tng-smie:ancestors (- n 1)))
+      (list tok))))
+
 ;; SMIE wishlist, in order of desirability:
 ;;
 ;; 1. if the lexer could return lists of tokens.
@@ -388,48 +408,6 @@ BEFORE is t if the line appears before the indentation."
 ;; 4. ambiguous tokens. e.g. the word "via" is a keyword in a specific location,
 ;;    but can otherwise be used as a varid. I'd like to be able to lex it as (or
 ;;    "via" "VARID") so that it can appear in multiple places in the grammar.
-
-;; Extensions to SMIE
-(defun smie-rule-parent-column ()
-  "For use inside `smie-rules-function',
-use the column indentation as the parent. Note that
-`smie-rule-parent' may use relative values."
-  (save-excursion
-    (goto-char (cadr (smie-indent--parent)))
-    `(column . ,(current-column))))
-
-(defun smie-indent--grandparent ()
-  "Like `smie-indent--parent' but for the parent's parent."
-  (defvar smie--parent)
-  (let (cache)
-    (save-excursion
-      (goto-char (cadr (smie-indent--parent)))
-      (setq cache smie--parent)
-      (setq smie--parent nil)
-      (let ((res (smie-indent--parent)))
-        (setq smie--parent cache)
-        res))))
-
-(defun smie-rule-grandparent-p (&rest grandparents)
-  "Like `smie-rule-parent-p' but for the parent's parent."
-  (member (nth 2 (smie-indent--grandparent)) grandparents))
-
-(defun smie-indent--prev-nonid ()
-  "Returns the previous non-identifier s-expression."
-  (save-excursion
-    (let (seen)
-      (while (null (setq seen (smie-backward-sexp))))
-      seen)))
-
-(defun smie-rule-prev-nonid-p (&rest tokens)
-  "Non-nil if the previous non-identifier s-expression is one of TOKENS."
-  (member (nth 2 (smie-indent--prev-nonid)) tokens))
-
-(defun smie-debug-parent ()
-  (interactive)
-  (defvar smie--parent)
-  (setq smie--parent nil)
-  (smie-indent--parent))
 
 (provide 'haskell-tng-smie)
 ;;; haskell-tng-smie.el ends here
