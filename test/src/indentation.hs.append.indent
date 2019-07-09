@@ -285,9 +285,9 @@ v      1
 
 v      1
 types5 :: (Monad m, MonadReader Foo m) =>
-v
+1         v
           (?log :: HasLogger m) =>
-v         1
+1         v
           a -> b -> c
 v         1
 

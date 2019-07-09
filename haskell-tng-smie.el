@@ -24,6 +24,7 @@
 ;;
 ;;; Code:
 
+(require 'dash)
 (require 'smie)
 
 (require 'haskell-tng-font-lock)
@@ -51,7 +52,7 @@
 ;; with a more complete grammar has been shown to be less than satisfactory,
 ;; therefore there is no reason to do more than is needed.
 (defvar haskell-tng-smie:grammar
-  ;; see docs for `smie-prec2->grammar'
+  ;; see docs for `smie-bnf->prec2'
   (smie-prec2->grammar
    (smie-bnf->prec2
     '((id)
@@ -87,12 +88,18 @@
        ("\\case" blk) ;; LambdaCase
        )
       (blk
+       (id "::" type)
        ("{" blk "}")
        (blk ";" blk)
        (id "=" id)
        (id "<-" id)
-       (id "->" id)
+       (id "->" id) ;; TODO lexer could disambiguate cases
        )
+
+      (type
+       (type "=>" type)
+       (type "->" type))
+
       (lambdas
        ("\\" id))
 
@@ -101,8 +108,10 @@
       )
 
     ;; operator precedences
-    '((assoc "|")
-      (assoc ";" ",")
+    '((assoc ";" ",")
+      (assoc "|")
+      (assoc "=>")
+      (assoc "->")
       )
 
     )))
@@ -160,10 +169,11 @@ information, to aid in the creation of new rules."
 
        ;; TODO insert the predicted token... code completion!
        ('empty-line-token
-        (let* ((parents (save-excursion
-                         (haskell-tng-smie:ancestors 2)))
-               (parent (car parents))
-               (grand (cadr parents))
+        (let* ((ancestors (save-excursion
+                         (haskell-tng-smie:ancestors 3)))
+               (parent (car ancestors))
+               (grand (cadr ancestors))
+               (great (caddr ancestors))
                (prev (save-excursion
                        (car (smie-indent-backward-token))))
                (psexp (save-excursion
@@ -175,15 +185,15 @@ information, to aid in the creation of new rules."
 
           (when haskell-tng-smie:debug
             (with-current-buffer haskell-tng-smie:debug
-              (insert (format " ^^: %S\n  ^: %S\n -1: %S\n -(: %S\n +1: %S\n"
-                              grand parent prev psexp next))))
+              (insert (format "^^^: %S\n ^^: %S\n  ^: %S\n -1: %S\n -(: %S\n +1: %S\n"
+                              great grand parent prev psexp next))))
 
           (cond
            ((or
              (equal next ",")
+             (equal grand ",")
              (member parent '("[" "(" ","))
-             (and (equal parent "{")
-                  (equal grand "=")))
+             (-is-infix-p '("{" "=") ancestors))
             ",")
 
            ((or (equal parent "|")
@@ -255,7 +265,11 @@ information, to aid in the creation of new rules."
           (smie-rule-separator method)))
        ((and (or "[" "(" "{") (guard (smie-rule-hanging-p)))
         (smie-rule-parent))
-       ("," (smie-rule-separator method))
+       ("," (if (smie-rule-parent-p "::")
+                ;; types plus record syntax confuse smie-rule-separator. This
+                ;; heuristic works in most cases, but is not robust.
+                (smie-rule-parent -2)
+              (smie-rule-separator method)))
        ((guard (smie-rule-parent-p "SYMID"))
         (smie-rule-parent))
        ))
