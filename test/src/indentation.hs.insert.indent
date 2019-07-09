@@ -251,7 +251,7 @@ v
 
 v
 types2 ::
-v    1
+1    v
      a
 2 1  v
   -> b
@@ -261,7 +261,7 @@ v 1  2
 
 v 1  2
 types3 ::
-v    1
+1    v
      Monad m
 3 1  2     v
   => a

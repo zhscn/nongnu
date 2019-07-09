@@ -238,6 +238,7 @@ information, to aid in the creation of new rules."
                               "\\case" ;; LambdaCase
                               "where" "let" "do" "of"))))
         2)
+       ("::" 5)
        ("," (smie-rule-separator method))
        ((or "SYMID")
         (if (smie-rule-hanging-p) 2 (smie-rule-parent)))
