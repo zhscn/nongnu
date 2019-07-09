@@ -15,6 +15,7 @@
 ;; FIXME implement more indentation rules
 ;;
 ;; TODO multiline type signatures
+;; TODO ImplicitParams in type signatures (without parens)
 ;; TODO if/then/else
 
 ;; TODO reindenting needs attention, it's all over the radar

@@ -65,6 +65,7 @@
 
       ;; operators all have the same precedence
       (infixexp
+       ;; TODO : and ': should lex as SYMID
        (id ":" infixexp) ;; keyword infix
        (id "':" infixexp) ;; DataKinds
        (id "SYMID" infixexp))

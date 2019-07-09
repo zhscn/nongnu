@@ -121,3 +121,26 @@ tuples2 = (
 
 tuples3 = ( foo ,
             bar )
+
+types1 :: a -> b -> c
+
+types2 ::
+     a
+  -> b
+  -> c
+
+types3 ::
+     Monad m
+  => a
+  -> b
+  -> c
+
+types4 :: Monad m
+       => (?log :: HasLogger m)
+       => a
+       -> b
+       -> c
+
+types5 :: (Monad m, MonadReader Foo m) =>
+          (?log :: HasLogger m) =>
+          a -> b -> c
