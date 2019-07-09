@@ -253,7 +253,7 @@ v
 types2 ::
 1    v
      a
-v    1
+2 v  1
   -> b
 v 1  2
   -> c
@@ -263,9 +263,9 @@ v 1  2
 types3 ::
 1    v
      Monad m
-v    1
+2 v  1
   => a
-v 1  2
+1 v  2
   -> b
 v 1  2
   -> c
@@ -273,11 +273,11 @@ v 1  2
 
 v 1  2
 types4 :: Monad m
-v
+1        v
        => (?log :: HasLogger m)
-v      1
+1      v
        => a
-v      1
+1      v
        -> b
 v      1
        -> c
@@ -285,7 +285,7 @@ v      1
 
 v      1
 types5 :: (Monad m, MonadReader Foo m) =>
-1         v
+1        v
           (?log :: HasLogger m) =>
 1         v
           a -> b -> c

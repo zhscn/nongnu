@@ -202,6 +202,9 @@ information, to aid in the creation of new rules."
                      (not (equal prev "}"))))
             "|")
 
+           ((member parent '("::" "=>"))
+            "=>")
+
            ((equal parent "deriving")
             ";")
 
@@ -266,6 +269,7 @@ information, to aid in the creation of new rules."
           (smie-rule-separator method)))
        ((and (or "[" "(" "{") (guard (smie-rule-hanging-p)))
         (smie-rule-parent))
+       ((and "=>" (guard (not (smie-rule-sibling-p)))) 2)
        ("," (if (smie-rule-parent-p "::")
                 ;; types plus record syntax confuse smie-rule-separator. This
                 ;; heuristic works in most cases, but is not robust.
