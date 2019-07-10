@@ -15,6 +15,7 @@
 ;; FIXME implement more indentation rules
 ;;
 ;; TODO multiline type signatures
+;; TODO user config for typesig preference (incompatible versions)
 ;; TODO ImplicitParams in type signatures (without parens)
 ;; TODO if/then/else
 

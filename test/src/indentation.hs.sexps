@@ -122,15 +122,21 @@
 ((tuples3) = ( (foo) ,
             (bar) ))
 
-((types1) :: (a) -> (b) -> (c))
+((typesig) :: (a) -> (b) -> (c))
 
-((types2) ::
-     (a)
+((types1) ::
+     (Monad) (m)
+  => (a)
   -> (b)
   -> (c))
 
-((types3) ::
-     (Monad) (m)
+((types2) ::
+   ( (Monad) (m) )
+  => (a)
+  -> (b)
+  -> (c))
+
+((types3) :: ((Monad) (m), (MemberLogger) (m))
   => (a)
   -> (b)
   -> (c))
