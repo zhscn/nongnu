@@ -95,9 +95,8 @@ foobar1 ::
 
       ;; operators all have the same precedence
       (infixexp
-       ;; TODO : and ': should lex as SYMID
-       (id ":" infixexp) ;; keyword infix
-       (id "':" infixexp) ;; DataKinds
+       (id "KINDSYM" infixexp)
+       (id "CONSYM" infixexp)
        (id "SYMID" infixexp))
 
       (data
@@ -256,7 +255,7 @@ information, to aid in the creation of new rules."
 
     (:list-intro
      (pcase arg
-       ((or "<-" "SYMID") t)
+       ((or "<-" "SYMID" "CONSYM" "KINDSYM") t)
        ))
 
     (:after
@@ -272,7 +271,7 @@ information, to aid in the creation of new rules."
         2)
        ("::" 5)
        ("," (smie-rule-separator method))
-       ((or "SYMID")
+       ((or "SYMID" "CONSYM" "KINDSYM")
         (if (smie-rule-hanging-p) 2 (smie-rule-parent)))
        ))
 
@@ -288,7 +287,7 @@ information, to aid in the creation of new rules."
        ;;
        ;; blah = bloo where
        ;;               bloo = blu
-       ((or "where" "let" "do" "case" "=" "->" "SYMID")
+       ((or "where" "let" "do" "case" "=" "->" "SYMID" "CONSYM" "KINDSYM")
         (smie-rule-parent))
        ("\\case" ;; LambdaCase
         (smie-rule-parent))
@@ -304,7 +303,7 @@ information, to aid in the creation of new rules."
                 ;; heuristic works in most cases, but is not robust.
                 (smie-rule-parent -2)
               (smie-rule-separator method)))
-       ((guard (smie-rule-parent-p "SYMID"))
+       ((guard (smie-rule-parent-p "SYMID" "CONSYM" "KINDSYM"))
         (smie-rule-parent))
        ))
 

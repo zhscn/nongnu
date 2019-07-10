@@ -96,7 +96,10 @@ the lexer."
 
            ;; reserved keywords take precedence
            ((looking-at haskell-tng:regexp:reserved-hack)
-            (haskell-tng-lexer:last-match))
+            (pcase (haskell-tng-lexer:last-match)
+              (":" "CONSYM")
+              ("':" "KINDSYM") ;; DataKinds
+              (other other)))
 
            ;; syntax tables (supported by `smie-indent-forward-token')
            ((looking-at haskell-tng-lexer:fast-syntax) nil)
@@ -164,7 +167,10 @@ the lexer."
               ((bobp) nil)
               ((looking-back haskell-tng:regexp:reserved-hack
                              (max lbp (- (point) 8)) 't)
-               (haskell-tng-lexer:last-match 'reverse))
+               (pcase (haskell-tng-lexer:last-match 'reverse)
+                 (":" "CONSYM")
+                 ("':" "KINDSYM") ;; DataKinds
+                 (other other)))
               ((looking-back haskell-tng-lexer:fast-syntax
                              (max lbp (- (point) 1)))
                nil)
