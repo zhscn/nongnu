@@ -30,7 +30,8 @@
  "Integration with `prettify-symbols' giving the impression of UnicodeSyntax.
 
 Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
- :type 'listp)
+ :type 'listp
+ :group 'haskell-tng)
 
 ;; optional dependency on projectile for TAGS management
 (defvar projectile-tags-command)

@@ -30,6 +30,35 @@
 (require 'haskell-tng-font-lock)
 (require 'haskell-tng-lexer)
 
+;; TODO implement
+(defcustom haskell-tng-indent-aligntypes nil
+  "Whether to align arrows to their parent :: declaration.
+
+For example, nil and t, respectively:
+
+foobar :: Monad m
+  => A
+
+foobar :: Monad m
+       => A"
+  :type 'booleanp
+  :group 'haskell-tng)
+
+;; TODO implement
+(defcustom haskell-tng-indent-typelead 3
+  "Leading spaces in a trailing type signature, relative to type arrows.
+For example 3 and 1 are respectively:
+
+foobar3 ::
+     Monad m
+  => A
+
+foobar1 ::
+   ( Monad m )
+  => A"
+  :type 'integerp
+  :group 'haskell-tng)
+
 ;; https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#SMIE-Grammar
 ;; https://www.haskell.org/onlinereport/haskell2010/haskellch3.html
 ;; https://gitlab.haskell.org/ghc/ghc/blob/master/compiler/parser/Parser.y

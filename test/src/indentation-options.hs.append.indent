@@ -1,0 +1,64 @@
+-- | Indentation scenarios to test indentation options.
+v
+module Indentation where
+v
+
+v
+typesig :: a -> b -> c
+v
+
+v
+types1 ::
+1    v
+     Monad m
+2 v  1
+  => a
+1 v  2
+  -> b
+v 1  2
+  -> c
+v 1  2
+
+v 1  2
+types2 ::
+1    v
+   ( Monad m )
+2 v1
+  => a
+1 v2
+  -> b
+v 12
+  -> c
+v 12
+
+v 12
+types3 :: (Monad m, MemberLogger m)
+1        v
+  => a
+1 v
+  -> b
+v 1
+  -> c
+v 1
+
+v 1
+types4 :: Monad m
+1        v
+       => (?log :: HasLogger m)
+1      v
+       => a
+1      v
+       -> b
+v      1
+       -> c
+v      1
+
+v      1
+types5 :: (Monad m, MonadReader Foo m) =>
+1        v
+          (?log :: HasLogger m) =>
+1         v
+          a -> b -> c
+v         1
+
+v         1

@@ -19,8 +19,6 @@
 ;; TODO ImplicitParams in type signatures (without parens)
 ;; TODO if/then/else
 
-;; TODO reindenting needs attention, it's all over the radar
-
 ;; Three indentation regression tests are possible:
 ;;
 ;;   1. newline-and-indent with the rest of the file deleted (append)
@@ -34,36 +32,35 @@
 ;;
 ;; Test 1 involves a lot of buffer refreshing and will be very slow.
 
-(ert-deftest haskell-tng-append-indent-file-tests ()
-  (should (have-expected-append-indent (testdata "src/indentation.hs")))
-
-  ;;(should (have-expected-append-indent (testdata "src/layout.hs")))
-
-  ;; this test is slow
-  ;; (require 'profiler)
-  ;; (profiler-start 'cpu)
-  ;; (should (have-expected-append-indent (testdata "src/medley.hs")))
-  ;; (profiler-report)
-  ;; (profiler-report-write-profile "indentation.profile")
-  ;; (profiler-stop)
-  ;; (profiler-find-profile "../indentation.profile")
-  )
 
 
-(ert-deftest haskell-tng-indent-file-tests ()
-  (should (have-expected-insert-indent (testdata "src/indentation.hs")))
+;; ;; this test is slow and is a useful benchmark
+;; (ert-deftest haskell-tng-append-indent-file-tests ()
+;;   (require 'profiler)
+;;   (profiler-start 'cpu)
+;;   (should (have-expected-append-indent (testdata "src/medley.hs")))
+;;   (profiler-report)
+;;   (profiler-report-write-profile "indentation.profile")
+;;   (profiler-stop)
+;;   (profiler-find-profile "../indentation.profile"))
 
-  ;; (should (have-expected-insert-indent (testdata "src/layout.hs")))
-  ;; (should (have-expected-insert-indent (testdata "src/medley.hs")))
-  )
+(ert-deftest haskell-tng-append-indent-file-tests:indentation ()
+  (should (have-expected-append-indent (testdata "src/indentation.hs"))))
+(ert-deftest haskell-tng-append-indent-file-tests:options ()
+  (let ((haskell-tng-indent-aligntypes t)
+        (haskell-tng-indent-typelead 1))
+    (should (have-expected-append-indent (testdata "src/indentation-options.hs")))))
 
-(ert-deftest haskell-tng-reindent-file-tests ()
-  (should (have-expected-reindent (testdata "src/indentation.hs")))
+(ert-deftest haskell-tng-insert-indent-file-tests:indentation ()
+  (should (have-expected-insert-indent (testdata "src/indentation.hs"))))
+(ert-deftest haskell-tng-insert-indent-file-tests:options ()
+  (let ((haskell-tng-indent-aligntypes t)
+        (haskell-tng-indent-typelead 1))
+    (should (have-expected-insert-indent (testdata "src/indentation-options.hs")))))
 
-  ;; (should (have-expected-reindent (testdata "src/layout.hs")))
-  ;; (should (have-expected-reindent (testdata "src/medley.hs")))
-  )
-
+;; TODO reindenting needs attention, it's all over the radar
+;; (ert-deftest haskell-tng-reindent-file-tests ()
+;;   (should (have-expected-reindent (testdata "src/indentation.hs"))))
 
 (defun haskell-tng-indent-test:work (mode)
   "MODE can be 'insert, 'reindent, or 'append."
@@ -78,7 +75,10 @@
        ;; SMIE doesn't request forward tokens from the lexer when the point is
        ;; at point-max, so add some whitespace at the end.
        ;;
-       ;; TODO fix the bug properly, in SMIE
+       ;; TODO fix the bug properly, in SMIE.
+       ;;
+       ;; TODO maybe we can have a better workaround by presenting tokens -1
+       ;; from the end and enforcing a trailing newline.
        (save-excursion
          (insert "\n\n"))))
     (while (pcase mode
