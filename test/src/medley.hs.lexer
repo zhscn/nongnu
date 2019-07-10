@@ -49,7 +49,7 @@ VARID , VARID , VARID »
 ; VARID = §
 
 ; class CONID VARID VARID where
-{ VARID :: CONID VARID -> VARID
+{ VARID :: CONID VARID => VARID
 
 } ; instance CONID VARID « VARID KINDSYM VARID » where
 { VARID « CONID VARID _ » = VARID
@@ -65,8 +65,8 @@ VARID , VARID , VARID »
 » deriving « CONID , CONID »
 
 ; class « CONID VARID » => CONID VARID where
-{ « SYMID » , « SYMID » , « SYMID » , « SYMID » :: VARID -> VARID -> CONID
-; VARID @ CONID , VARID :: VARID -> VARID -> VARID
+{ « SYMID » , « SYMID » , « SYMID » , « SYMID » :: VARID => VARID => CONID
+; VARID @ CONID , VARID :: VARID => VARID => VARID
 
 } ; instance « CONID VARID » => CONID « CONID VARID » where
 { CONID VARID SYMID CONID VARID = VARID SYMID VARID
@@ -93,11 +93,11 @@ deriving VARID « CONID , CONID »
 
 ; VARID ::
 CONID
--> CONID
--> CONID
--> CONID
--> « VARID :: CONID »
--> « CONID
+=> CONID
+=> CONID
+=> CONID
+=> « VARID :: CONID »
+=> « CONID
 VARID VARID VARID »
 
 ; « VARID :: « CONID CONID » » VARID

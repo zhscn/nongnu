@@ -6,6 +6,10 @@
 ;;; Commentary:
 ;;
 ;;  SMIE compatible lexer, (sadly) stateful in order to support virtual tokens.
+;;
+;;  Outputs `=>' instead of `->' when in type position and attempts to classify
+;;  most symbols into CONID / SYMID / VARID / etc classes.
+;;
 ;;  See `haskell-tng-layout.el' for more details.
 ;;
 ;;; Code:
@@ -99,6 +103,7 @@ the lexer."
             (pcase (haskell-tng-lexer:last-match)
               (":" "CONSYM")
               ("':" "KINDSYM") ;; DataKinds
+              ((and "->" (guard (haskell-tng-lexer:arrow-is-type))) "=>")
               (other other)))
 
            ;; syntax tables (supported by `smie-indent-forward-token')
@@ -170,6 +175,7 @@ the lexer."
                (pcase (haskell-tng-lexer:last-match 'reverse)
                  (":" "CONSYM")
                  ("':" "KINDSYM") ;; DataKinds
+                 ((and "->" (guard (haskell-tng-lexer:arrow-is-type))) "=>")
                  (other other)))
               ((looking-back haskell-tng-lexer:fast-syntax
                              (max lbp (- (point) 1)))
@@ -225,6 +231,19 @@ the lexer."
 (defun haskell-tng-lexer:last-match (&optional reverse alt)
   (goto-char (if reverse (match-beginning 0) (match-end 0)))
   (or alt (match-string-no-properties 0)))
+
+(defun haskell-tng-lexer:arrow-is-type ()
+  "Assuming that we just parsed a `->' arrow, search backwards to
+find reserved tokens that can disambiguate the usecase as a type,
+returning non-nil for types."
+  (save-excursion
+    (when (re-search-backward
+           ;; TODO this list can probably be expanded to most (if not all) of
+           ;; the keywords. This is very conservative.
+           (rx (| (: symbol-start (char ?\\))
+                  (: symbol-start (| "::" "of" "=>") symbol-end)))
+           nil t)
+      (member (match-string 0) '("::" "=>")))))
 
 (provide 'haskell-tng-lexer)
 ;;; haskell-tng-lexer.el ends here

@@ -89,9 +89,13 @@ foobar1 ::
       ;; commas only allowed in brackets
       (list
        ("(" list ")")
-       ("{" list "}")
        ("[" list "]") ;; includes DataKinds
        (list "," list))
+
+      (record
+       (id "::" type)
+       ("{" record "}")
+       (record "," record))
 
       ;; operators all have the same precedence
       (infixexp
@@ -121,12 +125,12 @@ foobar1 ::
        (blk ";" blk)
        (id "=" id)
        (id "<-" id)
-       (id "->" id) ;; TODO lexer could disambiguate cases
+       (id "->" id)
        )
 
       (type
-       (type "=>" type)
-       (type "->" type))
+       ;; the lexer disambiguates -> in types as =>
+       (type "=>" type))
 
       (lambdas
        ("\\" id))
@@ -139,7 +143,6 @@ foobar1 ::
     '((assoc ";" ",")
       (assoc "|")
       (assoc "=>")
-      (assoc "->")
       )
 
     )))
@@ -298,11 +301,7 @@ information, to aid in the creation of new rules."
        ((and (or "[" "(" "{") (guard (smie-rule-hanging-p)))
         (smie-rule-parent))
        ((and "=>" (guard (not (smie-rule-sibling-p)))) 2)
-       ("," (if (smie-rule-parent-p "::")
-                ;; types plus record syntax confuse smie-rule-separator. This
-                ;; heuristic works in most cases, but is not robust.
-                (smie-rule-parent -2)
-              (smie-rule-separator method)))
+       ("," (smie-rule-separator method))
        ((guard (smie-rule-parent-p "SYMID" "CONSYM" "KINDSYM"))
         (smie-rule-parent))
        ))

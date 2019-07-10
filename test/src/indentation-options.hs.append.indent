@@ -5,9 +5,9 @@ v
 
 v
 typesig :: a -> b -> c
-v
+1         v
 
-v
+1         v
 types1 ::
 1    v
      Monad m
@@ -15,11 +15,11 @@ types1 ::
   => a
 1 v  2
   -> b
-v 1  2
+1 v  2
   -> c
-v 1  2
+1 v  2
 
-v 1  2
+1 v  2
 types2 ::
 1    v
    ( Monad m )
@@ -27,21 +27,21 @@ types2 ::
   => a
 1 v2
   -> b
-v 12
+1 v2
   -> c
-v 12
+1 v2
 
-v 12
+1 v2
 types3 :: (Monad m, MemberLogger m)
 1        v
   => a
 1 v
   -> b
-v 1
+1 v
   -> c
-v 1
+1 v
 
-v 1
+1 v
 types4 :: Monad m
 1        v
        => (?log :: HasLogger m)
@@ -49,16 +49,16 @@ types4 :: Monad m
        => a
 1      v
        -> b
-v      1
+1      v
        -> c
-v      1
+1      v
 
-v      1
+1      v
 types5 :: (Monad m, MonadReader Foo m) =>
 1        v
           (?log :: HasLogger m) =>
 1         v
           a -> b -> c
-v         1
+1         v
 
-v         1
+1         v
