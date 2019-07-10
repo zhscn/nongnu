@@ -20,16 +20,14 @@
 ;; However, this fails to find all bounds because there is ambiguity at virtual
 ;; tokens.
 
-(ert-deftest haskell-tng-sexp-file-tests ()
-  (should (have-expected-sexps (testdata "src/layout.hs")))
+(ert-deftest haskell-tng-sexp-file-tests:layout ()
+  (should (have-expected-sexps (testdata "src/layout.hs"))))
 
-  (should (have-expected-sexps (testdata "src/indentation.hs")))
+(ert-deftest haskell-tng-sexp-file-tests:indentation ()
+  (should (have-expected-sexps (testdata "src/indentation.hs"))))
 
-  (should (have-expected-sexps (testdata "src/grammar.hs")))
-
-  ;; to the extent that they aren't even useful
-  ;;(should (have-expected-sexps (testdata "src/medley.hs")))
-  )
+(ert-deftest haskell-tng-sexp-file-tests:grammar ()
+  (should (have-expected-sexps (testdata "src/grammar.hs"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SMIE testing utilities

@@ -49,12 +49,13 @@
     (s-join "" codes)))
 
 ;; to generate .faceup files, use faceup-view-buffer
-(ert-deftest haskell-tng-syntax-file-tests ()
-  (should (have-expected-syntax (testdata "src/medley.hs")))
+(ert-deftest haskell-tng-syntax-file-tests:medley ()
+  (should (have-expected-syntax (testdata "src/medley.hs"))))
 
-  (should (have-expected-syntax (testdata "src/layout.hs")))
+(ert-deftest haskell-tng-syntax-file-tests:layout ()
+  (should (have-expected-syntax (testdata "src/layout.hs"))))
 
-  (should (have-expected-syntax (testdata "src/indentation.hs")))
-  )
+(ert-deftest haskell-tng-syntax-file-tests:indentation ()
+  (should (have-expected-syntax (testdata "src/indentation.hs"))))
 
 ;;; haskell-tng-syntax-test.el ends here
