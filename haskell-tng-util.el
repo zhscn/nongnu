@@ -60,14 +60,13 @@ and taking a regexp."
    default-directory
    (lambda (dir) (directory-files dir nil regexp))))
 
-(defmacro haskell-tng:until (form &optional guard)
-  "Runs `while' on FORM until it is non-nil, returning the value.
-
-A guard is provided which may cause the loop to exit early with nil."
+(defmacro haskell-tng:until (test &rest body)
+  ;; https://lists.gnu.org/r/emacs-devel/2018-10/msg00250.html
+  ;; by Stefan Monnier
+  "Run BODY while TEST is non-nil, returning the final TEST."
   (let ((res (gensym "res")))
     `(let (,res)
-       (while (and (not ,guard)
-                   (not (setq ,res ,form))))
+       (while (not (setq ,res ,test)) ,@body)
        ,res)))
 
 (provide 'haskell-tng-util)

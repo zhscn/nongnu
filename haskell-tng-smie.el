@@ -178,8 +178,8 @@ information, to aid in the creation of new rules."
                        (car (smie-indent-backward-token))))
                (psexp (save-excursion
                         (caddr (haskell-tng:until
-                                (smie-backward-sexp)
-                                (bobp)))))
+                                (or (smie-backward-sexp)
+                                    (bobp))))))
                (next (save-excursion
                        (car (smie-indent-forward-token)))))
 
@@ -409,9 +409,9 @@ extreme parent.
 Inspired by `smie-indent--parent', which can only be used in
 :before and :after."
   (when-let ((res (or (smie-backward-sexp t)
-                     (haskell-tng:until
-                      (smie-backward-sexp)
-                      (bobp))))
+                      (haskell-tng:until
+                       (or (smie-backward-sexp)
+                           (bobp)))))
              (tok (if (car res)
                       ;; break through open parens
                       (car (smie-indent-backward-token))
