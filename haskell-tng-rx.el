@@ -80,6 +80,7 @@ give false positives." `(|
   (rx-to-string `(: word-start ,haskell-tng:rx:conid)))
 (defconst haskell-tng:regexp:varid
   (rx-to-string `(| (: word-start ,haskell-tng:rx:varid)
+                    ;; TODO symids in brackets (==)
                     (: symbol-start (char ??) ,haskell-tng:rx:varid) ;; ImplicitParams
                     )))
 (defconst haskell-tng:regexp:symid

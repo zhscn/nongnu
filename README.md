@@ -102,7 +102,7 @@ Some blue sky features are being considered but may be best as independent proje
 - is there a solution to thinking "right to left" vs writing "left to right"?
 - identify trivial / helper functions and forward their `edit-definition` to another location.
 - Code gen
-  - `instance` boilerplate
+  - `instance` boilerplate (populate `where` with functions that are needed)
   - record of functions boilerplate
 - Refactoring
   - be compatible with [`apply-refact`](https://github.com/mpickering/apply-refact) / [`hlint-refactor-mode`](https://github.com/mpickering/hlint-refactor-mode)

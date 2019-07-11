@@ -51,6 +51,8 @@
   (should (have-expected-errors (testdata "compile/ghc-8.4.4-error.compile")))
   (should (have-expected-errors (testdata "compile/ghc-8.4.4-errorspan.compile"))))
 
+;; TODO test with multiline error info, e.g. toplevels with different param lengths
+
 (ert-deftest haskell-tng-compile-warnings-file-tests ()
   (should (have-expected-errors (testdata "compile/ghc-8.4.4-warning.compile")))
   (should (have-expected-errors (testdata "compile/ghc-8.4.4-warningspan.compile"))))

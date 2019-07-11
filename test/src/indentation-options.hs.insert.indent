@@ -4,23 +4,7 @@ module Indentation where
 v
 
 v
-typesig :: a -> b -> c
-1         v
-
-v
-types1 ::
-1    v
-     Monad m
-2 v  1
-  => a
-1 v  2
-  -> b
-1 v  2
-  -> c
-1 v  2
-
-v 1  2
-types2 ::
+types4 ::
 2  1 v
    ( Monad m )
 2 v1
@@ -32,17 +16,7 @@ types2 ::
 1 v2
 
 v 12
-types3 :: (Monad m, MemberLogger m)
-2 1      v
-  => a
-1 v
-  -> b
-1 v
-  -> c
-1 v
-
-v 1
-types4 :: Monad m
+types5 :: Monad m
 2      1 v
        => (?log :: HasLogger m)
 1      v
@@ -54,9 +28,3 @@ types4 :: Monad m
 1      v
 
 v      1
-types5 :: (Monad m, MonadReader Foo m) =>
-2        v1
-          (?log :: HasLogger m) =>
-1         v
-          a -> b -> c
-v         1

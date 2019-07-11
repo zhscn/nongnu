@@ -99,9 +99,9 @@ let_in a b = let
 implicit_let foo bar =
 1 v
   let ?foo = foo
-1     v
+2 1   v
       ?bar = bar
-1     v
+1 2   v
   in  rar
 v 1   2
 
@@ -262,19 +262,7 @@ types1 ::
 1 v  2
 
 1 v  2
-types2 ::
-1    v
-   ( Monad m )
-2 v1
-  => a
-1 v2
-  -> b
-1 v2
-  -> c
-1 v2
-
-1 v2
-types3 :: (Monad m, MemberLogger m)
+types2 :: (Monad m, MemberLogger m)
 1        v
   => a
 1 v
@@ -284,19 +272,7 @@ types3 :: (Monad m, MemberLogger m)
 1 v
 
 1 v
-types4 :: Monad m
-1        v
-       => (?log :: HasLogger m)
-1      v
-       => a
-1      v
-       -> b
-1      v
-       -> c
-1      v
-
-1      v
-types5 :: (Monad m, MonadReader Foo m) =>
+types3 :: (Monad m, MonadReader Foo m) =>
 1        v
           (?log :: HasLogger m) =>
 1         v

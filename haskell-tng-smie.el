@@ -30,7 +30,7 @@
 (require 'haskell-tng-font-lock)
 (require 'haskell-tng-lexer)
 
-;; TODO implement
+;; TODO maybe autodetect? Then delete this user variable
 (defcustom haskell-tng-indent-aligntypes nil
   "Whether to align arrows to their parent :: declaration.
 
@@ -44,7 +44,7 @@ foobar :: Monad m
   :type 'booleanp
   :group 'haskell-tng)
 
-;; TODO implement
+;; TODO maybe autodetect? Then delete this user variable
 (defcustom haskell-tng-indent-typelead 3
   "Leading spaces in a trailing type signature, relative to type arrows.
 For example 3 and 1 are respectively:
@@ -94,8 +94,11 @@ foobar1 ::
 
       (record
        (id "::" type)
+       ;; (id "=" id) precedence cycle: .| < ., < =. < .|
+       ;; TODO copy syntax { foo = ... }, maybe it needs a disambiguator
        ("{" record "}")
-       (record "," record))
+       (record "," record)
+       )
 
       ;; operators all have the same precedence
       (infixexp
@@ -379,7 +382,7 @@ BEFORE is t if the line appears before the indentation."
     (while (< (point) bound)
       (when (not
              (looking-at
-              (rx (* space) (| "where" "let" "do") word-end)))
+              (rx (* space) (| "where" "do") word-end)))
         (push (current-indentation) relevant))
       (when
           (and
