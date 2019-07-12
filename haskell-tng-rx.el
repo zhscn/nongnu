@@ -59,6 +59,8 @@ give false positives." `(|
       (: symbol-start "--" (+ (not (any ?\n))) ?\n))
   "Newline or line comment.")
 
+;; TODO consider using rx's eval to reuse forms instead of backticks
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Compiled regexps
 ;;

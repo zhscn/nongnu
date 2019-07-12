@@ -247,9 +247,9 @@ v           1
 
 v           1
 typesig :: a -> b -> c
-1         v
+v
 
-1         v
+v
 types1 ::
 1    v
      Monad m
@@ -277,6 +277,6 @@ types3 :: (Monad m, MonadReader Foo m) =>
           (?log :: HasLogger m) =>
 1         v
           a -> b -> c
-1         v
+v         1
 
-1         v
+v         1

@@ -236,7 +236,9 @@ information, to aid in the creation of new rules."
                      (not (equal prev "}"))))
             "|")
 
-           ((member parent '("::" "=>"))
+           ((and (member parent '("::" "=>"))
+                 (not (haskell-tng-smie:search-prev-line
+                       (rx (>= 2 (+ anything) "->")))))
             "=>")
 
            ((equal parent "deriving")
@@ -381,6 +383,7 @@ BEFORE is t if the line appears before the indentation."
   (let ((start (point))
         relevant)
     (while (< (point) bound)
+      ;; TODO we the lexer instead of regexps, we're not barbarians
       (when (not
              (looking-at
               (rx (* space) (| "where" "do") word-end)))
@@ -450,6 +453,14 @@ Inspired by `smie-indent--parent', which can only be used in
     (if (< 1 n)
         (cons tok (haskell-tng-smie:ancestors (- n 1)))
       (list tok))))
+
+(defun haskell-tng-smie:search-prev-line (regexp)
+  "Search forward on the previous non-empty line"
+  (save-excursion
+    (beginning-of-line)
+    (forward-comment (- (point)))
+    (beginning-of-line)
+    (re-search-forward regexp (line-end-position) t)))
 
 ;; SMIE wishlist, in order of desirability:
 ;;

@@ -77,9 +77,6 @@
        ;; at point-max, so add some whitespace at the end.
        ;;
        ;; TODO fix the bug properly, in SMIE.
-       ;;
-       ;; TODO maybe we can have a better workaround by presenting tokens -1
-       ;; from the end and enforcing a trailing newline.
        (save-excursion
          (insert "\n\n"))))
     (while (pcase mode
