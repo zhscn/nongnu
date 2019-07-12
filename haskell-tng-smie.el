@@ -305,6 +305,7 @@ information, to aid in the creation of new rules."
         (smie-rule-parent))
        ((and "=>" (guard (not (smie-rule-sibling-p)))) 2)
        ("," (smie-rule-separator method))
+       ;; TODO ; as a separator, might remove ad-hoc WLDO rules
        ((guard (smie-rule-parent-p "SYMID" "CONSYM" "KINDSYM"))
         (smie-rule-parent))
        ))
