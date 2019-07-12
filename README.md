@@ -50,15 +50,13 @@ This is the status of core features:
 - Navigation:
   - [x] performance-minded `syntax-table`
   - [x] `font-lock` to visually distinguish types and values
-  - [x] `sexp` navigation (SMIE)
+  - [x] `sexp` navigation
   - [x] `projectile` / [`fast-tags`](https://github.com/elaforge/fast-tags) integration for `TAGS`
   - [ ] `imenu` population
 - Editing:
-  - [ ] indentation (SMIE) (IN PROGRESS)
+  - [x] indentation
   - [ ] `abbrev` table
   - [ ] `yasnippet` templates
-  - [ ] quick add `LANGUAGE` (with auto-populated completions from ghc)
-  - [ ] quick add `import`
   - [x] `prettify-symbols` emulating `UnicodeSyntax`
   - [x] `stylish-haskell` support
 - Compiling:
@@ -70,9 +68,18 @@ Compatibility with `lsp-mode` / [`haskell-ide-engine`](https://github.com/haskel
 
 ## Future Plans
 
-Some blue sky features are being considered but may be best as independent projects:
+Semantic tooling will likely take the form of a standalone cli tool that is called from Emacs.
+
+The highest priority features are:
+
+1. fully qualified name and type of symbol at point
+2. search for symbol and typesig (e.g. import symbol at point)
+3. jump to source of symbol at point
+
+Blue sky features:
 
 - Imports
+  - quick manual add `import`
   - company-mode backend specific to import sections that detect context, powered by local hoogle cli
   - expand import list into explicit list (perhaps via `:browse` but better as standalone tool) for symbol-at-point (assuming no shadowing).
   - convert wildcard import to explicit list
@@ -83,6 +90,7 @@ Some blue sky features are being considered but may be best as independent proje
   - local cli search
   - local / remote search with doc in browser
 - `.cabal` editing / navigation
+  - add `LANGUAGE` (with auto-populated completions from ghc)
   - helpers to generate version bounds, even if it's just expanding the latest version of a package `cabal gen-bounds`, `cabal outdated`, `cabal-plan`.
   - project wide grep (including dependencies).
   - add `build-depends` based on FQNs and a local index of hackage.
@@ -99,7 +107,7 @@ Some blue sky features are being considered but may be best as independent proje
 - [visualise values as types](https://twitter.com/jyothsnasrin/status/1039530556080283648)
 - [`djinn`](https://hackage.haskell.org/package/djinn) / [`justdoit`](https://hackage.haskell.org/package/ghc-justdoit) integration
 - [`pointfree`](https://hackage.haskell.org/package/pointfree) integration
-- is there a solution to thinking "right to left" vs writing "left to right"?
+- is there a solution to thinking "right to left" vs writing "left to right"? (easy left token movement?)
 - identify trivial / helper functions and forward their `edit-definition` to another location.
 - Code gen
   - `instance` boilerplate (populate `where` with functions that are needed)

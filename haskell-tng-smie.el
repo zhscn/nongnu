@@ -467,6 +467,8 @@ Inspired by `smie-indent--parent', which can only be used in
           (push (car tok) tokens)))
       (reverse tokens))))
 
+;; TODO smie-powered non-indentation features, e.g. sort-list
+
 ;; SMIE wishlist, in order of desirability:
 ;;
 ;; 1. if the lexer could return lists of tokens.
