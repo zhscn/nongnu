@@ -215,7 +215,8 @@ information, to aid in the creation of new rules."
                                 (or (smie-backward-sexp)
                                     (bobp))))))
                (next (save-excursion
-                       (car (smie-indent-forward-token)))))
+                       (car (smie-indent-forward-token))))
+               (prevline (haskell-tng-smie:prev-line-tokens)))
 
           (when haskell-tng-smie:debug
             (with-current-buffer haskell-tng-smie:debug
@@ -237,8 +238,7 @@ information, to aid in the creation of new rules."
             "|")
 
            ((and (member parent '("::" "=>"))
-                 (not (haskell-tng-smie:search-prev-line
-                       (rx (>= 2 (+ anything) "->")))))
+                 (< (--count (equal it "=>") prevline) 2))
             "=>")
 
            ((equal parent "deriving")
@@ -454,13 +454,18 @@ Inspired by `smie-indent--parent', which can only be used in
         (cons tok (haskell-tng-smie:ancestors (- n 1)))
       (list tok))))
 
-(defun haskell-tng-smie:search-prev-line (regexp)
+(defun haskell-tng-smie:prev-line-tokens ()
   "Search forward on the previous non-empty line"
   (save-excursion
     (beginning-of-line)
     (forward-comment (- (point)))
     (beginning-of-line)
-    (re-search-forward regexp (line-end-position) t)))
+    (let ((eol (line-end-position))
+          tokens)
+      (while (< (point) eol)
+        (when-let (tok (smie-indent-forward-token))
+          (push (car tok) tokens)))
+      (reverse tokens))))
 
 ;; SMIE wishlist, in order of desirability:
 ;;
