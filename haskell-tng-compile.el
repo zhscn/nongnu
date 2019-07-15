@@ -66,6 +66,11 @@
 (defvar-local haskell-tng-compile:command nil)
 (defvar-local haskell-tng-compile:alt "cabal v2-clean")
 
+(defvar haskell-tng-compile:dominating-file
+  (rx (| "cabal.project" "cabal.project.local" "cabal.project.freeze"
+         (: (+ any) ".cabal")
+         "package.yaml" "stack.yaml")))
+
 (defun haskell-tng-compile (&optional edit-command)
   "`compile' specialised to Haskell:
 
@@ -99,9 +104,7 @@ will cause the subsequent call to prompt."
 
     (when-let (default-directory
                 (haskell-tng:locate-dominating-file
-                 (rx (| "cabal.project" "cabal.project.local" "cabal.project.freeze"
-                        (: (+ any) ".cabal")
-                        "package.yaml" "stack.yaml"))))
+                 haskell-tng-compile:dominating-file))
       (compilation-start
        command
        'haskell-tng-compilation-mode
