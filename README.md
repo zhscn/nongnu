@@ -34,14 +34,27 @@ Instead, and following the [anarchical spirit of Haskell](https://www.microsoft.
 
 ## Install
 
-Check out the source code repository, type `cask build`, and add to your load path:
+Check out the source code repository and add to your load path:
 
 ```lisp
 (add-to-list 'load-path (expand-file-name "~/Projects/haskell-tng.el/"))
 (require 'haskell-tng-mode)
+(require 'haskell-tng-contrib) ;; optional
 ```
 
-There are no plans to distribute any other way: this encourages contributor engagement.
+## Commands
+
+### Core
+
+- `C-c c` compile, prompt on first use
+  - `C-u C-c c` always prompt
+  - `C-- C-c c` clean project
+  - `C-c e` jump to error
+
+### Contrib
+
+- `C-c C-C` invoke [`stack2cabal`](https://hackage.haskell.org/package/stack2cabal)
+- `C-c C-r f` invoke [`stylish-haskell`](https://hackage.haskell.org/package/stylish-haskell)
 
 ## Plan
 

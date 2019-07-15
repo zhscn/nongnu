@@ -15,6 +15,7 @@
 ;; TODO a generic wrapper around commands that can be downloaded and built using
 ;;      cabal v2-install.
 
+;;;###autoload
 (defun haskell-tng-contrib:stylish-haskell ()
   "Apply `stylish-haskell' rules."
   (interactive)
@@ -22,6 +23,7 @@
   (call-process "stylish-haskell" nil nil nil "-i" buffer-file-name)
   (revert-buffer t t t))
 
+;;;###autoload
 (defun haskell-tng-contrib:stack2cabal ()
   "Prepare a stack project for use with cabal."
   (interactive)

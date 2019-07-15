@@ -6,14 +6,15 @@
 ;; Homepage: https://gitlab.com/tseenshe/haskell-tng-mode
 ;; Keywords: languages
 ;; Package-Version: 0.0.1
-;; Package-Requires: ((dash "2.14.1"))
+;; Package-Requires: ((bind-key "2.4") (dash "2.16.0"))
 
 ;;; Commentary:
 ;;
-;;  A modern rewrite of `haskell-mode'.
+;;  An experimental rewrite of `haskell-mode'.
 ;;
 ;;; Code:
 
+(require 'bind-key)
 (require 'dabbrev)
 
 (require 'haskell-tng-syntax)
@@ -84,9 +85,25 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
   (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle .")
   (setq-local smie-blink-matching-inners nil) ;; c.f. `smie-closer-alist'
 
-  (haskell-tng-smie:setup))
+  (haskell-tng-smie:setup)
 
-;; TODO: autoload this when I'm ready to use tng instead of regular
+  (bind-key "<return>" 'haskell-tng-newline haskell-tng-mode-map)
+
+  ;; core compilation loop, supports C-u and C-- prefixes
+  (bind-key "C-c c" 'haskell-tng-compile haskell-tng-mode-map)
+  (bind-key "C-c e" 'next-error haskell-tng-mode-map)
+
+  ;; convenient for commands to work from the compile buffer too
+  (bind-key "C-c c" 'haskell-tng-compile haskell-tng-compilation-mode-map)
+  (bind-key "C-c e" 'next-error haskell-tng-compilation-mode-map)
+
+  ;; external tools
+  (bind-key "C-c C" 'haskell-tng-contrib:stack2cabal haskell-tng-mode-map)
+  (bind-key "C-c C-r f" 'haskell-tng-contrib:stylish-haskell haskell-tng-mode-map)
+
+  )
+
+;;;###autoload
 (progn
   (add-to-list 'auto-mode-alist '("\\.hs\\'" . haskell-tng-mode))
   (modify-coding-system-alist 'file "\\.hs\\'" 'utf-8))

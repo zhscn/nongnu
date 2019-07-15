@@ -30,7 +30,27 @@
 (require 'haskell-tng-font-lock)
 (require 'haskell-tng-lexer)
 
-;; TODO maybe autodetect? Then delete this user variable
+(defun haskell-tng-newline ()
+  "A `newline-and-indent' with a better user experience for `haskell-tng-mode'."
+  (interactive)
+  ;; TODO a dynamically bound variable might improve the quality of
+  ;;      'empty-line-token predictions.
+  (let ((rem (when (/= (point) (line-end-position))
+               (buffer-substring-no-properties (point) (line-end-position)))))
+    ;; TODO https://debbugs.gnu.org/cgi/bugreport.cgi?bug=36432
+    (when rem
+      (delete-region (point) (line-end-position)))
+    ;; TODO don't continue line comments if there is code before them
+    ;;
+    ;; TODO in-comment indent should observe | haddock markers
+    (call-interactively #'comment-indent-new-line)
+    (when rem
+      (save-excursion
+        (insert rem)))))
+
+;; TODO autodetection of indent options
+
+;; TODO implement haskell-tng-indent-aligntypes
 (defcustom haskell-tng-indent-aligntypes nil
   "Whether to align arrows to their parent :: declaration.
 
@@ -44,7 +64,7 @@ foobar :: Monad m
   :type 'booleanp
   :group 'haskell-tng)
 
-;; TODO maybe autodetect? Then delete this user variable
+;; TODO implement haskell-tng-indent-typelead
 (defcustom haskell-tng-indent-typelead 3
   "Leading spaces in a trailing type signature, relative to type arrows.
 For example 3 and 1 are respectively:
@@ -315,15 +335,12 @@ information, to aid in the creation of new rules."
     ))
 
 (defconst haskell-tng-smie:return
-  '(comment-indent-new-line
+  '(haskell-tng-newline
+    comment-indent-new-line
     newline-and-indent
     newline
     haskell-tng-smie:debug-newline)
   "Users with custom newlines should add their command.")
-
-;; TODO newline and indent at the beginning of a line should be the same as
-;; newline and indent at the end of the previous line. Newline in the middle of
-;; a line is trickier.
 
 (defvar-local haskell-tng-smie:indentations nil)
 (defun haskell-tng-smie:indent-cycle ()
