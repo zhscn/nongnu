@@ -273,7 +273,7 @@ types2 :: (Monad m, MemberLogger m)
 
 1 v
 types3 :: (Monad m, MonadReader Foo m) =>
-1 v
+1         v
           (?log :: HasLogger m) =>
 1         v
           a -> b -> c

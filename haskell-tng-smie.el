@@ -299,10 +299,12 @@ information, to aid in the creation of new rules."
                               "\\case" ;; LambdaCase
                               "where" "let" "do" "of"))))
         2)
-       ((and "::" (guard (smie-rule-hanging-p)))
+       ("::"
         (if haskell-tng-aligntypes
             `(column . ,(+ haskell-tng-typelead (current-column)))
          haskell-tng-typelead))
+       ((and "=>" (guard (smie-rule-parent-p "::")))
+        (haskell-tng--smie-rule-parent-column 3))
        ("," (smie-rule-separator method))
        ((or "SYMID" "CONSYM" "KINDSYM")
         (if (smie-rule-hanging-p) 2 (smie-rule-parent)))
@@ -453,13 +455,14 @@ BEFORE is t if the line appears before the indentation."
    :backward-token #'haskell-tng--lexer-backward-token)
   )
 
-(defun haskell-tng--smie-rule-parent-column ()
+(defun haskell-tng--smie-rule-parent-column (&optional offset)
   "For use inside `smie-rules-function',
 use the column indentation as the parent. Note that
 `smie-rule-parent' may use relative values."
+  (setq offset (or offset 0))
   (save-excursion
     (goto-char (cadr (smie-indent--parent)))
-    `(column . ,(current-column))))
+    `(column . ,(+ offset (current-column)))))
 
 (defun haskell-tng--smie-ancestors (n)
   "A list of the Nth non-{identifier, matched paren, string}
