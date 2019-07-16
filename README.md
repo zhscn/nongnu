@@ -51,10 +51,11 @@ Check out the source code repository and add to your load path:
   - `C-- C-c c` clean project
   - `C-c e` jump to error
 
-### Contrib
+### Contrib / Third Party
 
 - `C-c C-C` invoke [`stack2cabal`](https://hackage.haskell.org/package/stack2cabal)
 - `C-c C-r f` invoke [`stylish-haskell`](https://hackage.haskell.org/package/stylish-haskell)
+- `C-c p R` invoke [`fast-tags`](https://hackage.haskell.org/package/fast-tags) via [`projectile`](https://github.com/bbatsov/projectile)
 
 ## Plan
 
