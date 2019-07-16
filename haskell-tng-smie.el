@@ -263,6 +263,10 @@ information, to aid in the creation of new rules."
                  (< (--count (equal it "=>") prevline) 2))
             "=>")
 
+           ((haskell-tng--smie-search-prev-line
+             (concat "^" haskell-tng--rx-c-varid "$"))
+            "::")
+
            ((equal parent "deriving")
             ";")
 
@@ -492,9 +496,18 @@ Inspired by `smie-indent--parent', which can only be used in
     (let ((eol (line-end-position))
           tokens)
       (while (< (point) eol)
-        (when-let (tok (smie-indent-forward-token))
+        (let ((tok (smie-indent-forward-token)))
+          ;; intentionally include non-tokens
           (push (car tok) tokens)))
       (reverse tokens))))
+
+(defun haskell-tng--smie-search-prev-line (regexp)
+  "Search forward on the previous non-empty line"
+  (save-excursion
+    (beginning-of-line)
+    (forward-comment (- (point)))
+    (beginning-of-line)
+    (re-search-forward regexp (line-end-position) t)))
 
 ;; TODO smie-powered non-indentation features, e.g. sort-list
 
