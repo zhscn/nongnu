@@ -46,6 +46,7 @@
     (call-interactively #'comment-indent-new-line)
     (when rem
       (save-excursion
+        ;; TODO prune trailing whitespace
         (insert rem)))))
 
 ;; TODO autodetection of indent options

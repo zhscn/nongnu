@@ -86,15 +86,12 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
 
   (haskell-tng--smie-setup)
 
-  (cl-flet ((bind (key def) (define-key haskell-tng-mode-map (kbd key) def))
-            (bind-compile (key def) (define-key haskell-tng-mode-map (kbd key) def)))
+  (cl-flet ((bind (key def) (define-key haskell-tng-mode-map (kbd key) def)))
     (bind "<return>" 'haskell-tng-newline)
 
     ;; core compilation loop, supports C-u and C-- prefixes
     (bind "C-c c" 'haskell-tng-compile)
     (bind "C-c e" 'next-error)
-    (bind-compile "C-c c" 'haskell-tng-compile)
-    (bind-compile "C-c e" 'next-error)
 
     ;; external tools
     (bind "C-c C" 'haskell-tng-stack2cabal)

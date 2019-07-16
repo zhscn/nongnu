@@ -116,7 +116,11 @@ will cause the subsequent call to prompt."
 
 (define-compilation-mode haskell-tng-compilation-mode "haskell-tng-compilation"
   (add-hook 'compilation-filter-hook
-            'haskell-tng--compile-ansi-color nil t))
+            'haskell-tng--compile-ansi-color nil t)
+  (cl-flet ((bind (key def)
+                  (define-key haskell-tng-compilation-mode-map (kbd key) def)))
+    (bind "C-c c" 'haskell-tng-compile)
+    (bind "C-c e" 'next-error)))
 
 (provide 'haskell-tng-compile)
 ;;; haskell-tng-compile.el ends here
