@@ -260,7 +260,8 @@ information, to aid in the creation of new rules."
             "|")
 
            ((and (member parent '("::" "=>"))
-                 (< (--count (equal it "=>") prevline) 2))
+                 (< (--count (equal it "=>") prevline) 2)
+                 (not (haskell-tng--smie-prev-line-blank-p)))
             "=>")
 
            ((haskell-tng--smie-search-prev-line
@@ -508,6 +509,12 @@ Inspired by `smie-indent--parent', which can only be used in
     (forward-comment (- (point)))
     (beginning-of-line)
     (re-search-forward regexp (line-end-position) t)))
+
+(defun haskell-tng--smie-prev-line-blank-p ()
+  "t if the previous line is blank, not even comments or whitespace."
+  (save-excursion
+    (forward-line -1)
+    (= (line-beginning-position) (line-end-position))))
 
 ;; TODO smie-powered non-indentation features, e.g. sort-list
 

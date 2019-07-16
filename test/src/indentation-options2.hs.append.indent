@@ -15,7 +15,7 @@ types5 :: Monad m
        -> c
 1      v
 
-1      v
+v      1
 types6 ::
 1       v
         ( Monad m )
@@ -27,4 +27,4 @@ types6 ::
        -> c
 1      v2
 
-1      v2
+v      12
