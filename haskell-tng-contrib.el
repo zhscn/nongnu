@@ -20,7 +20,8 @@
   "Apply `stylish-haskell' rules."
   (interactive)
   (save-buffer)
-  (call-process "stylish-haskell" nil nil nil "-i" buffer-file-name)
+  (unless (= 0 (call-process "stylish-haskell" nil "*stylish-haskell*" nil "-i" buffer-file-name))
+    (pop-to-buffer "*stylish-haskell*" nil t))
   (revert-buffer t t t))
 
 ;;;###autoload
