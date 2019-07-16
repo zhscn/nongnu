@@ -11,7 +11,7 @@
          "test/haskell-tng-testutils.el")
 
 (defun have-expected-faces (file)
-  (haskell-tng-testutils:assert-file-contents
+  (haskell-tng--testutils-assert-file-contents
    file
    #'haskell-tng-mode
    #'buffer-to-faceup-string

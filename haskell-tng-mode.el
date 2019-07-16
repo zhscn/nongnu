@@ -26,7 +26,7 @@
   "Haskell support: The Next Generation."
   :group 'languages)
 
-(defcustom haskell-tng-mode:prettify-symbols
+(defcustom haskell-tng-prettify-symbols
   '(("forall" . ?∀))
  "Integration with `prettify-symbols' giving the impression of UnicodeSyntax.
 
@@ -41,7 +41,7 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
 (define-derived-mode haskell-tng-mode prog-mode "Hask"
   "Major mode for editing Haskell programs."
   :group 'haskell-tng
-  :syntax-table haskell-tng:syntax-table
+  :syntax-table haskell-tng--syntax-table
 
   ;; TODO paragraph-start, paragraph-separate, fill-paragraph-function
   ;;
@@ -59,7 +59,7 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
    dabbrev-case-replace nil
 
    words-include-escapes t
-   syntax-propertize-function #'haskell-tng:syntax-propertize
+   syntax-propertize-function #'haskell-tng--syntax-propertize
    parse-sexp-lookup-properties t
    parse-sexp-ignore-comments t
 
@@ -71,11 +71,11 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
    comment-end-skip (rx (* "\s") (group (| (any ?\n) (syntax comment-end))))
    comment-auto-fill-only-comments t
 
-   font-lock-defaults '(haskell-tng:keywords)
+   font-lock-defaults '(haskell-tng--font-lock-keywords)
    font-lock-multiline t
-   font-lock-extend-region-functions haskell-tng:extend-region-functions
+   font-lock-extend-region-functions haskell-tng--font-lock-extend-region-functions
 
-   prettify-symbols-alist haskell-tng-mode:prettify-symbols)
+   prettify-symbols-alist haskell-tng-prettify-symbols)
 
   ;; whitespace is meaningful, disable electric indentation. Note that
   ;; `electric-indent-inhibit' causes a performance regression in SMIE
@@ -85,7 +85,7 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
   (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle .")
   (setq-local smie-blink-matching-inners nil) ;; c.f. `smie-closer-alist'
 
-  (haskell-tng-smie:setup)
+  (haskell-tng--smie-setup)
 
   (bind-key "<return>" 'haskell-tng-newline haskell-tng-mode-map)
 
@@ -98,8 +98,8 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
   (bind-key "C-c e" 'next-error haskell-tng-compilation-mode-map)
 
   ;; external tools
-  (bind-key "C-c C" 'haskell-tng-contrib:stack2cabal haskell-tng-mode-map)
-  (bind-key "C-c C-r f" 'haskell-tng-contrib:stylish-haskell haskell-tng-mode-map)
+  (bind-key "C-c C" 'haskell-tng-stack2cabal haskell-tng-mode-map)
+  (bind-key "C-c C-r f" 'haskell-tng-stylish-haskell haskell-tng-mode-map)
 
   )
 

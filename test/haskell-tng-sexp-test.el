@@ -20,13 +20,13 @@
 ;; However, this fails to find all bounds because there is ambiguity at virtual
 ;; tokens.
 
-(ert-deftest haskell-tng-sexp-file-tests:layout ()
+(ert-deftest haskell-tng--sexp-file-tests-layout ()
   (should (have-expected-sexps (testdata "src/layout.hs"))))
 
-(ert-deftest haskell-tng-sexp-file-tests:indentation ()
+(ert-deftest haskell-tng--sexp-file-tests-indentation ()
   (should (have-expected-sexps (testdata "src/indentation.hs"))))
 
-(ert-deftest haskell-tng-sexp-file-tests:grammar ()
+(ert-deftest haskell-tng--sexp-file-tests-grammar ()
   (should (have-expected-sexps (testdata "src/grammar.hs"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -37,7 +37,7 @@
 ;; forward/backward sexps at the current point (which is not necessarilly
 ;; beginning / end of current sexp), using only the primitives `forward-sexp'
 ;; and `backward-sexp', provided by SMIE.
-(defun haskell-tng-sexp-test:sexps-at-point (p)
+(defun haskell-tng--sexp-test-sexps-at-point (p)
   "Return a list of cons cells (start . end)"
   (let (sexps
         (forward-backward
@@ -66,18 +66,18 @@
       (push backward-forward sexps))
     sexps))
 
-(defun haskell-tng-sexp-test:sexps ()
+(defun haskell-tng--sexp-test-sexps ()
   "All the unique sexp bounds for the current buffer."
   (goto-char (point-min))
   (let (sexps)
     (while (not (eobp))
       (unless (is-comment-at-point)
-        (let ((here (haskell-tng-sexp-test:sexps-at-point (point))))
+        (let ((here (haskell-tng--sexp-test-sexps-at-point (point))))
           (setq sexps (append here sexps))))
       (forward-char))
     (delete-dups sexps)))
 
-(defun haskell-tng-sexp-test:sexps-to-string (sexps)
+(defun haskell-tng--sexp-test-sexps-to-string (sexps)
   "Renders the current buffer, marked up by sexps."
   (let (chars exit)
     (goto-char (point-min))
@@ -98,12 +98,12 @@
     (s-join "" (reverse chars))))
 
 (defun have-expected-sexps (file)
-  (haskell-tng-testutils:assert-file-contents
+  (haskell-tng--testutils-assert-file-contents
    file
    #'haskell-tng-mode
    (lambda ()
-     (haskell-tng-sexp-test:sexps-to-string
-      (haskell-tng-sexp-test:sexps)))
+     (haskell-tng--sexp-test-sexps-to-string
+      (haskell-tng--sexp-test-sexps)))
    "sexps"))
 
 ;;; haskell-tng-sexp-test.el ends here

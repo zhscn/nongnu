@@ -23,9 +23,9 @@
 
       (while compilation-in-progress
         (sit-for 0.01))
-      (haskell-tng-compile:clean-output)
+      (haskell-tng--compile-clean-output)
 
-      (haskell-tng-testutils:assert-file-contents
+      (haskell-tng--testutils-assert-file-contents
        file
        output
        #'buffer-to-faceup-string
@@ -36,7 +36,7 @@
 (defun compilation-handle-exit (_1 _2 _3)
   "Overrides the default behaviour to remove noise")
 
-(defun haskell-tng-compile:clean-output ()
+(defun haskell-tng--compile-clean-output ()
   "Removes timestamps and local file paths"
   (let ((inhibit-read-only t))
     (goto-char (point-min))

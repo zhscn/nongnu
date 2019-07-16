@@ -12,7 +12,7 @@
          "test/haskell-tng-testutils.el")
 
 (defun have-expected-syntax (file)
-  (haskell-tng-testutils:assert-file-contents
+  (haskell-tng--testutils-assert-file-contents
    file
    #'haskell-tng-mode
    #'buffer-to-syntax-string

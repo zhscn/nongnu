@@ -12,16 +12,16 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here are `rx' patterns that are reused as a very simple form of BNF grammar.
-(defconst haskell-tng:rx:consym '(: ":" (+ (syntax symbol))))
-(defconst haskell-tng:rx:conid '(: upper (* word)))
-(defconst haskell-tng:rx:varid '(: (any lower ?_) (* word)))
-(defconst haskell-tng:rx:symid `(| (+ (syntax symbol))
-                                   (: "`" ,haskell-tng:rx:varid "`")))
-(defconst haskell-tng:rx:qual `(+ (: ,haskell-tng:rx:conid (char ?.))))
-(defconst haskell-tng:rx:kindsym `(: "'" ,haskell-tng:rx:consym)) ;; DataKinds
-(defconst haskell-tng:rx:kindid `(: "'" ,haskell-tng:rx:conid)) ;; DataKinds
+(defconst haskell-tng--rx-consym '(: ":" (+ (syntax symbol))))
+(defconst haskell-tng--rx-conid '(: upper (* word)))
+(defconst haskell-tng--rx-varid '(: (any lower ?_) (* word)))
+(defconst haskell-tng--rx-symid `(| (+ (syntax symbol))
+                                   (: "`" ,haskell-tng--rx-varid "`")))
+(defconst haskell-tng--rx-qual `(+ (: ,haskell-tng--rx-conid (char ?.))))
+(defconst haskell-tng--rx-kindsym `(: "'" ,haskell-tng--rx-consym)) ;; DataKinds
+(defconst haskell-tng--rx-kindid `(: "'" ,haskell-tng--rx-conid)) ;; DataKinds
 
-(defun haskell-tng:rx:reserved (hack)
+(defun haskell-tng--rx-reserved (hack)
   "reservedid / reservedop.
 
 This is a function, not a constant, because the lexer needs a
@@ -54,7 +54,7 @@ give false positives." `(|
     (| "[]" "()") ;; empty list / void
     (: symbol-start (char ?\\)))) ;; TODO only for lambdas, don't include ops like \\
 
-(defconst haskell-tng:rx:newline
+(defconst haskell-tng--rx-newline
   '(| ?\n
       (: symbol-start "--" (+ (not (any ?\n))) ?\n))
   "Newline or line comment.")
@@ -66,27 +66,27 @@ give false positives." `(|
 ;;
 ;; Word/symbol boundaries to help backwards regexp searches to be greedy and
 ;; are not in the BNF form as it breaks composability.
-(defconst haskell-tng:regexp:reserved
-  (rx-to-string (haskell-tng:rx:reserved nil)))
-(defconst haskell-tng:regexp:reserved-hack
-  (rx-to-string (haskell-tng:rx:reserved t)))
-(defconst haskell-tng:regexp:qual
-  (rx-to-string `(: symbol-start ,haskell-tng:rx:qual)))
-(defconst haskell-tng:regexp:kindsym
-  (rx-to-string `(: word-start ,haskell-tng:rx:kindsym)))
-(defconst haskell-tng:regexp:kindid
-  (rx-to-string `(: word-start ,haskell-tng:rx:kindid)))
-(defconst haskell-tng:regexp:consym
-  (rx-to-string haskell-tng:rx:consym))
-(defconst haskell-tng:regexp:conid
-  (rx-to-string `(: word-start ,haskell-tng:rx:conid)))
-(defconst haskell-tng:regexp:varid
-  (rx-to-string `(| (: word-start ,haskell-tng:rx:varid)
+(defconst haskell-tng--rx-c-reserved
+  (rx-to-string (haskell-tng--rx-reserved nil)))
+(defconst haskell-tng--rx-c-reserved-hack
+  (rx-to-string (haskell-tng--rx-reserved t)))
+(defconst haskell-tng--rx-c-qual
+  (rx-to-string `(: symbol-start ,haskell-tng--rx-qual)))
+(defconst haskell-tng--rx-c-kindsym
+  (rx-to-string `(: word-start ,haskell-tng--rx-kindsym)))
+(defconst haskell-tng--rx-c-kindid
+  (rx-to-string `(: word-start ,haskell-tng--rx-kindid)))
+(defconst haskell-tng--rx-c-consym
+  (rx-to-string haskell-tng--rx-consym))
+(defconst haskell-tng--rx-c-conid
+  (rx-to-string `(: word-start ,haskell-tng--rx-conid)))
+(defconst haskell-tng--rx-c-varid
+  (rx-to-string `(| (: word-start ,haskell-tng--rx-varid)
                     ;; TODO symids in brackets (==)
-                    (: symbol-start (char ??) ,haskell-tng:rx:varid) ;; ImplicitParams
+                    (: symbol-start (char ??) ,haskell-tng--rx-varid) ;; ImplicitParams
                     )))
-(defconst haskell-tng:regexp:symid
-  (rx-to-string haskell-tng:rx:symid))
+(defconst haskell-tng--rx-c-symid
+  (rx-to-string haskell-tng--rx-symid))
 
 (provide 'haskell-tng-rx)
 ;;; haskell-tng-rx.el ends here

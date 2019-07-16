@@ -39,29 +39,29 @@
 ;; Easiest cache... full buffer parse with full invalidation on any insertion.
 ;;
 ;; A list of (OPEN . (CLOSE . SEPS)) positions, one per inferred block.
-(defvar-local haskell-tng-layout:cache nil)
+(defvar-local haskell-tng--layout-cache nil)
 
-(defun haskell-tng-layout:cache-invalidation (_beg _end _pre-length)
+(defun haskell-tng--layout-cache-invalidation (_beg _end _pre-length)
   "For use in `after-change-functions' to invalidate the state of
 the layout engine."
-  (when haskell-tng-layout:cache
-    (setq haskell-tng-layout:cache nil)))
+  (when haskell-tng--layout-cache
+    (setq haskell-tng--layout-cache nil)))
 
 ;; TODO a visual debugging option would be great, showing virtuals as overlays
 
 ;; EXT:NonDecreasingIndentation
 
-(defun haskell-tng-layout:virtuals-at-point ()
+(defun haskell-tng--layout-virtuals-at-point ()
   "List of virtual `{' `}' and `;' at point, according to the
 Haskell2010 Layout rules.
 
 Designed to be called repeatedly, managing its own caching."
-  (unless haskell-tng-layout:cache
-    (haskell-tng-layout:rebuild-cache-full))
+  (unless haskell-tng--layout-cache
+    (haskell-tng--layout-rebuild-cache-full))
 
   (let ((pos (point))
         opens breaks closes)
-    (dolist (block haskell-tng-layout:cache)
+    (dolist (block haskell-tng--layout-cache)
       (let ((open (car block))
             (close (cadr block))
             (lines (cddr block)))
@@ -75,25 +75,25 @@ Designed to be called repeatedly, managing its own caching."
               (push ";" breaks))))))
     (append opens closes breaks)))
 
-(defun haskell-tng-layout:has-virtual-at-point ()
+(defun haskell-tng--layout-has-virtual-at-point ()
   "t if there is a virtual at POINT"
   ;; avoids a measured performance hit (append indentation)
-  (unless haskell-tng-layout:cache
-    (haskell-tng-layout:rebuild-cache-full))
+  (unless haskell-tng--layout-cache
+    (haskell-tng--layout-rebuild-cache-full))
   (--any (member (point) it)
-         haskell-tng-layout:cache))
+         haskell-tng--layout-cache))
 
-(defun haskell-tng-layout:rebuild-cache-full ()
+(defun haskell-tng--layout-rebuild-cache-full ()
   (let (case-fold-search
         cache)
     (save-excursion
       (goto-char 0)
       (while (not (eobp))
-        (when-let (wldo (haskell-tng-layout:next-wldo))
+        (when-let (wldo (haskell-tng--layout-next-wldo))
           (push wldo cache))))
-    (setq haskell-tng-layout:cache (reverse cache))))
+    (setq haskell-tng--layout-cache (reverse cache))))
 
-(defun haskell-tng-layout:next-wldo ()
+(defun haskell-tng--layout-next-wldo ()
   (catch 'wldo
     (while (not (eobp))
       (forward-comment (point-max))
@@ -105,11 +105,11 @@ Designed to be called repeatedly, managing its own caching."
         (goto-char (match-end 0))
         (forward-comment (point-max))
         (when (not (looking-at "{"))
-          (throw 'wldo (haskell-tng-layout:wldo))))
+          (throw 'wldo (haskell-tng--layout-wldo))))
 
        (t (skip-syntax-forward "^-"))))))
 
-(defun haskell-tng-layout:wldo ()
+(defun haskell-tng--layout-wldo ()
   "A list holding virtual `{', then `}', then virtual `;' in order.
 
 Assumes that point is at the beginning of the first token after a
@@ -118,7 +118,7 @@ WLDO that is using the offside rule."
     (let* ((open (point))
            seps
            (level (current-column))
-           (limit (or (haskell-tng:paren-close) (point-max)))
+           (limit (or (haskell-tng--util-paren-close) (point-max)))
            (close (catch 'closed
                     (while (not (eobp))
                       (forward-line)

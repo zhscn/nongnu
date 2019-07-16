@@ -75,7 +75,7 @@ This is the status of core features:
   - [x] `stylish-haskell` support
 - Compiling:
   - [x] `haskell-tng-compile` for `cabal` batch commands
-  - [x] `stack`, `nix`, `shake`, etc support (customise `haskell-tng-compile:*`)
+  - [x] `stack`, `nix`, `shake`, etc support (customise `haskell-tng--compile-*`)
   - [ ] `comint-mode` based `ghc` repl
 
 Compatibility with `lsp-mode` / [`haskell-ide-engine`](https://github.com/haskell/haskell-ide-engine) is important for more advanced IDE features.

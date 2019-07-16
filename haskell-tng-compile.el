@@ -58,15 +58,15 @@
       ))
   "The `compilation-error-regexp-alist' for `haskell-tng'.")
 
-(defvar haskell-tng-compile:history
+(defvar haskell-tng--compile-history
   ;; Prefer --enable-tests due to
   ;; https://github.com/haskell/cabal/issues/6114
   '("cabal v2-build -O0 --enable-tests "
     "cabal v2-run -O0 --enable-tests tasty -- "))
-(defvar-local haskell-tng-compile:command nil)
-(defvar-local haskell-tng-compile:alt "cabal v2-clean")
+(defvar-local haskell-tng--compile-command nil)
+(defvar-local haskell-tng--compile-alt "cabal v2-clean")
 
-(defvar haskell-tng-compile:dominating-file
+(defvar haskell-tng--compile-dominating-file
   (rx (| "cabal.project" "cabal.project.local" "cabal.project.freeze"
          (: (+ any) ".cabal")
          "package.yaml" "stack.yaml")))
@@ -82,41 +82,41 @@ command, otherwise the last command is used.
 
 The command history is global across all Haskell files.
 
-A universal argument will invoke `haskell-tng-compile:alt', which
+A universal argument will invoke `haskell-tng--compile-alt', which
 will cause the subsequent call to prompt."
   (interactive "P")
   (save-some-buffers (not compilation-ask-about-save)
                      compilation-save-buffers-predicate)
-  (let* ((last haskell-tng-compile:command)
+  (let* ((last haskell-tng--compile-command)
          (command (pcase edit-command
                     ((and 'nil (guard last)) last)
-                    ('-  haskell-tng-compile:alt)
+                    ('-  haskell-tng--compile-alt)
                     (_ (read-shell-command
                         "Compile command: "
-                        (or last (car haskell-tng-compile:history))
-                        ;; TODO haskell-tng-compile:command should always be
+                        (or last (car haskell-tng--compile-history))
+                        ;; TODO haskell-tng--compile-command should always be
                         ;;      first in the prompted history, even if another
                         ;;      command was used elsewhere. Might require
                         ;;      mutating / reordering the global history here.
-                        '(haskell-tng-compile:history . 1))))))
-    (setq haskell-tng-compile:command
-          (unless (equal command haskell-tng-compile:alt) command))
+                        '(haskell-tng--compile-history . 1))))))
+    (setq haskell-tng--compile-command
+          (unless (equal command haskell-tng--compile-alt) command))
 
     (when-let (default-directory
-                (haskell-tng:locate-dominating-file
-                 haskell-tng-compile:dominating-file))
+                (haskell-tng--util-locate-dominating-file
+                 haskell-tng--compile-dominating-file))
       (compilation-start
        command
        'haskell-tng-compilation-mode
        ;; TODO name the compilation buffer
        ))))
 
-(defun haskell-tng-compile:ansi-color ()
+(defun haskell-tng--compile-ansi-color ()
   (ansi-color-apply-on-region compilation-filter-start (point-max)))
 
 (define-compilation-mode haskell-tng-compilation-mode "haskell-tng-compilation"
   (add-hook 'compilation-filter-hook
-            'haskell-tng-compile:ansi-color nil t))
+            'haskell-tng--compile-ansi-color nil t))
 
 (provide 'haskell-tng-compile)
 ;;; haskell-tng-compile.el ends here

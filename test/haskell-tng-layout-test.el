@@ -24,11 +24,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Testing utilities
 
-(defun haskell-tng-layout-test:parse-to-string ()
+(defun haskell-tng--layout-test-parse-to-string ()
   (goto-char 0)
   (let (tokens exit)
     (while (not exit)
-      (when-let (virtuals (haskell-tng-layout:virtuals-at-point))
+      (when-let (virtuals (haskell-tng--layout-virtuals-at-point))
         (push (s-join "" virtuals) tokens))
       (if (eobp)
           (setq exit t)
@@ -37,10 +37,10 @@
     (s-join "" (reverse tokens))))
 
 (defun have-expected-layout (file)
-  (haskell-tng-testutils:assert-file-contents
+  (haskell-tng--testutils-assert-file-contents
    file
    #'haskell-tng-mode
-   #'haskell-tng-layout-test:parse-to-string
+   #'haskell-tng--layout-test-parse-to-string
    "layout"))
 
 (ert-deftest haskell-tng-layout-cache-invalidation-tests ()
@@ -51,13 +51,13 @@
     (goto-char 317)
     (should
      (equal
-      (haskell-tng-layout:virtuals-at-point)
+      (haskell-tng--layout-virtuals-at-point)
       '(";")))
 
     (insert " ")
     (goto-char 317)
     (should
      (not
-      (haskell-tng-layout:virtuals-at-point)))))
+      (haskell-tng--layout-virtuals-at-point)))))
 
 ;;; haskell-tng-layout-test.el ends here

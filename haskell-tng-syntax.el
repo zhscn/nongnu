@@ -17,7 +17,7 @@
 (require 'cl-lib)
 (require 'dash)
 
-(defconst haskell-tng:syntax-table
+(defconst haskell-tng--syntax-table
   (let ((table (make-syntax-table)))
     (map-char-table
      #'(lambda (k v)
@@ -77,15 +77,15 @@
     table)
   "Haskell syntax table.")
 
-(defun haskell-tng:syntax-propertize (start end)
+(defun haskell-tng--syntax-propertize (start end)
   "For some context-sensitive syntax entries."
   (let (case-fold-search)
-    (haskell-tng:syntax:char-delims start end)
-    (haskell-tng:syntax:fqn-punct start end)
-    (haskell-tng:syntax:string-escapes start end)
-    (haskell-tng:syntax:escapes start end)))
+    (haskell-tng--syntax-char-delims start end)
+    (haskell-tng--syntax-fqn-punct start end)
+    (haskell-tng--syntax-string-escapes start end)
+    (haskell-tng--syntax-escapes start end)))
 
-(defun haskell-tng:syntax:char-delims (start end)
+(defun haskell-tng--syntax-char-delims (start end)
   "Matching apostrophes are string delimiters (literal chars)."
   (goto-char start)
   ;;  should handle: foo' 'a' 2 because ' is a word here
@@ -95,7 +95,7 @@
       (put-text-property open (1+ open) 'syntax-table '(7 . ?\'))
       (put-text-property close (1+ close) 'syntax-table '(7 . ?\')))))
 
-(defun haskell-tng:syntax:fqn-punct (start end)
+(defun haskell-tng--syntax-fqn-punct (start end)
   "dot/period is typically a symbol, unless it is used in a
 module or qualifier, then it is punctuation."
   (goto-char start)
@@ -103,10 +103,10 @@ module or qualifier, then it is punctuation."
     (let ((dot (match-beginning 0)))
       (put-text-property dot (1+ dot) 'syntax-table '(1)))))
 
-(defun haskell-tng:syntax:string-escapes (start end)
+(defun haskell-tng--syntax-string-escapes (start end)
   "Backslash before quotes is a string escape.
 
-This needs to run before `haskell-tng:syntax:escapes' or string
+This needs to run before `haskell-tng--syntax-escapes' or string
 detection will not work correctly.
 
 There is an expected false positive: an operator has an odd
@@ -117,11 +117,11 @@ string or char as the 2nd parameter and no whitespace."
           (rx "\\" (syntax string-quote))
           end t)
     (let* ((escape (match-beginning 0))
-           (before (haskell-tng:syntax:count-escapes escape t)))
+           (before (haskell-tng--syntax-count-escapes escape t)))
       (when (cl-evenp before) ;; makes sure it's a real escape
         (put-text-property escape (1+ escape) 'syntax-table '(9))))))
 
-(defun haskell-tng:syntax:count-escapes (pos &optional skip-whitespace)
+(defun haskell-tng--syntax-count-escapes (pos &optional skip-whitespace)
   "Count the number of escapes before POS.
 Even means the next char is not escaped.
 
@@ -129,12 +129,12 @@ SKIP-WHITESPACE can be used to ignore whitespace gaps."
   (if (= (point-min) pos) 0
     (let ((c (char-before pos)))
       (if (and skip-whitespace (or (= ?\n c) (= 32 (char-syntax c))))
-          (haskell-tng:syntax:count-escapes (1- pos) t)
+          (haskell-tng--syntax-count-escapes (1- pos) t)
         (if (= c ?\\)
-            (1+ (haskell-tng:syntax:count-escapes (1- pos)))
+            (1+ (haskell-tng--syntax-count-escapes (1- pos)))
           0)))))
 
-(defun haskell-tng:syntax:escapes (start end)
+(defun haskell-tng--syntax-escapes (start end)
   "Backslash inside String is an escape character \n."
   ;; TODO does this pull its weight? (slow, requires a ppss)
   (goto-char start)
@@ -143,7 +143,7 @@ SKIP-WHITESPACE can be used to ignore whitespace gaps."
       (if (= 9 (car (syntax-after escape))) ;; already calculated
           (forward-char 1)
         (unless (looking-at (rx (+ (| space ?\n)) "\\"))
-          (let ((before (haskell-tng:syntax:count-escapes escape t)))
+          (let ((before (haskell-tng--syntax-count-escapes escape t)))
             (unless (and (cl-oddp before)
                          (looking-back (rx (| space ?\n)) (1- escape)))
               (when (and (cl-evenp before)

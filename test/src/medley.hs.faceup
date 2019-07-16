@@ -2,152 +2,152 @@
 «x:{-# LANGUAGE ScopedTypeVariables #-}»
 
 «m:-- »«x:| This file is a medley of various constructs and some corner cases
-»«:haskell-tng:keyword:module» «:haskell-tng:module:Foo.Bar.Main»
-  «:haskell-tng:keyword:(» «:haskell-tng:type:Wibble»«:haskell-tng:keyword:(..),» «:haskell-tng:type:Wobble»«:haskell-tng:keyword:(»«:haskell-tng:constructor:Wobb»«:haskell-tng:keyword:,»«:haskell-tng:constructor: »«:haskell-tng:keyword:(»«:haskell-tng:constructor:!!!»«:haskell-tng:keyword:)),» «:haskell-tng:type:Woo»
+»«:haskell-tng-keyword-face:module» «:haskell-tng-module-face:Foo.Bar.Main»
+  «:haskell-tng-keyword-face:(» «:haskell-tng-type-face:Wibble»«:haskell-tng-keyword-face:(..),» «:haskell-tng-type-face:Wobble»«:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:Wobb»«:haskell-tng-keyword-face:,»«:haskell-tng-conid-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:!!!»«:haskell-tng-keyword-face:)),» «:haskell-tng-type-face:Woo»
   «m:-- »«x:* Operations
-»  «:haskell-tng:keyword:,» getFooByBar«:haskell-tng:keyword:,» getWibbleByWobble
-  «:haskell-tng:keyword:,» «:haskell-tng:keyword:module» «:haskell-tng:module:Bloo.Foo»
-«:haskell-tng:keyword:)» «:haskell-tng:keyword:where»
+»  «:haskell-tng-keyword-face:,» getFooByBar«:haskell-tng-keyword-face:,» getWibbleByWobble
+  «:haskell-tng-keyword-face:,» «:haskell-tng-keyword-face:module» «:haskell-tng-module-face:Bloo.Foo»
+«:haskell-tng-keyword-face:)» «:haskell-tng-keyword-face:where»
 
-«:haskell-tng:keyword:import»           «:haskell-tng:module:Control.Applicative» «:haskell-tng:keyword:(»many«:haskell-tng:keyword:,» optional«:haskell-tng:keyword:,» pure«:haskell-tng:keyword:,» «:haskell-tng:keyword:(»<*>«:haskell-tng:keyword:),» «:haskell-tng:keyword:(»<|>«:haskell-tng:keyword:))»
-«:haskell-tng:keyword:import»           «:haskell-tng:module:Data.Foldable»       «:haskell-tng:keyword:(»traverse_«:haskell-tng:keyword:)»
-«:haskell-tng:keyword:import»           «:haskell-tng:module:Data.Functor»        «:haskell-tng:keyword:((»<$>«:haskell-tng:keyword:))»
-«:haskell-tng:keyword:import»           «:haskell-tng:module:Data.List»           «:haskell-tng:keyword:(»intercalate«:haskell-tng:keyword:)»
-«:haskell-tng:keyword:import»           «:haskell-tng:module:Data.Monoid»         «:haskell-tng:keyword:((»<>«:haskell-tng:keyword:))»
-«:haskell-tng:keyword:import» «:haskell-tng:keyword:qualified» «:haskell-tng:module:Options.Monad»
-«:haskell-tng:keyword:import»  «:haskell-tng:keyword:qualified»  «:haskell-tng:module:Options.Applicative»  «:haskell-tng:keyword:as»  «:haskell-tng:module:Opts»
-«:haskell-tng:keyword:import» «:haskell-tng:keyword:qualified» «:haskell-tng:module:Options.Divisible» «m:-- »«x:wibble (wobble)
-»   «:haskell-tng:keyword:as» «:haskell-tng:module:Div»
-«:haskell-tng:keyword:import» «:haskell-tng:keyword:qualified» «:haskell-tng:module:ProfFile.App»        «:haskell-tng:keyword:hiding» «:haskell-tng:keyword:(»as«:haskell-tng:keyword:,» hiding«:haskell-tng:keyword:,» qualified«:haskell-tng:keyword:)»
-«:haskell-tng:keyword:import»           «:haskell-tng:module:ProfFile.App»        «:haskell-tng:keyword:(»as«:haskell-tng:keyword:,» hiding«:haskell-tng:keyword:,» qualified«:haskell-tng:keyword:)»
-«:haskell-tng:keyword:import»           «:haskell-tng:module:ProfFile.App»        «:haskell-tng:keyword:hiding» «:haskell-tng:keyword:(»as«:haskell-tng:keyword:,» hiding«:haskell-tng:keyword:,» qualified«:haskell-tng:keyword:)»
-«:haskell-tng:keyword:import» «:haskell-tng:keyword:qualified» «:haskell-tng:module:ProfFile.App»        «:haskell-tng:keyword:(»as«:haskell-tng:keyword:,» hiding«:haskell-tng:keyword:,» qualified«:haskell-tng:keyword:)»
-«:haskell-tng:keyword:import»           «:haskell-tng:module:System.Exit»         «:haskell-tng:keyword:(»«:haskell-tng:type:ExitCode» «:haskell-tng:keyword:(..),» exitFailure«:haskell-tng:keyword:,» qualified«:haskell-tng:keyword:,»
-                                      «:haskell-tng:type:Typey»«:haskell-tng:keyword:,»
-                                      wibble«:haskell-tng:keyword:,»
-                                      «:haskell-tng:type:Wibble»«:haskell-tng:keyword:)»
-«:haskell-tng:keyword:import»           «:haskell-tng:module:System.FilePath»     «:haskell-tng:keyword:(»replaceExtension«:haskell-tng:keyword:,» «:haskell-tng:type:Foo»«:haskell-tng:keyword:(»«:haskell-tng:constructor:Bar»«:haskell-tng:keyword:,»«:haskell-tng:constructor: »«:haskell-tng:keyword:(»«:haskell-tng:constructor::<»«:haskell-tng:keyword:)))»
-«:haskell-tng:keyword:import»           «:haskell-tng:module:System.IO»           «:haskell-tng:keyword:(»«:haskell-tng:type:IOMode» «:haskell-tng:keyword:(..),» hClose«:haskell-tng:keyword:,» hGetContents«:haskell-tng:keyword:,»
-                                      hPutStr«:haskell-tng:keyword:,» hPutStrLn«:haskell-tng:keyword:,» openFile«:haskell-tng:keyword:,» stderr«:haskell-tng:keyword:,»
-                                      stdout«:haskell-tng:keyword:,» «:haskell-tng:type:MoarTypey»«:haskell-tng:keyword:)»
-«:haskell-tng:keyword:import»           «:haskell-tng:module:System.Process»      «:haskell-tng:keyword:(»«:haskell-tng:type:CreateProcess» «:haskell-tng:keyword:(..),» «:haskell-tng:type:StdStream» «:haskell-tng:keyword:(..),»
-                                      createProcess«:haskell-tng:keyword:,» proc«:haskell-tng:keyword:,» waitForProcess«:haskell-tng:keyword:)»
+«:haskell-tng-keyword-face:import»           «:haskell-tng-module-face:Control.Applicative» «:haskell-tng-keyword-face:(»many«:haskell-tng-keyword-face:,» optional«:haskell-tng-keyword-face:,» pure«:haskell-tng-keyword-face:,» «:haskell-tng-keyword-face:(»<*>«:haskell-tng-keyword-face:),» «:haskell-tng-keyword-face:(»<|>«:haskell-tng-keyword-face:))»
+«:haskell-tng-keyword-face:import»           «:haskell-tng-module-face:Data.Foldable»       «:haskell-tng-keyword-face:(»traverse_«:haskell-tng-keyword-face:)»
+«:haskell-tng-keyword-face:import»           «:haskell-tng-module-face:Data.Functor»        «:haskell-tng-keyword-face:((»<$>«:haskell-tng-keyword-face:))»
+«:haskell-tng-keyword-face:import»           «:haskell-tng-module-face:Data.List»           «:haskell-tng-keyword-face:(»intercalate«:haskell-tng-keyword-face:)»
+«:haskell-tng-keyword-face:import»           «:haskell-tng-module-face:Data.Monoid»         «:haskell-tng-keyword-face:((»<>«:haskell-tng-keyword-face:))»
+«:haskell-tng-keyword-face:import» «:haskell-tng-keyword-face:qualified» «:haskell-tng-module-face:Options.Monad»
+«:haskell-tng-keyword-face:import»  «:haskell-tng-keyword-face:qualified»  «:haskell-tng-module-face:Options.Applicative»  «:haskell-tng-keyword-face:as»  «:haskell-tng-module-face:Opts»
+«:haskell-tng-keyword-face:import» «:haskell-tng-keyword-face:qualified» «:haskell-tng-module-face:Options.Divisible» «m:-- »«x:wibble (wobble)
+»   «:haskell-tng-keyword-face:as» «:haskell-tng-module-face:Div»
+«:haskell-tng-keyword-face:import» «:haskell-tng-keyword-face:qualified» «:haskell-tng-module-face:ProfFile.App»        «:haskell-tng-keyword-face:hiding» «:haskell-tng-keyword-face:(»as«:haskell-tng-keyword-face:,» hiding«:haskell-tng-keyword-face:,» qualified«:haskell-tng-keyword-face:)»
+«:haskell-tng-keyword-face:import»           «:haskell-tng-module-face:ProfFile.App»        «:haskell-tng-keyword-face:(»as«:haskell-tng-keyword-face:,» hiding«:haskell-tng-keyword-face:,» qualified«:haskell-tng-keyword-face:)»
+«:haskell-tng-keyword-face:import»           «:haskell-tng-module-face:ProfFile.App»        «:haskell-tng-keyword-face:hiding» «:haskell-tng-keyword-face:(»as«:haskell-tng-keyword-face:,» hiding«:haskell-tng-keyword-face:,» qualified«:haskell-tng-keyword-face:)»
+«:haskell-tng-keyword-face:import» «:haskell-tng-keyword-face:qualified» «:haskell-tng-module-face:ProfFile.App»        «:haskell-tng-keyword-face:(»as«:haskell-tng-keyword-face:,» hiding«:haskell-tng-keyword-face:,» qualified«:haskell-tng-keyword-face:)»
+«:haskell-tng-keyword-face:import»           «:haskell-tng-module-face:System.Exit»         «:haskell-tng-keyword-face:(»«:haskell-tng-type-face:ExitCode» «:haskell-tng-keyword-face:(..),» exitFailure«:haskell-tng-keyword-face:,» qualified«:haskell-tng-keyword-face:,»
+                                      «:haskell-tng-type-face:Typey»«:haskell-tng-keyword-face:,»
+                                      wibble«:haskell-tng-keyword-face:,»
+                                      «:haskell-tng-type-face:Wibble»«:haskell-tng-keyword-face:)»
+«:haskell-tng-keyword-face:import»           «:haskell-tng-module-face:System.FilePath»     «:haskell-tng-keyword-face:(»replaceExtension«:haskell-tng-keyword-face:,» «:haskell-tng-type-face:Foo»«:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:Bar»«:haskell-tng-keyword-face:,»«:haskell-tng-conid-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-conid-face::<»«:haskell-tng-keyword-face:)))»
+«:haskell-tng-keyword-face:import»           «:haskell-tng-module-face:System.IO»           «:haskell-tng-keyword-face:(»«:haskell-tng-type-face:IOMode» «:haskell-tng-keyword-face:(..),» hClose«:haskell-tng-keyword-face:,» hGetContents«:haskell-tng-keyword-face:,»
+                                      hPutStr«:haskell-tng-keyword-face:,» hPutStrLn«:haskell-tng-keyword-face:,» openFile«:haskell-tng-keyword-face:,» stderr«:haskell-tng-keyword-face:,»
+                                      stdout«:haskell-tng-keyword-face:,» «:haskell-tng-type-face:MoarTypey»«:haskell-tng-keyword-face:)»
+«:haskell-tng-keyword-face:import»           «:haskell-tng-module-face:System.Process»      «:haskell-tng-keyword-face:(»«:haskell-tng-type-face:CreateProcess» «:haskell-tng-keyword-face:(..),» «:haskell-tng-type-face:StdStream» «:haskell-tng-keyword-face:(..),»
+                                      createProcess«:haskell-tng-keyword-face:,» proc«:haskell-tng-keyword-face:,» waitForProcess«:haskell-tng-keyword-face:)»
 
 «m:-- »«x:some chars that should be propertized
-»chars «:haskell-tng:keyword:=» «:haskell-tng:keyword:[»«s:'c'»«:haskell-tng:keyword:,» «s:'\n'»«:haskell-tng:keyword:,» «s:'\''»«:haskell-tng:keyword:]»
+»chars «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:[»«s:'c'»«:haskell-tng-keyword-face:,» «s:'\n'»«:haskell-tng-keyword-face:,» «s:'\''»«:haskell-tng-keyword-face:]»
 
-strings «:haskell-tng:keyword:=» «:haskell-tng:keyword:[»«s:""»«:haskell-tng:keyword:,» «s:"\"\""»«:haskell-tng:keyword:,» «s:"\n\\ "»«:haskell-tng:keyword:,» «s:"\\"»«:haskell-tng:keyword:]»
+strings «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:[»«s:""»«:haskell-tng-keyword-face:,» «s:"\"\""»«:haskell-tng-keyword-face:,» «s:"\n\\ "»«:haskell-tng-keyword-face:,» «s:"\\"»«:haskell-tng-keyword-face:]»
 «m:-- »«x:knownWrongEscape = "foo"\\"bar"
 »
-multiline1 «:haskell-tng:keyword:=» «s:"\
+multiline1 «:haskell-tng-keyword-face:=» «s:"\
         \ "»
-multiline2 «:haskell-tng:keyword:=» «s:"\
+multiline2 «:haskell-tng-keyword-face:=» «s:"\
          \"»
 
-difficult «:haskell-tng:keyword:=» foo' «s:'a'» 2
+difficult «:haskell-tng-keyword-face:=» foo' «s:'a'» 2
 
-foo «:haskell-tng:keyword:=» «s:"wobble (wibble)"»
+foo «:haskell-tng-keyword-face:=» «s:"wobble (wibble)"»
 
-«:haskell-tng:keyword:class»«:haskell-tng:type: Get a s »«:haskell-tng:keyword:where»
-  get «:haskell-tng:keyword:::»«:haskell-tng:type: Set s »«:haskell-tng:keyword:->»«:haskell-tng:type: a
+«:haskell-tng-keyword-face:class»«:haskell-tng-type-face: Get a s »«:haskell-tng-keyword-face:where»
+  get «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Set s »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: a
 »
-«:haskell-tng:keyword:instance»«:haskell-tng:type: »«x:{-# OVERLAPS #-}»«:haskell-tng:type: Get a »«:haskell-tng:keyword:(»«:haskell-tng:type:a »«:haskell-tng:keyword:':»«:haskell-tng:type: s»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:where»
-  get «:haskell-tng:keyword:(»«:haskell-tng:constructor:Ext» a «:haskell-tng:keyword:_)» «:haskell-tng:keyword:=» a
+«:haskell-tng-keyword-face:instance»«:haskell-tng-type-face: »«x:{-# OVERLAPS #-}»«:haskell-tng-type-face: Get a »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:a »«:haskell-tng-keyword-face:':»«:haskell-tng-type-face: s»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:where»
+  get «:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:Ext» a «:haskell-tng-keyword-face:_)» «:haskell-tng-keyword-face:=» a
 
-«:haskell-tng:keyword:instance»«:haskell-tng:type: »«x:{-# OVERLAPPABLE #-}»«:haskell-tng:type: Get a s »«:haskell-tng:keyword:=>»«:haskell-tng:type: Get a »«:haskell-tng:keyword:(»«:haskell-tng:type:b »«:haskell-tng:keyword:':»«:haskell-tng:type: s»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:where»
-  get «:haskell-tng:keyword:(»«:haskell-tng:constructor:Ext» «:haskell-tng:keyword:_» xs«:haskell-tng:keyword:)» «:haskell-tng:keyword:=» get xs
+«:haskell-tng-keyword-face:instance»«:haskell-tng-type-face: »«x:{-# OVERLAPPABLE #-}»«:haskell-tng-type-face: Get a s »«:haskell-tng-keyword-face:=>»«:haskell-tng-type-face: Get a »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:b »«:haskell-tng-keyword-face:':»«:haskell-tng-type-face: s»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:where»
+  get «:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:Ext» «:haskell-tng-keyword-face:_» xs«:haskell-tng-keyword-face:)» «:haskell-tng-keyword-face:=» get xs
 
-«:haskell-tng:keyword:data»«:haskell-tng:type: Options »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Options»
-  «:haskell-tng:keyword:{» optionsReportType      «:haskell-tng:keyword:::»«:haskell-tng:type: ReportType
-»  «:haskell-tng:keyword:,» optionsProfFile        «:haskell-tng:keyword:::»«:haskell-tng:type: Maybe FilePath
-»  «:haskell-tng:keyword:,» optionsOutputFile      «:haskell-tng:keyword:::»«:haskell-tng:type: Maybe FilePath
-»  «:haskell-tng:keyword:,» optionsFlamegraphFlags «:haskell-tng:keyword:::»«:haskell-tng:type: »«:haskell-tng:keyword:[»«:haskell-tng:type:String»«:haskell-tng:keyword:]»«:haskell-tng:type:
-»  «:haskell-tng:keyword:}» «:haskell-tng:keyword:deriving» «:haskell-tng:keyword:(»«:haskell-tng:type:Eq»«:haskell-tng:keyword:,»«:haskell-tng:type: Show»«:haskell-tng:keyword:)»
+«:haskell-tng-keyword-face:data»«:haskell-tng-type-face: Options »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Options»
+  «:haskell-tng-keyword-face:{» optionsReportType      «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: ReportType
+»  «:haskell-tng-keyword-face:,» optionsProfFile        «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Maybe FilePath
+»  «:haskell-tng-keyword-face:,» optionsOutputFile      «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Maybe FilePath
+»  «:haskell-tng-keyword-face:,» optionsFlamegraphFlags «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:[»«:haskell-tng-type-face:String»«:haskell-tng-keyword-face:]»«:haskell-tng-type-face:
+»  «:haskell-tng-keyword-face:}» «:haskell-tng-keyword-face:deriving» «:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Eq»«:haskell-tng-keyword-face:,»«:haskell-tng-type-face: Show»«:haskell-tng-keyword-face:)»
 
-«:haskell-tng:keyword:class»«:haskell-tng:type:  »«:haskell-tng:keyword:(»«:haskell-tng:type:Eq a»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:=>»«:haskell-tng:type: Ord a  »«:haskell-tng:keyword:where»
-  «:haskell-tng:keyword:(»<«:haskell-tng:keyword:),» «:haskell-tng:keyword:(»<=«:haskell-tng:keyword:),» «:haskell-tng:keyword:(»>=«:haskell-tng:keyword:),» «:haskell-tng:keyword:(»>«:haskell-tng:keyword:)»  «:haskell-tng:keyword:::»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: Bool
-»  max @«:haskell-tng:constructor:Foo»«:haskell-tng:keyword:,» min        «:haskell-tng:keyword:::»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: a
+«:haskell-tng-keyword-face:class»«:haskell-tng-type-face:  »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Eq a»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:=>»«:haskell-tng-type-face: Ord a  »«:haskell-tng-keyword-face:where»
+  «:haskell-tng-keyword-face:(»<«:haskell-tng-keyword-face:),» «:haskell-tng-keyword-face:(»<=«:haskell-tng-keyword-face:),» «:haskell-tng-keyword-face:(»>=«:haskell-tng-keyword-face:),» «:haskell-tng-keyword-face:(»>«:haskell-tng-keyword-face:)»  «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: Bool
+»  max @«:haskell-tng-conid-face:Foo»«:haskell-tng-keyword-face:,» min        «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: a
 »
-«:haskell-tng:keyword:instance»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:Eq a»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:=>»«:haskell-tng:type: Eq »«:haskell-tng:keyword:(»«:haskell-tng:type:Tree a»«:haskell-tng:keyword:)»«:haskell-tng:type: »«:haskell-tng:keyword:where»
-  «:haskell-tng:constructor:Leaf» a         == «:haskell-tng:constructor:Leaf» b          «:haskell-tng:keyword:=»  a == b
-  «:haskell-tng:keyword:(»«:haskell-tng:constructor:Branch» l1 r1«:haskell-tng:keyword:)» == «:haskell-tng:keyword:(»«:haskell-tng:constructor:Branch» l2 r2«:haskell-tng:keyword:)»  «:haskell-tng:keyword:=»  «:haskell-tng:keyword:(»l1==l2«:haskell-tng:keyword:)» && «:haskell-tng:keyword:(»r1==r2«:haskell-tng:keyword:)»
-  «:haskell-tng:keyword:_»              == «:haskell-tng:keyword:_»               «:haskell-tng:keyword:=»  «:haskell-tng:constructor:False»
+«:haskell-tng-keyword-face:instance»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Eq a»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:=>»«:haskell-tng-type-face: Eq »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Tree a»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:where»
+  «:haskell-tng-conid-face:Leaf» a         == «:haskell-tng-conid-face:Leaf» b          «:haskell-tng-keyword-face:=»  a == b
+  «:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:Branch» l1 r1«:haskell-tng-keyword-face:)» == «:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:Branch» l2 r2«:haskell-tng-keyword-face:)»  «:haskell-tng-keyword-face:=»  «:haskell-tng-keyword-face:(»l1==l2«:haskell-tng-keyword-face:)» && «:haskell-tng-keyword-face:(»r1==r2«:haskell-tng-keyword-face:)»
+  «:haskell-tng-keyword-face:_»              == «:haskell-tng-keyword-face:_»               «:haskell-tng-keyword-face:=»  «:haskell-tng-conid-face:False»
 
-«:haskell-tng:keyword:data»«:haskell-tng:type: ReportType »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Alloc»   «m:-- »«x:^ Report allocations, percent
-»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Entries» «m:-- »«x:^ Report entries, number
-»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Time»    «m:-- »«x:^ Report time spent in closure, percent
-»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Ticks»   «m:-- »«x:^ Report ticks, number
-»                «:haskell-tng:keyword:|» «:haskell-tng:constructor:Bytes»   «m:-- »«x:^ Report bytes allocated, number
-»                «:haskell-tng:keyword:deriving» «:haskell-tng:keyword:(»«:haskell-tng:type:Eq»«:haskell-tng:keyword:,»«:haskell-tng:type: Show»«:haskell-tng:keyword:)»
+«:haskell-tng-keyword-face:data»«:haskell-tng-type-face: ReportType »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Alloc»   «m:-- »«x:^ Report allocations, percent
+»                «:haskell-tng-keyword-face:|» «:haskell-tng-conid-face:Entries» «m:-- »«x:^ Report entries, number
+»                «:haskell-tng-keyword-face:|» «:haskell-tng-conid-face:Time»    «m:-- »«x:^ Report time spent in closure, percent
+»                «:haskell-tng-keyword-face:|» «:haskell-tng-conid-face:Ticks»   «m:-- »«x:^ Report ticks, number
+»                «:haskell-tng-keyword-face:|» «:haskell-tng-conid-face:Bytes»   «m:-- »«x:^ Report bytes allocated, number
+»                «:haskell-tng-keyword-face:deriving» «:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Eq»«:haskell-tng-keyword-face:,»«:haskell-tng-type-face: Show»«:haskell-tng-keyword-face:)»
 
-«:haskell-tng:keyword:type»«:haskell-tng:type: »«:haskell-tng:keyword:family»«:haskell-tng:type: G a »«:haskell-tng:keyword:where»«:haskell-tng:type:
-  G Int »«:haskell-tng:keyword:=»«:haskell-tng:type: Bool
-  G a   »«:haskell-tng:keyword:=»«:haskell-tng:type: Char
+«:haskell-tng-keyword-face:type»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:family»«:haskell-tng-type-face: G a »«:haskell-tng-keyword-face:where»«:haskell-tng-type-face:
+  G Int »«:haskell-tng-keyword-face:=»«:haskell-tng-type-face: Bool
+  G a   »«:haskell-tng-keyword-face:=»«:haskell-tng-type-face: Char
 »
-«:haskell-tng:keyword:data»«:haskell-tng:type: Flobble »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Flobble»
-  «:haskell-tng:keyword:deriving» «:haskell-tng:keyword:(»«:haskell-tng:type:Eq»«:haskell-tng:keyword:)»«:haskell-tng:type: via »«:haskell-tng:keyword:(»«:haskell-tng:type:NonNegative »«:haskell-tng:keyword:(»«:haskell-tng:type:Large Int»«:haskell-tng:keyword:))»
-  «:haskell-tng:keyword:deriving» «:haskell-tng:keyword:stock» «:haskell-tng:keyword:(»«:haskell-tng:type:Floo»«:haskell-tng:keyword:)»
-  «:haskell-tng:keyword:deriving» «:haskell-tng:keyword:anyclass» «:haskell-tng:keyword:(»«:haskell-tng:type:WibblyWoo»«:haskell-tng:keyword:,»«:haskell-tng:type: OtherlyWoo»«:haskell-tng:keyword:)»
+«:haskell-tng-keyword-face:data»«:haskell-tng-type-face: Flobble »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Flobble»
+  «:haskell-tng-keyword-face:deriving» «:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Eq»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face: via »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:NonNegative »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Large Int»«:haskell-tng-keyword-face:))»
+  «:haskell-tng-keyword-face:deriving» «:haskell-tng-keyword-face:stock» «:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Floo»«:haskell-tng-keyword-face:)»
+  «:haskell-tng-keyword-face:deriving» «:haskell-tng-keyword-face:anyclass» «:haskell-tng-keyword-face:(»«:haskell-tng-type-face:WibblyWoo»«:haskell-tng-keyword-face:,»«:haskell-tng-type-face: OtherlyWoo»«:haskell-tng-keyword-face:)»
 
-«:haskell-tng:keyword:newtype»«:haskell-tng:type: Flobby »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Flobby»
+«:haskell-tng-keyword-face:newtype»«:haskell-tng-type-face: Flobby »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Flobby»
 
-foo «:haskell-tng:keyword:::»«:haskell-tng:type:
+foo «:haskell-tng-keyword-face:::»«:haskell-tng-type-face:
  Wibble »«m:-- »«x:wibble
-»«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: Wobble »«m:-- »«x:wobble
-»«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: Wobble »«m:-- »«x:wobble
-»«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: Wobble »«m:-- »«x:wobble
-»«:haskell-tng:type:    »«:haskell-tng:keyword:->»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:wob »«:haskell-tng:keyword:::»«:haskell-tng:type: Wobble»«:haskell-tng:keyword:)»«:haskell-tng:type:
-    »«:haskell-tng:keyword:->»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:Wobble »«m:-- »«x:wobble
-»«:haskell-tng:type:    a b c»«:haskell-tng:keyword:)»«:haskell-tng:type:
+»«:haskell-tng-type-face:    »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: Wobble »«m:-- »«x:wobble
+»«:haskell-tng-type-face:    »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: Wobble »«m:-- »«x:wobble
+»«:haskell-tng-type-face:    »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: Wobble »«m:-- »«x:wobble
+»«:haskell-tng-type-face:    »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:wob »«:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Wobble»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face:
+    »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Wobble »«m:-- »«x:wobble
+»«:haskell-tng-type-face:    a b c»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face:
 »
-«:haskell-tng:keyword:(»foo «:haskell-tng:keyword:::»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:Wibble Wobble»«:haskell-tng:keyword:))» foo
+«:haskell-tng-keyword-face:(»foo «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Wibble Wobble»«:haskell-tng-keyword-face:))» foo
 
-«:haskell-tng:keyword:newtype»«:haskell-tng:type: TestApp
-   »«:haskell-tng:keyword:(»«:haskell-tng:type:logger »«:haskell-tng:keyword:::»«:haskell-tng:type: TestLogger»«:haskell-tng:keyword:)»«:haskell-tng:type:
-   »«:haskell-tng:keyword:(»«:haskell-tng:type:scribe »«:haskell-tng:keyword:::»«:haskell-tng:type: TestScribe»«:haskell-tng:keyword:)»«:haskell-tng:type:
+«:haskell-tng-keyword-face:newtype»«:haskell-tng-type-face: TestApp
+   »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:logger »«:haskell-tng-keyword-face:::»«:haskell-tng-type-face: TestLogger»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face:
+   »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:scribe »«:haskell-tng-keyword-face:::»«:haskell-tng-type-face: TestScribe»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face:
    config
    a
-   »«:haskell-tng:keyword:=» «:haskell-tng:constructor:TestApp» a
+   »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:TestApp» a
 
-optionsParser «:haskell-tng:keyword:::»«:haskell-tng:type: Opts.Parser Options
-»optionsParser «:haskell-tng:keyword:=» «:haskell-tng:constructor:Options»
-  <$> «:haskell-tng:keyword:(»«:haskell-tng:module:Opts.»flag' «:haskell-tng:constructor:Alloc» «:haskell-tng:keyword:(»«:haskell-tng:module:Opts.»long «s:"alloc"» <> «:haskell-tng:module:Opts.»help «s:"wibble"»«:haskell-tng:keyword:)»
-       <|> «:haskell-tng:module:Opts.»flag' «:haskell-tng:constructor:Entries» «:haskell-tng:keyword:(»«:haskell-tng:module:Opts.»long «s:"entry"» <> «:haskell-tng:module:Opts.»help «s:"wobble"»«:haskell-tng:keyword:)»
-       <|> «:haskell-tng:module:Opts.»flag' «:haskell-tng:constructor:Bytes»   «:haskell-tng:keyword:(»«:haskell-tng:module:Opts.»long «s:"bytes"» <> «:haskell-tng:module:Opts.»help «s:"i'm a fish"»«:haskell-tng:keyword:))»
+optionsParser «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Opts.Parser Options
+»optionsParser «:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Options»
+  <$> «:haskell-tng-keyword-face:(»«:haskell-tng-module-face:Opts.»flag' «:haskell-tng-conid-face:Alloc» «:haskell-tng-keyword-face:(»«:haskell-tng-module-face:Opts.»long «s:"alloc"» <> «:haskell-tng-module-face:Opts.»help «s:"wibble"»«:haskell-tng-keyword-face:)»
+       <|> «:haskell-tng-module-face:Opts.»flag' «:haskell-tng-conid-face:Entries» «:haskell-tng-keyword-face:(»«:haskell-tng-module-face:Opts.»long «s:"entry"» <> «:haskell-tng-module-face:Opts.»help «s:"wobble"»«:haskell-tng-keyword-face:)»
+       <|> «:haskell-tng-module-face:Opts.»flag' «:haskell-tng-conid-face:Bytes»   «:haskell-tng-keyword-face:(»«:haskell-tng-module-face:Opts.»long «s:"bytes"» <> «:haskell-tng-module-face:Opts.»help «s:"i'm a fish"»«:haskell-tng-keyword-face:))»
   <*> optional
-        «:haskell-tng:keyword:(»«:haskell-tng:module:Opts.»strArgument
-          «:haskell-tng:keyword:(»«:haskell-tng:module:Opts.»metavar «s:"MY-FILE"» <>
-           «:haskell-tng:module:Opts.»help «s:"meh"»«:haskell-tng:keyword:))»
+        «:haskell-tng-keyword-face:(»«:haskell-tng-module-face:Opts.»strArgument
+          «:haskell-tng-keyword-face:(»«:haskell-tng-module-face:Opts.»metavar «s:"MY-FILE"» <>
+           «:haskell-tng-module-face:Opts.»help «s:"meh"»«:haskell-tng-keyword-face:))»
 
-«:haskell-tng:keyword:type»«:haskell-tng:type: PhantomThing
+«:haskell-tng-keyword-face:type»«:haskell-tng-type-face: PhantomThing
 »
-«:haskell-tng:keyword:type»«:haskell-tng:type: SomeApi »«:haskell-tng:keyword:=»«:haskell-tng:type:
-       »«s:"thing"»«:haskell-tng:type: :> Capture »«s:"bar"»«:haskell-tng:type: Index :> QueryParam »«s:"wibble"»«:haskell-tng:type: Text
-                                               :> QueryParam »«s:"wobble"»«:haskell-tng:type: Natural
+«:haskell-tng-keyword-face:type»«:haskell-tng-type-face: SomeApi »«:haskell-tng-keyword-face:=»«:haskell-tng-type-face:
+       »«s:"thing"»«:haskell-tng-type-face: :> Capture »«s:"bar"»«:haskell-tng-type-face: Index :> QueryParam »«s:"wibble"»«:haskell-tng-type-face: Text
+                                               :> QueryParam »«s:"wobble"»«:haskell-tng-type-face: Natural
                                                :> Header TracingHeader TracingId
                                                :> ThingHeader
-                                               :> Get '»«:haskell-tng:keyword:[»«:haskell-tng:type:JSON»«:haskell-tng:keyword:]»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:The ReadResult»«:haskell-tng:keyword:)»«:haskell-tng:type:
-  :<|> »«s:"thing"»«:haskell-tng:type: :> ReqBody '»«:haskell-tng:keyword:[»«:haskell-tng:type:JSON»«:haskell-tng:keyword:]»«:haskell-tng:type: Request
+                                               :> Get '»«:haskell-tng-keyword-face:[»«:haskell-tng-type-face:JSON»«:haskell-tng-keyword-face:]»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:The ReadResult»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face:
+  :<|> »«s:"thing"»«:haskell-tng-type-face: :> ReqBody '»«:haskell-tng-keyword-face:[»«:haskell-tng-type-face:JSON»«:haskell-tng-keyword-face:]»«:haskell-tng-type-face: Request
                       :> Header TracingHeader TracingId
                       :> SpecialHeader
-                      :> Post '»«:haskell-tng:keyword:[»«:haskell-tng:type:JSON»«:haskell-tng:keyword:]»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:The Response»«:haskell-tng:keyword:)»«:haskell-tng:type:
+                      :> Post '»«:haskell-tng-keyword-face:[»«:haskell-tng-type-face:JSON»«:haskell-tng-keyword-face:]»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:The Response»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face:
 »
-«:haskell-tng:keyword:deriving» «:haskell-tng:keyword:instance» «:haskell-tng:constructor:FromJSONKey» «:haskell-tng:constructor:StateName»
-«:haskell-tng:keyword:deriving» anyclass «:haskell-tng:keyword:instance» «:haskell-tng:constructor:FromJSON» «:haskell-tng:constructor:Base»
-«:haskell-tng:keyword:deriving» «:haskell-tng:keyword:newtype» «:haskell-tng:keyword:instance» «:haskell-tng:constructor:FromJSON» «:haskell-tng:constructor:Treble»
+«:haskell-tng-keyword-face:deriving» «:haskell-tng-keyword-face:instance» «:haskell-tng-conid-face:FromJSONKey» «:haskell-tng-conid-face:StateName»
+«:haskell-tng-keyword-face:deriving» anyclass «:haskell-tng-keyword-face:instance» «:haskell-tng-conid-face:FromJSON» «:haskell-tng-conid-face:Base»
+«:haskell-tng-keyword-face:deriving» «:haskell-tng-keyword-face:newtype» «:haskell-tng-keyword-face:instance» «:haskell-tng-conid-face:FromJSON» «:haskell-tng-conid-face:Treble»
 
-foo «:haskell-tng:keyword:=» «:haskell-tng:keyword:do»
-  bar «:haskell-tng:keyword:::»«:haskell-tng:type: Wibble »«:haskell-tng:keyword:<-» baz
-  «:haskell-tng:keyword:where» baz «:haskell-tng:keyword:=» «:haskell-tng:keyword:_»
+foo «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:do»
+  bar «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Wibble »«:haskell-tng-keyword-face:<-» baz
+  «:haskell-tng-keyword-face:where» baz «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:_»
   «m:-- »«x:checking that comments are ignored in layout
 »  «m:-- »«x:and that a starting syntax entry is ok
-»        «:haskell-tng:keyword:(»+«:haskell-tng:keyword:)» «:haskell-tng:keyword:=» «:haskell-tng:keyword:_»
+»        «:haskell-tng-keyword-face:(»+«:haskell-tng-keyword-face:)» «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:_»
 
-test «:haskell-tng:keyword:=» 1 `shouldBe` 1
+test «:haskell-tng-keyword-face:=» 1 `shouldBe` 1
 
-cases «:haskell-tng:keyword:=» «:haskell-tng:keyword:\case»
-  «:haskell-tng:constructor:Nothing» «:haskell-tng:keyword:->» «s:"no"» & toUpper
-  «:haskell-tng:constructor:Just» «:haskell-tng:keyword:_»  «:haskell-tng:keyword:->» toUpper $ «s:"yes"»
+cases «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:\case»
+  «:haskell-tng-conid-face:Nothing» «:haskell-tng-keyword-face:->» «s:"no"» & toUpper
+  «:haskell-tng-conid-face:Just» «:haskell-tng-keyword-face:_»  «:haskell-tng-keyword-face:->» toUpper $ «s:"yes"»
 
-bar «:haskell-tng:keyword:=» «:haskell-tng:keyword:do» «m:-- »«x:an incomplete do block
+bar «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:do» «m:-- »«x:an incomplete do block
 »

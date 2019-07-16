@@ -1,20 +1,20 @@
 «m:-- »«x:Figure 2.1 from the Haskell2010 report
-»«:haskell-tng:keyword:module» «:haskell-tng:module:AStack»«:haskell-tng:keyword:(» «:haskell-tng:type:Stack»«:haskell-tng:keyword:,» push«:haskell-tng:keyword:,» pop«:haskell-tng:keyword:,» top«:haskell-tng:keyword:,» size «:haskell-tng:keyword:)» «:haskell-tng:keyword:where»
-«:haskell-tng:keyword:data»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:=» «:haskell-tng:constructor:Empty»
-             «:haskell-tng:keyword:|» «:haskell-tng:constructor:MkStack» a «:haskell-tng:keyword:(»«:haskell-tng:constructor:Stack» a«:haskell-tng:keyword:)»
+»«:haskell-tng-keyword-face:module» «:haskell-tng-module-face:AStack»«:haskell-tng-keyword-face:(» «:haskell-tng-type-face:Stack»«:haskell-tng-keyword-face:,» push«:haskell-tng-keyword-face:,» pop«:haskell-tng-keyword-face:,» top«:haskell-tng-keyword-face:,» size «:haskell-tng-keyword-face:)» «:haskell-tng-keyword-face:where»
+«:haskell-tng-keyword-face:data»«:haskell-tng-type-face: Stack a »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Empty»
+             «:haskell-tng-keyword-face:|» «:haskell-tng-conid-face:MkStack» a «:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:Stack» a«:haskell-tng-keyword-face:)»
 
-push «:haskell-tng:keyword:::»«:haskell-tng:type: a »«:haskell-tng:keyword:->»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:->»«:haskell-tng:type: Stack a
-»push x s «:haskell-tng:keyword:=» «:haskell-tng:constructor:MkStack» x s
+push «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: Stack a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: Stack a
+»push x s «:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:MkStack» x s
 
-size «:haskell-tng:keyword:::»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:->»«:haskell-tng:type: Int
-»size s «:haskell-tng:keyword:=» length «:haskell-tng:keyword:(»stkToLst s«:haskell-tng:keyword:)»  «:haskell-tng:keyword:where»
-           stkToLst  «:haskell-tng:constructor:Empty»         «:haskell-tng:keyword:=» «:haskell-tng:keyword:[]»
-           stkToLst «:haskell-tng:keyword:(»«:haskell-tng:constructor:MkStack» x s«:haskell-tng:keyword:)»  «:haskell-tng:keyword:=» x«:haskell-tng:keyword::»xs «:haskell-tng:keyword:where» xs «:haskell-tng:keyword:=» stkToLst s
+size «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Stack a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: Int
+»size s «:haskell-tng-keyword-face:=» length «:haskell-tng-keyword-face:(»stkToLst s«:haskell-tng-keyword-face:)»  «:haskell-tng-keyword-face:where»
+           stkToLst  «:haskell-tng-conid-face:Empty»         «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:[]»
+           stkToLst «:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:MkStack» x s«:haskell-tng-keyword-face:)»  «:haskell-tng-keyword-face:=» x«:haskell-tng-keyword-face::»xs «:haskell-tng-keyword-face:where» xs «:haskell-tng-keyword-face:=» stkToLst s
 
-pop «:haskell-tng:keyword:::»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:->»«:haskell-tng:type: »«:haskell-tng:keyword:(»«:haskell-tng:type:a»«:haskell-tng:keyword:,»«:haskell-tng:type: Stack a»«:haskell-tng:keyword:)»«:haskell-tng:type:
-»pop «:haskell-tng:keyword:(»«:haskell-tng:constructor:MkStack» x s«:haskell-tng:keyword:)»
-  «:haskell-tng:keyword:=» «:haskell-tng:keyword:(»x«:haskell-tng:keyword:,» «:haskell-tng:keyword:case» s «:haskell-tng:keyword:of» r «:haskell-tng:keyword:->» i r «:haskell-tng:keyword:where» i x «:haskell-tng:keyword:=» x«:haskell-tng:keyword:)» «m:-- »«x:(pop Empty) is an error
+pop «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Stack a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:a»«:haskell-tng-keyword-face:,»«:haskell-tng-type-face: Stack a»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face:
+»pop «:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:MkStack» x s«:haskell-tng-keyword-face:)»
+  «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:(»x«:haskell-tng-keyword-face:,» «:haskell-tng-keyword-face:case» s «:haskell-tng-keyword-face:of» r «:haskell-tng-keyword-face:->» i r «:haskell-tng-keyword-face:where» i x «:haskell-tng-keyword-face:=» x«:haskell-tng-keyword-face:)» «m:-- »«x:(pop Empty) is an error
 »
-top «:haskell-tng:keyword:::»«:haskell-tng:type: Stack a »«:haskell-tng:keyword:->»«:haskell-tng:type: a
-»top «:haskell-tng:keyword:(»«:haskell-tng:constructor:MkStack» x s«:haskell-tng:keyword:)» «:haskell-tng:keyword:=» x                     «m:-- »«x:(top Empty) is an error
+top «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Stack a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: a
+»top «:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:MkStack» x s«:haskell-tng-keyword-face:)» «:haskell-tng-keyword-face:=» x                     «m:-- »«x:(top Empty) is an error
 »

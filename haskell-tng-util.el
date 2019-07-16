@@ -9,9 +9,11 @@
 ;;
 ;;; Code:
 
+;; TODO move things to single use sites (twas premature abstraction!)
+
 (require 'subr-x)
 
-(defun haskell-tng:paren-close (&optional pos)
+(defun haskell-tng--util-paren-close (&optional pos)
   "The next `)', if it closes `POS's paren depth."
   (save-excursion
     (goto-char (or pos (point)))
@@ -22,7 +24,7 @@
 
 ;; TODO comment / paren aware, like haskell-tng:layout-of-next-token
 ;; TODO refactor to share code with haskell-tng:layout-of-next-token
-(defun haskell-tng:indent-close (&optional pos)
+(defun haskell-tng--util-indent-close (&optional pos)
   "The beginning of the line with indentation that closes `POS'."
   (save-excursion
     (goto-char (or pos (point)))
@@ -33,34 +35,34 @@
             (throw 'closed (point))))
         nil))))
 
-(defun haskell-tng:do-bind (&optional pos)
+(defun haskell-tng--util-do-bind (&optional pos)
   ;; trivial, should just be called as an inline regexp
   "The next `<-'"
   (save-excursion
     (goto-char (or pos (point)))
     (re-search-forward "<-" nil t)))
 
-(defun haskell-tng:next-where (&optional pos)
+(defun haskell-tng--util-next-where (&optional pos)
   ;; trivial, should just be called as an inline regexp
   "The next `where'"
   (save-excursion
     (goto-char (or pos (point)))
     (re-search-forward (rx word-start "where" word-end) nil t)))
 
-(defun haskell-tng:indent-close-previous ()
+(defun haskell-tng--util-indent-close-previous ()
   "Indentation closing the previous symbol."
   (save-excursion
     (forward-symbol -1)
-    (haskell-tng:indent-close)))
+    (haskell-tng--util-indent-close)))
 
-(defun haskell-tng:locate-dominating-file (regexp)
+(defun haskell-tng--util-locate-dominating-file (regexp)
   "`locate-dominating-file' but starting from `default-directory'
 and taking a regexp."
   (locate-dominating-file
    default-directory
    (lambda (dir) (directory-files dir nil regexp))))
 
-(defmacro haskell-tng:until (test &rest body)
+(defmacro haskell-tng--util-until (test &rest body)
   ;; https://lists.gnu.org/r/emacs-devel/2018-10/msg00250.html
   ;; by Stefan Monnier
   "Run BODY while TEST is non-nil, returning the final TEST."

@@ -48,22 +48,22 @@
 (ert-deftest haskell-tng-append-indent-file-tests:indentation ()
   (should (have-expected-append-indent (testdata "src/indentation.hs"))))
 (ert-deftest haskell-tng-append-indent-file-tests:options ()
-  (let ((haskell-tng-indent-aligntypes t)
-        (haskell-tng-indent-typelead 1))
+  (let ((haskell-tng-aligntypes t)
+        (haskell-tng-typelead 1))
     (should (have-expected-append-indent (testdata "src/indentation-options.hs")))))
 
 (ert-deftest haskell-tng-insert-indent-file-tests:indentation ()
   (should (have-expected-insert-indent (testdata "src/indentation.hs"))))
 (ert-deftest haskell-tng-insert-indent-file-tests:options ()
-  (let ((haskell-tng-indent-aligntypes t)
-        (haskell-tng-indent-typelead 1))
+  (let ((haskell-tng-aligntypes t)
+        (haskell-tng-typelead 1))
     (should (have-expected-insert-indent (testdata "src/indentation-options.hs")))))
 
 ;; TODO reindenting needs attention, it's all over the radar
 ;; (ert-deftest haskell-tng-reindent-file-tests ()
 ;;   (should (have-expected-reindent (testdata "src/indentation.hs"))))
 
-(defun haskell-tng-indent-test:work (mode)
+(defun haskell-tng--indent-test-work (mode)
   "MODE can be 'insert, 'reindent, or 'append."
   (let (indents lines)
     (pcase mode
@@ -124,7 +124,7 @@
              (ert-simulate-command '(forward-line)))))))
     (reverse indents)))
 
-(defun haskell-tng-indent-test:indents-to-string (indents)
+(defun haskell-tng--indent-test-indents-to-string (indents)
   "INDENTS is a list of INDENT.
 
 INDENT is a non-empty list of (RET . (LINE . (INDENT . ALTS)))
@@ -135,9 +135,9 @@ the current line).
 INDENT is the integer suggested next line indentation column and
 ALTS is a list of integer alternative indentations."
   (s-join "\n" (-flatten
-                (-map #'haskell-tng-indent-test:indent-to-string indents))))
+                (-map #'haskell-tng--indent-test-indent-to-string indents))))
 
-(defun haskell-tng-indent-test:indent-to-string (indent)
+(defun haskell-tng--indent-test-indent-to-string (indent)
   (let* ((ret (car indent))
          (line (cadr indent))
          (prime (caddr indent))
@@ -161,30 +161,30 @@ ALTS is a list of integer alternative indentations."
         (list indents line)))))
 
 (defun have-expected-insert-indent (file)
-  (haskell-tng-testutils:assert-file-contents
+  (haskell-tng--testutils-assert-file-contents
    file
    #'haskell-tng-mode
    (lambda ()
-     (haskell-tng-indent-test:indents-to-string
-      (haskell-tng-indent-test:work 'insert)))
+     (haskell-tng--indent-test-indents-to-string
+      (haskell-tng--indent-test-work 'insert)))
    "insert.indent"))
 
 (defun have-expected-reindent (file)
-  (haskell-tng-testutils:assert-file-contents
+  (haskell-tng--testutils-assert-file-contents
    file
    #'haskell-tng-mode
    (lambda ()
-     (haskell-tng-indent-test:indents-to-string
-      (haskell-tng-indent-test:work 'reindent)))
+     (haskell-tng--indent-test-indents-to-string
+      (haskell-tng--indent-test-work 'reindent)))
    "reindent"))
 
 (defun have-expected-append-indent (file)
-  (haskell-tng-testutils:assert-file-contents
+  (haskell-tng--testutils-assert-file-contents
    file
    #'haskell-tng-mode
    (lambda ()
-     (haskell-tng-indent-test:indents-to-string
-      (haskell-tng-indent-test:work 'append)))
+     (haskell-tng--indent-test-indents-to-string
+      (haskell-tng--indent-test-work 'append)))
    "append.indent"))
 
 ;;; haskell-tng-indent-test.el ends here

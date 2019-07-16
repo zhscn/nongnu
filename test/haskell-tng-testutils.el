@@ -11,13 +11,13 @@
 
 (require 'faceup)
 
-(defmacro haskell-tng-testutils:this-lisp-directory ()
+(defmacro haskell-tng--testutils-this-lisp-directory ()
   (expand-file-name
    (if load-file-name
        (file-name-directory load-file-name)
      default-directory)))
 
-(defun haskell-tng-testutils:assert-file-contents
+(defun haskell-tng--testutils-assert-file-contents
     (file mode to-string suffix)
   "For FILE, enable MODE and run TO-STRING and compare with the golden data in FILE.SUFFIX.
 
@@ -47,7 +47,7 @@ Alternatively, if MODE is a buffer object, run TO-STRING there instead."
 (defun testdata (file)
   (expand-file-name
    file
-   (haskell-tng-testutils:this-lisp-directory)))
+   (haskell-tng--testutils-this-lisp-directory)))
 
 (defun is-comment-at-point ()
   ;; this could be sped up by storing all comment regions in an alist
