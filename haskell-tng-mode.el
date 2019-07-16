@@ -6,7 +6,7 @@
 ;; Homepage: https://gitlab.com/tseenshe/haskell-tng-mode
 ;; Keywords: languages
 ;; Package-Version: 0.0.1
-;; Package-Requires: ((bind-key "2.4") (dash "2.16.0") (emacs "24.3"))
+;; Package-Requires: ((dash "2.16.0") (emacs "24.3"))
 
 ;;; Commentary:
 ;;
@@ -14,7 +14,6 @@
 ;;
 ;;; Code:
 
-(require 'bind-key)
 (require 'dabbrev)
 
 (require 'haskell-tng-syntax)
@@ -28,11 +27,11 @@
 
 (defcustom haskell-tng-prettify-symbols
   '(("forall" . ?∀))
- "Integration with `prettify-symbols' giving the impression of UnicodeSyntax.
+  "Integration with `prettify-symbols' giving the impression of UnicodeSyntax.
 
 Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
- :type 'listp
- :group 'haskell-tng)
+  :type 'listp
+  :group 'haskell-tng)
 
 ;; optional dependency on projectile for TAGS management
 (defvar projectile-tags-command)
@@ -87,20 +86,20 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
 
   (haskell-tng--smie-setup)
 
-  (bind-key "<return>" 'haskell-tng-newline haskell-tng-mode-map)
+  (cl-flet ((bind (key def) (define-key haskell-tng-mode-map (kbd key) def))
+            (bind-compile (key def) (define-key haskell-tng-mode-map (kbd key) def)))
+    (bind "<return>" 'haskell-tng-newline)
 
-  ;; core compilation loop, supports C-u and C-- prefixes
-  (bind-key "C-c c" 'haskell-tng-compile haskell-tng-mode-map)
-  (bind-key "C-c e" 'next-error haskell-tng-mode-map)
+    ;; core compilation loop, supports C-u and C-- prefixes
+    (bind "C-c c" 'haskell-tng-compile)
+    (bind "C-c e" 'next-error)
+    (bind-compile "C-c c" 'haskell-tng-compile)
+    (bind-compile "C-c e" 'next-error)
 
-  ;; convenient for commands to work from the compile buffer too
-  (bind-key "C-c c" 'haskell-tng-compile haskell-tng-compilation-mode-map)
-  (bind-key "C-c e" 'next-error haskell-tng-compilation-mode-map)
-
-  ;; external tools
-  (bind-key "C-c C" 'haskell-tng-stack2cabal haskell-tng-mode-map)
-  (bind-key "C-c C-r f" 'haskell-tng-stylish-haskell haskell-tng-mode-map)
-
+    ;; external tools
+    (bind "C-c C" 'haskell-tng-stack2cabal)
+    (bind "C-c C-r f" 'haskell-tng-stylish-haskell)
+    )
   )
 
 ;;;###autoload
