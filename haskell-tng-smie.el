@@ -35,9 +35,12 @@
   (interactive)
   ;; TODO a dynamically bound variable might improve the quality of
   ;;      'empty-line-token predictions.
+  (when (<= (- (point-max) 1) (point))
+    ;; WORKAROUND https://debbugs.gnu.org/cgi/bugreport.cgi?bug=36432
+    ;; TODO fix the bug properly in SMIE
+    (save-excursion (insert "\n\n")))
   (let ((rem (when (/= (point) (line-end-position))
                (buffer-substring-no-properties (point) (line-end-position)))))
-    ;; TODO https://debbugs.gnu.org/cgi/bugreport.cgi?bug=36432
     (when rem
       (delete-region (point) (line-end-position)))
     ;; TODO don't continue line comments if there is code before them
