@@ -54,7 +54,6 @@
 
 ;; TODO autodetection of indent options
 
-;; TODO implement haskell-tng-aligntypes
 (defcustom haskell-tng-aligntypes nil
   "Whether to align arrows to their parent :: declaration.
 
@@ -68,7 +67,6 @@ foobar :: Monad m
   :type 'booleanp
   :group 'haskell-tng)
 
-;; TODO implement haskell-tng-typelead
 (defcustom haskell-tng-typelead 3
   "Leading spaces in a trailing type signature, relative to type arrows.
 For example 3 and 1 are respectively:
@@ -301,7 +299,10 @@ information, to aid in the creation of new rules."
                               "\\case" ;; LambdaCase
                               "where" "let" "do" "of"))))
         2)
-       ("::" 5)
+       ((and "::" (guard (smie-rule-hanging-p)))
+        (if haskell-tng-aligntypes
+            `(column . ,(+ haskell-tng-typelead (current-column)))
+         haskell-tng-typelead))
        ("," (smie-rule-separator method))
        ((or "SYMID" "CONSYM" "KINDSYM")
         (if (smie-rule-hanging-p) 2 (smie-rule-parent)))
@@ -329,7 +330,11 @@ information, to aid in the creation of new rules."
           (smie-rule-separator method)))
        ((and (or "[" "(" "{") (guard (smie-rule-hanging-p)))
         (smie-rule-parent))
-       ((and "=>" (guard (not (smie-rule-sibling-p)))) 2)
+       ((and "=>" (guard (smie-rule-parent-p "::")))
+        (if haskell-tng-aligntypes
+            (haskell-tng--smie-rule-parent-column)
+         (smie-rule-parent)))
+       ("::" 2)
        ("," (smie-rule-separator method))
        ;; TODO ; as a separator, might remove ad-hoc WLDO rules
        ((guard (smie-rule-parent-p "SYMID" "CONSYM" "KINDSYM"))

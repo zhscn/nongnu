@@ -1,15 +1,18 @@
 -- | Indentation scenarios to test indentation options.
+v
 module Indentation where
+v
 
+v
 types4 ::
+1  v
    ( Monad m )
+2 v1
   => a
+1 v2
   -> b
+1 v2
   -> c
+1 v2
 
-types5 :: Monad m
-       => (?log :: HasLogger m)
-       => a
-       -> b
-       -> c
-
+1 v2

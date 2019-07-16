@@ -1,32 +1,14 @@
 -- | Indentation scenarios to test indentation options.
-v
 module Indentation where
-v
 
-v
-types4 ::
-1  v
-   ( Monad m )
-2  1   v
-  => a
-1 v2
-  -> b
-1 v2
-  -> c
-1 v2
-
-1 v2
 types5 :: Monad m
-1      v
        => (?log :: HasLogger m)
-1      v
        => a
-1      v
        -> b
-1      v
        -> c
-1      v
 
-1      v
-
-1      v
+types6 ::
+        ( Monad m )
+       => a
+       -> b
+       -> c

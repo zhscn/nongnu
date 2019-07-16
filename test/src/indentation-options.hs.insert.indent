@@ -5,9 +5,9 @@ v
 
 v
 types4 ::
-2  1 v
+1  v
    ( Monad m )
-2 v1
+3 12   v
   => a
 1 v2
   -> b
@@ -17,7 +17,7 @@ types4 ::
 
 v 12
 types5 :: Monad m
-2      1 v
+1      v
        => (?log :: HasLogger m)
 1      v
        => a
