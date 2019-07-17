@@ -84,9 +84,6 @@ the lexer."
 
           (forward-comment (point-max))
 
-          ;; TODO: performance. Only request virtuals when they make sense...
-          ;; e.g. on newlines, or following a WLDO (assuming a comment-aware
-          ;; lookback is fast).
           (setq haskell-tng--lexer-state
                 (unless haskell-tng--lexer-state
                   (haskell-tng--layout-virtuals-at-point)))
@@ -159,8 +156,6 @@ the lexer."
 
           (setq haskell-tng--lexer-state
                 (unless haskell-tng--lexer-state
-                  ;; TODO semicolon cannot be used as a separator and a line end
-                  ;; in the grammar rules, so should we emit multiple tokens?
                   (haskell-tng--layout-virtuals-at-point)))
 
           (if haskell-tng--lexer-state

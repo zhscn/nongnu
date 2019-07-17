@@ -19,26 +19,25 @@
 
 ;; Notes on caching
 ;;
-;; Small brain is to parse the entire buffer, invalidated on any change.
+;; Small brain parses the entire buffer, invalidated by any change.
 ;;
-;; Big brain would store a record of the region that has been edited and reparse
-;; only the layouts that have changed. The invalidation may be a simple case of
-;; dismissing everything (including CLOSE parts) after any point that has been
-;; edited or trying to track insertions.
+;; Big brain parses toplevel regions of interest, invalidated by any changes.
+;; This is what we do.
 ;;
 ;; Galaxy brain caching would use properties and put dirty markers on inserted
-;; or deleted regions. Also this could give lightning fast lookup at point on
-;; cache hits.
-;;
-;; Anything more complicated that small brain needs improved testing.
+;; or deleted regions. Would give fast lookup at point.
 
 (require 'dash)
 
 (require 'haskell-tng-util)
 
-;; Easiest cache... full buffer parse with full invalidation on any insertion.
+;; A alist of lists of (OPEN . (CLOSE . SEPS)) positions, keyed by (START . END)
 ;;
-;; A list of (OPEN . (CLOSE . SEPS)) positions, one per inferred block.
+;; Regions are exclusive of START and inclusive of END, and do not overlap. This
+;; is because START would only ever contain CLOSE or SEP, not OPEN.
+;;
+;; Instead of a list, may also be t, indicating that there is no relevant layout
+;; in a region.
 (defvar-local haskell-tng--layout-cache nil)
 
 (defun haskell-tng--layout-cache-invalidation (_beg _end _pre-length)
@@ -56,61 +55,124 @@ the layout engine."
 Haskell2010 Layout rules.
 
 Designed to be called repeatedly, managing its own caching."
-  (unless haskell-tng--layout-cache
-    (haskell-tng--layout-rebuild-cache-full))
-
-  (let ((pos (point))
-        opens breaks closes)
-    (dolist (block haskell-tng--layout-cache)
-      (let ((open (car block))
-            (close (cadr block))
-            (lines (cddr block)))
-        (when (and (<= open pos) (<= pos close))
-          (when (= open pos)
-            (push "{" opens))
-          (when (= close pos)
-            (push "}" closes))
-          (dolist (line lines)
-            (when (= line pos)
-              (push ";" breaks))))))
-    (append opens closes breaks)))
+  (when-let (cache (haskell-tng--layout-at-point))
+    (let ((pos (point))
+          opens breaks closes)
+      (dolist (block cache)
+        (pcase block
+          (`(,open . (,close . ,seps))
+           (when (and open (= open pos))
+             (push "{" opens))
+           (when (and close (= close pos))
+             (push "}" closes))
+           (dolist (sep seps)
+             (when (= sep pos)
+               (push ";" breaks))))))
+      (append opens closes breaks))))
 
 (defun haskell-tng--layout-has-virtual-at-point ()
   "t if there is a virtual at POINT"
   ;; avoids a measured performance hit (append indentation)
-  (unless haskell-tng--layout-cache
-    (haskell-tng--layout-rebuild-cache-full))
-  (--any (member (point) it)
-         haskell-tng--layout-cache))
+  (when-let (cache (haskell-tng--layout-at-point))
+    (--any (member (point) it) cache)))
 
-(defun haskell-tng--layout-rebuild-cache-full ()
-  (let (case-fold-search
-        cache)
-    (save-excursion
-      (goto-char 0)
-      (while (not (eobp))
-        (when-let (wldo (haskell-tng--layout-next-wldo))
-          (push wldo cache))))
-    (setq haskell-tng--layout-cache (reverse cache))))
+(defun haskell-tng--layout-at-point ()
+  "Returns the relevant virtual tokens for the current point,
+using a cache if available."
+  (when-let
+      (layout (or
+               (cdr (--find
+                     (and (<  (caar it) (point))
+                          (<= (point) (cdar it)))
+                     haskell-tng--layout-cache))
+               (haskell-tng--layout-rebuild-cache-at-point)))
+    (unless (eq layout t) layout)))
 
-(defun haskell-tng--layout-next-wldo ()
+(defun haskell-tng--layout-rebuild-cache-at-point ()
+  (let ((toplevel (rx bol (or word-start "("))))
+    (if (and (looking-at toplevel) (not (bobp)))
+        ;; min is exclusive, so go back one.
+        (save-excursion
+          (forward-char -1)
+          (haskell-tng--layout-rebuild-cache-at-point))
+     (let* ((min
+          (save-excursion
+            (end-of-line 1)
+            (or (re-search-backward toplevel nil t) 0)))
+         (max
+          (save-excursion
+            (end-of-line 1)
+            (or (and (re-search-forward toplevel nil t)
+                     (match-beginning 0))
+                (point-max))))
+         (module
+          (save-excursion
+            (goto-char min)
+            (looking-at (rx word-start "module" word-end))))
+         (before-module
+          (save-excursion
+            (goto-char max)
+            (looking-at (rx word-start "module" word-end))))
+         case-fold-search
+         cache)
+
+    ;; `module ... where { ... }' special cases:
+    ;;
+    ;; 1. before module, nothing
+    ;; 2. after module, only an open
+    ;; 3. eob, extra close
+    ;; 4. everywhere else, extra sep
+    (when module
+      (push `(,max nil) cache))
+    (when (not (or module before-module))
+      (if (eq max (point-max))
+          (push `(nil ,max) cache)
+        (push `(nil nil ,max) cache))
+      (save-excursion
+        (goto-char min)
+        (while (< (point) max)
+          (when-let (wldo (haskell-tng--layout-next-wldo max))
+            (push wldo cache)))))
+
+    ;; TODO remove this sanity check when we are happy
+    ;; a sanity check that all points are within the bounds
+    (cl-flet ((good (type p)
+                    (when (and p (or (<= p min) (< max p)))
+                      (message "BUG: LAYOUT %S at %S" type p))))
+      (dolist (block cache)
+        (pcase block
+          (`(,open . (,close . ,seps))
+           (good 'OPEN open)
+           (good 'CLOSE close)
+           (dolist (sep seps)
+             (good 'SEP sep))))))
+
+    (let ((key (cons min max))
+          (value (or (reverse cache) t)))
+      (push (cons key value) haskell-tng--layout-cache)
+      value)))))
+
+(defun haskell-tng--layout-next-wldo (limit)
   (catch 'wldo
-    (while (not (eobp))
-      (forward-comment (point-max))
+    (while (< (point) limit)
+      (forward-comment limit)
       (cond
        ((looking-at (rx symbol-start
                         (| "\\case" ;; LambdaCase
                            "where" "let" "do" "of")
                         word-end))
         (goto-char (match-end 0))
-        (forward-comment (point-max))
+        (forward-comment limit)
         (when (not (looking-at "{"))
-          (throw 'wldo (haskell-tng--layout-wldo))))
+          (throw 'wldo (haskell-tng--layout-wldo
+                        (min (or (haskell-tng--util-paren-close) (point-max))
+                             limit)))))
 
        (t (skip-syntax-forward "^-"))))))
 
-(defun haskell-tng--layout-wldo ()
-  "A list holding virtual `{', then `}', then virtual `;' in order.
+(defun haskell-tng--layout-wldo (limit)
+  "A list holding virtual `{', then `}', then virtual `;' in
+order between point and LIMIT.
 
 Assumes that point is at the beginning of the first token after a
 WLDO that is using the offside rule."
@@ -118,21 +180,20 @@ WLDO that is using the offside rule."
     (let* ((open (point))
            seps
            (level (current-column))
-           (limit (or (haskell-tng--util-paren-close) (point-max)))
            (close (catch 'closed
-                    (while (not (eobp))
+                    (while (< (point) limit)
                       (forward-line)
-                      (forward-comment (point-max))
-                      (when (and (= (current-column) level)
-                                 (not (eobp))
+                      (forward-comment limit)
+                      (when (and (< (point) limit)
+                                 (= (current-column) level)
                                  (not (looking-at
                                        (rx bol (or "," ")" "]" "}")))))
                         (push (point) seps))
-                      (when (< limit (point))
+                      (when (<= limit (point))
                         (throw 'closed limit))
                       (when (< (current-column) level)
                         (throw 'closed (point))))
-                    (point-max))))
+                    limit)))
       `(,open . (,close . ,(reverse seps))))))
 
 (provide 'haskell-tng-layout)
