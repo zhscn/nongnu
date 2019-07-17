@@ -16,7 +16,6 @@
 
 (require 'haskell-tng-util)
 
-;; TODO prettify-symbol rules for home dirs, project dirs, and hide .o files, etc
 ;; TODO set compilation-directory when opening the file
 ;; TODO set compilation-environment to include TASTY envvars
 
@@ -117,6 +116,16 @@ will cause the subsequent call to prompt."
 (define-compilation-mode haskell-tng-compilation-mode "haskell-tng-compilation"
   (add-hook 'compilation-filter-hook
             'haskell-tng--compile-ansi-color nil t)
+
+  ;; TODO prettify-symbol rules for home dirs, project dirs, and hide .o files, etc
+  ;;      https://emacs.stackexchange.com/questions/51691
+  ;; (setq
+  ;;  prettify-symbols-alist
+  ;;  `((,(expand-file-name
+  ;;       ;; i.e. the parent directory of this one
+  ;;       (directory-file-name (file-name-directory (directory-file-name default-directory)))) . ?§)
+  ;;    (,(expand-file-name "~") . ?~)))
+
   (cl-flet ((bind (key def)
                   (define-key haskell-tng-compilation-mode-map (kbd key) def)))
     (bind "C-c c" 'haskell-tng-compile)
