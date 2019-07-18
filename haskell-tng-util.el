@@ -71,5 +71,11 @@ and taking a regexp."
        (while (not (setq ,res ,test)) ,@body)
        ,res)))
 
+(defmacro haskell-tng--util-this-lisp-directory ()
+  (expand-file-name
+   (if load-file-name
+       (file-name-directory load-file-name)
+     default-directory)))
+
 (provide 'haskell-tng-util)
 ;;; haskell-tng-util.el ends here

@@ -12,11 +12,10 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
-;; FIXME implement more indentation rules
-;;
-;; TODO records of functions tests
-;; TODO ImplicitParams in type signatures (without parens)
+;; TODO records assigning / copy by label
+;; TODO records of functions
 ;; TODO if/then/else
+;; TODO ImplicitParams in type signatures (without parens)
 
 ;; Three indentation regression tests are possible:
 ;;

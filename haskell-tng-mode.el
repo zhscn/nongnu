@@ -102,7 +102,32 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
 ;;;###autoload
 (progn
   (add-to-list 'auto-mode-alist '("\\.hs\\'" . haskell-tng-mode))
-  (modify-coding-system-alist 'file "\\.hs\\'" 'utf-8))
+  (modify-coding-system-alist 'file "\\.hs\\'" 'utf-8)
+
+  ;; optional dependency
+  (require 'yasnippet nil t)
+  (when (boundp yas-minor-mode)
+    (add-hook
+     'yas-minor-mode-hook
+     (lambda ()
+       (add-to-list
+        'yas-snippet-dirs
+        (expand-file-name
+         "snippets"
+         (haskell-tng--util-this-lisp-directory)))
+       (yas-reload-all nil t))))
+
+  ;; optional dependency
+  (require 'smartparens nil t)
+  (when (fboundp 'sp-local-pair)
+    (dolist (pair '(("(" . ")")
+                    ("[" . "]")
+                    ("{" . "}")
+                    ("{-" . "-}")
+                    ("{-#" . "#-}")))
+      (sp-local-pair 'haskell-tng-mode (car pair) (cdr pair)
+                     :post-handlers '(("| " "SPC")))))
+  )
 
 (provide 'haskell-tng-mode)
 ;;; haskell-tng-mode.el ends here

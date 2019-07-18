@@ -42,6 +42,17 @@ Check out the source code repository and add to your load path:
 (require 'haskell-tng-contrib) ;; optional
 ```
 
+Integrations are provided for common libraries, enable them with
+
+```lisp
+(add-hook
+ 'haskell-tng-mode-hook
+ (lambda ()
+   (prettify-symbols-mode 1)
+   (smartparens-mode 1)
+   (yas-minor-mode 1))
+```
+
 ## Commands
 
 ### Core
@@ -69,9 +80,9 @@ This is the status of core features:
   - [ ] `imenu` population
 - Editing:
   - [x] indentation
-  - [ ] `abbrev` table
-  - [ ] `yasnippet` templates
   - [x] `prettify-symbols` emulating `UnicodeSyntax`
+  - [x] `smartparens` rules
+  - [x] `yasnippet` templates
   - [x] `stylish-haskell` support
 - Compiling:
   - [x] `haskell-tng-compile` for `cabal` batch commands
@@ -119,6 +130,7 @@ Blue sky features:
   - and [`hlint`](https://github.com/ndmitchell/hlint)
   - and for faster feedback, [`ghcid`](https://github.com/ndmitchell/ghcid)
 - [visualise values as types](https://twitter.com/jyothsnasrin/status/1039530556080283648)
+- are there any sensible `abbrev-mode` defaults?
 - [`djinn`](https://hackage.haskell.org/package/djinn) / [`justdoit`](https://hackage.haskell.org/package/ghc-justdoit) integration
 - [`pointfree`](https://hackage.haskell.org/package/pointfree) integration
 - is there a solution to thinking "right to left" vs writing "left to right"? (easy left token movement?)
