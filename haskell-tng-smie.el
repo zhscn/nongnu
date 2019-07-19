@@ -342,6 +342,9 @@ information, to aid in the creation of new rules."
             (haskell-tng--smie-rule-parent-column)
          (smie-rule-parent)))
        ("::" 2)
+       ((guard (looking-at (rx "\n" (or word-start "("))))
+        ;; insertion before a top-level
+        '(column . 0))
        ("," (smie-rule-separator method))
        ;; TODO ; as a separator, might remove ad-hoc WLDO rules
        ((guard (smie-rule-parent-p "SYMID" "CONSYM" "KINDSYM"))

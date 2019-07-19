@@ -57,7 +57,7 @@ basic_do = do
   pure faz -- manual correction
 1 v   2 34  5
 
-1 v   2 34  5
+v 1   2 34  5
 nested_do = -- manual correction
 2 v  1
   do foo <- blah
@@ -67,7 +67,7 @@ nested_do = -- manual correction
         baz -- same level as bar
 1    2  v   3  4
 
-1    2  v   3  4
+v    1  2   3  4
 nested_where a b = foo a b
 1                      v
   where -- manual correction
@@ -83,7 +83,7 @@ nested_where a b = foo a b
         faz = blah -- same level as gaz
 1   2   v
 
-1   2   v
+v   1   2
 let_in a b = let
 1 v
   blah = bloo
@@ -95,7 +95,7 @@ let_in a b = let
     flibble blah
 2 v 1
 
-1 v 2
+v 1 2
 implicit_let foo bar =
 2 v   1
   let ?foo = foo
@@ -117,7 +117,7 @@ case_of wibble = case wibble of
     fish
 2 v 1
 
-1 v 2
+v 1 2
 lambda_case = \case
 1 v
   Nothing   -> ""
@@ -125,7 +125,7 @@ lambda_case = \case
   Just fish -> fish
 1 v
 
-1 v
+v 1
 dollars f Nothing = f $
 1 v
   "" ""
@@ -147,7 +147,7 @@ not_dollars = do
     here
 2 v 1    3
 
-1 v 2    3
+v 1 2    3
 data Wibble = Wibble Int
 1           v
             | Wobble Int
