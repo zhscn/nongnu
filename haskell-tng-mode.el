@@ -33,9 +33,6 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
   :type 'listp
   :group 'haskell-tng)
 
-;; optional dependency on projectile for TAGS management
-(defvar projectile-tags-command)
-
 ;;;###autoload
 (define-derived-mode haskell-tng-mode prog-mode "Hask"
   "Major mode for editing Haskell programs."
@@ -81,7 +78,6 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
   ;; indentation, so it's best to just make sure it is disabled.
   (electric-indent-mode 0)
 
-  (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle .")
   (setq-local smie-blink-matching-inners nil) ;; c.f. `smie-closer-alist'
 
   (haskell-tng--smie-setup)
@@ -102,32 +98,7 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
 ;;;###autoload
 (progn
   (add-to-list 'auto-mode-alist '("\\.hs\\'" . haskell-tng-mode))
-  (modify-coding-system-alist 'file "\\.hs\\'" 'utf-8)
-
-  ;; optional dependency
-  (require 'yasnippet nil t)
-  (when (boundp yas-minor-mode)
-    (add-hook
-     'yas-minor-mode-hook
-     (lambda ()
-       (add-to-list
-        'yas-snippet-dirs
-        (expand-file-name
-         "snippets"
-         (haskell-tng--util-this-lisp-directory)))
-       (yas-reload-all nil t))))
-
-  ;; optional dependency
-  (require 'smartparens nil t)
-  (when (fboundp 'sp-local-pair)
-    (dolist (pair '(("(" . ")")
-                    ("[" . "]")
-                    ("{" . "}")
-                    ("{-" . "-}")
-                    ("{-#" . "#-}")))
-      (sp-local-pair 'haskell-tng-mode (car pair) (cdr pair)
-                     :post-handlers '(("| " "SPC")))))
-  )
+  (modify-coding-system-alist 'file "\\.hs\\'" 'utf-8))
 
 (provide 'haskell-tng-mode)
 ;;; haskell-tng-mode.el ends here

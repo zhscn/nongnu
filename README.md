@@ -39,12 +39,13 @@ Check out the source code repository and add to your load path:
 ```lisp
 (add-to-list 'load-path (expand-file-name "~/Projects/haskell-tng.el/"))
 (require 'haskell-tng-mode)
-(require 'haskell-tng-contrib) ;; optional
 ```
 
 Integrations are provided for common libraries, enable them with
 
 ```lisp
+(require 'haskell-tng-contrib)
+
 (add-hook
  'haskell-tng-mode-hook
  (lambda ()
@@ -62,7 +63,7 @@ Integrations are provided for common libraries, enable them with
   - `C-- C-c c` clean project
   - `C-c e` jump to error
 
-### Contrib / Third Party
+### Contrib
 
 - `C-c C-C` invoke [`stack2cabal`](https://hackage.haskell.org/package/stack2cabal)
 - `C-c C-r f` invoke [`stylish-haskell`](https://hackage.haskell.org/package/stylish-haskell)
@@ -80,10 +81,7 @@ This is the status of core features:
   - [ ] `imenu` population
 - Editing:
   - [x] indentation
-  - [x] `prettify-symbols` emulating `UnicodeSyntax`
-  - [x] `smartparens` rules
-  - [x] `yasnippet` templates
-  - [x] `stylish-haskell` support
+  - [x] `prettify-symbols` to emulate `UnicodeSyntax`
 - Compiling:
   - [x] `haskell-tng-compile` for `cabal` batch commands
   - [x] `stack`, `nix`, `shake`, etc support (customise `haskell-tng--compile-*`)

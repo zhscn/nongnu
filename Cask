@@ -28,6 +28,7 @@
  (depends-on "faceup")
  (depends-on "ert-runner")
  (depends-on "undercover")
+ (depends-on "projectile")
  (depends-on "smartparens")
  (depends-on "yasnippet"))
 
