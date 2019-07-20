@@ -92,6 +92,9 @@
       (restore-window-start (window-start))
       (restore-point (point))
 
+      ;; X11 cursor.
+      (restore-x-pointer-shape (and (boundp 'x-pointer-shape) x-pointer-shape))
+
       ;; Restore indent (lost when scrolling).
       (restore-indent (- (point) (save-excursion (back-to-indentation) (point))))
 
@@ -284,6 +287,11 @@
           (goto-char restore-point)
           (set-window-start this-window restore-window-start t))))
 
+    ;; Set arrow cursor (avoids annoying flicker on scroll).
+    (when (display-graphic-p)
+      (setq x-pointer-shape x-pointer-top-left-arrow)
+      (set-mouse-color nil))
+
     ;; ---------------
     ;; Main Event Loop
 
@@ -327,6 +335,11 @@
         (min
           restore-indent
           (- (save-excursion (move-end-of-line nil) (point)) (point)))))
+
+    ;; Restore pointer.
+    (when (display-graphic-p)
+      (setq x-pointer-shape restore-x-pointer-shape)
+      (set-mouse-color nil))
 
     ;; Result so we know if any scrolling occurred,
     ;; allowing a fallback action on 'click'.
