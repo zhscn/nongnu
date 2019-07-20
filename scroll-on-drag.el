@@ -73,6 +73,8 @@
     (
       ;; Don't run unnecessary logic when scrolling.
       (inhibit-point-motion-hooks t)
+      ;; Only draw explicitly once all actions have been done.
+      (inhibit-redisplay t)
 
       (has-scrolled nil)
       (scroll-timer nil)
@@ -234,6 +236,7 @@
 
             (lambda (self-fn)
               (funcall scroll-by-lines-fn lines)
+              (let ((inhibit-redisplay nil)) (redisplay))
               (funcall timer-start-fn self-fn)))
 
           ((eq scroll-on-drag-style 'line-by-pixel)
@@ -251,7 +254,8 @@
                   (unless (eq lines 0)
                     (setq delta-px-accum
                       (- delta-px-accum (* lines char-height)))
-                    (funcall scroll-by-lines-fn lines))))
+                    (funcall scroll-by-lines-fn lines)
+                    (let ((inhibit-redisplay nil)) (redisplay)))))
               (funcall timer-start-fn self-fn)))
 
           ((eq scroll-on-drag-style 'pixel)
@@ -263,6 +267,7 @@
                 (if (< delta-scaled 0)
                   (funcall scroll-down-by-pixels-fn (- delta-scaled))
                   (funcall scroll-up-by-pixels-fn delta-scaled))
+                (let ((inhibit-redisplay nil)) (redisplay))
                 (funcall timer-start-fn self-fn))))))
 
       (scroll-reset-fn
@@ -287,6 +292,7 @@
             ((eq event 'escape)
               (funcall scroll-reset-fn)
               (funcall scroll-restore-fn)
+              (let ((inhibit-redisplay nil)) (redisplay))
               t)
 
             ;; Space keeps current position, restarts scrolling.
