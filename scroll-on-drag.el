@@ -92,6 +92,9 @@
       (restore-window-start (window-start))
       (restore-point (point))
 
+      ;; Restore indent (lost when scrolling).
+      (restore-indent (- (point) (save-excursion (back-to-indentation) (point))))
+
       (mouse-y-fn
         (cond
           ((eq scroll-on-drag-style 'line)
@@ -316,6 +319,14 @@
         (set-window-vscroll nil 0 t)))
 
     (funcall timer-stop-fn)
+
+    ;; Restore indent level if possible.
+    (when (and has-scrolled (> restore-indent 0))
+      (move-beginning-of-line nil)
+      (right-char
+        (min
+          restore-indent
+          (- (save-excursion (move-end-of-line nil) (point)) (point)))))
 
     ;; Result so we know if any scrolling occurred,
     ;; allowing a fallback action on 'click'.
