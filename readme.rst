@@ -1,17 +1,34 @@
+
 Scroll on Drag
 ==============
-
-
-Motivation
-----------
-
-Without this, there was no quick way to scroll at highly varied speeds,
-either a few lines, or halfway down a large file.
 
 This package exposes ``scroll-on-drag`` where you can click and drag up/down to scroll
 at increasing speeds based on the drag distance.
 
+Motivation
+----------
+
+Having an interactive scroll action that runs a highly varied speeds,
+either a few lines, or halfway down a large file.
+
 *Note that this is similar to auto-scroll in Firefox.*
+
+
+Features
+--------
+
+Smooth Scroll
+   Especially useful when scrolling slowly
+   *(snaps to the closest line on completion).*
+Non-Linear Speed
+   Larger cursor motion increases scroll speed increasingly
+   allowing a drag motion to scroll down the entire document, or only a few lines.
+   See ``cursor-on-drag-motion-accelerate``.
+Cancel Support
+   You can cancel the scroll action for peeking at other parts of the file.
+Un-intrusive
+   Unlike some minor modes that adjust the behavior of scrolling,
+   this can be bound to a key and won't impact scrolling in general.
 
 
 Usage
@@ -52,25 +69,13 @@ Customization
 
 While the defaults seem to work well, these values can be customized.
 
-``scroll-on-drag-motion-style``: scroll-with-cursor.
-   :scroll-with-cursor: Scroll the window and move the cursor.
-   :scroll: Scroll the window (let emacs constrain the cursor).
-   :cursor: Only move the cursor.
+``scroll-on-drag-smooth``: t
+   Smooth (pixel) scroll *(snapped to line on completion).*
 ``scroll-on-drag-delay``: 0.01, typically in range [0.005 .. 0.1]
    Time between scroll updates.
-``scroll-on-drag-motion-scale``: 0.1, typically in range [0.01 .. 1.0]
-   Scale cursor motion,
-   measured in pixels to make scrolling easier to control.
-``scroll-on-drag-motion-power``: 2, typically in range [1.0 .. 4.0]
-   Values greater than 1.0 apply non-linear scaling,
+``scroll-on-drag-motion-scale``: 0.25, typically in range [0.01 .. 1.0]
+   Scale cursor motion, to make scrolling easier to control.
+``scroll-on-drag-motion-accelerate``: 0.3, typically in range [0.0 .. 1.0]
+   Values greater than 0.0 apply non-linear scaling,
    this gives control when scrolling individual lines while allowing much
    greater speed without having to move the mouse a long distance.
-
-
-TODO
-----
-
-- Pixel based scrolling
-
-  While this is implemented,
-  there seems to be a problem that causes jitter when scrolling up.

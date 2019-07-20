@@ -39,33 +39,102 @@
   '
   (choice
     (const :tag "Line" line)
-    (const :tag "Pixel" pixel)
     (const :tag "Line-By-Pixel" line-by-pixel)))
-
-(defcustom scroll-on-drag-motion-style 'scroll-with-cursor
-  "The method of scrolling."
-  :group 'scroll-on-drag
-  :type
-  '
-  (choice
-    (const :tag "Scroll With Cursor" scroll-with-cursor)
-    (const :tag "Scroll" scroll)
-    (const :tag "Cursor" cursor)))
 
 (defcustom scroll-on-drag-delay 0.01
   "Idle time between scroll updates."
   :group 'scroll-on-drag
   :type  'float)
 
-(defcustom scroll-on-drag-motion-scale 0.1
+(defcustom scroll-on-drag-motion-scale 0.25
   "Scroll speed multiplier."
   :group 'scroll-on-drag
   :type  'float)
 
-(defcustom scroll-on-drag-motion-power 2.0
-  "Non-linear scroll power (1.0 for linear speed, 4.0 for fast acceleration)."
+(defcustom scroll-on-drag-motion-accelerate 0.3
+  "Non-linear scroll power (0.0 for linear speed, 1.0 for very fast acceleration)."
   :group 'scroll-on-drag
   :type  'float)
+
+(defcustom scroll-on-drag-smooth t
+  "Use smooth (pixel) scrolling."
+  :group 'scroll-on-drag
+  :type  'boolean)
+
+
+;; Generic scrolling functions.
+;;
+;; It would be nice if this were part of a more general library.
+;; Optionally also move the point is needed because _not_ doing this
+;; makes the window constraint so the point stays within it.
+
+;; Per-line Scroll.
+;; return remainder of lines to scroll (matching forward-line).
+(defun scroll-on-drag--scroll-by-lines (window lines also-move-point)
+  "Line based scroll that optionally move the point.
+Argument WINDOW The window to scroll.
+Argument LINES The number of lines to scroll (signed).
+Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
+  (let ((lines-remainder 0))
+    (when also-move-point
+      (let ((lines-point-remainder (forward-line lines)))
+        (unless (eq 0 lines-point-remainder)
+          (setq lines (- lines lines-point-remainder)))))
+    (unless (eq 0 lines)
+      (set-window-start
+        window
+        (save-excursion
+          (goto-char (window-start))
+          (setq lines-remainder (forward-line lines))
+          (point))
+        t)
+      (when also-move-point
+        (unless (eq 0 lines-remainder)
+          (forward-line (- lines-remainder)))))
+    lines-remainder))
+
+;; Per-pixel Scroll,
+;; return remainder of lines to scroll (matching forward-line).
+(defun scroll-on-drag--scroll-by-pixels (window char-height delta-px also-move-point)
+  "Line based scroll that optionally move the point.
+Argument WINDOW The window to scroll.
+Argument CHAR-HEIGHT The result of `frame-char-height'.
+Argument DELTA-PX The number of pixels to scroll (signed).
+Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
+  (cond
+    ((< delta-px 0)
+      (let*
+        (
+          (scroll-px-prev (- char-height (window-vscroll nil t))) ;; flip.
+          (scroll-px-next (+ scroll-px-prev (- delta-px))) ;; flip.
+          (lines (/ scroll-px-next char-height))
+          (scroll-px (- scroll-px-next (* lines char-height)))
+          (lines-remainder 0))
+        (unless (eq 0 lines)
+          (setq lines-remainder (- (scroll-on-drag--scroll-by-lines window (- lines) also-move-point))) ;; flip
+          (unless (eq 0 lines-remainder)
+            (setq scroll-px char-height)))
+        (set-window-vscroll window (- char-height scroll-px) t)
+        (- lines-remainder)))
+    ((> delta-px 0)
+      (let*
+        (
+          (scroll-px-prev (window-vscroll nil t))
+          (scroll-px-next (+ scroll-px-prev delta-px))
+          (lines (/ scroll-px-next char-height))
+          (scroll-px (- scroll-px-next (* lines char-height)))
+          (lines-remainder 0))
+        (unless (eq 0 lines)
+          (setq lines-remainder (scroll-on-drag--scroll-by-lines window lines also-move-point))
+          (unless (eq 0 lines-remainder)
+            (setq scroll-px char-height)))
+        (set-window-vscroll window scroll-px t)
+        lines-remainder))
+    ;; no lines scrolled.
+    (t 0)))
+
+;; End generic scrolling functions.
+
 
 (defun scroll-on-drag-internal ()
   "Main scrolling function."
@@ -76,21 +145,29 @@
       ;; Only draw explicitly once all actions have been done.
       (inhibit-redisplay t)
 
+      ;; Variables for re-use.
+      (this-window (selected-window))
+      (this-frame-char-height (frame-char-height))
+      (this-frame-char-height-as-float (float this-frame-char-height))
+
+      ;; Reset's when pressing Escape.
       (has-scrolled nil)
+      ;; Doesn't reset (so we can detect clicks).
+      (has-scrolled-real nil)
+
       (scroll-timer nil)
-      ;; Cursor offset
+
+      ;; Cursor offset.
       (delta 0)
       (delta-prev 0)
 
       ;; Only for 'line-by-pixel' style.
       (delta-px-accum 0)
 
-      ;; Avoid calling everywhere.
-      (this-window (selected-window))
-
       ;; Restoration position.
       (restore-window-start (window-start))
       (restore-point (point))
+      (restore-point-use-scroll-offset nil)
 
       ;; X11 cursor.
       (restore-x-pointer-shape (and (boundp 'x-pointer-shape) x-pointer-shape))
@@ -108,114 +185,32 @@
       ;; Reference to compare all mouse motion to.
       (y-init (funcall mouse-y-fn))
 
-      (mouse-y-delta-scale-fn
-        ;; '(f * scale) ^ power', then truncate to int.
-        (lambda (delta)
-          (let ((f (float delta)))
-            (truncate
-              (copysign (expt (* (abs f) scroll-on-drag-motion-scale) scroll-on-drag-motion-power) f)))))
-
-      ;; Scroll wrapper, uses line sign.
-      (scroll-by-lines-scroll-with-cursor-offset-lines
-        (if (eq scroll-on-drag-motion-style 'scroll-with-cursor)
-          ;; Will be bellow scroll margin when the cursor is at the top.
-          (max scroll-margin (count-lines (window-start) (point)))
-          0))
-
-      (scroll-by-lines-scroll-with-cursor-offset-lines-min
-        (if (eq scroll-on-drag-motion-style 'scroll-with-cursor)
-          ;; Will be bellow scroll margin when the cursor is at the top.
-          (save-excursion
-            (goto-char (point-min))
-            (forward-line scroll-by-lines-scroll-with-cursor-offset-lines)
-            (point))
-          0))
-
-      (scroll-by-lines-scroll-with-cursor-offset-lines-max
-        (if (eq scroll-on-drag-motion-style 'scroll-with-cursor)
-          ;; Will be bellow scroll margin when the cursor is at the top.
+      (point-of-last-line
+        (if scroll-on-drag-smooth
           (save-excursion
             (goto-char (point-max))
-            (forward-line (- scroll-by-lines-scroll-with-cursor-offset-lines))
+            (move-beginning-of-line nil)
             (point))
           0))
 
-      (scroll-by-lines-fn
-        (cond
-
-          ((eq scroll-on-drag-motion-style 'scroll)
-            ;; -------------------------
-            ;; Scroll: Regular Scrolling
-
-            (lambda (lines)
-              (if (< lines 0)
-                (condition-case nil
-                  (scroll-down (- lines))
-                  (beginning-of-buffer nil))
-                (condition-case nil
-                  (scroll-up lines)
-                  (end-of-buffer
-                    (let ((lines (- (count-lines (window-start) (point-max)) 1)))
-                      (when (> lines 0) (scroll-up lines))))))))
-
-
-          ((eq scroll-on-drag-motion-style 'cursor)
-            ;; --------------
-            ;; Scroll: Cursor
-
-            (lambda (lines)
-              (forward-line lines)))
-
-          ((eq scroll-on-drag-motion-style 'scroll-with-cursor)
-            ;; ---------------------------------
-            ;; Scroll: Scroll with Cursor Motion
-
-            (lambda (lines)
-              (forward-line lines)
-              (when (< lines 0)
-                (when (< (point) scroll-by-lines-scroll-with-cursor-offset-lines-min)
-                  (goto-char scroll-by-lines-scroll-with-cursor-offset-lines-min)))
-              (set-window-start
-                this-window
-                (save-excursion
-                  (forward-line (- scroll-by-lines-scroll-with-cursor-offset-lines))
-                  (point))
-                t)))))
-
-      ;; Per-pixel Scroll Up
-      (scroll-up-by-pixels-fn
+      (mouse-y-delta-scale-fn
+        ;; '(f * motion-scale) ^ power', then truncate to int.
         (lambda (delta)
-          (when (< delta 0) (error "Can't scroll by negative numbers"))
           (let*
             (
-              (char-height (frame-char-height))
-              (scroll-px-prev (window-vscroll nil t))
-              (scroll-px-next (+ scroll-px-prev delta))
-              (scroll-px (mod scroll-px-next char-height))
-              (lines (/ scroll-px-next char-height)))
-            (if (eq lines 0)
-              (set-window-vscroll nil scroll-px t)
-              (if (ignore-errors (scroll-up lines))
-                (set-window-vscroll nil scroll-px t)
-                (set-window-vscroll nil 0 t))))))
-
-      ;; Per-pixel Scroll Down
-      ;; TODO: flickers (needs redisplay, seems to be a bug/limit in emacs).
-      (scroll-down-by-pixels-fn
-        (lambda (delta)
-          (when (< delta 0) (error "Can't scroll by negative numbers"))
-          (let*
-            (
-              (char-height (frame-char-height))
-              (scroll-px-prev (window-vscroll nil t))
-              (scroll-px-next (- scroll-px-prev delta))
-              (scroll-px (mod scroll-px-next char-height))
-              (lines (+ (/ (* -1 scroll-px-next) char-height) (if (< scroll-px-next 0) 1 0))))
-            (if (eq lines 0)
-              (set-window-vscroll nil scroll-px t)
-              (if (ignore-errors (scroll-down lines))
-                (set-window-vscroll nil scroll-px t)
-                (set-window-vscroll nil 0 t))))))
+              (f (/ (float delta) this-frame-char-height-as-float))
+              (f-abs (abs f)))
+            (truncate
+              (copysign
+                ;; Clamp so converting to int won't fail.
+                (min
+                  1e+18
+                  (*
+                    (expt
+                      (* f-abs scroll-on-drag-motion-scale)
+                      (+ 1.0 (* f-abs scroll-on-drag-motion-accelerate)))
+                    this-frame-char-height-as-float))
+                  f)))))
 
       ;; Calls 'timer-update-fn'.
       (timer-start-fn
@@ -241,8 +236,13 @@
             ;; Style: "line"
 
             (lambda (self-fn)
-              (funcall scroll-by-lines-fn lines)
-              (let ((inhibit-redisplay nil)) (redisplay))
+              (let ((lines delta))
+                (unless (eq lines 0)
+                  (setq delta-px-accum
+                    (- delta-px-accum (* lines this-frame-char-height)))
+                  (let ((lines-remainder (scroll-on-drag--scroll-by-lines this-window lines t)))
+                    (unless (eq 0 (- lines lines-remainder))
+                      (let ((inhibit-redisplay nil)) (redisplay))))))
               (funcall timer-start-fn self-fn)))
 
           ((eq scroll-on-drag-style 'line-by-pixel)
@@ -252,45 +252,82 @@
             (lambda (self-fn)
               (let
                 (
-                  (char-height (frame-char-height))
+                  (do-draw nil)
                   (delta-scaled (funcall mouse-y-delta-scale-fn delta)))
-                (setq delta-px-accum
-                  (+ delta-scaled delta-px-accum))
-                (let ((lines (/ delta-px-accum char-height)))
-                  (unless (eq lines 0)
+
+                (if scroll-on-drag-smooth
+                  ;; Smooth-Scrolling.
+                  (let
+                    (
+                      (lines-remainder
+                        (scroll-on-drag--scroll-by-pixels
+                          this-window
+                          this-frame-char-height
+                          delta-scaled
+                          t)))
+                    (when (>= (point) point-of-last-line)
+                      (set-window-vscroll this-window 0 t))
+                    (setq do-draw t))
+
+                  ;; Non-Smooth-Scrolling (snap to lines).
+                  ;; Basically same logic as above, but only step over lines.
+                  (progn
                     (setq delta-px-accum
-                      (- delta-px-accum (* lines char-height)))
-                    (funcall scroll-by-lines-fn lines)
-                    (let ((inhibit-redisplay nil)) (redisplay)))))
-              (funcall timer-start-fn self-fn)))
+                      (+ delta-scaled delta-px-accum))
+                    (let ((lines (/ delta-px-accum this-frame-char-height)))
 
-          ((eq scroll-on-drag-style 'pixel)
-            ;; --------------
-            ;; Style: "pixel"
+                      (unless (eq lines 0)
+                        (setq delta-px-accum
+                          (- delta-px-accum (* lines this-frame-char-height)))
+                        (let ((lines-remainder (scroll-on-drag--scroll-by-lines this-window lines t)))
+                          (setq do-draw t))))))
 
-            (lambda (self-fn)
-              (let ((delta-scaled (funcall mouse-y-delta-scale-fn delta)))
-                (if (< delta-scaled 0)
-                  (funcall scroll-down-by-pixels-fn (- delta-scaled))
-                  (funcall scroll-up-by-pixels-fn delta-scaled))
-                (let ((inhibit-redisplay nil)) (redisplay))
-                (funcall timer-start-fn self-fn))))))
+                (when do-draw
+                  (let ((inhibit-redisplay nil)) (redisplay))))
+              (funcall timer-start-fn self-fn)))))
+
+      ;; Apply pixel offset and snap to a line.
+      (scroll-snap-smooth-to-line-fn
+        (lambda ()
+          (when scroll-on-drag-smooth
+            (when (> (window-vscroll this-window t) (/ this-frame-char-height 2))
+              (scroll-on-drag--scroll-by-lines this-window 1 nil))
+            (set-window-vscroll this-window 0 t)
+            (setq delta-px-accum 0)
+            (let ((inhibit-redisplay nil)) (redisplay)))))
 
       (scroll-reset-fn
         (lambda ()
           (funcall timer-stop-fn)
+          (funcall scroll-snap-smooth-to-line-fn)
           (setq delta-prev 0)
           (setq y-init (funcall mouse-y-fn))))
 
       (scroll-restore-fn
         (lambda ()
           (goto-char restore-point)
-          (set-window-start this-window restore-window-start t))))
+          (set-window-start this-window restore-window-start t)))
+
+      ;; Workaround for bad pixel scrolling performance
+      ;; when the cursor is partially outside the view.
+      (scroll-consrtain-point-below-window-start-fn
+        (lambda ()
+          (let
+            (
+              (lines-from-top
+                (count-lines
+                  (window-start)
+                  (save-excursion (move-beginning-of-line nil) (point)))))
+            (when (> scroll-margin lines-from-top)
+              (forward-line (- scroll-margin lines-from-top))
+              (let ((inhibit-redisplay nil)) (redisplay))
+              (setq restore-point-use-scroll-offset t))))))
 
     ;; Set arrow cursor (avoids annoying flicker on scroll).
     (when (display-graphic-p)
       (setq x-pointer-shape x-pointer-top-left-arrow)
       (set-mouse-color nil))
+
 
     ;; ---------------
     ;; Main Event Loop
@@ -301,6 +338,7 @@
           (cond
             ;; Escape restores initial state, restarts scrolling.
             ((eq event 'escape)
+              (setq has-scrolled nil)
               (funcall scroll-reset-fn)
               (funcall scroll-restore-fn)
               (let ((inhibit-redisplay nil)) (redisplay))
@@ -315,18 +353,27 @@
               (if (eq delta 0)
                 (funcall timer-stop-fn)
                 (when (eq delta-prev 0)
-                  (setq has-scrolled t)
+                  (unless has-scrolled
+                    ;; Clamp point to scroll bounds on first scroll,
+                    ;; allow pressing 'Esc' to use unclamped position.
+                    (when scroll-on-drag-smooth
+                      (funcall scroll-consrtain-point-below-window-start-fn))
+                    (setq has-scrolled t))
+                  (setq has-scrolled-real t)
                   (funcall timer-stop-fn)
                   (funcall timer-update-fn timer-update-fn)))
               (setq delta-prev delta)
               t)
             ;; Cancel...
-            (t nil))))
+            (t nil)))))
 
-      (when (eq scroll-on-drag-style 'pixel)
-        (set-window-vscroll nil 0 t)))
-
+    (funcall scroll-snap-smooth-to-line-fn)
     (funcall timer-stop-fn)
+
+    ;; Restore state (the point may have been moved by constraining to the scroll margin).
+    (when (eq restore-window-start (window-start))
+      (funcall scroll-restore-fn)
+      (setq has-scrolled nil))
 
     ;; Restore indent level if possible.
     (when (and has-scrolled (> restore-indent 0))
@@ -343,7 +390,7 @@
 
     ;; Result so we know if any scrolling occurred,
     ;; allowing a fallback action on 'click'.
-    has-scrolled))
+    has-scrolled-real))
 
 ;;;###autoload
 (defun scroll-on-drag ()
