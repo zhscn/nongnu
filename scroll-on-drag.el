@@ -386,7 +386,7 @@ Returns true when scrolling took place, otherwise nil."
           (- (save-excursion (move-end-of-line nil) (point)) (point)))))
 
     ;; Restore pointer.
-    (when (display-graphic-p)
+    (when (boundp 'x-pointer-shape)
       (setq x-pointer-shape restore-x-pointer-shape)
       (set-mouse-color nil))
 
