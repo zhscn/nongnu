@@ -78,9 +78,9 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
   (let ((lines-remainder 0))
     (when also-move-point
       (let ((lines-point-remainder (forward-line lines)))
-        (unless (eq 0 lines-point-remainder)
+        (unless (zerop lines-point-remainder)
           (setq lines (- lines lines-point-remainder)))))
-    (unless (eq 0 lines)
+    (unless (zerop lines)
       (set-window-start
         window
         (save-excursion
@@ -89,7 +89,7 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
           (point))
         t)
       (when also-move-point
-        (unless (eq 0 lines-remainder)
+        (unless (zerop lines-remainder)
           (forward-line (- lines-remainder)))))
     lines-remainder))
 
@@ -110,9 +110,9 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
           (lines (/ scroll-px-next char-height))
           (scroll-px (- scroll-px-next (* lines char-height)))
           (lines-remainder 0))
-        (unless (eq 0 lines)
+        (unless (zerop lines)
           (setq lines-remainder (- (scroll-on-drag--scroll-by-lines window (- lines) also-move-point))) ;; flip
-          (unless (eq 0 lines-remainder)
+          (unless (zerop lines-remainder)
             (setq scroll-px char-height)))
         (set-window-vscroll window (- char-height scroll-px) t)
         (- lines-remainder)))
@@ -124,9 +124,9 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
           (lines (/ scroll-px-next char-height))
           (scroll-px (- scroll-px-next (* lines char-height)))
           (lines-remainder 0))
-        (unless (eq 0 lines)
+        (unless (zerop lines)
           (setq lines-remainder (scroll-on-drag--scroll-by-lines window lines also-move-point))
-          (unless (eq 0 lines-remainder)
+          (unless (zerop lines-remainder)
             (setq scroll-px char-height)))
         (set-window-vscroll window scroll-px t)
         lines-remainder))
@@ -135,9 +135,11 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
 
 ;; End generic scrolling functions.
 
-
-(defun scroll-on-drag-internal ()
-  "Main scrolling function."
+;;;###autoload
+(defun scroll-on-drag ()
+  "Interactively scroll (typically on click event).
+Returns true when scrolling took place, otherwise nil."
+  (interactive)
   (let*
     (
       ;; Don't run unnecessary logic when scrolling.
@@ -237,11 +239,11 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
 
             (lambda (self-fn)
               (let ((lines delta))
-                (unless (eq lines 0)
+                (unless (zerop lines)
                   (setq delta-px-accum
                     (- delta-px-accum (* lines this-frame-char-height)))
                   (let ((lines-remainder (scroll-on-drag--scroll-by-lines this-window lines t)))
-                    (unless (eq 0 (- lines lines-remainder))
+                    (unless (zerop (- lines lines-remainder))
                       (let ((inhibit-redisplay nil)) (redisplay))))))
               (funcall timer-start-fn self-fn)))
 
@@ -276,7 +278,7 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
                       (+ delta-scaled delta-px-accum))
                     (let ((lines (/ delta-px-accum this-frame-char-height)))
 
-                      (unless (eq lines 0)
+                      (unless (zerop lines)
                         (setq delta-px-accum
                           (- delta-px-accum (* lines this-frame-char-height)))
                         (let ((lines-remainder (scroll-on-drag--scroll-by-lines this-window lines t)))
@@ -350,9 +352,9 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
               t)
             ((mouse-movement-p event)
               (setq delta (- (funcall mouse-y-fn) y-init))
-              (if (eq delta 0)
+              (if (zerop delta)
                 (funcall timer-stop-fn)
-                (when (eq delta-prev 0)
+                (when (zerop delta-prev)
                   (unless has-scrolled
                     ;; Clamp point to scroll bounds on first scroll,
                     ;; allow pressing 'Esc' to use unclamped position.
@@ -391,13 +393,6 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
     ;; Result so we know if any scrolling occurred,
     ;; allowing a fallback action on 'click'.
     has-scrolled-real))
-
-;;;###autoload
-(defun scroll-on-drag ()
-  "Interactively scroll (typically on click event).
-Returns true when scrolling took place, otherwise nil."
-  (interactive)
-  (scroll-on-drag-internal))
 
 ;;;###autoload
 (defmacro scroll-on-drag-with-fallback (&rest body)
