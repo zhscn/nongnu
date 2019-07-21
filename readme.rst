@@ -5,6 +5,9 @@ Scroll on Drag
 This package exposes ``scroll-on-drag`` where you can click and drag up/down to scroll
 at increasing speeds based on the drag distance.
 
+Available via `melpa <https://melpa.org>`__.
+
+
 Motivation
 ----------
 
