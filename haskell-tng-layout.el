@@ -27,8 +27,6 @@
 ;; Galaxy brain caching would use properties and put dirty markers on inserted
 ;; or deleted regions. Would give fast lookup at point.
 
-(require 'dash)
-
 (require 'haskell-tng-util)
 
 ;; A alist of lists of (OPEN . (CLOSE . SEPS)) positions, keyed by (START . END)
@@ -43,6 +41,9 @@
 (defun haskell-tng--layout-cache-invalidation (_beg _end _pre-length)
   "For use in `after-change-functions' to invalidate the state of
 the layout engine."
+  ;; TODO we only need to invalidate regions that are on or after the _beg. But
+  ;; doing so might slow down insertions. We could be smarter and store the _beg
+  ;; then prune when doing the cache retrieval.
   (when haskell-tng--layout-cache
     (setq haskell-tng--layout-cache nil)))
 
@@ -74,16 +75,18 @@ Designed to be called repeatedly, managing its own caching."
   "t if there is a virtual at POINT"
   ;; avoids a measured performance hit (append indentation)
   (when-let (cache (haskell-tng--layout-at-point))
-    (--any (member (point) it) cache)))
+    (seq-find
+     (lambda (it) (member (point) it))
+     cache)))
 
 (defun haskell-tng--layout-at-point ()
   "Returns the relevant virtual tokens for the current point,
 using a cache if available."
   (when-let
       (layout (or
-               (cdr (--find
-                     (and (<  (caar it) (point))
-                          (<= (point) (cdar it)))
+               (cdr (seq-find
+                     (lambda (it) (and (<  (caar it) (point))
+                                  (<= (point) (cdar it))))
                      haskell-tng--layout-cache))
                (haskell-tng--layout-rebuild-cache-at-point)))
     (unless (eq layout t) layout)))

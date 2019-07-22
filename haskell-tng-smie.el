@@ -24,7 +24,8 @@
 ;;
 ;;; Code:
 
-(require 'dash)
+(require 'cl-seq)
+(require 'seq)
 (require 'smie)
 
 (require 'haskell-tng-font-lock)
@@ -250,7 +251,7 @@ information, to aid in the creation of new rules."
              (equal next ",")
              (equal grand ",")
              (member parent '("[" "(" ","))
-             (-is-infix-p '("{" "=") ancestors))
+             (cl-search '("{" "=") ancestors :test 'equal))
             ",")
 
            ((or (equal parent "|")
@@ -260,7 +261,7 @@ information, to aid in the creation of new rules."
             "|")
 
            ((and (member parent '("::" "=>"))
-                 (< (--count (equal it "=>") prevline) 2)
+                 (< (seq-count (lambda (it) (equal it "=>")) prevline) 2)
                  (not (haskell-tng--smie-prev-line-blank-p)))
             "=>")
 
@@ -344,6 +345,7 @@ information, to aid in the creation of new rules."
        ("::" 2)
        ((guard (looking-at (rx "\n" (or word-start "("))))
         ;; insertion before a top-level
+        ;; TODO this breaks when newlining in the middle of a matched paren
         '(column . 0))
        ("," (smie-rule-separator method))
        ;; TODO ; as a separator, might remove ad-hoc WLDO rules
@@ -379,7 +381,7 @@ information, to aid in the creation of new rules."
         (setq haskell-tng--smie-indentations
               (append
                ;; TODO backtab cycle in reverse
-               (-remove-item prime (haskell-tng--smie-indent-alts))
+               (remove prime (haskell-tng--smie-indent-alts))
                (list prime))))))
   (when haskell-tng--smie-debug
     (when-let (alts haskell-tng--smie-indentations)
@@ -404,13 +406,15 @@ current line."
     ;; TODO SMIE +2 might be good to have
 
     ;; next / previous line should be top priority alts
-    (--each '(-1 1)
-      (save-excursion
-        (forward-line it)
-        (when-let (new (haskell-tng--smie-relevant-alts (point-at-eol) (< it 0)))
-          (setq indents (append new indents)))))
+    (seq-do
+     (lambda (it)
+       (save-excursion
+         (forward-line it)
+         (when-let (new (haskell-tng--smie-relevant-alts (point-at-eol) (< it 0)))
+           (setq indents (append new indents)))))
+     '(-1 1))
 
-    (-distinct indents)))
+    (seq-uniq indents)))
 
 (defun haskell-tng--smie-relevant-alts (bound before)
   "A list of indentation levels from point to BOUND.

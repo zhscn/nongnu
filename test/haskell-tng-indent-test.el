@@ -137,22 +137,21 @@ the current line).
 
 INDENT is the integer suggested next line indentation column and
 ALTS is a list of integer alternative indentations."
-  (s-join "\n" (-flatten
-                (-map #'haskell-tng--indent-test-indent-to-string indents))))
+  (s-join "\n" (seq-mapcat #'haskell-tng--indent-test-indent-to-string indents)))
 
 (defun haskell-tng--indent-test-indent-to-string (indent)
   (let* ((ret (car indent))
          (line (cadr indent))
          (prime (caddr indent))
          (alts (cdddr indent))
-         (widest (-max (cddr indent)))
+         (widest (seq-max (cddr indent)))
          repr)
-    (--dotimes (+ 1 widest)
+    (dotimes (it (+ 1 widest))
       (push
        (cond
         ((eq it prime) "v")
         ((member it alts)
-         (let ((i (-elem-index it alts)))
+         (let ((i (seq-position alts it)))
            (if (< i 9)
                (number-to-string (+ 1 i))
              ".")))

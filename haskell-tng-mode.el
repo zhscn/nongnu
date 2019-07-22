@@ -6,7 +6,7 @@
 ;; Homepage: https://gitlab.com/tseenshe/haskell-tng-mode
 ;; Keywords: languages
 ;; Package-Version: 0.0.1
-;; Package-Requires: ((dash "2.16.0") (emacs "24.3"))
+;; Package-Requires: ((emacs "24.3"))
 
 ;;; Commentary:
 ;;
@@ -15,6 +15,7 @@
 ;;; Code:
 
 (require 'dabbrev)
+(require 'rx)
 
 (require 'haskell-tng-syntax)
 (require 'haskell-tng-font-lock)
@@ -82,23 +83,13 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
 
   (haskell-tng--smie-setup)
 
-  (cl-flet ((bind (key def) (define-key haskell-tng-mode-map (kbd key) def)))
-    (bind "<return>" 'haskell-tng-newline)
-
-    ;; core compilation loop, supports C-u and C-- prefixes
-    (bind "C-c c" 'haskell-tng-compile)
-    (bind "C-c e" 'next-error)
-
-    ;; external tools
-    (bind "C-c C" 'haskell-tng-stack2cabal)
-    (bind "C-c C-r f" 'haskell-tng-stylish-haskell)
-    )
+  (prettify-symbols-mode 1)
   )
 
 ;;;###autoload
 (progn
-  (add-to-list 'auto-mode-alist '("\\.hs\\'" . haskell-tng-mode))
-  (modify-coding-system-alist 'file "\\.hs\\'" 'utf-8))
+  (add-to-list 'auto-mode-alist `(,(rx ".hs" eos) . haskell-tng-mode))
+  (modify-coding-system-alist 'file (rx ".hs" eos) 'utf-8))
 
 (provide 'haskell-tng-mode)
 ;;; haskell-tng-mode.el ends here

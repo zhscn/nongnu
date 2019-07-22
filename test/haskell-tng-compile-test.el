@@ -4,7 +4,6 @@
 ;; License: GPL 3 or any later version
 
 (require 'ert)
-(require 'dash)
 (require 'faceup)
 
 (require 'haskell-tng-mode)

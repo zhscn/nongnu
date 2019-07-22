@@ -83,11 +83,13 @@
     (goto-char (point-min))
     (while (not exit)
       ;; there is ambiguity around multiple parens at the same point
-      (--each (reverse sexps)
-        (cond
-         ((= (point) (cdr it)) (push ")" chars))
-         ((= (point) (car it)) (push "(" chars))
-         (t nil)))
+      (seq-do
+       (lambda (it)
+         (cond
+          ((= (point) (cdr it)) (push ")" chars))
+          ((= (point) (car it)) (push "(" chars))
+          (t nil)))
+       (reverse sexps))
       (if (eobp)
           (setq exit 't)
         (let ((c (string (char-after))))

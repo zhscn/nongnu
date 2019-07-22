@@ -34,7 +34,6 @@
 ;;
 ;;; Code:
 
-(require 'dash)
 (require 'haskell-tng-rx)
 (require 'haskell-tng-util)
 
@@ -260,7 +259,7 @@ succeeds and may further restrict the FIND search limit."
         ((finder (lim)
                  `(re-search-forward
                    ,regexp-2
-                   (-min (cons ,lim (-non-nil (-map 'funcall ',limiters))))
+                   (seq-min (cons ,lim (seq-remove 'null (seq-map 'funcall ',limiters))))
                    t)))
       `(progn
          (defconst ,regexp-1 ,trigger)

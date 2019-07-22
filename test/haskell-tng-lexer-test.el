@@ -159,17 +159,17 @@ When called interactively, shows the tokens in a buffer."
           (when string-hack
             (push token (car lines)))
           (unless (not multiline)
-            (setq lines (append (-repeat (abs line-diff) nil) lines)))
+            (setq lines (append (make-list (abs line-diff) nil) lines)))
           (if (and (not token) (if reverse (bobp) (eobp)))
               (setq quit 't)
             (unless (or (s-blank? token) string-hack)
               (push token (car lines)))))))
     (if reverse
         lines
-      (reverse (--map (reverse it) lines)))))
+      (reverse (seq-map (lambda (it) (reverse it)) lines)))))
 
 (defun haskell-tng--lexer-test-tokens-to-string (lines)
-  (concat (s-join "\n" (--map (s-join " " it) lines)) "\n"))
+  (concat (s-join "\n" (seq-map (lambda (it) (s-join " " it)) lines)) "\n"))
 
 (defun have-expected-forward-lex (file)
   (haskell-tng--testutils-assert-file-contents

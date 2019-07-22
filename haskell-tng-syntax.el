@@ -15,7 +15,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'dash)
+(require 'seq)
 
 (defconst haskell-tng--syntax-table
   (let ((table (make-syntax-table)))
@@ -23,7 +23,7 @@
      #'(lambda (k v)
          ;; reset the (surprisingly numerous) defaults
          (let ((class (syntax-class v)))
-           (when (-contains? '(1 4 5 6 9) class)
+           (when (seq-contains '(1 4 5 6 9) class)
              (modify-syntax-entry k "_" table))))
      (char-table-parent table))
 
@@ -33,12 +33,14 @@
     ;; class they are given.
 
     ;; whitechar
-    (--each (string-to-list "\r\n\f\v \t")
-      (modify-syntax-entry it " " table))
+    (seq-do
+     (lambda (it) (modify-syntax-entry it " " table))
+     (string-to-list "\r\n\f\v \t"))
 
     ;; ascSymbol
-    (--each (string-to-list "!#$%&*+./<=>?\\^|-~:")
-      (modify-syntax-entry it "_" table))
+    (seq-do
+     (lambda (it) (modify-syntax-entry it "_" table))
+     (string-to-list "!#$%&*+./<=>?\\^|-~:"))
 
     ;; TODO: debatable. User nav vs fonts and lexing. getting "word boundaries"
     ;;       is important, same for apostrophe. small (underscore is a lowercase
@@ -51,8 +53,9 @@
     ;; matchers because greedy matching will be much simpler.
 
     ;; some special (treated like punctuation)
-    (--each (string-to-list ",;@")
-      (modify-syntax-entry it "." table))
+    (seq-do
+     (lambda (it) (modify-syntax-entry it "." table))
+     (string-to-list ",;@"))
 
     ;; apostrophe as a word, not delimiter
     (modify-syntax-entry ?\' "w" table)
@@ -71,8 +74,9 @@
     (modify-syntax-entry ?\{  "(}1nb" table)
     (modify-syntax-entry ?\}  "){4nb" table)
     (modify-syntax-entry ?-  "_ 123" table)
-    (--each (string-to-list "\r\n\f\v")
-      (modify-syntax-entry it ">" table))
+    (seq-do
+     (lambda (it) (modify-syntax-entry it ">" table))
+     (string-to-list "\r\n\f\v"))
 
     table)
   "Haskell syntax table.")

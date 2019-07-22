@@ -19,6 +19,8 @@
 ;;
 ;;; Code:
 
+;; TODO set up CI on gitlab
+
 (source melpa-stable)
 (source melpa) ;; for faceup
 
@@ -27,7 +29,7 @@
 (development
  (depends-on "faceup")
  (depends-on "ert-runner")
- (depends-on "undercover")
+ ;;(depends-on "undercover")
  (depends-on "projectile")
  (depends-on "smartparens")
  (depends-on "yasnippet"))

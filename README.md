@@ -20,54 +20,80 @@ We choose to use idiomatic libraries to provide features, rather than building g
 
 The goal of this friendly rewrite is to produce software that any Haskell developer can use, understand and build upon ([Emacs Lisp](https://www.gnu.org/software/emacs/manual/elisp.html) is fun to learn).
 
-This can be achieved by preferring a simple and small codebase targeting [Haskell2010](https://www.haskell.org/onlinereport/haskell2010/), with automated tests for every feature.
+This can be achieved in a small codebase with zero dependencies and high test coverage, targeting [Haskell2010](https://www.haskell.org/onlinereport/haskell2010/).
 
 Old versions of `ghc` and extensions to the Haskell language may not be supported, to reduce the complexity of the codebase. For example, [literate Haskell](https://wiki.haskell.org/Literate_programming) will not be supported, and `ghc` language extensions must be justified on a per-case basis. We are sympathetic to language extensions that are popular in the free software and commercial ecosystems.
 
 If it is possible to implement a feature using another minor mode, or command line tool, then we would prefer not to accept the feature.
 
-## Issue Tracker
-
-Bug reports and feature requests are a source of anxiety for maintainers, and encourage an unhealthy customer / supplier relationship between users and contributors.
-
-Instead, and following the [anarchical spirit of Haskell](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/07/history.pdf), we encourage discussions and debate around code contributions. Merge requests can be raised by anybody and discussed by anybody, and do not need to be complete. An automated test is the only way to report a bug. If the maintainers are convinced by the technical merit and quality of a proposal, they may accept it.
-
 ## Install
 
-Check out the source code repository and add to your load path:
+Check out the source code repository and enable with [`use-package`](https://github.com/jwiegley/use-package):
 
 ```lisp
-(add-to-list 'load-path (expand-file-name "~/Projects/haskell-tng.el/"))
-(require 'haskell-tng-mode)
+(use-package haskell-tng-mode
+  ;; these 3 lines are only needed for local checkouts
+  :ensure nil
+  :load-path "/path/to/haskell-tng.el"
+  :mode ("\\.hs\\'" . haskell-tng-mode)
+
+  :bind
+  (:map
+   haskell-tng-compilation-mode-map
+   (("C-c c" . haskell-tng-compile)
+    ("C-c e" . next-error)))
+  (:map
+   haskell-tng-mode-map
+   ("<return>" . haskell-tng-newline)
+   ("C-c c" . haskell-tng-compile)
+   ("C-c e" . next-error)))
 ```
 
-Integrations are provided for common libraries, enable them with
-
-```lisp
-(require 'haskell-tng-contrib)
-
-(add-hook
- 'haskell-tng-mode-hook
- (lambda ()
-   (prettify-symbols-mode 1)
-   (smartparens-mode 1)
-   (yas-minor-mode 1))
-```
-
-## Commands
-
-### Core
+Giving the following commands
 
 - `C-c c` compile, prompt on first use
   - `C-u C-c c` always prompt
   - `C-- C-c c` clean project
   - `C-c e` jump to error
 
-### Contrib
+## Contrib
 
-- `C-c C-C` invoke [`stack2cabal`](https://hackage.haskell.org/package/stack2cabal)
+Integrations are provided for common libraries, enable them from `use-package` with
+
+```lisp
+  :config
+  (require 'haskell-tng-contrib)
+  (require 'haskell-tng-contrib-projectile)
+  (require 'haskell-tng-contrib-smartparens)
+  (require 'haskell-tng-contrib-yasnippet)
+
+  :bind
+  (:map
+   haskell-tng-mode-map
+   (("C-c C" . haskell-tng-stack2cabal)
+    ("C-c C-r f" . haskell-tng-stylish-haskell)))
+```
+
+providing project navigation, enchanced matched parenthesis handling, and templates that can be expanded with your `yas-expand` hotkey.
+
+Ensure that third party Haskell tools are available (e.g. via `cabal v2-install`) for:
+
+- `C-c C` invoke [`stack2cabal`](https://hackage.haskell.org/package/stack2cabal)
 - `C-c C-r f` invoke [`stylish-haskell`](https://hackage.haskell.org/package/stylish-haskell)
 - `C-c p R` invoke [`fast-tags`](https://hackage.haskell.org/package/fast-tags) via [`projectile`](https://github.com/bbatsov/projectile)
+
+## Contributing
+
+Bug reports and feature requests are a source of anxiety for maintainers, and encourage an unhealthy customer / supplier relationship between users and contributors.
+
+Instead, and following the [anarchical spirit of Haskell](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/07/history.pdf), we encourage discussions and debate around code contributions. Merge requests can be raised by anybody and discussed by anybody, and do not need to be complete. An automated test is the only way to report a bug. If the maintainers are convinced by the technical merit and quality of a proposal, they may accept it.
+
+To run the tests, install [`cask`](https://cask.readthedocs.io/en/latest/guide/installation.html) and type
+
+```
+cask install
+cask exec ert-runner
+```
 
 ## Plan
 
@@ -87,20 +113,17 @@ This is the status of core features:
   - [x] `stack`, `nix`, `shake`, etc support (customise `haskell-tng--compile-*`)
   - [ ] `comint-mode` based `ghc` repl
 
-Compatibility with `lsp-mode` / [`haskell-ide-engine`](https://github.com/haskell/haskell-ide-engine) is important for more advanced IDE features.
+### Next
 
-## Future Plans
-
-Semantic tooling will likely take the form of a standalone cli tool that is called from Emacs.
-
-The highest priority features are:
+Semantic tooling will likely take the form of a standalone cli tool that is called from Emacs:
 
 1. fully qualified name and type of symbol at point
 2. search for symbol and typesig (e.g. import symbol at point)
 3. jump to source of symbol at point
 
-Blue sky features:
+### Blue Sky
 
+- `lsp-mode` / [`haskell-ide-engine`](https://github.com/haskell/haskell-ide-engine) for more advanced IDE features.
 - Imports
   - quick manual add `import`
   - company-mode backend specific to import sections that detect context, powered by local hoogle cli
