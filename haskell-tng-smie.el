@@ -35,13 +35,16 @@
   "A `newline-and-indent' with a better user experience for `haskell-tng-mode'."
   (interactive)
   ;; TODO a dynamically bound variable might improve the quality of
-  ;;      'empty-line-token predictions.
+  ;;      'empty-line-token predictions. Parens are special-cased.
   (when (<= (- (point-max) 1) (point))
     ;; WORKAROUND https://debbugs.gnu.org/cgi/bugreport.cgi?bug=36432
     ;; TODO fix the bug properly in SMIE
     (save-excursion (insert "\n\n")))
-  (let ((rem (when (/= (point) (line-end-position))
-               (buffer-substring-no-properties (point) (line-end-position)))))
+  (let ((rem (save-excursion
+               (skip-syntax-forward " ")
+               (unless (looking-at (rx (syntax close-parenthesis)))
+                 (when (/= (point) (line-end-position))
+                   (buffer-substring-no-properties (point) (line-end-position)))))))
     (when rem
       (delete-region (point) (line-end-position)))
     ;; TODO don't continue line comments if there is code before them
@@ -50,7 +53,6 @@
     (call-interactively #'comment-indent-new-line)
     (when rem
       (save-excursion
-        ;; TODO prune trailing whitespace
         (insert rem)))))
 
 ;; TODO autodetection of indent options
