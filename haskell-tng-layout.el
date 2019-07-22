@@ -38,14 +38,28 @@
 ;; in a region.
 (defvar-local haskell-tng--layout-cache nil)
 
-(defun haskell-tng--layout-cache-invalidation (_beg _end _pre-length)
+;; We only need to invalidate regions that are on or after the beginning of user
+;; edits. But doing the pruning will slow down insertions. We store the smallest
+;; point that the user edits to invalidate on access.
+(defvar-local haskell-tng--layout-cache-invalid nil)
+(defun haskell-tng--layout-cache-invalidation (beg _end _pre-length)
   "For use in `after-change-functions' to invalidate the state of
 the layout engine."
-  ;; TODO we only need to invalidate regions that are on or after the _beg. But
-  ;; doing so might slow down insertions. We could be smarter and store the _beg
-  ;; then prune when doing the cache retrieval.
-  (when haskell-tng--layout-cache
-    (setq haskell-tng--layout-cache nil)))
+  (setq
+   haskell-tng--layout-cache-invalid
+   (min beg (or haskell-tng--layout-cache-invalid
+                most-positive-fixnum))))
+
+(defun haskell-tng--layout-pruned-cache ()
+  (let ((beg haskell-tng--layout-cache-invalid))
+    (if beg
+        (setq
+         haskell-tng--layout-cache-invalid nil
+         haskell-tng--layout-cache
+         (seq-filter
+          (lambda (it) (<= (cdar it) beg))
+          haskell-tng--layout-cache))
+      haskell-tng--layout-cache)))
 
 ;; TODO a visual debugging option would be great, showing virtuals as overlays
 
@@ -86,8 +100,8 @@ using a cache if available."
       (layout (or
                (cdr (seq-find
                      (lambda (it) (and (<  (caar it) (point))
-                                  (<= (point) (cdar it))))
-                     haskell-tng--layout-cache))
+                                       (<= (point) (cdar it))))
+                     (haskell-tng--layout-pruned-cache)))
                (haskell-tng--layout-rebuild-cache-at-point)))
     (unless (eq layout t) layout)))
 
@@ -98,62 +112,62 @@ using a cache if available."
         (save-excursion
           (forward-char -1)
           (haskell-tng--layout-rebuild-cache-at-point))
-     (let* ((min
-          (save-excursion
-            (end-of-line 1)
-            (or (re-search-backward toplevel nil t) 0)))
-         (max
-          (save-excursion
-            (end-of-line 1)
-            (or (and (re-search-forward toplevel nil t)
-                     (match-beginning 0))
-                (point-max))))
-         (module
+      (let* ((min
+              (save-excursion
+                (end-of-line 1)
+                (or (re-search-backward toplevel nil t) 0)))
+             (max
+              (save-excursion
+                (end-of-line 1)
+                (or (and (re-search-forward toplevel nil t)
+                         (match-beginning 0))
+                    (point-max))))
+             (module
+              (save-excursion
+                (goto-char min)
+                (looking-at (rx word-start "module" word-end))))
+             (before-module
+              (save-excursion
+                (goto-char max)
+                (looking-at (rx word-start "module" word-end))))
+             case-fold-search
+             cache)
+
+        ;; `module ... where { ... }' special cases:
+        ;;
+        ;; 1. before module, nothing
+        ;; 2. after module, only an open
+        ;; 3. eob, extra close
+        ;; 4. everywhere else, extra sep
+        (when module
+          (push `(,max nil) cache))
+        (when (not (or module before-module))
+          (if (eq max (point-max))
+              (push `(nil ,max) cache)
+            (push `(nil nil ,max) cache))
           (save-excursion
             (goto-char min)
-            (looking-at (rx word-start "module" word-end))))
-         (before-module
-          (save-excursion
-            (goto-char max)
-            (looking-at (rx word-start "module" word-end))))
-         case-fold-search
-         cache)
+            (while (< (point) max)
+              (when-let (wldo (haskell-tng--layout-next-wldo max))
+                (push wldo cache)))))
 
-    ;; `module ... where { ... }' special cases:
-    ;;
-    ;; 1. before module, nothing
-    ;; 2. after module, only an open
-    ;; 3. eob, extra close
-    ;; 4. everywhere else, extra sep
-    (when module
-      (push `(,max nil) cache))
-    (when (not (or module before-module))
-      (if (eq max (point-max))
-          (push `(nil ,max) cache)
-        (push `(nil nil ,max) cache))
-      (save-excursion
-        (goto-char min)
-        (while (< (point) max)
-          (when-let (wldo (haskell-tng--layout-next-wldo max))
-            (push wldo cache)))))
+        ;; TODO remove this sanity check when we are happy
+        ;; a sanity check that all points are within the bounds
+        (cl-flet ((good (type p)
+                        (when (and p (or (<= p min) (< max p)))
+                          (message "BUG: LAYOUT %S at %S" type p))))
+          (dolist (block cache)
+            (pcase block
+              (`(,open . (,close . ,seps))
+               (good 'OPEN open)
+               (good 'CLOSE close)
+               (dolist (sep seps)
+                 (good 'SEP sep))))))
 
-    ;; TODO remove this sanity check when we are happy
-    ;; a sanity check that all points are within the bounds
-    (cl-flet ((good (type p)
-                    (when (and p (or (<= p min) (< max p)))
-                      (message "BUG: LAYOUT %S at %S" type p))))
-      (dolist (block cache)
-        (pcase block
-          (`(,open . (,close . ,seps))
-           (good 'OPEN open)
-           (good 'CLOSE close)
-           (dolist (sep seps)
-             (good 'SEP sep))))))
-
-    (let ((key (cons min max))
-          (value (or (reverse cache) t)))
-      (push (cons key value) haskell-tng--layout-cache)
-      value)))))
+        (let ((key (cons min max))
+              (value (or (reverse cache) t)))
+          (push (cons key value) haskell-tng--layout-cache)
+          value)))))
 
 (defun haskell-tng--layout-next-wldo (limit)
   (catch 'wldo
