@@ -42,12 +42,15 @@
 
 ;;;###autoload
 (progn
+  ;; TODO split into separate files that require their dependency
+
   (when (boundp yas-minor-mode)
     (add-to-list
      'yas-snippet-dirs
      (expand-file-name
       "snippets"
-      (haskell-tng--util-this-lisp-directory)))
+      (when load-file-name
+        (file-name-directory load-file-name))))
     (yas-reload-all nil t))
 
   (when (fboundp 'sp-local-pair)
@@ -60,9 +63,10 @@
                      :post-handlers '(("| " "SPC")))))
 
   (add-hook
-   'haskell-tng-mode
+   'haskell-tng-mode-hook
    (lambda ()
      (when (boundp projectile-mode)
+       ;; TODO fix the haskell-stack detection to also include cabal
        (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle .")))
 
    ))

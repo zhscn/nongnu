@@ -38,10 +38,11 @@ Alternatively, if MODE is a buffer object, run TO-STRING there instead."
           (write-region got nil golden)
           nil))))
 
-(defun testdata (file)
+(defmacro testdata (file)
   (expand-file-name
    file
-   (haskell-tng--util-this-lisp-directory)))
+   (when load-file-name
+     (file-name-directory load-file-name))))
 
 (defun is-comment-at-point ()
   ;; this could be sped up by storing all comment regions in an alist
