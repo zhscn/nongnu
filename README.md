@@ -58,7 +58,7 @@ Giving the following commands
 
 ## Contrib
 
-Integrations are provided for common libraries, enable them from `use-package` with
+Integrations are provided for common libraries (installed separately), enable them from `use-package` with
 
 ```lisp
   :config
@@ -103,7 +103,6 @@ This is the status of core features:
   - [x] performance-minded `syntax-table`
   - [x] `font-lock` to visually distinguish types and values
   - [x] `sexp` navigation
-  - [x] `projectile` / [`fast-tags`](https://github.com/elaforge/fast-tags) integration for `TAGS`
   - [ ] `imenu` population
 - Editing:
   - [x] indentation
