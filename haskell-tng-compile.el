@@ -101,9 +101,11 @@ will cause the subsequent call to prompt."
     (setq haskell-tng--compile-command
           (unless (equal command haskell-tng--compile-alt) command))
 
-    (when-let (default-directory
-                (haskell-tng--util-locate-dominating-file
-                 haskell-tng--compile-dominating-file))
+    (let ((default-directory
+            (or
+             (haskell-tng--util-locate-dominating-file
+              haskell-tng--compile-dominating-file)
+             default-directory)))
       (compilation-start
        command
        'haskell-tng-compilation-mode
