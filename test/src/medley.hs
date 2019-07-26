@@ -138,6 +138,7 @@ deriving newtype instance FromJSON Treble
 
 foo = do
   bar :: Wibble <- baz
+  let waz :: Wazzy = woz
   where baz = _
   -- checking that comments are ignored in layout
   -- and that a starting syntax entry is ok

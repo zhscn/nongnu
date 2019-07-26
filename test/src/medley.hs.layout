@@ -138,7 +138,8 @@ module Foo.Bar.Main
 
 ;foo = do
   {bar :: Wibble <- baz
-  ;where {baz = _
+  ;let {waz :: Wazzy = woz
+  };where {baz = _
   -- checking that comments are ignored in layout
   -- and that a starting syntax entry is ok
         ;(+) = _

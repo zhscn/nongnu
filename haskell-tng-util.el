@@ -35,12 +35,11 @@
             (throw 'closed (point))))
         nil))))
 
-(defun haskell-tng--util-do-bind (&optional pos)
+(defun haskell-tng--util-type-ender (&optional pos)
   ;; trivial, should just be called as an inline regexp
-  "The next `<-'"
   (save-excursion
     (goto-char (or pos (point)))
-    (re-search-forward "<-" nil t)))
+    (re-search-forward (rx (| "<-" "=")) nil t)))
 
 (defun haskell-tng--util-next-where (&optional pos)
   ;; trivial, should just be called as an inline regexp

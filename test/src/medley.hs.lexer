@@ -138,7 +138,8 @@ CONSYM CONID « CONID » « CONID CONID »
 
 ; VARID = do
 { VARID :: CONID <- VARID
-; where { VARID = _
+; let { VARID :: CONID = VARID
+} ; where { VARID = _
 
 
 ; « SYMID » = _

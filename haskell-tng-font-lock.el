@@ -282,8 +282,8 @@ succeeds and may further restrict the FIND search limit."
                             (rx symbol-start "::" symbol-end (group (+ anything)))
                             haskell-tng--util-paren-close
                             haskell-tng--util-indent-close-previous
-                            haskell-tng--util-do-bind)
-;; TODO commas end a type signature in a record of functions
+                            haskell-tng--util-type-ender)
+;; TODO commas end a type signature in a record of functions (but can be used in tuples, so complex)
 
 (haskell-tng--font-lock-multiline topdecl
                             (rx line-start (| "data" "newtype" "class" "instance") word-end)

@@ -138,6 +138,7 @@ optionsParser «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Opts.Par
 
 foo «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:do»
   bar «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Wibble »«:haskell-tng-keyword-face:<-» baz
+  «:haskell-tng-keyword-face:let» waz «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Wazzy »«:haskell-tng-keyword-face:=» woz
   «:haskell-tng-keyword-face:where» baz «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:_»
   «m:-- »«x:checking that comments are ignored in layout
 »  «m:-- »«x:and that a starting syntax entry is ok
