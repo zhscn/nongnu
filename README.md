@@ -105,7 +105,7 @@ This is the status of core features:
   - [x] performance-minded `syntax-table`
   - [x] `font-lock` to visually distinguish types and values
   - [x] `sexp` navigation
-  - [ ] `imenu` population (IN PROGRESS)
+  - [x] `imenu` population
 - Editing:
   - [x] indentation
   - [x] `prettify-symbols` to emulate `UnicodeSyntax`

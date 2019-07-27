@@ -13,16 +13,17 @@
 (ert-deftest haskell-tng-lexer-file-tests:layout ()
   (should (have-expected-imenu (testdata "src/layout.hs"))))
 
+(ert-deftest haskell-tng-lexer-file-tests:indentation ()
+  (should (have-expected-imenu (testdata "src/indentation.hs"))))
+
 (defun have-expected-imenu (file)
   (haskell-tng--testutils-assert-file-contents
    file
    #'haskell-tng-mode
    (lambda ()
-     (imenu "*Rescan*")
-     (let ((entries imenu--index-alist))
-       (with-temp-buffer
-         (pp entries (current-buffer))
-         (buffer-string))))
+     (imenu "module")
+     (with-output-to-string
+       (pp imenu--index-alist)))
    "imenu"))
 
 (provide 'haskell-tng-imenu-test)

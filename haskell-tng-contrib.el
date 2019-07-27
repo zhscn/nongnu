@@ -47,7 +47,7 @@
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward (rx bol "module" word-end) nil nil)
+    (re-search-forward (rx bol "module" word-end))
     (forward-comment (point-max))
     (re-search-forward (rx point (group (+ (not space))) space))
     (kill-new (match-string 1))))
