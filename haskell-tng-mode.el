@@ -15,12 +15,14 @@
 ;;; Code:
 
 (require 'dabbrev)
+(require 'imenu)
 (require 'rx)
 
-(require 'haskell-tng-syntax)
-(require 'haskell-tng-font-lock)
-(require 'haskell-tng-smie)
 (require 'haskell-tng-compile)
+(require 'haskell-tng-font-lock)
+(require 'haskell-tng-imenu)
+(require 'haskell-tng-smie)
+(require 'haskell-tng-syntax)
 
 (defgroup haskell-tng ()
   "Haskell support: The Next Generation."
@@ -71,6 +73,9 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
    font-lock-defaults '(haskell-tng--font-lock-keywords)
    font-lock-multiline t
    font-lock-extend-region-functions haskell-tng--font-lock-extend-region-functions
+
+   imenu-auto-rescan t
+   imenu-create-index-function #'haskell-tng--imenu-create
 
    prettify-symbols-alist haskell-tng-prettify-symbols)
 

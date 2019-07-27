@@ -56,6 +56,8 @@ Giving the following commands
   - `C-- C-c c` clean project
   - `C-c e` jump to error
 
+Built-in navigation commands such as `forward-symbol`, `forward-sexp` and `imenu` work as expected (although [`popup-imenu`](https://github.com/ancane/popup-imenu) is recommended).
+
 ## Contrib
 
 Integrations are provided for common libraries (installed separately), enable them from `use-package` with
@@ -103,7 +105,7 @@ This is the status of core features:
   - [x] performance-minded `syntax-table`
   - [x] `font-lock` to visually distinguish types and values
   - [x] `sexp` navigation
-  - [ ] `imenu` population
+  - [ ] `imenu` population (IN PROGRESS)
 - Editing:
   - [x] indentation
   - [x] `prettify-symbols` to emulate `UnicodeSyntax`
