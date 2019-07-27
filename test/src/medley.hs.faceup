@@ -132,6 +132,8 @@ optionsParser «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Opts.Par
                       :> SpecialHeader
                       :> Post '»«:haskell-tng-keyword-face:[»«:haskell-tng-type-face:JSON»«:haskell-tng-keyword-face:]»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:The Response»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face:
 »
+getUsers «:haskell-tng-conid-face::<|>» postUsers «:haskell-tng-conid-face::<|>» putUsers «:haskell-tng-keyword-face:=» client «:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:Proxy» @«:haskell-tng-conid-face:API»«:haskell-tng-keyword-face:)»
+
 «:haskell-tng-keyword-face:deriving» «:haskell-tng-keyword-face:instance» «:haskell-tng-conid-face:FromJSONKey» «:haskell-tng-conid-face:StateName»
 «:haskell-tng-keyword-face:deriving» anyclass «:haskell-tng-keyword-face:instance» «:haskell-tng-conid-face:FromJSON» «:haskell-tng-conid-face:Base»
 «:haskell-tng-keyword-face:deriving» «:haskell-tng-keyword-face:newtype» «:haskell-tng-keyword-face:instance» «:haskell-tng-conid-face:FromJSON» «:haskell-tng-conid-face:Treble»

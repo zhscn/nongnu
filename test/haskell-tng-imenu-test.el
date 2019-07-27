@@ -16,6 +16,9 @@
 (ert-deftest haskell-tng-lexer-file-tests:indentation ()
   (should (have-expected-imenu (testdata "src/indentation.hs"))))
 
+(ert-deftest haskell-tng-lexer-file-tests:medley ()
+  (should (have-expected-imenu (testdata "src/medley.hs"))))
+
 (defun have-expected-imenu (file)
   (haskell-tng--testutils-assert-file-contents
    file

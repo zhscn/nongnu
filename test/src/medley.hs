@@ -132,6 +132,8 @@ type SomeApi =
                       :> SpecialHeader
                       :> Post '[JSON] (The Response)
 
+getUsers :<|> postUsers :<|> putUsers = client (Proxy @API)
+
 deriving instance FromJSONKey StateName
 deriving anyclass instance FromJSON Base
 deriving newtype instance FromJSON Treble
