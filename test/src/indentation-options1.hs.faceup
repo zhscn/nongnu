@@ -1,0 +1,9 @@
+«m:-- »«x:| Indentation scenarios to test indentation options.
+»«:haskell-tng-keyword-face:module» «:haskell-tng-module-face:Indentation» «:haskell-tng-keyword-face:where»
+
+types4 «:haskell-tng-keyword-face:::»«:haskell-tng-type-face:
+   »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face: Monad m »«:haskell-tng-keyword-face:)»«:haskell-tng-type-face:
+  »«:haskell-tng-keyword-face:=>»«:haskell-tng-type-face: a
+  »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: b
+  »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: c
+»

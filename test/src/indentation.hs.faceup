@@ -1,0 +1,147 @@
+«m:-- »«x:| Idealised indentation scenarios.
+»«m:--»«x:
+»«m:--   »«x:Bugs and unexpected behaviour in (re-)indentation may be documented here.
+»«m:--»«x:
+»«m:--   »«x:Lines marked "manual correction" indicate where we expect the user to
+»«m:--   »«x:re-indent because it goes against our prediction. In some of these cases,
+»«m:--   »«x:we could improve the guess with semantic information (e.g. if we know that
+»«m:--   »«x:the RHS of a bind is only partially applied, then we probably mean to
+»«m:--   »«x:continue that line instead of start a new one).
+»«:haskell-tng-keyword-face:module» «:haskell-tng-module-face:Indentation» «:haskell-tng-keyword-face:where»
+
+«:haskell-tng-keyword-face:import» «:haskell-tng-module-face:Foo.Bar»
+«:haskell-tng-keyword-face:import» «:haskell-tng-module-face:Foo.Baz» «:haskell-tng-keyword-face:hiding» «:haskell-tng-keyword-face:(» gaz«:haskell-tng-keyword-face:,»
+                        baz
+                      «:haskell-tng-keyword-face:)»
+
+basic_do «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:do»
+  foo «:haskell-tng-keyword-face:<-» blah blah blah
+  bar «:haskell-tng-keyword-face:<-» blah blah
+         blah «m:-- »«x:manual correction
+»         blah «m:-- »«x:manual correction
+»  sideeffect
+  sideeffect' blah
+  «:haskell-tng-keyword-face:let» baz «:haskell-tng-keyword-face:=» blah blah
+            blah «m:-- »«x:manual correction
+»      gaz «:haskell-tng-keyword-face:=» blah
+      haz «:haskell-tng-keyword-face:=»
+        blah
+  pure faz «m:-- »«x:manual correction
+»
+nested_do «:haskell-tng-keyword-face:=» «m:-- »«x:manual correction
+»  «:haskell-tng-keyword-face:do» foo «:haskell-tng-keyword-face:<-» blah
+     «:haskell-tng-keyword-face:do» bar «:haskell-tng-keyword-face:<-» blah «m:-- »«x:same level as foo
+»        baz «m:-- »«x:same level as bar
+»
+nested_where a b «:haskell-tng-keyword-face:=» foo a b
+  «:haskell-tng-keyword-face:where» «m:-- »«x:manual correction
+»    foo «:haskell-tng-keyword-face:=» bar baz «m:-- »«x:indented
+»    baz «:haskell-tng-keyword-face:=» blah blah «m:-- »«x:same level as foo
+»      «:haskell-tng-keyword-face:where» «m:-- »«x:manual correction
+»        gaz a «:haskell-tng-keyword-face:=» blah «m:-- »«x:indented
+»        faz «:haskell-tng-keyword-face:=» blah «m:-- »«x:same level as gaz
+»
+let_in a b «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:let»
+  blah «:haskell-tng-keyword-face:=» bloo
+  wobble «:haskell-tng-keyword-face:_» «:haskell-tng-keyword-face:=» fish
+  «:haskell-tng-keyword-face:in»
+    flibble blah
+
+implicit_let foo bar «:haskell-tng-keyword-face:=»
+  «:haskell-tng-keyword-face:let» ?foo «:haskell-tng-keyword-face:=» foo
+      ?bar «:haskell-tng-keyword-face:=» bar
+  «:haskell-tng-keyword-face:in»  rar
+
+case_of wibble «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:case» wibble «:haskell-tng-keyword-face:of»
+  «:haskell-tng-conid-face:Nothing»   «:haskell-tng-keyword-face:->»
+    «s:""»
+  «:haskell-tng-conid-face:Just» fish «:haskell-tng-keyword-face:->»
+    fish
+
+lambda_case «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:\case»
+  «:haskell-tng-conid-face:Nothing»   «:haskell-tng-keyword-face:->» «s:""»
+  «:haskell-tng-conid-face:Just» fish «:haskell-tng-keyword-face:->» fish
+
+dollars f «:haskell-tng-conid-face:Nothing» «:haskell-tng-keyword-face:=» f $
+  «s:""» «s:""»
+  «s:""»
+dollars f «:haskell-tng-keyword-face:(»«:haskell-tng-conid-face:Just» a«:haskell-tng-keyword-face:)» «:haskell-tng-keyword-face:=» f $ «:haskell-tng-keyword-face:\»s «:haskell-tng-keyword-face:->»
+  a
+
+not_dollars «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:do»
+  db' «:haskell-tng-keyword-face:<-» liftIO $ readMVar db
+  shouldGoHere <$>
+    here
+
+«:haskell-tng-keyword-face:data»«:haskell-tng-type-face: Wibble »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Wibble» «:haskell-tng-conid-face:Int»
+            «:haskell-tng-keyword-face:|» «:haskell-tng-conid-face:Wobble» «:haskell-tng-conid-face:Int»
+            «:haskell-tng-keyword-face:|» «:haskell-tng-conid-face:Vibble» «:haskell-tng-conid-face:Int»
+
+«:haskell-tng-keyword-face:data»«:haskell-tng-type-face: Record1 »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Record1» «:haskell-tng-keyword-face:{»
+  fieldA «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: String
+»«:haskell-tng-keyword-face:,» fieldB «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: String
+»«:haskell-tng-keyword-face:}»
+
+«:haskell-tng-keyword-face:data»«:haskell-tng-type-face: Record2 »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Record2»
+  «:haskell-tng-keyword-face:{» fieldA «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: String
+»  «:haskell-tng-keyword-face:,» fieldB «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: String
+»  «:haskell-tng-keyword-face:}»
+
+«:haskell-tng-keyword-face:data»«:haskell-tng-type-face: Record3 »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Record3» «:haskell-tng-conid-face:String» «:haskell-tng-conid-face:Text»
+               «:haskell-tng-keyword-face:deriving» «:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Show»«:haskell-tng-keyword-face:)»
+
+«:haskell-tng-keyword-face:data»«:haskell-tng-type-face: Record4 »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Record3» «:haskell-tng-conid-face:String» «:haskell-tng-conid-face:Text» «:haskell-tng-keyword-face:deriving» «:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Show»«:haskell-tng-keyword-face:)»
+
+lists1 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:[» foo
+         «:haskell-tng-keyword-face:,» bar
+         «:haskell-tng-keyword-face:,» «:haskell-tng-keyword-face:[» blah
+           «:haskell-tng-keyword-face:,» blah
+           «:haskell-tng-keyword-face:,» blah «:haskell-tng-keyword-face:]»
+         «:haskell-tng-keyword-face:]»
+
+lists2 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:[»
+  foo
+«:haskell-tng-keyword-face:,» bar
+«:haskell-tng-keyword-face:]»
+
+lists3 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:[» foo «:haskell-tng-keyword-face:,»
+           bar «:haskell-tng-keyword-face:]»
+
+tuples1 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:(» foo
+          «:haskell-tng-keyword-face:,» bar
+          «:haskell-tng-keyword-face:,» «:haskell-tng-keyword-face:(» blah
+            «:haskell-tng-keyword-face:,» blah
+            «:haskell-tng-keyword-face:,» blah «:haskell-tng-keyword-face:)»
+          «:haskell-tng-keyword-face:)»
+
+tuples2 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:(»
+  foo
+«:haskell-tng-keyword-face:,» bar
+«:haskell-tng-keyword-face:)»
+
+tuples3 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:(» foo «:haskell-tng-keyword-face:,»
+            bar «:haskell-tng-keyword-face:)»
+
+typesig «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: b »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: c
+»
+types1 «:haskell-tng-keyword-face:::»«:haskell-tng-type-face:
+     Monad m
+  »«:haskell-tng-keyword-face:=>»«:haskell-tng-type-face: a
+  »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: b
+  »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: c
+»
+types2 «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Monad m»«:haskell-tng-keyword-face:,»«:haskell-tng-type-face: MemberLogger m»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face:
+  »«:haskell-tng-keyword-face:=>»«:haskell-tng-type-face: a
+  »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: b
+  »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: c
+»
+types2b
+  «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Monad m»«:haskell-tng-keyword-face:,»«:haskell-tng-type-face: MemberLogger m»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face:
+  »«:haskell-tng-keyword-face:=>»«:haskell-tng-type-face: a
+  »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: b
+  »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: c
+»
+types3 «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:Monad m»«:haskell-tng-keyword-face:,»«:haskell-tng-type-face: MonadReader Foo m»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:=>»«:haskell-tng-type-face:
+          »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:?log »«:haskell-tng-keyword-face:::»«:haskell-tng-type-face: HasLogger m»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:=>»«:haskell-tng-type-face:
+          a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: b »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: c
+»

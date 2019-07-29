@@ -18,6 +18,8 @@
 
 ;; TODO set compilation-directory when opening the file
 ;; TODO set compilation-environment to include TASTY envvars
+;; TODO support long running (ghcid) compile buffers
+;; TODO generic flycheck integration https://emacs.stackexchange.com/questions/51894
 
 (defvar haskell-tng-compilation-error-regexp-alist
   (let ((file '(: (group (+ any) ".hs")))
@@ -116,6 +118,7 @@ will cause the subsequent call to prompt."
   (ansi-color-apply-on-region compilation-filter-start (point-max)))
 
 (define-compilation-mode haskell-tng-compilation-mode "haskell-tng-compilation"
+  ;; TODO add a hook to detect ghcid recompiles and clear the buffer
   (add-hook 'compilation-filter-hook
             'haskell-tng--compile-ansi-color nil t))
 

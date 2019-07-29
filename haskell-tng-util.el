@@ -39,7 +39,7 @@
   ;; trivial, should just be called as an inline regexp
   (save-excursion
     (goto-char (or pos (point)))
-    (re-search-forward (rx (| "<-" "=")) nil t)))
+    (re-search-forward (rx (| "<-" "=") symbol-end) nil t)))
 
 (defun haskell-tng--util-next-where (&optional pos)
   ;; trivial, should just be called as an inline regexp
