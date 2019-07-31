@@ -41,6 +41,8 @@
     (seq-do
      (lambda (it) (modify-syntax-entry it "_" table))
      (string-to-list "!#$%&*+./<=>?\\^|-~:"))
+    ;; TODO ! is a keyword when using LANG Strict*
+    ;; TODO # can be used for primitives
 
     ;; TODO: debatable. User nav vs fonts and lexing. getting "word boundaries"
     ;;       is important, same for apostrophe. small (underscore is a lowercase

@@ -10,6 +10,7 @@
 (require 'projectile)
 
 ;; TODO fix the haskell-stack detection to also include cabal
+;; TODO populate the projectile compile/run/test commands
 
 (add-hook
  'haskell-tng-mode-hook

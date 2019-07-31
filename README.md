@@ -44,7 +44,7 @@ Check out the source code repository and enable with [`use-package`](https://git
     ("C-c e" . next-error)))
   (:map
    haskell-tng-mode-map
-   ("<return>" . haskell-tng-newline)
+   ("RET" . haskell-tng-newline)
    ("C-c c" . haskell-tng-compile)
    ("C-c e" . next-error)))
 ```

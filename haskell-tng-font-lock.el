@@ -275,7 +275,9 @@ succeeds and may further restrict the FIND search limit."
            (when (re-search-forward ,regexp-1 limit t)
              (goto-char (match-beginning 0))
              ,(finder 'limit)))
-         (add-to-list 'haskell-tng--font-lock-extend-region-functions ',extend t)))))
+         ;; TODO is this needed since we use multiline?
+         ;;(add-to-list 'haskell-tng--font-lock-extend-region-functions ',extend t)
+         ))))
 
 (haskell-tng--font-lock-multiline explicit-type
                             (rx symbol-start "::" symbol-end)

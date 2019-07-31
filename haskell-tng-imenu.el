@@ -18,7 +18,7 @@
   ;; Simple elements in the alist look like (INDEX-NAME . POSITION).
   ;; A nested sub-alist element looks like (INDEX-NAME . SUB-ALIST).
 
-  (let (entries)
+  (let ((entries `(,imenu--rescan-item)))
     (save-excursion
       (goto-char (point-min))
 
@@ -31,6 +31,7 @@
       (while (re-search-forward (rx bol "import" word-end) nil t))
 
       (while
+          ;; TODO ignore comments
           ;; TODO type / data / class / instance
           ;; TODO nested defns (use lexer not rx)
           ;; TODO inline symid defns `a <*> b ='
