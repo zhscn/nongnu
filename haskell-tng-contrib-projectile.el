@@ -14,7 +14,7 @@
 (add-hook
  'haskell-tng-mode-hook
  (lambda ()
-   (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle .")
+   (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle --exclude=.stack-work .")
    ))
 
 (provide 'haskell-tng-contrib-projectile)
