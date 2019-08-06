@@ -17,10 +17,13 @@
   (sp-local-pair 'haskell-tng-mode (car pair) (cdr pair)
                  :post-handlers '(("| " "SPC"))))
 
-;; WORKAROUND smartparens is indenting all the time, which is not good
-(defun sp--indent-region (_1 _2 &optional _3)
-  ;; TODO disable this function just in this mode
-  )
+;; WORKAROUND smartparens indenting all the time
+(defun sp--indent-region (start end &optional column)
+  (unless (or
+           (bound-and-true-p haskell-tng-mode)
+           (bound-and-true-p aggressive-indent-mode))
+    (cl-letf (((symbol-function 'message) #'ignore))
+      (indent-region start end column))))
 
 (add-hook
  'haskell-tng-mode-hook
