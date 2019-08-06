@@ -58,13 +58,43 @@ Giving the following commands
 
 Built-in navigation commands such as `forward-symbol`, `forward-sexp` and `imenu` work as expected (although [`popup-imenu`](https://github.com/ancane/popup-imenu) is recommended).
 
+## `hsinspect`
+
+The optional command line tool `hsinspect` provides semantic information by using the `ghc` api.
+
+`hsinspect` must be installed separately for each version of `ghc` that you are using.
+
+At the moment only one version of `ghc` is supported at a time (change `ghc-8.4.4` to your current `ghc` version):
+
+```
+git clone https://gitlab.com/tseenshe/hsinspect.git
+cd hsinspect
+cabal v2-install -O2 hsinspect --overwrite-policy=always -w ghc-8.4.4
+```
+
+<!-- TODO these installation instructions don't work https://github.com/haskell/cabal/issues/6179 -->
+<!-- ```bash -->
+<!-- for v in ghc-8.4.4 ghc-8.6.5 ; do -->
+<!--   cabal v2-install hsinspect --program-suffix=-$v -w $v -->
+<!-- done -->
+<!-- ``` -->
+
+with recommended binding
+
+```lisp
+  :bind
+   (:map haskell-tng-mode-map
+    ("C-c C-i s" . haskell-tng-fqn-at-point))
+```
+
 ## Contrib
 
-Integrations are provided for common libraries (installed separately), enable them from `use-package` with
+Integrations are provided for common libraries and external applications (installed separately), enable them from `use-package` with
 
 ```lisp
   :config
   (require 'haskell-tng-contrib)
+  (require 'haskell-tng-contrib-company)
   (require 'haskell-tng-contrib-projectile)
   (require 'haskell-tng-contrib-smartparens)
   (require 'haskell-tng-contrib-yasnippet)
@@ -131,6 +161,8 @@ Semantic tooling will likely take the form of a standalone cli tool that is call
   - expand import list into explicit list (perhaps via `:browse` but better as standalone tool) for symbol-at-point (assuming no shadowing).
   - convert wildcard import to explicit list
   - remove unused imports
+- Exports
+  - visual indicator of what has been exported (hsinspect could do this for compilable code)
 - Hoogle integration
   - build local hoogle database for a project
   - local cli jump-to-source of symbol-at-point / type-at-point (i.e. explicit fully qualified name)

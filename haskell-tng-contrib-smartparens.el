@@ -17,6 +17,7 @@
   (sp-local-pair 'haskell-tng-mode (car pair) (cdr pair)
                  :post-handlers '(("| " "SPC"))))
 
+;; TODO use advise instead of redefining the function
 ;; WORKAROUND smartparens indenting all the time
 (defun sp--indent-region (start end &optional column)
   (unless (or

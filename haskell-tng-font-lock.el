@@ -124,6 +124,7 @@
         (1 'haskell-tng-keyword-face)
         (2 'haskell-tng-module-face)
         (3 'haskell-tng-keyword-face))
+       ;; TODO combinations of as and hiding
        (,(rx-to-string `(: word-start (group "as") word-end (+ space)
                            word-start (group ,conid) word-end))
         (haskell-tng--font-lock-multiline-anchor-rewind) nil

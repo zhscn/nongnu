@@ -27,6 +27,7 @@
 (package-file "haskell-tng-mode.el")
 
 (development
+ (depends-on "company")
  (depends-on "faceup")
  (depends-on "ert-runner")
  ;;(depends-on "undercover")

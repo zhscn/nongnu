@@ -20,6 +20,7 @@
 
 (require 'haskell-tng-compile)
 (require 'haskell-tng-font-lock)
+(require 'haskell-tng-hsinspect)
 (require 'haskell-tng-imenu)
 (require 'haskell-tng-smie)
 (require 'haskell-tng-syntax)
