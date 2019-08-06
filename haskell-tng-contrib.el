@@ -5,8 +5,8 @@
 
 ;;; Commentary:
 ;;
-;;  Untested / untestable commands that are either contributed by the community
-;;  or require an external process to exist on PATH.
+;;  Untested / untestable commands that may require an external process to exist
+;;  on PATH.
 ;;
 ;;; Code:
 
@@ -51,6 +51,21 @@
     (forward-comment (point-max))
     (re-search-forward (rx point (group (+ (not space))) space))
     (kill-new (match-string 1))))
+
+;;;###autoload
+(defun haskell-tng-filename-to-modulename ()
+  "Infers the ModuleName for the current file based on filesystem layout."
+  (mapconcat
+   'identity
+   (reverse
+    (seq-take-while
+     (lambda (e) (let (case-fold-search)
+              (string-match-p (rx bos upper) e)))
+     (reverse
+      (split-string
+       (file-name-sans-extension buffer-file-name)
+       "\\/"))))
+   "."))
 
 (provide 'haskell-tng-contrib)
 ;;; haskell-tng-contrib.el ends here
