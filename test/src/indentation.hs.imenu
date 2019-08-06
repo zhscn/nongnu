@@ -1,4 +1,5 @@
-(("module" . 486)
+(("*Rescan*" . -99)
+ ("module" . 486)
  ("imports" . 512)
  ("basic_do" . 609)
  ("nested_do" . 903)

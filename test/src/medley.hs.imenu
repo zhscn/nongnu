@@ -1,4 +1,5 @@
-(("module" . 147)
+(("*Rescan*" . -99)
+ ("module" . 147)
  ("imports" . 290)
  ("chars" . 1638)
  ("strings" . 1665)
