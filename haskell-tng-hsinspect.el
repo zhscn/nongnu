@@ -63,11 +63,11 @@ t means the process failed.")
                  (append (cdr haskell-tng-hsinspect)
                          `("hsinspect" "imports" ,buffer-file-name)
                          haskell-tng-hsinspect-langexts)))
-          (message "hsinspect failed, semantic support disabled")
+          (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information.")
         (setq haskell-tng--hsinspect-imports
               (with-current-buffer "*hsinspect*"
                 (goto-char (point-min))
-                (re-search-forward (rx "(") nil t) ;; sometimes there is junk from the launcher
+                (re-search-forward (rx bol "(") nil t) ;; sometimes there is junk from the launcher
                 (goto-char (match-beginning 0))
                 (read (current-buffer))))))))
 
