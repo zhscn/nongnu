@@ -31,9 +31,11 @@
 (require 'haskell-tng-font-lock)
 (require 'haskell-tng-lexer)
 
-(defun haskell-tng-newline ()
-  "A `newline-and-indent' with a better user experience for `haskell-tng-mode'."
-  (interactive)
+(defun haskell-tng-newline (&optional alt)
+  "A `newline-and-indent' with a better user experience for `haskell-tng-mode'.
+
+Comments are continued unless called with a prefix."
+  (interactive "P")
   ;; TODO a dynamically bound variable might improve the quality of
   ;;      'empty-line-token predictions. Parens are special-cased.
   (when (<= (- (point-max) 1) (point))
@@ -50,7 +52,9 @@
     ;; TODO don't continue line comments if there is code before them
     ;;
     ;; TODO in-comment indent should observe | haddock markers
-    (call-interactively #'comment-indent-new-line)
+    (if alt
+        (call-interactively #'newline-and-indent)
+      (call-interactively #'comment-indent-new-line))
     (when rem
       (save-excursion
         (insert rem)))))
