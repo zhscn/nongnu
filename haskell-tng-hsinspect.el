@@ -21,6 +21,10 @@
   :type 'listp
   :group 'haskell-tng)
 
+(defvar-local haskell-tng-hsinspect-langexts nil)
+;; TODO improve the validity checker
+(put 'haskell-tng-hsinspect-langexts 'safe-local-variable #'listp)
+
 (defun haskell-tng-fqn-at-point ()
   "Consult the imports in scope and display the fully qualified
 name of the symbol at point in the minibuffer."
@@ -57,7 +61,8 @@ t means the process failed.")
                  ;; TODO async
                  (car haskell-tng-hsinspect) nil "*hsinspect*" nil
                  (append (cdr haskell-tng-hsinspect)
-                         `("hsinspect" "imports" ,buffer-file-name))))
+                         `("hsinspect" "imports" ,buffer-file-name)
+                         haskell-tng-hsinspect-langexts)))
           (message "hsinspect failed, semantic support disabled")
         (setq haskell-tng--hsinspect-imports
               (with-current-buffer "*hsinspect*"
