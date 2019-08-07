@@ -83,7 +83,7 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
   ;; whitespace is meaningful, disable electric indentation. Note that
   ;; `electric-indent-inhibit' causes a performance regression in SMIE
   ;; indentation, so it's best to just make sure it is disabled.
-  (electric-indent-mode 0)
+  (electric-indent-local-mode 0)
 
   (setq-local smie-blink-matching-inners nil) ;; c.f. `smie-closer-alist'
 
