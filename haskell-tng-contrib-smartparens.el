@@ -17,14 +17,11 @@
   (sp-local-pair 'haskell-tng-mode (car pair) (cdr pair)
                  :post-handlers '(("| " "SPC"))))
 
-;; TODO use advise instead of redefining the function
-;; WORKAROUND smartparens indenting all the time
-(defun sp--indent-region (start end &optional column)
-  (unless (or
-           (bound-and-true-p haskell-tng-mode)
-           (bound-and-true-p aggressive-indent-mode))
-    (cl-letf (((symbol-function 'message) #'ignore))
-      (indent-region start end column))))
+(advice-add #'sp--indent-region :around #'haskell-tng--contrib-sp-indent)
+(defun haskell-tng--contrib-sp-indent (f &rest args)
+  "Disables `sp--indent-region' locally."
+  (unless (eq major-mode 'haskell-tng-mode)
+    (apply f args)))
 
 (add-hook
  'haskell-tng-mode-hook
