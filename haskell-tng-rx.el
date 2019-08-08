@@ -21,6 +21,12 @@
 (defconst haskell-tng--rx-kindsym `(: "'" ,haskell-tng--rx-consym)) ;; DataKinds
 (defconst haskell-tng--rx-kindid `(: "'" ,haskell-tng--rx-conid)) ;; DataKinds
 
+(defconst haskell-tng--keywords
+  '("case" "class" "data" "default" "deriving" "do" "else"
+    "foreign" "if" "import" "in" "infix" "infixl"
+    "infixr" "instance" "let" "module" "newtype" "of"
+    "then" "type" "where"))
+
 (defun haskell-tng--rx-reserved (hack)
   "reservedid / reservedop.
 
@@ -33,12 +39,7 @@ TL;DR: regexps don't see some non-capture boundaries outside the
 limit, so use POINT as a hint during lexing. If used in
 fontification, a carefully positioned point in e.g. <--> would
 give false positives." `(|
-    (: word-start
-       (| "case" "class" "data" "default" "deriving" "do" "else"
-          "foreign" "if" "import" "in" "infix" "infixl"
-          "infixr" "instance" "let" "module" "newtype" "of"
-          "then" "type" "where" "_")
-       word-end)
+    (: word-start (| ,@haskell-tng--keywords "_") word-end)
     (: symbol-start "\\case" word-end) ;; LambdaCase
     (: "{..}") ;; RecordWildCards
     (: word-start "':" symbol-end) ;; DataKinds (consider foo':bar)

@@ -162,7 +162,7 @@ the lexer."
               (haskell-tng--lexer-replay-virtual 'reverse)
 
             (forward-comment (- (point)))
-            (let ((lbp (min (point) (line-beginning-position))))
+            (let ((lbp (line-beginning-position)))
              (cond
               ((bobp) nil)
               ((looking-back haskell-tng--rx-c-reserved-hack

@@ -18,21 +18,24 @@
 (defcustom haskell-tng-hsinspect
   ;; TODO https://github.com/haskell/cabal/issues/6182
   ;;
-  ;; the optimisation level (and compiler) must match what the user typed or
-  ;; local packages aren't visible.
-  '("cabal" "v2-exec" "-v0" "-O0" "--")
+  ;; all flags (optimisations, compiler, tests, etc) must match what the user
+  ;; typed or else local packages aren't visible.
+  ;;'("cabal" "v2-exec" "-v0" "-O0" "--enable-tests" "--")
+  '() ;; best to use environment files, less fragile
   "Launch command for the `hsinspect' external tool."
   :type 'listp
   :group 'haskell-tng)
 
 (defvar-local haskell-tng-hsinspect-langexts nil)
 ;; TODO improve the validity checker
+;;;###autoload
 (put 'haskell-tng-hsinspect-langexts 'safe-local-variable #'listp)
 
+;;;###autoload
 (defun haskell-tng-fqn-at-point ()
   "Consult the imports in scope and display the fully qualified
 name of the symbol at point in the minibuffer."
-  (interactive)
+  (interactive) ;; TODO prefix should copy to kill ring
   (if-let* ((sym (symbol-name (symbol-at-point)))
             (found (seq-find
                     (lambda (names) (member sym names))
@@ -49,8 +52,8 @@ name of the symbol at point in the minibuffer."
 t means the process failed.")
 (defun haskell-tng--hsinspect-imports ()
   (if haskell-tng--hsinspect-imports
-      (or (eq t haskell-tng--hsinspect-imports)
-          haskell-tng--hsinspect-imports)
+      (unless (eq t haskell-tng--hsinspect-imports)
+        haskell-tng--hsinspect-imports)
     (setq haskell-tng--hsinspect-imports t) ;; avoid races
     (ignore-errors (kill-buffer "*hsinspect*"))
     (let ((default-directory
@@ -63,9 +66,14 @@ t means the process failed.")
                  ;; TODO launching the correct hsinspect-ghc-X version
                  ;; TODO is there a way to pipe into a string not a buffer?
                  ;; TODO async
-                 (car haskell-tng-hsinspect) nil "*hsinspect*" nil
-                 (append (cdr haskell-tng-hsinspect)
-                         `("hsinspect" "imports" ,buffer-file-name)
+                 (if haskell-tng-hsinspect
+                  (car haskell-tng-hsinspect)
+                  "hsinspect")
+                 nil "*hsinspect*" nil
+                 (append (when haskell-tng-hsinspect
+                           (append (cdr haskell-tng-hsinspect)
+                                   '("hsinspect")))
+                         `("imports" ,buffer-file-name)
                          haskell-tng-hsinspect-langexts)))
           (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information.")
         (setq haskell-tng--hsinspect-imports

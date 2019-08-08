@@ -20,7 +20,6 @@
 
 (require 'haskell-tng-compile)
 (require 'haskell-tng-font-lock)
-(require 'haskell-tng-hsinspect)
 (require 'haskell-tng-imenu)
 (require 'haskell-tng-smie)
 (require 'haskell-tng-syntax)
@@ -85,6 +84,7 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
   ;; indentation, so it's best to just make sure it is disabled.
   (electric-indent-local-mode 0)
 
+  (setq-local blink-matching-paren nil) ;; too many "Mismatched parentheses" messages
   (setq-local smie-blink-matching-inners nil) ;; c.f. `smie-closer-alist'
 
   (haskell-tng--smie-setup)

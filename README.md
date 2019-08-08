@@ -60,6 +60,11 @@ Built-in navigation commands such as `forward-symbol`, `forward-sexp` and `imenu
 
 ## `hsinspect`
 
+```lisp
+  :config
+  (require 'haskell-tng-hsinspect)
+```
+
 The optional command line tool `hsinspect` provides semantic information by using the `ghc` api.
 
 `hsinspect` must be installed separately for each version of `ghc` that you are using.
