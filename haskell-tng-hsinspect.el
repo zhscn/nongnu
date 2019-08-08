@@ -16,7 +16,11 @@
 ;; TODO automatically installing hsinspect under hsinspect-ghc-X
 
 (defcustom haskell-tng-hsinspect
-  '("cabal" "v2-exec" "-v0" "--")
+  ;; TODO https://github.com/haskell/cabal/issues/6182
+  ;;
+  ;; the optimisation level (and compiler) must match what the user typed or
+  ;; local packages aren't visible.
+  '("cabal" "v2-exec" "-v0" "-O0" "--")
   "Launch command for the `hsinspect' external tool."
   :type 'listp
   :group 'haskell-tng)
