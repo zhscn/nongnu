@@ -62,7 +62,8 @@
 (defvar haskell-tng--compile-history
   ;; Prefer --enable-tests due to
   ;; https://github.com/haskell/cabal/issues/6114
-  '("cabal v2-build -O0 --enable-tests "
+  '("cabal v2-build -O0 --enable-tests :all:libraries"
+    "cabal v2-build -O0 --enable-tests "
     "cabal v2-run -O0 --enable-tests tasty -- "))
 (defvar-local haskell-tng--compile-command nil)
 (defvar-local haskell-tng--compile-alt "cabal v2-clean")

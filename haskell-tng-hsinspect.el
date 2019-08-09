@@ -44,6 +44,8 @@ name of the symbol at point in the minibuffer."
       (message "%s" (car (last found)))
     (message "<not imported>")))
 
+;; FIXME implement the `.hsinspect.env' hack and document the workflow
+
 ;; TODO invalidate cache when imports section has changed
 ;; TODO is there a way to tell Emacs not to render this in `C-h v'?
 ;;      (suggestion is to advise around describe-key)
@@ -66,14 +68,9 @@ t means the process failed.")
                  ;; TODO launching the correct hsinspect-ghc-X version
                  ;; TODO is there a way to pipe into a string not a buffer?
                  ;; TODO async
-                 (if haskell-tng-hsinspect
-                  (car haskell-tng-hsinspect)
-                  "hsinspect")
+                 "hsinspect"
                  nil "*hsinspect*" nil
-                 (append (when haskell-tng-hsinspect
-                           (append (cdr haskell-tng-hsinspect)
-                                   '("hsinspect")))
-                         `("imports" ,buffer-file-name)
+                 (append `("imports" ,buffer-file-name)
                          haskell-tng-hsinspect-langexts)))
           (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information.")
         (setq haskell-tng--hsinspect-imports
@@ -81,7 +78,7 @@ t means the process failed.")
                 (goto-char (point-min))
                 (re-search-forward (rx bol "(") nil t) ;; sometimes there is junk from the launcher
                 (goto-char (match-beginning 0))
-                (read (current-buffer))))))))
+                (or (ignore-errors (read (current-buffer))) t)))))))
 
 (provide 'haskell-tng-hsinspect)
 ;;; haskell-tng-hsinspect.el ends here
