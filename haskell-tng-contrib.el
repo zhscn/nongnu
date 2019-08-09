@@ -39,7 +39,7 @@
   "Hack to jump to imports"
   ;; TODO imenu navigation will replace this
   (interactive)
-  (re-search-backward (rx line-start "import")))
+  (re-search-backward (rx line-start "import" word-end)))
 
 ;;;###autoload
 (defun haskell-tng-current-module ()
