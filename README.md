@@ -28,82 +28,18 @@ If it is possible to implement a feature using another minor mode, or command li
 
 ## Install
 
-Check out the source code repository and enable with [`use-package`](https://github.com/jwiegley/use-package):
+Check out the source code repository and enable with [`use-package`](https://github.com/jwiegley/use-package).
+
+A full installation may look like the following
 
 ```lisp
 (use-package haskell-tng-mode
-  ;; these 3 lines are only needed for local checkouts
   :ensure nil
-  :load-path "/path/to/haskell-tng.el"
-  :mode ("\\.hs\\'" . haskell-tng-mode)
+  :load-path "/path/to/git/clone"
+  :mode ((rx ".hs" eos) . haskell-tng-mode)
 
-  :bind
-  (:map
-   haskell-tng-compilation-mode-map
-   (("C-c c" . haskell-tng-compile)
-    ("C-c e" . next-error)))
-  (:map
-   haskell-tng-mode-map
-   ("RET" . haskell-tng-newline)
-   ("C-c c" . haskell-tng-compile)
-   ("C-c e" . next-error)))
-```
-
-Giving the following commands
-
-- `C-c c` compile, prompt on first use
-  - `C-u C-c c` always prompt
-  - `C-- C-c c` clean project
-  - `C-c e` jump to error
-
-Built-in navigation commands such as `forward-symbol`, `forward-sexp` and `imenu` work as expected (although [`popup-imenu`](https://github.com/ancane/popup-imenu) is recommended).
-
-## `hsinspect`
-
-```lisp
   :config
   (require 'haskell-tng-hsinspect)
-```
-
-The optional command line tool `hsinspect` provides semantic information by using the `ghc` api.
-
-<!-- `hsinspect` must be installed separately for each version of `ghc` that you are using. -->
-
-At the moment only one version of `ghc` is supported at a time (change `ghc-8.4.4` to your current `ghc` version):
-
-```
-git clone https://gitlab.com/tseenshe/hsinspect.git
-cd hsinspect
-cabal v2-install -O2 hsinspect --overwrite-policy=always -w ghc-8.4.4
-```
-
-<!-- TODO these installation instructions don't work https://github.com/haskell/cabal/issues/6179 -->
-<!-- ```bash -->
-<!-- for v in ghc-8.4.4 ghc-8.6.5 ; do -->
-<!--   cabal v2-install hsinspect --program-suffix=-$v -w $v -->
-<!-- done -->
-<!-- ``` -->
-
-with recommended binding
-
-```lisp
-  :bind
-   (:map haskell-tng-mode-map
-    ("C-c C-i s" . haskell-tng-fqn-at-point))
-```
-
-### Known Problems
-
-To use `hsinspect` commands, generate a `.hsinspect.env` file by running `M-x haskell-tng-hsinspect` for a project. This is only needed when the dependencies change, but the project must be compilable.
-
-See [the gory details](https://gitlab.com/tseenshe/hsinspect) for more information and known caveats. Hopefully there will be no need for `haskell-tng-hsinspect` in a future release.
-
-## Contrib
-
-Integrations are provided for common libraries and external applications (installed separately), enable them from `use-package` with
-
-```lisp
-  :config
   (require 'haskell-tng-contrib)
   (require 'haskell-tng-contrib-company)
   (require 'haskell-tng-contrib-projectile)
@@ -113,13 +49,38 @@ Integrations are provided for common libraries and external applications (instal
   :bind
   (:map
    haskell-tng-mode-map
-   (("C-c C" . haskell-tng-stack2cabal)
-    ("C-c C-r f" . haskell-tng-stylish-haskell)))
+   ("RET" . haskell-tng-newline)
+   ("C-c c" . haskell-tng-compile)
+   ("C-c e" . next-error)))
 ```
 
-providing project navigation, enchanced matched parenthesis handling, and templates that can be expanded with your `yas-expand` hotkey.
+## `hsinspect`
 
-Ensure that third party Haskell tools are available (e.g. via `cabal v2-install`) for:
+The optional command line tool [`hsinspect`](https://gitlab.com/tseenshe/hsinspect) provides semantic information by using the `ghc` api.
+
+For now, only one version of `ghc` is supported at a time (change `ghc-8.4.4` to your current `ghc` version):
+
+```
+git clone https://gitlab.com/tseenshe/hsinspect.git
+cd hsinspect
+cabal v2-install hsinspect --overwrite-policy=always -w ghc-8.4.4
+```
+
+To use `hsinspect` commands, generate a `.hsinspect.env` file by running `M-x haskell-tng-hsinspect` for a project. This is only needed when the dependencies change, but the project must be compilable.
+
+The `haskell-tng-contrib-company` package will automatically complete symbols that are in scope.
+
+To find out which module a symbol belongs to, use `M-x haskell-tng-fqn-at-point`.
+
+The are some limitations to this tool in addition to known bugs. See [the gory details](https://gitlab.com/tseenshe/hsinspect) for more information. Hopefully there will be no need for `M-x haskell-tng-hsinspect` or the `.hsinspect.env` files in a future release.
+
+## Contrib
+
+Integrations are provided for common libraries and external applications.
+
+The installation instructions above enable all the integrations. Remove the `require` lines for packages that are unwanted.
+
+Third party Haskell tools must be installed separately (e.g. via `cabal v2-install`) for:
 
 - `C-c C` invoke [`stack2cabal`](https://hackage.haskell.org/package/stack2cabal)
 - `C-c C-r f` invoke [`stylish-haskell`](https://hackage.haskell.org/package/stylish-haskell)
@@ -154,14 +115,6 @@ This is the status of core features:
   - [x] `haskell-tng-compile` for `cabal` batch commands
   - [x] `stack`, `nix`, `shake`, etc support (customise `haskell-tng--compile-*`)
   - [ ] `comint-mode` based `ghc` repl
-
-### Next
-
-Semantic tooling will likely take the form of a standalone cli tool that is called from Emacs:
-
-1. fully qualified name and type of symbol at point
-2. search for symbol and typesig (e.g. import symbol at point)
-3. jump to source of symbol at point
 
 ### Blue Sky
 
