@@ -26,8 +26,7 @@
 
 (defcustom haskell-tng-company-backends
   '(company-files
-    (company-dabbrev-code company-keywords)
-    haskell-tng--company-hsinspect)
+    (haskell-tng--company-hsinspect company-dabbrev-code company-keywords))
   "The company mode backends to use for haskell files"
   :type 'listp
   :group 'haskell-tng)

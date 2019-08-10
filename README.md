@@ -67,7 +67,7 @@ Built-in navigation commands such as `forward-symbol`, `forward-sexp` and `imenu
 
 The optional command line tool `hsinspect` provides semantic information by using the `ghc` api.
 
-`hsinspect` must be installed separately for each version of `ghc` that you are using.
+<!-- `hsinspect` must be installed separately for each version of `ghc` that you are using. -->
 
 At the moment only one version of `ghc` is supported at a time (change `ghc-8.4.4` to your current `ghc` version):
 
@@ -91,6 +91,12 @@ with recommended binding
    (:map haskell-tng-mode-map
     ("C-c C-i s" . haskell-tng-fqn-at-point))
 ```
+
+### Known Problems
+
+To use `hsinspect` commands, generate a `.hsinspect.env` file by running `M-x haskell-tng-hsinspect` for a project. This is only needed when the dependencies change, but the project must be compilable.
+
+See [the gory details](https://gitlab.com/tseenshe/hsinspect) for more information and known caveats. Hopefully there will be no need for `haskell-tng-hsinspect` in a future release.
 
 ## Contrib
 
