@@ -45,7 +45,7 @@
            nil t)
         (let ((name (match-string 0))
               (pos (match-beginning 0)))
-          (when (not (string-match haskell-tng--rx-c-reserved name))
+          (unless (string-match haskell-tng--rx-c-reserved name)
             (push `(,name . ,pos) entries)))))
 
     (seq-uniq

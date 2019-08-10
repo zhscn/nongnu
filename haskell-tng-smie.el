@@ -382,7 +382,7 @@ information, to aid in the creation of new rules."
                (member last-command haskell-tng--smie-return))))
       (setq haskell-tng--smie-indentations nil)
     ;; TAB+TAB or RETURN+TAB
-    (when (null haskell-tng--smie-indentations)
+    (unless haskell-tng--smie-indentations
       (let ((prime (current-column)))
         (setq haskell-tng--smie-indentations
               (append
@@ -430,9 +430,9 @@ BEFORE is t if the line appears before the indentation."
         relevant)
     (while (< (point) bound)
       ;; TODO we the lexer instead of regexps, we're not barbarians
-      (when (not
-             (looking-at
-              (rx (* space) (| "where" "do") word-end)))
+      (unless
+          (looking-at
+           (rx (* space) (| "where" "do") word-end))
         (push (current-indentation) relevant))
       (when
           (and

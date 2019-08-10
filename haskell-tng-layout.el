@@ -141,7 +141,7 @@ using a cache if available."
         ;; 4. everywhere else, extra sep
         (when module
           (push `(,max nil) cache))
-        (when (not (or module before-module))
+        (unless (or module before-module)
           (if (eq max (point-max))
               (push `(nil ,max) cache)
             (push `(nil nil ,max) cache))
@@ -180,7 +180,7 @@ using a cache if available."
                         word-end))
         (goto-char (match-end 0))
         (forward-comment limit)
-        (when (not (looking-at "{"))
+        (unless (looking-at "{")
           (throw 'wldo (haskell-tng--layout-wldo
                         (min (or (haskell-tng--util-paren-close) (point-max))
                              limit)))))

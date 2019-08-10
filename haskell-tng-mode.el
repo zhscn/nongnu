@@ -5,8 +5,8 @@
 
 ;; Homepage: https://gitlab.com/tseenshe/haskell-tng-mode
 ;; Keywords: languages
-;; Package-Version: 0.0.1
-;; Package-Requires: ((emacs "24.3"))
+;; Version: 0.0.1
+;; Package-Requires: ((emacs "26.1"))
 
 ;;; Commentary:
 ;;

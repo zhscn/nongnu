@@ -121,7 +121,7 @@ will cause the subsequent call to prompt."
 (define-compilation-mode haskell-tng-compilation-mode "haskell-tng-compilation"
   ;; TODO add a hook to detect ghcid recompiles and clear the buffer
   (add-hook 'compilation-filter-hook
-            'haskell-tng--compile-ansi-color nil t))
+            #'haskell-tng--compile-ansi-color nil t))
 
 (provide 'haskell-tng-compile)
 ;;; haskell-tng-compile.el ends here

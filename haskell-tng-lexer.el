@@ -21,7 +21,7 @@
 ;; https://github.com/typelead/intellij-eta/blob/eta-ide/plugin/src/main/eta/IntelliJ/Plugin/Eta/Lang/Lexer/EtaParsingLexer.hs
 ;; https://www.haskell.org/hugs/downloads/2006-09/hugs98-Sep2006.tar.gz (src/parser.y)
 ;; https://github.com/haskell-lisp/yale-haskell/blob/master/parser/lexer.scm
-;; http://bnfc.digitalgrammars.com/
+;; https://bnfc.digitalgrammars.com/
 ;;
 ;; We could potentially use FFI + Flex to do the lexing for us, giving us access
 ;; to much more powerful regexp rules (Emacs doesn't support zero width

@@ -116,11 +116,11 @@
           (pcase mode
             ('insert
              (beginning-of-line)
-             (when (not (eobp))
+             (unless (eobp)
                (kill-whole-line)))
             ('append
              (beginning-of-line)
-             (when (not (eobp))
+             (unless (eobp)
                (delete-region (point) (line-end-position))))
             ('reindent
              (indent-line-to orig)

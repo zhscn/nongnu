@@ -56,7 +56,7 @@
 (defun haskell-tng-filename-to-modulename ()
   "Infers the ModuleName for the current file based on filesystem layout."
   (mapconcat
-   'identity
+   #'identity
    (reverse
     (seq-take-while
      (lambda (e) (let (case-fold-search)

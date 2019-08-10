@@ -20,11 +20,11 @@
 (defconst haskell-tng--syntax-table
   (let ((table (make-syntax-table)))
     (map-char-table
-     #'(lambda (k v)
-         ;; reset the (surprisingly numerous) defaults
-         (let ((class (syntax-class v)))
-           (when (seq-contains '(1 4 5 6 9) class)
-             (modify-syntax-entry k "_" table))))
+     (lambda (k v)
+       ;; reset the (surprisingly numerous) defaults
+       (let ((class (syntax-class v)))
+         (when (seq-contains '(1 4 5 6 9) class)
+           (modify-syntax-entry k "_" table))))
      (char-table-parent table))
 
     ;; many of the following chars are already defined by the defaults, but we

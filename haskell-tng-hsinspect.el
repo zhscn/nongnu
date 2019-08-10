@@ -72,7 +72,7 @@ t means the process failed.")
                  nil "*hsinspect*" nil
                  (append `("imports" ,buffer-file-name)
                          haskell-tng-hsinspect-langexts)))
-          (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information.")
+          (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
         (setq haskell-tng--hsinspect-imports
               (with-current-buffer "*hsinspect*"
                 (goto-char (point-min))
