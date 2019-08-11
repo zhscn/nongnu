@@ -13,6 +13,10 @@
 ;; TODO a generic wrapper around commands that can be downloaded and built using
 ;;      cabal v2-install.
 
+;; TODO cabal-fmt on new file creation (for the `insert' support). Maybe with a
+;; hook in both `before-save-hook' (detecting that the file is new) and
+;; `after-save-hook' (running the command and resetting the newfile var).
+
 (require 'subr-x)
 
 ;;;###autoload
