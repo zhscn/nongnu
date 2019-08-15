@@ -34,7 +34,7 @@ name of the symbol at point in the minibuffer."
    ;; no need to compile tests, use O0 so it is faster
    "hsinspect-init () {\n"
    "  cabal v2-build -O0 :all &&\n"
-   "  cabal v2-exec -O0 -- sh -c 'cat $GHC_ENVIRONMENT > .hsinspect.env'\n"
+   "  cabal v2-exec -O0 -v0 -- sh -c 'cat $GHC_ENVIRONMENT > .hsinspect.env'\n"
    "}\n"
    "hsinspect-init"))
 ;;;###autoload
