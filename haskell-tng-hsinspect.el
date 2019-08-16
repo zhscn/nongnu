@@ -23,11 +23,14 @@ name of the symbol at point in the minibuffer."
   (interactive) ;; TODO prefix should copy to kill ring
   (if-let* ((sym (symbol-name (symbol-at-point)))
             (found (seq-find
-                    (lambda (names) (member sym names))
+                    (lambda (names) (member sym (seq-map #'cdr names)))
                     (haskell-tng--hsinspect-imports))))
       ;; TODO multiple hits
+      ;; TODO feedback when hsinspect is broken
       (message "%s" (car (last found)))
-    (message "<not imported>")))
+    (if (eq t haskell-tng--hsinspect-imports)
+        (error "hsinspect is not available")
+      (message "<not imported>"))))
 
 (defvar haskell-tng-hsinspect
   (concat
@@ -79,7 +82,7 @@ t means the process failed.")
                    ;; TODO async
                    "hsinspect"
                    nil "*hsinspect*" nil
-                   (append `("imports" ,buffer-file-name)
+                   (append `("imports" ,buffer-file-name "--")
                            haskell-tng-hsinspect-langexts))))
             (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
           (setq haskell-tng--hsinspect-imports

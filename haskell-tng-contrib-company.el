@@ -53,7 +53,7 @@
     ('candidates
      ;;(message "TNG asked with %S" arg)
      (seq-mapcat
-      (lambda (names) (all-completions arg names))
+      (lambda (names) (all-completions arg (seq-map #'cdr names)))
       (haskell-tng--hsinspect-imports)))
     ('sorted t)
     ('duplicates t)

@@ -61,8 +61,6 @@ The optional command line tool [`hsinspect`](https://gitlab.com/tseenshe/hsinspe
 For now, only one version of `ghc` is supported at a time (change `ghc-8.4.4` to your current `ghc` version):
 
 ```
-git clone https://gitlab.com/tseenshe/hsinspect.git
-cd hsinspect
 cabal v2-install hsinspect --overwrite-policy=always -w ghc-8.4.4
 ```
 

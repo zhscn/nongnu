@@ -12,6 +12,7 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
+;; TODO line after `instance ... where' has too much indent
 ;; TODO records assigning / copy by label
 ;; TODO records of functions
 ;; TODO if/then/else
