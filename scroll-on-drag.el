@@ -61,6 +61,16 @@
   :group 'scroll-on-drag
   :type  'boolean)
 
+(defcustom scroll-on-drag-pre-hook nil
+  "List of functions to be called when scroll-on-drag starts."
+  :group 'scroll-on-drag
+  :type 'hook)
+
+(defcustom scroll-on-drag-post-hook nil
+  "List of functions to be called when scroll-on-drag finishes."
+  :group 'scroll-on-drag
+  :type 'hook)
+
 
 ;; Generic scrolling functions.
 ;;
@@ -361,6 +371,10 @@ Returns true when scrolling took place, otherwise nil."
                     (when scroll-on-drag-smooth
                       (funcall scroll-consrtain-point-below-window-start-fn))
                     (setq has-scrolled t))
+                  (unless has-scrolled-real
+                    (let
+                      ((inhibit-redisplay nil))
+                        (run-hooks 'scroll-on-drag-pre-hook)))
                   (setq has-scrolled-real t)
                   (funcall timer-stop-fn)
                   (funcall timer-update-fn timer-update-fn)))
@@ -389,6 +403,11 @@ Returns true when scrolling took place, otherwise nil."
     (when (boundp 'x-pointer-shape)
       (setq x-pointer-shape restore-x-pointer-shape)
       (set-mouse-color nil))
+
+    (when has-scrolled-real
+      (let
+        ((inhibit-redisplay nil))
+          (run-hooks 'scroll-on-drag-post-hook)))
 
     ;; Result so we know if any scrolling occurred,
     ;; allowing a fallback action on 'click'.
