@@ -55,11 +55,16 @@ jq -c '(.["install-plan"][] | select(.["pkg-src"].type == "local") | select(.["c
         COMPONENT="$PART"
     fi
 
-    CACHE=$(echo "$ROOT/.ghc.flags.$PART" | sed 's/:/./g')
-    echo "creating $CACHE"
     rm "$TMP/out" 2> /dev/null
     cabal v2-repl -v0 -w "$TMP/ghc" "$NAME:$COMPONENT"
-    cat  "$TMP/out" > "$CACHE"
+
+    # extract all the source directories that use these flags
+    for D in $(cat "$TMP/out" | tr ' ' '\n' | grep '^-i' | sed 's/^-i//' | sed '/^$/d') ; do
+        if [ -d "$D" ] ; then
+            echo "writing $D/.ghc.flags"
+            cat  "$TMP/out" > "$D/.ghc.flags"
+        fi
+    done
 done
 
 if [ -d "$TMP" ] ; then

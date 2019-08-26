@@ -55,14 +55,13 @@ change."
 (defun haskell-tng--hsinspect-ghcflags ()
   ;; https://github.com/haskell/cabal/issues/6203
   "Obtain the ghc flags for the current buffer"
-  (if-let (cache (locate-dominating-file default-directory ".ghc.flags.lib"))
+  (if-let (default-directory (locate-dominating-file default-directory ".ghc.flags"))
       (seq-map
        ;; hsinspect works best if we trick the compiler into thinking that the
        ;; file we are inspecting is independent of the current unit.
        (lambda (e) (if (equal e "-this-unit-id") "-package-id" e))
        (with-temp-buffer
-         ;; FIXME support exe/test/etc components (discover the component)
-         (insert-file-contents (expand-file-name ".ghc.flags.lib" cache))
+         (insert-file-contents (expand-file-name ".ghc.flags"))
          (split-string
           (buffer-substring-no-properties (point-min) (point-max)))))
     (user-error "could not find `.ghc.flags.lib'. Run `M-x haskell-tng-hsinspect'")))
