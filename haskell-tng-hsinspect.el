@@ -13,9 +13,6 @@
 
 (require 'haskell-tng-compile)
 
-(defvar-local haskell-tng-hsinspect-langexts nil)
-;; TODO improve the validity checker
-
 ;;;###autoload
 (defun haskell-tng-fqn-at-point ()
   "Consult the imports in scope and display the fully qualified
@@ -33,13 +30,14 @@ name of the symbol at point in the minibuffer."
       (message "<not imported>"))))
 
 (defvar haskell-tng-hsinspect
-  (concat
-   ;; no need to compile tests, use O0 so it is faster
-   "hsinspect-init () {\n"
-   "  cabal v2-build -O0 :all &&\n"
-   "  cabal v2-exec -O0 -v0 -- sh -c 'cat $GHC_ENVIRONMENT > .hsinspect.env'\n"
-   "}\n"
-   "hsinspect-init"))
+  ;; NOTE in order for this hack to work, the user needs to have setup a
+  ;; cabal.project.local that contains their default options (optimisations,
+  ;; enabling tests, etc) otherwise it will (at best) invalidate the cache and
+  ;; (at worst) not find local projects.
+  (expand-file-name
+   "cabal-ghcflags.sh"
+   (when load-file-name
+     (file-name-directory load-file-name))))
 ;;;###autoload
 (defun haskell-tng-hsinspect ()
   "Required (for now) to initialise a project for use with `hsinspect'.
@@ -48,11 +46,26 @@ change."
   (interactive)
   (when-let ((default-directory
                (or
-                ;; prefer the full project before packages
-                (locate-dominating-file "project.cabal" "project.cabal.local")
                 (haskell-tng--util-locate-dominating-file
-                 haskell-tng--compile-dominating-file))))
+                 haskell-tng--compile-dominating-project)
+                (haskell-tng--util-locate-dominating-file
+                 haskell-tng--compile-dominating-package))))
     (async-shell-command haskell-tng-hsinspect)))
+
+(defun haskell-tng--hsinspect-ghcflags ()
+  ;; https://github.com/haskell/cabal/issues/6203
+  "Obtain the ghc flags for the current buffer"
+  (if-let (cache (locate-dominating-file default-directory ".ghc.flags.lib"))
+      (seq-map
+       ;; hsinspect works best if we trick the compiler into thinking that the
+       ;; file we are inspecting is independent of the current unit.
+       (lambda (e) (if (equal e "-this-unit-id") "-package-id" e))
+       (with-temp-buffer
+         ;; FIXME support exe/test/etc components (discover the component)
+         (insert-file-contents (expand-file-name ".ghc.flags.lib" cache))
+         (split-string
+          (buffer-substring-no-properties (point-min) (point-max)))))
+    (user-error "could not find `.ghc.flags.lib'. Run `M-x haskell-tng-hsinspect'")))
 
 ;; TODO invalidate cache when imports section has changed
 ;; TODO is there a way to tell Emacs not to render this in `C-h v'?
@@ -66,31 +79,22 @@ t means the process failed.")
         haskell-tng--hsinspect-imports)
     (setq haskell-tng--hsinspect-imports t) ;; avoid races
     (ignore-errors (kill-buffer "*hsinspect*"))
-    (let ((envdir (locate-dominating-file default-directory ".hsinspect.env")))
-      (if (not envdir)
-          (user-error "could not find `.hsinspect.env'. Run `M-x haskell-tng-hsinspect'")
-        (if (/= 0
-                (let* ((ghcenv
-                        (concat "GHC_ENVIRONMENT="
-                                (expand-file-name envdir) ".hsinspect.env"))
-                       (process-environment
-                        (cons ghcenv process-environment)))
-                  (apply
-                   #'call-process
-                   ;; TODO launching the correct hsinspect-ghc-X version
-                   ;; TODO is there a way to pipe into a string not a buffer?
-                   ;; TODO async
-                   "hsinspect"
-                   nil "*hsinspect*" nil
-                   (append `("imports" ,buffer-file-name "--")
-                           haskell-tng-hsinspect-langexts))))
-            (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
-          (setq haskell-tng--hsinspect-imports
-                (with-current-buffer "*hsinspect*"
-                  (goto-char (point-min))
-                  (re-search-forward (rx bol "(") nil t) ;; sometimes there is junk from the launcher
-                  (goto-char (match-beginning 0))
-                  (or (ignore-errors (read (current-buffer))) t))))))))
+    (when-let (ghcflags (haskell-tng--hsinspect-ghcflags))
+      (if (/= 0
+              (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
+                (apply
+                 #'call-process
+                 ;; TODO launching the correct hsinspect-ghc-X version
+                 ;; TODO async
+                 "hsinspect"
+                 nil "*hsinspect*" nil
+                 (append `("imports" ,buffer-file-name "--") ghcflags))))
+          (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
+        (setq haskell-tng--hsinspect-imports
+              (with-current-buffer "*hsinspect*"
+                (goto-char (point-max))
+                (backward-sexp)
+                (or (ignore-errors (read (current-buffer))) t)))))))
 
 (provide 'haskell-tng-hsinspect)
 ;;; haskell-tng-hsinspect.el ends here

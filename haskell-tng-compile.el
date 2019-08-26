@@ -62,15 +62,16 @@
 (defvar haskell-tng--compile-history
   ;; Prefer --enable-tests due to
   ;; https://github.com/haskell/cabal/issues/6114
-  '("cabal v2-build -O0 --enable-tests :all"
-    "cabal v2-run -O0 --enable-tests tasty -- "))
+  '("cabal v2-build :all"
+    "cabal v2-run tasty -- "))
 (defvar-local haskell-tng--compile-command nil)
 (defvar-local haskell-tng--compile-alt "cabal v2-clean")
 
-(defvar haskell-tng--compile-dominating-file
-  (rx (| "cabal.project" "cabal.project.local" "cabal.project.freeze"
-         (: (+ any) ".cabal")
-         "package.yaml" "stack.yaml")))
+(defvar haskell-tng--compile-dominating-project
+  ;; TODO move stack.yaml to contrib-stack
+  (rx (| "cabal.project" "cabal.project.local" "cabal.project.freeze" "stack.yaml")))
+(defvar haskell-tng--compile-dominating-package
+  (rx (| (: (+ any) ".cabal") "package.yaml")))
 
 (defun haskell-tng-compile (&optional edit-command)
   "`compile' specialised to Haskell:
@@ -106,7 +107,9 @@ will cause the subsequent call to prompt."
     (let ((default-directory
             (or
              (haskell-tng--util-locate-dominating-file
-              haskell-tng--compile-dominating-file)
+              haskell-tng--compile-dominating-package)
+             (haskell-tng--util-locate-dominating-file
+              haskell-tng--compile-dominating-project)
              default-directory)))
       (compilation-start
        command
