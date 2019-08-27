@@ -76,6 +76,9 @@ jq -c '(.["install-plan"][] | select(.["pkg-src"].type == "local") | select(.["c
     rm "$OUTPUT" 2> /dev/null || true
     cabal v2-repl -v0 -w "$TMP/ghc" "$NAME:$COMPONENT"
 
+    # TODO also need to provide the PATH, since it might include commands that
+    # are referred to from compiler plugins (e.g. tasty-discover).
+
     # extract all the source directories that use these flags
     for D in $(cat "$OUTPUT" | tr ' ' '\n' | grep '^-i' | sed 's/^-i//' | sed '/^$/d') ; do
         if [[ "$D" != /* ]] ; then

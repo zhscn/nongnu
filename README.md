@@ -64,9 +64,16 @@ You must install `hsinspect` for every version of `ghc` that you plan to use, e.
 rm -f ~/.cabal/bin/hsinspect
 for V in 8.4.4 8.6.5 ; do
   cabal v2-install hsinspect -w ghc-$V &&
-  mv ~/.cabal/bin/hsinspect ~/.cabal/bin/hsinspect-ghc-$V
+  mv -f ~/.cabal/bin/hsinspect ~/.cabal/bin/hsinspect-ghc-$V
 done
 ```
+
+<!--
+for V in 8.4.4 8.6.5 ; do
+  cabal v2-install exe:hsinspect -w ghc-$V &&
+  mv -f ~/.cabal/bin/hsinspect ~/.cabal/bin/hsinspect-ghc-$V
+done
+-->
 
 To use `hsinspect` commands, generate `.ghc.flags` / `.ghc.version` files by running `M-x haskell-tng-hsinspect` for a project. This is only needed when the dependencies change.
 

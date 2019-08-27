@@ -58,14 +58,10 @@ change."
   ;; https://github.com/haskell/cabal/issues/6203
   "Obtain the ghc flags for the current buffer"
   (if-let (default-directory (locate-dominating-file default-directory ".ghc.flags"))
-      (seq-map
-       ;; hsinspect works best if we trick the compiler into thinking that the
-       ;; file we are inspecting is independent of the current unit.
-       (lambda (e) (if (equal e "-this-unit-id") "-package-id" e))
-       (with-temp-buffer
-         (insert-file-contents (expand-file-name ".ghc.flags"))
-         (split-string
-          (buffer-substring-no-properties (point-min) (point-max)))))
+      (with-temp-buffer
+        (insert-file-contents (expand-file-name ".ghc.flags"))
+        (split-string
+         (buffer-substring-no-properties (point-min) (point-max))))
     (user-error "could not find `.ghc.flags'. Run `M-x haskell-tng-hsinspect'")))
 
 (defun haskell-tng--hsinspect-ghc ()
@@ -102,7 +98,7 @@ t means the process failed.")
                  (haskell-tng--hsinspect-ghc)
                  nil "*hsinspect*" nil
                  ;; need to disable all warnings
-                 (append `("imports" ,buffer-file-name "--") ghcflags '("-w")))))
+                 (append `("imports" ,buffer-file-name "--") ghcflags))))
           (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
         (setq haskell-tng--hsinspect-imports
               (with-current-buffer "*hsinspect*"
