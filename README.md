@@ -58,19 +58,25 @@ A full installation may look like the following
 
 The optional command line tool [`hsinspect`](https://gitlab.com/tseenshe/hsinspect) provides semantic information by using the `ghc` api.
 
-For now, only one version of `ghc` is supported at a time (change `ghc-8.4.4` to your current `ghc` version):
+You must install `hsinspect` for every version of `ghc` that you plan to use, e.g.
 
 ```
-cabal v2-install hsinspect --overwrite-policy=always -w ghc-8.4.4
+rm -f ~/.cabal/bin/hsinspect
+for V in 8.4.4 8.6.5 ; do
+  cabal v2-install hsinspect -w ghc-$V &&
+  mv ~/.cabal/bin/hsinspect ~/.cabal/bin/hsinspect-ghc-$V
+done
 ```
 
-To use `hsinspect` commands, generate a `.hsinspect.env` file by running `M-x haskell-tng-hsinspect` for a project. This is only needed when the dependencies change, but the project must be compilable.
+To use `hsinspect` commands, generate `.ghc.flags` / `.ghc.version` files by running `M-x haskell-tng-hsinspect` for a project. This is only needed when the dependencies change.
+
+`hsinspect` only works when the dependencies of the current file have been compiled (the current file doesn't need to be compilable).
 
 The `haskell-tng-contrib-company` package will automatically complete symbols that are in scope.
 
 To find out which module a symbol belongs to, use `M-x haskell-tng-fqn-at-point`.
 
-The are some limitations to this tool in addition to known bugs. See [the gory details](https://gitlab.com/tseenshe/hsinspect) for more information. Hopefully there will be no need for `M-x haskell-tng-hsinspect` or the `.hsinspect.env` files in a future release.
+The are some limitations to this tool in addition to known bugs. See [the gory details](https://gitlab.com/tseenshe/hsinspect) for more information. Hopefully there will be no need for `M-x haskell-tng-hsinspect` and the `.ghc.*` files in a future release.
 
 ## Contrib
 

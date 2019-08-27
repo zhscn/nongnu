@@ -11,6 +11,8 @@
 ;;
 ;;; Code:
 
+(require 'subr-x)
+
 (require 'haskell-tng-compile)
 
 ;;;###autoload
@@ -64,7 +66,17 @@ change."
          (insert-file-contents (expand-file-name ".ghc.flags"))
          (split-string
           (buffer-substring-no-properties (point-min) (point-max)))))
-    (user-error "could not find `.ghc.flags.lib'. Run `M-x haskell-tng-hsinspect'")))
+    (user-error "could not find `.ghc.flags'. Run `M-x haskell-tng-hsinspect'")))
+
+(defun haskell-tng--hsinspect-ghc ()
+  "Obtain the version of hsinspect that matches the project's compiler."
+  (if-let (default-directory (locate-dominating-file default-directory ".ghc.version"))
+      (with-temp-buffer
+        (insert-file-contents (expand-file-name ".ghc.version"))
+        (concat
+         "hsinspect-ghc-"
+         (string-trim (buffer-substring-no-properties (point-min) (point-max)))))
+    (user-error "could not find `.ghc.version'. Run `M-x haskell-tng-hsinspect'")))
 
 ;; TODO invalidate cache when imports section has changed
 ;; TODO is there a way to tell Emacs not to render this in `C-h v'?
@@ -78,16 +90,19 @@ t means the process failed.")
         haskell-tng--hsinspect-imports)
     (setq haskell-tng--hsinspect-imports t) ;; avoid races
     (ignore-errors (kill-buffer "*hsinspect*"))
-    (when-let (ghcflags (haskell-tng--hsinspect-ghcflags))
+    (when-let ((ghcflags (haskell-tng--hsinspect-ghcflags))
+               ;; default-directory is so that relative paths in ghcflags work
+               (default-directory (haskell-tng--util-locate-dominating-file
+                                   haskell-tng--compile-dominating-package)))
       (if (/= 0
               (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
                 (apply
                  #'call-process
-                 ;; TODO launching the correct hsinspect-ghc-X version
                  ;; TODO async
-                 "hsinspect"
+                 (haskell-tng--hsinspect-ghc)
                  nil "*hsinspect*" nil
-                 (append `("imports" ,buffer-file-name "--") ghcflags))))
+                 ;; need to disable all warnings
+                 (append `("imports" ,buffer-file-name "--") ghcflags '("-w")))))
           (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
         (setq haskell-tng--hsinspect-imports
               (with-current-buffer "*hsinspect*"
