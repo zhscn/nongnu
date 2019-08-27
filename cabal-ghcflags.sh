@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Dump the ghc flags that cabal-install uses to launch a repl session for
 # all components into files named `.ghc.flags.component'.
@@ -32,7 +32,7 @@ GHC=$(cabal v2-exec -v2 ghc -- --numeric-version | tail -2 | head -1 | sed 's/ .
 # ghc is called multiple times during the v2-repl startup.
 # The only call that we're interested in is this one.
 cat <<EOF > "$TMP/ghc"
-#!/bin/bash
+#!/usr/bin/env bash
 if [ "\$1" == "--interactive" ]; then
     echo -n "\${@:2}" >> "\$OUTPUT"
 else
@@ -43,14 +43,14 @@ chmod 755 "$TMP/ghc"
 
 GHC_PKG=$(echo "$GHC" | rev | sed 's/chg/gkp-chg/' | rev)
 cat <<EOF > "$TMP/ghc-pkg"
-#!/bin/bash
+#!/usr/bin/env bash
 exec "$GHC_PKG" "\$@"
 EOF
 chmod 755 "$TMP/ghc-pkg"
 
 HSC2HS=$(echo "$GHC" | rev | sed 's/chg/sh2csh/' | rev)
 cat <<EOF > "$TMP/hsc2hs"
-#!/bin/bash
+#!/usr/bin/env bash
 exec "$HSC2HS" "\$@"
 EOF
 chmod 755 "$TMP/hsc2hs"
