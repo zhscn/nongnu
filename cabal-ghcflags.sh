@@ -16,7 +16,9 @@ mkdir -p "$TMP" 2> /dev/null || true
 
 # to ensure the json plan is in place
 echo "Resolving dependencies"
-cabal v2-build -v0 :all --dry
+# cabal v2-build -v0 :all --dry
+# best just ensure deps are compiled otherwise the repl compiles them
+cabal v2-build :all --only-dependencies
 
 if [ ! -f dist-newstyle/cache/plan.json ] ; then
     echo "dist-newstyle/cache/plan.json not found"
@@ -55,13 +57,13 @@ exec "$HSC2HS" "\$@"
 EOF
 chmod 755 "$TMP/hsc2hs"
 
-echo "Inspecting build plan"
-jq -c '(.["install-plan"][] | select(.["pkg-src"].type == "local") | select(.["component-name"] != null) | [ .["pkg-name"], .["component-name"], .["pkg-src"].path, .id ] )' dist-newstyle/cache/plan.json | while read LINE ; do
+create_ghcflags() {
+    LINE="$1"
+
     NAME=$(echo "$LINE" | jq -r '.[0]')
     PART=$(echo "$LINE" | jq -r '.[1]')
     ROOT=$(echo "$LINE" | jq -r '.[2]')
     ID=$(echo "$LINE" | jq -r '.[3]')
-    # TODO this could be parallelised (if cabal can handle it!)
 
     if [ "$PART" == "lib" ] ; then
         COMPONENT="lib:$NAME"
@@ -89,7 +91,15 @@ jq -c '(.["install-plan"][] | select(.["pkg-src"].type == "local") | select(.["c
             fi
         fi
     done
+}
+
+echo "Inspecting build plan"
+for LINE in $(jq -c '(.["install-plan"][] | select(.["pkg-src"].type == "local") | select(.["component-name"] != null) | [ .["pkg-name"], .["component-name"], .["pkg-src"].path, .id ] )' dist-newstyle/cache/plan.json) ; do
+    # NOTE: could be done in parallel, but I haven't measured it being faster
+    create_ghcflags "$LINE"
 done
+
+wait
 
 if [ -d "$TMP" ] ; then
   rm -rf "$TMP"
