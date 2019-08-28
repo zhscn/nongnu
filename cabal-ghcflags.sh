@@ -83,10 +83,10 @@ jq -c '(.["install-plan"][] | select(.["pkg-src"].type == "local") | select(.["c
     for D in $(cat "$OUTPUT" | tr ' ' '\n' | grep '^-i' | sed 's/^-i//' | sed '/^$/d') ; do
         if [[ "$D" != /* ]] ; then
             D="$ROOT/$D"
-        fi
-        if [ -d "$D" ] ; then
-            echo "    $D/.ghc.flags"
-            cat  "$OUTPUT" > "$D/.ghc.flags"
+            if [ -d "$D" ] ; then
+                # echo "    $D/.ghc.flags"
+                cat  "$OUTPUT" > "$D/.ghc.flags"
+            fi
         fi
     done
 done
