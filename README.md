@@ -1,30 +1,34 @@
 # Haskell Mode: The Next Generation
 
-This is an exploratory alternative to [`haskell-mode`](https://github.com/haskell/haskell-mode/) that answers the question *how would we support Haskell in GNU Emacs if we started today?*
+This is an exploratory alternative to [`haskell-mode`](https://github.com/haskell/haskell-mode/) that answers the question *how would I support Haskell in GNU Emacs if I started today?*
 
 ## Why?
+
+`haskell-mode` has been such an important tool for me that I feel the need to explain why I am rewriting it. I have the greatest of respect for its contributors and I have used it for many years.
 
 In [Lessons from 6 Software Rewrites](https://medium.com/@herbcaudill/lessons-from-6-software-rewrite-stories-635e4c8f7c22), the author concludes *avoid rewrites and make incremental improvements instead, unless you want to a) remove functionality or b) take a different approach*.
 
 ### Remove Functionality
 
-`haskell-mode` is almost 30 years old and has accumulated more than 25,000 lines of code aimed at a wide variety of users from academics to industrial software engineers. We choose to focus on the requirements of the industrial engineer, removing features that are deeply embedded in the design of the original codebase.
+`haskell-mode` is almost 30 years old and has accumulated more than 25,000 lines of code aimed at a wide variety of users from academics to industrial software engineers. I choose to focus on the requirements of the industrial engineer, removing features that are deeply embedded in the design of the original codebase.
 
 ### Different Approach
 
 During those past 30 years, the GNU Emacs ecosystem has evolved to provide many features that `haskell-mode` independently implemented, such as [`projectile`](https://github.com/bbatsov/projectile), [`comint`](https://masteringemacs.org/article/comint-writing-command-interpreter), [`highlight-symbol`](https://melpa.org/##/highlight-symbol), [`pretty-symbols`](https://github.com/drothlis/pretty-symbols), [`company`](http://company-mode.github.io), [`yasnippet`](http://joaotavora.github.io/yasnippet/), [`polymode`](https://github.com/polymode/polymode), [`paredit`](https://www.emacswiki.org/emacs/ParEdit) / [`smartparens`](https://github.com/Fuco1/smartparens), [`repl-toggle`](https://github.com/tomterl/repl-toggle), [SMIE](https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html) and [LSP](https://github.com/emacs-lsp/lsp-mode/), to name just a few.
 
-We choose to use idiomatic libraries to provide features, rather than building ground-up solutions.
+I choose to use idiomatic libraries to provide features, rather than building ground-up solutions. Many shared libraries exist to generalise solutions that were first proposed in `haskell-mode`!
 
 ## Goal
 
-The goal of this friendly rewrite is to produce software that any Haskell developer can use, understand and build upon ([Emacs Lisp](https://www.gnu.org/software/emacs/manual/elisp.html) is fun to learn).
+I want a Haskell editing experience that lets me efficiently write commercial Haskell, and offers me as much automation as I am happy with.
 
-This can be achieved in a small codebase with zero dependencies and high test coverage, targeting [Haskell2010](https://www.haskell.org/onlinereport/haskell2010/).
+I believe in helping my neighbours, so this codebase is available publicly and I have included installation instructions. But I do not want the burden of users.
 
-Old versions of `ghc` and extensions to the Haskell language may not be supported, to reduce the complexity of the codebase. For example, [literate Haskell](https://wiki.haskell.org/Literate_programming) will not be supported, and `ghc` language extensions must be justified on a per-case basis. We are sympathetic to language extensions that are popular in the free software and commercial ecosystems.
+The goals can be achieved in a small codebase with zero dependencies and high test coverage, targeting [Haskell2010](https://www.haskell.org/onlinereport/haskell2010/).
 
-If it is possible to implement a feature using another minor mode, or command line tool, then we would prefer not to accept the feature.
+Old versions of `ghc` and extensions to the Haskell language may not be supported, to reduce the complexity of the codebase. For example, [literate Haskell](https://wiki.haskell.org/Literate_programming) will not be supported, and `ghc` language extensions must be justified on a per-case basis. I am sympathetic to language extensions that are popular in the free software and commercial ecosystems.
+
+If it is possible to implement a feature using another minor mode, or command line tool, then I would prefer not to add the feature.
 
 ## Install
 
@@ -99,9 +103,9 @@ Third party Haskell tools must be installed separately (e.g. via `cabal v2-insta
 
 ## Contributing
 
-Bug reports and feature requests are a source of anxiety for maintainers, and encourage an unhealthy customer / supplier relationship between users and contributors.
+Bug reports and feature requests are a source of anxiety for me, and encourage an unhealthy customer / supplier relationship between users and contributors.
 
-Instead, and following the [anarchical spirit of Haskell](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/07/history.pdf), we encourage discussions and debate around code contributions. Merge requests can be raised by anybody and discussed by anybody, and do not need to be complete. An automated test is the only way to report a bug. If the maintainers are convinced by the technical merit and quality of a proposal, they may accept it.
+If you wish to contribute, the best thing to do is to let me know about your copy of this repository and we can take it from there. We may both chose to collaborate in one place.
 
 To run the tests, install [`cask`](https://cask.readthedocs.io/en/latest/guide/installation.html) and type
 
