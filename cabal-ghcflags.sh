@@ -67,6 +67,9 @@ create_ghcflags() {
 
     if [ "$PART" == "lib" ] ; then
         COMPONENT="lib:$NAME"
+    elif [ "$PART" == "setup" ] || [ "$PART" == "test:doctests" ] ; then
+        echo "  $NAME:$PART SKIPPED"
+        return 0;
     else
         COMPONENT="$PART"
     fi
@@ -94,8 +97,12 @@ create_ghcflags() {
 }
 
 echo "Inspecting build plan"
-for LINE in $(jq -c '(.["install-plan"][] | select(.["pkg-src"].type == "local") | select(.["component-name"] != null) | [ .["pkg-name"], .["component-name"], .["pkg-src"].path, .id ] )' dist-newstyle/cache/plan.json) ; do
+for LINE in $(jq -c '(."install-plan"[] | select(."pkg-src".type == "local") | select(."component-name" != null) | [ ."pkg-name", ."component-name", ."pkg-src".path, .id ] )' dist-newstyle/cache/plan.json) ; do
     # NOTE: could be done in parallel, but I haven't measured it being faster
+    create_ghcflags "$LINE"
+done
+# and again for custom Setup.hs builds...
+for LINE in $(jq -c '(."install-plan"[] | select(."pkg-src".type == "local") | select(."components" != null) | . as $p | .["components"] | keys[] | [ $p."pkg-name" , . , $p."pkg-src".path , $p.id] )' dist-newstyle/cache/plan.json) ; do
     create_ghcflags "$LINE"
 done
 
