@@ -34,7 +34,7 @@
 (defun haskell-tng-newline (&optional alt)
   "A `newline-and-indent' with a better user experience for `haskell-tng-mode'.
 
-Comments are continued unless called with a prefix."
+Comments are continued if called with a prefix."
   (interactive "P")
   ;; TODO a dynamically bound variable might improve the quality of
   ;;      'empty-line-token predictions. Parens are special-cased.
@@ -53,8 +53,8 @@ Comments are continued unless called with a prefix."
     ;;
     ;; TODO in-comment indent should observe | haddock markers
     (if alt
-        (call-interactively #'newline-and-indent)
-      (call-interactively #'comment-indent-new-line))
+        (call-interactively #'comment-indent-new-line)
+      (call-interactively #'newline-and-indent))
     (when rem
       (save-excursion
         (insert rem)))))
