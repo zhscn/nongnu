@@ -74,7 +74,7 @@ done
 
 <!--
 for V in 8.4.4 8.6.5 ; do
-  cabal v2-install exe:hsinspect -w ghc-$V &&
+  cabal v2-install exe:hsinspect -w ghc-$V -O1 &&
   mv -f ~/.cabal/bin/hsinspect ~/.cabal/bin/hsinspect-ghc-$V
 done
 -->

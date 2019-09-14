@@ -102,6 +102,7 @@
 
       ;; TODO unnamed newtype fields should be a type, not a constructor
       ;; TODO bug, multiple standalone instance declarations in a row do not fire
+      ;; TODO bug \Foo{foo} doesn't highlight correctly
 
       ;; TODO CPP #ifdef would be nice
 
