@@ -31,6 +31,23 @@
   (revert-buffer t t t))
 
 ;;;###autoload
+(defun haskell-tng-stylish-ormolu ()
+  "Apply `ormolu' rules."
+  ;; TODO use https://github.com/purcell/reformatter.el
+  ;; TODO error buffer should be easy to dismiss
+  ;; TODO pass parameters via a buffer local variable
+  (interactive)
+  (save-buffer)
+  (unless (= 0 (call-process "ormolu" nil "*ormolu*" nil
+                             "-o" "-XTypeApplications"
+                             "-o" "-XBangPatterns"
+                             "-o" "-XPatternSynonyms"
+                             "-c" "-m" "inplace"
+                             buffer-file-name))
+    (pop-to-buffer "*ormolu*" nil t))
+  (revert-buffer t t t))
+
+;;;###autoload
 (defun haskell-tng-stack2cabal ()
   "Prepare a stack project for use with cabal."
   (interactive)
