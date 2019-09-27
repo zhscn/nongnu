@@ -54,7 +54,7 @@
      ;;(message "TNG asked with %S" arg)
      (seq-mapcat
       (lambda (names) (all-completions arg (seq-map #'cdr names)))
-      (haskell-tng--hsinspect-imports)))
+      (haskell-tng--hsinspect-imports 'lookup-only)))
     ('sorted t)
     ('duplicates t)
     ;; TODO 'meta return the FQN

@@ -80,8 +80,8 @@ change."
 (defvar-local haskell-tng--hsinspect-imports nil
   "Cache for the last `imports' call for this buffer.
 t means the process failed.")
-(defun haskell-tng--hsinspect-imports ()
-  (if haskell-tng--hsinspect-imports
+(defun haskell-tng--hsinspect-imports (&optional lookup-only)
+  (if (or lookup-only haskell-tng--hsinspect-imports)
       (unless (eq t haskell-tng--hsinspect-imports)
         haskell-tng--hsinspect-imports)
     (setq haskell-tng--hsinspect-imports t) ;; avoid races
