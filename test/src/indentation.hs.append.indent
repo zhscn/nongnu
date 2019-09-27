@@ -292,3 +292,7 @@ types3 :: (Monad m, MonadReader Foo m) =>
 v         1
 
 v         1
+types_short :: Foo -> Bar
+1 v
+
+v

@@ -145,3 +145,5 @@ types3 «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: »«:haskell-tn
           »«:haskell-tng-keyword-face:(»«:haskell-tng-type-face:?log »«:haskell-tng-keyword-face:::»«:haskell-tng-type-face: HasLogger m»«:haskell-tng-keyword-face:)»«:haskell-tng-type-face: »«:haskell-tng-keyword-face:=>»«:haskell-tng-type-face:
           a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: b »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: c
 »
+types_short «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Foo »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: Bar
+»

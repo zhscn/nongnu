@@ -144,3 +144,5 @@ types2b
 types3 :: (Monad m, MonadReader Foo m) =>
           (?log :: HasLogger m) =>
           a -> b -> c
+
+types_short :: Foo -> Bar
