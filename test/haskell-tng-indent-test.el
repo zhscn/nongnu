@@ -12,7 +12,6 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
-;; FIXME types_short
 ;; TODO line after `instance ... where' has too much indent
 ;; TODO records assigning / copy by label
 ;; TODO records of functions

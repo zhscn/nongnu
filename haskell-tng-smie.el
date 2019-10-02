@@ -272,7 +272,8 @@ information, to aid in the creation of new rules."
             "|")
 
            ((and (member parent '("::" "=>"))
-                 (< (seq-count (lambda (it) (equal it "=>")) prevline) 2)
+                 (or (not (member "=>" prevline))
+                     (equal "=>" (car prevline)))
                  (not (haskell-tng--smie-prev-line-blank-p)))
             "=>")
 
