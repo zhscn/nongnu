@@ -73,6 +73,11 @@ not_dollars = do
   shouldGoHere <$>
     here
 
+logic a =
+  if a > 0
+  then a
+  else -a
+
 data Wibble = Wibble Int
             | Wobble Int
             | Vibble Int

@@ -73,9 +73,14 @@
   ((shouldGoHere) <$>
     (here))
 
-)data (Wibble) = (Wibble) (Int)
+)(logic) (a) =
+  (if (a) > (((0)
+  (then) (a)
+  (else) (-(a)
+
+(data (Wibble) = (Wibble) (Int)
             | (Wobble) (Int)
-            | (Vibble) (Int)
+            | (Vibble) (Int))
 
 (data (Record1) = (Record1) ({
   (fieldA) :: (String)
@@ -145,5 +150,5 @@
           ((?log) :: (HasLogger) (m)) =>
           (a) -> (b) -> (c))
 
-((types_short) :: (Foo) -> (Bar))))))))))))))
+((types_short) :: (Foo) -> (Bar))))))))))))))))))
 )))

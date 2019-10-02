@@ -73,7 +73,12 @@ module Indentation where
   ;shouldGoHere <$>
     here
 
-};data Wibble = Wibble Int
+};logic a =
+  if a > 0
+  then a
+  else -a
+
+;data Wibble = Wibble Int
             | Wobble Int
             | Vibble Int
 
