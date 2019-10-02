@@ -73,10 +73,18 @@ not_dollars = do
   shouldGoHere <$>
     here
 
-logic a =
+logic1 a =
   if a > 0
-  then a
+  then b
   else -a
+
+logic2 a =
+  if
+    a > 0
+  then
+    b
+  else
+    -a
 
 data Wibble = Wibble Int
             | Wobble Int

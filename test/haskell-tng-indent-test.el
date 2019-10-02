@@ -15,7 +15,6 @@
 ;; TODO line after `instance ... where' has too much indent
 ;; TODO records assigning / copy by label
 ;; TODO records of functions
-;; TODO if/then/else
 ;; TODO ImplicitParams in type signatures (without parens)
 
 ;; Three indentation regression tests are possible:

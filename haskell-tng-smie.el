@@ -265,6 +265,9 @@ information, to aid in the creation of new rules."
              (cl-search '("{" "=") ancestors :test 'equal))
             ",")
 
+           ((member next '("then" "else"))
+            next)
+
            ((or (equal parent "|")
                 (and (equal parent "=")
                      (equal grand "data")
@@ -324,6 +327,7 @@ information, to aid in the creation of new rules."
        ((and "=>" (guard (smie-rule-parent-p "::")))
         (haskell-tng--smie-rule-parent-column 3))
        ("," (smie-rule-separator method))
+       ((or "if" "then" "else") 2)
        ((or "SYMID" "CONSYM" "KINDSYM")
         (if (smie-rule-hanging-p) 2 (smie-rule-parent)))
        ))

@@ -73,10 +73,18 @@ not_dollars «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:do»
   shouldGoHere <$>
     here
 
-logic a «:haskell-tng-keyword-face:=»
+logic1 a «:haskell-tng-keyword-face:=»
   «:haskell-tng-keyword-face:if» a > 0
-  «:haskell-tng-keyword-face:then» a
+  «:haskell-tng-keyword-face:then» b
   «:haskell-tng-keyword-face:else» -a
+
+logic2 a «:haskell-tng-keyword-face:=»
+  «:haskell-tng-keyword-face:if»
+    a > 0
+  «:haskell-tng-keyword-face:then»
+    b
+  «:haskell-tng-keyword-face:else»
+    -a
 
 «:haskell-tng-keyword-face:data»«:haskell-tng-type-face: Wibble »«:haskell-tng-keyword-face:=» «:haskell-tng-conid-face:Wibble» «:haskell-tng-conid-face:Int»
             «:haskell-tng-keyword-face:|» «:haskell-tng-conid-face:Wobble» «:haskell-tng-conid-face:Int»
