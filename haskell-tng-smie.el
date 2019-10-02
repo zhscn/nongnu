@@ -51,10 +51,15 @@ When in a comment and called with a prefix, the comment will be completed."
       (delete-region (point) (line-end-position)))
     ;; TODO don't continue line comments if there is code before them
     ;;
-    ;; TODO in-comment indent should observe | haddock markers
-    (if alt
-        (call-interactively #'newline-and-indent)
-      (call-interactively #'comment-indent-new-line))
+    ;; TODO in-comment indent should observer but not repeat | haddock markers
+    (cond
+     (alt
+      (call-interactively #'newline-and-indent))
+     ((looking-back (rx (>= 3 "-")) (line-beginning-position))
+      ;; don't continue or indent visual line breaks
+      (call-interactively #'newline))
+     (t
+      (call-interactively #'comment-indent-new-line)))
     (when rem
       (save-excursion
         (insert rem)))))
