@@ -45,6 +45,7 @@ A full installation may look like the following
   :config
   (require 'haskell-tng-hsinspect)
   (require 'haskell-tng-contrib)
+  (require 'haskell-tng-contrib-abbrev)
   (require 'haskell-tng-contrib-company)
   (require 'haskell-tng-contrib-projectile)
   (require 'haskell-tng-contrib-smartparens)
@@ -163,7 +164,6 @@ This is the status of core features:
   - and [`hlint`](https://github.com/ndmitchell/hlint)
   - and for faster feedback, [`ghcid`](https://github.com/ndmitchell/ghcid)
 - [visualise values as types](https://twitter.com/jyothsnasrin/status/1039530556080283648)
-- are there any sensible `abbrev-mode` defaults?
 - [`djinn`](https://hackage.haskell.org/package/djinn) / [`justdoit`](https://hackage.haskell.org/package/ghc-justdoit) integration
 - [`pointfree`](https://hackage.haskell.org/package/pointfree) integration
 - is there a solution to thinking "right to left" vs writing "left to right"? (easy left token movement?)
