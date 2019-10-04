@@ -13,18 +13,27 @@
 (require 'skeleton)
 (require 'haskell-tng-mode)
 
+;; TODO a macro to easily define an abbrev and skeleton?
+;; TODO don't fire abbrevs in comments
+
+(abbrev-table-put
+ haskell-tng-mode-abbrev-table
+ :regexp (rx (or bol space) ;; don't fire for \case
+             (submatch (+ (not space))) point))
+
 (define-skeleton haskell-tng--skeleton-case-of
   "case...of boilerplate"
   nil "case " _ " of")
 
 (define-abbrev
   haskell-tng-mode-abbrev-table
-  "case" "" #'haskell-tng--skeleton-case-of)
+  "case" "" #'haskell-tng--skeleton-case-of
+  :system t
+  :case-fixed t)
 
 (add-hook
  'haskell-tng-mode-hook
  (lambda ()
-   ;; TODO disable the request to save the abbrev table
    (abbrev-mode 1)))
 
 (provide 'haskell-tng-contrib-abbrev)
