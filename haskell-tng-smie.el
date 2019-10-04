@@ -31,39 +31,6 @@
 (require 'haskell-tng-font-lock)
 (require 'haskell-tng-lexer)
 
-(defun haskell-tng-newline (&optional alt)
-  "A `newline-and-indent' with a better user experience for `haskell-tng-mode'.
-
-When in a comment and called with a prefix, the comment will be completed."
-  (interactive "P")
-  ;; TODO a dynamically bound variable might improve the quality of
-  ;;      'empty-line-token predictions. Parens are special-cased.
-  (when (<= (- (point-max) 1) (point))
-    ;; WORKAROUND https://debbugs.gnu.org/cgi/bugreport.cgi?bug=36432
-    ;; TODO fix the bug properly in SMIE
-    (save-excursion (insert "\n\n")))
-  (let ((rem (save-excursion
-               (skip-syntax-forward " ")
-               (unless (looking-at (rx (syntax close-parenthesis)))
-                 (when (/= (point) (line-end-position))
-                   (buffer-substring-no-properties (point) (line-end-position)))))))
-    (when rem
-      (delete-region (point) (line-end-position)))
-    ;; TODO don't continue line comments if there is code before them
-    ;;
-    ;; TODO in-comment indent should observer but not repeat | haddock markers
-    (cond
-     (alt
-      (call-interactively #'newline-and-indent))
-     ((looking-back (rx (>= 3 "-")) (line-beginning-position))
-      ;; don't continue or indent visual line breaks
-      (call-interactively #'newline))
-     (t
-      (call-interactively #'comment-indent-new-line)))
-    (when rem
-      (save-excursion
-        (insert rem)))))
-
 ;; TODO autodetection of indent options
 
 (defcustom haskell-tng-aligntypes nil
