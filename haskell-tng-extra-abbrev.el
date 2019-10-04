@@ -1,4 +1,4 @@
-;;; haskell-tng-contrib-abbrev.el --- abbrev-mode integration -*- lexical-binding: t -*-
+;;; haskell-tng-extra-abbrev.el --- abbrev-mode integration -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Tseen She
 ;; License: GPL 3 or any later version
@@ -36,5 +36,5 @@
  (lambda ()
    (abbrev-mode 1)))
 
-(provide 'haskell-tng-contrib-abbrev)
-;;; haskell-tng-contrib-abbrev.el ends here
+(provide 'haskell-tng-extra-abbrev)
+;;; haskell-tng-extra-abbrev.el ends here

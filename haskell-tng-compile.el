@@ -68,7 +68,7 @@
 (defvar-local haskell-tng--compile-alt "cabal v2-clean")
 
 (defvar haskell-tng--compile-dominating-project
-  ;; TODO move stack.yaml to contrib-stack
+  ;; TODO move stack.yaml to extra-stack
   (rx (| "cabal.project" "cabal.project.local" "cabal.project.freeze" "stack.yaml")))
 (defvar haskell-tng--compile-dominating-package
   (rx (| (: (+ any) ".cabal") "package.yaml")))

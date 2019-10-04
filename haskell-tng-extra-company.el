@@ -1,4 +1,4 @@
-;;; haskell-tng-contrib-company.el --- company mode integration -*- lexical-binding: t -*-
+;;; haskell-tng-extra-company.el --- company mode integration -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Tseen She
 ;; License: GPL 3 or any later version
@@ -75,5 +75,5 @@
    (setq-local company-backends haskell-tng-company-backends)
    (company-mode 1)))
 
-(provide 'haskell-tng-contrib-company)
-;;; haskell-tng-contrib-company.el ends here
+(provide 'haskell-tng-extra-company)
+;;; haskell-tng-extra-company.el ends here

@@ -1,4 +1,4 @@
-;;; haskell-tng-contrib-yasnippet.el --- yasnippet integration -*- lexical-binding: t -*-
+;;; haskell-tng-extra-yasnippet.el --- yasnippet integration -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Tseen She
 ;; License: GPL 3 or any later version
@@ -22,5 +22,5 @@
  (lambda ()
    (yas-minor-mode 1)))
 
-(provide 'haskell-tng-contrib-yasnippet)
-;;; haskell-tng-contrib-yasnippet.el ends here
+(provide 'haskell-tng-extra-yasnippet)
+;;; haskell-tng-extra-yasnippet.el ends here

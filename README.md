@@ -44,12 +44,12 @@ A full installation may look like the following
 
   :config
   (require 'haskell-tng-hsinspect)
-  (require 'haskell-tng-contrib)
-  (require 'haskell-tng-contrib-abbrev)
-  (require 'haskell-tng-contrib-company)
-  (require 'haskell-tng-contrib-projectile)
-  (require 'haskell-tng-contrib-smartparens)
-  (require 'haskell-tng-contrib-yasnippet)
+  (require 'haskell-tng-extra)
+  (require 'haskell-tng-extra-abbrev)
+  (require 'haskell-tng-extra-company)
+  (require 'haskell-tng-extra-projectile)
+  (require 'haskell-tng-extra-smartparens)
+  (require 'haskell-tng-extra-yasnippet)
 
   :bind
   (:map
@@ -84,7 +84,7 @@ To use `hsinspect` commands, generate `.ghc.flags` / `.ghc.version` files by run
 
 `hsinspect` only works when the dependencies of the current file have been compiled (the current file doesn't need to be compilable).
 
-The `haskell-tng-contrib-company` package will automatically complete symbols that are in scope.
+The `haskell-tng-extra-company` package will automatically complete symbols that are in scope.
 
 To find out which module a symbol belongs to, use `M-x haskell-tng-fqn-at-point`.
 

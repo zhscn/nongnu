@@ -1,4 +1,4 @@
-;;; haskell-tng-contrib-projectile.el --- Projectile integration -*- lexical-binding: t -*-
+;;; haskell-tng-extra-projectile.el --- Projectile integration -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Tseen She
 ;; License: GPL 3 or any later version
@@ -18,5 +18,5 @@
    (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle --exclude=.stack-work .")
    ))
 
-(provide 'haskell-tng-contrib-projectile)
-;;; haskell-tng-contrib-projectile.el ends here
+(provide 'haskell-tng-extra-projectile)
+;;; haskell-tng-extra-projectile.el ends here

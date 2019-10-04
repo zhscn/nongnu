@@ -1,4 +1,4 @@
-;;; haskell-tng-contrib.el --- Untested features -*- lexical-binding: t -*-
+;;; haskell-tng-extra.el --- Untested features -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Tseen She
 ;; License: GPL 3 or any later version
@@ -88,5 +88,5 @@
        "\\/"))))
    "."))
 
-(provide 'haskell-tng-contrib)
-;;; haskell-tng-contrib.el ends here
+(provide 'haskell-tng-extra)
+;;; haskell-tng-extra.el ends here
