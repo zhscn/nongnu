@@ -65,7 +65,7 @@ When in a comment and called with a prefix, the comment will be completed."
   (revert-buffer t t t))
 
 ;;;###autoload
-(defun haskell-tng-stylish-ormolu ()
+(defun haskell-tng-ormolu ()
   "Apply `ormolu' rules."
   ;; TODO use https://github.com/purcell/reformatter.el
   ;; TODO error buffer should be easy to dismiss
