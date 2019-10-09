@@ -63,6 +63,11 @@
   "Haskell constructors."
   :group 'haskell-tng-faces)
 
+(defface haskell-tng-cpp-face
+  '((t :inherit font-lock-preprocessor-face))
+  "Uses of CPP"
+  :group 'haskell-tng-faces)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Here is the `font-lock-keywords' table of matchers and highlighters.
 (defconst
@@ -75,7 +80,10 @@
         (consym haskell-tng--rx-consym)
         (qual haskell-tng--rx-qual)
         (bigspace `(| space ,haskell-tng--rx-newline)))
-    `(;; reservedid / reservedop
+    `((,(rx bol "#" (or "ifdef" "else" "endif") (* nonl) eol)
+       (0 'haskell-tng-cpp-face)) ;; CPP
+
+      ;; reservedid / reservedop
       (,haskell-tng--rx-c-reserved
        . 'haskell-tng-keyword-face)
 
@@ -103,8 +111,6 @@
       ;; TODO unnamed newtype fields should be a type, not a constructor
       ;; TODO bug, multiple standalone instance declarations in a row do not fire
       ;; TODO bug \Foo{foo} doesn't highlight correctly
-
-      ;; TODO CPP #ifdef would be nice
 
       ;; EXT:TypeApplications: It is not easy to disambiguate between type
       ;; applications and value extractor in a pattern. Needs work.
@@ -296,6 +302,7 @@ succeeds and may further restrict the FIND search limit."
                                 (| (: line-start symbol-start)
                                    (: symbol-start (| "where" "=") symbol-end))))
 
+;; TODO TypeFamilies type associations (not at line-start)
 (haskell-tng--font-lock-multiline type
                             (rx line-start "type" word-end)
                             (rx line-start "type" word-end (group (+ anything)))
