@@ -46,7 +46,7 @@ multiline2 = "\
 
 difficult = foo' 'a' 2
 
-foo = "wobble (wibble)"
+foo = "wobble (wibble)" \\ 'a'
 
 class Get a s where
   get :: Set s -> a

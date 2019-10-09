@@ -53,7 +53,11 @@ give false positives." `(|
           '(| symbol-end word-start))
     )
     (| "[]" "()") ;; empty list / void
-    (: symbol-start (char ?\\)))) ;; TODO only for lambdas, don't include ops like \\
+    (: symbol-start (char ?\\)
+       ;; don't include ops like \\
+       ,(if hack
+            '(| space word-start point)
+          '(| space word-start)))))
 
 (defconst haskell-tng--rx-newline
   '(| ?\n
