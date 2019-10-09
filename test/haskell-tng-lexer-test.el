@@ -11,15 +11,15 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
-(ert-deftest haskell-tng-lexer-file-tests:layout ()
+(ert-deftest haskell-tng-lexer-file-tests-layout ()
   (should (have-expected-forward-lex (testdata "src/layout.hs")))
   (should (have-expected-backward-lex (testdata "src/layout.hs"))))
 
-(ert-deftest haskell-tng-lexer-file-tests:indentation ()
+(ert-deftest haskell-tng-lexer-file-tests-indentation ()
   (should (have-expected-forward-lex (testdata "src/indentation.hs")))
   (should (have-expected-backward-lex (testdata "src/indentation.hs"))))
 
-(ert-deftest haskell-tng-lexer-file-tests:medley ()
+(ert-deftest haskell-tng-lexer-file-tests-medley ()
   (should (have-expected-forward-lex (testdata "src/medley.hs")))
   (should (have-expected-backward-lex (testdata "src/medley.hs"))))
 

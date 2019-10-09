@@ -18,19 +18,19 @@
    "faceup"))
 
 ;; to generate .faceup files, use faceup-view-buffer
-(ert-deftest haskell-tng-font-lock-file-tests:medley ()
+(ert-deftest haskell-tng-font-lock-file-tests-medley ()
   (should (have-expected-faces (testdata "src/medley.hs"))))
 
-(ert-deftest haskell-tng-font-lock-file-tests:layout ()
+(ert-deftest haskell-tng-font-lock-file-tests-layout ()
   (should (have-expected-faces (testdata "src/layout.hs"))))
 
-(ert-deftest haskell-tng-font-lock-file-tests:indentation ()
+(ert-deftest haskell-tng-font-lock-file-tests-indentation ()
   (should (have-expected-faces (testdata "src/indentation.hs"))))
 
-(ert-deftest haskell-tng-font-lock-file-tests:indentation1 ()
+(ert-deftest haskell-tng-font-lock-file-tests-indentation1 ()
   (should (have-expected-faces (testdata "src/indentation-options1.hs"))))
 
-(ert-deftest haskell-tng-font-lock-file-tests:indentation2 ()
+(ert-deftest haskell-tng-font-lock-file-tests-indentation2 ()
   (should (have-expected-faces (testdata "src/indentation-options2.hs"))))
 
 ;;; haskell-tng-font-lock-test.el ends here

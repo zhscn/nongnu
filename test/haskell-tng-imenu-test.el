@@ -10,13 +10,13 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
-(ert-deftest haskell-tng-lexer-file-tests:layout ()
+(ert-deftest haskell-tng-imenu-file-tests-layout ()
   (should (have-expected-imenu (testdata "src/layout.hs"))))
 
-(ert-deftest haskell-tng-lexer-file-tests:indentation ()
+(ert-deftest haskell-tng-imenu-file-tests-indentation ()
   (should (have-expected-imenu (testdata "src/indentation.hs"))))
 
-(ert-deftest haskell-tng-lexer-file-tests:medley ()
+(ert-deftest haskell-tng-imenu-file-tests-medley ()
   (should (have-expected-imenu (testdata "src/medley.hs"))))
 
 (defun have-expected-imenu (file)

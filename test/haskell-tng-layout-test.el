@@ -11,16 +11,16 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
-(ert-deftest haskell-tng-layout-file-tests:layout ()
+(ert-deftest haskell-tng-layout-file-tests-layout ()
   ;; the Haskell2010 test case
   (should (have-expected-layout (testdata "src/layout.hs")))
   (should (have-expected-layout-reverse (testdata "src/layout.hs"))))
 
-(ert-deftest haskell-tng-layout-file-tests:indentation ()
+(ert-deftest haskell-tng-layout-file-tests-indentation ()
   (should (have-expected-layout (testdata "src/indentation.hs")))
   (should (have-expected-layout-reverse (testdata "src/indentation.hs"))))
 
-(ert-deftest haskell-tng-layout-file-tests:medley ()
+(ert-deftest haskell-tng-layout-file-tests-medley ()
   (should (have-expected-layout (testdata "src/medley.hs")))
   (should (have-expected-layout-reverse (testdata "src/medley.hs"))))
 
