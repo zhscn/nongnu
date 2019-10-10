@@ -137,6 +137,8 @@ module Indentation where
 
 ;typesig :: a -> b -> c
 
+;types0 :: String
+
 ;types1 ::
      Monad m
   => a

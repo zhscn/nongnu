@@ -137,6 +137,8 @@ tuples3 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:(» foo «:h
 
 typesig «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: a »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: b »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: c
 »
+types0 «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: String
+»
 types1 «:haskell-tng-keyword-face:::»«:haskell-tng-type-face:
      Monad m
   »«:haskell-tng-keyword-face:=>»«:haskell-tng-type-face: a

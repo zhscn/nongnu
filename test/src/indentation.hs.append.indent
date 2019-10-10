@@ -276,6 +276,10 @@ typesig :: a -> b -> c
 v
 
 v
+types0 :: String
+v
+
+v
 types1 ::
 1    v
      Monad m

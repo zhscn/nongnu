@@ -137,6 +137,8 @@ tuples3 = ( foo ,
 
 typesig :: a -> b -> c
 
+types0 :: String
+
 types1 ::
      Monad m
   => a

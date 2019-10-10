@@ -244,7 +244,8 @@ information, to aid in the creation of new rules."
            ((and (member parent '("::" "=>"))
                  (or (not (member "=>" prevline))
                      (equal "=>" (car prevline)))
-                 (not (haskell-tng--smie-prev-line-blank-p)))
+                 (not (haskell-tng--smie-prev-line-blank-p))
+                 (not (equal "::" (cadr (reverse prevline)))))
             "=>")
 
            ((haskell-tng--smie-search-prev-line
