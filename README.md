@@ -68,7 +68,7 @@ You must install `hsinspect` for every version of `ghc` that you plan to use, e.
 ```
 rm -f ~/.cabal/bin/hsinspect
 for V in 8.4.4 8.6.5 ; do
-  cabal v2-install hsinspect-0.0.4 -w ghc-$V -O2 &&
+  cabal v2-install hsinspect-0.0.5 -w ghc-$V -O2 &&
   mv -f ~/.cabal/bin/hsinspect ~/.cabal/bin/hsinspect-ghc-$V
 done
 ```
