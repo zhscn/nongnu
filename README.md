@@ -68,27 +68,21 @@ You must install `hsinspect` for every version of `ghc` that you plan to use, e.
 ```
 rm -f ~/.cabal/bin/hsinspect
 for V in 8.4.4 8.6.5 ; do
-  cabal v2-install hsinspect -w ghc-$V -O2 &&
+  cabal v2-install hsinspect-0.0.4 -w ghc-$V -O2 &&
   mv -f ~/.cabal/bin/hsinspect ~/.cabal/bin/hsinspect-ghc-$V
 done
 ```
 
-<!--
-for V in 8.4.4 8.6.5 ; do
-  cabal v2-install exe:hsinspect -w ghc-$V -O2 &&
-  mv -f ~/.cabal/bin/hsinspect ~/.cabal/bin/hsinspect-ghc-$V
-done
--->
+And add the compiler plugin to every project you plan to inspect:
 
-To use `hsinspect` commands, generate `.ghc.flags` / `.ghc.version` files by running `M-x haskell-tng-hsinspect` for a project. This is only needed when the dependencies change.
+1. add a dependency on `hsinspect`
+2. add `-fplugin HsInspect.Plugin` to `ghc-options`
 
 `hsinspect` only works when the dependencies of the current file have been compiled (the current file doesn't need to be compilable).
 
 The `haskell-tng-extra-company` package will automatically complete symbols that are in scope.
 
 To find out which module a symbol belongs to, use `M-x haskell-tng-fqn-at-point`.
-
-The are some limitations to this tool in addition to known bugs. See [the gory details](https://gitlab.com/tseenshe/hsinspect) for more information. Hopefully there will be no need for `M-x haskell-tng-hsinspect` and the `.ghc.*` files in a future release.
 
 ## Contrib
 

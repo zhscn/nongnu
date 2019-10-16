@@ -31,29 +31,6 @@ name of the symbol at point in the minibuffer."
         (error "hsinspect is not available")
       (message "<not imported>"))))
 
-(defvar haskell-tng-hsinspect
-  ;; NOTE in order for this hack to work, the user needs to have setup a
-  ;; cabal.project.local that contains their default options (optimisations,
-  ;; enabling tests, etc) otherwise it will (at best) invalidate the cache and
-  ;; (at worst) not find local projects.
-  (expand-file-name
-   "cabal-ghcflags.sh"
-   (when load-file-name
-     (file-name-directory load-file-name))))
-;;;###autoload
-(defun haskell-tng-hsinspect ()
-  "Required (for now) to initialise a project for use with `hsinspect'.
-Only needs to be performed once every time the dependencies
-change."
-  (interactive)
-  (when-let ((default-directory
-               (or
-                (haskell-tng--util-locate-dominating-file
-                 haskell-tng--compile-dominating-project)
-                (haskell-tng--util-locate-dominating-file
-                 haskell-tng--compile-dominating-package))))
-    (async-shell-command haskell-tng-hsinspect)))
-
 (defun haskell-tng--hsinspect-ghcflags ()
   ;; https://github.com/haskell/cabal/issues/6203
   "Obtain the ghc flags for the current buffer"
@@ -62,7 +39,7 @@ change."
         (insert-file-contents (expand-file-name ".ghc.flags"))
         (split-string
          (buffer-substring-no-properties (point-min) (point-max))))
-    (user-error "could not find `.ghc.flags'. Run `M-x haskell-tng-hsinspect'")))
+    (user-error "could not find `.ghc.flags'.")))
 
 (defun haskell-tng--hsinspect-ghc ()
   "Obtain the version of hsinspect that matches the project's compiler."
@@ -72,7 +49,7 @@ change."
         (concat
          "hsinspect-ghc-"
          (string-trim (buffer-substring-no-properties (point-min) (point-max)))))
-    (user-error "could not find `.ghc.version'. Run `M-x haskell-tng-hsinspect'")))
+    (user-error "could not find `.ghc.version'.")))
 
 ;; TODO invalidate cache when imports section has changed
 ;; TODO is there a way to tell Emacs not to render this in `C-h v'?
