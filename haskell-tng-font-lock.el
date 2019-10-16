@@ -80,7 +80,7 @@
         (consym haskell-tng--rx-consym)
         (qual haskell-tng--rx-qual)
         (bigspace `(| space ,haskell-tng--rx-newline)))
-    `((,(rx bol "#" (or "ifdef" "else" "endif") (* nonl) eol)
+    `((,(rx bol "#" (* nonl) eol)
        (0 'haskell-tng-cpp-face)) ;; CPP
 
       ;; reservedid / reservedop
