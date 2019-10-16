@@ -20,7 +20,7 @@
   "Consult the imports in scope and display the fully qualified
 name of the symbol at point in the minibuffer."
   (interactive) ;; TODO prefix should copy to kill ring
-  (if-let* ((sym (symbol-name (symbol-at-point)))
+  (if-let* ((sym (haskell-tng--hsinspect-symbol-at-point))
             (found (seq-find
                     (lambda (names) (member sym (seq-map #'cdr names)))
                     (haskell-tng--hsinspect-imports))))
@@ -30,6 +30,22 @@ name of the symbol at point in the minibuffer."
     (if (eq t haskell-tng--hsinspect-imports)
         (error "hsinspect is not available")
       (message "<not imported>"))))
+
+(defun haskell-tng--hsinspect-symbol-at-point ()
+  "A `symbol-at-point' that includes FQN parts."
+  (buffer-substring-no-properties
+   (save-excursion
+     (while ;; WORKAROUND non-greedy matches
+         (re-search-backward
+          (rx symbol-start (+ (| word (syntax symbol) ".")) point)
+          (line-beginning-position)
+          t))
+     (match-beginning 0))
+   (save-excursion
+     (re-search-forward
+      (rx point (+ (| word (syntax symbol) ".")) symbol-end)
+      (line-end-position) t)
+     (match-end 0))))
 
 (defun haskell-tng--hsinspect-ghcflags ()
   ;; https://github.com/haskell/cabal/issues/6203
