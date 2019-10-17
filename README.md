@@ -73,12 +73,10 @@ for V in 8.4.4 8.6.5 ; do
 done
 ```
 
-And add the compiler plugin to every project you plan to inspect:
+And add the `ghcflags` compiler plugin to every project you plan to inspect:
 
-1. add a dependency on `hsinspect`
-2. add `-fplugin HsInspect.Plugin` to `ghc-options`
-
-`hsinspect` only works when the dependencies of the current file have been compiled (the current file doesn't need to be compilable).
+1. add a `build-depends` on `ghcflags`
+2. add `-fplugin GhcFlags.Plugin` to `ghc-options`
 
 The `haskell-tng-extra-company` package will automatically complete symbols that are in scope.
 

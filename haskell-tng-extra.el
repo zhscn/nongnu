@@ -73,10 +73,11 @@ When in a comment and called with a prefix, the comment will be completed."
   (interactive)
   (save-buffer)
   (unless (= 0 (call-process "ormolu" nil "*ormolu*" nil
+                             ;; "-p"
                              "-o" "-XTypeApplications"
                              "-o" "-XBangPatterns"
                              "-o" "-XPatternSynonyms"
-                             "-c" "-m" "inplace"
+                             "-m" "inplace"
                              buffer-file-name))
     (pop-to-buffer "*ormolu*" nil t))
   (revert-buffer t t t))
