@@ -26,7 +26,7 @@ name of the symbol at point in the minibuffer."
                     (haskell-tng--hsinspect-imports))))
       ;; TODO multiple hits
       ;; TODO feedback when hsinspect is broken
-      (message "%s" (car (last found)))
+      (message "%s" (cdar (last found)))
     (if (eq t haskell-tng--hsinspect-imports)
         (error "hsinspect is not available")
       (message "<not imported>"))))
@@ -57,6 +57,9 @@ name of the symbol at point in the minibuffer."
          (buffer-substring-no-properties (point-min) (point-max))))
     (user-error "could not find `.ghc.flags'.")))
 
+;; TODO maybe we should just rely on the build tool being able to launch the
+;; correct version of hsinspect, then we can drop the need for .ghc.version
+;; files.
 (defun haskell-tng--hsinspect-ghc ()
   "Obtain the version of hsinspect that matches the project's compiler."
   (if-let (default-directory (locate-dominating-file default-directory ".ghc.version"))
