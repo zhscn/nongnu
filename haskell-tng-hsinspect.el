@@ -83,9 +83,7 @@ t means the process failed.")
     (setq haskell-tng--hsinspect-imports t) ;; avoid races
     (ignore-errors (kill-buffer "*hsinspect*"))
     (when-let ((ghcflags (haskell-tng--hsinspect-ghcflags))
-               ;; default-directory is so that relative paths in ghcflags work
-               (default-directory (haskell-tng--util-locate-dominating-file
-                                   haskell-tng--compile-dominating-package)))
+               (default-directory (locate-dominating-file default-directory ".ghc.version")))
       (if (/= 0
               (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
                 (apply

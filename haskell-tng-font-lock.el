@@ -80,7 +80,7 @@
         (consym haskell-tng--rx-consym)
         (qual haskell-tng--rx-qual)
         (bigspace `(| space ,haskell-tng--rx-newline)))
-    `((,(rx bol "#" (* nonl) eol)
+    `((,(rx bol "#" (* nonl) eol) ;; TODO doesn't work for "#include 'c'"
        (0 'haskell-tng-cpp-face)) ;; CPP
 
       ;; reservedid / reservedop
