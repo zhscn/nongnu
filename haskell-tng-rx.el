@@ -52,12 +52,13 @@ give false positives." `(|
             '(| symbol-end word-start point)
           '(| symbol-end word-start))
     )
-    (| "[]" "()") ;; empty list / void
-    (: symbol-start (char ?\\)
-       ;; don't include ops like \\
-       ,(if hack
-            '(| space word-start point)
-          '(| space word-start)))))
+     ;; empty list / void
+    (| "[]" "()")
+    ;; TODO don't include ops like \\. Using word-start here conflicts with
+    ;; backwards lexing and also misses lambdas with params in parens, this is
+    ;; too restrictive. We match more than one \ here so as not to break
+    ;; backwards lexing.
+    (: symbol-start (+ (char ?\\)))))
 
 (defconst haskell-tng--rx-newline
   '(| ?\n

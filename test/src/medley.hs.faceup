@@ -46,7 +46,11 @@ multiline2 «:haskell-tng-keyword-face:=» «s:"\
 
 difficult «:haskell-tng-keyword-face:=» foo' «s:'a'» 2
 
-foo «:haskell-tng-keyword-face:=» «s:"wobble (wibble)"» \\ «s:'a'»
+foo «:haskell-tng-keyword-face:=» «s:"wobble (wibble)"» «:haskell-tng-keyword-face:\\» «s:'a'»
+
+lambdas1 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:\»a «:haskell-tng-keyword-face:->» a
+lambdas2 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:\» a «:haskell-tng-keyword-face:->» a
+lambdas3 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:\(»a«:haskell-tng-keyword-face:)» «:haskell-tng-keyword-face:->» a
 
 «:haskell-tng-keyword-face:class»«:haskell-tng-type-face: Get a s »«:haskell-tng-keyword-face:where»
   get «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Set s »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: a

@@ -48,6 +48,10 @@ difficult = foo' 'a' 2
 
 foo = "wobble (wibble)" \\ 'a'
 
+lambdas1 = \a -> a
+lambdas2 = \ a -> a
+lambdas3 = \(a) -> a
+
 class Get a s where
   get :: Set s -> a
 
