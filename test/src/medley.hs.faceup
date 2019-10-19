@@ -52,6 +52,8 @@ lambdas1 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:\»a «:has
 lambdas2 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:\» a «:haskell-tng-keyword-face:->» a
 lambdas3 «:haskell-tng-keyword-face:=» «:haskell-tng-keyword-face:\(»a«:haskell-tng-keyword-face:)» «:haskell-tng-keyword-face:->» a
 
+bar «:haskell-tng-keyword-face:=» «s:"blah :: "» <> foo
+
 «:haskell-tng-keyword-face:class»«:haskell-tng-type-face: Get a s »«:haskell-tng-keyword-face:where»
   get «:haskell-tng-keyword-face:::»«:haskell-tng-type-face: Set s »«:haskell-tng-keyword-face:->»«:haskell-tng-type-face: a
 »

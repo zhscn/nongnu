@@ -52,6 +52,8 @@ lambdas1 = \a -> a
 lambdas2 = \ a -> a
 lambdas3 = \(a) -> a
 
+bar = "blah :: " <> foo
+
 class Get a s where
   get :: Set s -> a
 

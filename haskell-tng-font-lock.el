@@ -274,13 +274,28 @@ succeeds and may further restrict the FIND search limit."
          (defconst ,regexp-2 ,find)
          (defun ,extend ()
            (goto-char font-lock-end)
-           (when (re-search-backward ,regexp-1 font-lock-beg t)
+           (when (and
+                  ;; lots of conservative checks to make sure we never extend
+                  ;; from, or into, a comment or string.
+                  (not (nth 8 (syntax-ppss)))
+                  (re-search-backward ,regexp-1 font-lock-beg t)
+                  (not (nth 8 (syntax-ppss))))
              ,(finder '(point-max))
-             (when (< font-lock-end (point))
+             (when (and
+                    (not (nth 8 (syntax-ppss)))
+                    (< font-lock-end (point)))
                (setq font-lock-end (point))
                nil)))
          (defun ,keyword (limit)
-           (when (re-search-forward ,regexp-1 limit t)
+           (when (and
+                  (re-search-forward ,regexp-1 limit t)
+                  ;; TODO if the last search got us into a string or comment. We
+                  ;; should recurse, otherwise we miss valid matches in the
+                  ;; region. This hack just tries once more.
+                  (or
+                   (not (nth 8 (syntax-ppss)))
+                   (re-search-forward ,regexp-1 limit t))
+                  (not (nth 8 (syntax-ppss))))
              (goto-char (match-beginning 0))
              ,(finder 'limit)))
          ;; TODO is this needed since we use multiline?
@@ -294,6 +309,7 @@ succeeds and may further restrict the FIND search limit."
                             haskell-tng--util-indent-close-previous
                             haskell-tng--util-type-ender)
 ;; TODO commas end a type signature in a record of functions (but can be used in tuples, so complex)
+;; TODO since there is no way to exit based on context, we will match :: inside strings and comments
 
 (haskell-tng--font-lock-multiline topdecl
                             (rx line-start (| "data" "newtype" "class" "instance") word-end)
