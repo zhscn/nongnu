@@ -63,24 +63,17 @@ A full installation may look like the following
 
 The optional command line tool [`hsinspect`](https://gitlab.com/tseenshe/hsinspect) provides semantic information by using the `ghc` api.
 
-You must install `hsinspect` for every version of `ghc` that you plan to use, e.g.
+To use this feature you must install `hsinspect` command line tool and the `ghcflags` plugin to every `.cabal` file:
 
-```
-rm -f ~/.cabal/bin/hsinspect
-for V in 8.4.4 8.6.5 ; do
-  cabal v2-install hsinspect-0.0.7 -w ghc-$V -O2 &&
-  mv -f ~/.cabal/bin/hsinspect ~/.cabal/bin/hsinspect-ghc-$V
-done
-```
-
-And add the `ghcflags` compiler plugin to every project you plan to inspect:
-
-1. add a `build-depends` on `ghcflags`
-2. add `-fplugin GhcFlags.Plugin` to `ghc-options`
+1. `build-tool-depends: hsinspect-0.0.7` (or make `hsinspect` available globally, self-managing `ghc` versions)
+2. `build-depends: ghcflags-1.0.1`
+3. add `ghc-options: -fplugin GhcFlags.Plugin`
 
 The `haskell-tng-extra-company` package will automatically complete symbols that are in scope.
 
 To find out which module a symbol belongs to, use `M-x haskell-tng-fqn-at-point`.
+
+To automatically import a symbol at point, use `M-x haskell-tng-import-symbol-at-point`.
 
 ## Contrib
 

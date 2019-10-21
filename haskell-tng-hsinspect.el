@@ -104,18 +104,6 @@ name of the symbol at point in the minibuffer."
          (buffer-substring-no-properties (point-min) (point-max))))
     (user-error "could not find `.ghc.flags'.")))
 
-;; TODO rely on the build tool launching hsinspect, then drop .ghc.version
-;; (need a way to ensure we launch from the correct PWD)
-(defun haskell-tng--hsinspect-ghc ()
-  "Obtain the version of hsinspect that matches the project's compiler."
-  (if-let (default-directory (locate-dominating-file default-directory ".ghc.version"))
-      (with-temp-buffer
-        (insert-file-contents (expand-file-name ".ghc.version"))
-        (concat
-         "hsinspect-ghc-"
-         (string-trim (buffer-substring-no-properties (point-min) (point-max)))))
-    (user-error "could not find `.ghc.version'.")))
-
 ;; TODO invalidate cache when imports section has changed
 (defvar-local haskell-tng--hsinspect-imports nil
   "Cache for the last `imports' call for this buffer.
@@ -139,6 +127,21 @@ t means the process failed.")
     (setq haskell-tng--hsinspect-index
           (haskell-tng--hsinspect "index"))))
 
+(defvar-local haskell-tng--hsinspect-exe nil)
+(defvar haskell-tng--hsinspect-which-hsinspect
+  "cabal exec -v0 which -- hsinspect")
+(defun haskell-tng--hsinspect-exe ()
+  "The binary to use for `hsinspect'"
+  (or
+   haskell-tng--hsinspect-exe
+   (setq
+    haskell-tng--hsinspect-exe
+    (let ((which (string-trim (shell-command-to-string haskell-tng--hsinspect-which-hsinspect))))
+      (if (file-exists-p which)
+          which
+        ;; fall back to system installed binary
+        "hsinspect")))))
+
 (defun haskell-tng--hsinspect (&rest params)
   (ignore-errors (kill-buffer "*hsinspect*"))
   (when-let ((ghcflags (haskell-tng--hsinspect-ghcflags))
@@ -148,7 +151,7 @@ t means the process failed.")
               (apply
                #'call-process
                ;; TODO async
-               (haskell-tng--hsinspect-ghc)
+               (haskell-tng--hsinspect-exe)
                nil "*hsinspect*" nil
                (append params '("--") ghcflags))))
         (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
