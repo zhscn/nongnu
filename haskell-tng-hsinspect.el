@@ -20,6 +20,7 @@
 ;; centric.
 
 (require 'haskell-tng-compile)
+(require 'haskell-tng-util)
 
 ;;;###autoload
 (defun haskell-tng-fqn-at-point ()
@@ -36,6 +37,46 @@ name of the symbol at point in the minibuffer."
     (if (eq t haskell-tng--hsinspect-imports)
         (error "hsinspect is not available")
       (message "<not imported>"))))
+
+;;;###autoload
+(defun haskell-tng-import-symbol-at-point ()
+  "Import the symbol at point"
+  ;; TODO import FQN as qualified module
+  ;; TODO prefix + FQN should mean use unqualified `as' import
+  ;; TODO prefix + unqualified should mean to import entire module
+  ;; TODO shortlist for FQN imports (no need to calc the index)
+  (interactive)
+  (when-let* ((index (haskell-tng--hsinspect-index))
+              (sym (haskell-tng--hsinspect-symbol-at-point)))
+    (message "Seaching for '%s' in %s modules" sym (length index))
+    (when-let ((hits (haskell-tng--hsinspect-import-candidates index sym)))
+      ;; TODO special case one hit
+      (when-let* ((entries (mapcar 'car hits)) ;; TODO include function name
+                  (selected (popup-menu* entries))
+                  (hit (seq-find (lambda (el) (equal (car el) selected)) hits)))
+        (haskell-tng--import-symbol (car hit) nil (cdr hit))))))
+
+(defun haskell-tng--hsinspect-import-candidates (index sym)
+  "Return a list of (module . symbol)"
+  ;; TODO threading/do syntax
+  ;; TODO alist variable binding like RecordWildcards
+  (seq-mapcat
+   (lambda (pkg-entry)
+     (let ((modules (alist-get 'modules pkg-entry))
+           (unitid (alist-get 'unitid pkg-entry)))
+       ;; (message "UNITID= %s" unitid)
+       (seq-mapcat
+        (lambda (module-entry)
+          (let ((module (alist-get 'module module-entry))
+                (ids (alist-get 'ids module-entry)))
+            ;;(message "MODULE= %s" module)
+            (seq-mapcat
+             (lambda (entry)
+               (let ((name (alist-get 'name entry)))
+                 (when (equal name sym) `(,(cons module name)))))
+             ids)))
+        modules)))
+   index))
 
 (defun haskell-tng--hsinspect-symbol-at-point ()
   "A `symbol-at-point' that includes FQN parts."
@@ -86,6 +127,17 @@ t means the process failed.")
     (setq haskell-tng--hsinspect-imports t) ;; avoid races
     (setq haskell-tng--hsinspect-imports
           (haskell-tng--hsinspect "imports" buffer-file-name))))
+
+;; TODO this can be more efficiently cached alongside the .ghc.flags file, not per source file
+;; (it's also fast to load so maybe persist it in a cache dir and check timestamps)
+(defvar-local haskell-tng--hsinspect-index nil)
+(defun haskell-tng--hsinspect-index (&optional lookup-only)
+  (if (or lookup-only haskell-tng--hsinspect-index)
+      (unless (eq t haskell-tng--hsinspect-index)
+        haskell-tng--hsinspect-index)
+    (setq haskell-tng--hsinspect-index t) ;; avoid races
+    (setq haskell-tng--hsinspect-index
+          (haskell-tng--hsinspect "index"))))
 
 (defun haskell-tng--hsinspect (&rest params)
   (ignore-errors (kill-buffer "*hsinspect*"))

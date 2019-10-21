@@ -70,5 +70,23 @@ and taking a regexp."
        (while (not (setq ,res ,test)) ,@body)
        ,res)))
 
+(defun haskell-tng--import-symbol (module as sym)
+  "Adds an import for MODULE."
+  ;; TODO outsource to `hsimport' when it does de-duping and formatting.
+  (save-excursion
+   (haskell-tng-goto-imports)
+   (insert
+    "import "
+    (cond
+     ((and (null as) (null sym))
+      module)
+     ((null as)
+      (concat module " (" sym ")"))
+     ((eq t as)
+      (concat "qualified " module))
+     (t
+      (concat "qualified " module " as " as)))
+    "\n")))
+
 (provide 'haskell-tng-util)
 ;;; haskell-tng-util.el ends here
