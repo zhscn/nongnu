@@ -54,6 +54,9 @@ name of the symbol at point in the minibuffer."
       (when-let* ((entries (mapcar 'car hits)) ;; TODO include function name
                   (selected (popup-menu* entries))
                   (hit (seq-find (lambda (el) (equal (car el) selected)) hits)))
+        ;; TODO update the hsinspect-imports cache
+        ;; TODO add parens around operators
+        ;; TODO add the type around data constructors (requires hsinspect changes)
         (haskell-tng--import-symbol (car hit) nil (cdr hit))))))
 
 (defun haskell-tng--hsinspect-import-candidates (index sym)
