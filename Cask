@@ -28,6 +28,7 @@
 
 (development
  (depends-on "company")
+ (depends-on "popup")
  ;;(depends-on "elsa") ;; cask exec elsa FILE
  (depends-on "faceup")
  (depends-on "ert-runner")

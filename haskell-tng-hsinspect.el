@@ -13,6 +13,12 @@
 
 (require 'subr-x)
 
+(require 'popup)
+;; TODO remove the dependency on third party "popup". Unfortunately this is
+;; blocked on Emacs shipping with a usable menu and tooltip library.
+;; `tooltip-show' and `popup-menu' are mouse centric whereas we need `point'
+;; centric.
+
 (require 'haskell-tng-compile)
 
 ;;;###autoload
@@ -26,7 +32,7 @@ name of the symbol at point in the minibuffer."
                     (haskell-tng--hsinspect-imports))))
       ;; TODO multiple hits
       ;; TODO feedback when hsinspect is broken
-      (message "%s" (cdar (last found)))
+      (popup-tip (format "%s" (cdar (last found))))
     (if (eq t haskell-tng--hsinspect-imports)
         (error "hsinspect is not available")
       (message "<not imported>"))))
