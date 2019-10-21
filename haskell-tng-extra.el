@@ -54,6 +54,14 @@ When in a comment and called with a prefix, the comment will be completed."
         (insert rem)))))
 
 ;;;###autoload
+(defun haskell-tng-format ()
+  "Uses stylish-haskell if there is a config file, falling back to ormolu."
+  (interactive)
+  (if (locate-dominating-file default-directory ".stylish-haskell.yaml")
+      (haskell-tng-stylish-haskell)
+    (haskell-tng-ormolu)))
+
+;;;###autoload
 (defun haskell-tng-stylish-haskell ()
   "Apply `stylish-haskell' rules."
   ;; TODO use https://github.com/purcell/reformatter.el

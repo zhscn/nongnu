@@ -75,16 +75,17 @@ To find out which module a symbol belongs to, use `M-x haskell-tng-fqn-at-point`
 
 To automatically import a symbol at point, use `M-x haskell-tng-import-symbol-at-point`.
 
-## Contrib
+## Extras
 
 Integrations are provided for common libraries and external applications.
 
 The installation instructions above enable all the integrations. Remove the `require` lines for packages that are unwanted.
 
-Third party Haskell tools must be installed separately (e.g. via `cabal v2-install`) for:
+Third party Haskell tools must be installed separately (e.g. via `cabal v2-install`):
 
-- `C-c C` invoke [`stack2cabal`](https://hackage.haskell.org/package/stack2cabal)
-- `C-c C-r f` invoke [`stylish-haskell`](https://hackage.haskell.org/package/stylish-haskell)
+- [`stack2cabal`](https://hackage.haskell.org/package/stack2cabal)
+- [`stylish-haskell`](https://hackage.haskell.org/package/stylish-haskell)
+- [`ormolu`](https://github.com/tweag/ormolu)
 - `C-c p R` invoke [`fast-tags`](https://hackage.haskell.org/package/fast-tags) via [`projectile`](https://github.com/bbatsov/projectile)
 
 ## Contributing

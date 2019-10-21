@@ -10,7 +10,7 @@
 ;;; Code:
 
 ;; TODO document
-;; FIXME implement
+;; TODO implement
 
 (provide 'haskell-tng-extra-stack)
 ;;; haskell-tng-extra-stack.el ends here
