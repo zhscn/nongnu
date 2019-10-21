@@ -63,9 +63,8 @@ name of the symbol at point in the minibuffer."
          (buffer-substring-no-properties (point-min) (point-max))))
     (user-error "could not find `.ghc.flags'.")))
 
-;; TODO maybe we should just rely on the build tool being able to launch the
-;; correct version of hsinspect, then we can drop the need for .ghc.version
-;; files.
+;; TODO rely on the build tool launching hsinspect, then drop .ghc.version
+;; (need a way to ensure we launch from the correct PWD)
 (defun haskell-tng--hsinspect-ghc ()
   "Obtain the version of hsinspect that matches the project's compiler."
   (if-let (default-directory (locate-dominating-file default-directory ".ghc.version"))
@@ -77,8 +76,6 @@ name of the symbol at point in the minibuffer."
     (user-error "could not find `.ghc.version'.")))
 
 ;; TODO invalidate cache when imports section has changed
-;; TODO is there a way to tell Emacs not to render this in `C-h v'?
-;;      (suggestion is to advise around describe-key)
 (defvar-local haskell-tng--hsinspect-imports nil
   "Cache for the last `imports' call for this buffer.
 t means the process failed.")
@@ -87,24 +84,27 @@ t means the process failed.")
       (unless (eq t haskell-tng--hsinspect-imports)
         haskell-tng--hsinspect-imports)
     (setq haskell-tng--hsinspect-imports t) ;; avoid races
-    (ignore-errors (kill-buffer "*hsinspect*"))
-    (when-let ((ghcflags (haskell-tng--hsinspect-ghcflags))
-               (default-directory (locate-dominating-file default-directory ".ghc.version")))
-      (if (/= 0
-              (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
-                (apply
-                 #'call-process
-                 ;; TODO async
-                 (haskell-tng--hsinspect-ghc)
-                 nil "*hsinspect*" nil
-                 ;; need to disable all warnings
-                 (append `("imports" ,buffer-file-name "--") ghcflags))))
-          (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
-        (setq haskell-tng--hsinspect-imports
-              (with-current-buffer "*hsinspect*"
-                (goto-char (point-max))
-                (backward-sexp)
-                (or (ignore-errors (read (current-buffer))) t)))))))
+    (setq haskell-tng--hsinspect-imports
+          (haskell-tng--hsinspect "imports" buffer-file-name))))
+
+(defun haskell-tng--hsinspect (&rest params)
+  (ignore-errors (kill-buffer "*hsinspect*"))
+  (when-let ((ghcflags (haskell-tng--hsinspect-ghcflags))
+             (default-directory (locate-dominating-file default-directory ".ghc.version")))
+    (if (/= 0
+            (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
+              (apply
+               #'call-process
+               ;; TODO async
+               (haskell-tng--hsinspect-ghc)
+               nil "*hsinspect*" nil
+               (append params '("--") ghcflags))))
+        (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
+      (with-current-buffer "*hsinspect*"
+        ;; TODO remove this resilience against stdout / stderr noise when debugging hsinspect
+        (goto-char (point-max))
+        (backward-sexp)
+        (or (ignore-errors (read (current-buffer))) t)))))
 
 (provide 'haskell-tng-hsinspect)
 ;;; haskell-tng-hsinspect.el ends here
