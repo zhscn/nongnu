@@ -1,5 +1,7 @@
 ;;; haskell-tng-extra.el --- Untested features -*- lexical-binding: t -*-
 
+;; TODO Rename all -tng-extra things (again) to -ds9
+
 ;; Copyright (C) 2019 Tseen She
 ;; License: GPL 3 or any later version
 
