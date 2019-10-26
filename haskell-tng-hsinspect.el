@@ -17,7 +17,7 @@
 ;; TODO remove the dependency on third party "popup". Unfortunately this is
 ;; blocked on Emacs shipping with a usable menu and tooltip library.
 ;; `tooltip-show' and `popup-menu' are mouse centric whereas we need `point'
-;; centric.
+;; centric. https://emacs.stackexchange.com/questions/53373
 
 (require 'haskell-tng-compile)
 (require 'haskell-tng-util)
@@ -108,6 +108,7 @@ name of the symbol at point in the minibuffer."
     (user-error "could not find `.ghc.flags'.")))
 
 ;; TODO invalidate cache when imports section has changed
+;; TODO cache per file (timestamp based, for optimal browsing)
 (defvar-local haskell-tng--hsinspect-imports nil
   "Cache for the last `imports' call for this buffer.
 t means the process failed.")
@@ -130,6 +131,7 @@ t means the process failed.")
     (setq haskell-tng--hsinspect-index
           (haskell-tng--hsinspect "index"))))
 
+;; TODO cache per project
 (defvar-local haskell-tng--hsinspect-exe nil)
 (defvar haskell-tng--hsinspect-which-hsinspect
   "cabal exec -v0 which -- hsinspect")
@@ -148,6 +150,7 @@ t means the process failed.")
 (defun haskell-tng--hsinspect (&rest params)
   (ignore-errors (kill-buffer "*hsinspect*"))
   (when-let ((ghcflags (haskell-tng--hsinspect-ghcflags))
+             ;; TODO search for the .cabal file and then delete .ghc.version support
              (default-directory (locate-dominating-file default-directory ".ghc.version")))
     (if (/= 0
             (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
@@ -159,7 +162,7 @@ t means the process failed.")
                (append params '("--") ghcflags))))
         (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
       (with-current-buffer "*hsinspect*"
-        ;; TODO remove this resilience against stdout / stderr noise when debugging hsinspect
+        ;; TODO remove this resilience against stdout / stderr noise
         (goto-char (point-max))
         (backward-sexp)
         (or (ignore-errors (read (current-buffer))) t)))))
