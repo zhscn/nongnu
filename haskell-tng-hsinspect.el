@@ -16,11 +16,12 @@
 
 (require 'subr-x)
 
+;; Popups are not supported in stock Emacs so an extension is necessary:
+;; https://emacs.stackexchange.com/questions/53373
+;;
+;; `x-show-tip' looks horrible and has no way to control when the popup closes.
+;; `x-popup-menu' looks horrible and is incredibly complicated.
 (require 'popup)
-;; FIXME remove the dependency on third party "popup". Unfortunately this is
-;; blocked on Emacs shipping with a usable menu and tooltip library.
-;; `tooltip-show' and `popup-menu' are mouse centric whereas we need `point'
-;; centric. https://emacs.stackexchange.com/questions/53373
 
 (require 'haskell-tng-compile)
 (require 'haskell-tng-util)
