@@ -60,9 +60,7 @@
   "The `compilation-error-regexp-alist' for `haskell-tng'.")
 
 (defvar haskell-tng--compile-history
-  ;; Prefer --enable-tests due to
-  ;; https://github.com/haskell/cabal/issues/6114
-  '("cabal v2-build :all"
+  '("cabal v2-build"
     "cabal v2-run tasty -- "))
 (defvar-local haskell-tng--compile-command nil)
 (defvar-local haskell-tng--compile-alt "cabal v2-clean")
