@@ -14,8 +14,8 @@
 
 (setq
  haskell-tng--hsinspect-which-hsinspect "stack exec --silent which -- hsinspect"
- haskell-tng--compile-history '("stack build --fast --no-run-tests --ghc-options=\"-j\""
-                                "stack build --fast --ghc-options=\"-j\""))
+ haskell-tng--compile-history '("stack build --fast --no-interleaved-output --ghc-options=\"-j\" --no-run-tests"
+                                "stack build --fast --no-interleaved-output --ghc-options=\"-j\""))
 
 (setq-default
  haskell-tng--compile-alt "stack clean")
