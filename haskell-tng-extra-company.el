@@ -21,8 +21,8 @@
 (require 'haskell-tng-hsinspect)
 (require 'haskell-tng-rx)
 
-;; TODO completions for imports (needs to know project wide module list)
-;; TODO completions for symbols (can this be made more contextual)
+;; TODO completions for modules in imports
+;; TODO completions for explicits in imports
 
 (defcustom haskell-tng-company-backends
   '(company-files

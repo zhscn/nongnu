@@ -67,9 +67,6 @@
 (defvar-local haskell-tng--compile-command nil)
 (defvar-local haskell-tng--compile-alt "cabal v2-clean")
 
-(defvar haskell-tng--compile-dominating-project
-  ;; TODO move stack.yaml to extra-stack
-  (rx (| "cabal.project" "cabal.project.local" "cabal.project.freeze" "stack.yaml")))
 (defvar haskell-tng--compile-dominating-package
   (rx (| (: (+ any) ".cabal") "package.yaml")))
 
@@ -108,8 +105,6 @@ will cause the subsequent call to prompt."
             (or
              (haskell-tng--util-locate-dominating-file
               haskell-tng--compile-dominating-package)
-             (haskell-tng--util-locate-dominating-file
-              haskell-tng--compile-dominating-project)
              default-directory)))
       (compilation-start
        command

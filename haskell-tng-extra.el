@@ -103,7 +103,9 @@ When in a comment and called with a prefix, the comment will be completed."
 ;;;###autoload
 (defun haskell-tng-goto-imports ()
   "Hack to jump to imports"
+  ;; TODO is this useful?
   (interactive)
+  ;; TODO comment / text resilience
   (goto-char (point-min))
   (re-search-forward (rx line-start "import" word-end))
   (forward-line 0))

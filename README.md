@@ -50,6 +50,7 @@ A full installation may look like the following
   (require 'haskell-tng-extra-projectile)
   (require 'haskell-tng-extra-smartparens)
   (require 'haskell-tng-extra-yasnippet)
+  ;; (require 'haskell-tng-extra-stack)
 
   :bind
   (:map

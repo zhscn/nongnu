@@ -11,10 +11,13 @@
 ;;
 ;;; Code:
 
+;; TODO this file needs tests, if not testing calling hsinspect then at least
+;; with pre-canned data.
+
 (require 'subr-x)
 
 (require 'popup)
-;; TODO remove the dependency on third party "popup". Unfortunately this is
+;; FIXME remove the dependency on third party "popup". Unfortunately this is
 ;; blocked on Emacs shipping with a usable menu and tooltip library.
 ;; `tooltip-show' and `popup-menu' are mouse centric whereas we need `point'
 ;; centric. https://emacs.stackexchange.com/questions/53373
@@ -41,23 +44,30 @@ name of the symbol at point in the minibuffer."
 ;;;###autoload
 (defun haskell-tng-import-symbol-at-point ()
   "Import the symbol at point"
-  ;; TODO import FQN as qualified module
   ;; TODO prefix + FQN should mean use unqualified `as' import
   ;; TODO prefix + unqualified should mean to import entire module
   ;; TODO shortlist for FQN imports (no need to calc the index)
   (interactive)
+  ;; TODO update the hsinspect-imports cache
   (when-let* ((index (haskell-tng--hsinspect-index))
               (sym (haskell-tng--hsinspect-symbol-at-point)))
     (message "Seaching for '%s' in %s modules" sym (length index))
-    (when-let ((hits (haskell-tng--hsinspect-import-candidates index sym)))
-      ;; TODO special case one hit
-      (when-let* ((entries (mapcar 'car hits)) ;; TODO include function name
-                  (selected (popup-menu* entries))
-                  (hit (seq-find (lambda (el) (equal (car el) selected)) hits)))
-        ;; TODO update the hsinspect-imports cache
+    (if (string-match (rx bos (group (+ anything)) "." (group (+ (not (any ".")))) eos) sym)
+        (let* ((fqn (match-string 1 sym))
+               (sym (match-string 2 sym)))
+          (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
+            (haskell-tng--import-symbol (car hit) fqn)))
+      (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
         ;; TODO add parens around operators
         ;; TODO add the type around data constructors (requires hsinspect changes)
         (haskell-tng--import-symbol (car hit) nil (cdr hit))))))
+
+(defun haskell-tng--hsinspect-import-popup (index sym)
+  (when-let ((hits (haskell-tng--hsinspect-import-candidates index sym)))
+    ;; TODO special case one hit
+    (when-let* ((entries (mapcar 'car hits)) ;; TODO include function name
+                (selected (popup-menu* entries)))
+      (seq-find (lambda (el) (equal (car el) selected)) hits))))
 
 (defun haskell-tng--hsinspect-import-candidates (index sym)
   "Return a list of (module . symbol)"
@@ -65,9 +75,7 @@ name of the symbol at point in the minibuffer."
   ;; TODO alist variable binding like RecordWildcards
   (seq-mapcat
    (lambda (pkg-entry)
-     (let ((modules (alist-get 'modules pkg-entry))
-           (unitid (alist-get 'unitid pkg-entry)))
-       ;; (message "UNITID= %s" unitid)
+     (let ((modules (alist-get 'modules pkg-entry)))
        (seq-mapcat
         (lambda (module-entry)
           (let ((module (alist-get 'module module-entry))
@@ -108,7 +116,7 @@ name of the symbol at point in the minibuffer."
     (user-error "could not find `.ghc.flags'.")))
 
 ;; TODO invalidate cache when imports section has changed
-;; TODO cache per file (timestamp based, for optimal browsing)
+;; FIXME cache per file (timestamp based, for optimal browsing)
 (defvar-local haskell-tng--hsinspect-imports nil
   "Cache for the last `imports' call for this buffer.
 t means the process failed.")
@@ -120,7 +128,7 @@ t means the process failed.")
     (setq haskell-tng--hsinspect-imports
           (haskell-tng--hsinspect "imports" buffer-file-name))))
 
-;; TODO this can be more efficiently cached alongside the .ghc.flags file, not per source file
+;; FIXME this can be more efficiently cached alongside the .ghc.flags file, not per source file
 ;; (it's also fast to load so maybe persist it in a cache dir and check timestamps)
 (defvar-local haskell-tng--hsinspect-index nil)
 (defun haskell-tng--hsinspect-index (&optional lookup-only)
@@ -131,7 +139,7 @@ t means the process failed.")
     (setq haskell-tng--hsinspect-index
           (haskell-tng--hsinspect "index"))))
 
-;; TODO cache per project
+;; FIXME cache per project (or package at least)
 (defvar-local haskell-tng--hsinspect-exe nil)
 (defvar haskell-tng--hsinspect-which-hsinspect
   "cabal exec -v0 which -- hsinspect")
