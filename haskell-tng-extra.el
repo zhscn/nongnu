@@ -69,7 +69,8 @@ When in a comment and called with a prefix, the comment will be completed."
   ;; TODO use https://github.com/purcell/reformatter.el
   ;; TODO error buffer should be easy to dismiss
   (interactive)
-  (save-buffer)
+  (when (buffer-modified-p)
+    (save-buffer))
   (unless (= 0 (call-process "stylish-haskell" nil "*stylish-haskell*" nil "-i" buffer-file-name))
     (pop-to-buffer "*stylish-haskell*" nil t))
   (revert-buffer t t t))
@@ -81,7 +82,8 @@ When in a comment and called with a prefix, the comment will be completed."
   ;; TODO error buffer should be easy to dismiss
   ;; TODO pass parameters via a buffer local variable
   (interactive)
-  (save-buffer)
+  (when (buffer-modified-p)
+    (save-buffer))
   (unless (= 0 (call-process "ormolu" nil "*ormolu*" nil
                              ;; "-p"
                              "-o" "-XTypeApplications"
