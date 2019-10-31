@@ -21,6 +21,11 @@
 ;; TODO support long running (ghcid) compile buffers
 ;; TODO generic flycheck integration https://emacs.stackexchange.com/questions/51894
 
+(defcustom haskell-tng-compile-always-ask nil
+  "`haskell-tng-compile' will remember the last command for the buffer unless set."
+  :type 'booleanp
+  :group 'haskell-tng)
+
 (defvar haskell-tng-compilation-error-regexp-alist
   (let ((file '(: (group (+ (not (any "{" "}" "(" ")" "[" "]" "\n"))) ".hs")))
         (num '(: (group (+ digit))))
@@ -97,7 +102,9 @@ will cause the subsequent call to prompt."
                         ;;      mutating / reordering the global history here.
                         '(haskell-tng--compile-history . 1))))))
     (setq haskell-tng--compile-command
-          (unless (equal command haskell-tng--compile-alt) command))
+          (unless (or
+                   haskell-tng-compile-always-ask
+                   (equal command haskell-tng--compile-alt)) command))
 
     (let ((default-directory
             (or
