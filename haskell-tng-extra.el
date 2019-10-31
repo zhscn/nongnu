@@ -21,6 +21,8 @@
 
 (require 'subr-x)
 
+(require 'haskell-tng-util)
+
 ;;###autoload
 (defun haskell-tng-newline (&optional alt)
   "A `newline-and-indent' with a better user experience for `haskell-tng-mode'.
