@@ -67,32 +67,28 @@ When in a comment and called with a prefix, the comment will be completed."
 (defun haskell-tng-stylish-haskell ()
   "Apply `stylish-haskell' rules."
   ;; TODO use https://github.com/purcell/reformatter.el
-  ;; TODO error buffer should be easy to dismiss
   (interactive)
   (when (buffer-modified-p)
     (save-buffer))
-  (unless (= 0 (call-process "stylish-haskell" nil "*stylish-haskell*" nil "-i" buffer-file-name))
-    (pop-to-buffer "*stylish-haskell*" nil t))
-  (revert-buffer t t t))
+  (when (= 0 (call-process "stylish-haskell" nil "*stylish-haskell*" nil "-i" buffer-file-name))
+    (revert-buffer t t t)))
 
 ;;;###autoload
 (defun haskell-tng-ormolu ()
   "Apply `ormolu' rules."
   ;; TODO use https://github.com/purcell/reformatter.el
-  ;; TODO error buffer should be easy to dismiss
   ;; TODO pass parameters via a buffer local variable
   (interactive)
   (when (buffer-modified-p)
     (save-buffer))
-  (unless (= 0 (call-process "ormolu" nil "*ormolu*" nil
+  (when (= 0 (call-process "ormolu" nil "*ormolu*" nil
                              ;; "-p"
                              "-o" "-XTypeApplications"
                              "-o" "-XBangPatterns"
                              "-o" "-XPatternSynonyms"
                              "-m" "inplace"
                              buffer-file-name))
-    (pop-to-buffer "*ormolu*" nil t))
-  (revert-buffer t t t))
+    (revert-buffer t t t)))
 
 ;;;###autoload
 (defun haskell-tng-stack2cabal ()
