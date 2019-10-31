@@ -17,6 +17,7 @@
 ;; (defvar haskell-tng--compile-dominating-project
 ;;   (rx (| "cabal.project" "cabal.project.local" "cabal.project.freeze")))
 
+(make-variable-buffer-local 'projectile-tags-command)
 (add-hook
  'haskell-tng-mode-hook
  (lambda ()
