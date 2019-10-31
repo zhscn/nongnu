@@ -22,7 +22,7 @@
 ;; TODO generic flycheck integration https://emacs.stackexchange.com/questions/51894
 
 (defvar haskell-tng-compilation-error-regexp-alist
-  (let ((file '(: (group (+ any) ".hs")))
+  (let ((file '(: (group (+ (not (any "{" "}" "(" ")" "[" "]" "\n"))) ".hs")))
         (num '(: (group (+ digit))))
         (err '(: ": " (group "error") ":"))
         (war '(: ": " (group "warning") ":")))
