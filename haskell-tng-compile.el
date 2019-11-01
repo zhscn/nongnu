@@ -21,7 +21,7 @@
 ;; TODO support long running (ghcid) compile buffers
 ;; TODO generic flycheck integration https://emacs.stackexchange.com/questions/51894
 
-(defcustom haskell-tng-compile-always-ask nil
+(defcustom haskell-tng-compile-always-ask t
   "`haskell-tng-compile' will remember the last command for the buffer unless set."
   :type 'booleanp
   :group 'haskell-tng)
