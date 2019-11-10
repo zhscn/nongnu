@@ -119,50 +119,60 @@ A prefix argument ensures that caches are flushes."
          (buffer-substring-no-properties (point-min) (point-max))))
     (user-error "could not find `.ghc.flags'.")))
 
-;; FIXME abstract caching to a common macro / function
-;; TODO invalidate cache when imports section has changed
 (defvar-local haskell-tng--hsinspect-imports nil
   "Cache for the last `imports' call for this buffer.
 t means the process failed.")
 (defun haskell-tng--hsinspect-imports (allow-work flush-cache)
+  (haskell-tng--hsinspect-cached-cmd
+   'haskell-tng--hsinspect-imports
+   (concat buffer-file-name "." "imports")
+   `("imports" ,buffer-file-name)
+   allow-work
+   flush-cache))
+
+(defun haskell-tng--hsinspect-cached-cmd (buffer-local-cache
+                                          disk-cache
+                                          args
+                                          allow-work flush-cache)
   (when flush-cache
-    (setq haskell-tng--hsinspect-imports nil))
-  (when (not haskell-tng--hsinspect-imports)
+    (set buffer-local-cache nil))
+  (when (not (symbol-value buffer-local-cache))
     (let ((cache-file-name
            (concat
             (xdg-cache-home) "/"
-            "hsinspect-0.0.7"
-            buffer-file-name "."
-            "imports")))
+            "hsinspect-0.0.7/"
+            disk-cache)))
       ;; user is responsible for flushing caches.
       (when (and flush-cache (file-exists-p cache-file-name))
         (delete-file cache-file-name))
       (if (file-exists-p cache-file-name)
-          (setq
-           haskell-tng--hsinspect-imports
+          (set
+           buffer-local-cache
            (progn
-             (when (time-less-p
-                    (file-attribute-modification-time (file-attributes cache-file-name))
-                    (file-attribute-modification-time (file-attributes buffer-file-name)))
-               (message "Loading a stale cache for hsinspect imports"))
+             ;; TODO decide if we want to keep this check, it's mostly for debugging
+             (if (or
+                    (buffer-modified-p)
+                    (time-less-p
+                     (file-attribute-modification-time (file-attributes cache-file-name))
+                     (file-attribute-modification-time (file-attributes buffer-file-name))))
+                 (message "loading hsinspect cache older than the current buffer")
+               (message "loading hsinspect cache"))
              (with-temp-buffer
                (insert-file-contents cache-file-name)
                (goto-char (point-min))
                (ignore-errors (read (current-buffer))))))
         (unless (or (not allow-work)
-                    (eq t haskell-tng--hsinspect-imports))
-          (setq haskell-tng--hsinspect-imports t)
-          (setq
-           haskell-tng--hsinspect-imports
-           (haskell-tng--hsinspect "imports" buffer-file-name))
-          (unless (eq t haskell-tng--hsinspect-imports)
-            (let ((cache haskell-tng--hsinspect-imports))
+                    (eq t (symbol-value buffer-local-cache)))
+          (set buffer-local-cache t)
+          (set buffer-local-cache (apply #'haskell-tng--hsinspect args))
+          (let ((cache (symbol-value buffer-local-cache)))
+            (unless (eq t cache)
               (with-temp-file cache-file-name
                 (make-directory (file-name-directory cache-file-name) t)
                 (prin1 cache (current-buffer)))))))))
 
-  (when (not (eq t haskell-tng--hsinspect-imports))
-    haskell-tng--hsinspect-imports))
+  (when (not (eq t (symbol-value buffer-local-cache)))
+    (symbol-value buffer-local-cache)))
 
 ;; FIXME this can be more efficiently cached alongside the .ghc.flags file, not per source file
 ;; (it's also fast to load so maybe persist it in a cache dir and check timestamps)
