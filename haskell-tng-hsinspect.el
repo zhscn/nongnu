@@ -15,6 +15,7 @@
 ;; with pre-canned data.
 
 (require 'subr-x)
+(require 'xdg)
 
 ;; Popups are not supported in stock Emacs so an extension is necessary:
 ;; https://emacs.stackexchange.com/questions/53373
@@ -27,14 +28,16 @@
 (require 'haskell-tng-util)
 
 ;;;###autoload
-(defun haskell-tng-fqn-at-point ()
+(defun haskell-tng-fqn-at-point (&optional alt)
   "Consult the imports in scope and display the fully qualified
-name of the symbol at point in the minibuffer."
-  (interactive) ;; TODO prefix should copy to kill ring
+name of the symbol at point in the minibuffer.
+
+A prefix argument ensures that caches are flushes."
+  (interactive "P")
   (if-let* ((sym (haskell-tng--hsinspect-symbol-at-point))
             (found (seq-find
                     (lambda (names) (member sym (seq-map #'cdr names)))
-                    (haskell-tng--hsinspect-imports))))
+                    (haskell-tng--hsinspect-imports 'allow-work alt))))
       ;; TODO multiple hits
       ;; TODO feedback when hsinspect is broken
       (popup-tip (format "%s" (cdar (last found))))
@@ -116,18 +119,50 @@ name of the symbol at point in the minibuffer."
          (buffer-substring-no-properties (point-min) (point-max))))
     (user-error "could not find `.ghc.flags'.")))
 
+;; FIXME abstract caching to a common macro / function
 ;; TODO invalidate cache when imports section has changed
-;; FIXME cache per file (timestamp based, for optimal browsing)
 (defvar-local haskell-tng--hsinspect-imports nil
   "Cache for the last `imports' call for this buffer.
 t means the process failed.")
-(defun haskell-tng--hsinspect-imports (&optional lookup-only)
-  (if (or lookup-only haskell-tng--hsinspect-imports)
-      (unless (eq t haskell-tng--hsinspect-imports)
-        haskell-tng--hsinspect-imports)
-    (setq haskell-tng--hsinspect-imports t) ;; avoid races
-    (setq haskell-tng--hsinspect-imports
-          (haskell-tng--hsinspect "imports" buffer-file-name))))
+(defun haskell-tng--hsinspect-imports (allow-work flush-cache)
+  (when flush-cache
+    (setq haskell-tng--hsinspect-imports nil))
+  (when (not haskell-tng--hsinspect-imports)
+    (let ((cache-file-name
+           (concat
+            (xdg-cache-home) "/"
+            "hsinspect-0.0.7"
+            buffer-file-name "."
+            "imports")))
+      ;; user is responsible for flushing caches.
+      (when (and flush-cache (file-exists-p cache-file-name))
+        (delete-file cache-file-name))
+      (if (file-exists-p cache-file-name)
+          (setq
+           haskell-tng--hsinspect-imports
+           (progn
+             (when (time-less-p
+                    (file-attribute-modification-time (file-attributes cache-file-name))
+                    (file-attribute-modification-time (file-attributes buffer-file-name)))
+               (message "Loading a stale cache for hsinspect imports"))
+             (with-temp-buffer
+               (insert-file-contents cache-file-name)
+               (goto-char (point-min))
+               (ignore-errors (read (current-buffer))))))
+        (unless (or (not allow-work)
+                    (eq t haskell-tng--hsinspect-imports))
+          (setq haskell-tng--hsinspect-imports t)
+          (setq
+           haskell-tng--hsinspect-imports
+           (haskell-tng--hsinspect "imports" buffer-file-name))
+          (unless (eq t haskell-tng--hsinspect-imports)
+            (let ((cache haskell-tng--hsinspect-imports))
+              (with-temp-file cache-file-name
+                (make-directory (file-name-directory cache-file-name) t)
+                (prin1 cache (current-buffer)))))))))
+
+  (when (not (eq t haskell-tng--hsinspect-imports))
+    haskell-tng--hsinspect-imports))
 
 ;; FIXME this can be more efficiently cached alongside the .ghc.flags file, not per source file
 ;; (it's also fast to load so maybe persist it in a cache dir and check timestamps)
