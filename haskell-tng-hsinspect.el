@@ -46,14 +46,14 @@ A prefix argument ensures that caches are flushes."
       (message "<not imported>"))))
 
 ;;;###autoload
-(defun haskell-tng-import-symbol-at-point ()
+(defun haskell-tng-import-symbol-at-point (&optional alt)
   "Import the symbol at point"
-  ;; TODO prefix + FQN should mean use unqualified `as' import
-  ;; TODO prefix + unqualified should mean to import entire module
+  ;; TODO double prefix + FQN should mean use unqualified `as' import
+  ;; TODO double prefix + unqualified should mean to import entire module
   ;; TODO shortlist for FQN imports (no need to calc the index)
-  (interactive)
+  (interactive "P")
   ;; TODO update the hsinspect-imports cache
-  (when-let* ((index (haskell-tng--hsinspect-index))
+  (when-let* ((index (haskell-tng--hsinspect-index alt))
               (sym (haskell-tng--hsinspect-symbol-at-point)))
     (message "Seaching for '%s' in %s modules" sym (length index))
     (if (string-match (rx bos (group (+ anything)) "." (group (+ (not (any ".")))) eos) sym)
@@ -130,6 +130,19 @@ t means the process failed.")
    allow-work
    flush-cache))
 
+(defvar-local haskell-tng--hsinspect-index nil
+  "Cache for the last `index' call for this buffer.
+t means the process failed.")
+(defun haskell-tng--hsinspect-index (flush-cache)
+  (when-let (ghcflags-dir
+             (locate-dominating-file default-directory ".ghc.flags"))
+    (haskell-tng--hsinspect-cached-cmd
+     'haskell-tng--hsinspect-index
+     (concat (expand-file-name ghcflags-dir) ".index")
+     '("index")
+     t
+     flush-cache)))
+
 (defun haskell-tng--hsinspect-cached-cmd (buffer-local-cache
                                           disk-cache
                                           args
@@ -174,18 +187,7 @@ t means the process failed.")
   (when (not (eq t (symbol-value buffer-local-cache)))
     (symbol-value buffer-local-cache)))
 
-;; FIXME this can be more efficiently cached alongside the .ghc.flags file, not per source file
-;; (it's also fast to load so maybe persist it in a cache dir and check timestamps)
-(defvar-local haskell-tng--hsinspect-index nil)
-(defun haskell-tng--hsinspect-index (&optional lookup-only)
-  (if (or lookup-only haskell-tng--hsinspect-index)
-      (unless (eq t haskell-tng--hsinspect-index)
-        haskell-tng--hsinspect-index)
-    (setq haskell-tng--hsinspect-index t) ;; avoid races
-    (setq haskell-tng--hsinspect-index
-          (haskell-tng--hsinspect "index"))))
-
-;; FIXME cache per project (or package at least)
+;; TODO cache per project (or package at least)
 (defvar-local haskell-tng--hsinspect-exe nil)
 (defvar haskell-tng--hsinspect-which-hsinspect
   "cabal exec -v0 which -- hsinspect")
