@@ -15,7 +15,6 @@
 ;; with pre-canned data.
 
 (require 'subr-x)
-(require 'xdg)
 
 ;; Popups are not supported in stock Emacs so an extension is necessary:
 ;; https://emacs.stackexchange.com/questions/53373
@@ -37,7 +36,7 @@ A prefix argument ensures that caches are flushes."
   (if-let* ((sym (haskell-tng--hsinspect-symbol-at-point))
             (found (seq-find
                     (lambda (names) (member sym (seq-map #'cdr names)))
-                    (haskell-tng--hsinspect-imports 'allow-work alt))))
+                    (haskell-tng--hsinspect-imports nil alt))))
       ;; TODO multiple hits
       ;; TODO feedback when hsinspect is broken
       (popup-tip (format "%s" (cdar (last found))))
@@ -122,12 +121,13 @@ A prefix argument ensures that caches are flushes."
 (defvar-local haskell-tng--hsinspect-imports nil
   "Cache for the last `imports' call for this buffer.
 t means the process failed.")
-(defun haskell-tng--hsinspect-imports (allow-work flush-cache)
-  (haskell-tng--hsinspect-cached-cmd
-   'haskell-tng--hsinspect-imports
-   (concat buffer-file-name "." "imports")
+(defun haskell-tng--hsinspect-imports (no-work flush-cache)
+  (haskell-tng--hsinspect-cached
+   #'haskell-tng--hsinspect
    `("imports" ,buffer-file-name)
-   allow-work
+   'haskell-tng--hsinspect-imports
+   (concat "hsinspect-0.0.7" buffer-file-name "." "imports")
+   no-work
    flush-cache))
 
 (defvar-local haskell-tng--hsinspect-index nil
@@ -136,58 +136,15 @@ t means the process failed.")
 (defun haskell-tng--hsinspect-index (flush-cache)
   (when-let (ghcflags-dir
              (locate-dominating-file default-directory ".ghc.flags"))
-    (haskell-tng--hsinspect-cached-cmd
-     'haskell-tng--hsinspect-index
-     (concat (expand-file-name ghcflags-dir) ".index")
+    (haskell-tng--hsinspect-cached
+     #'haskell-tng--hsinspect
      '("index")
-     t
+     'haskell-tng--hsinspect-index
+     (concat "hsinspect-0.0.7" (expand-file-name ghcflags-dir) "index")
+     nil
      flush-cache)))
 
-(defun haskell-tng--hsinspect-cached-cmd (buffer-local-cache
-                                          disk-cache
-                                          args
-                                          allow-work flush-cache)
-  (when flush-cache
-    (set buffer-local-cache nil))
-  (when (not (symbol-value buffer-local-cache))
-    (let ((cache-file-name
-           (concat
-            (xdg-cache-home) "/"
-            "hsinspect-0.0.7/"
-            disk-cache)))
-      ;; user is responsible for flushing caches.
-      (when (and flush-cache (file-exists-p cache-file-name))
-        (delete-file cache-file-name))
-      (if (file-exists-p cache-file-name)
-          (set
-           buffer-local-cache
-           (progn
-             ;; TODO decide if we want to keep this check, it's mostly for debugging
-             (if (or
-                    (buffer-modified-p)
-                    (time-less-p
-                     (file-attribute-modification-time (file-attributes cache-file-name))
-                     (file-attribute-modification-time (file-attributes buffer-file-name))))
-                 (message "loading hsinspect cache older than the current buffer")
-               (message "loading hsinspect cache"))
-             (with-temp-buffer
-               (insert-file-contents cache-file-name)
-               (goto-char (point-min))
-               (ignore-errors (read (current-buffer))))))
-        (unless (or (not allow-work)
-                    (eq t (symbol-value buffer-local-cache)))
-          (set buffer-local-cache t)
-          (set buffer-local-cache (apply #'haskell-tng--hsinspect args))
-          (let ((cache (symbol-value buffer-local-cache)))
-            (unless (eq t cache)
-              (with-temp-file cache-file-name
-                (make-directory (file-name-directory cache-file-name) t)
-                (prin1 cache (current-buffer)))))))))
-
-  (when (not (eq t (symbol-value buffer-local-cache)))
-    (symbol-value buffer-local-cache)))
-
-;; TODO cache per project (or package at least)
+;; FIXME use a cache
 (defvar-local haskell-tng--hsinspect-exe nil)
 (defvar haskell-tng--hsinspect-which-hsinspect
   "cabal exec -v0 which -- hsinspect")

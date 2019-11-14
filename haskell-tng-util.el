@@ -12,6 +12,7 @@
 ;; TODO move things to single use sites (twas premature abstraction!)
 
 (require 'subr-x)
+(require 'xdg)
 
 (defun haskell-tng--util-paren-close (&optional pos)
   "The next `)', if it closes `POS's paren depth."
@@ -93,6 +94,63 @@ and taking a regexp."
       (t
        (concat "qualified " module " as " as)))
      "\n")))
+
+;; TODO needs a unit test
+;; TODO a macro that expands out the local variable
+(defun haskell-tng--hsinspect-cached
+    (fn args local disk &optional no-work flush-cache)
+  "A two-tier cache over a FN that takes ARGS.
+The caller is responsible for flushing the cache.
+
+If the LOCAL reference contains a cache of a previous call, it is
+returned immediately.
+
+If DISK expands to a file that exists in the cache directory, it
+is read as an s-expression, saved to LOCAL, and returned.
+
+Otherwise FN is called with ARGS and saved to both LOCAL and
+DISK.
+
+Errors are not cached, nil return values are cached.
+
+NO-WORK skips FN and only queries the caches.
+
+FLUSH-CACHE forces both LOCAL and DISK to be invalidated."
+  (when flush-cache
+    (set local nil))
+  (when (not (symbol-value local))
+    (let ((cache-file-name
+           (concat (xdg-cache-home) "/" disk)))
+      (when (and flush-cache (file-exists-p cache-file-name))
+        (delete-file cache-file-name))
+      (if (file-exists-p cache-file-name)
+          (set
+           local
+           (progn
+             ;; TODO remove this check, it's just for debugging
+             (if (or
+                  (buffer-modified-p)
+                  (time-less-p
+                   (file-attribute-modification-time (file-attributes cache-file-name))
+                   (file-attribute-modification-time (file-attributes buffer-file-name))))
+                 (message "loading %S cache older than the current buffer" (car args))
+               (message "loading %S cache" (car args)))
+             (with-temp-buffer
+               (insert-file-contents cache-file-name)
+               (goto-char (point-min))
+               (ignore-errors (read (current-buffer))))))
+        (unless (or no-work
+                    (eq 'cached-nil (symbol-value local)))
+          (set local 'cached-nil)
+          (set local (apply fn args))
+          (unless local (set local 'cached-nil))
+          (let ((cache (symbol-value local)))
+            (with-temp-file cache-file-name
+              (make-directory (file-name-directory cache-file-name) 'create-parents)
+              (prin1 cache (current-buffer))))))))
+
+  (when (not (eq 'cached-nil (symbol-value local)))
+    (symbol-value local)))
 
 (provide 'haskell-tng-util)
 ;;; haskell-tng-util.el ends here
