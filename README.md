@@ -6,7 +6,7 @@ This is an exploratory alternative to [`haskell-mode`](https://github.com/haskel
 
 `haskell-mode` has been such an important tool for me that I feel the need to explain why I am rewriting it. I have the greatest of respect for its contributors and I have used it for many years.
 
-In [Lessons from 6 Software Rewrites](https://medium.com/@herbcaudill/lessons-from-6-software-rewrite-stories-635e4c8f7c22), the author concludes *avoid rewrites and make incremental improvements instead, unless you want to a) remove functionality or b) take a different approach*.
+In [Lessons from 6 Software Rewrites](https://medium.com/@herbcaudill/lessons-from-6-software-rewrite-stories-635e4c8f7c22), the author concludes *"avoid rewrites and make incremental improvements instead, unless you want to a) remove functionality or b) take a different approach"*.
 
 ### Remove Functionality
 
@@ -86,7 +86,7 @@ To automatically import a symbol at point, use `M-x haskell-tng-import-symbol-at
 
 ![screencast of haskell-tng-import-symbol-at-point](screencasts/import-symbol-at-point.gif)
 
-All `hsinspect` commands are heavily cached and never invalidated to maximise availability. If the caches are out of date and no longer useful, run the command again prefixed with `C-u` to force a fresh invocaton of hsinpsect.
+All `hsinspect` commands are heavily cached and never invalidated to maximise availability. If the caches are out of date and no longer useful, run the command again prefixed with `C-u` to force a fresh invocaton of hsinspect.
 
 ## Extras
 
