@@ -70,11 +70,21 @@ To use this feature you must install `hsinspect` command line tool and the `ghcf
 2. `build-depends: ghcflags == 1.0.1`
 3. add `ghc-options: -fplugin GhcFlags.Plugin`
 
-The `haskell-tng-extra-company` package will automatically complete symbols that are in scope.
+To find out which module a symbol belongs to, use `M-x haskell-tng-fqn-at-point`. The `haskell-tng-extra-company` package will automatically complete symbols that are in scope.
 
-To find out which module a symbol belongs to, use `M-x haskell-tng-fqn-at-point`.
+<!--
+recordmydesktop --no-sound --delay 3
+ffmpeg -i out.ogv -vf crop=500:300:5:0 fqn-at-point-completion.mp4
+ffmpeg -i out.ogv -vf crop=500:300:5:0,scale=300:-1 -hide_banner fqn-at-point-completion.gif
 
-To automatically import a symbol at point, use `M-x haskell-tng-import-symbol-at-point`.
+gitlab markdown allows embedded mp4s but it makes them huge, so use gifs
+-->
+
+![screencast of haskell-tng-fqn-at-point](screencasts/fqn-at-point-completion.gif)
+
+To automatically import a symbol at point, use `M-x haskell-tng-import-symbol-at-point`, which understands the difference between unqualified and qualified symbols.
+
+![screencast of haskell-tng-import-symbol-at-point](screencasts/import-symbol-at-point.gif)
 
 ## Extras
 

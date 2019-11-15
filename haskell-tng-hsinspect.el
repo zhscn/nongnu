@@ -47,6 +47,7 @@ A prefix argument ensures that caches are flushes."
   ;; TODO double prefix + FQN should mean use unqualified `as' import
   ;; TODO double prefix + unqualified should mean to import entire module
   ;; TODO shortlist for FQN imports (no need to calc the index)
+  ;; TODO fqn version doesn't work one after the last character and non-fqn version doesn't work on first
   (interactive "P")
   ;; TODO update the hsinspect-imports cache
   (when-let* ((index (haskell-tng--hsinspect-index alt))
