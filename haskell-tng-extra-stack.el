@@ -13,6 +13,7 @@
 (require 'haskell-tng-hsinspect)
 
 (setq
+ haskell-tng--compile-dominating-project (rx "stack.yaml")
  haskell-tng--hsinspect-which-hsinspect "stack exec --silent which -- hsinspect"
  haskell-tng--compile-history '("stack build --fast --no-interleaved-output --ghc-options=\"-j\" --no-run-tests"
                                 "stack build --fast --no-interleaved-output --ghc-options=\"-j\""))

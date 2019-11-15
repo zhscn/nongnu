@@ -73,6 +73,11 @@
 (defvar haskell-tng--compile-dominating-package
   (rx (| (: (+ any) ".cabal") "package.yaml")))
 
+;; Not guaranteed to exist for cabal-install, always fall back to
+;; dominating-package when searching for the dominating project.
+(defvar haskell-tng--compile-dominating-project
+  (rx (| "cabal.project" "cabal.project.local" "cabal.project.freeze")))
+
 (defun haskell-tng-compile (&optional edit-command)
   "`compile' specialised to Haskell:
 

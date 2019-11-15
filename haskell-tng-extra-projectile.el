@@ -12,11 +12,6 @@
 ;; TODO fix the haskell-stack detection to also include cabal
 ;; TODO populate the projectile compile/run/test commands
 
-;; ;; Not guaranteed to exist for cabal-install, always fall back to
-;; ;; dominating-package when searching for the dominating project.
-;; (defvar haskell-tng--compile-dominating-project
-;;   (rx (| "cabal.project" "cabal.project.local" "cabal.project.freeze")))
-
 (make-variable-buffer-local 'projectile-tags-command)
 (add-hook
  'haskell-tng-mode-hook

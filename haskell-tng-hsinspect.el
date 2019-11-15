@@ -119,48 +119,48 @@ A prefix argument ensures that caches are flushes."
 (defvar-local haskell-tng--hsinspect-imports nil)
 (defun haskell-tng--hsinspect-imports (&optional no-work flush-cache)
   (haskell-tng--hsinspect-cached
-   (lambda () (haskell-tng--hsinspect "imports" buffer-file-name))
+   (lambda () (haskell-tng--hsinspect flush-cache "imports" buffer-file-name))
    'haskell-tng--hsinspect-imports
    (concat "hsinspect-0.0.7" buffer-file-name "." "imports")
    no-work
    flush-cache))
 
-;; TODO use a package specific variable buffer
+;; TODO add a package-wide variable cache
 (defun haskell-tng--hsinspect-index (&optional flush-cache)
   (when-let (ghcflags-dir
              (locate-dominating-file default-directory ".ghc.flags"))
     (haskell-tng--hsinspect-cached-disk
-     (lambda () (haskell-tng--hsinspect "index"))
+     (lambda () (haskell-tng--hsinspect flush-cache "index"))
      (concat "hsinspect-0.0.7" (expand-file-name ghcflags-dir) "index")
      nil
      flush-cache)))
 
-;; FIXME use a project-wide cache
-(defvar-local haskell-tng--hsinspect-exe nil)
+;; TODO add a project-wide variable cache
 (defvar haskell-tng--hsinspect-which-hsinspect
   "cabal exec -v0 which -- hsinspect")
-(defun haskell-tng--hsinspect-exe ()
+(defun haskell-tng--hsinspect-exe (&optional flush-cache)
   "The binary to use for `hsinspect'"
-  (or
-   haskell-tng--hsinspect-exe
-   (setq
-    haskell-tng--hsinspect-exe
-    (let ((which (string-trim (shell-command-to-string haskell-tng--hsinspect-which-hsinspect))))
-      (if (file-exists-p which)
-          which
-        ;; TODO don't do this, prefer an error message
-        "hsinspect")))))
+  (when-let (package-dir (or
+                          (haskell-tng--util-locate-dominating-file
+                           haskell-tng--compile-dominating-project)
+                          (haskell-tng--util-locate-dominating-file
+                           haskell-tng--compile-dominating-package)))
+    (haskell-tng--hsinspect-cached-disk
+     (lambda () (string-trim (shell-command-to-string haskell-tng--hsinspect-which-hsinspect)))
+     (concat "which" (expand-file-name package-dir) "hsinspect")
+     nil
+     flush-cache)))
 
-(defun haskell-tng--hsinspect (&rest params)
+(defun haskell-tng--hsinspect (flush-cache &rest params)
   (ignore-errors (kill-buffer "*hsinspect*"))
   (when-let ((ghcflags (haskell-tng--hsinspect-ghcflags))
-             ;; TODO search for the .cabal file and then delete .ghc.version support
-             (default-directory (locate-dominating-file default-directory ".ghc.version")))
+             (default-directory (haskell-tng--util-locate-dominating-file
+                                 haskell-tng--compile-dominating-package)))
     (if (/= 0
             (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
               (apply
                #'call-process
-               (haskell-tng--hsinspect-exe)
+               (haskell-tng--hsinspect-exe flush-cache)
                nil "*hsinspect*" nil
                (append params '("--") ghcflags))))
         (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
