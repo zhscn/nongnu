@@ -119,22 +119,18 @@ A prefix argument ensures that caches are flushes."
 (defvar-local haskell-tng--hsinspect-imports nil)
 (defun haskell-tng--hsinspect-imports (&optional no-work flush-cache)
   (haskell-tng--hsinspect-cached
-   #'haskell-tng--hsinspect
-   `("imports" ,buffer-file-name)
+   (lambda () (haskell-tng--hsinspect "imports" buffer-file-name))
    'haskell-tng--hsinspect-imports
    (concat "hsinspect-0.0.7" buffer-file-name "." "imports")
    no-work
    flush-cache))
 
-;; TODO use a package specific variable buffer to save memory
-(defvar-local haskell-tng--hsinspect-index nil)
+;; TODO use a package specific variable buffer
 (defun haskell-tng--hsinspect-index (&optional flush-cache)
   (when-let (ghcflags-dir
              (locate-dominating-file default-directory ".ghc.flags"))
-    (haskell-tng--hsinspect-cached
-     #'haskell-tng--hsinspect
-     '("index")
-     'haskell-tng--hsinspect-index
+    (haskell-tng--hsinspect-cached-disk
+     (lambda () (haskell-tng--hsinspect "index"))
      (concat "hsinspect-0.0.7" (expand-file-name ghcflags-dir) "index")
      nil
      flush-cache)))

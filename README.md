@@ -86,6 +86,8 @@ To automatically import a symbol at point, use `M-x haskell-tng-import-symbol-at
 
 ![screencast of haskell-tng-import-symbol-at-point](screencasts/import-symbol-at-point.gif)
 
+All `hsinspect` commands are heavily cached and never invalidated to maximise availability. If the caches are out of date and no longer useful, run the command again prefixed with `C-u` to force a fresh invocaton of hsinpsect.
+
 ## Extras
 
 Integrations are provided for common libraries and external applications.

@@ -54,6 +54,7 @@
      ;;(message "TNG asked with %S" arg)
      (seq-mapcat
       (lambda (names) (all-completions arg (seq-map #'cdr names)))
+      ;; TODO do the imports query on a timer when idle (only once per buffer)
       (haskell-tng--hsinspect-imports 'no-work)))
     ('sorted t)
     ('duplicates t)

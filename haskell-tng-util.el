@@ -95,61 +95,83 @@ and taking a regexp."
        (concat "qualified " module " as " as)))
      "\n")))
 
-;; TODO split into two calls: disk and local
 ;; TODO needs a unit test
-;; TODO a macro that expands out the local variable
 (defun haskell-tng--hsinspect-cached
-    (fn args local disk &optional no-work flush-cache)
-  "A two-tier cache over a FN that takes ARGS.
+    (work sym key &optional no-work reset)
+  "A two-tier (variable and disk-based) cache over WORK.
+
 The caller is responsible for flushing the cache. For
 consistency, it is recommended that commands using this cache
-flush the cache when the universal argument is provided.
+flush the cache when the universal argument is provided."
+  (haskell-tng--hsinspect-cached-variable
+   (lambda ()
+     (haskell-tng--hsinspect-cached-disk
+      work
+      key
+      no-work
+      reset))
+   sym
+   nil
+   reset))
 
-If the LOCAL reference contains a cache of a previous call, it is
+(defun haskell-tng--hsinspect-cached-variable (work sym &optional no-work reset)
+  "A variable cache over a function WORK.
+
+If the SYM reference contains a cache of a previous call, it is
 returned immediately.
 
-If DISK expands to a file that exists in the cache directory, it
-is read as an s-expression, saved to LOCAL, and returned. Callers
-are advised to version their DISK cache as it is persisted
-between restarts and software upgrades.
+Otherwise WORK is called with no parameters and saved to SYM.
 
-Otherwise FN is called with ARGS and saved to both LOCAL and
-DISK.
+Errors are NOT cached.
 
-Errors are not cached, nil return values are cached in LOCAL but
-not in DISK.
+nil return values are cached.
 
-NO-WORK skips FN and only queries the caches.
+NO-WORK skips WORK and only queries the cache.
 
-FLUSH-CACHE forces both LOCAL and DISK to be invalidated."
-  (when flush-cache
-    (set local nil))
-  (when (not (symbol-value local))
-    (let ((cache-file-name
-           (concat (xdg-cache-home) "/haskell-tng/" disk ".gz")))
-      (when (and flush-cache (file-exists-p cache-file-name))
-        (delete-file cache-file-name))
-      (if (file-exists-p cache-file-name)
-          (set
-           local
-           (with-temp-buffer
-             ;; TODO set jka-compr-verbose to nil to disable messages (currently
-             ;;      giving useful debugging hints so left on).
-             (insert-file-contents cache-file-name)
-             (goto-char (point-min))
-             (ignore-errors (read (current-buffer)))))
-        (unless (or no-work
-                    (eq 'cached-nil (symbol-value local)))
-          (set local 'cached-nil)
-          (set local (apply fn args))
-          (if-let (cache (symbol-value local))
-              (with-temp-file cache-file-name
-                (make-directory (file-name-directory cache-file-name) 'create-parents)
-                (prin1 cache (current-buffer)))
-            (set local 'cached-nil))))))
+RESET sets the variable to nil before doing anything."
+  (when reset
+    (set sym nil))
+  (when (not (symbol-value sym))
+    (unless no-work
+      (set sym (funcall work))
+      (unless (symbol-value sym)
+        (set sym 'cached-nil))))
+  (pcase (symbol-value sym)
+    ('cached-nil nil)
+    (cached cached)))
 
-  (when (not (eq 'cached-nil (symbol-value local)))
-    (symbol-value local)))
+(defun haskell-tng--hsinspect-cached-disk (work key &optional no-work reset)
+  "A disk-based cache over a function WORK.
+
+If the cache contains a file matching the KEY string (which must
+be filesystem safe), it is parsed as an s-expressed and returned.
+
+Otherwise WORK is called with no parameters and saved to the KEY.
+
+Errors are NOT cached.
+
+nil return values are NOT cached.
+
+NO-WORK skips WORK and only queries the cache.
+
+RESET deletes the cache if it exists."
+  (let ((cache-file
+         (concat (xdg-cache-home) "/haskell-tng/" key ".gz")))
+    (when (and reset (file-exists-p cache-file))
+      (delete-file cache-file))
+    (if (file-exists-p cache-file)
+        (with-temp-buffer
+          ;; TODO set jka-compr-verbose to nil to disable messages (currently
+          ;;      giving useful debugging hints so left on).
+          (insert-file-contents cache-file)
+          (goto-char (point-min))
+          (ignore-errors (read (current-buffer))))
+      (unless no-work
+        (when-let (result (funcall work))
+          (with-temp-file cache-file
+            (make-directory (file-name-directory cache-file) 'create-parents)
+            (prin1 result (current-buffer)))
+          result)))))
 
 (provide 'haskell-tng-util)
 ;;; haskell-tng-util.el ends here
