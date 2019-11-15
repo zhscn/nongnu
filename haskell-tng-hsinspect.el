@@ -33,13 +33,13 @@ name of the symbol at point in the minibuffer.
 
 A prefix argument ensures that caches are flushes."
   (interactive "P")
-  (when-let* ((sym (haskell-tng--hsinspect-symbol-at-point))
-              (found (seq-find
-                      (lambda (names) (member sym (seq-map #'cdr names)))
-                      (haskell-tng--hsinspect-imports nil alt))))
-    ;; TODO multiple hits
-    ;; TODO feedback when hsinspect is broken
-    (popup-tip (format "%s" (cdar (last found))))))
+  (if-let* ((sym (haskell-tng--hsinspect-symbol-at-point))
+            (found (seq-find
+                    (lambda (names) (member sym (seq-map #'cdr names)))
+                    (haskell-tng--hsinspect-imports nil alt))))
+      ;; TODO multiple hits
+      (popup-tip (format "%s" (cdar (last found)))))
+  (user-error "Not found"))
 
 ;;;###autoload
 (defun haskell-tng-import-symbol-at-point (&optional alt)
@@ -114,7 +114,7 @@ A prefix argument ensures that caches are flushes."
         (insert-file-contents (expand-file-name ".ghc.flags"))
         (split-string
          (buffer-substring-no-properties (point-min) (point-max))))
-    (user-error "could not find `.ghc.flags': add GhcFlags.Plugin and compile.")))
+    (user-error "Could not find `.ghc.flags': add GhcFlags.Plugin and compile.")))
 
 (defvar-local haskell-tng--hsinspect-imports nil)
 (defun haskell-tng--hsinspect-imports (&optional no-work flush-cache)
@@ -160,10 +160,11 @@ A prefix argument ensures that caches are flushes."
             (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
               (apply
                #'call-process
-               (haskell-tng--hsinspect-exe flush-cache)
+               (or (haskell-tng--hsinspect-exe flush-cache)
+                   (user-error "Could not find hsinspect: add to build-tool-depends"))
                nil "*hsinspect*" nil
                (append params '("--") ghcflags))))
-        (user-error "`hsinspect' failed. See the *hsinspect* buffer for more information")
+        (user-error "Failed, see *hsinspect* buffer for more information")
       (with-current-buffer "*hsinspect*"
         ;; TODO remove this resilience against stdout / stderr noise
         (goto-char (point-max))
