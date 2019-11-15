@@ -33,16 +33,13 @@ name of the symbol at point in the minibuffer.
 
 A prefix argument ensures that caches are flushes."
   (interactive "P")
-  (if-let* ((sym (haskell-tng--hsinspect-symbol-at-point))
-            (found (seq-find
-                    (lambda (names) (member sym (seq-map #'cdr names)))
-                    (haskell-tng--hsinspect-imports nil alt))))
-      ;; TODO multiple hits
-      ;; TODO feedback when hsinspect is broken
-      (popup-tip (format "%s" (cdar (last found))))
-    (if (eq t haskell-tng--hsinspect-imports)
-        (error "hsinspect is not available")
-      (message "<not imported>"))))
+  (when-let* ((sym (haskell-tng--hsinspect-symbol-at-point))
+              (found (seq-find
+                      (lambda (names) (member sym (seq-map #'cdr names)))
+                      (haskell-tng--hsinspect-imports nil alt))))
+    ;; TODO multiple hits
+    ;; TODO feedback when hsinspect is broken
+    (popup-tip (format "%s" (cdar (last found))))))
 
 ;;;###autoload
 (defun haskell-tng-import-symbol-at-point (&optional alt)
@@ -100,12 +97,12 @@ A prefix argument ensures that caches are flushes."
          (re-search-backward
           (rx symbol-start (+ (| word (syntax symbol) ".")) point)
           (line-beginning-position)
-          t))
+          'no-error))
      (match-beginning 0))
    (save-excursion
      (re-search-forward
       (rx point (+ (| word (syntax symbol) ".")) symbol-end)
-      (line-end-position) t)
+      (line-end-position) 'no-error)
      (match-end 0))))
 
 (defun haskell-tng--hsinspect-ghcflags ()
@@ -116,12 +113,10 @@ A prefix argument ensures that caches are flushes."
         (insert-file-contents (expand-file-name ".ghc.flags"))
         (split-string
          (buffer-substring-no-properties (point-min) (point-max))))
-    (user-error "could not find `.ghc.flags'.")))
+    (user-error "could not find `.ghc.flags': add GhcFlags.Plugin and compile.")))
 
-(defvar-local haskell-tng--hsinspect-imports nil
-  "Cache for the last `imports' call for this buffer.
-t means the process failed.")
-(defun haskell-tng--hsinspect-imports (no-work flush-cache)
+(defvar-local haskell-tng--hsinspect-imports nil)
+(defun haskell-tng--hsinspect-imports (&optional no-work flush-cache)
   (haskell-tng--hsinspect-cached
    #'haskell-tng--hsinspect
    `("imports" ,buffer-file-name)
@@ -130,10 +125,9 @@ t means the process failed.")
    no-work
    flush-cache))
 
-(defvar-local haskell-tng--hsinspect-index nil
-  "Cache for the last `index' call for this buffer.
-t means the process failed.")
-(defun haskell-tng--hsinspect-index (flush-cache)
+;; TODO use a package specific variable buffer to save memory
+(defvar-local haskell-tng--hsinspect-index nil)
+(defun haskell-tng--hsinspect-index (&optional flush-cache)
   (when-let (ghcflags-dir
              (locate-dominating-file default-directory ".ghc.flags"))
     (haskell-tng--hsinspect-cached
@@ -144,7 +138,7 @@ t means the process failed.")
      nil
      flush-cache)))
 
-;; FIXME use a cache
+;; FIXME use a project-wide cache
 (defvar-local haskell-tng--hsinspect-exe nil)
 (defvar haskell-tng--hsinspect-which-hsinspect
   "cabal exec -v0 which -- hsinspect")
@@ -157,7 +151,7 @@ t means the process failed.")
     (let ((which (string-trim (shell-command-to-string haskell-tng--hsinspect-which-hsinspect))))
       (if (file-exists-p which)
           which
-        ;; fall back to system installed binary
+        ;; TODO don't do this, prefer an error message
         "hsinspect")))))
 
 (defun haskell-tng--hsinspect (&rest params)
@@ -169,7 +163,6 @@ t means the process failed.")
             (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
               (apply
                #'call-process
-               ;; TODO async
                (haskell-tng--hsinspect-exe)
                nil "*hsinspect*" nil
                (append params '("--") ghcflags))))
@@ -178,7 +171,7 @@ t means the process failed.")
         ;; TODO remove this resilience against stdout / stderr noise
         (goto-char (point-max))
         (backward-sexp)
-        (or (ignore-errors (read (current-buffer))) t)))))
+        (ignore-errors (read (current-buffer)))))))
 
 (provide 'haskell-tng-hsinspect)
 ;;; haskell-tng-hsinspect.el ends here
