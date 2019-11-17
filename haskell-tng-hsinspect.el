@@ -136,20 +136,38 @@ A prefix argument ensures that caches are flushes."
      flush-cache)))
 
 ;; TODO add a project-wide variable cache
-(defvar haskell-tng--hsinspect-which-hsinspect
-  "cabal exec -v0 which -- hsinspect")
 (defun haskell-tng--hsinspect-exe (&optional flush-cache)
-  "The binary to use for `hsinspect'"
+  "The cached binary to use for `hsinspect'"
   (when-let (package-dir (or
                           (haskell-tng--util-locate-dominating-file
                            haskell-tng--compile-dominating-project)
                           (haskell-tng--util-locate-dominating-file
                            haskell-tng--compile-dominating-package)))
     (haskell-tng--hsinspect-cached-disk
-     (lambda () (string-trim (shell-command-to-string haskell-tng--hsinspect-which-hsinspect)))
+     #'haskell-tng--hsinspect-which-hsinspect
      (concat "which" (expand-file-name package-dir) "hsinspect")
      nil
      flush-cache)))
+
+(defvar haskell-tng--hsinspect-which-hsinspect
+  "cabal exec -v0 which -- hsinspect")
+(defun haskell-tng--hsinspect-which-hsinspect ()
+  "Finds and checks the hsinspect binary for the current buffer.
+
+This is uncached, prefer `haskell-tng--hsinspect-exe'."
+  (let ((bin
+         (string-trim
+          (shell-command-to-string
+           haskell-tng--hsinspect-which-hsinspect))))
+    (if (file-executable-p bin)
+        (let ((version
+               (string-trim
+                (shell-command-to-string (concat bin " --version")))))
+          (if (member version '("0.0.7" "0.0.8"))
+              bin
+            (user-error "The hsinspect binary is the wrong version: %S" version)))
+      ;; TODO from 0.0.8+ do a --ghc-version check (a common failure mode)
+      (user-error "The hsinspect binary is not executable: %S" bin))))
 
 (defun haskell-tng--hsinspect (flush-cache &rest params)
   (ignore-errors (kill-buffer "*hsinspect*"))
