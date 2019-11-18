@@ -150,23 +150,28 @@ A prefix argument ensures that caches are flushes."
      flush-cache)))
 
 (defvar haskell-tng--hsinspect-which-hsinspect
-  "cabal exec -v0 which -- hsinspect")
+  "cabal build -v0 hsinspect && cabal exec -v0 which -- hsinspect")
 (defun haskell-tng--hsinspect-which-hsinspect ()
   "Finds and checks the hsinspect binary for the current buffer.
 
 This is uncached, prefer `haskell-tng--hsinspect-exe'."
-  (let ((bin
-         (string-trim
-          (shell-command-to-string
-           haskell-tng--hsinspect-which-hsinspect))))
+  (let ((supported '("0.0.7" "0.0.8"))
+        (bin
+         (car
+          (last
+           (split-string
+            (string-trim
+             (shell-command-to-string
+              haskell-tng--hsinspect-which-hsinspect))
+            "\n")))))
     (if (file-executable-p bin)
         (let ((version
                (string-trim
                 (shell-command-to-string (concat bin " --version")))))
-          (if (member version '("0.0.7" "0.0.8"))
+          (if (member version supported)
+              ;; TODO from 0.0.8+ do a --ghc-version check (a common failure mode)
               bin
-            (user-error "The hsinspect binary is the wrong version: %S" version)))
-      ;; TODO from 0.0.8+ do a --ghc-version check (a common failure mode)
+            (user-error "The hsinspect binary is the wrong version: got `%s' require `%s'" version supported)))
       (user-error "The hsinspect binary is not executable: %S" bin))))
 
 (defun haskell-tng--hsinspect (flush-cache &rest params)

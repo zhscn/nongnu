@@ -155,14 +155,13 @@ nil return values are NOT cached.
 NO-WORK skips WORK and only queries the cache.
 
 RESET deletes the cache if it exists."
-  (let ((cache-file
+  (let (jka-compr-verbose ;; disables gzip noise
+        (cache-file
          (concat (xdg-cache-home) "/haskell-tng/" key ".gz")))
     (when (and reset (file-exists-p cache-file))
       (delete-file cache-file))
     (if (file-exists-p cache-file)
         (with-temp-buffer
-          ;; TODO set jka-compr-verbose to nil to disable messages (currently
-          ;;      giving useful debugging hints so left on).
           (insert-file-contents cache-file)
           (goto-char (point-min))
           (ignore-errors (read (current-buffer))))
