@@ -37,6 +37,8 @@ Check out the source code repository and enable with [`use-package`](https://git
 A full installation may look like the following
 
 ```lisp
+(use-package popup) ;; dependency of haskell-tng-hsinspect
+
 (use-package haskell-tng-mode
   :ensure nil
   :load-path "/path/to/git/clone"

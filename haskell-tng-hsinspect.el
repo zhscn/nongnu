@@ -150,7 +150,7 @@ A prefix argument ensures that caches are flushes."
      flush-cache)))
 
 (defvar haskell-tng--hsinspect-which-hsinspect
-  "cabal build -v0 hsinspect && cabal exec -v0 which -- hsinspect")
+  "cabal build -v0 :pkg:hsinspect:exe:hsinspect && cabal exec -v0 which -- hsinspect")
 (defun haskell-tng--hsinspect-which-hsinspect ()
   "Finds and checks the hsinspect binary for the current buffer.
 
