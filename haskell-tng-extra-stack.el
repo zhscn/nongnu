@@ -21,7 +21,8 @@
                                 "stack build --fast --no-interleaved-output --ghc-options=\"-j\""))
 
 (setq-default
- haskell-tng--compile-alt "stack clean")
+ haskell-tng--compile-alt "stack clean"
+ projectile-tags-command "fast-tags -Re --exclude=.stack-work .")
 
 (provide 'haskell-tng-extra-stack)
 ;;; haskell-tng-extra-stack.el ends here

@@ -16,11 +16,7 @@
 (add-hook
  'haskell-tng-mode-hook
  (lambda ()
-   ;; TODO use the build tool to look for project specific installations of
-   ;; fast-tags (this seems a generic requirement including for hsinspect). Will
-   ;; require doing some advice magic to avoid slowing down the buffer opening.
-   (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle --exclude=.stack-work .")
-   ))
+   (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle .")))
 
 (provide 'haskell-tng-extra-projectile)
 ;;; haskell-tng-extra-projectile.el ends here
