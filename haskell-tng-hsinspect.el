@@ -63,6 +63,9 @@ A prefix argument ensures that caches are flushes."
         ;; TODO add the type around data constructors (requires hsinspect changes)
         (haskell-tng--import-symbol (car hit) nil (cdr hit))))))
 
+;; TODO expand out pattern matches (function defns and cases) based on the cons
+;; for a type obtained from the Index.
+
 (defun haskell-tng--hsinspect-import-popup (index sym)
   (when-let ((hits (haskell-tng--hsinspect-import-candidates index sym)))
     ;; TODO special case one hit
