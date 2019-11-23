@@ -35,11 +35,15 @@ A prefix argument ensures that caches are flushes."
   (interactive "P")
   (if-let* ((sym (haskell-tng--hsinspect-symbol-at-point))
             (found (seq-find
+                    ;; FIXME test for this
+                    ;; TODO add type information too
                     (lambda (names) (member sym (seq-map #'cdr names)))
                     (haskell-tng--hsinspect-imports nil alt))))
       ;; TODO multiple hits
       (popup-tip (format "%s" (cdar (last found)))))
   (user-error "Not found"))
+
+;; FIXME jump-to-definition using import + index + heuristics
 
 ;;;###autoload
 (defun haskell-tng-import-symbol-at-point (&optional alt)
@@ -56,6 +60,7 @@ A prefix argument ensures that caches are flushes."
     (if (string-match (rx bos (group (+ anything)) "." (group (+ (not (any ".")))) eos) sym)
         (let* ((fqn (match-string 1 sym))
                (sym (match-string 2 sym)))
+          ;; FIXME types and data constructors
           (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
             (haskell-tng--import-symbol (car hit) fqn)))
       (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
@@ -73,6 +78,7 @@ A prefix argument ensures that caches are flushes."
                 (selected (popup-menu* entries)))
       (seq-find (lambda (el) (equal (car el) selected)) hits))))
 
+;; FIXME this could be tested
 (defun haskell-tng--hsinspect-import-candidates (index sym)
   "Return a list of (module . symbol)"
   ;; TODO threading/do syntax
