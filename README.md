@@ -68,8 +68,8 @@ The optional command line tool [`hsinspect`](https://gitlab.com/tseenshe/hsinspe
 
 To use this feature you must install `hsinspect` command line tool and the `ghcflags` plugin to every `.cabal` file:
 
-1. `build-tool-depends: hsinspect:hsinspect == 0.0.7` (or make `hsinspect` available globally, self-managing `ghc` versions)
-2. `build-depends: ghcflags == 1.0.1`
+1. `build-tool-depends: hsinspect:hsinspect == 0.0.8` (or make `hsinspect` available globally, self-managing `ghc` versions)
+2. `build-depends: ghcflags == 1.0.2`
 3. add `ghc-options: -fplugin GhcFlags.Plugin`
 
 To find out which module a symbol belongs to, use `M-x haskell-tng-fqn-at-point`. The `haskell-tng-extra-company` package will automatically complete symbols that are in scope.
