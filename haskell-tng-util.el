@@ -140,6 +140,7 @@ RESET sets the variable to nil before doing anything."
     ('cached-nil nil)
     (cached cached)))
 
+;; TODO max-age (fallback to disk if WORK fails)
 (defun haskell-tng--hsinspect-cached-disk (work key &optional no-work reset)
   "A disk-based cache over a function WORK.
 
