@@ -42,7 +42,7 @@ A prefix argument ensures that caches are flushes."
       (popup-tip (format "%s" found)))
   (user-error "Not found"))
 
-;; FIXME jump-to-definition using import + index + heuristics
+;; TODO jump-to-definition using import + index + heuristics
 
 ;;;###autoload
 (defun haskell-tng-import-symbol-at-point (&optional alt)
