@@ -34,13 +34,12 @@ name of the symbol at point in the minibuffer.
 A prefix argument ensures that caches are flushes."
   (interactive "P")
   (if-let* ((sym (haskell-tng--hsinspect-symbol-at-point))
-            (found (seq-find
-                    ;; FIXME test for this
-                    ;; TODO add type information too
-                    (lambda (names) (member sym (seq-map #'cdr names)))
-                    (haskell-tng--hsinspect-imports nil alt))))
+            (found (haskell-tng--hsinspect-qualify
+                    (haskell-tng--hsinspect-imports nil alt)
+                    sym)))
       ;; TODO multiple hits
-      (popup-tip (format "%s" (cdar (last found)))))
+      ;; TODO add type information from the index when available
+      (popup-tip (format "%s" found)))
   (user-error "Not found"))
 
 ;; FIXME jump-to-definition using import + index + heuristics
@@ -71,6 +70,13 @@ A prefix argument ensures that caches are flushes."
 ;; TODO expand out pattern matches (function defns and cases) based on the cons
 ;; for a type obtained from the Index.
 
+(defun haskell-tng--hsinspect-qualify (imports sym)
+  (cdar
+   (last
+    (seq-find
+     (lambda (names) (member sym (seq-map #'cdr names)))
+     imports))))
+
 (defun haskell-tng--hsinspect-import-popup (index sym)
   (when-let ((hits (haskell-tng--hsinspect-import-candidates index sym)))
     ;; TODO special case one hit
@@ -78,7 +84,6 @@ A prefix argument ensures that caches are flushes."
                 (selected (popup-menu* entries)))
       (seq-find (lambda (el) (equal (car el) selected)) hits))))
 
-;; FIXME this could be tested
 (defun haskell-tng--hsinspect-import-candidates (index sym)
   "Return a list of (module . symbol)"
   ;; TODO threading/do syntax
@@ -138,7 +143,7 @@ A prefix argument ensures that caches are flushes."
 (defun haskell-tng--hsinspect-index (&optional flush-cache)
   (when-let (ghcflags-dir
              (locate-dominating-file default-directory ".ghc.flags"))
-    (haskell-tng--hsinspect-cached-disk
+    (haskell-tng--util-cached-disk
      (lambda () (haskell-tng--hsinspect flush-cache "index"))
      (concat "hsinspect-0.0.7" (expand-file-name ghcflags-dir) "index")
      nil
@@ -152,7 +157,7 @@ A prefix argument ensures that caches are flushes."
                            haskell-tng--compile-dominating-project)
                           (haskell-tng--util-locate-dominating-file
                            haskell-tng--compile-dominating-package)))
-    (haskell-tng--hsinspect-cached-disk
+    (haskell-tng-util-cached-disk
      #'haskell-tng--hsinspect-which-hsinspect
      (concat "which" (expand-file-name package-dir) "hsinspect")
      nil

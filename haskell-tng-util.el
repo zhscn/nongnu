@@ -103,9 +103,9 @@ and taking a regexp."
 The caller is responsible for flushing the cache. For
 consistency, it is recommended that commands using this cache
 flush the cache when the universal argument is provided."
-  (haskell-tng--hsinspect-cached-variable
+  (haskell-tng--util-cached-variable
    (lambda ()
-     (haskell-tng--hsinspect-cached-disk
+     (haskell-tng-util-cached-disk
       work
       key
       no-work
@@ -114,7 +114,7 @@ flush the cache when the universal argument is provided."
    nil
    reset))
 
-(defun haskell-tng--hsinspect-cached-variable (work sym &optional no-work reset)
+(defun haskell-tng--util-cached-variable (work sym &optional no-work reset)
   "A variable cache over a function WORK.
 
 If the SYM reference contains a cache of a previous call, it is
@@ -141,7 +141,7 @@ RESET sets the variable to nil before doing anything."
     (cached cached)))
 
 ;; TODO max-age (fallback to disk if WORK fails)
-(defun haskell-tng--hsinspect-cached-disk (work key &optional no-work reset)
+(defun haskell-tng-util-cached-disk (work key &optional no-work reset)
   "A disk-based cache over a function WORK.
 
 If the cache contains a file matching the KEY string (which must
@@ -156,22 +156,29 @@ nil return values are NOT cached.
 NO-WORK skips WORK and only queries the cache.
 
 RESET deletes the cache if it exists."
-  (let (jka-compr-verbose ;; disables gzip noise
-        (cache-file
+  (let ((cache-file
          (concat (xdg-cache-home) "/haskell-tng/" key ".gz")))
     (when (and reset (file-exists-p cache-file))
       (delete-file cache-file))
     (if (file-exists-p cache-file)
-        (with-temp-buffer
-          (insert-file-contents cache-file)
-          (goto-char (point-min))
-          (ignore-errors (read (current-buffer))))
+        (haskell-tng--util-read cache-file)
       (unless no-work
         (when-let (result (funcall work))
-          (with-temp-file cache-file
-            (make-directory (file-name-directory cache-file) 'create-parents)
-            (prin1 result (current-buffer)))
+          (haskell-tng--util-write result cache-file)
           result)))))
+
+(defun haskell-tng--util-read (file)
+  (let (jka-compr-verbose)
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (ignore-errors (read (current-buffer))))))
+
+(defun haskell-tng--util-write (file var)
+  (let (jka-compr-verbose)
+    (with-temp-file file
+      (make-directory (file-name-directory file) 'create-parents)
+      (prin1 var (current-buffer)))))
 
 (provide 'haskell-tng-util)
 ;;; haskell-tng-util.el ends here
