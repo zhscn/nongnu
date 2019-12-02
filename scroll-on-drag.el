@@ -226,7 +226,7 @@ Returns true when scrolling took place, otherwise nil."
                       (* f-abs scroll-on-drag-motion-scale)
                       (+ 1.0 (* f-abs scroll-on-drag-motion-accelerate)))
                     this-frame-char-height-as-float))
-                  f)))))
+                f)))))
 
       ;; Calls 'timer-update-fn'.
       (timer-start-fn
@@ -288,8 +288,7 @@ Returns true when scrolling took place, otherwise nil."
                   ;; Non-Smooth-Scrolling (snap to lines).
                   ;; Basically same logic as above, but only step over lines.
                   (progn
-                    (setq delta-px-accum
-                      (+ delta-scaled delta-px-accum))
+                    (setq delta-px-accum (+ delta-scaled delta-px-accum))
                     (let ((lines (/ delta-px-accum this-frame-char-height)))
 
                       (unless (zerop lines)
@@ -299,8 +298,7 @@ Returns true when scrolling took place, otherwise nil."
                         (setq do-draw t)))))
 
                 (when do-draw
-                  (let
-                    ((inhibit-redisplay nil))
+                  (let ((inhibit-redisplay nil))
                     (run-hooks 'scroll-on-drag-redisplay-hook)
                     (redisplay))))
               (funcall timer-start-fn self-fn)))))
@@ -313,8 +311,7 @@ Returns true when scrolling took place, otherwise nil."
               (scroll-on-drag--scroll-by-lines this-window 1 nil))
             (set-window-vscroll this-window 0 t)
             (setq delta-px-accum 0)
-            (let
-              ((inhibit-redisplay nil))
+            (let ((inhibit-redisplay nil))
               (run-hooks 'scroll-on-drag-redisplay-hook)
               (redisplay)))))
 
@@ -386,9 +383,8 @@ Returns true when scrolling took place, otherwise nil."
                       (funcall scroll-consrtain-point-below-window-start-fn))
                     (setq has-scrolled t))
                   (unless has-scrolled-real
-                    (let
-                      ((inhibit-redisplay nil))
-                        (run-hooks 'scroll-on-drag-pre-hook)))
+                    (let ((inhibit-redisplay nil))
+                      (run-hooks 'scroll-on-drag-pre-hook)))
                   (setq has-scrolled-real t)
                   (funcall timer-stop-fn)
                   (funcall timer-update-fn timer-update-fn)))
@@ -419,9 +415,8 @@ Returns true when scrolling took place, otherwise nil."
       (set-mouse-color nil))
 
     (when has-scrolled-real
-      (let
-        ((inhibit-redisplay nil))
-          (run-hooks 'scroll-on-drag-post-hook)))
+      (let ((inhibit-redisplay nil))
+        (run-hooks 'scroll-on-drag-post-hook)))
 
     ;; Result so we know if any scrolling occurred,
     ;; allowing a fallback action on 'click'.
