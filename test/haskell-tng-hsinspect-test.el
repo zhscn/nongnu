@@ -41,15 +41,41 @@
     (should
      (equal
       (haskell-tng--hsinspect-import-candidates index "throw")
-      '(("Control.Exception.Base" . "throw")
-        ("Control.Exception" . "throw")
-        ("GHC.Exception" . "throw"))))
+      '(((unitid . "base")
+         (module . "Control.Exception.Base")
+         (name . "throw")
+         (type . "forall a e. Exception e => e -> a")
+         (class . id)
+         (export (unitid . "base")
+                 (module . "GHC.Exception"))
+         (flavour))
+        ((unitid . "base")
+         (module . "Control.Exception")
+         (name . "throw")
+         (type . "forall a e. Exception e => e -> a")
+         (class . id)
+         (export (unitid . "base")
+                 (module . "GHC.Exception"))
+         (flavour))
+        ((unitid . "base")
+         (module . "GHC.Exception")
+         (name . "throw")
+         (type . "forall a e. Exception e => e -> a")
+         (class . id)
+         (export)
+         (flavour)))))
 
     ;; operator search
     (should
      (equal
       (haskell-tng--hsinspect-import-candidates index ">$<")
-      '(("Data.Functor.Contravariant" . ">$<"))))
+      '(((unitid . "base")
+         (module . "Data.Functor.Contravariant")
+         (name . ">$<")
+         (type . "forall (f :: * -> *) a b. Contravariant f => (a -> b) -> f b -> f a")
+         (class . id)
+         (export)
+         (flavour)))))
 
     ;; TODO type search
     ;; TODO constructor search

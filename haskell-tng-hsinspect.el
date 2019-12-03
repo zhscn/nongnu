@@ -61,14 +61,17 @@ A prefix argument ensures that caches are flushes."
                (sym (match-string 2 sym)))
           ;; FIXME types and data constructors
           (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
-            (haskell-tng--import-symbol (car hit) fqn)))
+            (haskell-tng--import-symbol (alist-get 'module hit) fqn)))
       (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
         ;; TODO add parens around operators
         ;; TODO add the type around data constructors (requires hsinspect changes)
-        (haskell-tng--import-symbol (car hit) nil (cdr hit))))))
+        (haskell-tng--import-symbol (alist-get 'module hit) nil (alist-get 'name hit))))))
 
 ;; TODO expand out pattern matches (function defns and cases) based on the cons
 ;; for a type obtained from the Index.
+
+;; TODO expand out wildcards in pattern matches. We can calculate the type by
+;; looking at the names of the other data constructors that have been used.
 
 (defun haskell-tng--hsinspect-qualify (imports sym)
   (cdar
@@ -80,17 +83,20 @@ A prefix argument ensures that caches are flushes."
 (defun haskell-tng--hsinspect-import-popup (index sym)
   (when-let ((hits (haskell-tng--hsinspect-import-candidates index sym)))
     ;; TODO special case one hit
-    (when-let* ((entries (mapcar 'car hits)) ;; TODO include function name
+    ;; TODO show more context, like the type
+    (when-let* ((entries (mapcar (lambda (el) (alist-get 'module el)) hits))
                 (selected (popup-menu* entries)))
-      (seq-find (lambda (el) (equal (car el) selected)) hits))))
+      (seq-find (lambda (el) (equal (alist-get 'module el) selected)) hits))))
 
 (defun haskell-tng--hsinspect-import-candidates (index sym)
-  "Return a list of (module . symbol)"
+  "Return an list of alists with keys: unitid, module, name, type.
+When using hsinspect-0.0.8, also: class, export, flavour."
   ;; TODO threading/do syntax
   ;; TODO alist variable binding like RecordWildcards
   (seq-mapcat
    (lambda (pkg-entry)
-     (let ((modules (alist-get 'modules pkg-entry)))
+     (let ((unitid (alist-get 'unitid pkg-entry))
+           (modules (alist-get 'modules pkg-entry)))
        (seq-mapcat
         (lambda (module-entry)
           (let ((module (alist-get 'module module-entry))
@@ -98,8 +104,20 @@ A prefix argument ensures that caches are flushes."
             ;;(message "MODULE= %s" module)
             (seq-mapcat
              (lambda (entry)
-               (let ((name (alist-get 'name entry)))
-                 (when (equal name sym) `(,(cons module name)))))
+               (let ((name (alist-get 'name entry))
+                     (type (alist-get 'type entry))
+                     (class (alist-get 'class entry))
+                     (export (alist-get 'export entry))
+                     (flavour (alist-get 'flavour entry)))
+                 (when (equal name sym)
+                   ;; TODO add the hsinspect-0.0.8 bits
+                   `(((unitid . ,unitid)
+                      (module . ,module)
+                      (name . ,name)
+                      (type . ,type)
+                      (class . ,class)
+                      (export . ,export)
+                      (flavour . ,flavour))))))
              ids)))
         modules)))
    index))
