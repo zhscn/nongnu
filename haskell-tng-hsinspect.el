@@ -47,8 +47,7 @@ A prefix argument ensures that caches are flushes."
 ;;;###autoload
 (defun haskell-tng-import-symbol-at-point (&optional alt)
   "Import the symbol at point"
-  ;; TODO double prefix + FQN should mean use unqualified `as' import
-  ;; TODO double prefix + unqualified should mean to import entire module
+  ;; TODO C-- prefix could mean to ask the user to provide the qualifier after being told the module name
   ;; TODO shortlist for FQN imports (no need to calc the index)
   ;; TODO fqn version doesn't work one after the last character and non-fqn version doesn't work on first
   (interactive "P")
