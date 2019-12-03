@@ -164,7 +164,7 @@ RESET deletes the cache if it exists."
         (haskell-tng--util-read cache-file)
       (unless no-work
         (when-let (result (funcall work))
-          (haskell-tng--util-write result cache-file)
+          (haskell-tng--util-write cache-file result)
           result)))))
 
 (defun haskell-tng--util-read (file)
