@@ -59,13 +59,15 @@ A prefix argument ensures that caches are flushes."
     (if (string-match (rx bos (group (+ anything)) "." (group (+ (not (any ".")))) eos) sym)
         (let* ((fqn (match-string 1 sym))
                (sym (match-string 2 sym)))
-          ;; FIXME types and data constructors
           (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
             (haskell-tng--import-symbol (alist-get 'module hit) fqn)))
       (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
         ;; TODO add parens around operators
         ;; TODO add the type around data constructors (requires hsinspect changes)
-        (haskell-tng--import-symbol (alist-get 'module hit) nil (alist-get 'name hit))))))
+        (pcase (alist-get 'class hit)
+          ('tycon (haskell-tng--import-symbol (alist-get 'module hit) nil (alist-get 'type hit)))
+          ;; FIXME con
+          (_ (haskell-tng--import-symbol (alist-get 'module hit) nil (alist-get 'name hit))))))))
 
 ;; TODO expand out pattern matches (function defns and cases) based on the cons
 ;; for a type obtained from the Index.
@@ -109,7 +111,7 @@ When using hsinspect-0.0.8, also: class, export, flavour."
                      (class (alist-get 'class entry))
                      (export (alist-get 'export entry))
                      (flavour (alist-get 'flavour entry)))
-                 (when (equal name sym)
+                 (when (or (equal name sym) (equal type sym))
                    ;; TODO add the hsinspect-0.0.8 bits
                    `(((unitid . ,unitid)
                       (module . ,module)

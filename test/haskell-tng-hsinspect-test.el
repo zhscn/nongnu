@@ -77,8 +77,20 @@
          (export)
          (flavour)))))
 
-    ;; TODO type search
+    ;; type / typeclass search
+    (should
+     (equal
+      (haskell-tng--hsinspect-import-candidates index "Contravariant")
+      '(((unitid . "base")
+         (module . "Data.Functor.Contravariant")
+         (name)
+         (type . "Contravariant")
+         (class . tycon)
+         (export)
+         (flavour . "class")))))
+
     ;; TODO constructor search
+    ;;(message "%S" (haskell-tng--hsinspect-import-candidates index "Contravariant"))
     ))
 
 ;; TODO tests for 0.0.7 data
