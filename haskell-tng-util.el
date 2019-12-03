@@ -105,7 +105,7 @@ consistency, it is recommended that commands using this cache
 flush the cache when the universal argument is provided."
   (haskell-tng--util-cached-variable
    (lambda ()
-     (haskell-tng-util-cached-disk
+     (haskell-tng--util-cached-disk
       work
       key
       no-work
@@ -141,7 +141,7 @@ RESET sets the variable to nil before doing anything."
     (cached cached)))
 
 ;; TODO max-age (fallback to disk if WORK fails)
-(defun haskell-tng-util-cached-disk (work key &optional no-work reset)
+(defun haskell-tng--util-cached-disk (work key &optional no-work reset)
   "A disk-based cache over a function WORK.
 
 If the cache contains a file matching the KEY string (which must

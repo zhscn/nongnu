@@ -157,7 +157,7 @@ A prefix argument ensures that caches are flushes."
                            haskell-tng--compile-dominating-project)
                           (haskell-tng--util-locate-dominating-file
                            haskell-tng--compile-dominating-package)))
-    (haskell-tng-util-cached-disk
+    (haskell-tng--util-cached-disk
      #'haskell-tng--hsinspect-which-hsinspect
      (concat "which" (expand-file-name package-dir) "hsinspect")
      nil
