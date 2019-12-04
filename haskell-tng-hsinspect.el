@@ -14,6 +14,7 @@
 ;; TODO this file needs tests, if not testing calling hsinspect then at least
 ;; with pre-canned data.
 
+(require 'array)
 (require 'subr-x)
 
 ;; Popups are not supported in stock Emacs so an extension is necessary:
@@ -52,6 +53,11 @@ A prefix argument ensures that caches are flushes."
     ("Data.ByteString.Lazy" . "LBS"))
   "An alist of (MODULE . NAME) to use for qualified imports.")
 
+(defcustom haskell-tng-hsinspect-qualify nil
+  "`haskell-tng-import-symbol-at-point' will prefer qualified imports."
+  :type 'booleanp
+  :group 'haskell-tng)
+
 ;;;###autoload
 (defun haskell-tng-import-symbol-at-point (&optional alt)
   "Import the symbol at point by querying the user to select from a menu.
@@ -60,13 +66,13 @@ If the symbol is qualified, the module will be imported
 qualified.
 
 If called with a `-' prefix, the module will be imported
-qualified and the user will be asked for the name.
+qualified and the user will be asked for the name (behaviour is
+reversed if `haskell-tng-hsinspect-qualify' is set).
 
 Respects the `C-u' cache invalidation convention."
-  ;; TODO shortlist for FQN imports (no need to calc the index)
   ;; TODO fqn version doesn't work one after the last character and non-fqn version doesn't work on first
   (interactive "P")
-  ;; TODO update the hsinspect-imports cache
+  ;; FIXME update the hsinspect-imports cache
   (let ((flush-cache (and alt (not (eq '- alt)))))
     (when-let* ((index (haskell-tng--hsinspect-index flush-cache))
                 (sym (haskell-tng--hsinspect-symbol-at-point)))
@@ -79,7 +85,7 @@ Respects the `C-u' cache invalidation convention."
         (when-let* ((hit (haskell-tng--hsinspect-import-popup index sym))
                     (module (alist-get 'module hit)))
           ;; TODO add parens around operators (or should that be in the utility?)
-          (if (eq '- alt)
+          (if (xor haskell-tng-hsinspect-qualify (eq '- alt))
               (let ((fqn (or
                           (alist-get module haskell-tng-hsinspect-as nil nil 'equal)
                           (read-string
