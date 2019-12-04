@@ -46,27 +46,46 @@ A prefix argument ensures that caches are flushes."
 
 ;;;###autoload
 (defun haskell-tng-import-symbol-at-point (&optional alt)
-  "Import the symbol at point"
-  ;; TODO C-- prefix could mean to ask the user to provide the qualifier after being told the module name
+  "Import the symbol at point by querying the user to select from a menu.
+
+If the symbol is qualified, the module will be imported
+qualified.
+
+If called with a `-' prefix, the module will be imported
+qualified and the user will be asked for the name.
+
+Respects the `C-u' cache invalidation convention."
   ;; TODO shortlist for FQN imports (no need to calc the index)
   ;; TODO fqn version doesn't work one after the last character and non-fqn version doesn't work on first
   (interactive "P")
   ;; TODO update the hsinspect-imports cache
-  (when-let* ((index (haskell-tng--hsinspect-index alt))
-              (sym (haskell-tng--hsinspect-symbol-at-point)))
-    (message "Seaching for '%s' in %s modules" sym (length index))
-    (if (string-match (rx bos (group (+ anything)) "." (group (+ (not (any ".")))) eos) sym)
-        (let* ((fqn (match-string 1 sym))
-               (sym (match-string 2 sym)))
-          (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
-            (haskell-tng--import-symbol (alist-get 'module hit) fqn)))
-      (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
-        ;; TODO add parens around operators
-        ;; TODO add the type around data constructors (requires hsinspect changes)
-        (pcase (alist-get 'class hit)
-          ('tycon (haskell-tng--import-symbol (alist-get 'module hit) nil (alist-get 'type hit)))
-          ;; FIXME con
-          (_ (haskell-tng--import-symbol (alist-get 'module hit) nil (alist-get 'name hit))))))))
+  (let ((flush-cache (and alt (not (eq '- alt)))))
+    (when-let* ((index (haskell-tng--hsinspect-index flush-cache))
+                (sym (haskell-tng--hsinspect-symbol-at-point)))
+      (message "Seaching for '%s' in %s modules" sym (length index))
+      (if (string-match (rx bos (group (+ anything)) "." (group (+ (not (any ".")))) eos) sym)
+          (let* ((fqn (match-string 1 sym))
+                 (sym (match-string 2 sym)))
+            (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
+              (haskell-tng--import-symbol (alist-get 'module hit) fqn)))
+        (when-let* ((hit (haskell-tng--hsinspect-import-popup index sym))
+                    (module (alist-get 'module hit)))
+          ;; TODO add parens around operators (or should that be in the utility?)
+          (if (eq '- alt)
+              ;; TODO guess the name, e.g. find the camel cases
+              (let ((fqn (read-string (concat "import qualified " module " as "))))
+                (haskell-tng--import-symbol module fqn)
+                (save-excursion
+                  (unless (looking-at (regexp-quote sym))
+                    (re-search-backward
+                     (rx symbol-start (+ (| word (syntax symbol))) point)
+                     (line-beginning-position)
+                     'no-error))
+                  (insert fqn ".")))
+            (pcase (alist-get 'class hit)
+              ('tycon (haskell-tng--import-symbol module nil (alist-get 'type hit)))
+              ;; FIXME con
+              (_ (haskell-tng--import-symbol module nil (alist-get 'name hit))))))))))
 
 ;; TODO expand out pattern matches (function defns and cases) based on the cons
 ;; for a type obtained from the Index.
@@ -181,6 +200,8 @@ When using hsinspect-0.0.8, also: class, export, flavour."
      (concat "which" (expand-file-name package-dir) "hsinspect")
      nil
      flush-cache)))
+
+;; TODO discover the PATH from the build tool and set it when calling hsinspect
 
 (defvar haskell-tng--hsinspect-which-hsinspect
   "cabal build -v0 :pkg:hsinspect:exe:hsinspect && cabal exec -v0 which -- hsinspect")
