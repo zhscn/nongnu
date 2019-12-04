@@ -44,6 +44,14 @@ A prefix argument ensures that caches are flushes."
 
 ;; TODO jump-to-definition using import + index + heuristics
 
+(defvar-local haskell-tng-hsinspect-as
+  ;; TODO populate with even more than this
+  '(("Data.List" . "L")
+    ("Data.List.NonEmpty" . "NE")
+    ("Data.ByteString" . "BS")
+    ("Data.ByteString.Lazy" . "LBS"))
+  "An alist of (MODULE . NAME) to use for qualified imports.")
+
 ;;;###autoload
 (defun haskell-tng-import-symbol-at-point (&optional alt)
   "Import the symbol at point by querying the user to select from a menu.
@@ -72,8 +80,11 @@ Respects the `C-u' cache invalidation convention."
                     (module (alist-get 'module hit)))
           ;; TODO add parens around operators (or should that be in the utility?)
           (if (eq '- alt)
-              ;; TODO guess the name, e.g. find the camel cases
-              (let ((fqn (read-string (concat "import qualified " module " as "))))
+              (let ((fqn (or
+                          (alist-get module haskell-tng-hsinspect-as nil nil 'equal)
+                          (read-string
+                           (concat "import qualified " module " as ")
+                           (car (last (split-string module (regexp-quote "."))))))))
                 (haskell-tng--import-symbol module fqn)
                 (save-excursion
                   (unless (looking-at (regexp-quote sym))
