@@ -83,9 +83,23 @@ Respects the `C-u' cache invalidation convention."
                      'no-error))
                   (insert fqn ".")))
             (pcase (alist-get 'class hit)
-              ('tycon (haskell-tng--import-symbol module nil (alist-get 'type hit)))
-              ;; FIXME con
+              ('tycon
+               (haskell-tng--import-symbol
+                module nil
+                (haskell-tng--hsinspect-return-type (alist-get 'type hit))))
+              ('con
+               (haskell-tng--import-symbol
+                module nil
+                (concat (haskell-tng--hsinspect-return-type (alist-get 'type hit)) "(..)")))
               (_ (haskell-tng--import-symbol module nil (alist-get 'name hit))))))))))
+
+(defun haskell-tng--hsinspect-return-type (type)
+  (car
+   (split-string
+    (car
+     (last
+      (split-string
+       type (rx "->" (* space))))))))
 
 ;; TODO expand out pattern matches (function defns and cases) based on the cons
 ;; for a type obtained from the Index.
@@ -121,7 +135,6 @@ When using hsinspect-0.0.8, also: class, export, flavour."
         (lambda (module-entry)
           (let ((module (alist-get 'module module-entry))
                 (ids (alist-get 'ids module-entry)))
-            ;;(message "MODULE= %s" module)
             (seq-mapcat
              (lambda (entry)
                (let ((name (alist-get 'name entry))
@@ -130,7 +143,6 @@ When using hsinspect-0.0.8, also: class, export, flavour."
                      (export (alist-get 'export entry))
                      (flavour (alist-get 'flavour entry)))
                  (when (or (equal name sym) (equal type sym))
-                   ;; TODO add the hsinspect-0.0.8 bits
                    `(((unitid . ,unitid)
                       (module . ,module)
                       (name . ,name)
@@ -209,7 +221,7 @@ When using hsinspect-0.0.8, also: class, export, flavour."
   "Finds and checks the hsinspect binary for the current buffer.
 
 This is uncached, prefer `haskell-tng--hsinspect-exe'."
-  (let ((supported '("0.0.7" "0.0.8"))
+  (let ((supported '("0.0.7" "0.0.8" "0.0.9"))
         (bin
          (car
           (last
