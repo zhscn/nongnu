@@ -52,6 +52,7 @@ A prefix argument ensures that caches are flushes."
     ("Data.ByteString" . "BS")
     ("Data.ByteString.Lazy" . "LBS"))
   "An alist of (MODULE . NAME) to use for qualified imports.")
+(put 'haskell-tng-hsinspect-as 'safe-local-variable #'listp)
 
 (defcustom haskell-tng-hsinspect-qualify nil
   "`haskell-tng-import-symbol-at-point' will prefer qualified imports."
