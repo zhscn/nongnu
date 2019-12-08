@@ -426,7 +426,7 @@ Returns true when scrolling took place, otherwise nil."
 (defmacro scroll-on-drag-with-fallback (&rest body)
   "A macro to scroll and perform a different action on click.
 Optional argument BODY Hello."
-  `(lambda () (interactive) (unless (scroll-on-drag-internal) ,@body)))
+  `(lambda () (interactive) (unless (scroll-on-drag) ,@body)))
 
 (provide 'scroll-on-drag)
 
