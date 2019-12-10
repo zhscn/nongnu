@@ -42,11 +42,11 @@
                       (eq (char-before) ?.))
                   (buffer-substring-no-properties
                    (save-excursion
+                     ;; TODO reuse haskell-tng--hsinspect-symbol-at-point
                      (funcall smie-backward-token-function)
                      (let ((lbp (line-beginning-position)))
-                       ;; include FQNs, workaround ungreedy backwards regexp
+                       ;; WORKAROUND non-greedy matches
                        (while (looking-back haskell-tng--rx-c-qual lbp 't)
-                         ;; TODO try regexp without while
                          (goto-char (match-beginning 0))))
                      (point))
                    (point))))

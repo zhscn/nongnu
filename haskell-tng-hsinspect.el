@@ -25,6 +25,7 @@
 (require 'popup)
 
 (require 'haskell-tng-compile)
+(require 'haskell-tng-rx)
 (require 'haskell-tng-util)
 
 ;;;###autoload
@@ -53,6 +54,12 @@ A prefix argument ensures that caches are flushes."
     ("Data.ByteString.Lazy" . "LBS"))
   "An alist of (MODULE . NAME) to use for qualified imports.")
 (put 'haskell-tng-hsinspect-as 'safe-local-variable #'listp)
+(defun haskell-tng--hsinspect-as (module)
+  (or
+   (alist-get module haskell-tng-hsinspect-as nil nil 'equal)
+   (read-string
+    (concat "import qualified " module " as ")
+    (car (last (split-string module (regexp-quote ".")))))))
 
 (defcustom haskell-tng-hsinspect-qualify nil
   "`haskell-tng-import-symbol-at-point' will prefer qualified imports."
@@ -71,45 +78,46 @@ qualified and the user will be asked for the name (behaviour is
 reversed if `haskell-tng-hsinspect-qualify' is set).
 
 Respects the `C-u' cache invalidation convention."
-  ;; TODO fqn version doesn't work one after the last character and non-fqn version doesn't work on first
   (interactive "P")
-  ;; FIXME update the hsinspect-imports cache
-  (let ((flush-cache (and alt (not (eq '- alt)))))
+  ;; TODO add parens around operators (or should that be in the utility?)
+  (let (qual
+        (flush-cache (and alt (not (eq '- alt)))))
     (when-let* ((index (haskell-tng--hsinspect-index flush-cache))
                 (sym (haskell-tng--hsinspect-symbol-at-point)))
       (message "Seaching for '%s' in %s modules" sym (length index))
-      (if (string-match (rx bos (group (+ anything)) "." (group (+ (not (any ".")))) eos) sym)
-          (let* ((fqn (match-string 1 sym))
-                 (sym (match-string 2 sym)))
-            (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
-              (haskell-tng--import-symbol (alist-get 'module hit) fqn)))
-        (when-let* ((hit (haskell-tng--hsinspect-import-popup index sym))
-                    (module (alist-get 'module hit)))
-          ;; TODO add parens around operators (or should that be in the utility?)
-          (if (xor haskell-tng-hsinspect-qualify (eq '- alt))
-              (let ((fqn (or
-                          (alist-get module haskell-tng-hsinspect-as nil nil 'equal)
-                          (read-string
-                           (concat "import qualified " module " as ")
-                           (car (last (split-string module (regexp-quote "."))))))))
-                (haskell-tng--import-symbol module fqn)
-                (save-excursion
-                  (unless (looking-at (regexp-quote sym))
-                    (re-search-backward
-                     (rx symbol-start (+ (| word (syntax symbol))) point)
-                     (line-beginning-position)
-                     'no-error))
-                  (insert fqn ".")))
-            (pcase (alist-get 'class hit)
-              ('tycon
-               (haskell-tng--import-symbol
-                module nil
-                (haskell-tng--hsinspect-return-type (alist-get 'type hit))))
-              ('con
-               (haskell-tng--import-symbol
-                module nil
-                (concat (haskell-tng--hsinspect-return-type (alist-get 'type hit)) "(..)")))
-              (_ (haskell-tng--import-symbol module nil (alist-get 'name hit))))))))))
+
+      (when (string-match (rx bos (group (+ anything)) "." (group (+ (not (any ".")))) eos) sym)
+        (setq qual (match-string 1 sym))
+        (setq sym (match-string 2 sym)))
+
+      (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
+        (let* ((module (alist-get 'module hit))
+               (class (alist-get 'class hit))
+               (type (alist-get 'type hit))
+               (name (alist-get 'name hit)))
+          (cond
+           (qual (haskell-tng--import-symbol module qual))
+
+           ((xor haskell-tng-hsinspect-qualify (eq '- alt))
+            (when-let (as (haskell-tng--hsinspect-as module))
+              (haskell-tng--import-symbol module as)
+              (save-excursion
+                (haskell-tng--hsinspect-beginning-of-symbol)
+                (insert as "."))))
+
+           ((eq class 'tycon)
+            (haskell-tng--import-symbol
+             module nil
+             (haskell-tng--hsinspect-return-type type)))
+
+           ((eq class 'con)
+            (haskell-tng--import-symbol
+             module nil
+             (concat (haskell-tng--hsinspect-return-type type) "(..)")))
+
+           (t (haskell-tng--import-symbol module nil name)))))
+      ;; FIXME update the hsinspect-imports cache
+      )))
 
 (defun haskell-tng--hsinspect-return-type (type)
   (car
@@ -176,17 +184,24 @@ When using hsinspect-0.0.8, also: class, export, flavour."
   "A `symbol-at-point' that includes FQN parts."
   (buffer-substring-no-properties
    (save-excursion
-     (while ;; WORKAROUND non-greedy matches
-         (re-search-backward
-          (rx symbol-start (+ (| word (syntax symbol) ".")) point)
-          (line-beginning-position)
-          'no-error))
-     (match-beginning 0))
+     (haskell-tng--hsinspect-beginning-of-symbol)
+     (point))
    (save-excursion
      (re-search-forward
       (rx point (+ (| word (syntax symbol) ".")) symbol-end)
-      (line-end-position) 'no-error)
-     (match-end 0))))
+      (line-end-position) 't)
+     (point))))
+
+(defun haskell-tng--hsinspect-beginning-of-symbol ()
+  (let ((lbp (line-beginning-position)))
+    ;; can't use `smie-backward-token-function' because we could be at the start,
+    ;; middle, or end.
+    (re-search-backward
+     (rx symbol-start (+ (| word (syntax symbol) ".")) point)
+     lbp 't)
+    ;; WORKAROUND non-greedy matches
+    (while (looking-back haskell-tng--rx-c-qual lbp 't)
+      (goto-char (match-beginning 0)))))
 
 (defun haskell-tng--hsinspect-ghcflags ()
   ;; https://github.com/haskell/cabal/issues/6203
