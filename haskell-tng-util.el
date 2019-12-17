@@ -71,7 +71,7 @@ and taking a regexp."
        (while (not (setq ,res ,test)) ,@body)
        ,res)))
 
-(defun haskell-tng--import-symbol (module as &optional sym)
+(defun haskell-tng--import-symbol (module &optional as sym)
   "Adds an import for MODULE."
   ;; TODO outsource to `hsimport' when it does de-duping and formatting.
   (save-excursion

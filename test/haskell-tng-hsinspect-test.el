@@ -95,6 +95,41 @@
     ;;(message "%S" (haskell-tng--hsinspect-import-candidates index "Contravariant"))
     ))
 
+(ert-deftest haskell-tng-hsinspect-test-extract-imports ()
+  (let ((index
+         (haskell-tng--util-read
+          (testdata "data/hsinspect-0.0.8-index.sexp.gz"))))
+
+    ;; explicit import
+    (should
+     (equal
+      (haskell-tng--hsinspect-extract-imports index "Data.List" nil "head")
+      '(((local . "head")
+         (full . "Data.List.head")))))
+
+    ;; qualified import
+    (should
+     (equal
+      (seq-take
+       (haskell-tng--hsinspect-extract-imports index "Data.List" "L")
+       2)
+      '(((qual . "L.all")
+         (full . "Data.List.all"))
+        ((qual . "L.and")
+         (full . "Data.List.and")))))
+
+    ;; unqualified import
+    (should
+     (equal
+      (seq-take
+       (haskell-tng--hsinspect-extract-imports index "Data.List" nil)
+       2)
+      '(((local . "all")
+         (full . "Data.List.all"))
+        ((local . "and")
+         (full . "Data.List.and")))))
+    ))
+
 ;; TODO tests for 0.0.7 data
 
 ;;; haskell-tng-hsinspect-test.el ends here

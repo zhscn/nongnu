@@ -96,28 +96,56 @@ Respects the `C-u' cache invalidation convention."
                (type (alist-get 'type hit))
                (name (alist-get 'name hit)))
           (cond
-           (qual (haskell-tng--import-symbol module qual))
+           (qual (haskell-tng--hsinspect-import-symbol index module qual))
 
            ((xor haskell-tng-hsinspect-qualify (eq '- alt))
             (when-let (as (haskell-tng--hsinspect-as module))
-              (haskell-tng--import-symbol module as)
+              (haskell-tng--hsinspect-import-symbol index module as)
               (save-excursion
                 (haskell-tng--hsinspect-beginning-of-symbol)
                 (insert as "."))))
 
            ((eq class 'tycon)
-            (haskell-tng--import-symbol
+            (haskell-tng--hsinspect-import-symbol
+             index
              module nil
              (haskell-tng--hsinspect-return-type type)))
 
            ((eq class 'con)
-            (haskell-tng--import-symbol
+            (haskell-tng--hsinspect-import-symbol
+             index
              module nil
              (concat (haskell-tng--hsinspect-return-type type) "(..)")))
 
-           (t (haskell-tng--import-symbol module nil name)))))
-      ;; FIXME update the hsinspect-imports cache
+           (t (haskell-tng--hsinspect-import-symbol index module nil name)))))
       )))
+
+(defun haskell-tng--hsinspect-extract-imports (index module &optional as sym)
+  "Calculates the imports from INDEX that are implied by MODULE AS and SYM."
+  ;; TODO a nested seq-mapcat threaded syntax
+  (if sym
+      `(((local . ,sym) (full . ,(concat module "." sym))))
+    (seq-mapcat
+     (lambda (pkg-entry)
+       (seq-mapcat
+        (lambda (module-entry)
+          (when (equal module (alist-get 'module module-entry))
+            (seq-mapcat
+             (lambda (entry)
+               (let* ((name (alist-get 'name entry))
+                      (type (alist-get 'type entry))
+                      (id (pcase (alist-get 'class entry)
+                            ((or 'id 'con) name)
+                            ('tycon type)))
+                      (full (concat module "." id)))
+                 (if as
+                     `(((qual . ,(concat as "." id))
+                        (full . ,full)))
+                   `(((local . ,id)
+                      (full . ,full))))))
+             (alist-get 'ids module-entry))))
+        (alist-get 'modules pkg-entry)))
+     index)))
 
 (defun haskell-tng--hsinspect-return-type (type)
   (car
@@ -148,6 +176,9 @@ Respects the `C-u' cache invalidation convention."
                 (selected (popup-menu* entries)))
       (seq-find (lambda (el) (equal (alist-get 'module el) selected)) hits))))
 
+;; TODO when the same name is reused as a type and data constructor we show dupe
+;; entries to the user. We should dedupe that to just the cons unless we have a
+;; way to make the choice clearer.
 (defun haskell-tng--hsinspect-import-candidates (index sym)
   "Return an list of alists with keys: unitid, module, name, type.
 When using hsinspect-0.0.8, also: class, export, flavour."
@@ -221,6 +252,15 @@ When using hsinspect-0.0.8, also: class, export, flavour."
    (concat "hsinspect-0.0.7" buffer-file-name "." "imports")
    no-work
    flush-cache))
+
+(defun haskell-tng--hsinspect-import-symbol (index module as &optional sym)
+  "Add the import to the current buffer and update `haskell-tng--hsinspect-imports'.
+
+Does not persist the cache changes to disk."
+  (haskell-tng--import-symbol module as sym)
+  (let ((updates (haskell-tng--hsinspect-extract-imports index module as sym)))
+    (setq haskell-tng--hsinspect-imports
+          (append haskell-tng--hsinspect-imports updates))))
 
 ;; TODO add a package-wide variable cache
 (defun haskell-tng--hsinspect-index (&optional flush-cache)
