@@ -11,6 +11,7 @@
 
 ;; TODO fix the haskell-stack detection to also include cabal
 ;; TODO populate the projectile compile/run/test commands
+;; TODO haskell-tng-jump-to-definition-fallback
 
 (make-variable-buffer-local 'projectile-tags-command)
 (add-hook

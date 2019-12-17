@@ -44,7 +44,86 @@ A prefix argument ensures that caches are flushes."
       (popup-tip (format "%s" found)))
   (user-error "Not found"))
 
-;; TODO jump-to-definition using import + index + heuristics
+;;;###autoload
+(defun haskell-tng-jump-to-definition (&optional alt)
+  "Consult the `imports' in scope to calculate the symbol at point,
+then find the package using the `index', then visit the
+definition of the symbol in the build tool's source archive.
+
+TODO: support local / git packages by consulting `plan.json'"
+  (interactive "P")
+  ;; TODO better error reporting when any of these things fail
+  (when-let* ((imports (haskell-tng--hsinspect-imports nil alt))
+              (index (haskell-tng--hsinspect-index alt))
+              ;; TODO imports and index can be calculated in parallel
+              (sym (haskell-tng--hsinspect-symbol-at-point))
+              (found (haskell-tng--hsinspect-qualify imports sym))
+              (parts (haskell-tng--string-split-last found "."))
+              (module (car parts))
+              (name (cdr parts))
+              (srcid (haskell-tng--hsinspect-find-srcid index module))
+              (tarball (haskell-tng--hsinspect-srcid-source srcid))
+              (file (concat
+                     ;; TODO string-replace would be nice...
+                     (mapconcat 'identity (split-string module (rx ".")) "/" )
+                     ".hs")))
+    (when (not (file-exists-p tarball))
+      ;; NOTE we can't do this with stack because it doesn't have the equivalent
+      ;; of the "get" command. Also, it is not clear where stack puts source
+      ;; code, so no point looking.
+      ;;
+      ;; WORKAROUND https://github.com/haskell/cabal/issues/6443
+      (shell-command (format "cabal get %s -d /var/empty &" srcid))
+      (error "%s was not found, attempting to download: please try again later" tarball))
+
+    (message "Loading %s from %s" sym tarball)
+    ;; TODO follow re-exports
+    (find-file tarball)
+    (let ((archive (current-buffer)))
+      (goto-char (point-min))
+      (re-search-forward (rx-to-string `(: (* any) ,file)))
+      (tar-extract)
+      (kill-buffer archive)
+      (read-only-mode 1)
+      (goto-char (point-min))
+      ;; TODO re-use the imenu top-level parser
+      ;; avoid false positives in export lists
+      (re-search-forward (rx line-start "import" word-end) nil t)
+      ;; will unfortunately find first uses
+      (or
+       (re-search-forward (rx-to-string `(: (| bol "| " "data " "type " "class ") ,name symbol-end)))
+       (re-search-forward (rx-to-string `(: symbol-start ,name symbol-end)))))))
+
+(defun haskell-tng--string-split-last (str sep)
+  "Return `(front . back)' of a STR split on the last SEP."
+  ;; TODO optimise
+  (let* ((parts (split-string str (regexp-quote sep)))
+         (front (mapconcat 'identity (butlast parts) sep))
+         (back (car (last parts))))
+    (cons front back)))
+
+(defun haskell-tng--hsinspect-srcid-source (srcid)
+  (let* ((parts (haskell-tng--string-split-last srcid "-"))
+         (package (car parts))
+         (version (cdr parts)))
+    (expand-file-name
+     (concat "~/.cabal/packages/hackage.haskell.org/" package "/" version "/" srcid ".tar.gz"))))
+
+;; TODO expose the inplace information instead of filtering
+(defun haskell-tng--hsinspect-find-srcid (index module)
+  ;; requires 0.0.9+
+  (alist-get
+   'srcid
+   (seq-find
+    (lambda (pkg-entry)
+      (when (not (alist-get 'inplace pkg-entry))
+        (seq-find
+         (lambda (module-entry)
+           (equal module (alist-get 'module module-entry)))
+         (alist-get 'modules pkg-entry))))
+    index)))
+
+;; TODO haskell-tng-show-documentation
 
 (defvar-local haskell-tng-hsinspect-as
   ;; TODO populate with even more than this
@@ -82,8 +161,8 @@ Respects the `C-u' cache invalidation convention."
   ;; TODO add parens around operators (or should that be in the utility?)
   (let (qual
         (flush-cache (and alt (not (eq '- alt)))))
-    (when-let* ((index (haskell-tng--hsinspect-index flush-cache))
-                (sym (haskell-tng--hsinspect-symbol-at-point)))
+    (when-let ((index (haskell-tng--hsinspect-index flush-cache))
+               (sym (haskell-tng--hsinspect-symbol-at-point)))
       (message "Seaching for '%s' in %s modules" sym (length index))
 
       (when (string-match (rx bos (group (+ anything)) "." (group (+ (not (any ".")))) eos) sym)
@@ -135,7 +214,7 @@ Respects the `C-u' cache invalidation convention."
                (let* ((name (alist-get 'name entry))
                       (type (alist-get 'type entry))
                       (id (pcase (alist-get 'class entry)
-                            ((or 'id 'con) name)
+                            ((or 'id 'con 'pat) name)
                             ('tycon type)))
                       (full (concat module "." id)))
                  (if as
@@ -180,13 +259,14 @@ Respects the `C-u' cache invalidation convention."
 ;; entries to the user. We should dedupe that to just the cons unless we have a
 ;; way to make the choice clearer.
 (defun haskell-tng--hsinspect-import-candidates (index sym)
-  "Return an list of alists with keys: unitid, module, name, type.
-When using hsinspect-0.0.8, also: class, export, flavour."
+  "Return an list of alists with keys: module, name, type.
+When using hsinspect-0.0.8, also: class, export, flavour.
+When using hsinspect-0.0.9, also: srcid."
   ;; TODO threading/do syntax
   ;; TODO alist variable binding like RecordWildcards
   (seq-mapcat
    (lambda (pkg-entry)
-     (let ((unitid (alist-get 'unitid pkg-entry))
+     (let ((srcid (alist-get 'srcid pkg-entry))
            (modules (alist-get 'modules pkg-entry)))
        (seq-mapcat
         (lambda (module-entry)
@@ -200,7 +280,7 @@ When using hsinspect-0.0.8, also: class, export, flavour."
                      (export (alist-get 'export entry))
                      (flavour (alist-get 'flavour entry)))
                  (when (or (equal name sym) (equal type sym))
-                   `(((unitid . ,unitid)
+                   `(((srcid . ,srcid)
                       (module . ,module)
                       (name . ,name)
                       (type . ,type)
@@ -246,7 +326,7 @@ When using hsinspect-0.0.8, also: class, export, flavour."
 
 (defvar-local haskell-tng--hsinspect-imports nil)
 (defun haskell-tng--hsinspect-imports (&optional no-work flush-cache)
-  (haskell-tng--hsinspect-cached
+  (haskell-tng--util-cached
    (lambda () (haskell-tng--hsinspect flush-cache "imports" buffer-file-name))
    'haskell-tng--hsinspect-imports
    (concat "hsinspect-0.0.7" buffer-file-name "." "imports")
@@ -257,7 +337,7 @@ When using hsinspect-0.0.8, also: class, export, flavour."
   "Add the import to the current buffer and update `haskell-tng--hsinspect-imports'.
 
 Does not persist the cache changes to disk."
-  (haskell-tng--import-symbol module as sym)
+  (haskell-tng--util-import-symbol module as sym)
   (let ((updates (haskell-tng--hsinspect-extract-imports index module as sym)))
     (setq haskell-tng--hsinspect-imports
           (append haskell-tng--hsinspect-imports updates))))
@@ -294,7 +374,7 @@ Does not persist the cache changes to disk."
   "Finds and checks the hsinspect binary for the current buffer.
 
 This is uncached, prefer `haskell-tng--hsinspect-exe'."
-  (let ((supported '("0.0.7" "0.0.8" "0.0.9"))
+  (let ((supported '("0.0.7" "0.0.8" "0.0.9" "0.0.10"))
         (bin
          (car
           (last

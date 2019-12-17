@@ -37,29 +37,27 @@
 (ert-deftest haskell-tng-hsinspect-test-import-candidates-latest ()
   (let ((index
          (haskell-tng--util-read
-          (testdata "data/hsinspect-0.0.8-index.sexp.gz"))))
+          (testdata "data/hsinspect-0.0.9-index.sexp.gz"))))
 
     ;; function search
     (should
      (equal
       (haskell-tng--hsinspect-import-candidates index "throw")
-      '(((unitid . "base")
+      '(((srcid . "base-4.12.0.0")
          (module . "Control.Exception.Base")
          (name . "throw")
          (type . "forall a e. Exception e => e -> a")
          (class . id)
-         (export (unitid . "base")
-                 (module . "GHC.Exception"))
+         (export (module . "GHC.Exception"))
          (flavour))
-        ((unitid . "base")
+        ((srcid . "base-4.12.0.0")
          (module . "Control.Exception")
          (name . "throw")
          (type . "forall a e. Exception e => e -> a")
          (class . id)
-         (export (unitid . "base")
-                 (module . "GHC.Exception"))
+         (export (module . "GHC.Exception"))
          (flavour))
-        ((unitid . "base")
+        ((srcid . "base-4.12.0.0")
          (module . "GHC.Exception")
          (name . "throw")
          (type . "forall a e. Exception e => e -> a")
@@ -71,7 +69,7 @@
     (should
      (equal
       (haskell-tng--hsinspect-import-candidates index ">$<")
-      '(((unitid . "base")
+      '(((srcid . "base-4.12.0.0")
          (module . "Data.Functor.Contravariant")
          (name . ">$<")
          (type . "forall (f :: * -> *) a b. Contravariant f => (a -> b) -> f b -> f a")
@@ -83,7 +81,7 @@
     (should
      (equal
       (haskell-tng--hsinspect-import-candidates index "Contravariant")
-      '(((unitid . "base")
+      '(((srcid . "base-4.12.0.0")
          (module . "Data.Functor.Contravariant")
          (name)
          (type . "Contravariant")
@@ -93,12 +91,14 @@
 
     ;; TODO constructor search
     ;;(message "%S" (haskell-tng--hsinspect-import-candidates index "Contravariant"))
+
+    ;; TODO pattern synonym search
     ))
 
 (ert-deftest haskell-tng-hsinspect-test-extract-imports ()
   (let ((index
          (haskell-tng--util-read
-          (testdata "data/hsinspect-0.0.8-index.sexp.gz"))))
+          (testdata "data/hsinspect-0.0.9-index.sexp.gz"))))
 
     ;; explicit import
     (should
@@ -129,7 +129,5 @@
         ((local . "and")
          (full . "Data.List.and")))))
     ))
-
-;; TODO tests for 0.0.7 data
 
 ;;; haskell-tng-hsinspect-test.el ends here

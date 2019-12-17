@@ -68,7 +68,7 @@ The optional command line tool [`hsinspect`](https://gitlab.com/tseenshe/hsinspe
 
 To use this feature you must install `hsinspect` command line tool and the `ghcflags` plugin to every `.cabal` file:
 
-1. `build-tool-depends: hsinspect:hsinspect == 0.0.8` (or make `hsinspect` available globally, self-managing `ghc` versions)
+1. `build-tool-depends: hsinspect:hsinspect == 0.0.9` (or make `hsinspect` available globally, self-managing `ghc` versions)
 2. `build-depends: ghcflags == 1.0.2`
 3. add `ghc-options: -fplugin GhcFlags.Plugin`
 
@@ -79,6 +79,7 @@ recordmydesktop --no-sound --delay 3
 ffmpeg -i out.ogv -vf crop=500:300:5:0 fqn-at-point-completion.mp4
 ffmpeg -i out.ogv -vf crop=500:300:5:0,scale=300:-1 -hide_banner fqn-at-point-completion.gif
 
+
 gitlab markdown allows embedded mp4s but it makes them huge, so use gifs
 -->
 
@@ -87,6 +88,10 @@ gitlab markdown allows embedded mp4s but it makes them huge, so use gifs
 To automatically import a symbol at point, use `M-x haskell-tng-import-symbol-at-point`, which understands the difference between unqualified and qualified symbols.
 
 ![screencast of haskell-tng-import-symbol-at-point](screencasts/import-symbol-at-point.gif)
+
+To jump to the definition of a symbol defined outside the project, use `M-x haskell-tng-jump-to-definition`.
+
+![screencast of haskell-tng-jump-to-definition](screencasts/jump-to-definition.gif)
 
 All `hsinspect` commands are heavily cached and never invalidated to maximise availability. If the caches are out of date and no longer useful, run the command again prefixed with `C-u` to force a fresh invocaton of hsinspect.
 
@@ -102,6 +107,8 @@ Third party Haskell tools must be installed separately (e.g. via `cabal v2-insta
 - [`stylish-haskell`](https://hackage.haskell.org/package/stylish-haskell)
 - [`ormolu`](https://github.com/tweag/ormolu)
 - `C-c p R` invoke [`fast-tags`](https://hackage.haskell.org/package/fast-tags) via [`projectile`](https://github.com/bbatsov/projectile)
+
+Note that to jump to definition inside the project, use `projectile-regenerate-tags` and `projectile-find-tag`.
 
 ## Contributing
 
@@ -137,7 +144,6 @@ This is the status of core features:
 
 - `lsp-mode` / [`haskell-ide-engine`](https://github.com/haskell/haskell-ide-engine) for more advanced IDE features.
 - Imports
-  - quick manual add `import`
   - company-mode backend specific to import sections that detect context, powered by local hoogle cli
   - expand import list into explicit list (perhaps via `:browse` but better as standalone tool) for symbol-at-point (assuming no shadowing).
   - convert wildcard import to explicit list
@@ -146,7 +152,6 @@ This is the status of core features:
   - visual indicator of what has been exported (hsinspect could do this for compilable code)
 - Hoogle integration
   - build local hoogle database for a project
-  - local cli jump-to-source of symbol-at-point / type-at-point (i.e. explicit fully qualified name)
   - local cli search
   - local / remote search with doc in browser
 - `.cabal` editing / navigation

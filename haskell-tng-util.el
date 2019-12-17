@@ -71,7 +71,7 @@ and taking a regexp."
        (while (not (setq ,res ,test)) ,@body)
        ,res)))
 
-(defun haskell-tng--import-symbol (module &optional as sym)
+(defun haskell-tng--util-import-symbol (module &optional as sym)
   "Adds an import for MODULE."
   ;; TODO outsource to `hsimport' when it does de-duping and formatting.
   (save-excursion
@@ -96,7 +96,7 @@ and taking a regexp."
      "\n")))
 
 ;; TODO needs a unit test
-(defun haskell-tng--hsinspect-cached
+(defun haskell-tng--util-cached
     (work sym key &optional no-work reset)
   "A two-tier (variable and disk-based) cache over WORK.
 

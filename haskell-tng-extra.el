@@ -115,7 +115,7 @@ When in a comment and called with a prefix, the comment will be completed."
   "Adds an unqualified wildcard import."
   ;; TODO autocomplete on available imports
   (interactive "s")
-  (haskell-tng--import-symbol module nil nil))
+  (haskell-tng--util-import-symbol module nil nil))
 
 ;;;###autoload
 (defun haskell-tng-current-module ()
