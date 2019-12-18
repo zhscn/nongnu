@@ -57,42 +57,38 @@ TODO: support local / git packages by consulting `plan.json'"
               (index (haskell-tng--hsinspect-index alt))
               ;; TODO imports and index can be calculated in parallel
               (sym (haskell-tng--hsinspect-symbol-at-point))
-              (found (haskell-tng--hsinspect-qualify imports sym))
-              ;; TODO pcase would be better here
-              (parts (haskell-tng--string-split-last found "."))
-              (name (cdr parts))
-              (followed (haskell-tng--hsinspect-follow index nil (car parts) name))
-              (srcid (car followed))
-              (module (cdr followed))
-              (tarball (haskell-tng--hsinspect-srcid-source srcid))
-              (file (concat
-                     ;; TODO string-replace would be nice...
-                     (mapconcat 'identity (split-string module (rx ".")) "/" )
-                     ".hs")))
-    (when (not (file-exists-p tarball))
-      ;; NOTE we can't do this with stack because it doesn't have the equivalent
-      ;; of the "get" command. Also, it is not clear where stack puts source
-      ;; code, so no point looking.
-      ;;
-      ;; WORKAROUND https://github.com/haskell/cabal/issues/6443
-      ;; TODO curl or a built-in emacs downloader, so cabal is not necessary
-      (shell-command (format "cabal get %s -d /var/empty &" srcid))
-      (error "%s was not found, attempting to download: please try again later" tarball))
+              (found (haskell-tng--hsinspect-qualify imports sym)))
+    (pcase-let* ((`(,imported . ,name) (haskell-tng--string-split-last found "."))
+                 (`(,srcid . ,module) (haskell-tng--hsinspect-follow index nil imported name))
+                 (tarball (haskell-tng--hsinspect-srcid-source srcid))
+                 (file (concat
+                        ;; TODO string-replace would be nice...
+                        (mapconcat 'identity (split-string module (rx ".")) "/" )
+                        ".hs")))
+      (when (not (file-exists-p tarball))
+        ;; NOTE we can't do this with stack because it doesn't have the equivalent
+        ;; of the "get" command. Also, it is not clear where stack puts source
+        ;; code, so no point looking.
+        ;;
+        ;; WORKAROUND https://github.com/haskell/cabal/issues/6443
+        ;; TODO curl or a built-in emacs downloader, so cabal is not necessary
+        (shell-command (format "cabal get %s -d /var/empty &" srcid))
+        (error "%s was not found, attempting to download: please try again later" tarball))
 
-    (message "Loading %s from %s" sym tarball)
-    (find-file tarball)
-    (let ((archive (current-buffer)))
-      (goto-char (point-min))
-      (re-search-forward (rx-to-string `(: (* any) ,file)))
-      (tar-extract)
-      (kill-buffer archive)
-      (read-only-mode 1)
-      (goto-char (point-min))
-      ;; TODO re-use the imenu top-level parser, this is a massive hack
-      (re-search-forward (rx line-start "import" word-end) nil t)
-      (or
-       (re-search-forward (rx-to-string `(: (| bol "| " "data " "type " "class ") ,name symbol-end)) nil t)
-       (re-search-forward (rx-to-string `(: symbol-start ,name symbol-end)))))))
+      (message "Loading %s from %s" sym tarball)
+      (find-file tarball)
+      (let ((archive (current-buffer)))
+        (goto-char (point-min))
+        (re-search-forward (rx-to-string `(: (* any) ,file)))
+        (tar-extract)
+        (kill-buffer archive)
+        (read-only-mode 1)
+        (goto-char (point-min))
+        ;; TODO re-use the imenu top-level parser, this is a massive hack
+        (re-search-forward (rx line-start "import" word-end) nil t)
+        (or
+         (re-search-forward (rx-to-string `(: (| bol "| " "data " "type " "class ") ,name symbol-end)) nil t)
+         (re-search-forward (rx-to-string `(: symbol-start ,name symbol-end))))))))
 
 (defun haskell-tng--string-split-last (str sep)
   "Return `(front . back)' of a STR split on the last SEP."
