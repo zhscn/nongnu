@@ -16,6 +16,7 @@
 
 (require 'array)
 (require 'subr-x)
+(require 'url)
 
 ;; Popups are not supported in stock Emacs so an extension is necessary:
 ;; https://emacs.stackexchange.com/questions/53373
@@ -66,14 +67,13 @@ TODO: support local / git packages by consulting `plan.json'"
                         (mapconcat 'identity (split-string module (rx ".")) "/" )
                         ".hs")))
       (when (not (file-exists-p tarball))
-        ;; NOTE we can't do this with stack because it doesn't have the equivalent
-        ;; of the "get" command. Also, it is not clear where stack puts source
-        ;; code, so no point looking.
-        ;;
+        ;; We can't expect stack to reveal source locations because it
+        ;; obfuscates all downloads. Cabal has "cabal get" but it is broken.
         ;; WORKAROUND https://github.com/haskell/cabal/issues/6443
-        ;; TODO curl or a built-in emacs downloader, so cabal is not necessary
-        (shell-command (format "cabal get %s -d /var/empty &" srcid))
-        (error "%s was not found, attempting to download: please try again later" tarball))
+        (message "%s was not found" tarball)
+        (url-copy-file
+         (haskell-tng--hsinspect-hackage-source srcid)
+         tarball))
 
       (message "Loading %s from %s" sym tarball)
       (find-file tarball)
@@ -100,11 +100,15 @@ TODO: support local / git packages by consulting `plan.json'"
 
 (defun haskell-tng--hsinspect-srcid-source (srcid)
   (message "[haskell-tng] [DEBUG] tarball %s" srcid)
-  (let* ((parts (haskell-tng--string-split-last srcid "-"))
-         (package (car parts))
-         (version (cdr parts)))
+  (pcase-let ((`(,package . ,version) (haskell-tng--string-split-last srcid "-")))
     (expand-file-name
-     (concat "~/.cabal/packages/hackage.haskell.org/" package "/" version "/" srcid ".tar.gz"))))
+     (concat
+      "~/.cabal/packages/hackage.haskell.org/"
+      package "/" version "/" srcid
+      ".tar.gz"))))
+
+(defun haskell-tng--hsinspect-hackage-source (srcid)
+  (concat "http://hackage.haskell.org/package/" srcid "/" srcid ".tar.gz"))
 
 ;; TODO haskell-tng-show-documentation
 
@@ -239,7 +243,7 @@ present in the index. If an unexported module exports another
 unexported module's definition, we are unable to locate it."
   ;; TODO probably doesn't work for 'tycon
   ;; TODO use seq-find instead of seq-mapcat
-  ;; TODO `hsinspect index' could include unexported modules
+  ;; TODO `hsinspect index' could evaluate all re-exports to their final destination
   (when srcid
     (message "[haskell-tng] [DEBUG] follow %s %s %s" srcid module name))
   (or
