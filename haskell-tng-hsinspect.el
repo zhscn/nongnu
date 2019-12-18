@@ -58,10 +58,12 @@ TODO: support local / git packages by consulting `plan.json'"
               ;; TODO imports and index can be calculated in parallel
               (sym (haskell-tng--hsinspect-symbol-at-point))
               (found (haskell-tng--hsinspect-qualify imports sym))
+              ;; TODO pcase would be better here
               (parts (haskell-tng--string-split-last found "."))
-              (module (car parts))
               (name (cdr parts))
-              (srcid (haskell-tng--hsinspect-find-srcid index module))
+              (followed (haskell-tng--hsinspect-follow index nil (car parts) name))
+              (srcid (car followed))
+              (module (cdr followed))
               (tarball (haskell-tng--hsinspect-srcid-source srcid))
               (file (concat
                      ;; TODO string-replace would be nice...
@@ -73,11 +75,11 @@ TODO: support local / git packages by consulting `plan.json'"
       ;; code, so no point looking.
       ;;
       ;; WORKAROUND https://github.com/haskell/cabal/issues/6443
+      ;; TODO curl or a built-in emacs downloader, so cabal is not necessary
       (shell-command (format "cabal get %s -d /var/empty &" srcid))
       (error "%s was not found, attempting to download: please try again later" tarball))
 
     (message "Loading %s from %s" sym tarball)
-    ;; TODO follow re-exports
     (find-file tarball)
     (let ((archive (current-buffer)))
       (goto-char (point-min))
@@ -86,12 +88,10 @@ TODO: support local / git packages by consulting `plan.json'"
       (kill-buffer archive)
       (read-only-mode 1)
       (goto-char (point-min))
-      ;; TODO re-use the imenu top-level parser
-      ;; avoid false positives in export lists
+      ;; TODO re-use the imenu top-level parser, this is a massive hack
       (re-search-forward (rx line-start "import" word-end) nil t)
-      ;; will unfortunately find first uses
       (or
-       (re-search-forward (rx-to-string `(: (| bol "| " "data " "type " "class ") ,name symbol-end)))
+       (re-search-forward (rx-to-string `(: (| bol "| " "data " "type " "class ") ,name symbol-end)) nil t)
        (re-search-forward (rx-to-string `(: symbol-start ,name symbol-end)))))))
 
 (defun haskell-tng--string-split-last (str sep)
@@ -103,25 +103,12 @@ TODO: support local / git packages by consulting `plan.json'"
     (cons front back)))
 
 (defun haskell-tng--hsinspect-srcid-source (srcid)
+  (message "[haskell-tng] [DEBUG] tarball %s" srcid)
   (let* ((parts (haskell-tng--string-split-last srcid "-"))
          (package (car parts))
          (version (cdr parts)))
     (expand-file-name
      (concat "~/.cabal/packages/hackage.haskell.org/" package "/" version "/" srcid ".tar.gz"))))
-
-;; TODO expose the inplace information instead of filtering
-(defun haskell-tng--hsinspect-find-srcid (index module)
-  ;; requires 0.0.9+
-  (alist-get
-   'srcid
-   (seq-find
-    (lambda (pkg-entry)
-      (when (not (alist-get 'inplace pkg-entry))
-        (seq-find
-         (lambda (module-entry)
-           (equal module (alist-get 'module module-entry)))
-         (alist-get 'modules pkg-entry))))
-    index)))
 
 ;; TODO haskell-tng-show-documentation
 
@@ -163,7 +150,7 @@ Respects the `C-u' cache invalidation convention."
         (flush-cache (and alt (not (eq '- alt)))))
     (when-let ((index (haskell-tng--hsinspect-index flush-cache))
                (sym (haskell-tng--hsinspect-symbol-at-point)))
-      (message "Seaching for '%s' in %s modules" sym (length index))
+      (message "Searching for '%s' in %s packages" sym (length index))
 
       (when (string-match (rx bos (group (+ anything)) "." (group (+ (not (any ".")))) eos) sym)
         (setq qual (match-string 1 sym))
@@ -246,6 +233,43 @@ Respects the `C-u' cache invalidation convention."
     (seq-find
      (lambda (names) (member sym (seq-map #'cdr names)))
      imports))))
+
+(defun haskell-tng--hsinspect-follow (index srcid module name)
+  "Follow re-exports of MODULE to find which (srcid . module)
+originally defined NAME.
+
+The original module may not be exported and is therefore not
+present in the index. If an unexported module exports another
+unexported module's definition, we are unable to locate it."
+  ;; TODO probably doesn't work for 'tycon
+  ;; TODO use seq-find instead of seq-mapcat
+  ;; TODO `hsinspect index' could include unexported modules
+  (when srcid
+    (message "[haskell-tng] [DEBUG] follow %s %s %s" srcid module name))
+  (or
+   (car
+    (seq-mapcat
+     (lambda (pkg-entry)
+       (let ((srcid_ (alist-get 'srcid pkg-entry)))
+         (when (or (null srcid) (equal srcid srcid_))
+           (seq-mapcat
+            (lambda (module-entry)
+              (when (equal module (alist-get 'module module-entry))
+                (seq-mapcat
+                 (lambda (entry)
+                   (let ((id (pcase (alist-get 'class entry)
+                               ((or 'id 'con 'pat) (alist-get 'name entry))
+                               ('tycon (alist-get 'type entry)))))
+                     (when (equal id name)
+                       (if-let* ((export (alist-get 'export entry))
+                                 (from (alist-get 'module export))
+                                 (pkg (or (alist-get 'srcid export) srcid_)))
+                           (list (haskell-tng--hsinspect-follow index pkg from name))
+                         (list (cons srcid_ module))))))
+                 (alist-get 'ids module-entry))))
+            (alist-get 'modules pkg-entry)))))
+     index))
+   (cons srcid module)))
 
 (defun haskell-tng--hsinspect-import-popup (index sym)
   (when-let ((hits (haskell-tng--hsinspect-import-candidates index sym)))
