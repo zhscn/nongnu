@@ -16,6 +16,7 @@
 
 (require 'array)
 (require 'subr-x)
+(require 'tar-mode)
 (require 'url)
 
 ;; Popups are not supported in stock Emacs so an extension is necessary:
@@ -70,13 +71,20 @@ TODO: support local / git packages by consulting `plan.json'"
         ;; We can't expect stack to reveal source locations because it
         ;; obfuscates all downloads. Cabal has "cabal get" but it is broken.
         ;; WORKAROUND https://github.com/haskell/cabal/issues/6443
-        (message "%s was not found" tarball)
-        (url-copy-file
-         (haskell-tng--hsinspect-hackage-source srcid)
-         tarball))
+        (let ((remote (haskell-tng--hsinspect-hackage-source srcid))
+              (dir (file-name-directory tarball)))
+          (unless (file-directory-p dir)
+            (make-directory dir t))
+          (message "%s was not found, attempting to download %s" tarball remote)
+          (url-copy-file remote tarball)))
 
       (message "Loading %s from %s" sym tarball)
       (find-file tarball)
+      ;; TODO it would be a faster UX if we used ZIP instead of TAR.GZ because
+      ;;      this requires us to decompress the entire file to find the index,
+      ;;      and then again until we reach the entry we want to load. But that
+      ;;      would come with the cost of recompressing, plus the storage cost
+      ;;      of caching it all.
       (let ((archive (current-buffer)))
         (goto-char (point-min))
         (re-search-forward (rx-to-string `(: (* any) ,file)))
@@ -398,7 +406,7 @@ Does not persist the cache changes to disk."
   "Finds and checks the hsinspect binary for the current buffer.
 
 This is uncached, prefer `haskell-tng--hsinspect-exe'."
-  (let ((supported '("0.0.7" "0.0.8" "0.0.9" "0.0.10"))
+  (let ((supported '("0.0.7" "0.0.8" "0.0.9" "0.0.10" "0.0.11"))
         (bin
          (car
           (last
@@ -436,6 +444,12 @@ This is uncached, prefer `haskell-tng--hsinspect-exe'."
         (goto-char (point-max))
         (backward-sexp)
         (ignore-errors (read (current-buffer)))))))
+
+(defun haskell-tng-hsinspect (&optional alt)
+  "Fill the `hsinspect' caches"
+  (interactive "P")
+  (haskell-tng--hsinspect-imports nil alt)
+  (haskell-tng--hsinspect-index alt))
 
 (provide 'haskell-tng-hsinspect)
 ;;; haskell-tng-hsinspect.el ends here
