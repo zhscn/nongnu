@@ -62,6 +62,7 @@ TODO: support local / git packages by consulting `plan.json'"
               (found (haskell-tng--hsinspect-qualify imports sym)))
     (pcase-let* ((`(,imported . ,name) (haskell-tng--string-split-last found "."))
                  (`(,srcid . ,module) (haskell-tng--hsinspect-follow index nil imported name))
+                 ;; FIXME filter out inplace things
                  (tarball (haskell-tng--hsinspect-srcid-source srcid))
                  (file (concat
                         ;; TODO string-replace would be nice...
@@ -122,10 +123,13 @@ TODO: support local / git packages by consulting `plan.json'"
 
 (defvar-local haskell-tng-hsinspect-as
   ;; TODO populate with even more than this
-  '(("Data.List" . "L")
+  '(("Data.Aeson" . "Json")
+    ("Data.List" . "L")
     ("Data.List.NonEmpty" . "NE")
+    ("Data.Map.String" . "M")
     ("Data.ByteString" . "BS")
-    ("Data.ByteString.Lazy" . "LBS"))
+    ("Data.ByteString.Lazy" . "LBS")
+    ("Data.Text" . "T"))
   "An alist of (MODULE . NAME) to use for qualified imports.")
 (put 'haskell-tng-hsinspect-as 'safe-local-variable #'listp)
 (defun haskell-tng--hsinspect-as (module)
