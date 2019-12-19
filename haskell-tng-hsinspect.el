@@ -92,6 +92,8 @@ definition of the symbol in the build tool's source archive."
         (let ((archive (current-buffer)))
           (goto-char (point-min))
           (re-search-forward (rx-to-string `(: (* any) ,file)))
+          ;; TODO could set the index cache variable to the one we used for the
+          ;;      search, if it provided any useful features.
           (tar-extract)
           (kill-buffer archive)
           (read-only-mode 1)
