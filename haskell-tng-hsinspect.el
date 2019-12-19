@@ -18,6 +18,7 @@
 (require 'subr-x)
 (require 'tar-mode)
 (require 'url)
+(require 'xref)
 
 ;; Popups are not supported in stock Emacs so an extension is necessary:
 ;; https://emacs.stackexchange.com/questions/53373
@@ -50,9 +51,7 @@ A prefix argument ensures that caches are flushes."
 (defun haskell-tng-jump-to-definition (&optional alt)
   "Consult the `imports' in scope to calculate the symbol at point,
 then find the package using the `index', then visit the
-definition of the symbol in the build tool's source archive.
-
-TODO: support local / git packages by consulting `plan.json'"
+definition of the symbol in the build tool's source archive."
   (interactive "P")
   ;; TODO better error reporting when any of these things fail
   (when-let* ((imports (haskell-tng--hsinspect-imports nil alt))
@@ -62,42 +61,46 @@ TODO: support local / git packages by consulting `plan.json'"
               (found (haskell-tng--hsinspect-qualify imports sym)))
     (pcase-let* ((`(,imported . ,name) (haskell-tng--string-split-last found "."))
                  (`(,srcid . ,module) (haskell-tng--hsinspect-follow index nil imported name))
-                 ;; FIXME filter out inplace things
+                 (`(,pkg . _) (haskell-tng--hsinspect-index-get-module index srcid module) )
+                 (inplace (alist-get 'inplace pkg))
                  (tarball (haskell-tng--hsinspect-srcid-source srcid))
                  (file (concat
                         ;; TODO string-replace would be nice...
                         (mapconcat 'identity (split-string module (rx ".")) "/" )
                         ".hs")))
-      (when (not (file-exists-p tarball))
-        ;; We can't expect stack to reveal source locations because it
-        ;; obfuscates all downloads. Cabal has "cabal get" but it is broken.
-        ;; WORKAROUND https://github.com/haskell/cabal/issues/6443
-        (let ((remote (haskell-tng--hsinspect-hackage-source srcid))
-              (dir (file-name-directory tarball)))
-          (unless (file-directory-p dir)
-            (make-directory dir t))
-          (message "%s was not found, attempting to download %s" tarball remote)
-          (url-copy-file remote tarball)))
-
-      (message "Loading %s from %s" sym tarball)
-      (find-file tarball)
-      ;; TODO it would be a faster UX if we used ZIP instead of TAR.GZ because
-      ;;      this requires us to decompress the entire file to find the index,
-      ;;      and then again until we reach the entry we want to load. But that
-      ;;      would come with the cost of recompressing, plus the storage cost
-      ;;      of caching it all.
-      (let ((archive (current-buffer)))
-        (goto-char (point-min))
-        (re-search-forward (rx-to-string `(: (* any) ,file)))
-        (tar-extract)
-        (kill-buffer archive)
-        (read-only-mode 1)
-        (goto-char (point-min))
-        ;; TODO re-use the imenu top-level parser, this is a massive hack
-        (re-search-forward (rx line-start "import" word-end) nil t)
-        (or
-         (re-search-forward (rx-to-string `(: (| bol "| " "data " "type " "class ") ,name symbol-end)) nil t)
-         (re-search-forward (rx-to-string `(: symbol-start ,name symbol-end))))))))
+      (if inplace
+          ;; TODO support local / git packages by consulting `plan.json'
+          ;; TODO or should we error until it is supported properly?
+          (xref-find-definitions name)
+        (when (not (file-exists-p tarball))
+          ;; We can't expect stack to reveal source locations because it
+          ;; obfuscates all downloads. Cabal has "cabal get" but it is broken.
+          ;; WORKAROUND https://github.com/haskell/cabal/issues/6443
+          (let ((remote (haskell-tng--hsinspect-hackage-source srcid))
+                (dir (file-name-directory tarball)))
+            (unless (file-directory-p dir)
+              (make-directory dir t))
+            (message "%s was not found, attempting to download %s" tarball remote)
+            (url-copy-file remote tarball)))
+        (message "Loading %s from %s" sym tarball)
+        (find-file tarball)
+        ;; TODO it would be a faster UX if we used ZIP instead of TAR.GZ because
+        ;;      this requires us to decompress the entire file to find the index,
+        ;;      and then again until we reach the entry we want to load. But that
+        ;;      would come with the cost of recompressing, plus the storage cost
+        ;;      of caching it all.
+        (let ((archive (current-buffer)))
+          (goto-char (point-min))
+          (re-search-forward (rx-to-string `(: (* any) ,file)))
+          (tar-extract)
+          (kill-buffer archive)
+          (read-only-mode 1)
+          (goto-char (point-min))
+          ;; TODO re-use the imenu top-level parser, this is a massive hack
+          (re-search-forward (rx line-start "import" word-end) nil t)
+          (or
+           (re-search-forward (rx-to-string `(: (| bol "| " "data " "type " "class ") ,name symbol-end)) nil t)
+           (re-search-forward (rx-to-string `(: symbol-start ,name symbol-end)))))))))
 
 (defun haskell-tng--string-split-last (str sep)
   "Return `(front . back)' of a STR split on the last SEP."
@@ -246,6 +249,21 @@ Respects the `C-u' cache invalidation convention."
      (lambda (names) (member sym (seq-map #'cdr names)))
      imports))))
 
+(defun haskell-tng--hsinspect-index-get-module (index srcid module)
+  "Return the (pkg-entry . module-entry) for SRCID and MODULE."
+  ;; TODO a more general solution that also searches for NAME would help simplify this file
+  (car
+   (seq-mapcat
+    (lambda (pkg-entry)
+      (let ((srcid_ (alist-get 'srcid pkg-entry)))
+        (when (or (null srcid) (equal srcid srcid_))
+          (when-let (found (seq-find
+                            (lambda (module-entry)
+                              (equal module (alist-get 'module module-entry)))
+                            (alist-get 'modules pkg-entry)))
+            (list (cons pkg-entry found))))))
+    index)))
+
 (defun haskell-tng--hsinspect-follow (index srcid module name)
   "Follow re-exports of MODULE to find which (srcid . module)
 originally defined NAME.
@@ -254,33 +272,31 @@ The original module may not be exported and is therefore not
 present in the index. If an unexported module exports another
 unexported module's definition, we are unable to locate it."
   ;; TODO probably doesn't work for 'tycon
-  ;; TODO use seq-find instead of seq-mapcat
+  ;; TODO use seq-find instead of seq-mapcat. Most uses of car . seq-mapcat in this
+  ;;      file would be more efficient with something that flatmaps and takes
+  ;;      the first element, without evaluating the rest.
   ;; TODO `hsinspect index' could evaluate all re-exports to their final destination
   (when srcid
     (message "[haskell-tng] [DEBUG] follow %s %s %s" srcid module name))
   (or
-   (car
-    (seq-mapcat
-     (lambda (pkg-entry)
-       (let ((srcid_ (alist-get 'srcid pkg-entry)))
-         (when (or (null srcid) (equal srcid srcid_))
-           (seq-mapcat
-            (lambda (module-entry)
-              (when (equal module (alist-get 'module module-entry))
-                (seq-mapcat
-                 (lambda (entry)
-                   (let ((id (pcase (alist-get 'class entry)
-                               ((or 'id 'con 'pat) (alist-get 'name entry))
-                               ('tycon (alist-get 'type entry)))))
-                     (when (equal id name)
-                       (if-let* ((export (alist-get 'export entry))
-                                 (from (alist-get 'module export))
-                                 (pkg (or (alist-get 'srcid export) srcid_)))
-                           (list (haskell-tng--hsinspect-follow index pkg from name))
-                         (list (cons srcid_ module))))))
-                 (alist-get 'ids module-entry))))
-            (alist-get 'modules pkg-entry)))))
-     index))
+   (when-let*
+       ((found (haskell-tng--hsinspect-index-get-module index srcid module))
+        (pkg-entry (car found))
+        (srcid_ (alist-get 'srcid pkg-entry))
+        (module-entry (cdr found)))
+     (car
+      (seq-mapcat
+       (lambda (entry)
+         (let ((id (pcase (alist-get 'class entry)
+                     ((or 'id 'con 'pat) (alist-get 'name entry))
+                     ('tycon (alist-get 'type entry)))))
+           (when (equal id name)
+             (if-let* ((export (alist-get 'export entry))
+                       (from (alist-get 'module export))
+                       (pkg (or (alist-get 'srcid export) srcid_)))
+                 (list (haskell-tng--hsinspect-follow index pkg from name))
+               (list (cons srcid_ module))))))
+       (alist-get 'ids module-entry))))
    (cons srcid module)))
 
 (defun haskell-tng--hsinspect-import-popup (index sym)
