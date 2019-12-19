@@ -18,7 +18,6 @@
 (require 'subr-x)
 (require 'tar-mode)
 (require 'url)
-(require 'xref)
 
 ;; Popups are not supported in stock Emacs so an extension is necessary:
 ;; https://emacs.stackexchange.com/questions/53373
@@ -58,8 +57,8 @@ definition of the symbol in the build tool's source archive."
               (index (haskell-tng--hsinspect-index alt))
               ;; TODO imports and index can be calculated in parallel
               (sym (haskell-tng--hsinspect-symbol-at-point))
-              (found (haskell-tng--hsinspect-qualify imports sym)))
-    (pcase-let* ((`(,imported . ,name) (haskell-tng--string-split-last found "."))
+              (qualified (haskell-tng--hsinspect-qualify imports sym)))
+    (pcase-let* ((`(,imported . ,name) (haskell-tng--string-split-last qualified "."))
                  (`(,srcid . ,module) (haskell-tng--hsinspect-follow index nil imported name))
                  (`(,pkg . _) (haskell-tng--hsinspect-index-get-module index srcid module) )
                  (inplace (alist-get 'inplace pkg))
@@ -69,9 +68,12 @@ definition of the symbol in the build tool's source archive."
                         (mapconcat 'identity (split-string module (rx ".")) "/" )
                         ".hs")))
       (if inplace
-          ;; TODO support local / git packages by consulting `plan.json'
-          ;; TODO or should we error until it is supported properly?
-          (xref-find-definitions name)
+          ;; TODO support local / git packages by consulting `plan.json'. Note
+          ;;      this will only work properly if hsinspect includes all the
+          ;;      unexported modules for inplace packages. It's starting to
+          ;;      sound like a very complex feature... and perhaps not worth
+          ;;      implementing given that TAGS would just great.
+          (error "%s is defined in a local package" qualified)
         (when (not (file-exists-p tarball))
           ;; We can't expect stack to reveal source locations because it
           ;; obfuscates all downloads. Cabal has "cabal get" but it is broken.

@@ -11,12 +11,14 @@
 
 ;; TODO fix the haskell-stack detection to also include cabal
 ;; TODO populate the projectile compile/run/test commands
-;; TODO haskell-tng-jump-to-definition-fallback
 
 (make-variable-buffer-local 'projectile-tags-command)
 (add-hook
  'haskell-tng-mode-hook
  (lambda ()
+   ;; Excluding dist-newstyle means excluding git source deps and generated
+   ;; files, but also gives a bit of a speed boost since it will ignore
+   ;; directories containing object files.
    (setq-local projectile-tags-command "fast-tags -Re --exclude=dist-newstyle .")))
 
 (provide 'haskell-tng-extra-projectile)
