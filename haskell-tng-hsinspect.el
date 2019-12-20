@@ -128,7 +128,7 @@ definition of the symbol in the build tool's source archive."
 (defun haskell-tng--hsinspect-hackage-source (srcid)
   (concat "http://hackage.haskell.org/package/" srcid "/" srcid ".tar.gz"))
 
-;; TODO haskell-tng-show-documentation
+;; FIXME haskell-tng-show-documentation
 
 (defvar-local haskell-tng-hsinspect-as
   ;; TODO populate with even more than this

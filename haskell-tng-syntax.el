@@ -49,10 +49,11 @@
     ;;       letter)
     (modify-syntax-entry ?_ "w" table)
 
-    ;; TODO consider using categories more heavily, which would involve doing
-    ;; lexing here. It would make the fontification regexps simpler and faster,
-    ;; and would be reused by the SMIE lexer. We might not need zero-length
-    ;; matchers because greedy matching will be much simpler.
+    ;; FIXME use categories more heavily, which would involve doing lexing here.
+    ;; It would make the fontification regexps simpler and faster, and would be
+    ;; reused by the SMIE lexer (fixing many problems with the backwards lexer).
+    ;; We might not need zero-length matchers because greedy matching will be
+    ;; much simpler.
 
     ;; some special (treated like punctuation)
     (seq-do

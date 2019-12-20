@@ -19,7 +19,7 @@
 ;;
 ;;; Code:
 
-;; TODO set up CI on gitlab
+;; FIXME set up CI on gitlab
 
 (source melpa-stable)
 (source melpa) ;; for faceup
@@ -32,6 +32,7 @@
  ;;(depends-on "elsa") ;; cask exec elsa FILE
  (depends-on "faceup")
  (depends-on "ert-runner")
+ ;; FIXME set up coverage
  ;;(depends-on "undercover")
  (depends-on "projectile")
  (depends-on "smartparens")
