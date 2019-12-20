@@ -71,10 +71,7 @@ definition of the symbol in the build tool's source archive."
           (error "%s is defined in a local package" qualified)
         (when-let* ((srcid (or internal-srcid (alist-get 'srcid pkg-entry)))
                     (module (or internal-module (alist-get 'module module-entry)))
-                    (file (concat
-                           ;; TODO string-replace would be nice...
-                           (mapconcat 'identity (split-string module (rx ".")) "/" )
-                           ".hs"))
+                    (file (concat (haskell-tng--string-replace module "." "/") ".hs"))
                     (tarball (haskell-tng--hsinspect-srcid-source srcid)))
           (when (not (file-exists-p tarball))
             ;; We can't expect stack to reveal source locations because it
@@ -107,6 +104,9 @@ definition of the symbol in the build tool's source archive."
             (or
              (re-search-forward (rx-to-string `(: (| bol "= " "| " "data " "type " "class ") ,name symbol-end)) nil t)
              (re-search-forward (rx-to-string `(: symbol-start ,name symbol-end))))))))))
+
+(defun haskell-tng--string-replace (str from to)
+  (mapconcat 'identity (split-string str (regexp-quote from)) to))
 
 (defun haskell-tng--string-split-last (str sep)
   "Return `(front . back)' of a STR split on the last SEP."
