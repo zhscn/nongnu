@@ -135,7 +135,11 @@ definition of the symbol in the build tool's source archive."
   '(("Data.Aeson" . "Json")
     ("Data.List" . "L")
     ("Data.List.NonEmpty" . "NE")
-    ("Data.Map.String" . "M")
+    ("Data.List.NonEmpty" . "NEL")
+    ("Data.Set" . "S")
+    ("Data.Set" . "Set")
+    ("Data.Map.Strict" . "M")
+    ("Data.Map.Strict" . "Map")
     ("Data.ByteString" . "BS")
     ("Data.ByteString.Lazy" . "LBS")
     ("Data.Text" . "T"))
@@ -177,34 +181,37 @@ Respects the `C-u' cache invalidation convention."
         (setq qual (match-string 1 sym))
         (setq sym (match-string 2 sym)))
 
-      (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
-        (let* ((module (alist-get 'module hit))
-               (class (alist-get 'class hit))
-               (type (alist-get 'type hit))
-               (name (alist-get 'name hit)))
-          (cond
-           (qual (haskell-tng--hsinspect-import-symbol index module qual))
+      (let ((qual_ (car (rassoc qual haskell-tng-hsinspect-as))))
+        (if (haskell-tng--hsinspect-check-fqn-import index qual_ sym)
+            (haskell-tng--hsinspect-import-symbol index qual_ qual)
+          (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
+            (let* ((module (alist-get 'module hit))
+                   (class (alist-get 'class hit))
+                   (type (alist-get 'type hit))
+                   (name (alist-get 'name hit)))
+              (cond
+               (qual (haskell-tng--hsinspect-import-symbol index module qual))
 
-           ((xor haskell-tng-hsinspect-qualify (eq '- alt))
-            (when-let (as (haskell-tng--hsinspect-as module))
-              (haskell-tng--hsinspect-import-symbol index module as)
-              (save-excursion
-                (haskell-tng--hsinspect-beginning-of-symbol)
-                (insert as "."))))
+               ((xor haskell-tng-hsinspect-qualify (eq '- alt))
+                (when-let (as (haskell-tng--hsinspect-as module))
+                  (haskell-tng--hsinspect-import-symbol index module as)
+                  (save-excursion
+                    (haskell-tng--hsinspect-beginning-of-symbol)
+                    (insert as "."))))
 
-           ((eq class 'tycon)
-            (haskell-tng--hsinspect-import-symbol
-             index
-             module nil
-             (haskell-tng--hsinspect-return-type type)))
+               ((eq class 'tycon)
+                (haskell-tng--hsinspect-import-symbol
+                 index
+                 module nil
+                 (haskell-tng--hsinspect-return-type type)))
 
-           ((eq class 'con)
-            (haskell-tng--hsinspect-import-symbol
-             index
-             module nil
-             (concat (haskell-tng--hsinspect-return-type type) "(..)")))
+               ((eq class 'con)
+                (haskell-tng--hsinspect-import-symbol
+                 index
+                 module nil
+                 (concat (haskell-tng--hsinspect-return-type type) "(..)")))
 
-           (t (haskell-tng--hsinspect-import-symbol index module nil name)))))
+               (t (haskell-tng--hsinspect-import-symbol index module nil name)))))))
       )))
 
 (defun haskell-tng--hsinspect-extract-imports (index module &optional as sym)
@@ -230,6 +237,28 @@ Respects the `C-u' cache invalidation convention."
                         (full . ,full)))
                    `(((local . ,id)
                       (full . ,full))))))
+             (alist-get 'ids module-entry))))
+        (alist-get 'modules pkg-entry)))
+     index)))
+
+(defun haskell-tng--hsinspect-check-fqn-import (index module sym)
+  "Checks if an FQN exists"
+  ;; TODO a nested seq-mapcat threaded syntax
+  (when module
+    (seq-mapcat
+     (lambda (pkg-entry)
+       (seq-mapcat
+        (lambda (module-entry)
+          (when (equal module (alist-get 'module module-entry))
+            (seq-mapcat
+             (lambda (entry)
+               (let* ((name (alist-get 'name entry))
+                      (type (alist-get 'type entry))
+                      (id (pcase (alist-get 'class entry)
+                            ((or 'id 'con 'pat) name)
+                            ('tycon type))))
+                 (when (equal sym id)
+                   `((,(alist-get 'srcid pkg-entry))))))
              (alist-get 'ids module-entry))))
         (alist-get 'modules pkg-entry)))
      index)))

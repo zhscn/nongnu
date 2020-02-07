@@ -82,18 +82,20 @@ and taking a regexp."
       (re-search-forward (rx line-start "module" word-end))
       (forward-line 1)
       (insert "\n"))
-    (insert
-     "import "
-     (cond
-      ((and (null as) (null sym))
-       module)
-      ((null as)
-       (concat module " (" sym ")"))
-      ((eq t as)
-       (concat "qualified " module))
-      (t
-       (concat "qualified " module " as " as)))
-     "\n")))
+    (let ((beg (point)))
+      (insert
+       "import "
+       (cond
+        ((and (null as) (null sym))
+         module)
+        ((null as)
+         (concat module " (" sym ")"))
+        ((eq t as)
+         (concat "qualified " module))
+        (t
+         (concat "qualified " module " as " as)))
+       "\n")
+      (message "Inserted `%s'" (string-trim (buffer-substring-no-properties beg (point)))))))
 
 ;; TODO needs a unit test
 (defun haskell-tng--util-cached
