@@ -14,6 +14,9 @@
 ;; TODO this file needs tests, if not testing calling hsinspect then at least
 ;; with pre-canned data.
 
+(eval-when-compile
+  (require 'cl))
+
 (require 'array)
 (require 'subr-x)
 (require 'tar-mode)

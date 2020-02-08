@@ -27,6 +27,9 @@
 ;; Galaxy brain caching would use properties and put dirty markers on inserted
 ;; or deleted regions. Would give fast lookup at point.
 
+(eval-when-compile
+  (require 'cl))
+
 (require 'haskell-tng-util)
 
 ;; A alist of lists of (OPEN . (CLOSE . SEPS)) positions, keyed by (START . END)
@@ -170,7 +173,7 @@ using a cache if available."
           value)))))
 
 (defun haskell-tng--layout-next-wldo (limit)
-  (catch 'wldo
+  (block wldo
     (while (< (point) limit)
       (forward-comment limit)
       (cond
@@ -181,9 +184,10 @@ using a cache if available."
         (goto-char (match-end 0))
         (forward-comment limit)
         (unless (looking-at "{")
-          (throw 'wldo (haskell-tng--layout-wldo
-                        (min (or (haskell-tng--util-paren-close) (point-max))
-                             limit)))))
+          (return-from wldo
+            (haskell-tng--layout-wldo
+             (min (or (haskell-tng--util-paren-close) (point-max))
+                  limit)))))
 
        (t (skip-syntax-forward "^-"))))))
 
@@ -197,7 +201,7 @@ WLDO that is using the offside rule."
     (let* ((open (point))
            seps
            (level (current-column))
-           (close (catch 'closed
+           (close (block closed
                     (while (< (point) limit)
                       (forward-line)
                       (forward-comment limit)
@@ -207,9 +211,9 @@ WLDO that is using the offside rule."
                                        (rx bol (or "," ")" "]" "}")))))
                         (push (point) seps))
                       (when (<= limit (point))
-                        (throw 'closed limit))
+                        (return-from closed limit))
                       (when (< (current-column) level)
-                        (throw 'closed (point))))
+                        (return-from closed (point))))
                     limit)))
       `(,open . (,close . ,(reverse seps))))))
 
