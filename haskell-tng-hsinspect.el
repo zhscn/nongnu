@@ -191,7 +191,8 @@ Respects the `C-u' cache invalidation convention."
         (setq sym (match-string 2 sym)))
 
       (let ((qual_ (car (rassoc qual haskell-tng-hsinspect-as))))
-        (if (haskell-tng--hsinspect-check-fqn-import index qual_ sym)
+        (if (when qual_
+              (haskell-tng--hsinspect-check-fqn-import index qual_ sym))
             (haskell-tng--hsinspect-import-symbol index qual_ qual)
           (when-let (hit (haskell-tng--hsinspect-import-popup index sym))
             (let* ((module (alist-get 'module hit))
@@ -225,52 +226,51 @@ Respects the `C-u' cache invalidation convention."
 
 (defun haskell-tng--hsinspect-extract-imports (index module &optional as sym)
   "Calculates the imports from INDEX that are implied by MODULE AS and SYM."
-  ;; TODO a nested seq-mapcat threaded syntax
   (if sym
       `(((local . ,sym) (full . ,(concat module "." sym))))
-    (seq-mapcat
-     (lambda (pkg-entry)
-       (seq-mapcat
-        (lambda (module-entry)
-          (when (equal module (alist-get 'module module-entry))
-            (seq-mapcat
-             (lambda (entry)
-               (let* ((name (alist-get 'name entry))
-                      (type (alist-get 'type entry))
-                      (id (pcase (alist-get 'class entry)
-                            ((or 'id 'con 'pat) name)
-                            ('tycon type)))
-                      (full (concat module "." id)))
-                 (if as
-                     `(((qual . ,(concat as "." id))
-                        (full . ,full)))
-                   `(((local . ,id)
-                      (full . ,full))))))
-             (alist-get 'ids module-entry))))
-        (alist-get 'modules pkg-entry)))
-     index)))
+    (cl-loop
+     for pkg-entry in index
+     append
+     (cl-loop
+      for module-entry in (alist-get 'modules pkg-entry)
+      when (equal module (alist-get 'module module-entry))
+      append
+      (cl-loop
+       for entry in (alist-get 'ids module-entry)
+       collect
+       (let* ((name (alist-get 'name entry))
+              (type (alist-get 'type entry))
+              (id (pcase (alist-get 'class entry)
+                    ((or 'id 'con 'pat) name)
+                    ('tycon type)))
+              (full (concat module "." id)))
+         (if as
+             `((qual . ,(concat as "." id))
+               (full . ,full))
+           `((local . ,id)
+             (full . ,full)))))))))
 
 (defun haskell-tng--hsinspect-check-fqn-import (index module sym)
   "Checks if an FQN exists"
-  ;; TODO a nested seq-mapcat threaded syntax
-  (when module
-    (seq-mapcat
-     (lambda (pkg-entry)
-       (seq-mapcat
-        (lambda (module-entry)
-          (when (equal module (alist-get 'module module-entry))
-            (seq-mapcat
-             (lambda (entry)
-               (let* ((name (alist-get 'name entry))
-                      (type (alist-get 'type entry))
-                      (id (pcase (alist-get 'class entry)
-                            ((or 'id 'con 'pat) name)
-                            ('tycon type))))
-                 (when (equal sym id)
-                   `((,(alist-get 'srcid pkg-entry))))))
-             (alist-get 'ids module-entry))))
-        (alist-get 'modules pkg-entry)))
-     index)))
+  (block nested
+    (cl-loop
+     for pkg-entry in index
+     do
+     (cl-loop
+      for module-entry in (alist-get 'modules pkg-entry)
+      when (equal module (alist-get 'module module-entry))
+      do
+      (cl-loop
+       for entry in (alist-get 'ids module-entry)
+       do
+       (let* ((name (alist-get 'name entry))
+              (type (alist-get 'type entry))
+              (id (pcase (alist-get 'class entry)
+                    ((or 'id 'con 'pat) name)
+                    ('tycon type))))
+         (when (equal sym id)
+           (return-from nested
+             `(,(alist-get 'srcid pkg-entry))))))))))
 
 (defun haskell-tng--hsinspect-return-type (type)
   (car
@@ -298,18 +298,16 @@ Respects the `C-u' cache invalidation convention."
 nil if nothing was found.
 
 If SRCID is nil then the first matching MODULE is used."
-  ;; TODO seq-findmap as an alternative to (car (seq-mapcat ...)) or throw/catch
-  (catch 'found
-    (seq-do
-     (lambda (pkg-entry)
-       (when (or (null srcid) (equal srcid (alist-get 'srcid pkg-entry)))
-         (seq-do
-          (lambda (module-entry)
-            (when (equal module (alist-get 'module module-entry))
-              (throw 'found (cons pkg-entry module-entry))))
-          (alist-get 'modules pkg-entry))))
-     index)
-    nil))
+  (block nested
+    (cl-loop
+     for pkg-entry in index
+     when (or (null srcid) (equal srcid (alist-get 'srcid pkg-entry)))
+     do
+     (cl-loop
+      for module-entry in (alist-get 'modules pkg-entry)
+      when (equal module (alist-get 'module module-entry))
+      do
+      (return-from nested (cons pkg-entry module-entry))))))
 
 (defun haskell-tng--hsinspect-follow (index srcid module name)
   "Follow re-exports of MODULE to find where it was originally defined.
@@ -352,34 +350,31 @@ ability to follow any further."
   "Return an list of alists with keys: module, name, type.
 When using hsinspect-0.0.8, also: class, export, flavour.
 When using hsinspect-0.0.9, also: srcid."
-  ;; TODO threading/do syntax
-  ;; TODO alist variable binding like RecordWildcards
-  (seq-mapcat
-   (lambda (pkg-entry)
+  (cl-loop
+   for pkg-entry in index
+   append
+   (cl-loop
+    for module-entry in (alist-get 'modules pkg-entry)
+    append
+    (cl-loop
+     for entry in (alist-get 'ids module-entry)
+     append
      (let ((srcid (alist-get 'srcid pkg-entry))
-           (modules (alist-get 'modules pkg-entry)))
-       (seq-mapcat
-        (lambda (module-entry)
-          (let ((module (alist-get 'module module-entry))
-                (ids (alist-get 'ids module-entry)))
-            (seq-mapcat
-             (lambda (entry)
-               (let ((name (alist-get 'name entry))
-                     (type (alist-get 'type entry))
-                     (class (alist-get 'class entry))
-                     (export (alist-get 'export entry))
-                     (flavour (alist-get 'flavour entry)))
-                 (when (or (equal name sym) (equal type sym))
-                   `(((srcid . ,srcid)
-                      (module . ,module)
-                      (name . ,name)
-                      (type . ,type)
-                      (class . ,class)
-                      (export . ,export)
-                      (flavour . ,flavour))))))
-             ids)))
-        modules)))
-   index))
+           (module (alist-get 'module module-entry))
+           (name (alist-get 'name entry))
+           (type (alist-get 'type entry))
+           (class (alist-get 'class entry))
+           (export (alist-get 'export entry))
+           (flavour (alist-get 'flavour entry)))
+       ;; TODO alist variable binding like RecordWildcards
+       (when (or (equal name sym) (equal type sym))
+         `(((srcid . ,srcid)
+            (module . ,module)
+            (name . ,name)
+            (type . ,type)
+            (class . ,class)
+            (export . ,export)
+            (flavour . ,flavour)))))))))
 
 (defun haskell-tng--hsinspect-symbol-at-point ()
   "A `symbol-at-point' that includes FQN parts."
