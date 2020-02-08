@@ -67,7 +67,7 @@ definition of the symbol in the build tool's source archive."
           ;;      this will only work properly if hsinspect includes all the
           ;;      unexported modules for inplace packages. It's starting to
           ;;      sound like a very complex feature... and perhaps not worth
-          ;;      implementing given that TAGS would just great.
+          ;;      implementing given that TAGS work just great.
           (error "%s is defined in a local package" qualified)
         (when-let* ((srcid (or internal-srcid (alist-get 'srcid pkg-entry)))
                     (module (or internal-module (alist-get 'module module-entry)))
@@ -134,6 +134,7 @@ definition of the symbol in the build tool's source archive."
   ;; TODO populate with even more than this
   '(("Data.Aeson" . "Json")
     ("Data.List" . "L")
+    ("Data.List" . "List")
     ("Data.List.NonEmpty" . "NE")
     ("Data.List.NonEmpty" . "NEL")
     ("Data.Set" . "S")
@@ -143,7 +144,15 @@ definition of the symbol in the build tool's source archive."
     ("Data.ByteString" . "BS")
     ("Data.ByteString.Lazy" . "LBS")
     ("Data.Text" . "T"))
-  "An alist of (MODULE . NAME) to use for qualified imports.")
+  "An alist of (MODULE . NAME) to use for qualified imports.
+
+The first matching MODULE is expanded into NAME when expanding an
+unqualified symbol into a qualified one. If one is not provided
+here, the short module name is used.
+
+The first matching NAME is imported as MODULE when importing a
+qualified symbol. In such cases, the short module name is not
+automatically used and must be provided.")
 (put 'haskell-tng-hsinspect-as 'safe-local-variable #'listp)
 (defun haskell-tng--hsinspect-as (module)
   (or
