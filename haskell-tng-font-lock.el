@@ -107,6 +107,7 @@
       (haskell-tng:font:deriving:keyword
        (1 'haskell-tng-keyword-face keep)
        (2 'haskell-tng-type-face keep))
+      ;; TODO everything after a data constructor is a type
 
       ;; TODO unnamed newtype fields should be a type, not a constructor
       ;; TODO bug, multiple standalone instance declarations in a row do not fire
@@ -208,6 +209,7 @@ Some complexity to avoid matching on operators."
       (when-let (close (haskell-tng--util-paren-close))
         (when (<= close limit)
           (goto-char open)
+          ;; TODO do not highlight field names as conids (e.g. typeclass methods)
           (re-search-forward (rx (+ anything)) close t))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

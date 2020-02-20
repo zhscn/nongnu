@@ -143,5 +143,9 @@ When in a comment and called with a prefix, the comment will be completed."
        "\\/"))))
    "."))
 
+;; TODO cleanup imports based on -ddump-minimal-imports (requires user opt-in,
+;;      .imports discovery and cleanup). Could also do dead code analysis with
+;;      this data.
+
 (provide 'haskell-tng-extra)
 ;;; haskell-tng-extra.el ends here
