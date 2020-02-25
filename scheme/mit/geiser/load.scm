@@ -8,4 +8,3 @@
                       `())))
 
 (add-subsystem-identification! "Geiser" '(0 1))
-
