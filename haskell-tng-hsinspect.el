@@ -431,14 +431,17 @@ Does not persist the cache changes to disk."
           (append haskell-tng--hsinspect-imports updates))))
 
 ;; TODO add a package-wide variable cache
+(defvar-local haskell-tng--hsinspect-index nil)
 (defun haskell-tng--hsinspect-index (&optional flush-cache)
-  (when-let (ghcflags-dir
-             (locate-dominating-file default-directory ".ghc.flags"))
-    (haskell-tng--util-cached-disk
-     (lambda () (haskell-tng--hsinspect flush-cache "index"))
-     (concat "hsinspect-0.0.7" (expand-file-name ghcflags-dir) "index")
-     nil
-     flush-cache)))
+  (or ;; this variable cache is only used in tests
+   haskell-tng--hsinspect-index
+   (when-let (ghcflags-dir
+              (locate-dominating-file default-directory ".ghc.flags"))
+     (haskell-tng--util-cached-disk
+      (lambda () (haskell-tng--hsinspect flush-cache "index"))
+      (concat "hsinspect-0.0.7" (expand-file-name ghcflags-dir) "index")
+      nil
+      flush-cache))))
 
 ;; TODO add a project-wide variable cache
 (defun haskell-tng--hsinspect-exe (&optional flush-cache)

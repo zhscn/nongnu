@@ -11,8 +11,6 @@
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
 
-;; TODO tests of the user facing functions in the golden data format
-
 (ert-deftest haskell-tng-hsinspect-test-qualify-latest ()
   (let ((imports
          (haskell-tng--util-read
