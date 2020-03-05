@@ -46,8 +46,8 @@ A prefix argument ensures that caches are flushes."
                     sym)))
       ;; TODO multiple hits
       ;; TODO add type information from the index when available
-      (haskell-tng--hsinspect-popup-tip (format "%s" found)))
-  (user-error "Not found"))
+      (haskell-tng--hsinspect-popup-tip (format "%s" found))
+    (user-error "Not found")))
 
 ;;;###autoload
 (defun haskell-tng-jump-to-definition (&optional alt)

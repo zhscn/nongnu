@@ -12,8 +12,9 @@ import qualified Data.List as L
 import Data.List (nubBy)
 import Data.Functor.Contravariant as C
 import Medley.Wobble
--- FIXME (progn (next-line) (move-to-column 18) (let ((fqn (haskell-tng-fqn-at-point))) (next-line) (insert (concat "-- " fqn))))
+-- RUN (progn (next-line) (move-to-column 18) (let ((fqn (haskell-tng-fqn-at-point))) (next-line) (insert "-- " fqn)))
 import Prelude (zip)
+-- Prelude.zip
 
 -- RUN (progn (next-line) (company-complete))
 foo = C.phantom
