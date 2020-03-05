@@ -13,6 +13,7 @@
 
 (require 'ert)
 (require 's)
+(require 'shut-up)
 
 (require 'haskell-tng-mode)
 
@@ -34,10 +35,10 @@
 
   (while (re-search-forward (rx word-start "RUN" word-end) nil t)
     (when (is-comment-at-point)
-      (let ((start (point))
-            (command (read (current-buffer))))
-        (eval command)
-        (goto-char start))))
+      (push-mark (point) t)
+      (shut-up
+       (eval (read (current-buffer))))
+      (pop-mark)))
   (buffer-substring-no-properties (point-min) (point-max)))
 
 (provide 'haskell-tng-dynamic-test)

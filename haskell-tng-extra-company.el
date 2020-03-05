@@ -70,11 +70,15 @@
  'company-keywords-alist
  `(haskell-tng-mode ,@haskell-tng--keywords))
 
+(defun haskell-tng-extra-company-hook ()
+  "Enable `company-mode' with `haskell-tng' backends for buffer"
+  (interactive)
+  (setq-local company-backends haskell-tng-company-backends)
+  (company-mode 1))
+
 (add-hook
  'haskell-tng-mode-hook
- (lambda ()
-   (setq-local company-backends haskell-tng-company-backends)
-   (company-mode 1)))
+ #'haskell-tng-extra-company-hook)
 
 (provide 'haskell-tng-extra-company)
 ;;; haskell-tng-extra-company.el ends here

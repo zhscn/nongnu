@@ -27,15 +27,16 @@
 (package-file "haskell-tng-mode.el")
 
 (development
- (depends-on "company")
- (depends-on "popup")
+ (depends-on "company" "0.9.12")
+ (depends-on "popup") ;; version defined in -pkg.el
  ;;(depends-on "elsa") ;; cask exec elsa FILE
- (depends-on "faceup")
- (depends-on "ert-runner")
+ (depends-on "faceup") ;; no stable release
+ (depends-on "ert-runner" "0.7.0")
+ (depends-on "shut-up" "0.3.2")
  ;; FIXME set up coverage
  ;;(depends-on "undercover")
- (depends-on "projectile")
- (depends-on "smartparens")
- (depends-on "yasnippet"))
+ (depends-on "projectile" "2.1.0")
+ (depends-on "smartparens" "1.11.0")
+ (depends-on "yasnippet" "0.14.0"))
 
 ;;; Cask ends here

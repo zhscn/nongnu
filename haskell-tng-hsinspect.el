@@ -46,7 +46,7 @@ A prefix argument ensures that caches are flushes."
                     sym)))
       ;; TODO multiple hits
       ;; TODO add type information from the index when available
-      (popup-tip (format "%s" found)))
+      (haskell-tng--hsinspect-popup-tip (format "%s" found)))
   (user-error "Not found"))
 
 ;;;###autoload
@@ -343,8 +343,20 @@ ability to follow any further."
     ;; TODO special case one hit
     ;; TODO show more context, like the type
     (when-let* ((entries (mapcar (lambda (el) (alist-get 'module el)) hits))
-                (selected (popup-menu* entries)))
+                (selected (haskell-tng--hsinspect-popup-menu entries)))
       (seq-find (lambda (el) (equal (alist-get 'module el) selected)) hits))))
+
+(defvar-local haskell-tng--hsinspect-popup-menu nil)
+(defun haskell-tng--hsinspect-popup-menu (entries)
+  (or
+   haskell-tng--hsinspect-popup-menu ;; testing feature
+   (popup-menu* entries)))
+
+(defvar-local haskell-tng--hsinspect-popup-tip nil)
+(defun haskell-tng--hsinspect-popup-tip (tip)
+  (if haskell-tng--hsinspect-popup-tip ;; testing feature
+      tip
+    (popup-tip tip)))
 
 ;; TODO when the same name is reused as a type and data constructor we show dupe
 ;; entries to the user. We should dedupe that to just the cons unless we have a
