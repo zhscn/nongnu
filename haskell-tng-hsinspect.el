@@ -346,6 +346,7 @@ ability to follow any further."
                 (selected (haskell-tng--hsinspect-popup-menu entries)))
       (seq-find (lambda (el) (equal (alist-get 'module el) selected)) hits))))
 
+;; FIXME use advice or something like that instead of this testing hack
 (defvar-local haskell-tng--hsinspect-popup-menu nil)
 (defun haskell-tng--hsinspect-popup-menu (entries)
   (or

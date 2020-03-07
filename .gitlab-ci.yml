@@ -1,0 +1,14 @@
+image: registry.gitlab.com/tseenshe/haskell-tng.el:26.3
+
+cache:
+  paths:
+    - .cask
+
+build_job:
+  stage: build
+  script:
+    - cask pkg-file
+    - cask update
+    - cask install
+    - cask build
+    - cask exec ert-runner

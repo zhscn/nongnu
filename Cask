@@ -19,8 +19,6 @@
 ;;
 ;;; Code:
 
-;; FIXME set up CI on gitlab
-
 (source melpa-stable)
 (source melpa) ;; for faceup
 
