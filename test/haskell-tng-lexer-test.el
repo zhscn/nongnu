@@ -3,13 +3,10 @@
 ;; Copyright (C) 2018-2019 Tseen She
 ;; License: GPL 3 or any later version
 
-(require 'ert)
-(require 's)
-
-(require 'haskell-tng-mode)
-
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
+
+(require 'haskell-tng-mode)
 
 (ert-deftest haskell-tng-lexer-file-tests-layout ()
   (should (have-expected-forward-lex (testdata "src/layout.hs")))

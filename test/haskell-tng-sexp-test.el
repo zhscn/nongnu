@@ -3,13 +3,10 @@
 ;; Copyright (C) 2018-2019 Tseen She
 ;; License: GPL 3 or any later version
 
-(require 'ert)
-(require 's)
-
-(require 'haskell-tng-mode)
-
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
+
+(require 'haskell-tng-mode)
 
 ;; This test was originally going to use
 ;; `thing-at-point-bounds-of-list-at-point' to generate all the bounds for a

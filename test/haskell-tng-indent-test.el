@@ -3,14 +3,10 @@
 ;; Copyright (C) 2019 Tseen She
 ;; License: GPL 3 or any later version
 
-(require 'ert)
-(require 'ert-x)
-(require 's)
-
-(require 'haskell-tng-mode)
-
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
+
+(require 'haskell-tng-mode)
 
 ;; TODO line after `instance ... where' has too much indent
 ;; TODO records assigning / copy by label

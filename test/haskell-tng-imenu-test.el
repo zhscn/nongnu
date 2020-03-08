@@ -3,12 +3,10 @@
 ;; Copyright (C) 2019 Tseen She
 ;; License: GPL 3 or any later version
 
-(require 'ert)
-
-(require 'haskell-tng-mode)
-
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
+
+(require 'haskell-tng-mode)
 
 (ert-deftest haskell-tng-imenu-file-tests-layout ()
   (should (have-expected-imenu (testdata "src/layout.hs"))))

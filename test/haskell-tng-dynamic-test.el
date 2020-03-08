@@ -11,14 +11,10 @@
 ;;
 ;;; Code:
 
-(require 'ert)
-(require 's)
-(require 'shut-up)
-
-(require 'haskell-tng-mode)
-
 (require 'haskell-tng-testutils
          "test/haskell-tng-testutils.el")
+
+(require 'haskell-tng-mode)
 
 (ert-deftest haskell-tng-dynamic-file-tests ()
   (should (have-expected-dynamic-output (testdata "src/hsinspect.hs"))))

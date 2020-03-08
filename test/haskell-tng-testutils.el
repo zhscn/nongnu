@@ -7,9 +7,15 @@
 ;;
 ;;  Miscellaneous testing utilities that are not required by the application.
 ;;
+;;  We do not use `test-helper.el' because flycheck doesn't know to include it.
+;;
 ;;; Code:
 
+(require 'ert)
+(require 'ert-x)
 (require 'faceup)
+(require 's)
+(require 'shut-up)
 
 (defun haskell-tng--testutils-assert-file-contents
     (file mode to-string suffix)
