@@ -441,7 +441,9 @@ Does not persist the cache changes to disk."
   (haskell-tng--util-import-symbol module as sym)
   (let ((updates (haskell-tng--hsinspect-extract-imports index module as sym)))
     (setq haskell-tng--hsinspect-imports
-          (append haskell-tng--hsinspect-imports updates))))
+          (if (eq haskell-tng--hsinspect-imports 'cached-nil)
+              updates
+            (append haskell-tng--hsinspect-imports updates)))))
 
 ;; TODO add a package-wide variable cache
 (defvar-local haskell-tng--hsinspect-index nil)
