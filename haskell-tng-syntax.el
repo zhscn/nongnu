@@ -76,7 +76,7 @@
     ;; comments (subsuming pragmas)
     (modify-syntax-entry ?\{  "(}1nb" table)
     (modify-syntax-entry ?\}  "){4nb" table)
-    (modify-syntax-entry ?-  "_ 123" table)
+    (modify-syntax-entry ?-  "_ 123" table) ;; TODO --> is not a comment
     (seq-do
      (lambda (it) (modify-syntax-entry it ">" table))
      (string-to-list "\r\n\f\v"))
