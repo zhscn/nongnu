@@ -21,7 +21,7 @@
 (require 'info-look)
 
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 
 ;;; Customization:
@@ -63,7 +63,7 @@ This function uses `geiser-mit-init-file' if it exists."
 ;;; Evaluation support:
 
 (defun geiser-mit--geiser-procedure (proc &rest args)
-  (case proc
+  (cl-case proc
     ((eval compile)
      (let ((form (mapconcat 'identity (cdr args) " "))
            (module (cond ((string-equal "'()" (car args))
