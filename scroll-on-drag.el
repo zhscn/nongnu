@@ -35,11 +35,7 @@
 (defcustom scroll-on-drag-style 'line-by-pixel
   "The method of scrolling."
   :group 'scroll-on-drag
-  :type
-  '
-  (choice
-    (const :tag "Line" line)
-    (const :tag "Line-By-Pixel" line-by-pixel)))
+  :type '(choice (const :tag "Line" line) (const :tag "Line-By-Pixel" line-by-pixel)))
 
 (defcustom scroll-on-drag-delay 0.01
   "Idle time between scroll updates."
@@ -126,8 +122,9 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
           (scroll-px (- scroll-px-next (* lines char-height)))
           (lines-remainder 0))
         (unless (zerop lines)
+          ;; flip
           (setq lines-remainder
-            (- (scroll-on-drag--scroll-by-lines window (- lines) also-move-point))) ;; flip
+            (- (scroll-on-drag--scroll-by-lines window (- lines) also-move-point)))
           (unless (zerop lines-remainder)
             (setq scroll-px char-height)))
         (set-window-vscroll window (- char-height scroll-px) t)
