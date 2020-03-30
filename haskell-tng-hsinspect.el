@@ -383,7 +383,13 @@ When using hsinspect-0.0.9, also: srcid."
            (export (alist-get 'export entry))
            (flavour (alist-get 'flavour entry)))
        ;; TODO alist variable binding like RecordWildcards
-       (when (or (equal name sym) (equal type sym))
+       (when (or
+              (and
+               (member class '(id con pat))
+               (equal name sym))
+              (and
+               (equal class 'tycon)
+               (equal type sym)))
          `(((srcid . ,srcid)
             (module . ,module)
             (name . ,name)
