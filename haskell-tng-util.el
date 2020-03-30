@@ -115,9 +115,10 @@ flush the cache when the universal argument is provided."
       reset))
    sym
    nil
-   reset))
+   reset
+   'no-nil))
 
-(defun haskell-tng--util-cached-variable (work sym &optional no-work reset)
+(defun haskell-tng--util-cached-variable (work sym &optional no-work reset no-nil)
   "A variable cache over a function WORK.
 
 If the SYM reference contains a cache of a previous call, it is
@@ -127,7 +128,7 @@ Otherwise WORK is called with no parameters and saved to SYM.
 
 Errors are NOT cached.
 
-nil return values are cached.
+nil return values are cached unless NO-NIL is non-nil.
 
 NO-WORK skips WORK and only queries the cache.
 
@@ -137,7 +138,7 @@ RESET sets the variable to nil before doing anything."
   (when (not (symbol-value sym))
     (unless no-work
       (set sym (funcall work))
-      (unless (symbol-value sym)
+      (unless (or (symbol-value sym) no-nil)
         (set sym 'cached-nil))))
   (pcase (symbol-value sym)
     ('cached-nil nil)
