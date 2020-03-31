@@ -20,6 +20,7 @@
 (require 'array)
 (require 'subr-x)
 (require 'tar-mode)
+(require 'timer)
 (require 'url)
 
 ;; Popups are not supported in stock Emacs so an extension is necessary:
@@ -71,6 +72,10 @@ definition of the symbol in the build tool's source archive."
           ;;      unexported modules for inplace packages. It's starting to
           ;;      sound like a very complex feature... and perhaps not worth
           ;;      implementing given that TAGS work just great.
+          ;;
+          ;; FIXME or implement this by constructing the expected path/filename
+          ;;      from the module name and then just find files having that name
+          ;;      and pick the first one. Should work 99% of the time.
           (error "%s is defined in a local package" qualified)
         (when-let* ((srcid (or internal-srcid (alist-get 'srcid pkg-entry)))
                     (module (or internal-module (alist-get 'module module-entry)))
@@ -530,6 +535,27 @@ This is uncached, prefer `haskell-tng--hsinspect-exe'."
   (interactive "P")
   (haskell-tng--hsinspect-imports nil alt)
   (haskell-tng--hsinspect-index alt))
+
+(defcustom haskell-tng-hsinspect-auto -1
+  "Automatically run `hsinspect'.
+
+Runs after the given number of idle seconds, ignoring errors.
+Negative to disable."
+  :type 'integerp
+  :group 'haskell-tng)
+
+(defun haskell-tng-hsinspect-hook ()
+  (when (<= 0 haskell-tng-hsinspect-auto)
+    (run-with-idle-timer
+     haskell-tng-hsinspect-auto
+     nil
+     (lambda ()
+       (message "Running hsinspect in the background")
+       (make-thread #'haskell-tng-hsinspect)))))
+
+(add-hook
+ 'haskell-tng-mode-hook
+ #'haskell-tng-hsinspect-hook)
 
 (provide 'haskell-tng-hsinspect)
 ;;; haskell-tng-hsinspect.el ends here
