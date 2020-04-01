@@ -18,6 +18,7 @@
   (require 'cl))
 
 (require 'array)
+(require 'dired)
 (require 'subr-x)
 (require 'tar-mode)
 (require 'timer)
@@ -67,16 +68,26 @@ definition of the symbol in the build tool's source archive."
                  (`(,pkg-entry ,module-entry ,internal-srcid ,internal-module)
                   (haskell-tng--hsinspect-follow index nil imported name)))
       (if (or (null pkg-entry) (alist-get 'inplace pkg-entry))
-          ;; TODO support local / git packages by consulting `plan.json'. Note
-          ;;      this will only work properly if hsinspect includes all the
-          ;;      unexported modules for inplace packages. It's starting to
-          ;;      sound like a very complex feature... and perhaps not worth
-          ;;      implementing given that TAGS work just great.
-          ;;
-          ;; FIXME or implement this by constructing the expected path/filename
-          ;;      from the module name and then just find files having that name
-          ;;      and pick the first one. Should work 99% of the time.
-          (error "%s is defined in a local package" qualified)
+          (progn
+            ;; simpler alternative to parsing build tool specific data
+            (if-let (package-dir (or
+                                  (haskell-tng--util-locate-dominating-file
+                                   haskell-tng--compile-dominating-project)
+                                  (haskell-tng--util-locate-dominating-file
+                                   haskell-tng--compile-dominating-package)))
+                (pcase-let ((`(,dir . ,file) (haskell-tng--string-split-last imported ".")))
+                  (let ((find (string-trim
+                               (shell-command-to-string
+                                (format "find %s -path \"*/%s/*\" -name \"%s.hs\""
+                                        package-dir
+                                        (haskell-tng--string-replace dir "." "/")
+                                        file)))))
+                    (if (file-readable-p find)
+                        (progn
+                          (find-file find)
+                          (haskell-tng--hsinspect-goto-symbol name))
+                      (error "did not find %s.hs in %s" file dir))))
+              (error "%s is defined in a local package and the project root is unknown" qualified)))
         (when-let* ((srcid (or internal-srcid (alist-get 'srcid pkg-entry)))
                     (module (or internal-module (alist-get 'module module-entry)))
                     (file (concat (haskell-tng--string-replace module "." "/") ".hs"))
@@ -106,12 +117,15 @@ definition of the symbol in the build tool's source archive."
             (tar-extract)
             (kill-buffer archive)
             (read-only-mode 1)
-            (goto-char (point-min))
-            ;; TODO re-use the imenu top-level parser, this is a massive hack
-            (re-search-forward (rx line-start "import" word-end) nil t)
-            (or
-             (re-search-forward (rx-to-string `(: (| bol "= " "| " "data " "type " "class ") ,name symbol-end)) nil t)
-             (re-search-forward (rx-to-string `(: symbol-start ,name symbol-end))))))))))
+            (haskell-tng--hsinspect-goto-symbol name)))))))
+
+;; TODO re-use the imenu top-level parser, this is a massive hack
+(defun haskell-tng--hsinspect-goto-symbol (name)
+  (goto-char (point-min))
+  (re-search-forward (rx line-start "import" word-end) nil t)
+  (or
+   (re-search-forward (rx-to-string `(: (| bol "= " "| " "data " "type " "class ") ,name symbol-end)) nil t)
+   (re-search-forward (rx-to-string `(: symbol-start ,name symbol-end)))))
 
 (defun haskell-tng--string-replace (str from to)
   (mapconcat 'identity (split-string str (regexp-quote from)) to))

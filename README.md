@@ -108,7 +108,7 @@ Third party Haskell tools must be installed separately (e.g. via `cabal v2-insta
 - [`ormolu`](https://github.com/tweag/ormolu)
 - `C-c p R` invoke [`fast-tags`](https://hackage.haskell.org/package/fast-tags) via [`projectile`](https://github.com/bbatsov/projectile)
 
-Note that to jump to definition inside the project, use `projectile-regenerate-tags` and `projectile-find-tag`.
+Note that to jump to definition inside the project can also be achieved with `projectile-regenerate-tags` and `projectile-find-tag`.
 
 ## Contributing
 
