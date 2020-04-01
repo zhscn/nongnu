@@ -101,7 +101,7 @@ Integrations are provided for common libraries and external applications.
 
 The installation instructions above enable all the integrations. Remove the `require` lines for packages that are unwanted.
 
-Third party Haskell tools must be installed separately (e.g. via `cabal v2-install`):
+Third party Haskell tools must be installed separately (e.g. via `cabal install`):
 
 - [`stack2cabal`](https://hackage.haskell.org/package/stack2cabal)
 - [`stylish-haskell`](https://hackage.haskell.org/package/stylish-haskell)
@@ -166,7 +166,7 @@ This is the status of core features:
   - `:doc` at point
   - expand type definitions (e.g. to show full ADT)
 - [`flycheck`](http://www.flycheck.org/en/latest/) integration with `haskell-compile`
-  - `ghc` / `cabal v2-exec ghc --` for red squiggles, getting the correct info from [`cabal-helper`](http://hackage.haskell.org/package/cabal-helper)
+  - `ghc` / `cabal exec ghc --` for red squiggles, getting the correct info from [`cabal-helper`](http://hackage.haskell.org/package/cabal-helper)
   - and [`hlint`](https://github.com/ndmitchell/hlint)
   - and for faster feedback, [`ghcid`](https://github.com/ndmitchell/ghcid)
 - [visualise values as types](https://twitter.com/jyothsnasrin/status/1039530556080283648)

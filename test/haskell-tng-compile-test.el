@@ -43,7 +43,7 @@
     ;;(kill-line -2)
     ))
 
-;; cabal v2-clean && cabal v2-build -O0 all > ghc-8.4.4-error.compile 2>&1
+;; cabal clean && cabal build -O0 all > ghc-8.4.4-error.compile 2>&1
 (ert-deftest haskell-tng-compile-errors-file-tests ()
   (should (have-expected-errors (testdata "compile/ghc-8.4.4-error.compile")))
   (should (have-expected-errors (testdata "compile/ghc-8.4.4-errorspan.compile"))))

@@ -65,10 +65,11 @@
   "The `compilation-error-regexp-alist' for `haskell-tng'.")
 
 (defvar haskell-tng--compile-history
-  '("cabal v2-build"
-    "cabal v2-run tasty -- "))
+  '("cabal build"
+    "cabal run tasty -- "
+    "cabal run hspec -- "))
 (defvar-local haskell-tng--compile-command nil)
-(defvar-local haskell-tng--compile-alt "cabal v2-clean")
+(defvar-local haskell-tng--compile-alt "cabal clean")
 
 (defvar haskell-tng--compile-dominating-package
   (rx (| (: (+ any) ".cabal") "package.yaml")))
