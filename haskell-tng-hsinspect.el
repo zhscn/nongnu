@@ -436,6 +436,13 @@ When using hsinspect-0.0.9, also: srcid."
          (buffer-substring-no-properties (point-min) (point-max))))
     (user-error "Could not find `.ghc.flags': add GhcFlags.Plugin and compile.")))
 
+(defun haskell-tng--hsinspect-ghcpath ()
+  "Obtain the ghc PATH for the current buffer. Only supported by ghcflags-1.0.3+"
+  (when-let (default-directory (locate-dominating-file default-directory ".ghc.path"))
+    (with-temp-buffer
+      (insert-file-contents (expand-file-name ".ghc.path"))
+      (buffer-substring-no-properties (point-min) (point-max)))))
+
 (defvar-local haskell-tng--hsinspect-imports nil)
 (defun haskell-tng--hsinspect-imports (&optional no-work flush-cache)
   (haskell-tng--util-cached
@@ -483,8 +490,6 @@ Does not persist the cache changes to disk."
      nil
      flush-cache)))
 
-;; TODO discover the PATH from the build tool and set it when calling hsinspect
-
 (defvar haskell-tng--hsinspect-which-hsinspect
   "cabal build -v0 :pkg:hsinspect:exe:hsinspect && cabal exec -v0 which -- hsinspect")
 (defun haskell-tng--hsinspect-which-hsinspect ()
@@ -512,23 +517,29 @@ This is uncached, prefer `haskell-tng--hsinspect-exe'."
 
 (defun haskell-tng--hsinspect (flush-cache &rest params)
   (ignore-errors (kill-buffer "*hsinspect*"))
-  (when-let ((ghcflags (haskell-tng--hsinspect-ghcflags))
-             (default-directory (haskell-tng--util-locate-dominating-file
-                                 haskell-tng--compile-dominating-package)))
-    (if (/= 0
-            (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
-              (apply
-               #'call-process
-               (or (haskell-tng--hsinspect-exe flush-cache)
-                   (user-error "Could not find hsinspect: add to build-tool-depends"))
-               nil "*hsinspect*" nil
-               (append params '("--") ghcflags))))
-        (user-error "Failed, see *hsinspect* buffer for more information")
-      (with-current-buffer "*hsinspect*"
-        ;; TODO remove this resilience against stdout / stderr noise
-        (goto-char (point-max))
-        (backward-sexp)
-        (ignore-errors (read (current-buffer)))))))
+  (let ((ghcpath (haskell-tng--hsinspect-ghcpath)))
+    (when-let ((ghcflags (haskell-tng--hsinspect-ghcflags))
+               (default-directory (haskell-tng--util-locate-dominating-file
+                                   haskell-tng--compile-dominating-package)))
+      (if (/= 0
+              (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
+                ;; override PATH if we know a better one
+                (when ghcpath
+                  (setq process-environment
+                        (cons (concat "PATH=" ghcpath) process-environment)))
+                (message "DEBUG: %S" process-environment)
+                (apply
+                 #'call-process
+                 (or (haskell-tng--hsinspect-exe flush-cache)
+                     (user-error "Could not find hsinspect: add to build-tool-depends"))
+                 nil "*hsinspect*" nil
+                 (append params '("--") ghcflags))))
+          (user-error "Failed, see *hsinspect* buffer for more information")
+        (with-current-buffer "*hsinspect*"
+          ;; TODO remove this resilience against stdout / stderr noise
+          (goto-char (point-max))
+          (backward-sexp)
+          (ignore-errors (read (current-buffer))))))))
 
 (defun haskell-tng-hsinspect (&optional alt)
   "Fill the `hsinspect' caches"
