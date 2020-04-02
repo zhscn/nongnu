@@ -510,7 +510,7 @@ Does not persist the cache changes to disk."
   "Finds and checks the hsinspect binary for the current buffer.
 
 This is uncached, prefer `haskell-tng--hsinspect-exe'."
-  (let ((supported '("0.0.7" "0.0.8" "0.0.9" "0.0.10" "0.0.11" "0.0.12"))
+  (let ((supported '("0.0.7" "0.0.8" "0.0.9" "0.0.10" "0.0.11" "0.0.12" "0.0.13"))
         (bin
          (car
           (last
