@@ -541,7 +541,6 @@ This is uncached, prefer `haskell-tng--hsinspect-exe'."
                 (when ghcpath
                   (setq process-environment
                         (cons (concat "PATH=" ghcpath) process-environment)))
-                (message "DEBUG: %S" process-environment)
                 (apply
                  #'call-process
                  (or (haskell-tng--hsinspect-exe flush-cache)
@@ -575,7 +574,7 @@ Negative to disable."
      haskell-tng-hsinspect-auto
      nil
      (lambda ()
-       (message "Running hsinspect in the background")
+       (message "[haskell-tng] running hsinspect on idle")
        (make-thread #'haskell-tng-hsinspect)))))
 
 (add-hook
