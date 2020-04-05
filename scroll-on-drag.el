@@ -425,7 +425,8 @@ Returns true when scrolling took place, otherwise nil."
 
     (when has-scrolled-real
       (let ((inhibit-redisplay nil))
-        (run-hooks 'scroll-on-drag-post-hook)))
+        (run-hooks 'scroll-on-drag-post-hook)
+        (run-window-scroll-functions this-window)))
 
     ;; Result so we know if any scrolling occurred,
     ;; allowing a fallback action on 'click'.
