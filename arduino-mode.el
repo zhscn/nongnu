@@ -165,8 +165,7 @@ Value is a symbol.  The possible values are the symbols in the
   "Syntax table used in arduino-mode buffers.")
 
 (or arduino-mode-syntax-table
-    (setq arduino-mode-syntax-table
-          (funcall (c-lang-const c-make-mode-syntax-table arduino))))
+    (setq arduino-mode-syntax-table (make-syntax-table c-mode-syntax-table)))
 
 (defvar arduino-mode-abbrev-table nil
   "Abbreviation table used in arduino-mode buffers.")
