@@ -201,12 +201,7 @@ Returns true when scrolling took place, otherwise nil."
       (restore-x-pointer-shape (and (boundp 'x-pointer-shape) x-pointer-shape))
 
       ;; Restore indent (lost when scrolling).
-      (restore-indent
-        (-
-          (point)
-          (save-excursion
-            (back-to-indentation)
-            (point))))
+      (restore-column (current-column))
 
       (mouse-y-fn
         (cond
@@ -417,16 +412,8 @@ Returns true when scrolling took place, otherwise nil."
       (setq has-scrolled nil))
 
     ;; Restore indent level if possible.
-    (when (and has-scrolled (> restore-indent 0))
-      (move-beginning-of-line nil)
-      (right-char
-        (min
-          restore-indent
-          (-
-            (save-excursion
-              (move-end-of-line nil)
-              (point))
-            (point)))))
+    (when (and has-scrolled (> restore-column 0))
+      (move-to-column restore-column))
 
     ;; Restore pointer.
     (when (boundp 'x-pointer-shape)
