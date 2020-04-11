@@ -32,6 +32,9 @@
 
 ;;; Code:
 
+;; ---------------------------------------------------------------------------
+;; Custom Variables
+
 (defcustom scroll-on-drag-style 'line-by-pixel
   "The method of scrolling."
   :group 'scroll-on-drag
@@ -58,12 +61,12 @@
   :type 'boolean)
 
 (defcustom scroll-on-drag-pre-hook nil
-  "List of functions to be called when scroll-on-drag starts."
+  "List of functions to be called when `scroll-on-drag' starts."
   :group 'scroll-on-drag
   :type 'hook)
 
 (defcustom scroll-on-drag-post-hook nil
-  "List of functions to be called when scroll-on-drag finishes."
+  "List of functions to be called when `scroll-on-drag' finishes."
   :group 'scroll-on-drag
   :type 'hook)
 
@@ -72,6 +75,9 @@
   :group 'scroll-on-drag
   :type 'hook)
 
+
+;; ---------------------------------------------------------------------------
+;; Internal Functions
 
 ;; Generic scrolling functions.
 ;;
@@ -148,6 +154,10 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
       0)))
 
 ;; End generic scrolling functions.
+
+
+;; ---------------------------------------------------------------------------
+;; Public Functions
 
 ;;;###autoload
 (defun scroll-on-drag ()
