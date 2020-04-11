@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; Interactive scrolling which can be cancelled by pressing escape.
+;; Interactive scrolling which can be canceled by pressing escape.
 
 ;;; Usage
 
@@ -217,8 +217,7 @@ Returns true when scrolling took place, otherwise nil."
         (if scroll-on-drag-smooth
           (save-excursion
             (goto-char (point-max))
-            (move-beginning-of-line nil)
-            (point))
+            (line-beginning-position))
           0))
 
       (mouse-y-delta-scale-fn
@@ -339,14 +338,7 @@ Returns true when scrolling took place, otherwise nil."
       ;; when the cursor is partially outside the view.
       (scroll-consrtain-point-below-window-start-fn
         (lambda ()
-          (let
-            (
-              (lines-from-top
-                (count-lines
-                  (window-start)
-                  (save-excursion
-                    (move-beginning-of-line nil)
-                    (point)))))
+          (let ((lines-from-top (count-lines (window-start) (line-beginning-position))))
             (when (> scroll-margin lines-from-top)
               (forward-line (- scroll-margin lines-from-top))
               (let ((inhibit-redisplay nil))
