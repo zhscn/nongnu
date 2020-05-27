@@ -29,6 +29,7 @@
  ;;(depends-on "elsa") ;; cask exec elsa FILE
  (depends-on "faceup") ;; no stable release
  (depends-on "ert-runner" "0.7.0")
+ (depends-on "lsp-mode" "6.3.1")
  (depends-on "shut-up" "0.3.2")
  (depends-on "projectile" "2.1.0")
  (depends-on "smartparens" "1.11.0")
