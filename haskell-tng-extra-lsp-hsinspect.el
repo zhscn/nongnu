@@ -12,19 +12,25 @@
 ;;; Code:
 
 (require 'lsp-mode)
-(require 'subr-x)
 
-(defcustom haskell-tng-lsp-hsinspect '("hsinspect-lsp")
+(defcustom haskell-tng-lsp-hsinspect "hsinspect-lsp"
   "The command and args to launch the hsinspect language server."
   :group 'haskell-tng
-  :type 'listp)
+  :type 'stringp)
 
 (lsp-register-client
- (make-lsp-client :new-connection (lsp-stdio-connection
-                                   (lambda () (string-join haskell-tng-lsp-hsinspect " ")))
-                  :major-modes '(haskell-tng-mode)
-                  :server-id 'hsinspect-lsp))
+ (make-lsp-client
+  :new-connection (lsp-stdio-connection
+                   (lambda () haskell-tng-lsp-hsinspect))
+  :major-modes '(haskell-tng-mode)
+  :server-id 'hsinspect-lsp
+  ;; Do not use `:activation-fn' (with a check for .ghc.flags), the error
+  ;; message is not good.
+  ;;
+  ;; Do not use `:download-server-fn' because it is ignored.
+  ))
 
+;; needed by haskell-lsp's deserialisation
 (add-to-list
  'lsp-language-id-configuration
  '(haskell-tng-mode . "haskell"))

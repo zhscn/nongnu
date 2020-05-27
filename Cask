@@ -19,6 +19,7 @@
 ;;
 ;;; Code:
 
+(source gnu) ;; for spinner, dependency of lsp-mode
 (source melpa-stable)
 (source melpa) ;; for faceup
 

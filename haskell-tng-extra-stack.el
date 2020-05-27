@@ -19,7 +19,7 @@
  haskell-tng--hsinspect-which-hsinspect "stack build --silent hsinspect && stack exec --silent which -- hsinspect"
  haskell-tng--compile-history '("stack build --fast --no-interleaved-output --ghc-options=\"-j\" --no-run-tests"
                                 "stack build --fast --no-interleaved-output --ghc-options=\"-j\"")
- haskell-tng-lsp-hsinspect '("hsinspect-lsp" "--stack"))
+ haskell-tng-lsp-hsinspect "hsinspect-lsp --stack")
 
 (setq-default
  haskell-tng--compile-alt "stack clean"
