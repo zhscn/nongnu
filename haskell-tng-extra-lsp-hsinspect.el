@@ -24,6 +24,7 @@
                    (lambda () haskell-tng-lsp-hsinspect))
   :major-modes '(haskell-tng-mode)
   :server-id 'hsinspect-lsp
+  :multi-root 't
   ;; Do not use `:activation-fn' (with a check for .ghc.flags), the error
   ;; message is not good.
   ;;
