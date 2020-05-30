@@ -451,11 +451,12 @@ When using hsinspect-0.0.9, also: srcid."
     (user-error "Could not find `.ghc.flags': add GhcFlags.Plugin and compile.")))
 
 (defun haskell-tng--hsinspect-ghcpath ()
-  "Obtain the ghc PATH for the current buffer. Only supported by ghcflags-1.0.3+"
-  (when-let (default-directory (locate-dominating-file default-directory ".ghc.path"))
-    (with-temp-buffer
-      (insert-file-contents (expand-file-name ".ghc.path"))
-      (buffer-substring-no-properties (point-min) (point-max)))))
+  "Obtain the ghc PATH for the current buffer."
+  (if-let (default-directory (locate-dominating-file default-directory ".ghc.path"))
+      (with-temp-buffer
+        (insert-file-contents (expand-file-name ".ghc.path"))
+        (buffer-substring-no-properties (point-min) (point-max)))
+    (error "Could not find `.ghc.path': add GhcFlags.Plugin and compile.")))
 
 (defvar-local haskell-tng--hsinspect-imports nil)
 (defun haskell-tng--hsinspect-imports (&optional no-work flush-cache)
@@ -491,6 +492,7 @@ Does not persist the cache changes to disk."
       flush-cache))))
 
 ;; TODO add a project-wide variable cache
+(defvar-local haskell-tng--hsinspect-exe nil)
 (defun haskell-tng--hsinspect-exe (&optional flush-cache)
   "The cached binary to use for `hsinspect'"
   (when-let (package-dir (or
@@ -498,28 +500,25 @@ Does not persist the cache changes to disk."
                            haskell-tng--compile-dominating-project)
                           (haskell-tng--util-locate-dominating-file
                            haskell-tng--compile-dominating-package)))
-    (haskell-tng--util-cached-disk
+    (haskell-tng--util-cached
      #'haskell-tng--hsinspect-which-hsinspect
+     'haskell-tng--hsinspect-exe
      (concat "which" (expand-file-name package-dir) "hsinspect")
      nil
      flush-cache)))
 
-(defvar haskell-tng--hsinspect-which-hsinspect
-  "cabal build -v0 :pkg:hsinspect:exe:hsinspect && cabal exec -v0 which -- hsinspect")
 (defun haskell-tng--hsinspect-which-hsinspect ()
   "Finds and checks the hsinspect binary for the current buffer.
 
 This is uncached, prefer `haskell-tng--hsinspect-exe'."
-  (let ((supported '("0.0.7" "0.0.8" "0.0.9" "0.0.10" "0.0.11" "0.0.12" "0.0.13"))
-        (bin
-         (car
-          (last
-           (split-string
-            (string-trim
-             (shell-command-to-string
-              haskell-tng--hsinspect-which-hsinspect))
-            "\n")))))
-    (if (file-executable-p bin)
+  (let* ((supported '("0.0.7" "0.0.8" "0.0.9" "0.0.10" "0.0.11" "0.0.12" "0.0.13"))
+         (ghcpath (haskell-tng--hsinspect-ghcpath))
+         (bin (locate-file
+               "hsinspect"
+               (split-string ghcpath path-separator)
+               exec-suffixes
+               #'file-executable-p)))
+    (if bin
         (let ((version
                (string-trim
                 (shell-command-to-string (concat bin " --version")))))
@@ -527,32 +526,30 @@ This is uncached, prefer `haskell-tng--hsinspect-exe'."
               ;; TODO from 0.0.8+ do a --ghc-version check (a common failure mode)
               bin
             (user-error "The hsinspect binary is the wrong version: got `%s' require `%s'" version supported)))
-      (user-error "The hsinspect binary is not executable: %S" bin))))
+      (user-error "The hsinspect binary is not available. See https://gitlab.com/tseenshe/hsinspect#installation"))))
 
 (defun haskell-tng--hsinspect (flush-cache &rest params)
   (ignore-errors (kill-buffer "*hsinspect*"))
-  (let ((ghcpath (haskell-tng--hsinspect-ghcpath)))
-    (when-let ((ghcflags (haskell-tng--hsinspect-ghcflags))
-               (default-directory (haskell-tng--util-locate-dominating-file
-                                   haskell-tng--compile-dominating-package)))
-      (if (/= 0
-              (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
-                ;; override PATH if we know a better one
-                (when ghcpath
-                  (setq process-environment
-                        (cons (concat "PATH=" ghcpath) process-environment)))
-                (apply
-                 #'call-process
-                 (or (haskell-tng--hsinspect-exe flush-cache)
-                     (user-error "Could not find hsinspect: add to build-tool-depends"))
-                 nil "*hsinspect*" nil
-                 (append params '("--") ghcflags))))
-          (user-error "Failed, see *hsinspect* buffer for more information")
-        (with-current-buffer "*hsinspect*"
-          ;; TODO remove this resilience against stdout / stderr noise
-          (goto-char (point-max))
-          (backward-sexp)
-          (ignore-errors (read (current-buffer))))))))
+  (when-let ((ghcpath (haskell-tng--hsinspect-ghcpath))
+             (ghcflags (haskell-tng--hsinspect-ghcflags))
+             (hsinspect (haskell-tng--hsinspect-exe flush-cache))
+             (default-directory (haskell-tng--util-locate-dominating-file
+                                 haskell-tng--compile-dominating-package)))
+    (if (/= 0
+            (let ((process-environment (cons "GHC_ENVIRONMENT=-" process-environment)))
+              (setq process-environment
+                    (cons (concat "PATH=" ghcpath) process-environment))
+              (apply
+               #'call-process
+               hsinspect
+               nil "*hsinspect*" nil
+               (append params '("--") ghcflags))))
+        (user-error "Failed, see *hsinspect* buffer for more information")
+      (with-current-buffer "*hsinspect*"
+        ;; TODO remove this resilience against stdout / stderr noise
+        (goto-char (point-max))
+        (backward-sexp)
+        (ignore-errors (read (current-buffer)))))))
 
 (defun haskell-tng-hsinspect (&optional alt)
   "Fill the `hsinspect' caches"

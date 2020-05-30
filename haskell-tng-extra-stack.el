@@ -14,12 +14,8 @@
 
 (setq
  haskell-tng--compile-dominating-project (rx "stack.yaml")
- ;; NOTE `stack exec which' doesn't work on nixos
- ;; https://stackoverflow.com/questions/58923819
- haskell-tng--hsinspect-which-hsinspect "stack build --silent hsinspect && stack exec --silent which -- hsinspect"
  haskell-tng--compile-history '("stack build --fast --no-interleaved-output --ghc-options=\"-j\" --no-run-tests"
-                                "stack build --fast --no-interleaved-output --ghc-options=\"-j\"")
- haskell-tng-lsp-hsinspect "hsinspect-lsp --stack")
+                                "stack build --fast --no-interleaved-output --ghc-options=\"-j\""))
 
 (setq-default
  haskell-tng--compile-alt "stack clean"
