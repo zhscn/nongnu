@@ -47,7 +47,7 @@ A prefix argument ensures that caches are flushes."
                     (haskell-tng--hsinspect-imports nil alt)
                     sym)))
       ;; TODO multiple hits
-      ;; TODO add type information from the index when available
+      ;; FIXME add type information from the index when available
       (haskell-tng--hsinspect-popup-tip (format "%s" found))
     (user-error "Not found")))
 
@@ -150,7 +150,7 @@ definition of the symbol in the build tool's source archive."
 (defun haskell-tng--hsinspect-hackage-source (srcid)
   (concat "http://hackage.haskell.org/package/" srcid "/" srcid ".tar.gz"))
 
-;; FIXME haskell-tng-show-documentation
+;; TODO haskell-tng-show-documentation
 
 (defvar-local haskell-tng-hsinspect-as
   ;; TODO populate with even more than this
@@ -365,7 +365,7 @@ ability to follow any further."
                 (selected (haskell-tng--hsinspect-popup-menu entries)))
       (seq-find (lambda (el) (equal (alist-get 'module el) selected)) hits))))
 
-;; FIXME use advice or something like that instead of this testing hack
+;; FIXME allow this to be configurable so pop-up is an -extra with zero dep dependencies
 (defvar-local haskell-tng--hsinspect-popup-menu nil)
 (defun haskell-tng--hsinspect-popup-menu (entries)
   (or
