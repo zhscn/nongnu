@@ -19,7 +19,10 @@
 
 (setq-default
  haskell-tng--compile-alt "stack clean"
- projectile-tags-command "fast-tags -Re --exclude=.stack-work .")
+ projectile-tags-command
+ (concat
+  (haskell-tng--util-which "fast-tags")
+  " -Re --exclude=.stack-work ."))
 
 (provide 'haskell-tng-extra-stack)
 ;;; haskell-tng-extra-stack.el ends here

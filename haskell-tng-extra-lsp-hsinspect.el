@@ -13,15 +13,10 @@
 
 (require 'lsp-mode)
 
-(defcustom haskell-tng-lsp-hsinspect "hsinspect-lsp"
-  "The command and args to launch the hsinspect language server."
-  :group 'haskell-tng
-  :type 'stringp)
-
 (lsp-register-client
  (make-lsp-client
   :new-connection (lsp-stdio-connection
-                   (lambda () haskell-tng-lsp-hsinspect))
+                   (lambda () (haskell-tng--util-which "hsinspect-lsp")))
   :major-modes '(haskell-tng-mode)
   :server-id 'hsinspect-lsp
   :multi-root 't
