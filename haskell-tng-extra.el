@@ -66,39 +66,55 @@ When in a comment and called with a prefix, the comment will be completed."
     (haskell-tng-ormolu)))
 
 ;;;###autoload
+(defvar-local haskell-tng-stylish-haskell nil
+  "A cache of the `stylish-haskell' binary as seen from this buffer.")
 (defun haskell-tng-stylish-haskell ()
   "Apply `stylish-haskell' rules."
   ;; TODO use https://github.com/purcell/reformatter.el
   (interactive)
   (when (buffer-modified-p)
     (save-buffer))
-  (when (= 0 (call-process "stylish-haskell" nil "*stylish-haskell*" nil "-i" buffer-file-name))
+  (when (= 0 (call-process
+              (haskell-tng--util-cached-variable
+               (lambda () (haskell-tng--util-which "stylish-haskell"))
+               'haskell-tng-stylish-haskell)
+              nil "*stylish-haskell*" nil "-i" buffer-file-name))
     (revert-buffer t t t)))
 
 ;;;###autoload
+(defvar-local haskell-tng-ormolu nil
+  "A cache of the `ormolu' binary as seen from this buffer.")
 (defun haskell-tng-ormolu ()
   "Apply `ormolu' rules."
   ;; TODO use https://github.com/purcell/reformatter.el
-  ;; TODO pass parameters via a buffer local variable
   (interactive)
   (when (buffer-modified-p)
     (save-buffer))
-  (when (= 0 (call-process "ormolu" nil "*ormolu*" nil
-                             ;; "-p"
-                             "-o" "-XTypeApplications"
-                             "-o" "-XBangPatterns"
-                             "-o" "-XPatternSynonyms"
-                             "-m" "inplace"
-                             buffer-file-name))
+  (when (= 0 (call-process
+              (haskell-tng--util-cached-variable
+               (lambda () (haskell-tng--util-which "ormolu"))
+               'haskell-tng-ormolu)
+              nil "*ormolu*" nil
+              ;; "-p"
+              "-o" "-XTypeApplications"
+              "-o" "-XBangPatterns"
+              "-o" "-XPatternSynonyms"
+              "-m" "inplace"
+              buffer-file-name))
     (revert-buffer t t t)))
 
 ;;;###autoload
+(defvar-local haskell-tng-stack2cabal nil
+  "A cache of the `stack2cabal' binary as seen from this buffer.")
 (defun haskell-tng-stack2cabal ()
   "Prepare a stack project for use with cabal."
   (interactive)
   (when-let (default-directory
               (locate-dominating-file default-directory "stack.yaml"))
-    (call-process "stack2cabal")))
+    (call-process
+     (haskell-tng--util-cached-variable
+      (lambda () (haskell-tng--util-which "stack2cabal"))
+      'haskell-tng-stack2cabal))))
 
 ;;;###autoload
 (defun haskell-tng-goto-imports ()
@@ -136,7 +152,7 @@ When in a comment and called with a prefix, the comment will be completed."
    (reverse
     (seq-take-while
      (lambda (e) (let (case-fold-search)
-              (string-match-p (rx bos upper) e)))
+                   (string-match-p (rx bos upper) e)))
      (reverse
       (split-string
        (file-name-sans-extension buffer-file-name)

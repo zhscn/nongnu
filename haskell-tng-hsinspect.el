@@ -450,14 +450,6 @@ When using hsinspect-0.0.9, also: srcid."
          (buffer-substring-no-properties (point-min) (point-max))))
     (user-error "Could not find `.ghc.flags': add GhcFlags.Plugin and compile.")))
 
-(defun haskell-tng--hsinspect-ghcpath ()
-  "Obtain the ghc PATH for the current buffer."
-  (if-let (default-directory (locate-dominating-file default-directory ".ghc.path"))
-      (with-temp-buffer
-        (insert-file-contents (expand-file-name ".ghc.path"))
-        (buffer-substring-no-properties (point-min) (point-max)))
-    (error "Could not find `.ghc.path': add GhcFlags.Plugin and compile.")))
-
 (defvar-local haskell-tng--hsinspect-imports nil)
 (defun haskell-tng--hsinspect-imports (&optional no-work flush-cache)
   (haskell-tng--util-cached
@@ -511,13 +503,8 @@ Does not persist the cache changes to disk."
   "Finds and checks the hsinspect binary for the current buffer.
 
 This is uncached, prefer `haskell-tng--hsinspect-exe'."
-  (let* ((supported '("0.0.7" "0.0.8" "0.0.9" "0.0.10" "0.0.11" "0.0.12" "0.0.13" "0.0.14"))
-         (ghcpath (haskell-tng--hsinspect-ghcpath))
-         (bin (locate-file
-               "hsinspect"
-               (split-string ghcpath path-separator)
-               exec-suffixes
-               #'file-executable-p)))
+  (let ((supported '("0.0.7" "0.0.8" "0.0.9" "0.0.10" "0.0.11" "0.0.12" "0.0.13" "0.0.14"))
+        (bin (haskell-tng--util-ghcpath-which "hsinspect")))
     (if bin
         (let ((version
                (string-trim
@@ -530,7 +517,7 @@ This is uncached, prefer `haskell-tng--hsinspect-exe'."
 
 (defun haskell-tng--hsinspect (flush-cache &rest params)
   (ignore-errors (kill-buffer "*hsinspect*"))
-  (when-let ((ghcpath (haskell-tng--hsinspect-ghcpath))
+  (when-let ((ghcpath (haskell-tng--util-ghcpath))
              (ghcflags (haskell-tng--hsinspect-ghcflags))
              (hsinspect (haskell-tng--hsinspect-exe flush-cache))
              (default-directory (haskell-tng--util-locate-dominating-file

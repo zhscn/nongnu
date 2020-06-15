@@ -184,5 +184,28 @@ RESET deletes the cache if it exists."
       (make-directory (file-name-directory file) 'create-parents)
       (prin1 var (current-buffer)))))
 
+(defun haskell-tng--util-ghcpath ()
+  "Obtain the ghc PATH for the current buffer using the `.ghc.path' from the `ghcflags' plugin."
+  (if-let (default-directory (locate-dominating-file default-directory ".ghc.path"))
+      (with-temp-buffer
+        (insert-file-contents (expand-file-name ".ghc.path"))
+        (buffer-substring-no-properties (point-min) (point-max)))
+    (error "Could not find `.ghc.path': add GhcFlags.Plugin and compile.")))
+
+(defun haskell-tng--util-ghcpath-which (program)
+  "Finds a binary using buffer-specific `.ghc.path`."
+  (locate-file
+   program
+   (split-string (haskell-tng--util-ghcpath) path-separator)
+   exec-suffixes
+   #'file-executable-p))
+
+(defun haskell-tng--util-which (program)
+  "Finds a binary using buffer-specific `.ghc.path` falling back
+to allow the caller to find it on the PATH."
+  (or
+   (ignore-errors (haskell-tng--util-ghcpath-which program))
+   program))
+
 (provide 'haskell-tng-util)
 ;;; haskell-tng-util.el ends here
