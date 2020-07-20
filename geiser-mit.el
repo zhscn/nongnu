@@ -54,7 +54,7 @@
     geiser-mit-binary))
 
 (defvar geiser-mit-scheme-dir
-  (expand-file-name "src" (file-name-nondirectory load-file-name))
+  (expand-file-name "src" (file-name-directory load-file-name))
   "Directory where the MIT scheme geiser package is installed.")
 
 (defun geiser-mit--parameters ()
