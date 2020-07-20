@@ -1,4 +1,4 @@
-* Guile and Geiser talk to each other
+* MIT Scheme and Geiser talk to each other
 
 This package provides support for using [[https://www.gnu.org/software/mit-scheme/][MIT/GNU Scheme]] in Emacs with
 [[http://geiser.nongnu.org][Geiser]].
