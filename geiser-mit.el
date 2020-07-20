@@ -1,9 +1,12 @@
 ;;; geiser-mit.el -- MIT/GNU Scheme's implementation of the geiser protocols
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the Modified BSD License. You should
-;; have received a copy of the license along with this program. If
-;; not, see <http://www.xfree86.org/3.3.6/COPYRIGHT2.html#5>.
+;; Author: Peter <craven@gmx.net>
+;; Maintainer:
+;; Keywords: languages, mit, scheme, geiser
+;; Homepage: https://gitlab.com/emacs-geiser/chez
+;; Package-Requires: ((emacs "24.4") (geiser-core "1.0"))
+;; SPDX-License-Identifier: BSD-3-Clause
+;; Version: 1.0
 
 
 ;;; Code:
@@ -50,10 +53,14 @@
       (car geiser-mit-binary)
     geiser-mit-binary))
 
+(defvar geiser-mit-scheme-dir
+  (expand-file-name "src" (file-name-nondirectory load-file-name))
+  "Directory where the MIT scheme geiser package is installed.")
+
 (defun geiser-mit--parameters ()
   "Return a list with all parameters needed to start MIT/GNU Scheme.
 This function uses `geiser-mit-init-file' if it exists."
-  `("--load" ,(expand-file-name "mit/geiser/load.scm" geiser-scheme-dir))
+  `("--load" ,(expand-file-name "geiser/load.scm" geiser-mit-scheme-dir))
   )
 
 (defconst geiser-mit--prompt-regexp "[0-9]+ ([^)]+) => ") ;; *not* ]=>, that confuses syntax-ppss
