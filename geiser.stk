@@ -8,6 +8,19 @@
 ;; SPDX-License-Identifier: BSD-3-Clause
 ;; Version: 1.0
 
+(define-module GEISER
+
+  (export geiser:eval
+          geiser:load-file
+          geiser:add-to-load-path
+          geiser:macroexpand
+          geiser:module-completions
+          geiser:completions
+          geiser:module-exports
+          geiser:symbol-documentation
+          geiser:autodoc
+          geiser:no-values)
+
 ;; executes thunk, with all its output (standar and error) redirected
 ;; to a string.
 (define (with-all-output-to-string thunk)
@@ -248,3 +261,11 @@
 
 (define (geiser-compile form module . rest)
   (error "STklos does not support compiling regions"))
+
+) ;; END of module GEISER
+
+;; standard boilerplate for loading modules:
+
+(select-module STklos)
+(import GEISER)
+(provide "geiser")
