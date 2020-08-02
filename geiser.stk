@@ -78,7 +78,12 @@
     
     (newline)))
 
+;; to log forms, use the following:
+;; (define log (open-output-file "geiser-log.txt"))
+
 (define (write-to-log form)
+;;  (write form log)
+;;  (newline log))
   (values))
 
 ;; evaluates form inside a module.
@@ -219,13 +224,14 @@
 
 ;; used for autodoc. returns the documentation for a symbol.
 (define (geiser:autodoc names . rest)
-  (cond ((null? names) '())
-        ((not (list? names))
-         (geiser:autodoc (list names)))
-        ((symbol? (car names))
-         (with-output-to-string
-           (lambda () (help (car names)))))
-        (else "")))
+  #f)
+;;  (cond ((null? names) '())
+;;        ((not (list? names))
+;;         (geiser:autodoc (list names)))
+;;        ((symbol? (car names))
+;;         (with-output-to-string
+;;           (lambda () (help (car names)))))
+;;        (else "")))
 
 ;; The no-values identity
 (define (geiser:no-values)
