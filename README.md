@@ -46,22 +46,15 @@ to add this to your Emacs configuration:
 See the issue tracker in Gitlab.
 
 
-# About the implementation:
+# About the implementation
 
-The following functions were defined on the STklos side:
+Geiser support for a Scheme implementation consists of two programs:
+one on Emacs' side, and one on Scheme's side.
 
-* `geiser:eval`
-* `geiser:load-file`
-* `geiser:add-to-load-path`
-* `geiser:macroexpand`
-* `geiser:no-values`
-* `geiser:symbol-documentation`
-* `geiser:module-exports`
-* `geiser:module-completions`
-* `geiser:completions`
+The Emacs Lisp part is in the file `geiser-stklos.el`
+The STklos part is in `geisre-stklos.stk`. The STklos implementation is inside a module called `GEISER`.
 
-They have comments that help understand how they work.
-
+In both files, I tried to include comments explaining what each function does.
 
 ## Credits
 
