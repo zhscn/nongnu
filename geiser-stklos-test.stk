@@ -1,0 +1,93 @@
+
+(load "./test.stk")
+(load "./geiser.stk")
+
+(test-init "TEST.LOG")
+
+(test-section "Geiser-STklos tests")
+
+;;; We will also need to test the other (non-exported)
+;;; procedures, like "call-with-result"
+
+(test-subsection "geiser:* procedures")
+
+(define l (load-path))
+(test "geiser:add-to-load-path"
+      (cons "some-path" l)
+      (begin (geiser:add-to-load-path "some-path")
+             (load-path)))
+
+
+(define-syntax g-macro
+  (syntax-rules ()
+    ((_ a b) (g a b))))
+      
+(test "geiser:macroexpand"
+      "(g 1 2)"
+      (geiser:macroexpand '(g-macro 1 2)))
+
+
+(define-module modified-modular-module
+  (export symbolic-symbol
+          heartless-horse-rehearsal
+          syntactic-synthesize-synchronicities
+          procedural-precedence-precaution)
+  (define symbolic-symbol 's)
+  (define heartless-horse-rehearsal -1)
+  (define hideous-hidden-hindrance "h")
+  (define-syntax syntactic-synthesize-synchronicities
+    (syntax-rules ()
+      ((_) 'SYNC)))
+  (define procedural-precedence-precaution
+    (lambda () '())))
+
+(test "geiser:module-completions"
+      #f
+      (not (member "stklos"
+                   (geiser:module-completions "s"))))
+
+(test "geiser:module-completions"
+      #f
+      (not (member "SRFI-0"
+                   (geiser:module-completions "S"))))
+
+(test "geiser:module-completions"
+      #f
+      (not (member "modified-modular-module"
+                   (geiser:module-completions "modi"))))
+
+
+(test "geiser:module-exports"
+      '(list ("modules")
+             ("procs" (procedural-precedence-precaution))
+             ("syntax" (syntactic-synthesize-synchronicities))
+             ("vars" (symbolic-symbol) (heartless-horse-rehearsal)))
+      (geiser:module-exports 'modified-modular-module))
+
+(define defying-definitive-definition 10)
+(define depth-depriving-dependence 20)
+(define (ex-executable-executive)
+  'EXECUTED)
+
+(test "geiser:completions"
+      '(#f #f #t)
+      (let ((completions (geiser:completions "de")))
+        (map (lambda (x) (not (member x completions)))
+             '("defying-definitive-definition"
+               "depth-depriving-dependence"
+               "dense-dental-denying-denardo"))))
+
+
+(test "geiser:completions 2"
+      #f
+      (not (member "ex-executable-executive"
+                   (geiser:completions "e"))))
+        
+
+(test "geiser:no-values"
+      (values)
+      (geiser:no-values))
+
+(test-section-end)
+
+(test-end)

@@ -108,15 +108,15 @@
       (write-to-log form)
       (call-with-result thunk))))
 
-  ;; Load a file
+;; Load a file
 
-  (define (geiser:load-file file)
-    (let* ((file (if (symbol? file) (symbol->string file) file))
-           (found-file (geiser-find-file file)))
-      (call-with-result
-       (lambda ()
-         (when found-file
-           (load found-file))))))
+(define (geiser:load-file file)
+  (let* ((file (if (symbol? file) (symbol->string file) file))
+         (found-file (geiser-find-file file)))
+    (call-with-result
+     (lambda ()
+       (when found-file
+         (load found-file))))))
 
 ;; Geiser calls this function to add a string to STklos'
 ;; load path

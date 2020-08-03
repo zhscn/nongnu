@@ -298,10 +298,13 @@ This function uses `geiser-stklos-init-file' if it exists."
   (display-error          geiser-stklos--display-error)
   ;; (external-help geiser-stklos--manual-look-up) ;; cannot easily search by keyword
   (check-buffer           geiser-stklos--guess)
-  (keywords               geiser-stklos--keywords)      ; ok
-  (case-sensitive         geiser-stklos-case-sensitive) ; ok
+  (keywords               geiser-stklos--keywords)       ; ok
+  (case-sensitive         geiser-stklos-case-sensitive)  ; ok
+  (unsupported            '(autodoc callers callees))    ; doesn't seem to make any difference?
   )
 
+;; STklos files are .stk, and we may wat to open .scm files with STklos also:
+;;
 (geiser-impl--add-to-alist 'regexp "\\.scm$" 'stklos t)
 (geiser-impl--add-to-alist 'regexp "\\.stk$" 'stklos t)
 
