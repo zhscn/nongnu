@@ -74,5 +74,4 @@ Copyright (C) 2020 Jerônimo Pellegrini
 Authors: Jerônimo Pellegrini
 
 This program is free software; you can redistribute and/or modify it under the terms of the BSD 3-Clause "New" or "Revised" License.
-You should have received a copy of the license along with this program. If not, see https://spdx.o
-rg/licenses/BSD-3-Clause.html.
+You should have received a copy of the license along with this program. If not, see https://spdx.org/licenses/BSD-3-Clause.html.
