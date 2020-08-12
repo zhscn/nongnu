@@ -23,7 +23,7 @@
      (lambda (k v)
        ;; reset the (surprisingly numerous) defaults
        (let ((class (syntax-class v)))
-         (when (seq-contains '(1 4 5 6 9) class)
+         (when (seq-contains-p '(1 4 5 6 9) class)
            (modify-syntax-entry k "_" table))))
      (char-table-parent table))
 

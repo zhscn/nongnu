@@ -28,7 +28,7 @@
 ;; or deleted regions. Would give fast lookup at point.
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-macs))
 
 (require 'haskell-tng-util)
 
@@ -173,7 +173,7 @@ using a cache if available."
           value)))))
 
 (defun haskell-tng--layout-next-wldo (limit)
-  (block wldo
+  (cl-block wldo
     (while (< (point) limit)
       (forward-comment limit)
       (cond
@@ -184,7 +184,7 @@ using a cache if available."
         (goto-char (match-end 0))
         (forward-comment limit)
         (unless (looking-at "{")
-          (return-from wldo
+          (cl-return-from wldo
             (haskell-tng--layout-wldo
              (min (or (haskell-tng--util-paren-close) (point-max))
                   limit)))))
@@ -201,7 +201,7 @@ WLDO that is using the offside rule."
     (let* ((open (point))
            seps
            (level (current-column))
-           (close (block closed
+           (close (cl-block closed
                     (while (< (point) limit)
                       (forward-line)
                       (forward-comment limit)
@@ -211,9 +211,9 @@ WLDO that is using the offside rule."
                                        (rx bol (or "," ")" "]" "}")))))
                         (push (point) seps))
                       (when (<= limit (point))
-                        (return-from closed limit))
+                        (cl-return-from closed limit))
                       (when (< (current-column) level)
-                        (return-from closed (point))))
+                        (cl-return-from closed (point))))
                     limit)))
       `(,open . (,close . ,(reverse seps))))))
 

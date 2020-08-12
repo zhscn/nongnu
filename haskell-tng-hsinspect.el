@@ -15,7 +15,7 @@
 ;; with pre-canned data.
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-macs))
 
 (require 'array)
 (require 'dired)
@@ -274,7 +274,7 @@ Respects the `C-u' cache invalidation convention."
 
 (defun haskell-tng--hsinspect-check-fqn-import (index module sym)
   "Checks if an FQN exists"
-  (block nested
+  (cl-block nested
     (cl-loop
      for pkg-entry in index
      do
@@ -291,7 +291,7 @@ Respects the `C-u' cache invalidation convention."
                     ((or 'id 'con 'pat) name)
                     ('tycon type))))
          (when (equal sym id)
-           (return-from nested
+           (cl-return-from nested
              `(,(alist-get 'srcid pkg-entry))))))))))
 
 (defun haskell-tng--hsinspect-return-type (type)
@@ -320,7 +320,7 @@ Respects the `C-u' cache invalidation convention."
 nil if nothing was found.
 
 If SRCID is nil then the first matching MODULE is used."
-  (block nested
+  (cl-block nested
     (cl-loop
      for pkg-entry in index
      when (or (null srcid) (equal srcid (alist-get 'srcid pkg-entry)))
@@ -329,7 +329,7 @@ If SRCID is nil then the first matching MODULE is used."
       for module-entry in (alist-get 'modules pkg-entry)
       when (equal module (alist-get 'module module-entry))
       do
-      (return-from nested (cons pkg-entry module-entry))))))
+      (cl-return-from nested (cons pkg-entry module-entry))))))
 
 (defun haskell-tng--hsinspect-follow (index srcid module name)
   "Follow re-exports of MODULE to find where it was originally defined.

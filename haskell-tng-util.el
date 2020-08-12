@@ -12,7 +12,7 @@
 ;; TODO move things to single use sites (twas premature abstraction!)
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-macs))
 (require 'subr-x)
 (require 'xdg)
 
@@ -32,10 +32,10 @@
   (save-excursion
     (goto-char (or pos (point)))
     (let ((level (current-column)))
-      (block closed
+      (cl-block closed
         (while (and (forward-line) (not (eobp)))
           (when (<= (current-indentation) level)
-            (return-from closed (point))))))))
+            (cl-return-from closed (point))))))))
 
 (defun haskell-tng--util-type-ender (&optional pos)
   ;; trivial, should just be called as an inline regexp
