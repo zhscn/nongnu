@@ -243,7 +243,7 @@ This function uses `geiser-stklos-init-file' if it exists."
 
 ;; Minimum version of STklos supported. If a less recent version
 ;; is used, Geiser will refuse to start.
-(defconst geiser-stklos-minimum-version "1.40")
+(defconst geiser-stklos-minimum-version "1.50")
 
 ;; this function obtains the version of the STklos binary
 ;; available.
