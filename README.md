@@ -16,6 +16,7 @@ See the Geiser manual for usage.
 
 # Unsupported features
 
+* autodoc (STklos doesn't yet have a procedure to ask the signature of closures -- but we're working on it!)
 * finding the definition of a symbol (no support in STklos)
 * seeing callees and callers of a procedure (no support in STklos)
 * looking up symbols in the manual (would need to download the index from STklos manual and parse the DOM of its index; a bit too much, maybe someday...)
