@@ -300,7 +300,7 @@ This function uses `geiser-stklos-init-file' if it exists."
   (check-buffer           geiser-stklos--guess)
   (keywords               geiser-stklos--keywords)       ; ok
   (case-sensitive         geiser-stklos-case-sensitive)  ; ok
-  (unsupported            '(autodoc callers callees))    ; doesn't seem to make any difference?
+  (unsupported            '(callers callees))            ; doesn't seem to make any difference?
   )
 
 ;; STklos files are .stk, and we may wat to open .scm files with STklos also:

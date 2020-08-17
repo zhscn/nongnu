@@ -1,6 +1,7 @@
 
 (load "./test.stk")
 (load "./geiser.stk")
+(import GEISER)
 
 (test-init "TEST.LOG")
 
@@ -87,6 +88,57 @@
 (test "geiser:no-values"
       (values)
       (geiser:no-values))
+
+
+((in-module STKLOS-COMPILER compiler:generate-signature) #t)
+
+(define (f a b . c) "doc for f" a)
+
+(test "geiser:symbol-documentation"
+      '(("signature" f ("args" (("required" a b)
+                                ("optional" "...")
+                                ("key"))))
+        ("docstring" . "A procedure in module stklos.\ndoc for f"))
+      (geiser:symbol-documentation 'f))
+
+
+
+(test-subsection "internal procedures")
+
+(select-module GEISER)
+
+(test "bound? no"
+      #f
+      (bound? (gensym) (current-module)))
+
+(define a -1)
+(test "bound? yes"
+      #t
+      (bound? 'a (current-module)))
+
+(define x (list-copy '(a b . c)))
+(define y (list-copy '(a b c)))
+(test "nullify-last-cdr! improper"
+      '(a b)
+      (begin
+       (nullify-last-cdr! x)
+       x))
+
+(test "nullify-last-cdr! improper"
+      '(a b c)
+      (begin
+       (nullify-last-cdr! y)
+       y))
+
+(define (f a b . c) "doc for f" a)
+(test "geiser:procedure-signature"
+      '(f ("args" (("required" a b)
+                   ("optional" "...")
+                   ("key")))
+          ("module" stklos))
+      ((in-module GEISER geiser:procedure-signature) 'f 'stklos))
+
+(select-module stklos)
 
 (test-section-end)
 

@@ -78,12 +78,14 @@
     
     (newline)))
 
-;; to log forms, use the following:
+;; to log forms, uncomment the following line and the
+;; lines that were commented out in the write-to-log
+;; procedure below:
 ;; (define log (open-output-file "geiser-log.txt"))
 
 (define (write-to-log form)
 ;;  (write form log)
-;;  (newline log))
+;;  (newline log)
   (values))
 
 ;; evaluates form inside a module.
@@ -217,21 +219,136 @@
         (else '())))
 
 
-;; returns the documentation for a symbol
-(define (geiser:symbol-documentation name)
-  (with-output-to-string
-    (lambda () (help (eval (eval name))))))
+;; formats the signature of a procedure in the format required by Geiser.
+;;
+;; (define (f a b . c) a)
+;; (geiser:procedure-signature 'f 'stklos)
+;; =>  (f ("args" (("required" a b)
+;;                 ("optional" "...")
+;;                 ("key")))
+;;        ("module" stklos))
+;; 
+(define (geiser:procedure-signature name mod-name)
+  (let ((sig (list-copy (%procedure-signature (eval name (find-module mod-name))))))
+    (if sig
+        (let ((proper (list? sig)))
+          (let ((optional-args (if proper '() '("..."))))
+            (when (not proper) (nullify-last-cdr! sig))
+            `(,name  ("args" (("required" ,@sig)
+                              ("optional" ,@optional-args)
+                              ("key")))
+                     ("module" ,mod-name))))
+        ""))) ;; if there's no signature, don't show anything
 
-;; used for autodoc. returns the documentation for a symbol.
+
+;; returns the documentation for a symbol, which includes
+;; the docstring for a procedure, and the value for variables.
+;;
+;; (define (f a b . c) "the documentation for f..." a)
+;; (geiser:symbol-documentation 'f 'stklos)
+;; => (("signature" f ("args" (("required" a b)
+;;                             ("optional" "...")
+;;                             ("key"))))
+;;     ("docstring" . "A procedure in module GEISER.\nthe documentation for f..."))
+;;
+;; (define x #(10 20 30))
+;; (geiser:symbol-documentation 'x 'stklos)
+;; => (("signature" x ("args"))
+;;     ("docstring" . "An object in module GEISER.\n\nValue:\n #(10 20 30)"))
+;;
+(define (geiser:symbol-documentation name . rest)
+  (let ((mod-name (if (null? rest)
+                      (module-name (current-module))
+                      (car rest))))
+    (cond ((procedure? (eval name (find-module mod-name)))
+           (let ((sig (geiser:procedure-signature name mod-name))
+                 (doc (%procedure-doc (eval name (find-module mod-name)))))
+             (let ((res
+             `(("signature" ,name ,(assoc "args" (cdr sig)))
+               ("docstring" . ,(string-append "A procedure in module "
+                                              (symbol->string mod-name) ".\n"
+                                              (if doc doc ""))))))
+               (write-to-log res)
+               res)))
+          ((bound? name mod-name) ; variable
+           `(("signature" ,name ("args"))
+             ("docstring" . ,(string-append "An object in module "
+                                            (symbol->string mod-name)
+                                             ".\n\nValue:\n "
+                                             (with-output-to-string
+                                               (lambda () (eval `(write ,name)
+                                                           (find-module mod-name))))))))
+          (else ""))))
+
+;; predicate - returns #t if id is bound in module.
+(define (bound? id module)
+  (cond ((string? module)
+         (bound? id (find-module (string->symbol module))))
+        ((symbol? module)
+         (let ((flag (gensym "it-is-unbound")))
+           (not (eq? (symbol-value id (find-module module) flag)
+                     flag))))
+        ((module? module)
+         (bound? id (module-name module)))
+        (else #f))) ;; really?
+
+
+;; nullify-last-cdr! turns improper lists into proper lists by removing
+;; the last element and putting '() in its place.
+;;
+;; *** The lists MUST BE MUTABLE! (hence the user of
+;;     "list-copy" in the examples below ***
+;;
+;; (define a (list-copy '(1 2 . 3)))
+;; (define b (list-copy '(1 2 3)))
+;; (nullify-last-cdr! a)
+;; (nullify-last-cdr! b)
+;; a => (1 2)
+;; b => (1 2 3)
+(define (nullify-last-cdr! lst)
+  (cond ((not (or (list? lst)
+                  (pair? lst)))
+         (error 'set-last-cdr! "Not a cons cell: ~S" lst))
+        ((pair? (cdr lst))
+         (nullify-last-cdr! (cdr lst)))
+        (else
+         (set-cdr! lst '()))))
+
+(define (geiser-build-autodoc name module)
+  (let ((mod-name (cond ((string? module) (string->symbol module))
+                        ((module? module) (module-name module))
+                        ((symbol? module) module))))
+    (cond ((not (bound? name mod-name))
+           "")
+          ((procedure? (eval name (find-module mod-name)))
+           (geiser:procedure-signature name mod-name))
+          (else ;; it's a variable?
+           `(,name  ("value" . ,(eval name (find-module mod-name)))
+                    ("module" ,mod-name))))))
+
+;; autodoc receives a list of names, and possibly a module name.
+;; it returns a list of documentations for each name:
+;;
+;; (define (f a c) a)
+;; (define (g a b :optional (c 1))
+;; (define a #(1 2 3))
+;;
+;; (geiser:autodoc '(f g a))
+;;  =>
+;; ((f ("args" (("required" a c)     ("optional")       ("key"))) ("module" stklos))
+;;  (g ("args" (("required" . #void) ("optional" "...") ("key"))) ("module" stklos))
+;;  (a ("value" . #(1 2 3)) ("module" stklos)))
+;;
 (define (geiser:autodoc names . rest)
-  #f)
-;;  (cond ((null? names) '())
-;;        ((not (list? names))
-;;         (geiser:autodoc (list names)))
-;;        ((symbol? (car names))
-;;         (with-output-to-string
-;;           (lambda () (help (car names)))))
-;;        (else "")))
+  (cond ((null? names) '())
+        ((symbol? names)
+         (geiser:autodoc (list names)))
+        ((list? names)
+         (let ((module (if (null? rest)
+                           (current-module)
+                           (car rest))))
+           (map (lambda (n) (geiser-build-autodoc n module)) names)))
+        (else "")))
 
 ;; The no-values identity
 (define (geiser:no-values)
