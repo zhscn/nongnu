@@ -10,6 +10,9 @@ See the Geiser manual for usage.
 * macroexpansion
 * symbol completion
 * listing of module exported symbols
+* autodoc (signature of procedurs and values of symbols are displayed in the minibuffer
+  when the mouse hovers over their names)
+* symbol documentation (docstrings for procedures, and values of variables)
 
 # Unsupported features
 
@@ -52,13 +55,13 @@ Geiser support for a Scheme implementation consists of two programs:
 one on Emacs' side, and one on Scheme's side.
 
 The Emacs Lisp part is in the file `geiser-stklos.el`
-The STklos part is in `geisre-stklos.stk`. The STklos implementation is inside a module called `GEISER`.
+The STklos part is in `geiser-stklos.stk`. The STklos implementation is inside a module called `GEISER`.
 
 In both files, I tried to include comments explaining what each function does.
 
 ## Credits
 
-Thanks to [Jao](https://gitlab.com/jaor) and  co-developers for creating and maintaining Geiser, and for helping the development of this package.
+Thanks to [Jao](https://gitlab.com/jaor) and co-developers for creating and maintaining Geiser, and for helping the development of this package.
 Thanks also to Erick Gallesio and his co-developers for [STklos](https://stklos.net).
 
 ## License
