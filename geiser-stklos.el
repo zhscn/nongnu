@@ -109,11 +109,11 @@ This function uses `geiser-stklos-init-file' if it exists."
                           (concat "'" (car args)))
                          (t
                           "#f"))))
-       (format "(geiser:eval %s '%s)" module form)))
+       (format "((in-module GEISER geiser:eval) %s '%s)" module form)))
     ((load-file compile-file)
-     (format "(geiser:load-file %s)" (car args)))
+     (format "((in-module GEISER geiser:load-file) %s)" (car args)))
     ((no-values)
-     "(geiser:no-values)")
+     "((in-module GEISER geiser:no-values))")
     (t
      (let ((form (mapconcat 'identity args " ")))
        (format "(geiser:%s %s)" proc form)))))
