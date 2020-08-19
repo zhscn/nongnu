@@ -389,7 +389,7 @@ Argument COMMAND is the command to use for compiling the target."
    (prefssize :initform nil)
    (board :initform "uno")
    (port :initform "/dev/ttyUSB1")
-   (sketchbook :initform "~/arduino")
+   (sketchbook :initform "~/Arduino")
    (boardobj :initform nil))
   "Class containing arduino preferences.")
 
