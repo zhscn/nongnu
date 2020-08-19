@@ -160,10 +160,12 @@ ROOTPROJ is nil, sinc there is only one project for a directory tree."
 ;;
 ;; The classes for arduino projects include arduino (PDE) files, plus C, CPP, and H files.
 ;;
+;;;###autoload
 (defclass ede-arduino-target (ede-target)
   ()
   "EDE Arduino C files target.  Includes PDE, C, C++ and anything else we find.")
 
+;;;###autoload
 (defclass ede-arduino-project (ede-project)
   ((keybindings :initform (("U" . ede-arduino-upload)))
    (menu :initform
@@ -381,6 +383,7 @@ Argument COMMAND is the command to use for compiling the target."
 ;;
 ;; Derive data from the arduino IDE's preferences.
 ;;
+;;;###autoload
 (defclass ede-arduino-prefs ()
   ((timestamp :initform nil)
    (prefssize :initform nil)
@@ -558,6 +561,7 @@ If LIBRARY is not provided as an argument, just return the library directory."
 ;;; Arduino Board Reading
 ;;
 ;; Load data from boards.txt
+;;;###autoload
 (defclass ede-arduino-board ()
   ((name :initarg :name
          :initform nil
