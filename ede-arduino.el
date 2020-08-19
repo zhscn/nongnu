@@ -209,7 +209,7 @@ If one doesn't exist, create a new one for this directory."
   (project-compile-project (ede-current-project)
                            (concat ede-arduino-make-command " all upload")))
 
-(eval-when-compile (require 'term))
+(require 'term)
 
 (defun cedet-arduino-serial-monitor ()
   "Start up a serial monitor for a running arduino board.
@@ -660,4 +660,4 @@ Data returned is the intputs needed for the Makefile."
 
 (provide 'ede-arduino)
 
-;;; arduino.el ends here
+;;; ede-arduino.el ends here

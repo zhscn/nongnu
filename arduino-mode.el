@@ -1,10 +1,10 @@
-;;; arduino-mode.el --- Major mode for editing Arduino code.
+;;; arduino-mode.el --- Major mode for editing Arduino code
 
 ;; Copyright (C) 2008  Christopher Grim
 ;; Authors: Christopher Grim <christopher.grim@gmail.com>
 ;; Maintainer: stardiviner <numbchild@gmail.com>
 ;; Keywords: languages, arduino
-;; Package-Requires: ((emacs "25") (cl-lib "0.5") (spinner "1.7.3"))
+;; Package-Requires: ((emacs "25.1") (spinner "1.7.3"))
 ;; Package-Version: 1.2
 ;; homepage: https://github.com/stardiviner/arduino-mode
 
@@ -271,8 +271,7 @@ Value is a symbol.  The possible values are the symbols in the
                                   (message "Opened with Arduino succeed.")))
                             (setq-local mode-line-process nil)
                             (with-current-buffer arduino-open-process-buf
-                              (when spinner-current (spinner-stop)))
-                            ))))
+                              (when spinner-current (spinner-stop)))))))
     (spinner-start arduino-spinner-type)
     (setq mode-line-process proc-name)))
 
