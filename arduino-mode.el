@@ -353,6 +353,8 @@ Value is a symbol.  The possible values are the symbols in the
 (add-to-list 'auto-mode-alist '("\\.ino\\'" . arduino-mode))
 
 ;;;###autoload
+(require 'flycheck-arduino)
+;;;###autoload
 (add-hook 'arduino-mode-hook #'flycheck-arduino-setup)
 
 (provide 'arduino-mode)
