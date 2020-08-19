@@ -78,12 +78,10 @@ Consider expanding this at some later date."
          ;; without expansion the comparison in the next step fails
          ;; for relative files
          (dir (expand-file-name dir))
-         (sketchroot (and prefs (oref prefs sketchbook)))
-         )
-    (when (and
-           sketchroot
-           (< (length sketchroot) (length dir))
-           (string= sketchroot (substring dir 0 (length sketchroot))))
+         (sketchroot (and prefs (oref prefs sketchbook))))
+    (when (and sketchroot
+               (< (length sketchroot) (length dir))
+               (string= sketchroot (substring dir 0 (length sketchroot))))
       ;; The subdir in DIR just below sketchroot is always the root of this
       ;; project.
       (let* ((dirtail (substring dir (length sketchroot)))
@@ -129,17 +127,17 @@ ROOTPROJ is nil, sinc there is only one project for a directory tree."
                    (pde (expand-file-name (concat name ".pde") root)))
               (when (not (file-exists-p pde))
                 (setq pde (expand-file-name (concat name ".ino") root)))
-              (setq proj (ede-arduino-project
-                          name
-                          :name name
-                          :directory (file-name-as-directory dir)
-                          :file pde
-                          :targets nil)))
+              (setq proj (ede-arduino-project name
+                                              :name name
+                                              :directory (file-name-as-directory dir)
+                                              :file pde
+                                              :targets nil)))
             (ede-add-project-to-global-list proj))
         (message "Project loading/creation failed")))))
 
 ;;;###autoload
 (require 'ede/auto) ; for `ede-project-autoload'
+
 ;;;###autoload
 (add-to-list
  'ede-project-class-files
@@ -180,8 +178,7 @@ ROOTPROJ is nil, sinc there is only one project for a directory tree."
           [ "Version Control Status" ede-vc-project-directory ede-object ]
           "--"
           [ "Rescan Project Files" ede-rescan-toplevel t ]
-          ))
-   )
+          )))
   "EDE Arduino project.")
 
 ;;; TARGET MANAGEMENT
@@ -199,8 +196,7 @@ If one doesn't exist, create a new one for this directory."
                                            (directory-file-name dir))
                                     :path dir
                                     :source nil))
-      (object-add-to-list proj :targets ans)
-      )
+      (object-add-to-list proj :targets ans))
     ans))
 
 ;;; COMMAND SUPPORT
@@ -223,8 +219,7 @@ Uses `serial-term'."
     (serial-term (oref prefs port) 9600)
     ;; Always go to line mode, as arduino serial isn't typically used
     ;; for input, just debugging output.
-    (term-line-mode)
-    ))
+    (term-line-mode)))
 
 (cl-defmethod project-compile-project ((proj ede-arduino-project) &optional command)
   "Compile the entire current project PROJ.
@@ -232,8 +227,7 @@ Argument COMMAND is the command to use when compiling."
   ;; 1) Create the mini-makefile.
   (ede-arduino-create-makefile proj)
   ;; 2) Call MAKE
-  (compile (or command ede-arduino-make-command))
-  )
+  (compile (or command ede-arduino-make-command)))
 
 (cl-defmethod project-compile-target ((obj ede-arduino-target) &optional command)
   "Compile the current target OBJ.
@@ -254,17 +248,13 @@ Argument COMMAND is the command to use for compiling the target."
                                      (ede-arduino-find-install)))
          (table (when (and wiring_h (file-exists-p wiring_h))
                   (semanticdb-file-table-object wiring_h)))
-         (filemap '( ("HIGH" . "0x1")
-                     ("LOW" . "0x0")
-                     ))
-         )
+         (filemap '(("HIGH" . "0x1")
+                    ("LOW" . "0x0"))))
     (when table
       (when (semanticdb-needs-refresh-p table)
         (semanticdb-refresh-table table))
-      (setq filemap (append filemap (oref table lexical-table)))
-      )
-    filemap
-    ))
+      (setq filemap (append filemap (oref table lexical-table))))
+    filemap))
 
 (cl-defmethod ede-system-include-path ((this ede-arduino-target))
   "Get the system include path used by project THIS."
@@ -306,9 +296,8 @@ Argument COMMAND is the command to use for compiling the target."
       (set-buffer (setq buff-to-kill (find-file-noselect mfilename)))
       (save-excursion
         (goto-char (point-min))
-        (if (and
-             (not (eobp))
-             (not (looking-at "# Automatically Generated \\w+ by EDE.")))
+        (if (and (not (eobp))
+                 (not (looking-at "# Automatically Generated \\w+ by EDE.")))
             (if (not (y-or-n-p (format "Really replace %s? " mfilename)))
                 (error "Not replacing Makefile"))
           (message "Replaced EDE Makefile"))
@@ -326,11 +315,9 @@ Argument COMMAND is the command to use for compiling the target."
          "AVRDUDE_ARD_BAUDRATE" (or ede-arduino-avrdude-baudrate (oref board speed))
          "AVRDUDE_ARD_PROGRAMMER" (oref board protocol)
          "ARDUINO_MK" (ede-arduino-Arduino.mk)
-         "ARDUINO_HOME" (ede-arduino-find-install)
-         ))
+         "ARDUINO_HOME" (ede-arduino-find-install)))
       (save-buffer)
-      (when (not orig-buffer) (kill-buffer (current-buffer)))
-      )))
+      (when (not orig-buffer) (kill-buffer (current-buffer))))))
 
 ;;; Arduino Sketch Code Inspector
 ;;
@@ -342,13 +329,11 @@ Argument COMMAND is the command to use for compiling the target."
   (let* ((libs nil)
          (sketch (ede-arduino-guess-sketch))
          (sketch-buffer (find-file-noselect sketch))
-         (arduino-libraries
-          (save-current-buffer
-            (set-buffer sketch-buffer)
-            (if (boundp 'arduino-libraries)
-                arduino-libraries
-              nil)))
-         )
+         (arduino-libraries (save-current-buffer
+                              (set-buffer sketch-buffer)
+                              (if (boundp 'arduino-libraries)
+                                  arduino-libraries
+                                nil))))
     (cond
      (arduino-libraries
       (dolist (lib (split-string arduino-libraries))
@@ -374,8 +359,7 @@ Argument COMMAND is the command to use for compiling the target."
                   (when (file-exists-p util)
                     (push (concat lib "/utility") libs))
                   ;; Push real lib after the utility
-                  (push lib libs)
-                  )))))
+                  (push lib libs))))))
         (when (not orig-buffer) (kill-buffer buff)))))
     libs))
 
@@ -383,8 +367,7 @@ Argument COMMAND is the command to use for compiling the target."
   "Return the file that is the core of the current project sketch."
   (let* ((proj ede-object-project)
          (sketch (expand-file-name (concat (oref proj name) ".pde")
-                                   (oref proj directory)))
-         )
+                                   (oref proj directory))))
     (if (file-exists-p sketch)
         sketch
       (setq sketch (expand-file-name (concat (oref proj name) ".ino")
@@ -404,8 +387,7 @@ Argument COMMAND is the command to use for compiling the target."
    (board :initform "uno")
    (port :initform "/dev/ttyUSB1")
    (sketchbook :initform "~/arduino")
-   (boardobj :initform nil)
-   )
+   (boardobj :initform nil))
   "Class containing arduino preferences.")
 
 (defvar ede-arduino-active-prefs nil
@@ -440,13 +422,11 @@ Emacs back to the Arduino IDE."
     (when (or (not (oref ede-arduino-active-prefs timestamp))
               (/= (or (oref ede-arduino-active-prefs prefssize) 0) size)
               (not (equal (oref ede-arduino-active-prefs timestamp) mod)))
-      
       (when (not buff)
         (setq buff (find-file-noselect prefsfile)
               kill t))
       (with-current-buffer buff
         (save-excursion
-          
           (goto-char (point-min))
           (when (not (re-search-forward "^serial.port=" nil t))
             (error "Cannot find serial.port from the arduino preferences"))
@@ -469,13 +449,9 @@ Emacs back to the Arduino IDE."
           
           (when kill (kill-buffer buff))
           
-          (oset ede-arduino-active-prefs boardobj
-                (ede-arduino-board-data board))
-          
+          (oset ede-arduino-active-prefs boardobj (ede-arduino-board-data board))
           (oset ede-arduino-active-prefs prefssize size)
-          (oset ede-arduino-active-prefs timestamp mod)
-          
-          )))))
+          (oset ede-arduino-active-prefs timestamp mod))))))
 
 ;;; Arduino Intuition
 ;;
@@ -502,13 +478,11 @@ This is also where Arduino.mk will be found."
   "Launch the arduino IDE."
   (interactive)
   (let ((b (get-buffer-create "*Arduino IDE*"))
-        (cd default-directory)
-        )
+        (cd default-directory))
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'start-process "arduino" b ede-arduino-arduino-command nil)
-    ))
+    (apply 'start-process "arduino" b ede-arduino-arduino-command nil)))
 
 (defun ede-arduino-find-install (&optional full-path)
   "Return the `FULL-PATH' where arduino IDE code is installed.
@@ -517,8 +491,7 @@ If `full-path' is set return a full path including container prefix,
 if configured"
   (cond
    ((and ede-arduino-appdir
-         (file-exists-p
-          (concat ede-arduino-container-prefix ede-arduino-appdir)))
+         (file-exists-p (concat ede-arduino-container-prefix ede-arduino-appdir)))
     (if full-path
         (concat ede-arduino-container-prefix ede-arduino-appdir)
       ede-arduino-appdir))
@@ -567,8 +540,7 @@ if configured"
           (with-current-buffer buff
             (save-excursion
               (goto-char (point-min))
-              (buffer-substring-no-properties (point) (point-at-eol))
-              ))
+              (buffer-substring-no-properties (point) (point-at-eol))))
         (if kill (kill-buffer buff))))))
 
 (defun ede-arduino-boards.txt ()
@@ -614,8 +586,7 @@ If LIBRARY is not provided as an argument, just return the library directory."
    (core :initarg :core
          :initform nil
          :documentation
-         "The core name for this board.")
-   )
+         "The core name for this board."))
   "Class for containing key aspect of the arduino board.")
 
 (defun ede-arduino-board-data (boardname)
@@ -637,7 +608,6 @@ Data returned is the intputs needed for the Makefile."
     
     (with-current-buffer buff
       (save-excursion
-        
         (goto-char (point-min))
         (when (not (re-search-forward (concat "^" boardname ".name=") nil t))
           (error "Cannot find %s.name looking up board" boardname))
@@ -682,8 +652,7 @@ Data returned is the intputs needed for the Makefile."
                            :maximum-size size
                            :mcu mcu
                            :f_cpu f_cpu
-                           :core core)
-        ))))
+                           :core core)))))
 
 (provide 'ede-arduino)
 

@@ -71,8 +71,7 @@
                     "break" "continue" "do" "while" "else" "for" "goto" "if"
                     "return" "switch" "case"
                     ;; Utilities
-                    "PROGMEM"
-                    )
+                    "PROGMEM")
                   (c-lang-const c-primitive-type-kwds)))
 
 (c-lang-defconst c-constant-kwds
@@ -113,8 +112,7 @@
      ;; Keyboard
      "write" "press" "release" "releaseAll"
      ;; Mouse
-     "click" "move" "isPressed"
-     )
+     "click" "move" "isPressed")
    (c-lang-const c-simple-stmt-kwds)))
 
 (c-lang-defconst c-primary-expr-kwds
@@ -287,7 +285,8 @@ Value is a symbol.  The possible values are the symbols in the
                                       nil nil
                                       "arduino:sam")))
   (start-process
-   "arduino-install-boards" "*arduino-install-boards*"
+   "arduino-install-boards"
+   "*arduino-install-boards*"
    arduino-executable "--install-boards" board))
 
 (defun arduino-install-library (library)
@@ -297,7 +296,8 @@ Value is a symbol.  The possible values are the symbols in the
                                       nil nil
                                       "Bridge:1.0.0")))
   (start-process
-   "arduino-install-library" "*arduino-install-library*"
+   "arduino-install-library"
+   "*arduino-install-library*"
    arduino-executable "--install-library" library))
 
 (require 'term)
