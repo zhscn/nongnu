@@ -19,6 +19,7 @@
 ;; hook in both `before-save-hook' (detecting that the file is new) and
 ;; `after-save-hook' (running the command and resetting the newfile var).
 
+(require 'hideshow)
 (require 'subr-x)
 
 (require 'haskell-tng-util)
@@ -115,6 +116,22 @@ When in a comment and called with a prefix, the comment will be completed."
      (haskell-tng--util-cached-variable
       (lambda () (haskell-tng--util-which "stack2cabal"))
       'haskell-tng-stack2cabal))))
+
+;;;###autoload
+(defvar-local haskell-tng-boilerplate nil
+  "A cache of the `boilerplate' binary as seen from this buffer.")
+(defun haskell-tng-boilerplate ()
+  "Apply `boilerplate' expansion rules."
+  (interactive)
+  (when (buffer-modified-p)
+    (save-buffer))
+  (when (= 0 (call-process
+              (haskell-tng--util-cached-variable
+               (lambda () (haskell-tng--util-which "boilerplate"))
+               'haskell-tng-boilerplate)
+              nil "*boilerplate*" nil "-i" buffer-file-name))
+    (revert-buffer t t t)
+    (hs-hide-all)))
 
 ;;;###autoload
 (defun haskell-tng-goto-imports ()

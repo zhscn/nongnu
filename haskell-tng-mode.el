@@ -15,6 +15,7 @@
 ;;; Code:
 
 (require 'dabbrev)
+(require 'hideshow)
 (require 'imenu)
 (require 'rx)
 
@@ -90,12 +91,31 @@ Load `prettify-symbols-mode' in `haskell-tng-mode-hook'."
   (haskell-tng--smie-setup)
 
   (prettify-symbols-mode 1)
+  (hs-minor-mode 1)
+
+  (setq-local hs-hide-comments-when-hiding-all nil)
+  (unless noninteractive
+    (let ((inhibit-message t))
+      (hs-hide-all)))
   )
 
 ;;;###autoload
 (progn
   (add-to-list 'auto-mode-alist `(,(rx ".hs" eos) . haskell-tng-mode))
+  (add-to-list 'hs-special-modes-alist
+               '(haskell-tng-mode
+                 "{- BOILERPLATE START -}"
+                 "{- BOILERPLATE END -}"
+                 "-- "
+                 haskell-tng--hs-forward))
   (modify-coding-system-alist 'file (rx ".hs" eos) 'utf-8))
+
+(defun haskell-tng--hs-forward (&optional _arg _interactive)
+  "hide-show forward function that does what you'd expect"
+  (goto-char
+   (save-excursion
+     (re-search-forward hs-block-end-regexp nil t)
+     (point))))
 
 (provide 'haskell-tng-mode)
 ;;; haskell-tng-mode.el ends here
