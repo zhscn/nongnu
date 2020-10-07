@@ -75,11 +75,12 @@ When in a comment and called with a prefix, the comment will be completed."
   (interactive)
   (when (buffer-modified-p)
     (save-buffer))
-  (when (= 0 (call-process
-              (haskell-tng--util-cached-variable
-               (lambda () (haskell-tng--util-which "stylish-haskell"))
-               'haskell-tng-stylish-haskell)
-              nil "*stylish-haskell*" nil "-i" buffer-file-name))
+  (if (/= 0 (call-process
+             (haskell-tng--util-cached-variable
+              (lambda () (haskell-tng--util-which "stylish-haskell"))
+              'haskell-tng-stylish-haskell)
+             nil "*stylish-haskell*" nil "-i" buffer-file-name))
+      (user-error "stylish-haskell formatting failed")
     (revert-buffer t t t)))
 
 ;;;###autoload
@@ -91,17 +92,18 @@ When in a comment and called with a prefix, the comment will be completed."
   (interactive)
   (when (buffer-modified-p)
     (save-buffer))
-  (when (= 0 (call-process
-              (haskell-tng--util-cached-variable
-               (lambda () (haskell-tng--util-which "ormolu"))
-               'haskell-tng-ormolu)
-              nil "*ormolu*" nil
-              ;; "-p"
-              "-o" "-XTypeApplications"
-              "-o" "-XBangPatterns"
-              "-o" "-XPatternSynonyms"
-              "-m" "inplace"
-              buffer-file-name))
+  (if (/= 0 (call-process
+             (haskell-tng--util-cached-variable
+              (lambda () (haskell-tng--util-which "ormolu"))
+              'haskell-tng-ormolu)
+             nil "*ormolu*" nil
+             ;; "-p"
+             "-o" "-XTypeApplications"
+             "-o" "-XBangPatterns"
+             "-o" "-XPatternSynonyms"
+             "-m" "inplace"
+             buffer-file-name))
+      (user-error "ormolu formatting failed")
     (revert-buffer t t t)))
 
 ;;;###autoload
@@ -112,10 +114,11 @@ When in a comment and called with a prefix, the comment will be completed."
   (interactive)
   (when-let (default-directory
               (locate-dominating-file default-directory "stack.yaml"))
-    (call-process
-     (haskell-tng--util-cached-variable
-      (lambda () (haskell-tng--util-which "stack2cabal"))
-      'haskell-tng-stack2cabal))))
+    (when (/= 0 (call-process
+                 (haskell-tng--util-cached-variable
+                  (lambda () (haskell-tng--util-which "stack2cabal"))
+                  'haskell-tng-stack2cabal)))
+      (user-error "stack2cabal failed"))))
 
 ;;;###autoload
 (defvar-local haskell-tng-boilerplate nil
@@ -125,13 +128,15 @@ When in a comment and called with a prefix, the comment will be completed."
   (interactive)
   (when (buffer-modified-p)
     (save-buffer))
-  (when (= 0 (call-process
-              (haskell-tng--util-cached-variable
-               (lambda () (haskell-tng--util-which "boilerplate"))
-               'haskell-tng-boilerplate)
-              nil "*boilerplate*" nil "-i" buffer-file-name))
+  (if (/= 0 (call-process
+             (haskell-tng--util-cached-variable
+              (lambda () (haskell-tng--util-which "boilerplate"))
+              'haskell-tng-boilerplate)
+             nil "*boilerplate*" nil "-i" buffer-file-name))
+      (user-error "boilerplate generation failed")
     (revert-buffer t t t)
-    (hs-hide-all)))
+    (when hs-minor-mode
+      (hs-hide-all))))
 
 ;;;###autoload
 (defun haskell-tng-goto-imports ()
@@ -169,7 +174,7 @@ When in a comment and called with a prefix, the comment will be completed."
    (reverse
     (seq-take-while
      (lambda (e) (let (case-fold-search)
-                   (string-match-p (rx bos upper) e)))
+              (string-match-p (rx bos upper) e)))
      (reverse
       (split-string
        (file-name-sans-extension buffer-file-name)

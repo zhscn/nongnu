@@ -48,10 +48,12 @@ A full installation may look like the following
   (require 'haskell-tng-hsinspect)
   (require 'haskell-tng-extra)
   (require 'haskell-tng-extra-abbrev)
+  (require 'haskell-tng-extra-hideshow)
   (require 'haskell-tng-extra-company)
   (require 'haskell-tng-extra-projectile)
   (require 'haskell-tng-extra-smartparens)
   (require 'haskell-tng-extra-yasnippet)
+  ;; (require 'haskell-tng-extra-cabal-mode)
   ;; (require 'haskell-tng-extra-stack)
 
   :bind
