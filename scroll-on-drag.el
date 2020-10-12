@@ -4,7 +4,7 @@
 
 ;; Author: Campbell Barton <ideasman42@gmail.com>
 
-;; URL: https://github.com/ideasman42/emacs-scroll-on-drag
+;; URL: https://gitlab.com/ideasman42/emacs-scroll-on-drag
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "26.2"))
 
