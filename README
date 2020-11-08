@@ -3,13 +3,14 @@ swsw - simple window switching
 DESCRIPTION
 
 swsw is an Emacs package which provides a minor mode for switching windows
-similarly to `ace-window'.
+similarly to `ace-window' and `switch-window'.
 
 USAGE
 
 When swsw-mode is active:
-- a single character CHAR is added to the beginning of the mode line of each
+- A single character CHAR is added to the beginning of the mode line of each
   active window.
+- A single (predefined) character CHAR corresponds to the minibuffer.
 - Pressing M-x swsw-select RET CHAR switches focus to the window which
   corresponds to CHAR.
 
@@ -19,15 +20,15 @@ Currently, only manual installation is available:
 
 1. Clone the repository:
 
+$ cd $your_emacs_directory
+
 $ git clone 'https://git.sr.ht/~dsemy/swsw'
 
 2. Load the package and enable the minor mode:
 
 ;; vanilla
 (add-to-list 'load-path (locate-user-emacs-file "swsw"))
-
 (require 'swsw)
-
 (swsw-mode)
 
 ;; use-package
@@ -35,6 +36,14 @@ $ git clone 'https://git.sr.ht/~dsemy/swsw'
   :load-path "swsw/"
   :config
   (swsw-mode))
+
+KNOWN ISSUES
+
+- swsw only ever assigns a single character to a window, which means that if
+  there are more active windows than specified characters, swsw won't be able
+  to switch to some of them.
+- swsw can switch to, but can't display the ID of windows which don't have a
+  mode line.
 
 COPYRIGHT
 
