@@ -85,8 +85,9 @@ line update for all windows."
 (define-minor-mode swsw-mode
   "Minor mode for selecting windows by their ID."
   :global t
-  :lighter (:eval (format swsw-mode-lighter-format
-                          (window-parameter (selected-window) 'swsw-id)))
+  :lighter (:eval (when (rassq (selected-window) swsw-window-list)
+                    (format swsw-mode-lighter-format
+                            (window-parameter (selected-window) 'swsw-id))))
   (if swsw-mode
       (progn
         (walk-windows #'swsw-update nil t)
