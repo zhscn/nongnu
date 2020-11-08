@@ -88,6 +88,7 @@ line update for all windows."
   :lighter (:eval (when (rassq (selected-window) swsw-window-list)
                     (format swsw-mode-lighter-format
                             (window-parameter (selected-window) 'swsw-id))))
+  :keymap (make-sparse-keymap)
   (if swsw-mode
       (progn
         (walk-windows #'swsw-update nil t)
