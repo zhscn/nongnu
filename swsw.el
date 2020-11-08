@@ -40,6 +40,11 @@
   :group 'swsw
   :type '(repeat character))
 
+(defcustom swsw-minibuffer-id ?m
+  "ID reserved for the minibuffer."
+  :group 'swsw
+  :type '(character))
+
 ;;;; Simple window switching minor mode:
 
 (defvar swsw-id-chars swsw-id-chars-base
@@ -55,7 +60,9 @@
 
 (defun swsw-update (window)
   "Update information for WINDOW."
-  (let ((id (pop swsw-id-chars)))
+  (let ((id (if (window-minibuffer-p window)
+                swsw-minibuffer-id
+              (pop swsw-id-chars))))
     (when id
       (push (cons id window)
             swsw-window-list)
@@ -65,7 +72,7 @@
   "Run `swsw-reset', run `swsw-update' for all active windows and force a mode
 line update for all windows."
   (swsw-reset)
-  (walk-windows #'swsw-update 'no-minibuffer t)
+  (walk-windows #'swsw-update nil t)
   (force-mode-line-update t))
 
 ;;;###autoload
@@ -74,7 +81,7 @@ line update for all windows."
   :global t
   (if swsw-mode
       (progn
-        (walk-windows #'swsw-update 'no-minibuffer t)
+        (walk-windows #'swsw-update nil t)
         (setq-default mode-line-format
                       `((swsw-mode
                          (:eval (char-to-string
