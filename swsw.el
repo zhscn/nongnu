@@ -40,11 +40,6 @@
   :group 'swsw
   :type '(repeat 'character))
 
-(defcustom swsw-id-prompt "Window: "
-  "Prompt to use when switching windows."
-  :group 'swsw
-  :type '(string))
-
 ;;;; Simple window switching minor mode:
 
 (defvar swsw-id-chars swsw-id-chars-base
@@ -104,7 +99,7 @@ line update for all windows."
 (defun swsw-select (&optional id)
   "Select window by its ID."
   (interactive (unless (< (length swsw-window-list) 3)
-                 (list (read-char-from-minibuffer (format swsw-id-prompt)))))
+                 (list (read-char))))
   (if id
       (let (window)
         (when (setq
