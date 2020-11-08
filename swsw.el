@@ -38,7 +38,7 @@
 (defcustom swsw-id-chars-base '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed."
   :group 'swsw
-  :type '(repeat 'character))
+  :type '(repeat character))
 
 ;;;; Simple window switching minor mode:
 
