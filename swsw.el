@@ -45,6 +45,12 @@
   :group 'swsw
   :type '(character))
 
+(defcustom swsw-mode-lighter-format " <%c>"
+  "Format string for the lighter of `swsw-mode'.
+Passed to `format' with the selected window's ID as the only argument."
+  :group 'swsw
+  :type '(string))
+
 ;;;; Simple window switching minor mode:
 
 (defvar swsw-id-chars swsw-id-chars-base
@@ -79,27 +85,17 @@ line update for all windows."
 (define-minor-mode swsw-mode
   "Minor mode for selecting windows by their ID."
   :global t
+  :lighter (:eval (format swsw-mode-lighter-format
+                          (window-parameter (selected-window) 'swsw-id)))
   (if swsw-mode
       (progn
         (walk-windows #'swsw-update nil t)
-        (setq-default mode-line-format
-                      `((swsw-mode
-                         (:eval (char-to-string
-                                 (window-parameter (selected-window)
-                                                   'swsw-id))))
-                        ,@(assq-delete-all
-                           'swsw-mode
-                           (default-value 'mode-line-format))))
         (force-mode-line-update t)
         (add-hook 'window-configuration-change-hook #'swsw--reset-and-update)
         (add-hook 'minibuffer-setup-hook #'swsw--reset-and-update)
         (add-hook 'minibuffer-exit-hook #'swsw--reset-and-update))
     (setq swsw-window-list nil
           swsw-id-chars swsw-id-chars-base)
-    (setq-default mode-line-format
-                  (assq-delete-all
-                   'swsw-mode
-                   (default-value 'mode-line-format)))
     (remove-hook 'window-configuration-change-hook #'swsw--reset-and-update)
     (remove-hook 'minibuffer-setup-hook #'swsw--reset-and-update)
     (remove-hook 'minibuffer-exit-hook #'swsw--reset-and-update)))
