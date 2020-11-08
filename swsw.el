@@ -70,7 +70,7 @@ line update for all windows."
 
 ;;;###autoload
 (define-minor-mode swsw-mode
-  "Minor mode for selecting buffers by their ID."
+  "Minor mode for selecting windows by their ID."
   :global t
   (if swsw-mode
       (progn
