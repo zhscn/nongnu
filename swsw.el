@@ -3,7 +3,7 @@
 ;; Copyright (C) 2020 Daniel Semyonov
 
 ;; Author: Daniel Semyonov <cmstr@dsemy.com>
-;; Version: 0.1
+;; Version: 0.2
 ;; Package-Requires: ((emacs "23.1"))
 ;; Keywords: convenience
 ;; URL: https://sr.ht/~dsemy/swsw
