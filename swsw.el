@@ -91,14 +91,18 @@ line update for all windows."
                            'swsw-mode
                            (default-value 'mode-line-format))))
         (force-mode-line-update t)
-        (add-hook 'window-configuration-change-hook #'swsw--reset-and-update))
+        (add-hook 'window-configuration-change-hook #'swsw--reset-and-update)
+        (add-hook 'minibuffer-setup-hook #'swsw--reset-and-update)
+        (add-hook 'minibuffer-exit-hook #'swsw--reset-and-update))
     (setq swsw-window-list nil
           swsw-id-chars swsw-id-chars-base)
     (setq-default mode-line-format
                   (assq-delete-all
                    'swsw-mode
                    (default-value 'mode-line-format)))
-    (remove-hook 'window-configuration-change-hook #'swsw--reset-and-update)))
+    (remove-hook 'window-configuration-change-hook #'swsw--reset-and-update)
+    (remove-hook 'minibuffer-setup-hook #'swsw--reset-and-update)
+    (remove-hook 'minibuffer-exit-hook #'swsw--reset-and-update)))
 
 (defun swsw-select (&optional id)
   "Select window by its ID."
