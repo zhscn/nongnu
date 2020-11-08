@@ -46,7 +46,7 @@
   "Characters from which window IDs can currently be constructed.")
 
 (defvar swsw-window-list nil
-  "List of active window plists.")
+  "Alist of active active windows and their IDs.")
 
 (defun swsw-reset ()
   "Reset information for all windows."
@@ -57,10 +57,7 @@
   "Update information for WINDOW."
   (let ((id (pop swsw-id-chars)))
     (when id
-      (push (list
-             id
-             :window window
-             :buffer (window-buffer window))
+      (push (cons id window)
             swsw-window-list)
       (set-window-parameter window 'swsw-id id))))
 
@@ -101,9 +98,8 @@ line update for all windows."
   (interactive (unless (< (length swsw-window-list) 3)
                  (list (read-char))))
   (if id
-      (let (window)
-        (when (setq
-               window (plist-get (cdr (assq id swsw-window-list)) :window))
+      (let ((window (cdr (assq id swsw-window-list))))
+        (when window
           (select-window window)))
     (other-window 1)))
 
