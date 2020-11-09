@@ -113,7 +113,6 @@
   (if swsw-mode
       (progn
         (swsw-update)
-        (force-mode-line-update t)
         (add-hook 'window-configuration-change-hook #'swsw-update)
         (add-hook 'minibuffer-setup-hook #'swsw-update)
         (add-hook 'minibuffer-exit-hook #'swsw-update))
