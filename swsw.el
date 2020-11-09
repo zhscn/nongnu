@@ -161,11 +161,13 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
   "Select window by its ID."
   ;; If there are less than 3 windows, don't get an ID.
   (interactive (unless (< (length swsw-window-list) 3)
+                 (run-hooks 'swsw-before-select-hook)
                  (swsw--read-id (swsw--get-id-length))))
   (if id
       (let ((window (cdr (assoc id swsw-window-list))))
         (when window
-          (select-window window)))
+          (select-window window)
+          (run-hooks 'swsw-after-select-hook)))
     (other-window 1)))
 
 ;;;; Display functions:
