@@ -8,11 +8,11 @@ similarly to `ace-window' and `switch-window'.
 USAGE
 
 When swsw-mode is active:
-- A single character CHAR is added to the beginning of the mode line of each
+- A string ID is added to the beginning of the mode line of each
   active window.
 - A single (predefined) character CHAR corresponds to the minibuffer.
-- Pressing M-x swsw-select RET CHAR switches focus to the window which
-  corresponds to CHAR.
+- Pressing M-x swsw-select RET ID switches focus to the window which
+  corresponds to ID, or to the minibuffer if CHAR is entered.
 
 INSTALLATION
 
@@ -39,11 +39,12 @@ $ git clone 'https://git.sr.ht/~dsemy/swsw'
 
 KNOWN ISSUES
 
-- swsw only ever assigns a single character to a window, which means that if
-  there are more active windows than specified characters, swsw won't be able
-  to switch to some of them.
 - swsw can switch to, but can't display the ID of windows which don't have a
   mode line.
+
+TODO
+
+- Make the display of window IDs modular.
 
 COPYRIGHT
 
