@@ -172,27 +172,49 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
 
 ;;;; Display functions:
 
+(defun swsw--mode-line-display ()
+  "Display window IDs at the beginning of the mode line."
+  (setq-default mode-line-format
+                `((swsw-mode
+                   (:eval (swsw-format-id (selected-window))))
+                  ,@(assq-delete-all
+                     `swsw-mode
+                     (default-value `mode-line-format))))
+  (force-mode-line-update t))
+
+(defun swsw--mode-line-hide ()
+  "Remove window IDs from the beginning of the mode line."
+  (setq-default mode-line-format
+                (assq-delete-all
+                 'swsw-mode
+                 (default-value 'mode-line-format)))
+  (force-mode-line-update t))
+
 (defun swsw-mode-line-display-function (switch)
-  "Display window IDs on the mode line if SWITCH is non-nil, and disable displaying
-window IDs on the mode line if SWITCH is nil.
+  "Display window IDs on the mode line if SWITCH is non-nil, and disable
+displaying window IDs on the mode line if SWITCH is nil.
+
+This display function shows the window IDs at the beginning of the mode line,
+similarly to `ace-window-display-mode'.
+This display function respects `swsw-id-format'."
+  (if switch
+      (swsw--mode-line-display)
+    (swsw--mode-line-hide)))
+
+(defun swsw-mode-line-conditional-display-function (switch)
+  "Display window IDs on the mode line if SWITCH is non-nil and a window
+selection is in progress, and disable
+displaying window IDs on the mode line if SWITCH is nil.
 
 This display function shows the window IDs at the beginning of the mode line,
 similarly to `ace-window-display-mode'.
 This display function respects `swsw-id-format'."
   (if switch
       (progn
-        (force-mode-line-update t)
-        (setq-default mode-line-format
-                      `((swsw-mode
-                         (:eval (swsw-format-id (selected-window))))
-                        ,@(assq-delete-all
-                           `swsw-mode
-                           (default-value `mode-line-format)))))
-    (force-mode-line-update t)
-    (setq-default mode-line-format
-                  (assq-delete-all
-                   'swsw-mode
-                   (default-value 'mode-line-format)))))
+        (add-hook 'swsw-before-select-hook #'swsw--mode-line-display)
+        (add-hook 'swsw-after-select-hook #'swsw--mode-line-hide))
+    (remove-hook 'swsw-before-select-hook #'swsw--mode-line-display)
+    (remove-hook 'swsw-after-select-hook #'swsw--mode-line-hide)))
 
 (provide 'swsw)
 
