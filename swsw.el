@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; swsw (simple window switching) provides a minor mode for switching
-;; windows using single character IDs shown on the mode line.
+;; windows using IDs shown on the mode line.
 
 ;;; Code:
 
