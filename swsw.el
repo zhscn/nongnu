@@ -24,7 +24,8 @@
 ;;; Commentary:
 
 ;; swsw (simple window switching) provides a minor mode for switching
-;; windows using IDs shown on the mode line.
+;; windows using IDs assigned to them.
+;; Customize `swsw-display-function' to change how window IDs are displayed.
 
 ;;; Code:
 
@@ -45,8 +46,28 @@
   :group 'swsw
   :type '(character))
 
-(defcustom swsw-mode-lighter-format " <%s>"
-  "Format string for the lighter of `swsw-mode'.
+(defun swsw--set-display-function (sym fun)
+  "Call the previous display function with nil as the sole argument (turning
+it off), set SYM's value to FUN, and call FUN with t as the sole argument."
+  (unless (or (not (boundp 'swsw-display-function))
+              (eq swsw-display-function 'lighter))
+    (funcall swsw-display-function nil))
+  (set-default sym fun)
+  (unless (eq fun 'lighter)
+    (funcall fun t)))
+
+(defcustom swsw-display-function 'lighter
+  "Function used to display the ID of each window.
+This function is called with t as the sole argument when enabling `swsw-mode',
+and with nil as the sole argument when disabling it.
+If set to `lighter', use the mode line lighter of `swsw-mode'"
+  :group 'swsw
+  :type '(radio (const :tag "Mode line lighter" lighter)
+                (function :tag "Display function"))
+  :set #'swsw--set-display-function)
+
+(defcustom swsw-id-format " <%s>"
+  "Format string for the window ID.
 %s is replaced with a representation of the window's ID."
   :group 'swsw
   :type '(string))
@@ -99,23 +120,28 @@
       (push (cons id window) swsw-window-list)
       (set-window-parameter window 'swsw-id id))))
 
-(defun swsw-mode--lighter-format (window)
-  "Format a `swsw-mode' mode line lighter for WINDOW."
-  (format swsw-mode-lighter-format
+(defun swsw-format-id (window)
+  "Format an ID string for WINDOW."
+  (format swsw-id-format
           (reverse (apply #'string (window-parameter window 'swsw-id)))))
 
 ;;;###autoload
 (define-minor-mode swsw-mode
   "Minor mode for selecting windows by their ID."
   :global t
-  :lighter (:eval (swsw-mode--lighter-format (selected-window)))
+  :lighter (:eval (when (eq swsw-display-function 'lighter)
+                    (swsw-format-id (selected-window))))
   :keymap (make-sparse-keymap)
   (if swsw-mode
       (progn
         (swsw-update)
+        (unless (eq swsw-display-function 'lighter)
+          (funcall swsw-display-function t))
         (add-hook 'window-configuration-change-hook #'swsw-update)
         (add-hook 'minibuffer-setup-hook #'swsw-update)
         (add-hook 'minibuffer-exit-hook #'swsw-update))
+    (unless (eq swsw-display-function 'lighter)
+      (funcall swsw-display-function nil))
     (remove-hook 'window-configuration-change-hook #'swsw-update)
     (remove-hook 'minibuffer-setup-hook #'swsw-update)
     (remove-hook 'minibuffer-exit-hook #'swsw-update)))
@@ -141,6 +167,30 @@
         (when window
           (select-window window)))
     (other-window 1)))
+
+;;;; Display functions:
+
+(defun swsw-mode-line-display-function (switch)
+  "Display window IDs on the mode line if SWITCH is non-nil, and disable displaying
+window IDs on the mode line if SWITCH is nil.
+
+This display function shows the window IDs at the beginning of the mode line,
+similarly to `ace-window-display-mode'.
+This display function respects `swsw-id-format'."
+  (if switch
+      (progn
+        (force-mode-line-update t)
+        (setq-default mode-line-format
+                      `((swsw-mode
+                         (:eval (swsw-format-id (selected-window))))
+                        ,@(assq-delete-all
+                           `swsw-mode
+                           (default-value `mode-line-format)))))
+    (force-mode-line-update t)
+    (setq-default mode-line-format
+                  (assq-delete-all
+                   'swsw-mode
+                   (default-value 'mode-line-format)))))
 
 (provide 'swsw)
 
