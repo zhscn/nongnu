@@ -35,7 +35,7 @@
   :group 'convenience
   :prefix "swsw-")
 
-(defcustom swsw-id-chars-base '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
+(defcustom swsw-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed."
   :group 'swsw
   :type '(repeat character))
@@ -45,69 +45,100 @@
   :group 'swsw
   :type '(character))
 
-(defcustom swsw-mode-lighter-format " <%c>"
+(defcustom swsw-mode-lighter-format " <%s>"
   "Format string for the lighter of `swsw-mode'.
-Passed to `format' with the selected window's ID as the only argument."
+%s is replaced with a representation of the window's ID."
   :group 'swsw
   :type '(string))
 
 ;;;; Simple window switching minor mode:
 
-(defvar swsw-id-chars swsw-id-chars-base
-  "Characters from which window IDs can currently be constructed.")
+(defvar swsw-ids nil
+  "IDs which can currently be assigned to windows.")
 
 (defvar swsw-window-list nil
   "Alist of active active windows and their IDs.")
 
-(defun swsw-reset ()
-  "Reset information for all windows."
-  (setq swsw-window-list nil
-        swsw-id-chars swsw-id-chars-base))
+(defun swsw--get-possible-ids (&rest char-lists)
+  "Return the Cartesian product of all CHAR-LISTS."
+  (if char-lists
+      (mapcan (lambda (inner)
+                (mapcar (lambda (outer)
+                          (cons outer inner))
+                        (car char-lists)))
+              (apply #'swsw--get-possible-ids (cdr char-lists)))
+    (list nil)))
 
-(defun swsw-update (window)
+(defun swsw--get-id-length ()
+  "Return the current length of a window ID."
+  (let* ((windows (length (window-list-1)))
+         (chars (length swsw-id-chars))
+         (div (/ windows chars)))
+    ;; Check the remainder to returning a longer length than necessary.
+    (if (= 0 (mod windows chars))
+        div
+      (1+ div))))
+
+(defun swsw-update ()
+  "Update information for all windows."
+  (setq swsw-window-list nil
+        ;; Build a list of all possible IDs for the current length.
+        swsw-ids (let ((acc 0) (len (swsw--get-id-length)) char-lists)
+                   (while (< acc len)
+                     (push swsw-id-chars char-lists)
+                     (setq acc (1+ acc)))
+                   (apply #'swsw--get-possible-ids char-lists)))
+  (walk-windows #'swsw-update-window nil t))
+
+(defun swsw-update-window (window)
   "Update information for WINDOW."
   (let ((id (if (window-minibuffer-p window)
                 swsw-minibuffer-id
-              (pop swsw-id-chars))))
+              (pop swsw-ids))))
     (when id
-      (push (cons id window)
-            swsw-window-list)
+      (push (cons id window) swsw-window-list)
       (set-window-parameter window 'swsw-id id))))
 
-(defun swsw--reset-and-update ()
-  "Run `swsw-reset', run `swsw-update' for all active windows and force a mode
-line update for all windows."
-  (swsw-reset)
-  (walk-windows #'swsw-update nil t)
-  (force-mode-line-update t))
+(defun swsw-mode--lighter-format (window)
+  "Format a `swsw-mode' mode line lighter for WINDOW."
+  (format swsw-mode-lighter-format
+          (reverse (apply #'string (window-parameter window 'swsw-id)))))
 
 ;;;###autoload
 (define-minor-mode swsw-mode
   "Minor mode for selecting windows by their ID."
   :global t
-  :lighter (:eval (when (rassq (selected-window) swsw-window-list)
-                    (format swsw-mode-lighter-format
-                            (window-parameter (selected-window) 'swsw-id))))
+  :lighter (:eval (swsw-mode--lighter-format (selected-window)))
   :keymap (make-sparse-keymap)
   (if swsw-mode
       (progn
-        (walk-windows #'swsw-update nil t)
+        (swsw-update)
         (force-mode-line-update t)
-        (add-hook 'window-configuration-change-hook #'swsw--reset-and-update)
-        (add-hook 'minibuffer-setup-hook #'swsw--reset-and-update)
-        (add-hook 'minibuffer-exit-hook #'swsw--reset-and-update))
-    (setq swsw-window-list nil
-          swsw-id-chars swsw-id-chars-base)
-    (remove-hook 'window-configuration-change-hook #'swsw--reset-and-update)
-    (remove-hook 'minibuffer-setup-hook #'swsw--reset-and-update)
-    (remove-hook 'minibuffer-exit-hook #'swsw--reset-and-update)))
+        (add-hook 'window-configuration-change-hook #'swsw-update)
+        (add-hook 'minibuffer-setup-hook #'swsw-update)
+        (add-hook 'minibuffer-exit-hook #'swsw-update))
+    (remove-hook 'window-configuration-change-hook #'swsw-update)
+    (remove-hook 'minibuffer-setup-hook #'swsw-update)
+    (remove-hook 'minibuffer-exit-hook #'swsw-update)))
+
+(defun swsw--read-id (len)
+  "Read a window ID of length LEN using `read-char'."
+  (let ((acc 1) id)
+    ;; Special case for the minibuffer.
+    (if (eq (car (push (read-char) id)) swsw-minibuffer-id)
+        id
+      (while (< acc len)
+        (push (read-char) id)
+        (setq acc (1+ acc)))
+      (list id))))
 
 (defun swsw-select (&optional id)
   "Select window by its ID."
+  ;; If there are less than 3 windows, don't get an ID.
   (interactive (unless (< (length swsw-window-list) 3)
-                 (list (read-char))))
+                 (swsw--read-id (swsw--get-id-length))))
   (if id
-      (let ((window (cdr (assq id swsw-window-list))))
+      (let ((window (cdr (assoc id swsw-window-list))))
         (when window
           (select-window window)))
     (other-window 1)))
