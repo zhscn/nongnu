@@ -112,7 +112,16 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
         div
       (1+ div))))
 
-(defun swsw-update ()
+(defun swsw-update-window (window)
+  "Update information for WINDOW."
+  (let ((id (if (window-minibuffer-p window)
+                swsw-minibuffer-id
+              (pop swsw-ids))))
+    (when id
+      (push (cons id window) swsw-window-list)
+      (set-window-parameter window 'swsw-id id))))
+
+(defun swsw-update (&optional _frame)
   "Update information for all windows."
   (setq swsw-window-list nil
         ;; Build a list of all possible IDs for the current length.
@@ -122,15 +131,6 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
                      (setq acc (1+ acc)))
                    (apply #'swsw--get-possible-ids char-lists)))
   (walk-windows #'swsw-update-window nil swsw-scope))
-
-(defun swsw-update-window (window)
-  "Update information for WINDOW."
-  (let ((id (if (window-minibuffer-p window)
-                swsw-minibuffer-id
-              (pop swsw-ids))))
-    (when id
-      (push (cons id window) swsw-window-list)
-      (set-window-parameter window 'swsw-id id))))
 
 (defun swsw-format-id (window)
   "Format an ID string for WINDOW."
@@ -151,12 +151,14 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
           (funcall swsw-display-function t))
         (add-hook 'window-configuration-change-hook #'swsw-update)
         (add-hook 'minibuffer-setup-hook #'swsw-update)
-        (add-hook 'minibuffer-exit-hook #'swsw-update))
+        (add-hook 'minibuffer-exit-hook #'swsw-update)
+        (add-hook 'after-delete-frame-functions #'swsw-update))
     (unless (eq swsw-display-function 'lighter)
       (funcall swsw-display-function nil))
     (remove-hook 'window-configuration-change-hook #'swsw-update)
     (remove-hook 'minibuffer-setup-hook #'swsw-update)
-    (remove-hook 'minibuffer-exit-hook #'swsw-update)))
+    (remove-hook 'minibuffer-exit-hook #'swsw-update)
+    (remove-hook 'after-delete-frame-functions #'swsw-update)))
 
 (defun swsw--read-id (len)
   "Read a window ID of length LEN using `read-char'."
