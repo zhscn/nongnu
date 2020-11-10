@@ -46,6 +46,18 @@
   :group 'swsw
   :type '(character))
 
+(defcustom swsw-scope t
+  "Scope of all window operations.
+t means consider all windows on all existing frames.
+0 (the number zero) means consider all windows on all visible and iconified
+frames.
+‘visible’ means consider all windows on all visible frames."
+  :group 'swsw
+  :type '(radio (const :tag "All windows on all frames" t)
+                (const
+                 :tag "All windows on all visible and iconified frames." 0)
+                (const :tag "All windows on all visible frames" 'visible)))
+
 (defun swsw--set-display-function (sym fun)
   "Call the previous display function with nil as the sole argument (turning
 it off), set SYM's value to FUN, and call FUN with t as the sole argument."
@@ -92,7 +104,7 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
 
 (defun swsw--get-id-length ()
   "Return the current length of a window ID."
-  (let* ((windows (length (window-list-1)))
+  (let* ((windows (length (window-list-1 nil nil swsw-scope)))
          (chars (length swsw-id-chars))
          (div (/ windows chars)))
     ;; Check the remainder to returning a longer length than necessary.
@@ -109,7 +121,7 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
                      (push swsw-id-chars char-lists)
                      (setq acc (1+ acc)))
                    (apply #'swsw--get-possible-ids char-lists)))
-  (walk-windows #'swsw-update-window nil t))
+  (walk-windows #'swsw-update-window nil swsw-scope))
 
 (defun swsw-update-window (window)
   "Update information for WINDOW."
