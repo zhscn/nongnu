@@ -203,8 +203,8 @@ This display function respects `swsw-id-format'."
 
 (defun swsw-mode-line-conditional-display-function (switch)
   "Display window IDs on the mode line if SWITCH is non-nil and a window
-selection is in progress, and disable
-displaying window IDs on the mode line if SWITCH is nil.
+selection is in progress, and disable displaying window IDs on the mode line
+if SWITCH is nil.
 
 This display function shows the window IDs at the beginning of the mode line,
 similarly to `ace-window-display-mode'.
