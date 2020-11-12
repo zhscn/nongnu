@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; swsw (simple window switching) provides a minor mode for switching
-;; windows using IDs assigned to them.
+;; to windows using IDs assigned to them automatically.
 ;;
 ;; Usage:
 ;;
@@ -33,18 +33,30 @@
 ;; (swsw-mode)
 ;; (define-key swsw-mode-map "C-x o" #'swsw-select)
 ;;
-;; You can customize `swsw-mode' using the customize interface:
-;;
-;; M-x customize-group RET swsw RET
-;;
 ;; For use-package users:
 ;;
 ;; (use-package swsw
+;;   :demand ; :bind keyword causes loading to defer.
 ;;   :bind
 ;;   (:map swsw-mode-map
 ;;         ("C-x o" . swsw-select))
 ;;   :config
 ;;   (swsw-mode))
+;;
+;; When swsw-mode is active:
+;; - A window ID is displayed using a mode line lighter or a display function (see
+;;   `swsw-display-function').
+;; - A single (predefined) character CHAR corresponds to the minibuffer (see
+;;   `swsw-minibuffer-id').
+;; - Window IDs are assigned to all windows on all frames (by default, see
+;;   `swsw-scope').
+;;
+;; C-x o RET ID (if bound) or M-x swsw-select RET ID switches focus to the window
+;; which corresponds to ID.
+;;
+;; You can customize `swsw-mode' using the customize interface:
+;;
+;; M-x customize-group RET swsw RET
 
 ;;; Code:
 

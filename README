@@ -1,42 +1,55 @@
-swsw - simple window switching
+swsw - Simple window switching
 
-DESCRIPTION
+swsw (simple window switching) is an Emacs package which provides a minor mode
+for switching to windows using IDs assigned to them automatically.
 
-swsw is an Emacs package which provides a minor mode for switching windows
-similarly to `ace-window' and `switch-window'.
-
-USAGE
-
-When swsw-mode is active:
-- A window ID is displayed using a mode line lighter or a display function.
-- A single (predefined) character CHAR corresponds to the minibuffer.
-- Pressing M-x swsw-select RET ID switches focus to the window which
-  corresponds to ID, or to the minibuffer if CHAR is entered.
-
-INSTALLATION
+Installation:
 
 Currently, only manual installation is available:
 
-1. Clone the repository:
+Clone the repository:
 
-$ cd $your_emacs_directory
+$ cd ~
 
 $ git clone 'https://git.sr.ht/~dsemy/swsw'
 
-2. Load the package and enable the minor mode:
+Install the package:
 
-;; vanilla
-(add-to-list 'load-path (locate-user-emacs-file "swsw"))
-(require 'swsw)
+M-x package-install-file RET ~/swsw.el RET
+
+Usage:
+
+Enable `swsw-mode' and (optionally) bind `swsw-select' to a key:
+
 (swsw-mode)
+(define-key swsw-mode-map "C-x o" #'swsw-select)
 
-;; use-package
+For use-package users:
+
 (use-package swsw
-  :load-path "swsw/"
+  :demand ; :bind keyword causes loading to defer.
+  :bind
+  (:map swsw-mode-map
+        ("C-x o" . swsw-select))
   :config
   (swsw-mode))
 
-COPYRIGHT
+When swsw-mode is active:
+- A window ID is displayed using a mode line lighter or a display function (see
+  `swsw-display-function').
+- A single (predefined) character CHAR corresponds to the minibuffer (see
+  `swsw-minibuffer-id').
+- Window IDs are assigned to all windows on all frames (by default, see
+  `swsw-scope').
+
+C-x o RET ID (if bound) or M-x swsw-select RET ID switches focus to the window
+which corresponds to ID.
+
+You can customize `swsw-mode' using the customize interface:
+
+M-x customize-group RET swsw RET
+
+Copyright:
 
 Copyright © 2020 Daniel Semyonov <cmstr@dsemy.com>
 Licensed under GPLv3 or later.
