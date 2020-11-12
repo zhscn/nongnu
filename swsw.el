@@ -58,6 +58,8 @@ frames.
                  :tag "All windows on all visible and iconified frames." 0)
                 (const :tag "All windows on all visible frames" 'visible)))
 
+(defvar swsw-display-function 'lighter) ;; Avoid byte-compilation warning.
+
 (defun swsw--set-display-function (sym fun)
   "Call the previous display function with nil as the sole argument (turning
 it off), set SYM's value to FUN, and call FUN with t as the sole argument."
