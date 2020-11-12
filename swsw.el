@@ -232,4 +232,4 @@ This display function respects `swsw-id-format'."
 
 (provide 'swsw)
 
-;; swsw.el ends here
+;;; swsw.el ends here
