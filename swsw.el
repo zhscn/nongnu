@@ -25,7 +25,26 @@
 
 ;; swsw (simple window switching) provides a minor mode for switching
 ;; windows using IDs assigned to them.
-;; Customize `swsw-display-function' to change how window IDs are displayed.
+;;
+;; Usage:
+;;
+;; Enable `swsw-mode' and (optionally) bind `swsw-select' to a key:
+;;
+;; (swsw-mode)
+;; (define-key swsw-mode-map "C-x o" #'swsw-select)
+;;
+;; You can customize `swsw-mode' using the customize interface:
+;;
+;; M-x customize-group RET swsw RET
+;;
+;; For use-package users:
+;;
+;; (use-package swsw
+;;   :bind
+;;   (:map swsw-mode-map
+;;         ("C-x o" . swsw-select))
+;;   :config
+;;   (swsw-mode))
 
 ;;; Code:
 
