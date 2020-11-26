@@ -140,7 +140,7 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
   (let* ((windows (length (window-list-1 nil nil swsw-scope)))
          (chars (length swsw-id-chars))
          (div (/ windows chars)))
-    ;; Check the remainder to returning a longer length than necessary.
+    ;; Check the remainder to avoid returning a longer length than necessary.
     (if (= 0 (mod windows chars))
         div
       (1+ div))))
