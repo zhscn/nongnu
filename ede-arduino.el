@@ -171,7 +171,7 @@ ROOTPROJ is nil, sinc there is only one project for a directory tree."
    (menu :initform
          (
           [ "Upload Project to Board" ede-arduino-upload ]
-          [ "Serial Monitor" cedet-arduino-sepprial-monitor ]
+          [ "Serial Monitor" cedet-arduino-serial-monitor ]
           "--"
           [ "Edit Projectfile" ede-edit-file-target
             (ede-buffer-belongs-to-project-p) ]
