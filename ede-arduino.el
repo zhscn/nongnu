@@ -171,7 +171,7 @@ ROOTPROJ is nil, sinc there is only one project for a directory tree."
    (menu :initform
          (
           [ "Upload Project to Board" ede-arduino-upload ]
-          [ "Serial Monitor" cedet-arduino-serial-monitor ]
+          [ "Serial Monitor" cedet-arduino-sepprial-monitor ]
           "--"
           [ "Edit Projectfile" ede-edit-file-target
             (ede-buffer-belongs-to-project-p) ]
@@ -186,7 +186,7 @@ ROOTPROJ is nil, sinc there is only one project for a directory tree."
 
 ;;; TARGET MANAGEMENT
 ;;
-(defmethod ede-find-target ((proj ede-arduino-project) buffer)
+(cl-defmethod ede-find-target ((proj ede-arduino-project) buffer)
   "Find an EDE target in PROJ for BUFFER.
 If one doesn't exist, create a new one for this directory."
   (let* ((targets (oref proj targets))
@@ -226,7 +226,7 @@ Uses `serial-term'."
     (term-line-mode)
     ))
 
-(defmethod project-compile-project ((proj ede-arduino-project) &optional command)
+(cl-defmethod project-compile-project ((proj ede-arduino-project) &optional command)
   "Compile the entire current project PROJ.
 Argument COMMAND is the command to use when compiling."
   ;; 1) Create the mini-makefile.
@@ -235,18 +235,18 @@ Argument COMMAND is the command to use when compiling."
   (compile (or command ede-arduino-make-command))
   )
 
-(defmethod project-compile-target ((obj ede-arduino-target) &optional command)
+(cl-defmethod project-compile-target ((obj ede-arduino-target) &optional command)
   "Compile the current target OBJ.
 Argument COMMAND is the command to use for compiling the target."
   (project-compile-project (ede-current-project) command))
 
-(defmethod project-debug-target ((target ede-arduino-target))
+(cl-defmethod project-debug-target ((target ede-arduino-target))
   "Run the current project derived from TARGET in a debugger."
   (error "No Debugger support for Arduino"))
 
 ;;; C/C++ support
 (require 'semantic/db)
-(defmethod ede-preprocessor-map ((this ede-arduino-target))
+(cl-defmethod ede-preprocessor-map ((this ede-arduino-target))
   "Get the pre-processor map for some generic C code."
   ;; wiring.h and pins_arduino.h have lots of #defines in them.
   ;; TODO: realpath
@@ -266,7 +266,7 @@ Argument COMMAND is the command to use for compiling the target."
     filemap
     ))
 
-(defmethod ede-system-include-path ((this ede-arduino-target))
+(cl-defmethod ede-system-include-path ((this ede-arduino-target))
   "Get the system include path used by project THIS."
   (let* ((prefs (ede-arduino-sync))
          (iphardware (expand-file-name "hardware/arduino/cores/arduino"
@@ -284,7 +284,7 @@ Argument COMMAND is the command to use for compiling the target."
 ;; Use SRecode, and the ede-srecode tool to build our Makefile.
 (require 'ede/srecode)
 
-(defmethod ede-arduino-create-makefile ((proj ede-arduino-project))
+(cl-defmethod ede-arduino-create-makefile ((proj ede-arduino-project))
   "Create an arduino based Makefile for project PROJ."
   (let* ((mfilename (expand-file-name ede-arduino-makefile-name
                                       (oref proj directory)))
