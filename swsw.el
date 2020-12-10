@@ -82,12 +82,15 @@
 t means consider all windows on all existing frames.
 0 (the number zero) means consider all windows on all visible and iconified
 frames.
-‘visible’ means consider all windows on all visible frames."
+‘visible’ means consider all windows on all visible frames.
+‘current’ means consider only the currently selected frame."
   :group 'swsw
   :type '(radio (const :tag "All windows on all frames" t)
                 (const
                  :tag "All windows on all visible and iconified frames." 0)
-                (const :tag "All windows on all visible frames" 'visible)))
+                (const :tag "All windows on all visible frames" visible)
+                (const
+                 :tag "All window on the currently selected frame" current)))
 
 (defvar swsw-display-function 'lighter) ;; Avoid byte-compilation warning.
 
@@ -125,6 +128,12 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
 (defvar swsw-window-list nil
   "Alist of active active windows and their IDs.")
 
+(defun swsw--get-scope ()
+  "Return the current scope of `swsw-mode'."
+  (if (eq swsw-scope 'current)
+      (selected-frame)
+    swsw-scope))
+
 (defun swsw--get-possible-ids (&rest char-lists)
   "Return the Cartesian product of all CHAR-LISTS."
   (if char-lists
@@ -137,7 +146,7 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
 
 (defun swsw--get-id-length ()
   "Return the current length of a window ID."
-  (let* ((windows (length (window-list-1 nil nil swsw-scope)))
+  (let* ((windows (length (window-list-1 nil nil (swsw--get-scope))))
          (chars (length swsw-id-chars))
          (div (/ windows chars)))
     ;; Check the remainder to avoid returning a longer length than necessary.
@@ -163,7 +172,7 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
                      (push swsw-id-chars char-lists)
                      (setq acc (1+ acc)))
                    (apply #'swsw--get-possible-ids char-lists)))
-  (walk-windows #'swsw-update-window nil swsw-scope))
+  (walk-windows #'swsw-update-window nil (swsw--get-scope)))
 
 (defun swsw-format-id (window)
   "Format an ID string for WINDOW."
