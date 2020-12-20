@@ -1,0 +1,64 @@
+swsw NEWS -- history of user-visible changes.
+
+* 1.1
+
+** Add the ability to customize the scope of swsw-mode.
+swsw-scope controls in which frames swsw-mode tracks windows.
+
+** Fix conditional display functions potentially breaking when the user presses
+C-g ('keyboard-quit') while reading a window ID.
+
+* 1.0
+
+** Stable version.
+All user facing customization options will accept and correctly handle values
+accepted by this version until (at least) version 2.0.
+All user facing customization options introduced between this version and
+version 2.0 will be accept and handle correctly values accepted by that version
+until (at least) version 2.0.
+Note: no version 2.0 is planned currently.
+
+** Add support for multi-character IDs.
+IDs can now be constructed from multiple character, taken from swsw-id-chars,
+when there are enough tracked windows.
+
+** Add support for alternate display functions.
+A new customization variable has been added: swsw-display-function.
+If it is set to a function, that function is used to display window IDs instead
+of the mode-line lighter.
+See the documentation of the variable for more information.
+Two reference functions are provided:
+swsw-mode-line-display-function displays window IDs similarly to the way they
+were displayed before version 0.3.
+swsw-mode-line-conditional-display-function displays window IDs in the same way
+but only when window selection is in progress.
+
+* 0.3
+
+** Add a sparse key map to swsw-mode.
+This allows creating key bindings which are only active when swsw-mode is.
+
+** Use a mode-line lighter to show the window ID instead of adding it to the
+start of the mode-line.
+The lighter is only displayed if the window is tracked by swsw.
+
+* 0.2
+
+** Switching to the minibuffer is now possible.
+It is now possible to switch to the minibuffer (if it's active) by
+pressing a character unique to the minibuffer window (default 'm').
+
+** Use read-char instead of read-char-from-minibuffer.
+swsw-select used read-char-from-minibuffer with swsw-id-prompt as the
+prompt previously.
+The new implementation doesn't show a prompt (so swsw-id-prompt was
+removed completely), and works on older Emacs versions.
+
+* 0.1
+
+** Initial version.
+
+--
+Local variables:
+mode: outline
+end:
