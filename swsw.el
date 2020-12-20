@@ -92,7 +92,7 @@ frames.
                 (const
                  :tag "All window on the currently selected frame" current)))
 
-(defvar swsw-display-function 'lighter) ;; Avoid byte-compilation warning.
+(defvar swsw-display-function 'lighter) ; Avoid byte-compilation warning.
 
 (defun swsw--set-display-function (sym fun)
   "Call the previous display function with nil as the sole argument (turning
