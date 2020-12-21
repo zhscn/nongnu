@@ -22,15 +22,10 @@ Usage:
 Enable `swsw-mode' and (optionally) bind `swsw-select' to a key:
 
 (swsw-mode)
-(define-key swsw-mode-map "C-x o" #'swsw-select)
 
 For use-package users:
 
 (use-package swsw
-  :demand ; :bind keyword causes loading to defer.
-  :bind
-  (:map swsw-mode-map
-        ("C-x o" . swsw-select))
   :config
   (swsw-mode))
 
@@ -42,8 +37,7 @@ When swsw-mode is active:
 - Window IDs are assigned to all windows on all frames (by default, see
   `swsw-scope').
 
-C-x o RET ID (if bound) or M-x swsw-select RET ID switches focus to the window
-which corresponds to ID.
+C-x o ID switches focus to the window which corresponds to ID.
 
 You can customize `swsw-mode' using the customize interface:
 
