@@ -21,7 +21,7 @@ $ make
 
 Install the package:
 
-M-x package-install-file RET ~/swsw/swsw-1.0.tar RET
+M-x package-install-file RET ~/swsw/swsw-1.1.tar RET
 
 Usage:
 

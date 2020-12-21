@@ -1,4 +1,4 @@
-(define-package "swsw" "1.0" "Simple window switching"
+(define-package "swsw" "1.1" "Simple window switching"
   '((emacs "23.1"))
   :keywords ("convenience")
   :authors (("Daniel Semyonov" . "cmstr@dsemy.com"))

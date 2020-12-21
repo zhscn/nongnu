@@ -1,6 +1,9 @@
 swsw NEWS -- history of user-visible changes.
 
-* 1.1 (currently in development)
+* 1.2 (currently in development)
+No user facing changes have been made yet.
+
+* 1.1
 
 ** Add the ability to customize the scope of swsw-mode.
 swsw-scope controls in which frames swsw-mode tracks windows.
