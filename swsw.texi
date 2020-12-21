@@ -1,0 +1,240 @@
+\input texinfo
+@setfilename swsw.info
+@settitle swsw User Manual
+@documentencoding UTF-8
+@documentlanguage en
+
+@copying
+@quotation
+Copyright @copyright{} 2020 Daniel Semyonov
+
+You can redistribute this document and/or modify it under the terms
+of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.
+
+This document is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* swsw: (swsw). Simple window switching.
+@end direntry
+
+@titlepage
+@title swsw User Manual
+@subtitle for version 1.0
+@author Daniel Semyonov
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top swsw User Manual
+
+swsw provides a minor mode for switching to windows using IDs assigned
+to them automatically.
+@end ifnottex
+
+@menu
+* Introduction::
+* Installation::
+* Usage::
+* Customization::
+* Keystroke Index::
+* Command Index::
+* Function Index::
+* Variable Index::
+
+@detailmenu
+--- The Detailed Node Listing ---
+
+Installation
+
+* Installing a release::
+* Installing from the Git repository::
+
+Customization
+
+* Display functions::
+
+@end detailmenu
+@end menu
+
+@node Introduction
+@chapter Introduction
+
+swsw provides a minor mode for switching to windows using IDs assigned to them
+automatically. It's implementation is simple and extensible, providing various
+advanced customization features for users, while keeping the code base small
+and easy to hack on.
+
+@node Installation
+@chapter Installation
+
+swsw can currently only be installed manually.
+
+@menu
+* Installing a release::
+* Installing from the Git repository::
+@end menu
+
+@node Installing a release
+@section Installing a release
+
+Simply download a release (from <https://dsemy.com/software/swsw>), and install
+it:
+
+@table @asis
+@item @kbd{M-x package-install-file RET /path/to/download/swsw-VERSION.tar RET}
+@end table
+
+@node Installing from the Git repository
+@section Installing from the Git repository
+
+Clone the repository and build the package archive:
+
+@example
+$ git clone https://git.sr.ht/~dsemy/swsw
+$ cd swsw
+$ make
+@end example
+
+Install the package:
+
+@table @asis
+@item @kbd{M-x package-install-file RET /path/to/clone/swsw-VERSION.tar RET}
+@end table
+
+@node Usage
+@chapter Usage
+
+In order to use any feature of the package, @code{swsw-mode} must be enabled:
+
+@cindex swsw-mode
+@table @asis
+@item @kbd{M-x swsw-mode RET}
+@end table
+
+You can also add @code{(swsw-mode)} to your init file, instead.
+
+By default, window IDs will be shown as mode line lighters of the
+form @code{<ID>}.
+
+@kindex C-x o
+@cindex swsw-select
+@table @asis
+@item @kbd{C-x o ID}
+@end table
+Switch to the window corresponding to @code{ID} (@code{swsw-select}).
+
+@node Customization
+@chapter Customization
+
+All customization, except for defining custom display functions, can be done
+through the customize interface:
+
+@table @asis
+@item @kbd{M-x customize-group RET swsw RET}
+@end table
+
+@defopt swsw-id-chars
+Base set of character from which window IDs are constructed. This should be a
+list of characters. By default, the home row (@code{a s d f g h j k l}) is
+used.
+@end defopt
+
+@defopt swsw-minibuffer-id
+ID reserved for the minibuffer. This should be a single character. By default,
+@code{m} is used.
+@end defopt
+
+@defopt swsw-id-format
+Format string for the window ID. Display functions may use this format string
+to display the ID, but they can also ignore it. The string should contain a
+single occurrence of @code{%s}, which will be replaced by the ID. By default,
+@code{" <%s>"} is used.
+@end defopt
+
+@defopt swsw-scope
+Scope of all window operations. Used to determine on which frames to track
+windows. A value of @code{t} means consider all windows on all frames, @code{0}
+(the number zero) means consider all windows on all visible and iconified
+frames, @code{visible} means consider all windows on all visible frames and
+@code{current} means consider only the currently selected frame. By default,
+@code{t} is used.
+@end defopt
+
+@menu
+* Display functions::
+@end menu
+
+@node Display functions
+@section Display functions
+
+Display functions are used to display the ID of each window.
+
+@defopt swsw-display-function
+Function used to display the ID of each window. This should either be a
+display function or @code{lighter}, in which case window IDs are shown using
+a mode line lighter. A display function must accept a single argument, which
+will be @code{t} when enabling @code{swsw-mode} and @code{nil} when disabling
+it. By default, @code{lighter} is used.
+@end defopt
+
+@defvar swsw-before-select-hook
+Hook which runs after @code{swsw-select} is called, but before and ID has been
+read. This hook can be used display window IDs conditionally.
+@end defvar
+
+@defvar swsw-after-select-hook
+Hook which runs after reading an ID, or if the user interrupts
+@code{swsw--read-id}. This hook can be used hide window IDs conditionally.
+@end defvar
+
+@defun swsw-mode-line-display-function switch
+Reference implementation of a ``simple'' display function. Display window IDs on
+the mode line if SWITCH isn't @code{nil}, and hide window IDs from the mode
+line if SWITCH is @code{nil}. This display function respects
+@code{swsw-id-format}.
+@end defun
+
+@defun swsw-mode-line-conditional-display-function switch
+Reference implementation of a conditional display function. Add a hook to
+@code{swsw-before-select-hook} which displays window IDs on the mode line and
+add a hook to @code{swsw-after-select-hook} which hides window IDs from the
+mode line if SWITCH isn't @code{nil}, and remove those hooks if SWITCH is
+@code{nil}. This display function respects @code{swsw-id-format}.
+@end defun
+
+@node Keystroke Index
+@appendix Keystroke Index
+
+@printindex ky
+
+@node Command Index
+@appendix Command Index
+
+@printindex cp
+
+@node Function Index
+@appendix Function Index
+
+@printindex fn
+
+@node Variable Index
+@appendix Variable Index
+
+@printindex vr
+
+@bye
+

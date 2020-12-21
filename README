@@ -13,13 +13,19 @@ $ cd
 
 $ git clone 'https://git.sr.ht/~dsemy/swsw'
 
+Build the package:
+
+$ cd swsw
+
+$ make
+
 Install the package:
 
-M-x package-install-file RET ~/swsw.el RET
+M-x package-install-file RET ~/swsw/swsw-1.0.tar RET
 
 Usage:
 
-Enable `swsw-mode' and (optionally) bind `swsw-select' to a key:
+Enable `swsw-mode':
 
 (swsw-mode)
 
@@ -42,6 +48,8 @@ C-x o ID switches focus to the window which corresponds to ID.
 You can customize `swsw-mode' using the customize interface:
 
 M-x customize-group RET swsw RET
+
+For more information see the swsw info node.
 
 Copyright:
 

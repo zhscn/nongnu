@@ -10,6 +10,10 @@ C-g ('keyboard-quit') while reading a window ID.
 
 ** Bind C-x o to swsw-select in swsw-mode-map by default.
 
+** Add an info node.
+An info node (swsw) has been added which documents all user facing parts of the
+package in detail.
+
 * 1.0
 
 ** Stable version.
