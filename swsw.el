@@ -7,7 +7,7 @@
 ;; Version: 1.1
 ;; Package-Requires: ((emacs "23.1"))
 ;; Keywords: convenience
-;; URL: https://sr.ht/~dsemy/swsw
+;; URL: https://dsemy.com/software/swsw
 
 ;; swsw is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
