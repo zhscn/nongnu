@@ -8,6 +8,8 @@ swsw-scope controls in which frames swsw-mode tracks windows.
 ** Fix conditional display functions potentially breaking when the user presses
 C-g ('keyboard-quit') while reading a window ID.
 
+** Bind C-x o to swsw-select in swsw-mode-map by default.
+
 * 1.0
 
 ** Stable version.
