@@ -9,7 +9,7 @@ Currently, only manual installation is available:
 
 Clone the repository:
 
-$ cd ~
+$ cd
 
 $ git clone 'https://git.sr.ht/~dsemy/swsw'
 
@@ -37,7 +37,7 @@ For use-package users:
 When swsw-mode is active:
 - A window ID is displayed using a mode line lighter or a display function (see
   `swsw-display-function').
-- A single (predefined) character CHAR corresponds to the minibuffer (see
+- A single (predefined) character corresponds to the minibuffer (see
   `swsw-minibuffer-id').
 - Window IDs are assigned to all windows on all frames (by default, see
   `swsw-scope').

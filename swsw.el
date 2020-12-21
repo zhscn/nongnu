@@ -3,6 +3,7 @@
 ;; Copyright (C) 2020 Daniel Semyonov
 
 ;; Author: Daniel Semyonov <cmstr@dsemy.com>
+;; Maintainer: Daniel Semyonov <cmstr@dsemy.com>
 ;; Version: 1.0
 ;; Package-Requires: ((emacs "23.1"))
 ;; Keywords: convenience
