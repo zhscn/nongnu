@@ -244,8 +244,8 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
   (force-mode-line-update t))
 
 (defun swsw-mode-line-display-function (switch)
-  "Display window IDs on the mode line if SWITCH is non-nil, and disable
-displaying window IDs on the mode line if SWITCH is nil.
+  "Display window IDs on the mode line if SWITCH isn't `nil', and disable
+displaying window IDs on the mode line if SWITCH is `nil'.
 
 This display function shows the window IDs at the beginning of the mode line,
 similarly to `ace-window-display-mode'.
@@ -255,9 +255,10 @@ This display function respects `swsw-id-format'."
     (swsw--mode-line-hide)))
 
 (defun swsw-mode-line-conditional-display-function (switch)
-  "Display window IDs on the mode line if SWITCH is non-nil and a window
-selection is in progress, and disable displaying window IDs on the mode line
-if SWITCH is nil.
+  "Add a hook to `swsw-before-select-hook' which displays window IDs on the
+mode line and add a hook to `swsw-after-select-hook' which hides window IDs
+from the mode line if SWITCH isn't `nil', and remove those hooks if SWITCH is
+`nil'.
 
 This display function shows the window IDs at the beginning of the mode line,
 similarly to `ace-window-display-mode'.
