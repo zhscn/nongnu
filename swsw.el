@@ -28,31 +28,25 @@
 ;;
 ;; Usage:
 ;;
-;; Enable `swsw-mode' and (optionally) bind `swsw-select' to a key:
+;; Enable `swsw-mode':
 ;;
 ;; (swsw-mode)
-;; (define-key swsw-mode-map "C-x o" #'swsw-select)
 ;;
 ;; For use-package users:
 ;;
 ;; (use-package swsw
-;;   :demand ; :bind keyword causes loading to defer.
-;;   :bind
-;;   (:map swsw-mode-map
-;;         ("C-x o" . swsw-select))
 ;;   :config
 ;;   (swsw-mode))
 ;;
 ;; When swsw-mode is active:
 ;; - A window ID is displayed using a mode line lighter or a display function (see
 ;;   `swsw-display-function').
-;; - A single (predefined) character CHAR corresponds to the minibuffer (see
+;; - A single (predefined) character corresponds to the minibuffer (see
 ;;   `swsw-minibuffer-id').
 ;; - Window IDs are assigned to all windows on all frames (by default, see
 ;;   `swsw-scope').
 ;;
-;; C-x o RET ID (if bound) or M-x swsw-select RET ID switches focus to the window
-;; which corresponds to ID.
+;; C-x o ID switches focus to the window which corresponds to ID.
 ;;
 ;; You can customize `swsw-mode' using the customize interface:
 ;;
@@ -179,29 +173,6 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
   (format swsw-id-format
           (reverse (apply #'string (window-parameter window 'swsw-id)))))
 
-;;;###autoload
-(define-minor-mode swsw-mode
-  "Minor mode for selecting windows by their ID."
-  :global t
-  :lighter (:eval (when (eq swsw-display-function 'lighter)
-                    (swsw-format-id (selected-window))))
-  :keymap (make-sparse-keymap)
-  (if swsw-mode
-      (progn
-        (swsw-update)
-        (unless (eq swsw-display-function 'lighter)
-          (funcall swsw-display-function t))
-        (add-hook 'window-configuration-change-hook #'swsw-update)
-        (add-hook 'minibuffer-setup-hook #'swsw-update)
-        (add-hook 'minibuffer-exit-hook #'swsw-update)
-        (add-hook 'after-delete-frame-functions #'swsw-update))
-    (unless (eq swsw-display-function 'lighter)
-      (funcall swsw-display-function nil))
-    (remove-hook 'window-configuration-change-hook #'swsw-update)
-    (remove-hook 'minibuffer-setup-hook #'swsw-update)
-    (remove-hook 'minibuffer-exit-hook #'swsw-update)
-    (remove-hook 'after-delete-frame-functions #'swsw-update)))
-
 (defun swsw--read-id (len)
   "Read a window ID of length LEN using `read-char'."
   (let ((acc 1) id)
@@ -226,6 +197,30 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
         (when window
           (select-window window)))
     (other-window 1)))
+
+;;;###autoload
+(define-minor-mode swsw-mode
+  "Minor mode for selecting windows by their ID."
+  :global t
+  :lighter
+  (:eval (when (eq swsw-display-function 'lighter)
+           (swsw-format-id (selected-window))))
+  :keymap '(keymap (?\C-x . (keymap (?o . swsw-select))))
+  (if swsw-mode
+      (progn
+        (swsw-update)
+        (unless (eq swsw-display-function 'lighter)
+          (funcall swsw-display-function t))
+        (add-hook 'window-configuration-change-hook #'swsw-update)
+        (add-hook 'minibuffer-setup-hook #'swsw-update)
+        (add-hook 'minibuffer-exit-hook #'swsw-update)
+        (add-hook 'after-delete-frame-functions #'swsw-update))
+    (unless (eq swsw-display-function 'lighter)
+      (funcall swsw-display-function nil))
+    (remove-hook 'window-configuration-change-hook #'swsw-update)
+    (remove-hook 'minibuffer-setup-hook #'swsw-update)
+    (remove-hook 'minibuffer-exit-hook #'swsw-update)
+    (remove-hook 'after-delete-frame-functions #'swsw-update)))
 
 ;;;; Display functions:
 
