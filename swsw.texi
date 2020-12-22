@@ -43,6 +43,11 @@ General Public License for more details.
 
 swsw provides a minor mode for switching to windows using IDs assigned
 to them automatically.
+
+@noindent
+This manual is for swsw version 1.1.
+
+@insertcopying
 @end ifnottex
 
 @menu
