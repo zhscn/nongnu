@@ -23,7 +23,7 @@ dir: $(PKG).info
 
 package: $(PKG)-$(VERSION).tar
 
-%.tar: $(PKG).info dir *.el
+%.tar: $(PKG).info dir *.el LICENSE
 	@echo "Creating temporary package directory"
 	@mkdir $(PKG)-$(VERSION)
 	@echo "Copying package files to temporary directory"
