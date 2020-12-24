@@ -201,7 +201,9 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
 
 ;;;###autoload
 (define-minor-mode swsw-mode
-  "Minor mode for selecting windows by their ID."
+  "Minor mode for selecting windows by their ID.
+
+Use \\[swsw-select] to select a window."
   :global t
   :lighter
   (:eval (when (eq swsw-display-function 'lighter)
