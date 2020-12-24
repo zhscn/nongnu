@@ -9,6 +9,8 @@
 ;; Keywords: convenience
 ;; URL: https://dsemy.com/software/swsw
 
+;; This file is not part of GNU Emacs.
+
 ;; swsw is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
@@ -29,7 +31,7 @@
 ;;
 ;; Usage:
 ;;
-;; Enable `swsw-mode':
+;; Enable ‘swsw-mode’:
 ;;
 ;; (swsw-mode)
 ;;
@@ -40,16 +42,16 @@
 ;;   (swsw-mode))
 ;;
 ;; When swsw-mode is active:
-;; - A window ID is displayed using a mode line lighter or a display function (see
-;;   `swsw-display-function').
-;; - A single (predefined) character corresponds to the minibuffer (see
-;;   `swsw-minibuffer-id').
-;; - Window IDs are assigned to all windows on all frames (by default, see
-;;   `swsw-scope').
+;; - A window ID is displayed using a mode line lighter or a display
+;;    function (see ‘swsw-display-function’).
+;; - A single (predefined) character corresponds to the minibuffer
+;;   (see ‘swsw-minibuffer-id’).
+;; - Window IDs are assigned to all windows on all frames (by default,
+;;   see ‘swsw-scope’).
 ;;
 ;; C-x o ID switches focus to the window which corresponds to ID.
 ;;
-;; You can customize `swsw-mode' using the customize interface:
+;; You can customize ‘swsw-mode’ using the customize interface:
 ;;
 ;; M-x customize-group RET swsw RET
 
@@ -75,8 +77,8 @@
 (defcustom swsw-scope t
   "Scope of all window operations.
 t means consider all windows on all existing frames.
-0 (the number zero) means consider all windows on all visible and iconified
-frames.
+0 (the number zero) means consider all windows on all visible and
+  iconified frames.
 ‘visible’ means consider all windows on all visible frames.
 ‘current’ means consider only the currently selected frame."
   :group 'swsw
@@ -87,11 +89,13 @@ frames.
                 (const
                  :tag "All window on the currently selected frame" current)))
 
-(defvar swsw-display-function 'lighter) ; Avoid byte-compilation warning.
+(defvar swsw-display-function) ; Avoid byte-compilation warning.
 
 (defun swsw--set-display-function (sym fun)
-  "Call the previous display function with nil as the sole argument (turning
-it off), set SYM's value to FUN, and call FUN with t as the sole argument."
+  "Set the variable ‘swsw-display-function’.
+Call the previous display function with nil as the sole argument
+\(turning it off), set SYM's value to FUN, and call FUN with t as the
+sole argument (turning it on)."
   (unless (or (not (boundp 'swsw-display-function))
               (eq swsw-display-function 'lighter))
     (funcall swsw-display-function nil))
@@ -101,9 +105,9 @@ it off), set SYM's value to FUN, and call FUN with t as the sole argument."
 
 (defcustom swsw-display-function 'lighter
   "Function used to display the ID of each window.
-This function is called with t as the sole argument when enabling `swsw-mode',
-and with nil as the sole argument when disabling it.
-If set to `lighter', use the mode line lighter of `swsw-mode'"
+This function is called with t as the sole argument when enabling
+‘swsw-mode’, and with nil as the sole argument when disabling it.
+If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
   :group 'swsw
   :type '(radio (const :tag "Mode line lighter" lighter)
                 (function :tag "Display function"))
@@ -124,7 +128,7 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
   "Alist of active active windows and their IDs.")
 
 (defun swsw--get-scope ()
-  "Return the current scope of `swsw-mode'."
+  "Return the current scope in which windows should be tracked."
   (if (eq swsw-scope 'current)
       (selected-frame)
     swsw-scope))
@@ -175,7 +179,7 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
           (reverse (apply #'string (window-parameter window 'swsw-id)))))
 
 (defun swsw--read-id (len)
-  "Read a window ID of length LEN using `read-char'."
+  "Read a window ID of length LEN using ‘read-char’."
   (let ((acc 1) id)
     ;; Special case for the minibuffer.
     (if (eq (car (push (read-char) id)) swsw-minibuffer-id)
@@ -186,8 +190,10 @@ If set to `lighter', use the mode line lighter of `swsw-mode'"
       (list id))))
 
 (defun swsw-select (&optional id)
-  "Select window by its ID."
-  ;; If there are less than 3 windows, don't get an ID.
+  "Select a window by its ID.
+If less than three windows have been assigned an ID,
+call ‘other-window’.
+This command is intended to be used only when ‘swsw-mode’ is enabled."
   (interactive (unless (< (length swsw-window-list) 3)
                  (run-hooks 'swsw-before-select-hook)
                  (unwind-protect
@@ -246,25 +252,21 @@ Use \\[swsw-select] to select a window."
   (force-mode-line-update t))
 
 (defun swsw-mode-line-display-function (switch)
-  "Display window IDs on the mode line if SWITCH isn't `nil', and disable
-displaying window IDs on the mode line if SWITCH is `nil'.
-
-This display function shows the window IDs at the beginning of the mode line,
-similarly to `ace-window-display-mode'.
-This display function respects `swsw-id-format'."
+  "Display window IDs at the beginning of the mode line.
+Display window IDs if SWITCH isn't nil, and disable displaying window
+IDs if SWITCH is nil.
+This display function respects ‘swsw-id-format’."
   (if switch
       (swsw--mode-line-display)
     (swsw--mode-line-hide)))
 
 (defun swsw-mode-line-conditional-display-function (switch)
-  "Add a hook to `swsw-before-select-hook' which displays window IDs on the
-mode line and add a hook to `swsw-after-select-hook' which hides window IDs
-from the mode line if SWITCH isn't `nil', and remove those hooks if SWITCH is
-`nil'.
-
-This display function shows the window IDs at the beginning of the mode line,
-similarly to `ace-window-display-mode'.
-This display function respects `swsw-id-format'."
+  "Display window IDs at the beginning of the mode line, conditionally.
+Add a hook to ‘swsw-before-select-hook’ which displays window IDs on
+the mode line and add a hook to ‘swsw-after-select-hook’ which hides
+window IDs from the mode line if SWITCH isn't nil, and remove those
+hooks if SWITCH is nil.
+This display function respects ‘swsw-id-format’."
   (if switch
       (progn
         (add-hook 'swsw-before-select-hook #'swsw--mode-line-display)
