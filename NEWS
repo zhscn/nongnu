@@ -3,6 +3,26 @@ swsw NEWS -- history of user-visible changes.
 * 1.2 (currently in development)
 No user facing changes have been made yet.
 
+* 1.1.1
+
+** Bump required Emacs version to 26.1.
+
+** Add missing license information in several places.
+The info was missing license information, and created archives were missing
+the LICENSE file.
+
+** Update the homepage of the package to dsemy.com/software/swsw.
+
+** Update documentation strings.
+Documentation string for several functions and variables have been updated to
+be more clear and to better comply with Emacs' conventions.
+
+** Update installation instructions.
+Installation instructions have been updated to indicate the possibility of
+installing the package from GNU ELPA.
+Note: at the time of writing this isn't actually possible yet, but the
+instructions have been updated since I'm expecting this to be possible soon.
+
 * 1.1
 
 ** Add the ability to customize the scope of swsw-mode.
