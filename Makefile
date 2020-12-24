@@ -1,38 +1,31 @@
 include config.mk
 
-.PHONY: info clean
+.PHONY: info package clean
 
-all: info package
+all: package
 
 help:
-	$(info make all     - generate info manual)
-	$(info make info    - generate info manual)
-	$(info make package - generate tar file containing the package)
-	$(info make clean   - remove generated files)
+	$(info make all      - generate info manual)
+	$(info make info     - generate info manual)
+	$(info make package  - generate tar file containing the package)
+	$(info make clean    - remove generated files)
 	@exit
+
+%.info: %.texi
+	$(MAKEINFO) --no-split $< -o $@
+
+dir: $(PKG).info
+	$(INSTALLINFO) $< $@
 
 info: $(PKG).info dir
 
-%.info: %.texi
-	@echo "Generating $@"
-	@$(MAKEINFO) --no-split $< -o $@
-
-dir: $(PKG).info
-	@echo "Generating $@"
-	@$(INSTALLINFO) $< $@
+%.tar: $(PKG).info dir *.el LICENSE
+	mkdir $(PKG)-$(VERSION)
+	cp -a $^ $(PKG)-$(VERSION)/
+	tar -cf $@ $(PKG)-$(VERSION)
+	rm -rf $(PKG)-$(VERSION)
 
 package: $(PKG)-$(VERSION).tar
 
-%.tar: $(PKG).info dir *.el LICENSE
-	@echo "Creating temporary package directory"
-	@mkdir $(PKG)-$(VERSION)
-	@echo "Copying package files to temporary directory"
-	@cp -a $^ $(PKG)-$(VERSION)/
-	@echo "Creating package archive $@"
-	@tar -cf $@ $(PKG)-$(VERSION)
-	@echo "Removing temporary package directory"
-	@rm -rf $(PKG)-$(VERSION)
-
 clean:
-	@echo "Cleaning..."
-	@rm -rf $(PKG).info dir $(PKG)-$(VERSION).tar
+	rm -rf $(PKG).info dir $(PKG)-$(VERSION).tar
