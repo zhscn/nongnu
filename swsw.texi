@@ -86,7 +86,11 @@ and easy to hack on.
 @node Installation
 @chapter Installation
 
-swsw can currently only be installed manually.
+swsw can be installed from GNU ELPA:
+
+@table @asis
+@item @kbd{M-x package-install RET swsw RET}
+@end table
 
 @menu
 * Installing a release::

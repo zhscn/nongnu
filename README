@@ -5,11 +5,13 @@ for switching to windows using IDs assigned to them automatically.
 
 Installation:
 
-Currently, only manual installation is available:
+From ELPA:
+
+M-x package-install RET swsw RET
+
+From the repository:
 
 Clone the repository:
-
-$ cd
 
 $ git clone 'https://git.sr.ht/~dsemy/swsw'
 
@@ -21,7 +23,7 @@ $ make
 
 Install the package:
 
-M-x package-install-file RET ~/swsw/swsw-1.1.tar RET
+M-x package-install-file RET /path/to/clone/swsw-VERSION.tar RET
 
 Usage:
 
