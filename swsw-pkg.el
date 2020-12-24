@@ -3,7 +3,7 @@
   :keywords ("convenience")
   :authors (("Daniel Semyonov" . "cmstr@dsemy.com"))
   :maintainer ("Daniel Semyonov" . "cmstr@dsemy.com")
-  :url "https://sr.ht/~dsemy/swsw")
+  :url "https://dsemy.com/software/swsw")
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
