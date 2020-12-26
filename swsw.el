@@ -89,7 +89,8 @@ t means consider all windows on all existing frames.
                 (const
                  :tag "All window on the currently selected frame" current)))
 
-(defvar swsw-display-function) ; Avoid byte-compilation warning.
+(eval-when-compile ; Avoid byte-compilation warning.
+  (defvar swsw-display-function))
 
 (defun swsw--set-display-function (sym fun)
   "Set the variable ‘swsw-display-function’.
