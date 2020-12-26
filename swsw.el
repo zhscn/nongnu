@@ -200,11 +200,8 @@ This command is intended to be used only when ‘swsw-mode’ is enabled."
                  (unwind-protect
                      (swsw--read-id (swsw--get-id-length))
                    (run-hooks 'swsw-after-select-hook))))
-  (if id
-      (let ((window (cdr (assoc id swsw-window-list))))
-        (when window
-          (select-window window)))
-    (other-window 1)))
+  (let ((window (cdr (assoc id swsw-window-list))))
+      (select-window (if window window (next-window)))))
 
 ;;;###autoload
 (define-minor-mode swsw-mode
