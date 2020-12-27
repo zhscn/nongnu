@@ -130,11 +130,8 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
   "Return the current length of a window ID."
   (let ((windows (length (window-list-1 nil nil (swsw--get-scope)))))
     ;; If there is only one window, return 1.
-    (if (= windows 1)
-        1
-      (ceiling (log
-                windows
-                (length swsw-id-chars))))))
+    (if (= windows 1) 1
+      (ceiling (log windows (length swsw-id-chars))))))
 
 (defvar swsw--id-counter nil
   "Counter which determines the next possible ID.")
@@ -200,7 +197,7 @@ This command is intended to be used only when ‘swsw-mode’ is enabled."
                      (swsw--read-id (swsw--get-id-length))
                    (run-hooks 'swsw-after-select-hook))))
   (let ((window (cdr (assoc id swsw-window-list))))
-      (select-window (if window window (next-window)))))
+    (select-window (if window window (next-window)))))
 
 ;;;###autoload
 (define-minor-mode swsw-mode
