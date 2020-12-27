@@ -66,12 +66,10 @@
 
 (defcustom swsw-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed."
-  :group 'swsw
   :type '(repeat character))
 
 (defcustom swsw-minibuffer-id ?m
   "ID reserved for the minibuffer."
-  :group 'swsw
   :type '(character))
 
 (defcustom swsw-scope t
@@ -81,7 +79,6 @@ t means consider all windows on all existing frames.
   iconified frames.
 ‘visible’ means consider all windows on all visible frames.
 ‘current’ means consider only the currently selected frame."
-  :group 'swsw
   :type '(radio (const :tag "All windows on all frames" t)
                 (const
                  :tag "All windows on all visible and iconified frames." 0)
@@ -109,7 +106,6 @@ sole argument (turning it on)."
 This function is called with t as the sole argument when enabling
 ‘swsw-mode’, and with nil as the sole argument when disabling it.
 If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
-  :group 'swsw
   :type '(radio (const :tag "Mode line lighter" lighter)
                 (function :tag "Display function"))
   :set #'swsw--set-display-function)
@@ -117,7 +113,6 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
 (defcustom swsw-id-format " <%s>"
   "Format string for the window ID.
 %s is replaced with a representation of the window's ID."
-  :group 'swsw
   :type '(string))
 
 ;;;; Simple window switching minor mode:
