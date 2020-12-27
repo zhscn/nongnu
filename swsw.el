@@ -64,9 +64,21 @@
   :group 'convenience
   :prefix "swsw-")
 
+(defun swsw--set-id-chars (sym chars)
+  "Set the variable ‘swsw-id-chars’.
+Check that the new list has at least two elements, set SYM’s value to
+CHARS, and call ‘swsw-update’."
+  (if (> 2 (length chars))
+      (user-error
+       "‘swsw-id-chars’ should contain at least two characters")
+    (set-default sym chars)
+    (swsw-update)))
+
 (defcustom swsw-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
-  "Base set of characters from which window IDs are constructed."
-  :type '(repeat character))
+  "Base set of characters from which window IDs are constructed.
+This list should contain at least two characters."
+  :type '(repeat character)
+  :set #'swsw--set-id-chars)
 
 (defcustom swsw-minibuffer-id ?m
   "ID reserved for the minibuffer."
