@@ -65,319 +65,6 @@ Note: If this changes, we need to also update the autoload feature."
   :group 'arduino
   :type 'string)
 
-;;;###autoload
-(defun ede-arduino-root (&optional dir basefile)
-  "Get the root project directory for DIR.
-The only arduino sketches allowed are those configured by the arduino IDE
-in their sketch directory.
-
-If BASEFILE is non-nil, then convert root to the project basename also.
-
-Consider expanding this at some later date."
-  (let* ((prefs (ede-arduino-sync))
-         ;; without expansion the comparison in the next step fails
-         ;; for relative files
-         (dir (expand-file-name dir))
-         (sketchroot (and prefs (oref prefs sketchbook))))
-    (when (and sketchroot
-               (< (length sketchroot) (length dir))
-               (string= sketchroot (substring dir 0 (length sketchroot))))
-      ;; The subdir in DIR just below sketchroot is always the root of this
-      ;; project.
-      (let* ((dirtail (substring dir (length sketchroot)))
-             (dirsplit (split-string dirtail "/" t))
-             (root (expand-file-name (car dirsplit) sketchroot)))
-        (when (file-directory-p root)
-          (if basefile
-              (let ((tmp (expand-file-name (concat (car dirsplit) ".pde") root)))
-                ;; Also check for the desired file in a buffer if the
-                ;; user just made the file but not saved it yet.
-                (when (or (not (file-exists-p tmp)) (not (get-file-buffer tmp)))
-                  (setq tmp (expand-file-name (concat (car dirsplit) ".ino") root)))
-                tmp)
-            root))))))
-
-;;;###autoload
-(defun ede-arduino-file (&optional dir)
-  "Get a file representing the root of this arduino project.
-It is a file ending in .pde or .ino that has the same basename as
-the directory it is in.  Optional argument DIR is the directory
-to check."
-  (ede-arduino-root dir t))
-
-;;;###autoload
-(defun ede-arduino-load (dir &optional rootproj)
-  "Return an Arduino project object if there is one.
-Return nil if there isn't one.
-Argument DIR is the directory it is created for.
-ROOTPROJ is nil, sinc there is only one project for a directory tree."
-  (let* ((root (ede-arduino-root dir))
-         (proj (and root (ede-directory-get-open-project root)))
-         (prefs (ede-arduino-sync)))
-    (if proj
-        (progn
-          (message "Opening existing project")
-          proj)
-      
-      ;; Create a new project here.
-      (if root
-          (progn
-            (message "Creating new project")
-            (let* ((name (file-name-nondirectory (directory-file-name root)))
-                   (pde (expand-file-name (concat name ".pde") root)))
-              (when (not (file-exists-p pde))
-                (setq pde (expand-file-name (concat name ".ino") root)))
-              (setq proj (ede-arduino-project name
-                                              :name name
-                                              :directory (file-name-as-directory dir)
-                                              :file pde
-                                              :targets nil)))
-            (ede-add-project-to-global-list proj))
-        (message "Project loading/creation failed")))))
-
-;;;###autoload
-(require 'ede/auto) ; for `ede-project-autoload'
-
-;;;###autoload
-(add-to-list
- 'ede-project-class-files
- (ede-project-autoload :name "Arduino sketch"
-                       :file 'ede-arduino
-                       :proj-root-dirmatch
-                       (ede-project-autoload-dirmatch
-                        :fromconfig (expand-file-name ede-arduino-preferences-file)
-                        :configregex "^sketchbook.path=\\([^\n]+\\)$"
-                        :configregexidx 1)
-                       :proj-file 'ede-arduino-file
-                       :proj-root 'ede-arduino-root
-                       :load-type 'ede-arduino-load
-                       :class-sym 'ede-arduino-project
-                       :safe-p t
-                       :new-p t)
- t)
-
-;;; CLASSES
-;;
-;; The classes for arduino projects include arduino (PDE) files, plus C, CPP, and H files.
-;;
-;;;###autoload
-(defclass ede-arduino-target (ede-target)
-  ()
-  "EDE Arduino C files target.  Includes PDE, C, C++ and anything else we find.")
-
-;;;###autoload
-(defclass ede-arduino-project (ede-project)
-  ((keybindings :initform (("U" . ede-arduino-upload)))
-   (menu :initform
-         (
-          [ "Upload Project to Board" ede-arduino-upload ]
-          [ "Serial Monitor" cedet-arduino-serial-monitor ]
-          "--"
-          [ "Edit Projectfile" ede-edit-file-target
-            (ede-buffer-belongs-to-project-p) ]
-          "--"
-          [ "Update Version" ede-update-version ede-object ]
-          [ "Version Control Status" ede-vc-project-directory ede-object ]
-          "--"
-          [ "Rescan Project Files" ede-rescan-toplevel t ]
-          )))
-  "EDE Arduino project.")
-
-;;; TARGET MANAGEMENT
-;;
-(cl-defmethod ede-find-target ((proj ede-arduino-project) buffer)
-  "Find an EDE target in PROJ for BUFFER.
-If one doesn't exist, create a new one for this directory."
-  (let* ((targets (oref proj targets))
-         (dir default-directory)
-         (ans (object-assoc dir :path targets))
-         )
-    (when (not ans)
-      (setq ans (ede-arduino-target dir
-                                    :name (file-name-nondirectory
-                                           (directory-file-name dir))
-                                    :path dir
-                                    :source nil))
-      (object-add-to-list proj :targets ans))
-    ans))
-
-;;; COMMAND SUPPORT
-;;
-(defun ede-arduino-upload ()
-  "Compile the current project, and upload the result to the board."
-  (interactive)
-  (project-compile-project (ede-current-project)
-                           (concat ede-arduino-make-command " all upload")))
-
-(require 'term)
-
-(defun cedet-arduino-serial-monitor ()
-  "Start up a serial monitor for a running arduino board.
-Uses `serial-term'."
-  (interactive)
-  (let ((prefs (ede-arduino-sync)))
-    ;; @TODO - read the setup function for something configuring the
-    ;; serial line w/ a baud rate, and use that.
-    (serial-term (oref prefs port) 9600)
-    ;; Always go to line mode, as arduino serial isn't typically used
-    ;; for input, just debugging output.
-    (term-line-mode)))
-
-(cl-defmethod project-compile-project ((proj ede-arduino-project) &optional command)
-  "Compile the entire current project PROJ.
-Argument COMMAND is the command to use when compiling."
-  ;; 1) Create the mini-makefile.
-  (ede-arduino-create-makefile proj)
-  ;; 2) Call MAKE
-  (compile (or command ede-arduino-make-command)))
-
-(cl-defmethod project-compile-target ((obj ede-arduino-target) &optional command)
-  "Compile the current target OBJ.
-Argument COMMAND is the command to use for compiling the target."
-  (project-compile-project (ede-current-project) command))
-
-(cl-defmethod project-debug-target ((target ede-arduino-target))
-  "Run the current project derived from TARGET in a debugger."
-  (error "No Debugger support for Arduino"))
-
-;;; C/C++ support
-(require 'semantic/db)
-(cl-defmethod ede-preprocessor-map ((this ede-arduino-target))
-  "Get the pre-processor map for some generic C code."
-  ;; wiring.h and pins_arduino.h have lots of #defines in them.
-  ;; TODO: realpath
-  (let* ((wiring_h (expand-file-name "hardware/arduino/cores/arduino/wiring.h"
-                                     (ede-arduino-find-install)))
-         (table (when (and wiring_h (file-exists-p wiring_h))
-                  (semanticdb-file-table-object wiring_h)))
-         (filemap '(("HIGH" . "0x1")
-                    ("LOW" . "0x0"))))
-    (when table
-      (when (semanticdb-needs-refresh-p table)
-        (semanticdb-refresh-table table))
-      (setq filemap (append filemap (oref table lexical-table))))
-    filemap))
-
-(cl-defmethod ede-system-include-path ((this ede-arduino-target))
-  "Get the system include path used by project THIS."
-  (let* ((prefs (ede-arduino-sync))
-         (iphardware (expand-file-name "hardware/arduino/cores/arduino"
-                                       (ede-arduino-find-install)))
-         (libs (ede-arduino-guess-libs))
-         (iplibs (mapcar
-                  (lambda (lib)
-                    (expand-file-name (concat "libraries/" lib)
-                                      (ede-arduino-find-install)))
-                  libs)))
-    (cons iphardware iplibs)))
-
-;;; Makefile Creation
-;;
-;; Use SRecode, and the ede-srecode tool to build our Makefile.
-(require 'ede/srecode)
-
-(cl-defmethod ede-arduino-create-makefile ((proj ede-arduino-project))
-  "Create an arduino based Makefile for project PROJ."
-  (let* ((mfilename (expand-file-name ede-arduino-makefile-name
-                                      (oref proj directory)))
-         (prefs (ede-arduino-sync))
-         (board (oref prefs boardobj))
-         (vers (ede-arduino-Arduino-Version))
-         (sketch (ede-arduino-guess-sketch))
-         (orig-buffer nil)
-         (buff-to-kill nil))
-    (when (and (string= (file-name-extension sketch) "ino")
-               (version< vers "1.0"))
-      (error "Makefile doesn't support .ino files until Arduino 1.0"))
-    (when (and (string= (file-name-extension sketch) "pde")
-               (version<= "1.0" vers))
-      (error "Makefile doesn't support .pde files after Arduino 1.0"))
-
-    (save-current-buffer
-      (setq orig-buffer (get-file-buffer mfilename))
-      (set-buffer (setq buff-to-kill (find-file-noselect mfilename)))
-      (save-excursion
-        (goto-char (point-min))
-        (if (and (not (eobp))
-                 (not (looking-at "# Automatically Generated \\w+ by EDE.")))
-            (if (not (y-or-n-p (format "Really replace %s? " mfilename)))
-                (error "Not replacing Makefile"))
-          (message "Replaced EDE Makefile"))
-        (erase-buffer)
-        (ede-srecode-setup)
-        ;; Insert a giant pile of stuff that is common between
-        ;; one of our Makefiles, and a Makefile.in
-        (ede-srecode-insert
-         "arduino:ede-empty"
-         "TARGET" (oref proj name)
-         "ARDUINO_LIBS" (mapconcat 'identity (ede-arduino-guess-libs) " ")
-         "MCU" (oref board mcu)
-         "F_CPU" (oref board f_cpu)
-         "PORT" (oref prefs port)
-         "AVRDUDE_ARD_BAUDRATE" (or ede-arduino-avrdude-baudrate (oref board speed))
-         "AVRDUDE_ARD_PROGRAMMER" (oref board protocol)
-         "ARDUINO_MK" (ede-arduino-Arduino.mk)
-         "ARDUINO_HOME" (ede-arduino-find-install)))
-      (save-buffer)
-      (when (not orig-buffer) (kill-buffer (current-buffer))))))
-
-;;; Arduino Sketch Code Inspector
-;;
-;; Inspect the code in an arduino sketch, and guess things, like which libraries to include.
-
-(defun ede-arduino-guess-libs ()
-  "Guess which libraries this sketch use."
-  (interactive)
-  (let* ((libs nil)
-         (sketch (ede-arduino-guess-sketch))
-         (sketch-buffer (find-file-noselect sketch))
-         (arduino-libraries (save-current-buffer
-                              (set-buffer sketch-buffer)
-                              (if (boundp 'arduino-libraries)
-                                  arduino-libraries
-                                nil))))
-    (cond
-     (arduino-libraries
-      (dolist (lib (split-string arduino-libraries))
-        (push lib libs)))
-     (t
-      (let* ((libdir nil)
-             (orig-buffer (get-file-buffer sketch))
-             (buff nil)
-             (tmp nil))
-        (save-current-buffer
-          (setq buff (find-file-noselect sketch))
-          (set-buffer buff)
-          (save-excursion
-            (goto-char (point-min))
-            (while (re-search-forward "#include <\\([[:word:]_]+\\).h>" nil t)
-              (setq tmp (match-string 1))
-              (unless (file-exists-p (concat tmp ".h"))
-                ;; TODO: realpath
-                (let* ((lib (match-string 1))
-                       (libdir (ede-arduino-libdir lib))
-                       (util (expand-file-name "utility" libdir)))
-                  ;; Some libraries need a utility added to the library list.
-                  (when (file-exists-p util)
-                    (push (concat lib "/utility") libs))
-                  ;; Push real lib after the utility
-                  (push lib libs))))))
-        (when (not orig-buffer) (kill-buffer buff)))))
-    libs))
-
-(defun ede-arduino-guess-sketch ()
-  "Return the file that is the core of the current project sketch."
-  (let* ((proj ede-object-project)
-         (sketch (expand-file-name (concat (oref proj name) ".pde")
-                                   (oref proj directory))))
-    (if (file-exists-p sketch)
-        sketch
-      (setq sketch (expand-file-name (concat (oref proj name) ".ino")
-                                     (oref proj directory)))
-      (if (file-exists-p sketch)
-          sketch
-        (error "Cannot guess primary sketch file for project %s"
-               (eieio-object-name proj))))))
 
 ;;; Arduino Preferences
 ;;
@@ -657,6 +344,321 @@ Data returned is the intputs needed for the Makefile."
                            :mcu mcu
                            :f_cpu f_cpu
                            :core core)))))
+
+;;;###autoload
+(defun ede-arduino-root (&optional dir basefile)
+  "Get the root project directory for DIR.
+The only arduino sketches allowed are those configured by the arduino IDE
+in their sketch directory.
+
+If BASEFILE is non-nil, then convert root to the project basename also.
+
+Consider expanding this at some later date."
+  (let* ((prefs (ede-arduino-sync))
+         ;; without expansion the comparison in the next step fails
+         ;; for relative files
+         (dir (expand-file-name dir))
+         (sketchroot (and prefs (oref prefs sketchbook))))
+    (when (and sketchroot
+               (< (length sketchroot) (length dir))
+               (string= sketchroot (substring dir 0 (length sketchroot))))
+      ;; The subdir in DIR just below sketchroot is always the root of this
+      ;; project.
+      (let* ((dirtail (substring dir (length sketchroot)))
+             (dirsplit (split-string dirtail "/" t))
+             (root (expand-file-name (car dirsplit) sketchroot)))
+        (when (file-directory-p root)
+          (if basefile
+              (let ((tmp (expand-file-name (concat (car dirsplit) ".pde") root)))
+                ;; Also check for the desired file in a buffer if the
+                ;; user just made the file but not saved it yet.
+                (when (or (not (file-exists-p tmp)) (not (get-file-buffer tmp)))
+                  (setq tmp (expand-file-name (concat (car dirsplit) ".ino") root)))
+                tmp)
+            root))))))
+
+;;;###autoload
+(defun ede-arduino-file (&optional dir)
+  "Get a file representing the root of this arduino project.
+It is a file ending in .pde or .ino that has the same basename as
+the directory it is in.  Optional argument DIR is the directory
+to check."
+  (ede-arduino-root dir t))
+
+;;;###autoload
+(defun ede-arduino-load (dir &optional rootproj)
+  "Return an Arduino project object if there is one.
+Return nil if there isn't one.
+Argument DIR is the directory it is created for.
+ROOTPROJ is nil, sinc there is only one project for a directory tree."
+  (let* ((root (ede-arduino-root dir))
+         (proj (and root (ede-directory-get-open-project root)))
+         (prefs (ede-arduino-sync)))
+    (if proj
+        (progn
+          (message "Opening existing project")
+          proj)
+      
+      ;; Create a new project here.
+      (if root
+          (progn
+            (message "Creating new project")
+            (let* ((name (file-name-nondirectory (directory-file-name root)))
+                   (pde (expand-file-name (concat name ".pde") root)))
+              (when (not (file-exists-p pde))
+                (setq pde (expand-file-name (concat name ".ino") root)))
+              (setq proj (ede-arduino-project name
+                                              :name name
+                                              :directory (file-name-as-directory dir)
+                                              :file pde
+                                              :targets nil)))
+            (ede-add-project-to-global-list proj))
+        (message "Project loading/creation failed")))))
+
+;;;###autoload
+(require 'ede/auto) ; for `ede-project-autoload'
+
+;;;###autoload
+(add-to-list
+ 'ede-project-class-files
+ (ede-project-autoload :name "Arduino sketch"
+                       :file 'ede-arduino
+                       :proj-root-dirmatch
+                       (ede-project-autoload-dirmatch
+                        :fromconfig (expand-file-name ede-arduino-preferences-file)
+                        :configregex "^sketchbook.path=\\([^\n]+\\)$"
+                        :configregexidx 1)
+                       :proj-file 'ede-arduino-file
+                       :proj-root 'ede-arduino-root
+                       :load-type 'ede-arduino-load
+                       :class-sym 'ede-arduino-project
+                       :safe-p t
+                       :new-p t)
+ t)
+
+;;; CLASSES
+;;
+;; The classes for arduino projects include arduino (PDE) files, plus C, CPP, and H files.
+;;
+;;;###autoload
+(defclass ede-arduino-target (ede-target)
+  ()
+  "EDE Arduino C files target.  Includes PDE, C, C++ and anything else we find.")
+
+;;;###autoload
+(defclass ede-arduino-project (ede-project)
+  ((keybindings :initform (("U" . ede-arduino-upload)))
+   (menu :initform
+         (
+          [ "Upload Project to Board" ede-arduino-upload ]
+          [ "Serial Monitor" cedet-arduino-serial-monitor ]
+          "--"
+          [ "Edit Projectfile" ede-edit-file-target
+            (ede-buffer-belongs-to-project-p) ]
+          "--"
+          [ "Update Version" ede-update-version ede-object ]
+          [ "Version Control Status" ede-vc-project-directory ede-object ]
+          "--"
+          [ "Rescan Project Files" ede-rescan-toplevel t ]
+          )))
+  "EDE Arduino project.")
+
+;;; TARGET MANAGEMENT
+;;
+(cl-defmethod ede-find-target ((proj ede-arduino-project) buffer)
+  "Find an EDE target in PROJ for BUFFER.
+If one doesn't exist, create a new one for this directory."
+  (let* ((targets (oref proj targets))
+         (dir default-directory)
+         (ans (object-assoc dir :path targets))
+         )
+    (when (not ans)
+      (setq ans (ede-arduino-target dir
+                                    :name (file-name-nondirectory
+                                           (directory-file-name dir))
+                                    :path dir
+                                    :source nil))
+      (object-add-to-list proj :targets ans))
+    ans))
+
+;;; COMMAND SUPPORT
+;;
+(defun ede-arduino-upload ()
+  "Compile the current project, and upload the result to the board."
+  (interactive)
+  (project-compile-project (ede-current-project)
+                           (concat ede-arduino-make-command " all upload")))
+
+(require 'term)
+
+(defun cedet-arduino-serial-monitor ()
+  "Start up a serial monitor for a running arduino board.
+Uses `serial-term'."
+  (interactive)
+  (let ((prefs (ede-arduino-sync)))
+    ;; @TODO - read the setup function for something configuring the
+    ;; serial line w/ a baud rate, and use that.
+    (serial-term (oref prefs port) 9600)
+    ;; Always go to line mode, as arduino serial isn't typically used
+    ;; for input, just debugging output.
+    (term-line-mode)))
+
+(cl-defmethod project-compile-project ((proj ede-arduino-project) &optional command)
+  "Compile the entire current project PROJ.
+Argument COMMAND is the command to use when compiling."
+  ;; 1) Create the mini-makefile.
+  (ede-arduino-create-makefile proj)
+  ;; 2) Call MAKE
+  (compile (or command ede-arduino-make-command)))
+
+(cl-defmethod project-compile-target ((obj ede-arduino-target) &optional command)
+  "Compile the current target OBJ.
+Argument COMMAND is the command to use for compiling the target."
+  (project-compile-project (ede-current-project) command))
+
+(cl-defmethod project-debug-target ((target ede-arduino-target))
+  "Run the current project derived from TARGET in a debugger."
+  (error "No Debugger support for Arduino"))
+
+;;; C/C++ support
+(require 'semantic/db)
+
+(cl-defmethod ede-preprocessor-map ((this ede-arduino-target))
+  "Get the pre-processor map for some generic C code."
+  ;; wiring.h and pins_arduino.h have lots of #defines in them.
+  ;; TODO: realpath
+  (let* ((wiring_h (expand-file-name "hardware/arduino/cores/arduino/wiring.h"
+                                     (ede-arduino-find-install)))
+         (table (when (and wiring_h (file-exists-p wiring_h))
+                  (semanticdb-file-table-object wiring_h)))
+         (filemap '(("HIGH" . "0x1")
+                    ("LOW" . "0x0"))))
+    (when table
+      (when (semanticdb-needs-refresh-p table)
+        (semanticdb-refresh-table table))
+      (setq filemap (append filemap (oref table lexical-table))))
+    filemap))
+
+(cl-defmethod ede-system-include-path ((this ede-arduino-target))
+  "Get the system include path used by project THIS."
+  (let* ((prefs (ede-arduino-sync))
+         (iphardware (expand-file-name "hardware/arduino/cores/arduino"
+                                       (ede-arduino-find-install)))
+         (libs (ede-arduino-guess-libs))
+         (iplibs (mapcar
+                  (lambda (lib)
+                    (expand-file-name (concat "libraries/" lib)
+                                      (ede-arduino-find-install)))
+                  libs)))
+    (cons iphardware iplibs)))
+
+(defun ede-arduino-guess-sketch ()
+  "Return the file that is the core of the current project sketch."
+  (let* ((proj ede-object-project)
+         (sketch (expand-file-name (concat (oref proj name) ".pde")
+                                   (oref proj directory))))
+    (if (file-exists-p sketch)
+        sketch
+      (setq sketch (expand-file-name (concat (oref proj name) ".ino")
+                                     (oref proj directory)))
+      (if (file-exists-p sketch)
+          sketch
+        (error "Cannot guess primary sketch file for project %s"
+               (eieio-object-name proj))))))
+
+;;; Makefile Creation
+;;
+;; Use SRecode, and the ede-srecode tool to build our Makefile.
+(require 'ede/srecode)
+
+(cl-defmethod ede-arduino-create-makefile ((proj ede-arduino-project))
+  "Create an arduino based Makefile for project PROJ."
+  (let* ((mfilename (expand-file-name ede-arduino-makefile-name
+                                      (oref proj directory)))
+         (prefs (ede-arduino-sync))
+         (board (oref prefs boardobj))
+         (vers (ede-arduino-Arduino-Version))
+         (sketch (ede-arduino-guess-sketch))
+         (orig-buffer nil)
+         (buff-to-kill nil))
+    (when (and (string= (file-name-extension sketch) "ino")
+               (version< vers "1.0"))
+      (error "Makefile doesn't support .ino files until Arduino 1.0"))
+    (when (and (string= (file-name-extension sketch) "pde")
+               (version<= "1.0" vers))
+      (error "Makefile doesn't support .pde files after Arduino 1.0"))
+
+    (save-current-buffer
+      (setq orig-buffer (get-file-buffer mfilename))
+      (set-buffer (setq buff-to-kill (find-file-noselect mfilename)))
+      (save-excursion
+        (goto-char (point-min))
+        (if (and (not (eobp))
+                 (not (looking-at "# Automatically Generated \\w+ by EDE.")))
+            (if (not (y-or-n-p (format "Really replace %s? " mfilename)))
+                (error "Not replacing Makefile"))
+          (message "Replaced EDE Makefile"))
+        (erase-buffer)
+        (ede-srecode-setup)
+        ;; Insert a giant pile of stuff that is common between
+        ;; one of our Makefiles, and a Makefile.in
+        (ede-srecode-insert
+         "arduino:ede-empty"
+         "TARGET" (oref proj name)
+         "ARDUINO_LIBS" (mapconcat 'identity (ede-arduino-guess-libs) " ")
+         "MCU" (oref board mcu)
+         "F_CPU" (oref board f_cpu)
+         "PORT" (oref prefs port)
+         "AVRDUDE_ARD_BAUDRATE" (or ede-arduino-avrdude-baudrate (oref board speed))
+         "AVRDUDE_ARD_PROGRAMMER" (oref board protocol)
+         "ARDUINO_MK" (ede-arduino-Arduino.mk)
+         "ARDUINO_HOME" (ede-arduino-find-install)))
+      (save-buffer)
+      (when (not orig-buffer) (kill-buffer (current-buffer))))))
+
+;;; Arduino Sketch Code Inspector
+;;
+;; Inspect the code in an arduino sketch, and guess things, like which libraries to include.
+
+(defun ede-arduino-guess-libs ()
+  "Guess which libraries this sketch use."
+  (interactive)
+  (let* ((libs nil)
+         (sketch (ede-arduino-guess-sketch))
+         (sketch-buffer (find-file-noselect sketch))
+         (arduino-libraries (save-current-buffer
+                              (set-buffer sketch-buffer)
+                              (if (boundp 'arduino-libraries)
+                                  arduino-libraries
+                                nil))))
+    (cond
+     (arduino-libraries
+      (dolist (lib (split-string arduino-libraries))
+        (push lib libs)))
+     (t
+      (let* ((libdir nil)
+             (orig-buffer (get-file-buffer sketch))
+             (buff nil)
+             (tmp nil))
+        (save-current-buffer
+          (setq buff (find-file-noselect sketch))
+          (set-buffer buff)
+          (save-excursion
+            (goto-char (point-min))
+            (while (re-search-forward "#include <\\([[:word:]_]+\\).h>" nil t)
+              (setq tmp (match-string 1))
+              (unless (file-exists-p (concat tmp ".h"))
+                ;; TODO: realpath
+                (let* ((lib (match-string 1))
+                       (libdir (ede-arduino-libdir lib))
+                       (util (expand-file-name "utility" libdir)))
+                  ;; Some libraries need a utility added to the library list.
+                  (when (file-exists-p util)
+                    (push (concat lib "/utility") libs))
+                  ;; Push real lib after the utility
+                  (push lib libs))))))
+        (when (not orig-buffer) (kill-buffer buff)))))
+    libs))
 
 (provide 'ede-arduino)
 
