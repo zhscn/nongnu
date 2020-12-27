@@ -7,7 +7,6 @@
 ;;; Code:
 
 (require 'flycheck)
-(require 'arduino-mode)
 
 (defvar flycheck-arduino-board nil
   "The Arduino board to be used for debugging Sketch.")
