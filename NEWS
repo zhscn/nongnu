@@ -3,6 +3,19 @@ swsw NEWS -- history of user-visible changes.
 * 1.2 (currently in development)
 No user facing changes have been made yet.
 
+* 1.1.2
+
+** Apply customization options immediately.
+Customizing swsw-id-chars and swsw-scope and applying those changes now
+causes all window IDs to update.
+
+** Construct IDs without pre-computing all possible IDs.
+This should hopefully help performance when dealing with a very large
+number of windows.
+
+** Fix the calculation of the ID length.
+Previously the ID length reported was much bigger than it needed to be.
+
 * 1.1.1
 
 ** Bump required Emacs version to 26.1.
