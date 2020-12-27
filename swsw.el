@@ -72,7 +72,8 @@ CHARS, and call ‘swsw-update’."
       (user-error
        "‘swsw-id-chars’ should contain at least two characters")
     (set-default sym chars)
-    (swsw-update)))
+    (when (fboundp 'swsw-update)
+      (swsw-update))))
 
 (defcustom swsw-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed.
@@ -88,7 +89,8 @@ This list should contain at least two characters."
   "Set the variable ‘swsw-scope’.
 Set SYM’s value to SCOPE and call ‘swsw-update’."
   (set-default sym scope)
-  (swsw-update))
+  (when (fboundp 'swsw-update)
+    (swsw-update)))
 
 (defcustom swsw-scope t
   "Scope of all window operations.
