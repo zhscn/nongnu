@@ -129,16 +129,6 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
       (selected-frame)
     swsw-scope))
 
-(defun swsw--get-possible-ids (&rest char-lists)
-  "Return the Cartesian product of all CHAR-LISTS."
-  (if char-lists
-      (mapcan (lambda (inner)
-                (mapcar (lambda (outer)
-                          (cons outer inner))
-                        (car char-lists)))
-              (apply #'swsw--get-possible-ids (cdr char-lists)))
-    (list nil)))
-
 (defun swsw--get-id-length ()
   "Return the current length of a window ID."
   (let ((windows (length (window-list-1 nil nil (swsw--get-scope)))))
@@ -149,11 +139,29 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
                 windows
                 (length swsw-id-chars))))))
 
+(defvar swsw--id-counter nil
+  "Counter which determines the next possible ID.")
+
+(defun swsw--next-id ()
+  "Get the next available ID."
+  (let ((len (length swsw-id-chars)) (adv-flag t) id)
+    (setq swsw--id-counter
+          (mapcar (lambda (elt)
+                    (push (nth elt swsw-id-chars) id)
+                    ;; Advance ‘swsw--id-counter’.
+                    (when adv-flag
+                      (if (= len (setq elt (1+ elt)))
+                          (setq elt 0)
+                        (setq adv-flag nil)))
+                    elt)
+                  swsw--id-counter))
+    id))
+
 (defun swsw-update-window (window)
   "Update information for WINDOW."
   (let ((id (if (window-minibuffer-p window)
                 swsw-minibuffer-id
-              (pop swsw-ids))))
+              (swsw--next-id))))
     (when id
       (push (cons id window) swsw-window-list)
       (set-window-parameter window 'swsw-id id))))
@@ -161,12 +169,11 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
 (defun swsw-update (&optional _frame)
   "Update information for all windows."
   (setq swsw-window-list nil
-        ;; Build a list of all possible IDs for the current length.
-        swsw-ids (let ((acc 0) (len (swsw--get-id-length)) char-lists)
-                   (while (< acc len)
-                     (push swsw-id-chars char-lists)
-                     (setq acc (1+ acc)))
-                   (apply #'swsw--get-possible-ids char-lists)))
+        swsw--id-counter nil)
+  (let ((acc 0) (len (swsw--get-id-length)))
+    (while (< acc len)
+      (push 0 swsw--id-counter)
+      (setq acc (1+ acc))))
   (walk-windows #'swsw-update-window nil (swsw--get-scope)))
 
 (defun swsw-format-id (window)
