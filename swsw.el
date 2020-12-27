@@ -117,9 +117,6 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
 
 ;;;; Simple window switching minor mode:
 
-(defvar swsw-ids nil
-  "IDs which can currently be assigned to windows.")
-
 (defvar swsw-window-list nil
   "Alist of active active windows and their IDs.")
 
