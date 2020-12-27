@@ -141,9 +141,13 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
 
 (defun swsw--get-id-length ()
   "Return the current length of a window ID."
-  (ceiling (log
-            (length (window-list-1 nil nil (swsw--get-scope)))
-            (length swsw-id-chars))))
+  (let ((windows (length (window-list-1 nil nil (swsw--get-scope)))))
+    ;; If there is only one window, return 1.
+    (if (= windows 1)
+        1
+      (ceiling (log
+                windows
+                (length swsw-id-chars))))))
 
 (defun swsw-update-window (window)
   "Update information for WINDOW."
