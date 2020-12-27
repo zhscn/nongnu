@@ -43,7 +43,7 @@
 ;;
 ;; When swsw-mode is active:
 ;; - A window ID is displayed using a mode line lighter or a display
-;;    function (see ‘swsw-display-function’).
+;;   function (see ‘swsw-display-function’).
 ;; - A single (predefined) character corresponds to the minibuffer
 ;;   (see ‘swsw-minibuffer-id’).
 ;; - Window IDs are assigned to all windows on all frames (by default,
@@ -54,6 +54,8 @@
 ;; You can customize ‘swsw-mode’ using the customize interface:
 ;;
 ;; M-x customize-group RET swsw RET
+;;
+;; For more information see the (swsw) info node.
 
 ;;; Code:
 
