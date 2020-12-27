@@ -84,6 +84,12 @@ This list should contain at least two characters."
   "ID reserved for the minibuffer."
   :type '(character))
 
+(defun swsw--set-scope (sym scope)
+  "Set the variable ‘swsw-scope’.
+Set SYM’s value to SCOPE and call ‘swsw-update’."
+  (set-default sym scope)
+  (swsw-update))
+
 (defcustom swsw-scope t
   "Scope of all window operations.
 t means consider all windows on all existing frames.
@@ -96,7 +102,9 @@ t means consider all windows on all existing frames.
                  :tag "All windows on all visible and iconified frames." 0)
                 (const :tag "All windows on all visible frames" visible)
                 (const
-                 :tag "All window on the currently selected frame" current)))
+                 :tag "All window on the currently selected frame"
+                 current))
+  :set #'swsw--set-scope)
 
 (eval-when-compile ; Avoid byte-compilation warning.
   (defvar swsw-display-function))
