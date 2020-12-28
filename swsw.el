@@ -212,8 +212,8 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
 
 (defun swsw-select (&optional id)
   "Select a window by its ID.
-If less than three windows have been assigned an ID,
-call ‘other-window’.
+If less than three windows have been assigned an ID, select the
+window returned by ‘next-window’.
 This command is intended to be used only when ‘swsw-mode’ is enabled."
   (interactive (unless (< (length swsw-window-list) 3)
                  (run-hooks 'swsw-before-select-hook)
