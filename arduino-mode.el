@@ -342,7 +342,8 @@ Value is a symbol.  The possible values are the symbols in the
   ;; initialization to get the syntactic analysis and similar things working.
   (c-common-init 'arduino-mode)
   
-  (easy-menu-add arduino-menu)
+  (when (version<= emacs-version "28.1")
+    (easy-menu-add arduino-menu))
   (set (make-local-variable 'c-basic-offset) 2)
   (set (make-local-variable 'tab-width) 2))
 
