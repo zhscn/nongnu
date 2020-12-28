@@ -68,24 +68,41 @@
 
 (defun swsw--set-id-chars (sym chars)
   "Set the variable ‘swsw-id-chars’.
-Check that the new list has at least two elements, set SYM’s value to
+Check that the new list has at least two elements, check that no
+element is equal to ‘swsw-minibuffer-id’, set SYM’s value to
 CHARS, and call ‘swsw-update’."
-  (if (< (length chars) 2)
-      (user-error
-       "‘swsw-id-chars’ should contain at least two characters")
-    (set-default sym chars)
-    (when (fboundp 'swsw-update)
-      (swsw-update))))
+  (cond ((< (length chars) 2)
+         (user-error
+          "‘swsw-id-chars’ should contain at least two characters"))
+        ((memq ?m chars)
+         (user-error
+          "‘swsw-id-chars’ shouldn't contain ‘swsw-minibuffer-id’"))
+        (t
+         (set-default sym chars)
+         (when (fboundp 'swsw-update)
+           (swsw-update)))))
 
 (defcustom swsw-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed.
-This list should contain at least two characters."
+This list should contain at least two characters.
+No character in this list should be equal to ‘swsw-minibuffer-id’."
   :type '(repeat character)
   :set #'swsw--set-id-chars)
 
+(defun swsw--set-minibuffer-id (sym id)
+  "Set the variable ‘swsw-minbuffer-id’.
+Check that ID isn't a member of ‘swsw-id-chars’ and set SYM’s value to
+ID."
+  (if (memq id swsw-id-chars)
+      (user-error
+       "‘swsw-minibuffer-id’ shouldn't be a member of ‘swsw-id-chars’")
+    (set-default sym id)))
+
 (defcustom swsw-minibuffer-id ?m
-  "ID reserved for the minibuffer."
-  :type '(character))
+  "ID reserved for the minibuffer.
+This character shouldn't appear in ‘swsw-id-chars’."
+  :type '(character)
+  :set #'swsw--set-minibuffer-id)
 
 (defun swsw--set-scope (sym scope)
   "Set the variable ‘swsw-scope’.
