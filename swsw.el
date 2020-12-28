@@ -221,7 +221,8 @@ This command is intended to be used only when ‘swsw-mode’ is enabled."
                      (swsw--read-id (swsw--get-id-length))
                    (run-hooks 'swsw-after-select-hook))))
   (let ((window (cdr (assoc id swsw-window-list))))
-    (select-window (if window window (next-window)))))
+    (select-window (if window window
+                     (if id (selected-window) (next-window))))))
 
 ;;;###autoload
 (define-minor-mode swsw-mode
