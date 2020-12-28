@@ -3,7 +3,7 @@ swsw NEWS -- history of user-visible changes.
 * 1.2 (currently in development)
 No user facing changes have been made yet.
 
-* 1.1.2
+* 1.1.2 (currently in development)
 
 ** Apply customization options immediately.
 Customizing swsw-id-chars and swsw-scope and applying those changes now
@@ -14,7 +14,13 @@ This should hopefully help performance when dealing with a very large
 number of windows.
 
 ** Fix the calculation of the ID length.
-Previously the ID length reported was much bigger than it needed to be.
+Previously the ID length reported was much bigger than it needed to
+be.
+
+** Prevent setting the minibuffer ID to a character which can be used to
+construct a regular ID, and vice versa.
+
+** Fix window selection occurring when entering an invalid ID.
 
 * 1.1.1
 
