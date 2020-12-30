@@ -345,17 +345,15 @@ Value is a symbol.  The possible values are the symbols in the
   (when (version<= emacs-version "28.1")
     (easy-menu-add arduino-menu))
   (set (make-local-variable 'c-basic-offset) 2)
-  (set (make-local-variable 'tab-width) 2))
+  (set (make-local-variable 'tab-width) 2)
+
+  (require 'flycheck-arduino)
+  (flycheck-arduino-setup))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.pde\\'" . arduino-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ino\\'" . arduino-mode))
-
-;;;###autoload
-(require 'flycheck-arduino)
-;;;###autoload
-(add-hook 'arduino-mode-hook #'flycheck-arduino-setup)
 
 (provide 'arduino-mode)
 ;;; arduino-mode.el ends here
