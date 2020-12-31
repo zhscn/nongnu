@@ -45,6 +45,8 @@
   ;; fall back on c-mode
   (c-add-language 'arduino-mode 'c-mode))
 
+(require 'flycheck-arduino)
+
 (defgroup arduino-mode nil
   "Customize arduino-mode."
   :prefix "arduino-mode-"
@@ -347,7 +349,6 @@ Value is a symbol.  The possible values are the symbols in the
   (set (make-local-variable 'c-basic-offset) 2)
   (set (make-local-variable 'tab-width) 2)
 
-  (require 'flycheck-arduino)
   (flycheck-arduino-setup))
 
 ;;;###autoload
