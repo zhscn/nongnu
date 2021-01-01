@@ -1,5 +1,5 @@
 swsw NEWS -- history of user-visible changes.
-See the end of the file for an explanation for the versioning scheme.
+See the end of the file for an explanation of the versioning scheme.
 
 * 1.2 (currently in development)
 No user facing changes have been made yet.
@@ -34,13 +34,13 @@ the LICENSE file.
 ** Update the homepage of the package to dsemy.com/software/swsw.
 
 ** Update documentation strings.
-Documentation string for several functions and variables have been updated to
+Documentation strings for several functions and variables have been updated to
 be more clear and to better comply with Emacs' conventions.
 
 ** Update installation instructions.
 Installation instructions have been updated to indicate the possibility of
 installing the package from GNU ELPA.
-Note: at the time of writing this isn't actually possible yet, but the
+Note: at the time of writing this, this isn't actually possible yet, but the
 instructions have been updated since I'm expecting this to be possible soon.
 
 * 1.1
@@ -59,16 +59,8 @@ package in detail.
 
 * 1.0
 
-** Stable version.
-All user facing customization options will accept and correctly handle values
-accepted by this version until (at least) version 2.0.
-All user facing customization options introduced between this version and
-version 2.0 will be accept and handle correctly values accepted by that version
-until (at least) version 2.0.
-Note: no version 2.0 is planned currently.
-
 ** Add support for multi-character IDs.
-IDs can now be constructed from multiple character, taken from swsw-id-chars,
+IDs can now be constructed from multiple characters taken from swsw-id-chars,
 when there are enough tracked windows.
 
 ** Add support for alternate display functions.
