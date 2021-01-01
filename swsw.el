@@ -120,7 +120,7 @@ t means consider all windows on all existing frames.
 ‘current’ means consider only the currently selected frame."
   :type '(radio (const :tag "All windows on all frames" t)
                 (const
-                 :tag "All windows on all visible and iconified frames." 0)
+                 :tag "All windows on all visible and iconified frames" 0)
                 (const :tag "All windows on all visible frames" visible)
                 (const
                  :tag "All window on the currently selected frame"
