@@ -71,6 +71,7 @@ Installation
 Customization
 
 * Display functions::
+* Window commands::
 
 @end detailmenu
 @end menu
