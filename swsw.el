@@ -209,6 +209,54 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
       (setq acc (1+ acc))))
   (walk-windows #'swsw-update-window nil (swsw--get-scope)))
 
+;;;; Display functions:
+
+(defun swsw-format-id (window)
+  "Format an ID string for WINDOW."
+  (format swsw-id-format
+          (apply #'string (window-parameter window 'swsw-id))))
+
+(defun swsw--mode-line-display ()
+  "Display window IDs at the beginning of the mode line."
+  (setq-default mode-line-format
+                `((swsw-mode
+                   (:eval (swsw-format-id (selected-window))))
+                  ,@(assq-delete-all
+                     `swsw-mode
+                     (default-value `mode-line-format))))
+  (force-mode-line-update t))
+
+(defun swsw--mode-line-hide ()
+  "Remove window IDs from the beginning of the mode line."
+  (setq-default mode-line-format
+                (assq-delete-all
+                 'swsw-mode
+                 (default-value 'mode-line-format)))
+  (force-mode-line-update t))
+
+(defun swsw-mode-line-display-function (switch)
+  "Display window IDs at the beginning of the mode line.
+Display window IDs if SWITCH isn't nil, and disable displaying window
+IDs if SWITCH is nil.
+This display function respects ‘swsw-id-format’."
+  (if switch
+      (swsw--mode-line-display)
+    (swsw--mode-line-hide)))
+
+(defun swsw-mode-line-conditional-display-function (switch)
+  "Display window IDs at the beginning of the mode line, conditionally.
+Add a hook to ‘swsw-before-command-hook’ which displays window IDs on
+the mode line and add a hook to ‘swsw-after-command-hook’ which hides
+window IDs from the mode line if SWITCH isn't nil, and remove those
+hooks if SWITCH is nil.
+This display function respects ‘swsw-id-format’."
+  (if switch
+      (progn
+        (add-hook 'swsw-before-command-hook #'swsw--mode-line-display)
+        (add-hook 'swsw-after-command-hook #'swsw--mode-line-hide))
+    (remove-hook 'swsw-before-command-hook #'swsw--mode-line-display)
+    (remove-hook 'swsw-after-command-hook #'swsw--mode-line-hide)))
+
 ;;;; Window commands:
 
 (defun swsw--run-window-command (fun)
@@ -265,11 +313,6 @@ selection.")
 
 ;;;; Simple window switching mode:
 
-(defun swsw-format-id (window)
-  "Format an ID string for WINDOW."
-  (format swsw-id-format
-          (apply #'string (window-parameter window 'swsw-id))))
-
 ;;;###autoload
 (define-minor-mode swsw-mode
   "Minor mode for managing windows using an ID assigned to them
@@ -294,49 +337,6 @@ automatically."
     (remove-hook 'minibuffer-setup-hook #'swsw-update)
     (remove-hook 'minibuffer-exit-hook #'swsw-update)
     (remove-hook 'after-delete-frame-functions #'swsw-update)))
-
-;;;; Display functions:
-
-(defun swsw--mode-line-display ()
-  "Display window IDs at the beginning of the mode line."
-  (setq-default mode-line-format
-                `((swsw-mode
-                   (:eval (swsw-format-id (selected-window))))
-                  ,@(assq-delete-all
-                     `swsw-mode
-                     (default-value `mode-line-format))))
-  (force-mode-line-update t))
-
-(defun swsw--mode-line-hide ()
-  "Remove window IDs from the beginning of the mode line."
-  (setq-default mode-line-format
-                (assq-delete-all
-                 'swsw-mode
-                 (default-value 'mode-line-format)))
-  (force-mode-line-update t))
-
-(defun swsw-mode-line-display-function (switch)
-  "Display window IDs at the beginning of the mode line.
-Display window IDs if SWITCH isn't nil, and disable displaying window
-IDs if SWITCH is nil.
-This display function respects ‘swsw-id-format’."
-  (if switch
-      (swsw--mode-line-display)
-    (swsw--mode-line-hide)))
-
-(defun swsw-mode-line-conditional-display-function (switch)
-  "Display window IDs at the beginning of the mode line, conditionally.
-Add a hook to ‘swsw-before-command-hook’ which displays window IDs on
-the mode line and add a hook to ‘swsw-after-command-hook’ which hides
-window IDs from the mode line if SWITCH isn't nil, and remove those
-hooks if SWITCH is nil.
-This display function respects ‘swsw-id-format’."
-  (if switch
-      (progn
-        (add-hook 'swsw-before-command-hook #'swsw--mode-line-display)
-        (add-hook 'swsw-after-command-hook #'swsw--mode-line-hide))
-    (remove-hook 'swsw-before-command-hook #'swsw--mode-line-display)
-    (remove-hook 'swsw-after-command-hook #'swsw--mode-line-hide)))
 
 (provide 'swsw)
 
