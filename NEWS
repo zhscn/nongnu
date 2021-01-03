@@ -1,7 +1,7 @@
 swsw NEWS -- history of user-visible changes.
 See the end of the file for an explanation of the versioning scheme.
 
-* 2.0 (currently in development)
+* 2.0
 
 ** Add support for custom window management commands.
 Binding a command to a key in swsw-command-map allows you to call that

@@ -1,5 +1,5 @@
 PKG     = swsw
-VERSION = 1.1.2
+VERSION = 2.0
 
 INSTALLINFO = install-info
 MAKEINFO    = makeinfo
