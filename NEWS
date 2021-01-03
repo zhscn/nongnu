@@ -1,10 +1,20 @@
 swsw NEWS -- history of user-visible changes.
 See the end of the file for an explanation of the versioning scheme.
 
-* 1.2 (currently in development)
-No user facing changes have been made yet.
+* 2.0 (currently in development)
 
-* 1.1.2 (currently in development)
+** Add support for custom window management commands.
+Binding a command to a key in swsw-command-map allows you to call that
+command instead of selecting an ID.
+Currently three such commands are defined: swsw-select (o),
+swsw-select-minibuffer (m), swsw-delete (0).
+
+** Breaking changes.
+swsw-minibuffer-id is no longer defined or used anywhere, instead
+providing the same functionality through swsw-select-minibuffer.
+swsw-select no longer accepts a window ID as an optional argument.
+
+* 1.1.2
 
 ** Apply customization options immediately.
 Customizing swsw-id-chars and swsw-scope and applying those changes now

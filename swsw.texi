@@ -132,9 +132,8 @@ In order to use any feature of the package, @code{swsw-mode} must be enabled:
 @cindex swsw-mode
 @table @asis
 @item @kbd{M-x swsw-mode RET}
-@end table
-
 You can also add @code{(swsw-mode)} to your init file, instead.
+@end table
 
 By default, window IDs will be shown as mode line lighters of the
 form @code{<ID>}.
@@ -142,15 +141,36 @@ form @code{<ID>}.
 @kindex C-x o
 @cindex swsw-select
 @table @asis
-@item @kbd{C-x o ID}
+@item @kbd{C-x o}
+Start window selection (@code{swsw-select}).
+This command sets a transient key map in which several window
+commands are defined, and window IDs can be selected.
+Selecting a window ID (by pressing @kbd{ID}) will switch to window
+corresponding to it.
+
+@kindex C-x o m
+@cindex swsw-select-minibuffer
+@item @kbd{C-x o m}
+Switch focus the minibuffer if it's active
+(@code{swsw-select-minibuffer}).
+
+@kindex C-x o 0
+@cindex swsw-delete
+@item @kbd{C-x o 0}
+Start window deletion (@code{swsw-delete}).
+This command sets a transient key map in which several window
+commands are defined, and window IDs can be selected.
+Selecting a window ID (by pressing @kbd{ID}) will delete the window
+corresponding to it.
 @end table
-Switch to the window corresponding to @code{ID} (@code{swsw-select}).
+
+@xref{Window commands} for information regarding defining new commands.
 
 @node Customization
 @chapter Customization
 
-All customization, except for defining custom display functions, can be done
-through the customize interface:
+All customization, except for defining custom display functions and
+custom window commands, can be done through the customize interface:
 
 @table @asis
 @item @kbd{M-x customize-group RET swsw RET}
@@ -160,11 +180,6 @@ through the customize interface:
 Base set of character from which window IDs are constructed. This should be a
 list of characters. By default, the home row (@code{a s d f g h j k l}) is
 used.
-@end defopt
-
-@defopt swsw-minibuffer-id
-ID reserved for the minibuffer. This should be a single character. By default,
-@code{m} is used.
 @end defopt
 
 @defopt swsw-id-format
@@ -185,6 +200,7 @@ frames, @code{visible} means consider all windows on all visible frames and
 
 @menu
 * Display functions::
+* Window commands::
 @end menu
 
 @node Display functions
@@ -223,6 +239,43 @@ Reference implementation of a conditional display function. Add a hook to
 add a hook to @code{swsw-after-select-hook} which hides window IDs from the
 mode line if SWITCH isn't @code{nil}, and remove those hooks if SWITCH is
 @code{nil}. This display function respects @code{swsw-id-format}.
+@end defun
+
+@node Window commands
+@section Window commands
+
+Window commands are used to perform operations on specific
+windows. They are normal commands (interactive functions) which are
+bound to key in @code{swsw-command-map}. @code{swsw-select},
+@code{swsw-select-minibuffer} and @code{swsw-delete} are implemented
+as window commands.
+
+@defvar swsw--id-map
+Key map which is populated automatically with elements corresponding
+to all tracked windows. The ID of each window is converted to a vector
+(to serve as a key sequence), and corresponds to a command which calls
+@code{last-command} with the window corresponding to the ID as the
+sole argument. There should be no reason to modify it directly;
+it is reset whenever window configuration is updated.
+@end defvar
+
+@defvar swsw-command-map
+Key map which holds (usually) single character key bindings to window
+commands. This key map is set as the parent of @code{swsw--id-map}, so
+all window commands are available when it's active, unless they are
+shadowed by a window ID.
+@end defvar
+
+@defvar swsw-window-count
+Amount of windows currently tracked. This variable can be used to
+conditionally run window commands.
+@end defvar
+
+@defun swsw--run-window-command fun
+Run FUN as a window command. Run @code{swsw-before-command-hook}, set
+@code{this-command} to FUN, and set @code{swsw--id-map} as a transient
+map which runs @code{swsw-after-command-hook} on exit. This function
+can be used to easily define new window commands.
 @end defun
 
 @node Keystroke Index
