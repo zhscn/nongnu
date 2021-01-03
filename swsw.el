@@ -59,6 +59,11 @@
 
 ;;; Code:
 
+;; Avoid byte-compilation warnings.
+(eval-when-compile
+  (defvar swsw-display-function)
+  (defvar swsw-command-map))
+
 ;;;; Customization:
 
 (defgroup swsw nil
@@ -68,19 +73,13 @@
 
 (defun swsw--set-id-chars (sym chars)
   "Set the variable ‘swsw-id-chars’.
-Check that the new list has at least two elements, check that no
-element is equal to ‘swsw-minibuffer-id’, set SYM’s value to
+Check that the new list has at least two elements, set SYM’s value to
 CHARS, and call ‘swsw-update’."
-  (cond ((< (length chars) 2)
-         (user-error
-          "‘swsw-id-chars’ should contain at least two characters"))
-        ((memq ?m chars)
-         (user-error
-          "‘swsw-id-chars’ shouldn't contain ‘swsw-minibuffer-id’"))
-        (t
-         (set-default sym chars)
-         (when (fboundp 'swsw-update)
-           (swsw-update)))))
+  (when (< (length chars) 2)
+    (user-error "‘swsw-id-chars’ should contain at least two characters"))
+  (set-default sym chars)
+  (when (fboundp 'swsw-update)
+    (swsw-update)))
 
 (defcustom swsw-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed.
@@ -88,21 +87,6 @@ This list should contain at least two characters.
 No character in this list should be equal to ‘swsw-minibuffer-id’."
   :type '(repeat character)
   :set #'swsw--set-id-chars)
-
-(defun swsw--set-minibuffer-id (sym id)
-  "Set the variable ‘swsw-minbuffer-id’.
-Check that ID isn't a member of ‘swsw-id-chars’ and set SYM’s value to
-ID."
-  (if (memq id swsw-id-chars)
-      (user-error
-       "‘swsw-minibuffer-id’ shouldn't be a member of ‘swsw-id-chars’")
-    (set-default sym id)))
-
-(defcustom swsw-minibuffer-id ?m
-  "ID reserved for the minibuffer.
-This character shouldn't appear in ‘swsw-id-chars’."
-  :type '(character)
-  :set #'swsw--set-minibuffer-id)
 
 (defun swsw--set-scope (sym scope)
   "Set the variable ‘swsw-scope’.
@@ -126,9 +110,6 @@ t means consider all windows on all existing frames.
                  :tag "All window on the currently selected frame"
                  current))
   :set #'swsw--set-scope)
-
-(eval-when-compile ; Avoid byte-compilation warning.
-  (defvar swsw-display-function))
 
 (defun swsw--set-display-function (sym fun)
   "Set the variable ‘swsw-display-function’.
@@ -156,10 +137,16 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
 %s is replaced with a representation of the window's ID."
   :type '(string))
 
-;;;; Simple window switching minor mode:
+;;;; Window tracking:
 
-(defvar swsw-window-list nil
-  "Alist of active active windows and their IDs.")
+(defvar swsw--id-counter nil
+  "Counter which determines the next possible ID.")
+
+(defvar swsw--id-map (make-sparse-keymap)
+  "Key map for window ID selection.")
+
+(defvar swsw-window-count 0
+  "Amount of windows that have been assigned an ID.")
 
 (defun swsw--get-scope ()
   "Return the current scope in which windows should be tracked."
@@ -173,9 +160,6 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
     ;; If there is only one window, return 1.
     (if (= windows 1) 1
       (ceiling (log windows (length swsw-id-chars))))))
-
-(defvar swsw--id-counter nil
-  "Counter which determines the next possible ID.")
 
 (defun swsw--next-id ()
   "Get the next available ID."
@@ -195,57 +179,82 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
 (defun swsw-update-window (window)
   "Update information for WINDOW."
   (let ((id (if (window-minibuffer-p window)
-                swsw-minibuffer-id
+                (progn
+                  (setq swsw-window-count (1+ swsw-window-count))
+                  nil)
               (swsw--next-id))))
     (when id
-      (push (cons id window) swsw-window-list)
-      (set-window-parameter window 'swsw-id id))))
+      (define-key swsw--id-map (apply #'vector id)
+        `(lambda ()
+           (interactive)
+           (funcall last-command ,window)))
+      (set-window-parameter window 'swsw-id id)
+      (setq swsw-window-count (1+ swsw-window-count)))))
 
 (defun swsw-update (&optional _frame)
   "Update information for all windows."
-  (setq swsw-window-list nil
-        swsw--id-counter nil)
+  (setq swsw--id-map (make-sparse-keymap))
+  (set-keymap-parent swsw--id-map swsw-command-map)
+  (setq swsw--id-counter nil
+        swsw-window-count 0)
   (let ((acc 0) (len (swsw--get-id-length)))
     (while (< acc len)
       (push 0 swsw--id-counter)
       (setq acc (1+ acc))))
   (walk-windows #'swsw-update-window nil (swsw--get-scope)))
 
+;;;; Window commands:
+
+(defun swsw--run-window-command (fun)
+  "Run FUN as a window command.
+Run ‘swsw-before-command-hook’, set ‘this-command’ to FUN and set a
+transient map for ID selection which runs ‘swsw-after-command-hook’ on
+exit."
+  (run-hooks 'swsw-before-command-hook)
+  (setq this-command fun)
+  (set-transient-map swsw--id-map (lambda ()
+                                    (run-hooks
+                                     'swsw-after-command-hook))))
+
+(defun swsw-select ()
+  "Start window selection.
+If less than three windows have been assigned an ID, switch to the
+window returned by ‘next-window’.
+Otherwise, window selection allows either choosing a window by its ID
+\(switching to it), or using a window manipulation command.
+This command is intended to be used only when ‘swsw-mode’ is enabled."
+  (interactive)
+  (if (< swsw-window-count 3)
+      (select-window (next-window))
+    (swsw--run-window-command #'select-window)))
+
+(defun swsw-select-minibuffer ()
+  "Select the active minibuffer window (if it exists).
+This command is intended to be used only when ‘swsw-mode’ is enabled."
+  (interactive)
+  (let ((window (active-minibuffer-window)))
+    (if window (select-window window)
+      (message "There is no active minibuffer window"))))
+
+(defvar swsw-command-map (let ((map (make-sparse-keymap)))
+                           (define-key map [?o] #'swsw-select)
+                           (define-key map [?m] #'swsw-select-minibuffer)
+                           map)
+  "Key map for window commands.
+This key map is set as the parent of ‘swsw--id-map’ during ID
+selection.")
+
+;;;; Simple window switching mode:
+
 (defun swsw-format-id (window)
   "Format an ID string for WINDOW."
   (format swsw-id-format
-          (reverse (apply #'string (window-parameter window 'swsw-id)))))
-
-(defun swsw--read-id (len)
-  "Read a window ID of length LEN using ‘read-char’."
-  (let ((acc 1) id)
-    ;; Special case for the minibuffer.
-    (if (eq (car (push (read-char) id)) swsw-minibuffer-id)
-        id
-      (while (< acc len)
-        (push (read-char) id)
-        (setq acc (1+ acc)))
-      (list id))))
-
-(defun swsw-select (&optional id)
-  "Select a window by its ID.
-If less than three windows have been assigned an ID, select the
-window returned by ‘next-window’.
-This command is intended to be used only when ‘swsw-mode’ is enabled."
-  (interactive (unless (< (length swsw-window-list) 3)
-                 (run-hooks 'swsw-before-select-hook)
-                 (unwind-protect
-                     (swsw--read-id (swsw--get-id-length))
-                   (run-hooks 'swsw-after-select-hook))))
-  (let ((window (cdr (assoc id swsw-window-list))))
-    (select-window (if window window
-                     (if id (selected-window) (next-window))))))
+          (apply #'string (window-parameter window 'swsw-id))))
 
 ;;;###autoload
 (define-minor-mode swsw-mode
-  "Minor mode for selecting windows by their ID.
-
-Use \\[swsw-select] to select a window."
+  "Minor mode for managing windows using an ID assigned to them
+automatically."
   :global t
   :lighter
   (:eval (when (eq swsw-display-function 'lighter)
@@ -298,17 +307,17 @@ This display function respects ‘swsw-id-format’."
 
 (defun swsw-mode-line-conditional-display-function (switch)
   "Display window IDs at the beginning of the mode line, conditionally.
-Add a hook to ‘swsw-before-select-hook’ which displays window IDs on
-the mode line and add a hook to ‘swsw-after-select-hook’ which hides
+Add a hook to ‘swsw-before-command-hook’ which displays window IDs on
+the mode line and add a hook to ‘swsw-after-command-hook’ which hides
 window IDs from the mode line if SWITCH isn't nil, and remove those
 hooks if SWITCH is nil.
 This display function respects ‘swsw-id-format’."
   (if switch
       (progn
-        (add-hook 'swsw-before-select-hook #'swsw--mode-line-display)
-        (add-hook 'swsw-after-select-hook #'swsw--mode-line-hide))
-    (remove-hook 'swsw-before-select-hook #'swsw--mode-line-display)
-    (remove-hook 'swsw-after-select-hook #'swsw--mode-line-hide)))
+        (add-hook 'swsw-before-command-hook #'swsw--mode-line-display)
+        (add-hook 'swsw-after-command-hook #'swsw--mode-line-hide))
+    (remove-hook 'swsw-before-command-hook #'swsw--mode-line-display)
+    (remove-hook 'swsw-after-command-hook #'swsw--mode-line-hide)))
 
 (provide 'swsw)
 
