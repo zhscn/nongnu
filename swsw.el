@@ -236,9 +236,22 @@ This command is intended to be used only when ‘swsw-mode’ is enabled."
     (if window (select-window window)
       (message "There is no active minibuffer window"))))
 
+(defun swsw-delete ()
+  "Start window deletion.
+If less than three windows have been assigned an ID, delete the window
+returned by ‘next-window’.
+Otherwise, window deletion allows either choosing a window by its ID
+\(deleting it), or using a window manipulation command.
+This command is intended to be used only when ‘swsw-mode’ is enabled."
+  (interactive)
+  (if (< swsw-window-count 3)
+      (delete-window (next-window))
+    (swsw--run-window-command #'delete-window)))
+
 (defvar swsw-command-map (let ((map (make-sparse-keymap)))
                            (define-key map [?o] #'swsw-select)
                            (define-key map [?m] #'swsw-select-minibuffer)
+                           (define-key map [?0] #'swsw-delete)
                            map)
   "Key map for window commands.
 This key map is set as the parent of ‘swsw--id-map’ during ID
