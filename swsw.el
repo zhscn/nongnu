@@ -299,7 +299,10 @@ Otherwise, window deletion allows either choosing a window by its ID
 This command is intended to be used only when ‘swsw-mode’ is enabled."
   (interactive)
   (if (< swsw-window-count 3)
-      (delete-window (next-window))
+      (let ((window (next-window)))
+        (unless (or (minibufferp (window-buffer window))
+                    (minibufferp)) ; Selected window.
+          (delete-window window)))
     (swsw--run-window-command #'delete-window)))
 
 (defvar swsw-command-map (let ((map (make-sparse-keymap)))
