@@ -89,8 +89,7 @@ CHARS, and call ‘swsw-update’."
 
 (defcustom swsw-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed.
-This list should contain at least two characters.
-No character in this list should be equal to ‘swsw-minibuffer-id’."
+This list should contain at least two characters."
   :type '(repeat character)
   :set #'swsw--set-id-chars)
 
