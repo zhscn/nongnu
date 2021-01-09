@@ -1,6 +1,6 @@
 ;;; swsw.el --- Simple window switching -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020 Daniel Semyonov
+;; Copyright (C) 2020-2021 Daniel Semyonov
 
 ;; Author: Daniel Semyonov <cmstr@dsemy.com>
 ;; Maintainer: Daniel Semyonov <cmstr@dsemy.com>
