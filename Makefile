@@ -5,9 +5,8 @@ include config.mk
 all: package
 
 help:
-	$(info make all      - generate info manual)
-	$(info make info     - generate info manual)
-	$(info make package  - generate tar file containing the package)
+	$(info make info     - generate the info manual)
+	$(info make package  - generate a tar file containing the package)
 	$(info make clean    - remove generated files)
 	@exit
 
