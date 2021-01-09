@@ -91,7 +91,8 @@ CHARS, and call ‘swsw-update’."
   "Base set of characters from which window IDs are constructed.
 This list should contain at least two characters."
   :type '(repeat character)
-  :set #'swsw--set-id-chars)
+  :set #'swsw--set-id-chars
+  :package-version '(swsw . 1.0))
 
 (defun swsw--set-scope (sym scope)
   "Set the variable ‘swsw-scope’.
@@ -114,7 +115,8 @@ t means consider all windows on all existing frames.
                 (const
                  :tag "All window on the currently selected frame"
                  current))
-  :set #'swsw--set-scope)
+  :set #'swsw--set-scope
+  :package-version '(swsw . 1.1))
 
 (defun swsw--set-display-function (sym fun)
   "Set the variable ‘swsw-display-function’.
@@ -135,12 +137,14 @@ This function is called with t as the sole argument when enabling
 If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
   :type '(radio (const :tag "Mode line lighter" lighter)
                 (function :tag "Display function"))
-  :set #'swsw--set-display-function)
+  :set #'swsw--set-display-function
+  :package-version '(swsw . 1.0))
 
 (defcustom swsw-id-format " <%s>"
   "Format string for the window ID.
 %s is replaced with a representation of the window's ID."
-  :type '(string))
+  :type '(string)
+  :package-version '(swsw . 1.0))
 
 ;;;; Window tracking:
 

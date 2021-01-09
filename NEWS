@@ -3,6 +3,8 @@ See the end of the file for an explanation of the versioning scheme.
 
 * 2.0.1 (currently in development)
 
+** Add version information to customizable variables.
+
 ** Fix swsw-delete when the only other tracked window is the minibuffer.
 
 * 2.0
