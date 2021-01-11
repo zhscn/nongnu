@@ -2,6 +2,8 @@ include config.mk
 
 .PHONY: info package clean
 
+.SUFFIXES: .texi .info
+
 all: package
 
 help:
@@ -10,18 +12,18 @@ help:
 	$(info make clean    - remove generated files)
 	@exit
 
-%.info: %.texi
+.texi.info:
 	$(MAKEINFO) --no-split $< -o $@
 
 dir: $(PKG).info
-	$(INSTALLINFO) $< $@
+	$(INSTALLINFO) $? $@
 
 info: $(PKG).info dir
 
-%.tar: $(PKG).info dir *.el LICENSE
+$(PKG)-$(VERSION).tar: $(PKG).info dir *.el LICENSE
 	mkdir $(PKG)-$(VERSION)
-	cp -a $^ $(PKG)-$(VERSION)/
-	tar -cf $@ $(PKG)-$(VERSION)
+	cp -a $? $(PKG)-$(VERSION)/
+	$(TAR) -cf $@ $(PKG)-$(VERSION)
 	rm -rf $(PKG)-$(VERSION)
 
 package: $(PKG)-$(VERSION).tar
