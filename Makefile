@@ -29,4 +29,4 @@ $(PKG)-$(VERSION).tar: $(PKG).info dir *.el LICENSE
 package: $(PKG)-$(VERSION).tar
 
 clean:
-	rm -rf $(PKG).info dir $(PKG)-$(VERSION).tar
+	rm -f $(PKG).info dir $(PKG)-$(VERSION).tar
