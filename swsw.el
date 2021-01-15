@@ -74,6 +74,7 @@
 
 (defgroup swsw nil
   "Simple window switching."
+  :link '(custom-manual "(swsw)Top")
   :group 'convenience
   :prefix "swsw-")
 
