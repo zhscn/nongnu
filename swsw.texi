@@ -217,16 +217,6 @@ will be @code{t} when enabling @code{swsw-mode} and @code{nil} when disabling
 it. By default, @code{lighter} is used.
 @end defopt
 
-@defvar swsw-before-select-hook
-Hook which runs after @code{swsw-select} is called, but before and ID has been
-read. This hook can be used display window IDs conditionally.
-@end defvar
-
-@defvar swsw-after-select-hook
-Hook which runs after reading an ID, or if the user interrupts
-@code{swsw--read-id}. This hook can be used hide window IDs conditionally.
-@end defvar
-
 @defun swsw-mode-line-display-function switch
 Reference implementation of a ``simple'' display function. Display window IDs on
 the mode line if SWITCH isn't @code{nil}, and hide window IDs from the mode
@@ -236,8 +226,8 @@ line if SWITCH is @code{nil}. This display function respects
 
 @defun swsw-mode-line-conditional-display-function switch
 Reference implementation of a conditional display function. Add a hook to
-@code{swsw-before-select-hook} which displays window IDs on the mode line and
-add a hook to @code{swsw-after-select-hook} which hides window IDs from the
+@code{swsw-before-command-hook} which displays window IDs on the mode line and
+add a hook to @code{swsw-after-command-hook} which hides window IDs from the
 mode line if SWITCH isn't @code{nil}, and remove those hooks if SWITCH is
 @code{nil}. This display function respects @code{swsw-id-format}.
 @end defun
@@ -247,7 +237,7 @@ mode line if SWITCH isn't @code{nil}, and remove those hooks if SWITCH is
 
 Window commands are used to perform operations on specific
 windows. They are normal commands (interactive functions) which are
-bound to key in @code{swsw-command-map}. @code{swsw-select},
+bound to a key sequence in @code{swsw-command-map}. @code{swsw-select},
 @code{swsw-select-minibuffer} and @code{swsw-delete} are implemented
 as window commands.
 
@@ -276,7 +266,10 @@ conditionally run window commands.
 Run FUN as a window command. Run @code{swsw-before-command-hook}, set
 @code{this-command} to FUN, and set @code{swsw--id-map} as a transient
 map which runs @code{swsw-after-command-hook} on exit. This function
-can be used to easily define new window commands.
+can be used to easily define new window commands. The hooks ran by
+this function are expected by swsw to run for any window command which
+requires ID selection; they should be manually added even if this
+function isn't used when defining a new window command.
 @end defun
 
 @node Keystroke Index

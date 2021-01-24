@@ -114,7 +114,7 @@ t means consider all windows on all existing frames.
                  :tag "All windows on all visible and iconified frames" 0)
                 (const :tag "All windows on all visible frames" visible)
                 (const
-                 :tag "All window on the currently selected frame"
+                 :tag "All windows on the currently selected frame"
                  current))
   :set #'swsw--set-scope
   :package-version '(swsw . 1.1))
@@ -175,6 +175,8 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
   "Get the next available ID."
   (let ((len (length swsw-id-chars)) (adv-flag t) id)
     (setq swsw--id-counter
+          ;; Translate the current value of the counter to the
+          ;; corresponding ID.
           (mapcar (lambda (elt)
                     (push (nth elt swsw-id-chars) id)
                     ;; Advance ‘swsw--id-counter’.
@@ -194,6 +196,12 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
                   nil)
               (swsw--next-id))))
     (when id
+      ;; Create a key sequence from the ID, which corresponds to a
+      ;; command which calls the last command (with the corresponding
+      ;; window as the sole argument).
+      ;; This allows controlling which command is invoked when
+      ;; choosing an ID by setting ‘this-command’ in a command which
+      ;; sets the transient map to ‘swsw--id-map’.
       (define-key swsw--id-map (apply #'vector id)
         `(lambda ()
            (interactive)

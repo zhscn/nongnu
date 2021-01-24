@@ -128,7 +128,7 @@ through the customize interface).
 A MAJOR version bump is very unlikely.
 The MINOR version is bumped when a feature is added in a non-breaking
 way.
-The PATCH version is bumped when a no feature is added (e.g. a version
+The PATCH version is bumped when no feature is added (e.g. a version
 with only fixes, or changes to documentation).
 
 Note that versions before 1.0 did not follow this scheme.
