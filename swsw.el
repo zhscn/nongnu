@@ -207,10 +207,9 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
   (set-keymap-parent swsw--id-map swsw-command-map)
   (setq swsw--id-counter nil
         swsw-window-count 0)
-  (let ((acc 0) (len (swsw--get-id-length)))
-    (while (< acc len)
-      (push 0 swsw--id-counter)
-      (setq acc (1+ acc))))
+  ;; Clear and resize ‘swsw--id-counter’ according to the ID length.
+  (dotimes (_var (swsw--get-id-length))
+    (push 0 swsw--id-counter))
   (walk-windows #'swsw-update-window nil (swsw--get-scope)))
 
 ;;;; Display functions:
