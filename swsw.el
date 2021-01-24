@@ -82,7 +82,7 @@
   "Set the variable ‘swsw-id-chars’.
 Check that the new list has at least two elements, set SYM’s value to
 CHARS, and call ‘swsw-update’."
-  (when (< (length chars) 2)
+  (unless (nth 1 chars)
     (user-error "‘swsw-id-chars’ should contain at least two characters"))
   (set-default sym chars)
   (when (fboundp 'swsw-update)
