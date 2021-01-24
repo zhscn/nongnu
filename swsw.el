@@ -292,7 +292,7 @@ This command is intended to be used only when ‘swsw-mode’ is enabled."
   (interactive)
   (let ((window (active-minibuffer-window)))
     (if window (select-window window)
-      (message "There is no active minibuffer window"))))
+      (user-error "There is no active minibuffer window"))))
 
 (defun swsw-delete ()
   "Start window deletion.
