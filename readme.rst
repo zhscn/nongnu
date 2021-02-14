@@ -1,15 +1,16 @@
 
+##############
 Scroll on Drag
-==============
+##############
 
 This package exposes ``scroll-on-drag`` where you can click and drag up/down to scroll
 at increasing speeds based on the drag distance.
 
-Available via `melpa <https://melpa.org>`__.
+Available via `melpa <https://melpa.org/#/scroll-on-drag>`__.
 
 
 Motivation
-----------
+==========
 
 Having an interactive scroll action that runs a highly varied speeds,
 either a few lines, or halfway down a large file.
@@ -18,7 +19,7 @@ either a few lines, or halfway down a large file.
 
 
 Features
---------
+========
 
 Smooth Scroll
    Especially useful when scrolling slowly
@@ -35,7 +36,7 @@ Un-intrusive
 
 
 Usage
------
+=====
 
 - This is not a mode, instead it is a function you can bind to a key
   (typically middle mouse) which scrolls until the button is released.
@@ -68,7 +69,7 @@ Usage
 
 
 Customization
--------------
+=============
 
 While the defaults seem to work well, these values can be customized.
 
