@@ -13,6 +13,8 @@ This has the following characteristics:
 - Only ever adds a single undo step.
 - Supports user defined completion *(needs to be documented)*.
 
+Available via `melpa <https://melpa.org/#/recomplete>`__.
+
 
 Motivation
 ==========
