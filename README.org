@@ -26,6 +26,13 @@
 
 use with package company-arduino to get Arduino code completing.
 
+** flycheck support
+
+#+begin_src emacs-lisp
+(require 'flycheck-arduino)
+(add-hook 'arduino-mode-hook #'flycheck-arduino-setup)
+#+end_src
+
 ** Org Mode Babel source block support with ob-arduino.el
 
 You need have Org-mode installed, ~ob-arduino.el~ is in Org-mode contrib/ now.
