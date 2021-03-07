@@ -15,6 +15,8 @@
 
 ;;; Code:
 
+(require 'geiser)
+
 (require 'geiser-connection)
 (require 'geiser-syntax)
 (require 'geiser-custom)
@@ -22,7 +24,6 @@
 (require 'geiser-eval)
 (require 'geiser-edit)
 (require 'geiser-log)
-(require 'geiser)
 
 (require 'compile)
 (require 'info-look)
@@ -187,6 +188,14 @@ This function uses `geiser-mit-init-file' if it exists."
 
 (geiser-impl--add-to-alist 'regexp "\\.scm$" 'mit t)
 (geiser-impl--add-to-alist 'regexp "\\.pkg$" 'mit t)
+
+;;;###autoload
+(autoload 'run-mit "geiser-mit" "Start a Geiser MIT/GNU Scheme REPL." t)
+
+;;;###autoload
+(autoload 'switch-to-mit "geiser-mit"
+  "Start a Geiser MIT/GNU Scheme REPL, or switch to a running one." t)
+
 
 (provide 'geiser-mit)
 ;;; geiser-mit.el ends here
