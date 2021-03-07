@@ -153,8 +153,8 @@ This function uses `geiser-mit-init-file' if it exists."
                               (%exit 0))")))
 
 (defconst geiser-mit--path-rx "^In \\([^:\n ]+\\):\n")
-(defun geiser-mit--startup (remote)
-  "Startup function, with REMOTE t if this is a remote connection."
+(defun geiser-mit--startup (_remote)
+  "Startup function."
   (let ((geiser-log-verbose-p t))
     (compilation-setup t)
     (when (and (stringp geiser-mit-source-directory)
