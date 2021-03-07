@@ -24,6 +24,7 @@
 (require 'geiser-eval)
 (require 'geiser-edit)
 (require 'geiser-log)
+(require 'geiser-impl)
 
 (require 'compile)
 (require 'info-look)
@@ -188,6 +189,7 @@ This function uses `geiser-mit-init-file' if it exists."
 
 (geiser-impl--add-to-alist 'regexp "\\.scm$" 'mit t)
 (geiser-impl--add-to-alist 'regexp "\\.pkg$" 'mit t)
+(add-to-list 'geiser-active-implementations 'mit)
 
 ;;;###autoload
 (autoload 'run-mit "geiser-mit" "Start a Geiser MIT/GNU Scheme REPL." t)
