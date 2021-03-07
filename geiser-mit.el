@@ -1,12 +1,16 @@
-;;; geiser-mit.el -- MIT/GNU Scheme's implementation of the geiser protocols
+;;; geiser-mit.el --- MIT/GNU Scheme's implementation of the geiser protocols  -*- lexical-binding: t; -*-
 
 ;; Author: Peter <craven@gmx.net>
-;; Maintainer:
+;; Maintainer: Jose A Ortega Ruiz <jao@gnu.org>
 ;; Keywords: languages, mit, scheme, geiser
-;; Homepage: https://gitlab.com/emacs-geiser/chez
-;; Package-Requires: ((emacs "24.4") (geiser-core "1.0"))
+;; Homepage: https://gitlab.com/emacs-geiser/mit
+;; Package-Requires: ((emacs "24.4") (geiser "0.12"))
 ;; SPDX-License-Identifier: BSD-3-Clause
-;; Version: 1.0
+;; Version: 0.13
+
+;;; Commentary:
+
+;; This package provides support for MIT-Scheme in geiser.
 
 
 ;;; Code:
@@ -49,6 +53,7 @@
 ;;; REPL support:
 
 (defun geiser-mit--binary ()
+  "Return path to MIT scheme."
   (if (listp geiser-mit-binary)
       (car geiser-mit-binary)
     geiser-mit-binary))
@@ -60,16 +65,17 @@
 (defun geiser-mit--parameters ()
   "Return a list with all parameters needed to start MIT/GNU Scheme.
 This function uses `geiser-mit-init-file' if it exists."
-  `("--load" ,(expand-file-name "geiser/load.scm" geiser-mit-scheme-dir))
-  )
+  `("--load" ,(expand-file-name "geiser/load.scm" geiser-mit-scheme-dir)))
 
-(defconst geiser-mit--prompt-regexp "[0-9]+ ([^)]+) => ") ;; *not* ]=>, that confuses syntax-ppss
+(defconst geiser-mit--prompt-regexp "[0-9]+ ([^)]+) => ")
+  ;; *not* ]=>, that confuses syntax-ppss
 (defconst geiser-mit--debugger-prompt-regexp "[0-9]+ error> ")
 
 
 ;;; Evaluation support:
 
 (defun geiser-mit--geiser-procedure (proc &rest args)
+  "Transform PROC in string for a scheme procedure using ARGS."
   (cl-case proc
     ((eval compile)
      (let ((form (mapconcat 'identity (cdr args) " "))
@@ -92,6 +98,7 @@ This function uses `geiser-mit-init-file' if it exists."
   ".*;; package: +\\(([^)]*)\\)")
 
 (defun geiser-mit--get-module (&optional module)
+  "Find current module, or normalize MODULE."
   (cond ((null module)
          (save-excursion
            (geiser-syntax--pop-to-top)
@@ -107,6 +114,7 @@ This function uses `geiser-mit-init-file' if it exists."
         (t :f)))
 
 (defun geiser-mit--module-cmd (module fmt &optional def)
+  "Apply FMT to create a command string to call DEF in the context of MODULE."
   (when module
     (let* ((module (geiser-mit--get-module module))
            (module (cond ((or (null module) (eq module :f)) def)
@@ -114,11 +122,15 @@ This function uses `geiser-mit-init-file' if it exists."
       (and module (format fmt module)))))
 
 (defun geiser-mit--enter-command (module)
+  "Scheme command to enter MODULE."
   (geiser-mit--module-cmd module "(geiser:ge '%s)" "()"))
 
-(defun geiser-mit--exit-command () "(%exit 0)")
+(defun geiser-mit--exit-command ()
+  "Scheme command to exit interpreter."
+  "(%exit 0)")
 
 (defun geiser-mit--symbol-begin (module)
+  "Return beginning of current symbol while in MODULE."
   (if module
       (max (save-excursion (beginning-of-line) (point))
            (save-excursion (skip-syntax-backward "^(>") (1- (point))))
@@ -130,6 +142,7 @@ This function uses `geiser-mit-init-file' if it exists."
 (defconst geiser-mit-minimum-version "9.1.1")
 
 (defun geiser-mit--version (binary)
+  "Run BINARY to obtain MIT Scheme version."
   (car (process-lines binary
                       "--quiet"
                       "--no-init-file"
@@ -139,11 +152,14 @@ This function uses `geiser-mit-init-file' if it exists."
 
 (defconst geiser-mit--path-rx "^In \\([^:\n ]+\\):\n")
 (defun geiser-mit--startup (remote)
+  "Startup function, with REMOTE t if this is a remote connection."
   (let ((geiser-log-verbose-p t))
     (compilation-setup t)
     (when (and (stringp geiser-mit-source-directory)
                (not (string= geiser-mit-source-directory "")))
-      (geiser-eval--send/wait (format "(geiser:set-mit-scheme-source-directory %S)" geiser-mit-source-directory)))))
+      (geiser-eval--send/wait
+       (format "(geiser:set-mit-scheme-source-directory %S)"
+               geiser-mit-source-directory)))))
 
 ;;; Implementation definition:
 
@@ -173,3 +189,4 @@ This function uses `geiser-mit-init-file' if it exists."
 (geiser-impl--add-to-alist 'regexp "\\.pkg$" 'mit t)
 
 (provide 'geiser-mit)
+;;; geiser-mit.el ends here
