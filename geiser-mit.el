@@ -163,6 +163,14 @@ This function uses `geiser-mit-init-file' if it exists."
        (format "(geiser:set-mit-scheme-source-directory %S)"
                geiser-mit-source-directory)))))
 
+;;; Recognising MIT buffers
+(defun geiser-mit--guess ()
+  "Try to determine whether we're in a MIT scheme buffer."
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward "^ *(declare (usual-integrations))" nil t)))
+
+
 ;;; Implementation definition:
 
 (define-geiser-implementation mit
@@ -182,7 +190,7 @@ This function uses `geiser-mit-init-file' if it exists."
   (find-symbol-begin geiser-mit--symbol-begin)
   ;; (display-error geiser-mit--display-error)
   ;; (external-help geiser-mit--manual-look-up)
-  ;; (check-buffer geiser-mit--guess)
+  (check-buffer geiser-mit--guess)
   ;; (keywords geiser-mit--keywords)
   ;; (case-sensitive geiser-mit-case-sensitive-p)
   )
