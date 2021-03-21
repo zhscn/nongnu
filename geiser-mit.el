@@ -202,10 +202,17 @@ This function uses `geiser-mit-init-file' if it exists."
 ;;;###autoload
 (autoload 'run-mit "geiser-mit" "Start a Geiser MIT/GNU Scheme REPL." t)
 
+(make-obsolete 'run-mit
+               "Functions not starting with their package prefix are deprecated."
+               "0.13")
+
 ;;;###autoload
 (autoload 'switch-to-mit "geiser-mit"
   "Start a Geiser MIT/GNU Scheme REPL, or switch to a running one." t)
 
+(make-obsolete 'switch-to-mit
+               "Functions not starting with their package prefix are deprecated."
+               "0.13")
 
 (provide 'geiser-mit)
 ;;; geiser-mit.el ends here
