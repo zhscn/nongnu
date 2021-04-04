@@ -81,6 +81,17 @@
 ;; ---------------------------------------------------------------------------
 ;; Generic Functions/Macros
 
+(defmacro recomplete--with-advice (fn-orig where fn-advice &rest body)
+  "Execute BODY with advice added WHERE using FN-ADVICE temporarily added to FN-ORIG."
+  `
+  (let ((fn-advice-var ,fn-advice))
+    (unwind-protect
+      (progn
+        (advice-add ,fn-orig ,where fn-advice-var)
+        ,@body)
+      (advice-remove ,fn-orig fn-advice-var))))
+
+
 ;; See: https://emacs.stackexchange.com/a/54412/2418
 (defmacro recomplete--with-undo-collapse (&rest body)
   "Like `progn' but perform BODY with undo collapsed."
@@ -114,13 +125,12 @@
   (declare (indent 1))
   `
   (let ((temp-message-list (list)))
-    (cl-letf
-      (
-        ((symbol-function 'message)
-          (lambda (&rest args)
-            ;; Only check if non-null because this is a signal not to log at all.
-            (when message-log-max
-              (push (apply 'format-message args) temp-message-list)))))
+    (recomplete--with-advice 'message
+      :override
+      (lambda (&rest args)
+        ;; Only check if non-null because this is a signal not to log at all.
+        (when message-log-max
+          (push (apply #'format-message args) temp-message-list)))
       (unwind-protect
         (progn
           ,@body)
@@ -205,16 +215,15 @@ Argument FN-CACHE stores the result for reuse."
   (pcase-let ((`(,result-choices ,word-beg ,word-end) (or fn-cache '(nil nil nil))))
 
     (unless result-choices
-      (cl-letf
-        (
-          ((symbol-function 'ispell-command-loop)
-            (lambda (miss _guess _word start end)
-              (when miss
-                (setq result-choices miss)
-                (setq word-beg (marker-position start))
-                (setq word-end (marker-position end))
-                ;; Return the word would make the correction, we do this ourselves next.
-                nil))))
+      (recomplete--with-advice 'ispell-command-loop
+        :override
+        (lambda (miss _guess _word start end)
+          (when miss
+            (setq result-choices miss)
+            (setq word-beg (marker-position start))
+            (setq word-end (marker-position end))
+            ;; Return the word would make the correction, we do this ourselves next.
+            nil))
         (ispell-word))
 
       (when result-choices
