@@ -86,18 +86,18 @@ Key binding example, using ``Alt-Shift-P``:
          (call-interactively 'recomplete-ispell-word))))
 
 
-Details
--------
-
-- Results are cached for fast execution.
-- Any non ``recomplete`` command breaks the completion chain.
-
-
 Customization
 -------------
 
 ``recomplete-single-line-display``
    Limit display completion options to a single line, centered around the current item.
+
+
+Details
+=======
+
+- Results are cached for fast execution.
+- Any non ``recomplete`` command breaks the completion chain.
 
 
 TODO
