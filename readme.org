@@ -3,6 +3,5 @@
 This package provides support for using [[https://www.gnu.org/software/mit-scheme/][MIT/GNU Scheme]] in Emacs with
 [[http://geiser.nongnu.org][Geiser]].
 
-Provided [[https://gitlab.com/emacs-geiser/core][geiser-core]] is installed in your system, if this package's
-directory is in your load path, just add ~(require 'geiser-mit)~ to
-your initialisation files and then ~M-x run-mit~ to start a REPL.
+The easiest way to install ~geiser-mit~ is from MELPA, using ~M-x
+package-install RET geiser-mit~.
