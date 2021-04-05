@@ -196,8 +196,12 @@ This function uses `geiser-mit-init-file' if it exists."
   )
 
 (geiser-impl--add-to-alist 'regexp "\\.scm$" 'mit t)
+
+;;;###autoload
 (geiser-impl--add-to-alist 'regexp "\\.pkg$" 'mit t)
-(add-to-list 'geiser-active-implementations 'mit)
+
+;;;###autoload
+(geiser-activate-implementation 'mit)
 
 ;;;###autoload
 (autoload 'run-mit "geiser-mit" "Start a Geiser MIT/GNU Scheme REPL." t)
