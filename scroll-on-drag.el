@@ -197,9 +197,6 @@ Returns true when scrolling took place, otherwise nil."
       (restore-window-start (window-start))
       (restore-point (point))
 
-      ;; X11 cursor.
-      (restore-x-pointer-shape (and (boundp 'x-pointer-shape) x-pointer-shape))
-
       ;; Restore indent (lost when scrolling).
       (restore-column (current-column))
 
@@ -347,12 +344,6 @@ Returns true when scrolling took place, otherwise nil."
                 (run-hooks 'scroll-on-drag-redisplay-hook)
                 (redisplay)))))))
 
-    ;; Set arrow cursor (avoids annoying flicker on scroll).
-    (when (display-graphic-p)
-      (setq x-pointer-shape x-pointer-top-left-arrow)
-      (set-mouse-color nil))
-
-
     ;; ---------------
     ;; Main Event Loop
 
@@ -408,11 +399,6 @@ Returns true when scrolling took place, otherwise nil."
     ;; Restore indent level if possible.
     (when (and has-scrolled (> restore-column 0))
       (move-to-column restore-column))
-
-    ;; Restore pointer.
-    (when (boundp 'x-pointer-shape)
-      (setq x-pointer-shape restore-x-pointer-shape)
-      (set-mouse-color nil))
 
     (when has-scrolled-real
       (let ((inhibit-redisplay nil))
