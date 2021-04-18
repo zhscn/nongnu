@@ -512,7 +512,8 @@ Argument CYCLE-OFFSET The offset for cycling words, 1 or -1 for forward/backward
                         (truncate-string-to-width msg-text msg-end msg-start 0 ellipsis))
 
                       (unless (zerop msg-start)
-                        (setq msg-text (concat ellipsis (substring msg-text (length ellipsis)))))))))
+                        (setq msg-text
+                          (concat ellipsis (substring msg-text (length ellipsis)))))))))
               ;; End single line display.
 
               ;; Run last so we can ensure it's the last text in the message buffer.
