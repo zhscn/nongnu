@@ -332,7 +332,9 @@ Returns true when scrolling took place, otherwise nil."
           (setq y-init (funcall mouse-y-fn))))
 
       (scroll-restore-fn
-        (lambda () (goto-char restore-point) (set-window-start this-window restore-window-start t)))
+        (lambda ()
+          (goto-char restore-point)
+          (set-window-start this-window restore-window-start t)))
 
       ;; Workaround for bad pixel scrolling performance
       ;; when the cursor is partially outside the view.
