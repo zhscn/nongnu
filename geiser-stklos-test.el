@@ -15,14 +15,14 @@
   (with-temp-buffer
     (insert "(let* ((let 'let) (let* let)) let)")
     (goto-char 7)
-    (find-close-par)))
+    (geiser-stklos--find-close-par)))
 
 (ert-deftest find-close-par-2 ()
   18
   (with-temp-buffer
     (insert "(let* ((let 'let) (let* let)) let)")
     (goto-char 10)
-    (find-close-par 8)))
+    (geiser-stklos--find-close-par 8)))
 
 
 ;; this one could have many more variants

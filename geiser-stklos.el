@@ -1,4 +1,4 @@
-;;; geiser-stklos.el -- STklos Scheme implementation of the geiser protocols -*- lexical-binding: t; -*-
+;;; geiser-stklos.el --- STklos Scheme implementation of the geiser protocols -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2021 Jerônimo Pellegrini
 
@@ -142,7 +142,7 @@ This function uses `geiser-stklos-init-file' if it exists."
 ;; ( or [, find its closing match and return its
 ;; position, or the end of buffer position if a
 ;; closing match is not found.
-(defun find-close-par (&optional start-point)
+(defun geiser-stklos--find-close-par (&optional start-point)
   (interactive)
   (let ((start (if (null start-point)
                    (point)
@@ -181,7 +181,7 @@ This function uses `geiser-stklos-init-file' if it exists."
              (let ((module-begin (re-search-backward geiser-stklos--module-re nil t)))
                (if module-begin
                    ;; and we're not AFTER it was closed:
-                   (let ((module-end (find-close-par module-begin)))
+                   (let ((module-end (geiser-stklos--find-close-par module-begin)))
                      (if (< here module-end)
                          (geiser-stklos--get-module (match-string-no-properties 1))
                        :f))
