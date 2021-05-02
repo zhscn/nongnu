@@ -105,7 +105,9 @@ This function uses `geiser-stklos-init-file' if it exists."
 ;; STklos' prompt is  "MODULE> ". The regexp is "[^>]*> ".
 ;; Not perfect, because if a module has a ">" sign
 ;; in its name, things break...
-(defconst geiser-stklos--prompt-regexp "[^>]*> ")
+(defconst geiser-stklos--prompt-regexp
+  "[^>]*> "
+  "A string containing a regexp that wil llikely match STklos' prompt")
 
 
 ;;; Evaluation support:
@@ -137,8 +139,8 @@ Optional argument ARGS are the arguments to the procedure."
 ;;; Modules
 
 (defconst geiser-stklos--module-re
-  "Regular expression used to try to guess which module the current file is associated to."
-  "(define-module +\\([^) ]+\\)")
+  "(define-module +\\([^) ]+\\)"
+  "Regular expression used to try to guess which module the current file is associated to.")
 
 
 (defun geiser-stklos--find-close-par (&optional start-point)
@@ -252,8 +254,8 @@ if a closing match is not found."
 ;; but there is a string "stklos>" there. I see no way
 ;; to prevent this.
 (defconst geiser-stklos--guess-re
-  "Regular expression used to detect the STklos REPL."
-  (regexp-opt '("stklos>")))
+  (regexp-opt '("stklos>"))
+  "Regular expression used to detect the STklos REPL.")
 
 (defun geiser-stklos--guess ()
   "Try to ascertain whether a buffer is STklos Scheme."
@@ -266,8 +268,8 @@ if a closing match is not found."
 ;; Minimum version of STklos supported. If a less recent version
 ;; is used, Geiser will refuse to start.
 (defconst geiser-stklos-minimum-version
-  "A string containing the minimum version of STklos that we support."
-  "1.50")
+  "1.50"
+  "A string containing the minimum version of STklos that we support.")
 
 ;; this function obtains the version of the STklos binary
 ;; available.
@@ -289,14 +291,14 @@ Argument BINARY is a string containing the binary name."
 
 
 (defconst geiser-stklos-builtin-keywords
-  "These are symbols that we want to be highlighted in STklos code."
   '("assume"
     "fluid-let"
     "dotimes"
     "macro-expand"
     "define-struct"
     "call/ec"
-    "with-handler" ))
+    "with-handler" )
+    "These are symbols that we want to be highlighted in STklos code.")
 
 (defun geiser-stklos--keywords ()
   "The symbols that are to be highlighted as keywords, besides the standard Scheme ones."
