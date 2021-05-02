@@ -7,7 +7,7 @@
 ;; URL: https://gitlab.com/emacs-geiser/stklos
 ;; Homepage: https://gitlab.com/emacs-geiser/stklos
 ;; Keywords: languages, stklos, scheme, geiser
-;; Package-Requires: ((emacs "24.4") (geiser-core "1.0"))
+;; Package-Requires: ((emacs "24.4") (geiser "0.16"))
 ;; SPDX-License-Identifier: BSD-3-Clause
 ;; Version: 1.2
 
