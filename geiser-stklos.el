@@ -72,8 +72,8 @@
 ;; is a parameter object!
 (geiser-custom--defcustom geiser-stklos-case-sensitive
     t
-  "Non-nil means keyword highlighting is case-sensitive. You need
-to restart Geiser in order for it to see you've changed this
+  "Non-nil means keyword highlighting is case-sensitive.
+You need to restart Geiser in order for it to see you've changed this
 option."
   :type 'boolean
   :group 'geiser-stklos)
@@ -88,6 +88,7 @@ option."
 
 ;; returns the name of the executable.
 (defun geiser-stklos--binary ()
+  "Return the name of the executable."
   (if (listp geiser-stklos-binary)
       (car geiser-stklos-binary)
     geiser-stklos-binary))
@@ -112,6 +113,9 @@ This function uses `geiser-stklos-init-file' if it exists."
 ;; Translates symbols into Scheme procedure calls from
 ;; geiser.stk :
 (defun geiser-stklos--geiser-procedure (proc &rest args)
+  "Translates symbols into Scheme procedure calls from geiser.stk.
+Argument PROC is the procedure to be called.
+Optional argument ARGS are the arguments to the procedure."
   (cl-case proc
     ((eval compile)
      (let ((form (mapconcat 'identity (cdr args) " "))
@@ -132,18 +136,16 @@ This function uses `geiser-stklos-init-file' if it exists."
 
 ;;; Modules
 
-;; Regular expression used to try to guess which module
-;; the current file is associated to.
 (defconst geiser-stklos--module-re
+  "Regular expression used to try to guess which module the current file is associated to."
   "(define-module +\\([^) ]+\\)")
 
 
-;; from the start point, which must be an opening
-;; ( or [, find its closing match and return its
-;; position, or the end of buffer position if a
-;; closing match is not found.
 (defun geiser-stklos--find-close-par (&optional start-point)
-  (interactive)
+"Find the matching close parenthesis of an opening one.
+From the START-POINT, which must be an opening ( or [, find the
+closing match and return its position, or the end of buffer position
+if a closing match is not found."
   (let ((start (if (null start-point)
                    (point)
                  start-point))
@@ -160,7 +162,7 @@ This function uses `geiser-stklos-init-file' if it exists."
           (cond ((member c closing)
                  (pop stack))
                 ((member c opening)
-                 (push c stack))))                
+                 (push c stack))))
         (setq p (+ 1 p))) ;; FIXME: incf breaks ert tests (?)
       p)))
 
@@ -171,6 +173,7 @@ This function uses `geiser-stklos-init-file' if it exists."
 ;; the current module should be taken as that one, so defines and sets
 ;; will be done inside that module.
 (defun geiser-stklos--get-module (&optional module)
+  "Find which MODULE should be used for the position where the cursor is."
   (cond ((null module)
          (let ((here (point)))
            (save-excursion
@@ -198,11 +201,12 @@ This function uses `geiser-stklos-init-file' if it exists."
 
 ;; string sent to STklos to tell it to enter a module.
 (defun geiser-stklos--enter-command (module)
+  "The string sent to STklos to tell it to enter MODULE."
   (format "(select-module %s)" module))
 
 
-;; Finds the beginning of the symbol around point.
 (defun geiser-stklos--symbol-begin (module)
+  "Find the beginning of the symbol around the point, inside MODULE."
   (if module
       (max (save-excursion (beginning-of-line) (point))
            (save-excursion (skip-syntax-backward "^(>") (1- (point))))
@@ -211,17 +215,21 @@ This function uses `geiser-stklos-init-file' if it exists."
 
 ;; string sent to STklos to tell it to load a module.
 (defun geiser-stklos--import-command (module)
+  "The string sent to STklos to tell it to load MODULE."
   (format "(require \"%s\")" module))
 
 ;; string sent to STklos to tell it to exit.
 ;; (this could also be ",q"...)
-(defun geiser-stklos--exit-command () "(exit 0)")
+(defun geiser-stklos--exit-command ()
+  "The string sent to STklos to tell it to exit."
+  "(exit 0)")
 
 
 
 ;;; Error display
 
 (defun geiser-stklos--display-error (module key msg)
+  "Display an error, given current MODULE, key KEY and message MSG."
   (newline)
   (when (stringp msg)
     (save-excursion (insert msg))
@@ -244,9 +252,11 @@ This function uses `geiser-stklos-init-file' if it exists."
 ;; but there is a string "stklos>" there. I see no way
 ;; to prevent this.
 (defconst geiser-stklos--guess-re
+  "Regular expression used to detect the STklos REPL."
   (regexp-opt '("stklos>")))
 
 (defun geiser-stklos--guess ()
+  "Try to ascertain whether a buffer is STklos Scheme."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward geiser-stklos--guess-re nil t)))
@@ -255,11 +265,15 @@ This function uses `geiser-stklos-init-file' if it exists."
 
 ;; Minimum version of STklos supported. If a less recent version
 ;; is used, Geiser will refuse to start.
-(defconst geiser-stklos-minimum-version "1.50")
+(defconst geiser-stklos-minimum-version
+  "A string containing the minimum version of STklos that we support."
+  "1.50")
 
 ;; this function obtains the version of the STklos binary
 ;; available.
 (defun geiser-stklos--version (binary)
+  "Obtains the version of the STklos binary available.
+Argument BINARY is a string containing the binary name."
   ;; use SRFI-176!!!
   (cadr (assoc 'version
                (read (shell-command-to-string
@@ -269,12 +283,13 @@ This function uses `geiser-stklos-init-file' if it exists."
 
 ;; Function ran at startup
 (defun geiser-stklos--startup (remote)
+  "Hook for startup.  The argument REMOTE is ignored."
   (let ((geiser-log-verbose-p t))
     (compilation-setup t)))
 
 
-;; These are symbols that we want to be highlighted in STklos code.
 (defconst geiser-stklos-builtin-keywords
+  "These are symbols that we want to be highlighted in STklos code."
   '("assume"
     "fluid-let"
     "dotimes"
@@ -283,9 +298,8 @@ This function uses `geiser-stklos-init-file' if it exists."
     "call/ec"
     "with-handler" ))
 
-;; The symbols that are to be highlighted as keywords, besides
-;; the standard Scheme ones
 (defun geiser-stklos--keywords ()
+  "The symbols that are to be highlighted as keywords, besides the standard Scheme ones."
   (append (geiser-syntax--simple-keywords geiser-stklos-extra-keywords)
           (geiser-syntax--simple-keywords geiser-stklos-builtin-keywords)))
 
