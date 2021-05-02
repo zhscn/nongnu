@@ -1,9 +1,11 @@
-;;; geiser.stk -- STklos Scheme implementation of the geiser protocols
+;;; geiser-stklos.el -- STklos Scheme implementation of the geiser protocols
+
+;; Copyright (C) 2020-2021 Jerônimo Pellegrini
 
 ;; Author: Jeronimo Pellegrini <j_p@aleph0.info>
-;; Maintainer:
+;; Maintainer: Jeronimo Pellegrini <j_p@aleph0.info>
+;; URL: https://gitlab.com/emacs-geiser/stklos
 ;; Keywords: languages, stklos, scheme, geiser
-;; Homepage: 
 ;; Package-Requires: ((emacs "24.4") (geiser-core "1.0"))
 ;; SPDX-License-Identifier: BSD-3-Clause
 ;; Version: 1.0

@@ -1,14 +1,23 @@
 ;;; geiser-stklos.el -- STklos Scheme implementation of the geiser protocols
 
+;; Copyright (C) 2020-2021 Jerônimo Pellegrini
+
 ;; Author: Jeronimo Pellegrini <j_p@aleph0.info>
-;; Maintainer:
+;; Maintainer: Jeronimo Pellegrini <j_p@aleph0.info>
+;; URL: https://gitlab.com/emacs-geiser/stklos
 ;; Keywords: languages, stklos, scheme, geiser
-;; Homepage: 
 ;; Package-Requires: ((emacs "24.4") (geiser-core "1.0"))
 ;; SPDX-License-Identifier: BSD-3-Clause
 ;; Version: 1.0
 
 
+
+;;; Commentary:
+
+;; geiser-stklos adds STklos Scheme support to the `geiser' package
+
+
+
 ;;; Code:
 
 (require 'geiser-connection)
@@ -149,7 +158,7 @@ This function uses `geiser-stklos-init-file' if it exists."
                  (pop stack))
                 ((member c opening)
                  (push c stack))))                
-        (incf p))
+        (setq p (+ 1 p))) ;; FIXME: incf breaks ert tests (?)
       p)))
 
 ;; find which module should be used for the position where the
