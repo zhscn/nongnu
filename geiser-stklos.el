@@ -107,7 +107,7 @@ This function uses `geiser-stklos-init-file' if it exists."
 ;; in its name, things break...
 (defconst geiser-stklos--prompt-regexp
   "[^>]*> "
-  "A string containing a regexp that wil llikely match STklos' prompt")
+  "A string containing a regexp that wil likely match STklos' prompt.")
 
 
 ;;; Evaluation support:
@@ -120,7 +120,7 @@ Argument PROC is the procedure to be called.
 Optional argument ARGS are the arguments to the procedure."
   (cl-case proc
     ((eval compile)
-     (let ((form (mapconcat 'identity (cdr args) " "))
+     (let ((form (mapconcat #'identity (cdr args) " "))
            (module (cond ((string-equal "'()" (car args))
                           "'()")
                          ((and (car args))
@@ -133,7 +133,7 @@ Optional argument ARGS are the arguments to the procedure."
     ((no-values)
      "((in-module GEISER geiser:no-values))")
     (t
-     (let ((form (mapconcat 'identity args " ")))
+     (let ((form (mapconcat #'identity args " ")))
        (format "(geiser:%s %s)" proc form)))))
 
 ;;; Modules
@@ -153,9 +153,9 @@ if a closing match is not found."
                  start-point))
         (opening '( ?\[ ?\( ))
         (closing '( ?\] ?\) )))
-    (when (not (member (char-after start)
-                       opening))
-      (error "find-close-par: not ( or ["))
+    (unless (member (char-after start)
+                    opening)
+      (error "`find-close-par`: not ( or ["))
     (let ((stack (list (char-after start)))
           (p (+ 1 start)))
       (while (not (or (= p (point-max))
@@ -196,7 +196,7 @@ if a closing match is not found."
         ((stringp module)
          (condition-case e
              (car (geiser-syntax--read-from-string module))
-           (progn (message (format "error -> %s" e))
+           (progn (message "error -> %s" e)
                   (error   :f))))
         (t :f)))
 
@@ -230,8 +230,8 @@ if a closing match is not found."
 
 ;;; Error display
 
-(defun geiser-stklos--display-error (module key msg)
-  "Display an error, given current MODULE, key KEY and message MSG."
+(defun geiser-stklos--display-error (_module key msg)
+  "Display an error, given key KEY and message MSG."
   (newline)
   (when (stringp msg)
     (save-excursion (insert msg))
@@ -284,8 +284,8 @@ Argument BINARY is a string containing the binary name."
 
 
 ;; Function ran at startup
-(defun geiser-stklos--startup (remote)
-  "Hook for startup.  The argument REMOTE is ignored."
+(defun geiser-stklos--startup (_remote)
+  "Hook for startup.  The argument is ignored."
   (let ((geiser-log-verbose-p t))
     (compilation-setup t)))
 
