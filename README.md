@@ -26,7 +26,10 @@ See the Geiser manual for usage.
 
 # Installation
 
-There are many ways to install Geiser and Geiser-STklos. One possibility is
+Geiser-STklos is available on MELPA, so `M-x install-package` followed by `geiser-stklos`
+should get it installed, and this is the recommended method.
+
+There are other ways to install Geiser and Geiser-STklos. One possibility is
 to add this to your Emacs configuration:
 
 ```
@@ -47,7 +50,6 @@ to add this to your Emacs configuration:
 # Bugs
 
 See the issue tracker in Gitlab.
-
 
 # About the implementation
 
