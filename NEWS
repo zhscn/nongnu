@@ -6,7 +6,7 @@ See the end of the file for an explanation of the versioning scheme.
 ** Initial version.
 
 * Versioning scheme
-swsw's versioning scheme is inspired by semver (https://semver.org/).
+Vcomplete's versioning scheme is inspired by semver (https://semver.org/).
 Each version number is of the form MAJOR.MINOR.PATCH (patch may be
 omitted if 0).
 The MAJOR version is bumped when a user facing variable or function

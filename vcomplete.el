@@ -59,7 +59,7 @@
 ;;
 ;; C-x k kills the buffer associated with the completion at point.
 ;;
-;; More commands can be added through ‘swsw-command-map’:
+;; More commands can be added through ‘vcomplete-command-map’:
 ;;
 ;; (define-key vcomplete-command-map [?\C-a] #'my-command)
 ;;

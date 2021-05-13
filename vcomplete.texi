@@ -88,7 +88,7 @@ completing in a minibuffer and in normal buffers.
 @node Installation
 @chapter Installation
 
-swsw can be installed from GNU ELPA: (not available yet)
+Vcomplete can be installed from GNU ELPA: (not available yet)
 
 @table @asis
 @item @kbd{M-x package-install RET vcomplete RET}
