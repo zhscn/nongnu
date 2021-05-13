@@ -1,0 +1,248 @@
+\input texinfo
+@setfilename vcomplete.info
+@settitle Vcomplete User Manual
+@documentencoding UTF-8
+@documentlanguage en
+
+@copying
+@quotation
+Copyright @copyright{} 2021 Daniel Semyonov
+
+You can redistribute this document and/or modify it under the terms of
+the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This document is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* Vcomplete: (Vcomplete). Simple window switching.
+@end direntry
+
+@titlepage
+@title Vcomplete User Manual
+@subtitle for version 0.1.
+@author Daniel Semyonov
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Vcomplete User Manual
+
+Vcomplete provides a minor mode enhancing the default completion list
+buffer, providing visual aids for selecting completions and performing
+other actions.
+
+@noindent
+This manual is for Vcomplete version 0.1.
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Introduction::
+* Installation::
+* Usage::
+* Customization::
+* Keystroke Index::
+* Command Index::
+* Function Index::
+* Variable Index::
+
+@detailmenu
+--- The Detailed Node Listing ---
+
+Installation
+
+* Installing a release::
+* Installing from the Git repository::
+
+Customization
+
+* Completion commands::
+
+@end detailmenu
+@end menu
+
+@node Introduction
+@chapter Introduction
+
+Vcomplete provides a minor mode enhancing the default completion list
+buffer, providing visual aids for selecting completions and performing
+other actions. It's designed to build upon the default completion
+system, instead of replacing it. As such, it works both when
+completing in a minibuffer and in normal buffers.
+
+@node Installation
+@chapter Installation
+
+swsw can be installed from GNU ELPA: (not available yet)
+
+@table @asis
+@item @kbd{M-x package-install RET vcomplete RET}
+@end table
+
+@menu
+* Installing a release::
+* Installing from the Git repository::
+@end menu
+
+@node Installing a release
+@section Installing a release
+
+Simply download a release (from
+<https://dsemy.com/software/vcomplete>), and install it:
+
+@table @asis
+@item @kbd{M-x package-install-file RET /path/to/download/vcomplete-VERSION.tar RET}
+@end table
+
+@node Installing from the Git repository
+@section Installing from the Git repository
+
+Clone the repository and build the package archive:
+
+@example
+$ git clone https://git.sr.ht/~dsemy/vcomplete $ cd vcomplete $ make
+@end example
+
+Install the package:
+
+@table @asis
+@item @kbd{M-x package-install-file RET /path/to/clone/vcomplete-VERSION.tar RET}
+@end table
+
+@node Usage
+@chapter Usage
+
+In order to use any feature of the package, @code{vcomplete-mode} must
+be enabled:
+
+@cindex vcomplete-mode
+@table @asis
+@item @kbd{M-x vcomplete-mode RET}
+You can also add @code{(vcomplete-mode)} to your init file, instead.
+@end table
+
+The following commands assume completion is in progress.
+
+@kindex C-n
+@cindex vcomplete-next-completion
+@table @asis
+@item @kbd{C-n}
+Select the next displayed completion
+(@code{vcomplete-next-completion}).  This command moves point in the
+completion list buffer to the next available completion, and
+highlights it. This command may be used to advance multiple
+completions at a time with a prefix argument.
+@end table
+
+@kindex C-p
+@cindex vcomplete-prev-completion
+@table @asis
+@item @kbd{C-p}
+Select the previous displayed completion
+(@code{vcomplete-prev-completion}).  This command moves point in the
+completion list buffer to the previous available completion, and
+highlights it. This command may be used to advance multiple
+completions at a time with a prefix argument.
+@end table
+
+@kindex M-RET
+@cindex vcomplete-choose-completion
+@table @asis
+@item @kbd{M-RET}
+Choose the current completion (@code{vcomplete-choose-completion}).
+This command chooses the highlighted completion, ending completion.
+@end table
+
+@kindex C-x k
+@cindex vcomplete-kill-buffer
+@table @asis
+@item @kbd{C-x k}
+Kill the buffer corresponding to the current completion
+(@code{vcomplete-kill-buffer}). This command kills the buffer
+corresponding to the currently highlighted (or last highlighted)
+completion, if such buffer exists.
+@end table
+
+@xref{Completion commands} for information regarding defining new
+commands.
+
+@node Customization
+@chapter Customization
+
+All customization, except for defining custom completion commands can
+be done through the customize interface:
+
+@table @asis
+@item @kbd{M-x customize-group RET vcomplete RET}
+@end table
+
+@defopt vcomplete-auto-help
+Whether the @code{*Completions*} buffer should open automatically.
+Non-nil means automatically open. Otherwise, operate according to
+@code{completion-auto-help}. By default, @code{t} is used.
+@end defopt
+
+@menu
+* Completion commands::
+@end menu
+
+@node Completion commands
+@section Completion commands
+
+Completion commands are used to perform operations on specific
+completion candidates. They are normal commands (interactive
+functions) which are bound to a key sequence in
+@code{vcomplete-command-map}.  @code{vcomplete-next-completion},
+@code{vcomplete-prev-completion}, @code{vcomplete-choose-completion}
+and @code{vcomplete-kill-buffer} are implemented as completion
+commands.
+
+@defvar vcomplete-command-map
+Key map which holds key bindings to completion commands. This key map
+should be available whenever completion is initiated.
+@end defvar
+
+@defmac vcomplete-with-completions-buffer body...
+Evaluate BODY with the @code{*Completions*} buffer temporarily
+current.  While evaluating body, BUFFER and WINDOW are locally bound
+to the @code{*Completions*} buffer and window respectively. This macro
+can be used to easily manipulate or access the contents of the
+@code{*Completions*} buffer.
+@end defmac
+
+@node Keystroke Index
+@appendix Keystroke Index
+
+@printindex ky
+
+@node Command Index
+@appendix Command Index
+
+@printindex cp
+
+@node Function Index
+@appendix Function Index
+
+@printindex fn
+
+@node Variable Index
+@appendix Variable Index
+
+@printindex vr
+
+@bye

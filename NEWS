@@ -1,0 +1,27 @@
+Vcomplete NEWS -- history of user-visible changes.
+See the end of the file for an explanation of the versioning scheme.
+
+* 0.1
+
+** Initial version.
+
+* Versioning scheme
+swsw's versioning scheme is inspired by semver (https://semver.org/).
+Each version number is of the form MAJOR.MINOR.PATCH (patch may be
+omitted if 0).
+The MAJOR version is bumped when a user facing variable or function
+changes in a way that could cause previous user configuration to
+break (where user configuration considered is configuration done
+through the customize interface).
+A MAJOR version bump is very unlikely.
+The MINOR version is bumped when a feature is added in a non-breaking
+way.
+The PATCH version is bumped when no feature is added (e.g. a version
+with only fixes, or changes to documentation).
+
+Note that versions before 1.0 did not follow this scheme.
+
+--
+Local variables:
+mode: outline
+end:
