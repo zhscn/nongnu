@@ -212,7 +212,7 @@ completion:
       (progn
         (add-hook 'minibuffer-setup-hook #'vcomplete--setup)
         (add-hook 'completion-in-region-mode-hook #'vcomplete--setup))
-    (remove-hook 'completion-setup-hook #'vcomplete--setup)
+    (remove-hook 'minibuffer-setup-hook #'vcomplete--setup)
     (remove-hook 'completion-in-region-mode-hook #'vcomplete--setup)))
 
 (provide 'vcomplete)
