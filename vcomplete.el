@@ -232,7 +232,7 @@ With prefix argument N, move N items (negative N means move forward)."
                               minor-mode-overriding-map-alist)))
           (when vcomplete-auto-update
             (add-hook 'post-command-hook
-                      #'vcomplete--update-in-region))
+                      #'vcomplete--update-in-region t))
           (setcdr map vcomplete-command-map))
       (vcomplete--reset-vars))))
 
