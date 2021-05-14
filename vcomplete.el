@@ -174,12 +174,23 @@ With prefix argument N, move N items (negative N means move forward)."
     map)
   "Key map for ‘vcomplete-mode’ commands.")
 
-(defun vcomplete--update()
-  "Update the ‘*Completions*’ buffer when completing in the minibuffer."
+;;;; Visual completion mode:
+
+(defun vcomplete--update-in-minibuffer ()
+  "Update the completion list when completing in a minibuffer."
   (while-no-input
     (redisplay)
     (unless (eq this-command 'vcomplete--no-update)
       (minibuffer-completion-help))))
+
+(defun vcomplete--update-in-region ()
+  "Update the completion list when completing in-region."
+  (while-no-input
+    (redisplay)
+    (unless (or (eq this-command 'vcomplete--no-update)
+                (eq this-command 'completion-at-point)
+                (null completion-in-region-mode))
+      (completion-help-at-point))))
 
 (defun vcomplete--setup ()
   "Setup ‘vcomplete-mode’."
@@ -187,16 +198,17 @@ With prefix argument N, move N items (negative N means move forward)."
       (progn
         (when (and vcomplete-auto-update minibuffer-completion-table)
           (add-hook 'post-command-hook
-                    #'vcomplete--update nil t))
+                    #'vcomplete--update-in-minibuffer nil t))
         (use-local-map (make-composed-keymap vcomplete-command-map
                                              (current-local-map))))
     (if completion-in-region-mode
         (when-let ((map (assq #'completion-in-region-mode
                               minor-mode-overriding-map-alist)))
+          (when vcomplete-auto-update
+            (add-hook 'post-command-hook
+                      #'vcomplete--update-in-region))
           (setcdr map vcomplete-command-map))
-      (remove-hook 'post-command-hook #'vcomplete--update t))))
-
-;;;; Visual completion mode:
+      (remove-hook 'post-command-hook #'vcomplete--update-in-region t))))
 
 ;;;###autoload
 (define-minor-mode vcomplete-mode
