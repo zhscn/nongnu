@@ -1,6 +1,14 @@
 Vcomplete NEWS -- history of user-visible changes.
 See the end of the file for an explanation of the versioning scheme.
 
+* 0.2 (in development)
+
+** Optionally automatically update the completion list buffer.
+See vcomplete-auto-update's documentation string for more information.
+
+** Fix vcomplete--setup being removed from a wrong hook when
+vcomplete-mode is turned off.
+
 * 0.1
 
 ** Initial version.
