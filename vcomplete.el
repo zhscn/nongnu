@@ -43,8 +43,8 @@
 ;;   (vcomplete-mode))
 ;;
 ;; When vcomplete-mode is active:
-;; - The completion list buffer opens automatically (see
-;;   ‘vcomplete-auto-help’).
+;; - The completion list buffer opens and updates automatically (see
+;;   ‘vcomplete-auto-update’).
 ;; - The completion list buffer can be controlled through the
 ;;   minibuffer (during minibuffer completion) or the current buffer
 ;;   (during in-buffer completion), if it's visible.
@@ -79,12 +79,13 @@
   :group 'convenience
   :prefix "vcomplete-")
 
-(defcustom vcomplete-auto-help t
-  "Whether the ‘*Completions*’ buffer should open automatically.
-Non-nil means automatically open.
+(defcustom vcomplete-auto-update t
+  "Whether the ‘*Completions*’ buffer should open and update automatically.
+Non-nil means automatically open and update.
 Otherwise, operate according to ‘completion-auto-help’."
-  :type '(radio (const :tag "Automatically open" t)
-                (const :tag "According to ‘completion-auto-help’" nil))
+  :type '(radio
+          (const :tag "Automatically open and update" t)
+          (const :tag "Operate according to ‘completion-auto-help’" nil))
   :package-version '(vcomplete . 0.1))
 
 ;;;; Completion commands:
@@ -138,13 +139,15 @@ The completion selected is marked with an overlay."
   "Move to the next item in the ‘*Completions*’ buffer.
 With prefix argument N, move N items (negative N means move backward)."
   (interactive "p")
-  (vcomplete--move-n-completions (or n 1)))
+  (vcomplete--move-n-completions (or n 1))
+  (setq this-command 'vcomplete--no-update))
 
 (defun vcomplete-prev-completion (&optional n)
   "Move to the previous item in the ‘*Completions*’ buffer.
 With prefix argument N, move N items (negative N means move forward)."
   (interactive "p")
-  (vcomplete--move-n-completions (- (or n 1))))
+  (vcomplete--move-n-completions (- (or n 1)))
+  (setq this-command 'vcomplete--no-update))
 
 (defun vcomplete-choose-completion ()
   "Choose the completion at point in the ‘*Completions*’ buffer."
@@ -171,15 +174,27 @@ With prefix argument N, move N items (negative N means move forward)."
     map)
   "Key map for ‘vcomplete-mode’ commands.")
 
+(defun vcomplete--update()
+  "Update the ‘*Completions*’ buffer when completing in the minibuffer."
+  (while-no-input
+    (redisplay)
+    (unless (eq this-command 'vcomplete--no-update)
+      (minibuffer-completion-help))))
+
 (defun vcomplete--setup ()
   "Setup ‘vcomplete-mode’."
-  (when-let ((map (assq #'completion-in-region-mode
-                        minor-mode-overriding-map-alist)))
-    (setcdr map vcomplete-command-map))
-  (when (minibufferp)
-    (minibuffer-completion-help)
-    (use-local-map (make-composed-keymap vcomplete-command-map
-                                         (current-local-map)))))
+  (if (minibufferp)
+      (progn
+        (when (and vcomplete-auto-update minibuffer-completion-table)
+          (add-hook 'post-command-hook
+                    #'vcomplete--update nil t))
+        (use-local-map (make-composed-keymap vcomplete-command-map
+                                             (current-local-map))))
+    (if completion-in-region-mode
+        (when-let ((map (assq #'completion-in-region-mode
+                              minor-mode-overriding-map-alist)))
+          (setcdr map vcomplete-command-map))
+      (remove-hook 'post-command-hook #'vcomplete--update t))))
 
 ;;;; Visual completion mode:
 

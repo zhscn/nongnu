@@ -191,9 +191,10 @@ be done through the customize interface:
 @item @kbd{M-x customize-group RET vcomplete RET}
 @end table
 
-@defopt vcomplete-auto-help
-Whether the @code{*Completions*} buffer should open automatically.
-Non-nil means automatically open. Otherwise, operate according to
+@defopt vcomplete-auto-update
+Whether the @code{*Completions*} buffer should open and update
+automatically.  Non-nil means automatically open and
+update. Otherwise, operate according to
 @code{completion-auto-help}. By default, @code{t} is used.
 @end defopt
 
@@ -210,7 +211,8 @@ functions) which are bound to a key sequence in
 @code{vcomplete-command-map}.  @code{vcomplete-next-completion},
 @code{vcomplete-prev-completion}, @code{vcomplete-choose-completion}
 and @code{vcomplete-kill-buffer} are implemented as completion
-commands.
+commands. Completion commands can inhibit updating the completion list
+buffer by setting @code{this-command} to @code{vcomplete--no-update}.
 
 @defvar vcomplete-command-map
 Key map which holds key bindings to completion commands. This key map

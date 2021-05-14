@@ -39,8 +39,8 @@ For use-package users:
   (vcomplete-mode))
 
 When vcomplete-mode is active:
-- The completion list buffer opens automatically (see
-  ‘vcomplete-auto-help’).
+- The completion list buffer opens and updates automatically (see
+  ‘vcomplete-auto-update’).
 - The completion list buffer can be controlled through the
   minibuffer (during minibuffer completion) or the current buffer
   (during in-buffer completion), if it's visible.
