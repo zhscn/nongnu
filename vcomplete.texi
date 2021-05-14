@@ -23,7 +23,7 @@ General Public License for more details.
 
 @dircategory Emacs
 @direntry
-* Vcomplete: (Vcomplete). Simple window switching.
+* Vcomplete: (Vcomplete). Visual completions.
 @end direntry
 
 @titlepage
