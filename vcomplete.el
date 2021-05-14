@@ -248,9 +248,11 @@ completion:
   :global t
   (if vcomplete-mode
       (progn
+        (vcomplete--reset-vars)
         (add-hook 'minibuffer-setup-hook #'vcomplete--setup)
         (add-hook 'minibuffer-exit-hook #'vcomplete--reset-vars)
         (add-hook 'completion-in-region-mode-hook #'vcomplete--setup))
+    (vcomplete--reset-vars)
     (remove-hook 'minibuffer-setup-hook #'vcomplete--setup)
     (remove-hook 'minibuffer-exit-hook #'vcomplete--reset-vars)
     (remove-hook 'completion-in-region-mode-hook #'vcomplete--setup)))
