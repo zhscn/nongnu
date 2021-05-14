@@ -160,8 +160,8 @@ With prefix argument N, move N items (negative N means move forward)."
   "Kill the buffer associated with the current completion (if it exists)."
   (interactive)
   (if-let ((buf (get-buffer vcomplete-current-completion)))
-    (when (kill-buffer-ask buf)
-      (minibuffer-completion-help))
+      (when (kill-buffer-ask buf)
+        (minibuffer-completion-help))
     (user-error "‘%s’ is not a valid buffer"
                 vcomplete-current-completion)))
 
