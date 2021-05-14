@@ -213,10 +213,20 @@ functions) which are bound to a key sequence in
 and @code{vcomplete-kill-buffer} are implemented as completion
 commands. Completion commands can inhibit updating the completion list
 buffer by setting @code{this-command} to @code{vcomplete--no-update}.
+Note that the completion list is updated after every command (through
+@code{post-command-hook}).
 
 @defvar vcomplete-command-map
 Key map which holds key bindings to completion commands. This key map
 should be available whenever completion is initiated.
+@end defvar
+
+@defvar vcomplete-current-completion-string
+String corresponding to the currently highlighted completion.
+@end defvar
+
+@defvar vcomplete-current-completion-index
+Index corresponding to the currently highlighted completion.
 @end defvar
 
 @defmac vcomplete-with-completions-buffer body...

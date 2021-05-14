@@ -104,10 +104,11 @@ While evaluating body, BUFFER and WINDOW are locally bound to the
           "The ‘*Completions*’ buffer is set to an incorrect mode"))
        ,@body)))
 
-(defvar vcomplete-current-completion nil
-  "Currently selected completion.
-Note that this variable is never cleared, so it can be used to get the
-last selected completion after completion has ended.")
+(defvar vcomplete-current-completion-string nil
+  "Currently selected completion string.")
+
+(defvar vcomplete-current-completion-index 0
+  "Index (in the ‘*Completions*’ buffer) of the current completion.")
 
 (defvar vcomplete--last-completion-overlay nil
   "Last overlay created in the ‘*Completions*’ buffer.")
@@ -117,6 +118,8 @@ last selected completion after completion has ended.")
 The completion selected is marked with an overlay."
   (vcomplete-with-completions-buffer
     (next-completion n)
+    (setq vcomplete-current-completion-index
+          (+ n vcomplete-current-completion-index))
     (when (= (point) (point-max)) (next-completion -1))
     (let ((beg (set-window-point window (point))) end)
       (unless (or (= beg (point-min))
@@ -126,7 +129,7 @@ The completion selected is marked with an overlay."
             (?\t (setq end (- (point) 2)))
             (?\n (setq end (- (point) 1)))
             (_ (setq end (point)))))
-        (setq vcomplete-current-completion
+        (setq vcomplete-current-completion-string
               (buffer-substring-no-properties beg end))
         (when vcomplete--last-completion-overlay
           (delete-overlay vcomplete--last-completion-overlay))
@@ -159,11 +162,24 @@ With prefix argument N, move N items (negative N means move forward)."
 (defun vcomplete-kill-buffer ()
   "Kill the buffer associated with the current completion (if it exists)."
   (interactive)
-  (if-let ((buf (get-buffer vcomplete-current-completion)))
-      (when (kill-buffer-ask buf)
-        (minibuffer-completion-help))
-    (user-error "‘%s’ is not a valid buffer"
-                vcomplete-current-completion)))
+  (unless (minibufferp)
+    (user-error "‘vcomplete-kill-buffer’ only works in the minibuffer"))
+  (if-let ((buf (get-buffer vcomplete-current-completion-string))
+           (index vcomplete-current-completion-index)
+           (enable-recursive-minibuffers t))
+      (if (buffer-modified-p buf)
+          (when (yes-or-no-p
+                 (format "Buffer %s modified; kill anyway? " buf))
+            (kill-buffer buf)
+            (setq vcomplete-current-completion-index 0)
+            (minibuffer-completion-help)
+            (vcomplete--move-n-completions index))
+        (kill-buffer buf)
+        (setq vcomplete-current-completion-index 0)
+        (minibuffer-completion-help)
+        (vcomplete--move-n-completions index))
+    (user-error "‘%s’ is not a valid buffer" buf))
+  (setq this-command 'vcomplete--no-update))
 
 (defvar vcomplete-command-map
   (let ((map (make-sparse-keymap)))
@@ -181,6 +197,7 @@ With prefix argument N, move N items (negative N means move forward)."
   (while-no-input
     (redisplay)
     (unless (eq this-command 'vcomplete--no-update)
+      (setq vcomplete-current-completion-index 0)
       (minibuffer-completion-help))))
 
 (defun vcomplete--update-in-region ()
@@ -190,7 +207,16 @@ With prefix argument N, move N items (negative N means move forward)."
     (unless (or (eq this-command 'vcomplete--no-update)
                 (eq this-command 'completion-at-point)
                 (null completion-in-region-mode))
+      (setq vcomplete-current-completion-index 0)
       (completion-help-at-point))))
+
+(defun vcomplete--reset-vars ()
+  "Reset variables used by Vcomplete to their default values."
+  (setq vcomplete-current-completion-string nil
+        vcomplete-current-completion-index 0
+        vcomplete--last-completion-overlay nil)
+  (remove-hook 'post-command-hook #'vcomplete--update-in-region t)
+  (remove-hook 'post-command-hook #'vcomplete--update-in-minibuffer t))
 
 (defun vcomplete--setup ()
   "Setup ‘vcomplete-mode’."
@@ -208,7 +234,7 @@ With prefix argument N, move N items (negative N means move forward)."
             (add-hook 'post-command-hook
                       #'vcomplete--update-in-region))
           (setcdr map vcomplete-command-map))
-      (remove-hook 'post-command-hook #'vcomplete--update-in-region t))))
+      (vcomplete--reset-vars))))
 
 ;;;###autoload
 (define-minor-mode vcomplete-mode
@@ -223,8 +249,10 @@ completion:
   (if vcomplete-mode
       (progn
         (add-hook 'minibuffer-setup-hook #'vcomplete--setup)
+        (add-hook 'minibuffer-exit-hook #'vcomplete--reset-vars)
         (add-hook 'completion-in-region-mode-hook #'vcomplete--setup))
     (remove-hook 'minibuffer-setup-hook #'vcomplete--setup)
+    (remove-hook 'minibuffer-exit-hook #'vcomplete--reset-vars)
     (remove-hook 'completion-in-region-mode-hook #'vcomplete--setup)))
 
 (provide 'vcomplete)

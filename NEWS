@@ -9,6 +9,11 @@ See vcomplete-auto-update's documentation string for more information.
 ** Fix vcomplete--setup being removed from a wrong hook when
 vcomplete-mode is turned off.
 
+** Improve usability of vcomplete-kill-buffer.
+Killing a buffer using it will now cause the next completion in the
+list to be highlighted (or the previous one if it's the last
+completion in the list).
+
 * 0.1
 
 ** Initial version.
