@@ -330,7 +330,12 @@ selection.")
 ;;;###autoload
 (define-minor-mode swsw-mode
   "Minor mode for managing windows using an ID assigned to them
-automatically."
+automatically.
+
+The following key bindings are available after starting window
+selection:
+
+\\{swsw-command-map}"
   :global t
   :lighter
   (:eval (when (eq swsw-display-function 'lighter)
