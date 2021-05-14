@@ -89,7 +89,8 @@ Otherwise, operate according to ‘completion-auto-help’."
   :package-version '(vcomplete . 0.1)
   :set (lambda (sym val)
          (set-default sym val)
-         (vcomplete--reset-vars)))
+         (when (fboundp 'vcomplete--reset-vars)
+           (vcomplete--reset-vars))))
 
 ;;;; Completion commands:
 
