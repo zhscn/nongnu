@@ -86,7 +86,10 @@ Otherwise, operate according to ‘completion-auto-help’."
   :type '(radio
           (const :tag "Automatically open and update" t)
           (const :tag "Operate according to ‘completion-auto-help’" nil))
-  :package-version '(vcomplete . 0.1))
+  :package-version '(vcomplete . 0.1)
+  :set (lambda (sym val)
+         (set-default sym val)
+         (vcomplete--reset-vars)))
 
 ;;;; Completion commands:
 
