@@ -106,53 +106,48 @@ While evaluating body, BUFFER and WINDOW are locally bound to the
           "The ‘*Completions*’ buffer is set to an incorrect mode"))
        ,@body)))
 
-(defvar vcomplete-current-completion-string nil
-  "Currently selected completion string.")
-
-(defvar vcomplete-current-completion-index 0
-  "Index (in the ‘*Completions*’ buffer) of the current completion.")
+(defun vcomplete-current-completion (pos)
+  "Get the completion candidate at POS.
+The completion candidate is returned as a list of the form:
+ (COMPLETION-STRING . (BEGINNING . END))
+If no completion is found, return nil."
+  (unless (derived-mode-p 'completion-list-mode)
+    (error "Not in a valid completion list buffer"))
+  ;; Modified from code in ‘choose-completion’.
+  (let (beg end noop)
+    (cond
+     ((and (not (eobp)) (get-text-property pos 'mouse-face))
+      (setq end pos beg (1+ pos)))
+     ((and (not (bobp))
+           (get-text-property (1- pos) 'mouse-face))
+      (setq end (1- pos) beg pos))
+     (t (setq noop t)))
+    (unless noop
+      (setq beg (previous-single-property-change beg 'mouse-face))
+      (setq end (or (next-single-property-change end 'mouse-face)
+                    (point-max)))
+      `(,(buffer-substring-no-properties beg end) . (,beg . ,end)))))
 
 (defvar vcomplete--last-completion-overlay nil
   "Last overlay created in the ‘*Completions*’ buffer.")
 
 (defun vcomplete--highlight-completion-at-point ()
-  "Highlight the completion at point in the ‘*Completions*’ buffer.
-The string of the current completion is saved in
-‘vcomplete-current-completion-string’."
+  "Highlight the completion at point in the ‘*Completions*’ buffer."
   (while-no-input
     (redisplay)
-    (if (derived-mode-p 'completion-list-mode)
-        ;; Modified from code in ‘choose-completion’.
-        (let (beg end noop hl)
-          (cond
-           ((and (not (eobp)) (get-text-property (point) 'mouse-face))
-            (setq end (point) beg (1+ (point))))
-           ((and (not (bobp))
-                 (get-text-property (1- (point)) 'mouse-face))
-            (setq end (1- (point)) beg (point)))
-           (t (setq noop t)))
-          (unless noop
-            (setq beg (previous-single-property-change beg 'mouse-face))
-            (setq end (or (next-single-property-change end 'mouse-face)
-                          (point-max)))
-            (setq vcomplete-current-completion-string
-                  (buffer-substring-no-properties beg end))
-            (overlay-put
-             (setq hl (make-overlay beg end)) 'face 'highlight))
-          (when vcomplete--last-completion-overlay
-            (delete-overlay vcomplete--last-completion-overlay))
-          (setq vcomplete--last-completion-overlay hl))
-      (error "Not in a valid completion list buffer"))))
+    (let ((cur (vcomplete-current-completion (point))))
+      (when vcomplete--last-completion-overlay
+        (delete-overlay vcomplete--last-completion-overlay))
+      (when-let ((pos (cdr cur)))
+        (overlay-put
+         (setq vcomplete--last-completion-overlay
+               (make-overlay (car pos) (cdr pos)))
+         'face 'highlight)))))
 
 (defun vcomplete--move-n-completions (n)
-  "Move N completions in the ‘*Completions*’ buffer.
-The index of the current completion is saved in
-‘vcomplete-current-completion-index’."
+  "Move N completions in the ‘*Completions*’ buffer."
   (vcomplete-with-completions-buffer
     (next-completion n)
-    (setq vcomplete-current-completion-index
-          (+ n vcomplete-current-completion-index))
-    (when (= (point) (point-max)) (next-completion -1))
     (set-window-point window (point))
     (vcomplete--highlight-completion-at-point)))
 
@@ -192,7 +187,6 @@ With prefix argument N, move N items (negative N means move forward)."
   (while-no-input
     (redisplay)
     (unless (eq this-command 'vcomplete--no-update)
-      (setq vcomplete-current-completion-index 0)
       (minibuffer-completion-help))))
 
 (defun vcomplete--update-in-region ()
@@ -202,14 +196,11 @@ With prefix argument N, move N items (negative N means move forward)."
     (unless (or (eq this-command 'vcomplete--no-update)
                 (eq this-command 'completion-at-point)
                 (null completion-in-region-mode))
-      (setq vcomplete-current-completion-index 0)
       (completion-help-at-point))))
 
 (defun vcomplete--reset-vars ()
   "Reset variables used by Vcomplete to their default values."
-  (setq vcomplete-current-completion-string nil
-        vcomplete-current-completion-index 0
-        vcomplete--last-completion-overlay nil)
+  (setq vcomplete--last-completion-overlay nil)
   (remove-hook 'post-command-hook #'vcomplete--update-in-region t)
   (remove-hook 'post-command-hook #'vcomplete--update-in-minibuffer t))
 

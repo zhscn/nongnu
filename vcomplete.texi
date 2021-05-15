@@ -211,13 +211,16 @@ Key map which holds key bindings to completion commands. This key map
 should be available whenever completion is initiated.
 @end defvar
 
-@defvar vcomplete-current-completion-string
-String corresponding to the currently highlighted completion.
-@end defvar
-
-@defvar vcomplete-current-completion-index
-Index corresponding to the currently highlighted completion.
-@end defvar
+@defun vcomplete-current-completion pos
+Get the completion candidate at POS.
+The completion candidate is returned as a list of the form:
+@table @asis
+(COMPLETION-STRING . (BEGINNING . END))
+@end table
+If no completion is found, this function returns nil. Note that this
+function throws an error when the major mode of the buffer from which
+it is called isn't derived from @code{completion-list-mode}.
+@end defun
 
 @defmac vcomplete-with-completions-buffer body...
 Evaluate BODY with the @code{*Completions*} buffer temporarily
