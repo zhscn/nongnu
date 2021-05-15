@@ -57,8 +57,6 @@
 ;;
 ;; M-RET (C-M-m) chooses the completion at point.
 ;;
-;; C-x k kills the buffer associated with the completion at point.
-;;
 ;; More commands can be added through ‘vcomplete-command-map’:
 ;;
 ;; (define-key vcomplete-command-map [?\C-a] #'my-command)
@@ -179,34 +177,11 @@ With prefix argument N, move N items (negative N means move forward)."
     (switch-to-completions)
     (choose-completion)))
 
-(defun vcomplete-kill-buffer ()
-  "Kill the buffer associated with the current completion (if it exists)."
-  (interactive)
-  (unless (minibufferp)
-    (user-error "‘vcomplete-kill-buffer’ only works in the minibuffer"))
-  (if-let ((buf (get-buffer vcomplete-current-completion-string))
-           (index vcomplete-current-completion-index)
-           (enable-recursive-minibuffers t))
-      (if (buffer-modified-p buf)
-          (when (yes-or-no-p
-                 (format "Buffer %s modified; kill anyway? " buf))
-            (kill-buffer buf)
-            (setq vcomplete-current-completion-index 0)
-            (minibuffer-completion-help)
-            (vcomplete--move-n-completions index))
-        (kill-buffer buf)
-        (setq vcomplete-current-completion-index 0)
-        (minibuffer-completion-help)
-        (vcomplete--move-n-completions index))
-    (user-error "‘%s’ is not a valid buffer" buf))
-  (setq this-command 'vcomplete--no-update))
-
 (defvar vcomplete-command-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\C-n] #'vcomplete-next-completion)
     (define-key map [?\C-p] #'vcomplete-prev-completion)
     (define-key map [?\C-\M-m] #'vcomplete-choose-completion)
-    (define-key map [?\C-x ?k] #'vcomplete-kill-buffer)
     map)
   "Key map for ‘vcomplete-mode’ commands.")
 

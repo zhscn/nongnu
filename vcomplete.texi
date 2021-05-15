@@ -168,16 +168,6 @@ Choose the current completion (@code{vcomplete-choose-completion}).
 This command chooses the highlighted completion, ending completion.
 @end table
 
-@kindex C-x k
-@cindex vcomplete-kill-buffer
-@table @asis
-@item @kbd{C-x k}
-Kill the buffer corresponding to the current completion
-(@code{vcomplete-kill-buffer}). This command kills the buffer
-corresponding to the currently highlighted (or last highlighted)
-completion, if such buffer exists.
-@end table
-
 @xref{Completion commands} for information regarding defining new
 commands.
 
@@ -209,11 +199,11 @@ Completion commands are used to perform operations on specific
 completion candidates. They are normal commands (interactive
 functions) which are bound to a key sequence in
 @code{vcomplete-command-map}.  @code{vcomplete-next-completion},
-@code{vcomplete-prev-completion}, @code{vcomplete-choose-completion}
-and @code{vcomplete-kill-buffer} are implemented as completion
+@code{vcomplete-prev-completion} and
+@code{vcomplete-choose-completion} are implemented as completion
 commands. Completion commands can inhibit updating the completion list
 buffer by setting @code{this-command} to @code{vcomplete--no-update}.
-Note that the completion list is updated after every command (through
+Note that the completion list is updated after every command (via
 @code{post-command-hook}).
 
 @defvar vcomplete-command-map
