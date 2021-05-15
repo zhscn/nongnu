@@ -117,30 +117,46 @@ While evaluating body, BUFFER and WINDOW are locally bound to the
 (defvar vcomplete--last-completion-overlay nil
   "Last overlay created in the ‘*Completions*’ buffer.")
 
+(defun vcomplete--highlight-completion-at-point ()
+  "Highlight the completion at point in the ‘*Completions*’ buffer.
+The string of the current completion is saved in
+‘vcomplete-current-completion-string’."
+  (while-no-input
+    (redisplay)
+    (if (derived-mode-p 'completion-list-mode)
+        ;; Modified from code in ‘choose-completion’.
+        (let (beg end noop hl)
+          (cond
+           ((and (not (eobp)) (get-text-property (point) 'mouse-face))
+            (setq end (point) beg (1+ (point))))
+           ((and (not (bobp))
+                 (get-text-property (1- (point)) 'mouse-face))
+            (setq end (1- (point)) beg (point)))
+           (t (setq noop t)))
+          (unless noop
+            (setq beg (previous-single-property-change beg 'mouse-face))
+            (setq end (or (next-single-property-change end 'mouse-face)
+                          (point-max)))
+            (setq vcomplete-current-completion-string
+                  (buffer-substring-no-properties beg end))
+            (overlay-put
+             (setq hl (make-overlay beg end)) 'face 'highlight))
+          (when vcomplete--last-completion-overlay
+            (delete-overlay vcomplete--last-completion-overlay))
+          (setq vcomplete--last-completion-overlay hl))
+      (error "Not in a valid completion list buffer"))))
+
 (defun vcomplete--move-n-completions (n)
   "Move N completions in the ‘*Completions*’ buffer.
-The completion selected is marked with an overlay."
+The index of the current completion is saved in
+‘vcomplete-current-completion-index’."
   (vcomplete-with-completions-buffer
     (next-completion n)
     (setq vcomplete-current-completion-index
           (+ n vcomplete-current-completion-index))
     (when (= (point) (point-max)) (next-completion -1))
-    (let ((beg (set-window-point window (point))) end)
-      (unless (or (= beg (point-min))
-                  (= beg (point-max)))
-        (save-excursion
-          (pcase (char-before (re-search-forward " \t\\|\n\\|\\'"))
-            (?\t (setq end (- (point) 2)))
-            (?\n (setq end (- (point) 1)))
-            (_ (setq end (point)))))
-        (setq vcomplete-current-completion-string
-              (buffer-substring-no-properties beg end))
-        (when vcomplete--last-completion-overlay
-          (delete-overlay vcomplete--last-completion-overlay))
-        (overlay-put
-         (setq vcomplete--last-completion-overlay
-               (make-overlay beg end))
-         'face 'highlight)))))
+    (set-window-point window (point))
+    (vcomplete--highlight-completion-at-point)))
 
 (defun vcomplete-next-completion (&optional n)
   "Move to the next item in the ‘*Completions*’ buffer.
