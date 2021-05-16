@@ -182,33 +182,26 @@ With prefix argument N, move N items (negative N means move forward)."
 (defvar vcomplete--last-string nil
   "Last pending completion string.")
 
-(defun vcomplete--last-string-in-minibuffer-1 ()
-  "Return the minibuffer substring after the prompt."
-  (buffer-substring-no-properties (minibuffer-prompt-end)
-                                  (point-max)))
-
-(defun vcomplete--last-string-in-minibuffer ()
+(defun vcomplete--set-last-string-in-minibuffer ()
   "Set ‘vcomplete--last-string’ in a minibuffer."
-  (setq vcomplete--last-string (vcomplete--last-string-in-minibuffer-1)))
+  (setq vcomplete--last-string (minibuffer-contents)))
 
-(defun vcomplete--last-string-in-region-1 ()
+(defun vcomplete--string-in-region ()
   "Return a substring according to the markers in ‘completion-in-region--data’."
   (when completion-in-region--data
-    (buffer-substring-no-properties
-     (car completion-in-region--data)
-     (cadr completion-in-region--data))))
+    (buffer-substring (car completion-in-region--data)
+                      (cadr completion-in-region--data))))
 
-(defun vcomplete--last-string-in-region ()
+(defun vcomplete--set-last-string-in-region ()
   "Set ‘vcomplete--last-string’ in-region."
   (setq vcomplete--last-string
-        (vcomplete--last-string-in-region-1)))
+        (vcomplete--string-in-region)))
 
 (defun vcomplete--update-in-minibuffer ()
   "Update the completion list when completing in a minibuffer."
   (while-no-input
     (redisplay)
-    (unless (string= (vcomplete--last-string-in-minibuffer-1)
-                     vcomplete--last-string)
+    (unless (string= (minibuffer-contents) vcomplete--last-string)
       (minibuffer-completion-help))))
 
 (defun vcomplete--update-in-region ()
@@ -216,7 +209,7 @@ With prefix argument N, move N items (negative N means move forward)."
   (while-no-input
     (redisplay)
     (if (get-buffer-window "*Completions*")
-        (unless (string= (vcomplete--last-string-in-region-1)
+        (unless (string= (vcomplete--string-in-region)
                          vcomplete--last-string)
           (completion-help-at-point))
       (completion-in-region-mode -1))))
@@ -225,8 +218,8 @@ With prefix argument N, move N items (negative N means move forward)."
   "Reset variables used by Vcomplete to their default values."
   (setq vcomplete--last-completion-overlay nil
         vcomplete--last-string nil)
-  (remove-hook 'pre-command-hook #'vcomplete--last-string-in-minibuffer t)
-  (remove-hook 'pre-command-hook #'vcomplete--last-string-in-region t)
+  (remove-hook 'pre-command-hook #'vcomplete--set-last-string-in-minibuffer t)
+  (remove-hook 'pre-command-hook #'vcomplete--set-last-string-in-region t)
   (remove-hook 'post-command-hook #'vcomplete--update-in-region t)
   (remove-hook 'post-command-hook #'vcomplete--update-in-minibuffer t)
   (remove-hook 'post-command-hook #'vcomplete--highlight-completion-at-point t))
@@ -243,7 +236,7 @@ With prefix argument N, move N items (negative N means move forward)."
       (progn
         (when (and vcomplete-auto-update minibuffer-completion-table)
           (add-hook 'pre-command-hook
-                    #'vcomplete--last-string-in-minibuffer nil t)
+                    #'vcomplete--set-last-string-in-minibuffer nil t)
           (add-hook 'post-command-hook
                     #'vcomplete--update-in-minibuffer nil t))
         (use-local-map (make-composed-keymap vcomplete-command-map
@@ -252,7 +245,7 @@ With prefix argument N, move N items (negative N means move forward)."
                           minor-mode-overriding-map-alist)))
       (when vcomplete-auto-update
         (add-hook 'pre-command-hook
-                  #'vcomplete--last-string-in-region nil t)
+                  #'vcomplete--set-last-string-in-region nil t)
         (add-hook 'post-command-hook
                   #'vcomplete--update-in-region nil t))
       (setcdr map vcomplete-command-map))))
