@@ -215,9 +215,11 @@ With prefix argument N, move N items (negative N means move forward)."
   "Update the completion list when completing in-region."
   (while-no-input
     (redisplay)
-    (unless (string= (vcomplete--last-string-in-region-1)
-                     vcomplete--last-string)
-      (completion-help-at-point))))
+    (if (get-buffer-window "*Completions*")
+        (unless (string= (vcomplete--last-string-in-region-1)
+                         vcomplete--last-string)
+          (completion-help-at-point))
+      (completion-in-region-mode -1))))
 
 (defun vcomplete--reset-vars ()
   "Reset variables used by Vcomplete to their default values."
