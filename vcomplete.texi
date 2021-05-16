@@ -42,8 +42,7 @@ General Public License for more details.
 @top Vcomplete User Manual
 
 Vcomplete provides a minor mode enhancing the default completion list
-buffer, providing visual aids for selecting completions and performing
-other actions.
+buffer, providing visual aids for selecting completions.
 
 @noindent
 This manual is for Vcomplete version 0.1.
@@ -80,10 +79,10 @@ Customization
 @chapter Introduction
 
 Vcomplete provides a minor mode enhancing the default completion list
-buffer, providing visual aids for selecting completions and performing
-other actions. It's designed to build upon the default completion
-system, instead of replacing it. As such, it works both when
-completing in a minibuffer and in normal buffers.
+buffer, providing visual aids for selecting completions. It's designed
+to build upon the default completion system, instead of replacing
+it. As such, it works both when completing in a minibuffer and in
+normal buffers.
 
 @node Installation
 @chapter Installation
@@ -136,7 +135,14 @@ be enabled:
 You can also add @code{(vcomplete-mode)} to your init file, instead.
 @end table
 
-The following commands assume completion is in progress.
+When @code{vcomplete-mode} is enabled, the @code{*Completions*} buffer
+appears and updates automatically (by default), and the completion at
+point is highlighted. Note that the completion at point isn't
+highlighted when completing in-region, however switching to the
+@code{*Completions*} buffer stops completion in this case (this is
+default Emacs behavior).
+
+The following commands are available when completion is in progress:
 
 @kindex C-n
 @cindex vcomplete-next-completion

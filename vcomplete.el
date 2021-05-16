@@ -27,8 +27,7 @@
 ;;; Commentary:
 
 ;; Vcomplete provides a minor mode enhancing the default completion
-;; list buffer, providing visual aids for selecting completions and
-;; performing other actions.
+;; list buffer, providing visual aids for selecting completions.
 ;;
 ;; Usage:
 ;;
@@ -48,8 +47,8 @@
 ;; - The completion list buffer can be controlled through the
 ;;   minibuffer (during minibuffer completion) or the current buffer
 ;;   (during in-buffer completion), if it's visible.
-;; - The current completion is highlighted in the completion list
-;;   buffer.
+;; - The currently selected completion is highlighted in the
+;;   completion list buffer.
 ;;
 ;; C-n moves point to the next completion.
 ;;
@@ -155,15 +154,13 @@ If no completion is found, return nil."
   "Move to the next item in the ‘*Completions*’ buffer.
 With prefix argument N, move N items (negative N means move backward)."
   (interactive "p")
-  (vcomplete--move-n-completions (or n 1))
-  (setq this-command 'vcomplete--no-update))
+  (vcomplete--move-n-completions (or n 1)))
 
 (defun vcomplete-prev-completion (&optional n)
   "Move to the previous item in the ‘*Completions*’ buffer.
 With prefix argument N, move N items (negative N means move forward)."
   (interactive "p")
-  (vcomplete--move-n-completions (- (or n 1)))
-  (setq this-command 'vcomplete--no-update))
+  (vcomplete--move-n-completions (- (or n 1))))
 
 (defun vcomplete-choose-completion ()
   "Choose the completion at point in the ‘*Completions*’ buffer."
@@ -182,45 +179,81 @@ With prefix argument N, move N items (negative N means move forward)."
 
 ;;;; Visual completion mode:
 
+(defvar vcomplete--last-string nil
+  "Last pending completion string.")
+
+(defun vcomplete--last-string-in-minibuffer-1 ()
+  "Return the minibuffer substring after the prompt."
+  (buffer-substring-no-properties (minibuffer-prompt-end)
+                                  (point-max)))
+
+(defun vcomplete--last-string-in-minibuffer ()
+  "Set ‘vcomplete--last-string’ in a minibuffer."
+  (setq vcomplete--last-string (vcomplete--last-string-in-minibuffer-1)))
+
+(defun vcomplete--last-string-in-region-1 ()
+  "Return a substring according to the markers in ‘completion-in-region--data’."
+  (when completion-in-region--data
+    (buffer-substring-no-properties
+     (car completion-in-region--data)
+     (cadr completion-in-region--data))))
+
+(defun vcomplete--last-string-in-region ()
+  "Set ‘vcomplete--last-string’ in-region."
+  (setq vcomplete--last-string
+        (vcomplete--last-string-in-region-1)))
+
 (defun vcomplete--update-in-minibuffer ()
   "Update the completion list when completing in a minibuffer."
   (while-no-input
     (redisplay)
-    (unless (eq this-command 'vcomplete--no-update)
+    (unless (string= (vcomplete--last-string-in-minibuffer-1)
+                     vcomplete--last-string)
       (minibuffer-completion-help))))
 
 (defun vcomplete--update-in-region ()
   "Update the completion list when completing in-region."
   (while-no-input
     (redisplay)
-    (unless (or (eq this-command 'vcomplete--no-update)
-                (eq this-command 'completion-at-point)
-                (null completion-in-region-mode))
+    (unless (string= (vcomplete--last-string-in-region-1)
+                     vcomplete--last-string)
       (completion-help-at-point))))
 
 (defun vcomplete--reset-vars ()
   "Reset variables used by Vcomplete to their default values."
-  (setq vcomplete--last-completion-overlay nil)
+  (setq vcomplete--last-completion-overlay nil
+        vcomplete--last-string nil)
+  (remove-hook 'pre-command-hook #'vcomplete--last-string-in-minibuffer t)
+  (remove-hook 'pre-command-hook #'vcomplete--last-string-in-region t)
   (remove-hook 'post-command-hook #'vcomplete--update-in-region t)
-  (remove-hook 'post-command-hook #'vcomplete--update-in-minibuffer t))
+  (remove-hook 'post-command-hook #'vcomplete--update-in-minibuffer t)
+  (remove-hook 'post-command-hook #'vcomplete--highlight-completion-at-point t))
 
-(defun vcomplete--setup ()
-  "Setup ‘vcomplete-mode’."
+(defun vcomplete--setup-completions ()
+  "Setup ‘vcomplete-mode’ for the ‘*Completions*’ buffer."
+  (add-hook 'post-command-hook
+            #'vcomplete--highlight-completion-at-point nil t))
+
+(defun vcomplete--setup-current ()
+  "Setup ‘vcomplete-mode’ for the current buffer."
+  (vcomplete--reset-vars)
   (if (minibufferp)
       (progn
         (when (and vcomplete-auto-update minibuffer-completion-table)
+          (add-hook 'pre-command-hook
+                    #'vcomplete--last-string-in-minibuffer nil t)
           (add-hook 'post-command-hook
                     #'vcomplete--update-in-minibuffer nil t))
         (use-local-map (make-composed-keymap vcomplete-command-map
                                              (current-local-map))))
-    (if completion-in-region-mode
-        (when-let ((map (assq #'completion-in-region-mode
-                              minor-mode-overriding-map-alist)))
-          (when vcomplete-auto-update
-            (add-hook 'post-command-hook
-                      #'vcomplete--update-in-region nil t))
-          (setcdr map vcomplete-command-map))
-      (vcomplete--reset-vars))))
+    (when-let ((map (assq #'completion-in-region-mode
+                          minor-mode-overriding-map-alist)))
+      (when vcomplete-auto-update
+        (add-hook 'pre-command-hook
+                  #'vcomplete--last-string-in-region nil t)
+        (add-hook 'post-command-hook
+                  #'vcomplete--update-in-region nil t))
+      (setcdr map vcomplete-command-map))))
 
 ;;;###autoload
 (define-minor-mode vcomplete-mode
@@ -235,13 +268,15 @@ completion:
   (if vcomplete-mode
       (progn
         (vcomplete--reset-vars)
-        (add-hook 'minibuffer-setup-hook #'vcomplete--setup)
+        (add-hook 'completion-list-mode-hook #'vcomplete--setup-completions)
+        (add-hook 'minibuffer-setup-hook #'vcomplete--setup-current)
         (add-hook 'minibuffer-exit-hook #'vcomplete--reset-vars)
-        (add-hook 'completion-in-region-mode-hook #'vcomplete--setup))
+        (add-hook 'completion-in-region-mode-hook #'vcomplete--setup-current))
     (vcomplete--reset-vars)
-    (remove-hook 'minibuffer-setup-hook #'vcomplete--setup)
+    (remove-hook 'completion-list-mode-hook #'vcomplete--setup-completions)
+    (remove-hook 'minibuffer-setup-hook #'vcomplete--setup-current)
     (remove-hook 'minibuffer-exit-hook #'vcomplete--reset-vars)
-    (remove-hook 'completion-in-region-mode-hook #'vcomplete--setup)))
+    (remove-hook 'completion-in-region-mode-hook #'vcomplete--setup-current)))
 
 (provide 'vcomplete)
 

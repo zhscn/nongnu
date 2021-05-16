@@ -1,8 +1,7 @@
 Vcomplete - Visual completions
 
 Vcomplete provides a minor mode enhancing the default completion
-list buffer, providing visual aids for selecting completions and
-performing other actions.
+list buffer, providing visual aids for selecting completions.
 
 Installation:
 
@@ -44,8 +43,8 @@ When vcomplete-mode is active:
 - The completion list buffer can be controlled through the
   minibuffer (during minibuffer completion) or the current buffer
   (during in-buffer completion), if it's visible.
-- The current completion is highlighted in the completion list
-  buffer.
+- The currently selected completion is highlighted in the completion
+  list buffer.
 
 C-n moves point to the next completion.
 
