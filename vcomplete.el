@@ -273,6 +273,31 @@ completion:
     (remove-hook 'minibuffer-exit-hook #'vcomplete--reset-vars)
     (remove-hook 'completion-in-region-mode-hook #'vcomplete--setup-current)))
 
+;;;; Embark integration:
+
+(declare-function embark-target-completion-at-point "ext:embark")
+(declare-function embark-completions-buffer-candidates "ext:embark")
+
+(defun vcomplete-embark-current-completion (&optional relative)
+  "Call ‘embark-target-completion-at-point’ in the ‘*Completions*’ buffer."
+  (when (and vcomplete-mode
+             (or (minibufferp) completion-in-region-mode))
+    (vcomplete-with-completions-buffer
+      (embark-target-completion-at-point relative))))
+
+(defun vcomplete-embark-collect-candidates ()
+  "Call ‘embark-completions-buffer-candidates’ in the ‘*Completions*’ buffer."
+  (when (and vcomplete-mode
+             (or (minibufferp) completion-in-region-mode))
+    (vcomplete-with-completions-buffer
+      (embark-completions-buffer-candidates))))
+
+(with-eval-after-load 'embark
+  (add-hook 'embark-target-finders
+            #'vcomplete-embark-current-completion)
+  (add-hook 'embark-candidate-collectors
+           #'vcomplete-embark-collect-candidates))
+
 (provide 'vcomplete)
 
 ;;; vcomplete.el ends here

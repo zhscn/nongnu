@@ -2,6 +2,9 @@ Vcomplete NEWS -- history of user-visible changes.
 See the end of the file for an explanation of the versioning scheme.
 
 * 1.0 (in development)
+
+** Add basic Embark support.
+
 ** Highlight the completion at point in the completion list buffer.
 even when using normal navigation commands.
 This only works when completing in the minibuffer currently (although
