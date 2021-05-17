@@ -278,6 +278,18 @@ completion:
 (declare-function embark-target-completion-at-point "ext:embark")
 (declare-function embark-completions-buffer-candidates "ext:embark")
 
+(defun vcomplete-embark--eliminate-delay (fun &rest args)
+  "Call FUN with ‘minibuffer-message-timeout’ locally set to ‘0’."
+  (let ((minibuffer-message-timeout 0))
+    (apply fun args)))
+
+(defun vcomplete-embark--advise-commands ()
+  "Advise Embark commands with ‘vcomplete-embark--eliminate-delay’."
+  (dolist (cmd '(embark-act embark-default-action))
+    (if vcomplete-mode
+        (advice-add cmd :around #'vcomplete-embark--eliminate-delay)
+      (advice-remove cmd #'vcomplete-embark--eliminate-delay))))
+
 (defun vcomplete-embark-current-completion (&optional relative)
   "Call ‘embark-target-completion-at-point’ in the ‘*Completions*’ buffer."
   (when (and vcomplete-mode
@@ -293,6 +305,8 @@ completion:
       (embark-completions-buffer-candidates))))
 
 (with-eval-after-load 'embark
+  (add-hook 'vcomplete-mode-hook
+            #'vcomplete-embark--advise-commands)
   (add-hook 'embark-target-finders
             #'vcomplete-embark-current-completion)
   (add-hook 'embark-candidate-collectors
