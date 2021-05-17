@@ -114,7 +114,9 @@ Simply download a release (from
 Clone the repository and build the package archive:
 
 @example
-$ git clone https://git.sr.ht/~dsemy/vcomplete $ cd vcomplete $ make
+$ git clone https://git.sr.ht/~dsemy/vcomplete
+$ cd vcomplete
+$ make
 @end example
 
 Install the package:
@@ -137,10 +139,11 @@ You can also add @code{(vcomplete-mode)} to your init file, instead.
 
 When @code{vcomplete-mode} is enabled, the @code{*Completions*} buffer
 appears and updates automatically (by default), and the completion at
-point is highlighted. Note that the completion at point isn't
-highlighted when completing in-region, however switching to the
-@code{*Completions*} buffer stops completion in this case (this is
-default Emacs behavior).
+point in the @code{*Completions*} buffer is highlighted automatically.
+Automatic highlighting of the completion at point doesn't work when
+completing in-region (switching to the @code{*Completions*} buffer in
+this case ends completion by default in Emacs), however the following
+commands do work as described in this case.
 
 The following commands are available when completion is in progress:
 
@@ -170,8 +173,8 @@ completions at a time with a prefix argument.
 @cindex vcomplete-choose-completion
 @table @asis
 @item @kbd{M-RET}
-Choose the current completion (@code{vcomplete-choose-completion}).
-This command chooses the highlighted completion, ending completion.
+Choose the currently highlighted completion
+(@code{vcomplete-choose-completion}).
 @end table
 
 @xref{Completion commands} for information regarding defining new
@@ -201,16 +204,9 @@ update. Otherwise, operate according to
 @node Completion commands
 @section Completion commands
 
-Completion commands are used to perform operations on specific
-completion candidates. They are normal commands (interactive
-functions) which are bound to a key sequence in
-@code{vcomplete-command-map}.  @code{vcomplete-next-completion},
-@code{vcomplete-prev-completion} and
-@code{vcomplete-choose-completion} are implemented as completion
-commands. Completion commands can inhibit updating the completion list
-buffer by setting @code{this-command} to @code{vcomplete--no-update}.
-Note that the completion list is updated after every command (via
-@code{post-command-hook}).
+Completion commands are used to perform actions while completing. They
+are normal commands (interactive functions) which are bound to a key
+sequence in @code{vcomplete-command-map}.
 
 @defvar vcomplete-command-map
 Key map which holds key bindings to completion commands. This key map
@@ -220,9 +216,9 @@ should be available whenever completion is initiated.
 @defun vcomplete-current-completion pos
 Get the completion candidate at POS.
 The completion candidate is returned as a list of the form:
-@table @asis
+@example
 (COMPLETION-STRING . (BEGINNING . END))
-@end table
+@end example
 If no completion is found, this function returns nil. Note that this
 function throws an error when the major mode of the buffer from which
 it is called isn't derived from @code{completion-list-mode}.
