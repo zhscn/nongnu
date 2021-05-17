@@ -296,7 +296,7 @@ completion:
   (add-hook 'embark-target-finders
             #'vcomplete-embark-current-completion)
   (add-hook 'embark-candidate-collectors
-           #'vcomplete-embark-collect-candidates))
+            #'vcomplete-embark-collect-candidates))
 
 (provide 'vcomplete)
 
