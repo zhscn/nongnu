@@ -305,6 +305,7 @@ completion:
       (embark-completions-buffer-candidates))))
 
 (with-eval-after-load 'embark
+  (vcomplete-embark--advise-commands)
   (add-hook 'vcomplete-mode-hook
             #'vcomplete-embark--advise-commands)
   (add-hook 'embark-target-finders
