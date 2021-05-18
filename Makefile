@@ -1,10 +1,10 @@
 include config.mk
 
-.PHONY: info package clean
+.PHONY: all help info package clean
 
 .SUFFIXES: .texi .info
 
-all: package
+all: clean package
 
 help:
 	$(info make info     - generate the info manual)
