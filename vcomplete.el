@@ -184,18 +184,23 @@ With prefix argument N, move N items (negative N means move forward)."
 
 (defun vcomplete--set-last-string-in-minibuffer ()
   "Set ‘vcomplete--last-string’ in a minibuffer."
-  (setq vcomplete--last-string (minibuffer-contents)))
+  (while-no-input
+    (redisplay)
+    (setq vcomplete--last-string (minibuffer-contents))))
 
 (defun vcomplete--string-in-region ()
-  "Return a substring according to the markers in ‘completion-in-region--data’."
+  "Return a substring according to the markers in
+‘completion-in-region--data’."
   (when completion-in-region--data
     (buffer-substring (car completion-in-region--data)
                       (cadr completion-in-region--data))))
 
 (defun vcomplete--set-last-string-in-region ()
   "Set ‘vcomplete--last-string’ in-region."
-  (setq vcomplete--last-string
-        (vcomplete--string-in-region)))
+  (while-no-input
+    (redisplay)
+    (setq vcomplete--last-string
+          (vcomplete--string-in-region))))
 
 (defun vcomplete--update-in-minibuffer ()
   "Update the completion list when completing in a minibuffer."
