@@ -237,23 +237,23 @@ With prefix argument N, move N items (negative N means move forward)."
 (defun vcomplete--setup-current ()
   "Setup ‘vcomplete-mode’ for the current buffer."
   (vcomplete--reset-vars)
-  (if (minibufferp)
+  (if-let ((map (assq #'completion-in-region-mode
+                      minor-mode-overriding-map-alist)))
       (progn
-        (when (and vcomplete-auto-update minibuffer-completion-table)
+        (when vcomplete-auto-update
           (add-hook 'pre-command-hook
-                    #'vcomplete--set-last-string-in-minibuffer nil t)
+                    #'vcomplete--set-last-string-in-region nil t)
           (add-hook 'post-command-hook
-                    #'vcomplete--update-in-minibuffer nil t))
-        (use-local-map (make-composed-keymap vcomplete-command-map
-                                             (current-local-map))))
-    (when-let ((map (assq #'completion-in-region-mode
-                          minor-mode-overriding-map-alist)))
+                    #'vcomplete--update-in-region nil t))
+        (setcdr map vcomplete-command-map))
+    (when minibuffer-completion-table
       (when vcomplete-auto-update
         (add-hook 'pre-command-hook
-                  #'vcomplete--set-last-string-in-region nil t)
+                  #'vcomplete--set-last-string-in-minibuffer nil t)
         (add-hook 'post-command-hook
-                  #'vcomplete--update-in-region nil t))
-      (setcdr map vcomplete-command-map))))
+                  #'vcomplete--update-in-minibuffer nil t))
+      (use-local-map (make-composed-keymap vcomplete-command-map
+                                           (current-local-map))))))
 
 ;;;###autoload
 (define-minor-mode vcomplete-mode
