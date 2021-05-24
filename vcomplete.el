@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2021 Daniel Semyonov
 
-;; Author: Daniel Semyonov <cmstr@dsemy.com>
-;; Maintainer: Daniel Semyonov <cmstr@dsemy.com>
+;; Author: Daniel Semyonov <daniel@dsemy.com>
+;; Maintainer: Daniel Semyonov <daniel@dsemy.com>
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: convenience, matching
