@@ -31,7 +31,7 @@
 ;;
 ;; Usage:
 ;;
-;; Enable ‘vcomplete-mode’:
+;; Enable `vcomplete-mode':
 ;;
 ;; (vcomplete-mode)
 ;;
@@ -43,7 +43,7 @@
 ;;
 ;; When vcomplete-mode is active:
 ;; - The completion list buffer opens and updates automatically (see
-;;   ‘vcomplete-auto-update’).
+;;   `vcomplete-auto-update').
 ;; - The completion list buffer can be controlled through the
 ;;   minibuffer (during minibuffer completion) or the current buffer
 ;;   (during in-buffer completion), if it's visible.
@@ -56,11 +56,11 @@
 ;;
 ;; M-RET (C-M-m) chooses the completion at point.
 ;;
-;; More commands can be added through ‘vcomplete-command-map’:
+;; More commands can be added through `vcomplete-command-map':
 ;;
 ;; (define-key vcomplete-command-map [?\C-a] #'my-command)
 ;;
-;; You can customize ‘vcomplete-mode’ using the customize interface:
+;; You can customize `vcomplete-mode' using the customize interface:
 ;;
 ;; M-x customize-group RET vcomplete RET
 ;;
@@ -77,12 +77,12 @@
   :prefix "vcomplete-")
 
 (defcustom vcomplete-auto-update t
-  "Whether the ‘*Completions*’ buffer should open and update automatically.
+  "Whether the `*Completions*' buffer should open and update automatically.
 Non-nil means automatically open and update.
-Otherwise, operate according to ‘completion-auto-help’."
+Otherwise, operate according to `completion-auto-help'."
   :type '(radio
           (const :tag "Automatically open and update" t)
-          (const :tag "Operate according to ‘completion-auto-help’" nil))
+          (const :tag "Operate according to `completion-auto-help'" nil))
   :package-version '(vcomplete . 0.1)
   :set (lambda (sym val)
          (set-default sym val)
@@ -92,9 +92,9 @@ Otherwise, operate according to ‘completion-auto-help’."
 ;;;; Completion commands:
 
 (defmacro vcomplete-with-completions-buffer (&rest body)
-  "Evaluate BODY with the ‘*Completions*’ buffer temporarily current.
+  "Evaluate BODY with the `*Completions*' buffer temporarily current.
 While evaluating body, BUFFER and WINDOW are locally bound to the
-‘*Completions*’ buffer and window respectively."
+`*Completions*' buffer and window respectively."
   (declare (indent 0))
   `(when-let ((buffer (get-buffer "*Completions*"))
               (window (get-buffer-window buffer)))
@@ -102,7 +102,7 @@ While evaluating body, BUFFER and WINDOW are locally bound to the
        (set-buffer buffer)
        (unless (eq major-mode 'completion-list-mode)
          (user-error
-          "The ‘*Completions*’ buffer is set to an incorrect mode"))
+          "The `*Completions*' buffer is set to an incorrect mode"))
        ,@body)))
 
 (defun vcomplete-current-completion (pos)
@@ -112,7 +112,7 @@ The completion candidate is returned as a list of the form:
 If no completion is found, return nil."
   (unless (derived-mode-p 'completion-list-mode)
     (error "Not in a valid completion list buffer"))
-  ;; Modified from code in ‘choose-completion’.
+  ;; Modified from code in `choose-completion'.
   (let (beg end noop)
     (cond
      ((and (not (eobp)) (get-text-property pos 'mouse-face))
@@ -128,10 +128,10 @@ If no completion is found, return nil."
       `(,(buffer-substring-no-properties beg end) . (,beg . ,end)))))
 
 (defvar vcomplete--last-completion-overlay nil
-  "Last overlay created in the ‘*Completions*’ buffer.")
+  "Last overlay created in the `*Completions*' buffer.")
 
 (defun vcomplete--highlight-completion-at-point ()
-  "Highlight the completion at point in the ‘*Completions*’ buffer."
+  "Highlight the completion at point in the `*Completions*' buffer."
   (while-no-input
     (redisplay)
     (let ((cur (vcomplete-current-completion (point))))
@@ -144,26 +144,26 @@ If no completion is found, return nil."
          'face 'highlight)))))
 
 (defun vcomplete--move-n-completions (n)
-  "Move N completions in the ‘*Completions*’ buffer."
+  "Move N completions in the `*Completions*' buffer."
   (vcomplete-with-completions-buffer
     (next-completion n)
     (set-window-point window (point))
     (vcomplete--highlight-completion-at-point)))
 
 (defun vcomplete-next-completion (&optional n)
-  "Move to the next item in the ‘*Completions*’ buffer.
+  "Move to the next item in the `*Completions*' buffer.
 With prefix argument N, move N items (negative N means move backward)."
   (interactive "p")
   (vcomplete--move-n-completions (or n 1)))
 
 (defun vcomplete-prev-completion (&optional n)
-  "Move to the previous item in the ‘*Completions*’ buffer.
+  "Move to the previous item in the `*Completions*' buffer.
 With prefix argument N, move N items (negative N means move forward)."
   (interactive "p")
   (vcomplete--move-n-completions (- (or n 1))))
 
 (defun vcomplete-choose-completion ()
-  "Choose the completion at point in the ‘*Completions*’ buffer."
+  "Choose the completion at point in the `*Completions*' buffer."
   (interactive)
   (when-let ((buf (get-buffer "*Completions*")))
     (switch-to-completions)
@@ -175,7 +175,7 @@ With prefix argument N, move N items (negative N means move forward)."
     (define-key map [?\C-p] #'vcomplete-prev-completion)
     (define-key map [?\C-\M-m] #'vcomplete-choose-completion)
     map)
-  "Key map for ‘vcomplete-mode’ commands.")
+  "Key map for `vcomplete-mode' commands.")
 
 ;;;; Visual completion mode:
 
@@ -183,20 +183,20 @@ With prefix argument N, move N items (negative N means move forward)."
   "Last pending completion string.")
 
 (defun vcomplete--set-last-string-in-minibuffer ()
-  "Set ‘vcomplete--last-string’ in a minibuffer."
+  "Set `vcomplete--last-string' in a minibuffer."
   (while-no-input
     (redisplay)
     (setq vcomplete--last-string (minibuffer-contents))))
 
 (defun vcomplete--string-in-region ()
   "Return a substring according to the markers in
-‘completion-in-region--data’."
+`completion-in-region--data'."
   (when completion-in-region--data
     (buffer-substring (car completion-in-region--data)
                       (cadr completion-in-region--data))))
 
 (defun vcomplete--set-last-string-in-region ()
-  "Set ‘vcomplete--last-string’ in-region."
+  "Set `vcomplete--last-string' in-region."
   (while-no-input
     (redisplay)
     (setq vcomplete--last-string
@@ -230,12 +230,12 @@ With prefix argument N, move N items (negative N means move forward)."
   (remove-hook 'post-command-hook #'vcomplete--highlight-completion-at-point t))
 
 (defun vcomplete--setup-completions ()
-  "Setup ‘vcomplete-mode’ for the ‘*Completions*’ buffer."
+  "Setup `vcomplete-mode' for the `*Completions*' buffer."
   (add-hook 'post-command-hook
             #'vcomplete--highlight-completion-at-point nil t))
 
 (defun vcomplete--setup-current ()
-  "Setup ‘vcomplete-mode’ for the current buffer."
+  "Setup `vcomplete-mode' for the current buffer."
   (vcomplete--reset-vars)
   (if-let ((map (assq #'completion-in-region-mode
                       minor-mode-overriding-map-alist)))
@@ -284,26 +284,26 @@ completion:
 (declare-function embark-completions-buffer-candidates "ext:embark")
 
 (defun vcomplete-embark--eliminate-delay (fun &rest args)
-  "Call FUN with ‘minibuffer-message-timeout’ locally set to ‘0’."
+  "Call FUN with `minibuffer-message-timeout' locally set to `0'."
   (let ((minibuffer-message-timeout 0))
     (apply fun args)))
 
 (defun vcomplete-embark--advise-commands ()
-  "Advise Embark commands with ‘vcomplete-embark--eliminate-delay’."
+  "Advise Embark commands with `vcomplete-embark--eliminate-delay'."
   (dolist (cmd '(embark-act embark-default-action))
     (if vcomplete-mode
         (advice-add cmd :around #'vcomplete-embark--eliminate-delay)
       (advice-remove cmd #'vcomplete-embark--eliminate-delay))))
 
 (defun vcomplete-embark-current-completion (&optional relative)
-  "Call ‘embark-target-completion-at-point’ in the ‘*Completions*’ buffer."
+  "Call `embark-target-completion-at-point' in the `*Completions*' buffer."
   (when (and vcomplete-mode
              (or (minibufferp) completion-in-region-mode))
     (vcomplete-with-completions-buffer
       (embark-target-completion-at-point relative))))
 
 (defun vcomplete-embark-collect-candidates ()
-  "Call ‘embark-completions-buffer-candidates’ in the ‘*Completions*’ buffer."
+  "Call `embark-completions-buffer-candidates' in the `*Completions*' buffer."
   (when (and vcomplete-mode
              (or (minibufferp) completion-in-region-mode))
     (vcomplete-with-completions-buffer
