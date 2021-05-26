@@ -31,7 +31,7 @@
 ;;
 ;; Usage:
 ;;
-;; Enable ‘swsw-mode’:
+;; Enable `swsw-mode':
 ;;
 ;; (swsw-mode)
 ;;
@@ -43,9 +43,9 @@
 ;;
 ;; When swsw-mode is active:
 ;; - A window ID is displayed using a mode line lighter or a display
-;;   function (see ‘swsw-display-function’).
+;;   function (see `swsw-display-function').
 ;; - Window IDs are assigned to all windows on all frames except for
-;;   the minibuffer(by default, see ‘swsw-scope’).
+;;   the minibuffer(by default, see `swsw-scope').
 ;;
 ;; C-x o ID switches focus to the window which corresponds to ID.
 ;;
@@ -53,11 +53,11 @@
 ;;
 ;; C-x o 0 ID deletes the window which corresponds to ID.
 ;;
-;; More commands can be added through ‘swsw-command-map’:
+;; More commands can be added through `swsw-command-map':
 ;;
 ;; (define-key swsw-command-map [?a] #'my-command)
 ;;
-;; You can customize ‘swsw-mode’ using the customize interface:
+;; You can customize `swsw-mode' using the customize interface:
 ;;
 ;; M-x customize-group RET swsw RET
 ;;
@@ -79,11 +79,11 @@
   :prefix "swsw-")
 
 (defun swsw--set-id-chars (sym chars)
-  "Set the variable ‘swsw-id-chars’.
-Check that the new list has at least two elements, set SYM’s value to
-CHARS, and call ‘swsw-update’."
+  "Set the variable `swsw-id-chars'.
+Check that the new list has at least two elements, set SYM's value to
+CHARS, and call `swsw-update'."
   (unless (nth 1 chars)
-    (user-error "‘swsw-id-chars’ should contain at least two characters"))
+    (user-error "`swsw-id-chars' should contain at least two characters"))
   (set-default sym chars)
   (when (fboundp 'swsw-update)
     (swsw-update)))
@@ -96,8 +96,8 @@ This list should contain at least two characters."
   :package-version '(swsw . 1.0))
 
 (defun swsw--set-scope (sym scope)
-  "Set the variable ‘swsw-scope’.
-Set SYM’s value to SCOPE and call ‘swsw-update’."
+  "Set the variable `swsw-scope'.
+Set SYM's value to SCOPE and call `swsw-update'."
   (set-default sym scope)
   (when (fboundp 'swsw-update)
     (swsw-update)))
@@ -107,8 +107,8 @@ Set SYM’s value to SCOPE and call ‘swsw-update’."
 t means consider all windows on all existing frames.
 0 (the number zero) means consider all windows on all visible and
   iconified frames.
-‘visible’ means consider all windows on all visible frames.
-‘current’ means consider only the currently selected frame."
+`visible' means consider all windows on all visible frames.
+`current' means consider only the currently selected frame."
   :type '(radio (const :tag "All windows on all frames" t)
                 (const
                  :tag "All windows on all visible and iconified frames" 0)
@@ -120,7 +120,7 @@ t means consider all windows on all existing frames.
   :package-version '(swsw . 1.1))
 
 (defun swsw--set-display-function (sym fun)
-  "Set the variable ‘swsw-display-function’.
+  "Set the variable `swsw-display-function'.
 Call the previous display function with nil as the sole argument
 \(turning it off), set SYM's value to FUN, and call FUN with t as the
 sole argument (turning it on)."
@@ -134,8 +134,8 @@ sole argument (turning it on)."
 (defcustom swsw-display-function 'lighter
   "Function used to display the ID of each window.
 This function is called with t as the sole argument when enabling
-‘swsw-mode’, and with nil as the sole argument when disabling it.
-If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
+`swsw-mode', and with nil as the sole argument when disabling it.
+If set to `lighter', use the mode line lighter of `swsw-mode'."
   :type '(radio (const :tag "Mode line lighter" lighter)
                 (function :tag "Display function"))
   :set #'swsw--set-display-function
@@ -179,7 +179,7 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
           ;; corresponding ID.
           (mapcar (lambda (elt)
                     (push (nth elt swsw-id-chars) id)
-                    ;; Advance ‘swsw--id-counter’.
+                    ;; Advance `swsw--id-counter'.
                     (when adv-flag
                       (if (= len (setq elt (1+ elt)))
                           (setq elt 0)
@@ -200,8 +200,8 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
       ;; command which calls the last command (with the corresponding
       ;; window as the sole argument).
       ;; This allows controlling which command is invoked when
-      ;; choosing an ID by setting ‘this-command’ in a command which
-      ;; sets the transient map to ‘swsw--id-map’.
+      ;; choosing an ID by setting `this-command' in a command which
+      ;; sets the transient map to `swsw--id-map'.
       (define-key swsw--id-map (apply #'vector id)
         `(lambda ()
            (interactive)
@@ -215,7 +215,7 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
   (set-keymap-parent swsw--id-map swsw-command-map)
   (setq swsw--id-counter nil
         swsw-window-count 0)
-  ;; Clear and resize ‘swsw--id-counter’ according to the ID length.
+  ;; Clear and resize `swsw--id-counter' according to the ID length.
   (dotimes (_var (swsw--get-id-length))
     (push 0 swsw--id-counter))
   (walk-windows #'swsw-update-window nil (swsw--get-scope)))
@@ -249,18 +249,18 @@ If set to ‘lighter’, use the mode line lighter of ‘swsw-mode’."
   "Display window IDs at the beginning of the mode line.
 Display window IDs if SWITCH isn't nil, and disable displaying window
 IDs if SWITCH is nil.
-This display function respects ‘swsw-id-format’."
+This display function respects `swsw-id-format'."
   (if switch
       (swsw--mode-line-display)
     (swsw--mode-line-hide)))
 
 (defun swsw-mode-line-conditional-display-function (switch)
   "Display window IDs at the beginning of the mode line, conditionally.
-Add a hook to ‘swsw-before-command-hook’ which displays window IDs on
-the mode line and add a hook to ‘swsw-after-command-hook’ which hides
+Add a hook to `swsw-before-command-hook' which displays window IDs on
+the mode line and add a hook to `swsw-after-command-hook' which hides
 window IDs from the mode line if SWITCH isn't nil, and remove those
 hooks if SWITCH is nil.
-This display function respects ‘swsw-id-format’."
+This display function respects `swsw-id-format'."
   (if switch
       (progn
         (add-hook 'swsw-before-command-hook #'swsw--mode-line-display)
@@ -272,8 +272,8 @@ This display function respects ‘swsw-id-format’."
 
 (defun swsw--run-window-command (fun)
   "Run FUN as a window command.
-Run ‘swsw-before-command-hook’, set ‘this-command’ to FUN and set a
-transient map for ID selection which runs ‘swsw-after-command-hook’ on
+Run `swsw-before-command-hook', set `this-command' to FUN and set a
+transient map for ID selection which runs `swsw-after-command-hook' on
 exit."
   (run-hooks 'swsw-before-command-hook)
   (setq this-command fun)
@@ -284,10 +284,10 @@ exit."
 (defun swsw-select ()
   "Start window selection.
 If less than three windows have been assigned an ID, switch to the
-window returned by ‘next-window’.
+window returned by `next-window'.
 Otherwise, window selection allows either choosing a window by its ID
 \(switching to it), or using a window manipulation command.
-This command is intended to be used only when ‘swsw-mode’ is enabled."
+This command is intended to be used only when `swsw-mode' is enabled."
   (interactive)
   (if (< swsw-window-count 3)
       (select-window (next-window))
@@ -295,7 +295,7 @@ This command is intended to be used only when ‘swsw-mode’ is enabled."
 
 (defun swsw-select-minibuffer ()
   "Select the active minibuffer window (if it exists).
-This command is intended to be used only when ‘swsw-mode’ is enabled."
+This command is intended to be used only when `swsw-mode' is enabled."
   (interactive)
   (let ((window (active-minibuffer-window)))
     (if window (select-window window)
@@ -304,10 +304,10 @@ This command is intended to be used only when ‘swsw-mode’ is enabled."
 (defun swsw-delete ()
   "Start window deletion.
 If less than three windows have been assigned an ID, delete the window
-returned by ‘next-window’.
+returned by `next-window'.
 Otherwise, window deletion allows either choosing a window by its ID
 \(deleting it), or using a window manipulation command.
-This command is intended to be used only when ‘swsw-mode’ is enabled."
+This command is intended to be used only when `swsw-mode' is enabled."
   (interactive)
   (if (< swsw-window-count 3)
       (let ((window (next-window)))
@@ -322,7 +322,7 @@ This command is intended to be used only when ‘swsw-mode’ is enabled."
                            (define-key map [?0] #'swsw-delete)
                            map)
   "Key map for window commands.
-This key map is set as the parent of ‘swsw--id-map’ during ID
+This key map is set as the parent of `swsw--id-map' during ID
 selection.")
 
 ;;;; Simple window switching mode:
