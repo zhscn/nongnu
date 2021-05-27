@@ -35,7 +35,13 @@ use with package company-arduino to get Arduino code completing.
 
 ** Org Mode Babel source block support with ob-arduino.el
 
-You need have Org-mode installed, ~ob-arduino.el~ is in Org-mode contrib/ now.
+You need have Org-mode installed, ~ob-arduino.el~ is in arduino-mode by default now.
+
+#+begin_src emacs-lisp
+(require 'ob-arduino)
+(add-to-list 'org-babel-load-languages '(arduino . t))
+(org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)
+#+end_src
 
 Like the following src block, press =[C-c C-c]= to upload to Arduino board.
 
