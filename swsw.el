@@ -78,29 +78,18 @@
   :group 'convenience
   :prefix "swsw-")
 
-(defun swsw--set-id-chars (sym chars)
-  "Set the variable `swsw-id-chars'.
-Check that the new list has at least two elements, set SYM's value to
-CHARS, and call `swsw-update'."
-  (unless (nth 1 chars)
-    (user-error "`swsw-id-chars' should contain at least two characters"))
-  (set-default sym chars)
-  (when (fboundp 'swsw-update)
-    (swsw-update)))
-
 (defcustom swsw-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed.
 This list should contain at least two characters."
   :type '(repeat character)
-  :set #'swsw--set-id-chars
+  :set (lambda (sym chars)
+         (unless (nth 1 chars)
+           (user-error
+            "`swsw-id-chars' should contain at least two characters"))
+         (set-default sym chars)
+         (when (fboundp 'swsw-update)
+           (swsw-update)))
   :package-version '(swsw . 1.0))
-
-(defun swsw--set-scope (sym scope)
-  "Set the variable `swsw-scope'.
-Set SYM's value to SCOPE and call `swsw-update'."
-  (set-default sym scope)
-  (when (fboundp 'swsw-update)
-    (swsw-update)))
 
 (defcustom swsw-scope t
   "Scope of all window operations.
@@ -116,20 +105,11 @@ t means consider all windows on all existing frames.
                 (const
                  :tag "All windows on the currently selected frame"
                  current))
-  :set #'swsw--set-scope
+  :set (lambda (sym scope)
+         (set-default sym scope)
+         (when (fboundp 'swsw-update)
+           (swsw-update)))
   :package-version '(swsw . 1.1))
-
-(defun swsw--set-display-function (sym fun)
-  "Set the variable `swsw-display-function'.
-Call the previous display function with nil as the sole argument
-\(turning it off), set SYM's value to FUN, and call FUN with t as the
-sole argument (turning it on)."
-  (unless (or (not (boundp 'swsw-display-function))
-              (eq swsw-display-function 'lighter))
-    (funcall swsw-display-function nil))
-  (set-default sym fun)
-  (unless (eq fun 'lighter)
-    (funcall fun t)))
 
 (defcustom swsw-display-function 'lighter
   "Function used to display the ID of each window.
@@ -138,7 +118,13 @@ This function is called with t as the sole argument when enabling
 If set to `lighter', use the mode line lighter of `swsw-mode'."
   :type '(radio (const :tag "Mode line lighter" lighter)
                 (function :tag "Display function"))
-  :set #'swsw--set-display-function
+  :set (lambda (sym fun)
+         (unless (or (not (boundp 'swsw-display-function))
+                     (eq swsw-display-function 'lighter))
+           (funcall swsw-display-function nil))
+         (set-default sym fun)
+         (unless (eq fun 'lighter)
+           (funcall fun t)))
   :package-version '(swsw . 1.0))
 
 (defcustom swsw-id-format " <%s>"
