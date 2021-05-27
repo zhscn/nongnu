@@ -94,9 +94,9 @@
 
 
 ;;;###autoload
-(eval-after-load 'org
-  '(add-to-list 'org-src-lang-modes '("arduino" . arduino)))
-
+(with-eval-after-load 'org
+  (add-to-list 'org-src-lang-modes '("arduino" . arduino))
+  (add-to-list 'org-babel-tangle-lang-exts '("arduino" . "ino")))
 
 
 
