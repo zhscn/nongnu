@@ -280,6 +280,9 @@ completion:
 
 ;;;; Embark integration:
 
+;; Note: this integration is not tested regularly as I don't
+;; use Embark currently.
+
 (declare-function embark-target-completion-at-point "ext:embark")
 (declare-function embark-completions-buffer-candidates "ext:embark")
 
