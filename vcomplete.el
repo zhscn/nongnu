@@ -83,11 +83,12 @@ Otherwise, operate according to `completion-auto-help'."
   :type '(radio
           (const :tag "Automatically open and update" t)
           (const :tag "Operate according to `completion-auto-help'" nil))
-  :package-version '(vcomplete . 0.1)
   :set (lambda (sym val)
          (set-default sym val)
          (when (fboundp 'vcomplete--reset-vars)
-           (vcomplete--reset-vars))))
+           (vcomplete--reset-vars)))
+  :risky t
+  :package-version '(vcomplete . 0.1))
 
 ;;;; Completion commands:
 
@@ -129,6 +130,7 @@ If no completion is found, return nil."
 
 (defvar vcomplete--last-completion-overlay nil
   "Last overlay created in the `*Completions*' buffer.")
+(put 'vcomplete--last-completion-overlay 'risky-local-variable t)
 
 (defun vcomplete--highlight-completion-at-point ()
   "Highlight the completion at point in the `*Completions*' buffer."
@@ -181,6 +183,7 @@ With prefix argument N, move N items (negative N means move forward)."
 
 (defvar vcomplete--last-string nil
   "Last pending completion string.")
+(put 'vcomplete--last-string 'risky-local-variable t)
 
 (defun vcomplete--set-last-string-in-minibuffer ()
   "Set `vcomplete--last-string' in a minibuffer."
