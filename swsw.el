@@ -89,6 +89,7 @@ This list should contain at least two characters."
          (set-default sym chars)
          (when (fboundp 'swsw-update)
            (swsw-update)))
+  :risky t
   :package-version '(swsw . 1.0))
 
 (defcustom swsw-scope t
@@ -109,6 +110,7 @@ t means consider all windows on all existing frames.
          (set-default sym scope)
          (when (fboundp 'swsw-update)
            (swsw-update)))
+  :risky t
   :package-version '(swsw . 1.1))
 
 (defcustom swsw-display-function 'lighter
@@ -137,12 +139,14 @@ If set to `lighter', use the mode line lighter of `swsw-mode'."
 
 (defvar swsw--id-counter nil
   "Counter which determines the next possible ID.")
+(put 'swsw--id-counter 'risky-local-variable t)
 
 (defvar swsw--id-map (make-sparse-keymap)
   "Key map for window ID selection.")
 
 (defvar swsw-window-count 0
   "Amount of windows that have been assigned an ID.")
+(put 'swsw-window-count 'risky-local-variable t)
 
 (defun swsw--get-scope ()
   "Return the current scope in which windows should be tracked."
