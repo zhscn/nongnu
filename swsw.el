@@ -323,8 +323,7 @@ selection.")
 
 ;;;###autoload
 (define-minor-mode swsw-mode
-  "Minor mode for managing windows using an ID assigned to them
-automatically.
+  "Minor mode for simple window management.
 
 The following key bindings are available after starting window
 selection:
