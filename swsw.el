@@ -81,6 +81,7 @@
 (defcustom swsw-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed.
 This list should contain at least two characters."
+  :link '(info-link "(swsw)Customization")
   :type '(repeat character)
   :set (lambda (sym chars)
          (unless (nth 1 chars)
@@ -99,6 +100,7 @@ t means consider all windows on all existing frames.
   iconified frames.
 `visible' means consider all windows on all visible frames.
 `current' means consider only the currently selected frame."
+  :link '(info-link "(swsw)Customization")
   :type '(radio (const :tag "All windows on all frames" t)
                 (const
                  :tag "All windows on all visible and iconified frames" 0)
@@ -118,6 +120,7 @@ t means consider all windows on all existing frames.
 This function is called with t as the sole argument when enabling
 `swsw-mode', and with nil as the sole argument when disabling it.
 If set to `lighter', use the mode line lighter of `swsw-mode'."
+  :link '(info-link "(swsw)Display functions")
   :type '(radio (const :tag "Mode line lighter" lighter)
                 (function :tag "Display function"))
   :set (lambda (sym fun)
@@ -132,6 +135,7 @@ If set to `lighter', use the mode line lighter of `swsw-mode'."
 (defcustom swsw-id-format " <%s>"
   "Format string for the window ID.
 %s is replaced with a representation of the window's ID."
+  :link '(info-link "(swsw)Customization")
   :type '(string)
   :package-version '(swsw . 1.0))
 
