@@ -230,8 +230,7 @@ With prefix argument N, move N items (negative N means move forward)."
   (remove-hook 'pre-command-hook #'vcomplete--set-last-string-in-minibuffer t)
   (remove-hook 'pre-command-hook #'vcomplete--set-last-string-in-region t)
   (remove-hook 'post-command-hook #'vcomplete--update-in-region t)
-  (remove-hook 'post-command-hook #'vcomplete--update-in-minibuffer t)
-  (remove-hook 'post-command-hook #'vcomplete--highlight-completion-at-point t))
+  (remove-hook 'post-command-hook #'vcomplete--update-in-minibuffer t))
 
 (defun vcomplete--setup-completions ()
   "Setup `vcomplete-mode' for the `*Completions*' buffer."
