@@ -194,7 +194,11 @@ be done through the customize interface:
 Whether the @code{*Completions*} buffer should open and update
 automatically.  Non-nil means automatically open and
 update. Otherwise, operate according to
-@code{completion-auto-help}. By default, @code{t} is used.
+@code{completion-auto-help}. By default, @code{t} is used. Note that
+with @code{completions-detailed} (introduced in Emacs 28) enabled, the
+@code{*Completions*} buffer takes much more time to display. This is
+also true for other ``annotation providers'' such as the Marginalia
+package. Consider disabling them or this option on slow computers.
 @end defopt
 
 @menu
@@ -226,7 +230,7 @@ it is called isn't derived from @code{completion-list-mode}.
 
 @defmac vcomplete-with-completions-buffer body...
 Evaluate BODY with the @code{*Completions*} buffer temporarily
-current.  While evaluating body, BUFFER and WINDOW are locally bound
+current.  While evaluating BODY, BUFFER and WINDOW are locally bound
 to the @code{*Completions*} buffer and window respectively. This macro
 can be used to easily manipulate or access the contents of the
 @code{*Completions*} buffer.

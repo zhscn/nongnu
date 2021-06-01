@@ -95,7 +95,7 @@ Otherwise, operate according to `completion-auto-help'."
 
 (defmacro vcomplete-with-completions-buffer (&rest body)
   "Evaluate BODY with the `*Completions*' buffer temporarily current.
-While evaluating body, BUFFER and WINDOW are locally bound to the
+While evaluating BODY, BUFFER and WINDOW are locally bound to the
 `*Completions*' buffer and window respectively."
   (declare (indent 0))
   `(when-let ((buffer (get-buffer "*Completions*"))
@@ -261,8 +261,7 @@ With prefix argument N, move N items (negative N means move forward)."
 
 ;;;###autoload
 (define-minor-mode vcomplete-mode
-  "Minor mode enhancing the default completion list buffer, providing
-visual aids for selecting completions and performing other actions.
+  "Minor mode enhancing interaction with default completion list buffer.
 
 The following bindings are active during in-buffer and minibuffer
 completion:
