@@ -140,10 +140,6 @@ You can also add @code{(vcomplete-mode)} to your init file, instead.
 When @code{vcomplete-mode} is enabled, the @code{*Completions*} buffer
 appears and updates automatically (by default), and the completion at
 point in the @code{*Completions*} buffer is highlighted automatically.
-Automatic highlighting of the completion at point doesn't work when
-completing in-region (switching to the @code{*Completions*} buffer in
-this case ends completion by default in Emacs), however the following
-commands do work as described in this case.
 
 The following commands are available when completion is in progress:
 
