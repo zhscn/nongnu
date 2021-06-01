@@ -225,8 +225,7 @@ With prefix argument N, move N items (negative N means move forward)."
 
 (defun vcomplete--reset-vars ()
   "Reset variables used by Vcomplete to their default values."
-  (setq vcomplete--last-completion-overlay nil
-        vcomplete--last-string nil)
+  (setq vcomplete--last-string nil)
   (remove-hook 'pre-command-hook #'vcomplete--set-last-string-in-minibuffer t)
   (remove-hook 'pre-command-hook #'vcomplete--set-last-string-in-region t)
   (remove-hook 'post-command-hook #'vcomplete--update-in-region t)
@@ -240,6 +239,7 @@ With prefix argument N, move N items (negative N means move forward)."
 (defun vcomplete--setup-minibuffer ()
   "Setup `vcomplete-mode' for the minibuffer."
   (when minibuffer-completion-table
+    (setq vcomplete--last-completion-overlay nil)
     (when vcomplete-auto-update
       (add-hook 'pre-command-hook
                 #'vcomplete--set-last-string-in-minibuffer nil t)
@@ -255,6 +255,7 @@ With prefix argument N, move N items (negative N means move forward)."
   ;; `completion-in-region-mode' is active.
   (when-let ((map (assq #'completion-in-region-mode
                         minor-mode-overriding-map-alist)))
+    (setq vcomplete--last-completion-overlay nil)
     (when vcomplete-auto-update
       (add-hook 'pre-command-hook
                 #'vcomplete--set-last-string-in-region nil t)
