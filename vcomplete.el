@@ -238,26 +238,30 @@ With prefix argument N, move N items (negative N means move forward)."
   (add-hook 'post-command-hook
             #'vcomplete--highlight-completion-at-point nil t))
 
-(defun vcomplete--setup-current ()
+(defun vcomplete--setup-minibuffer ()
+  "Setup `vcomplete-mode' for the minibuffer."
+  (when minibuffer-completion-table
+    (when vcomplete-auto-update
+      (add-hook 'pre-command-hook
+                #'vcomplete--set-last-string-in-minibuffer nil t)
+      (add-hook 'post-command-hook
+                #'vcomplete--update-in-minibuffer nil t))
+    (use-local-map (make-composed-keymap vcomplete-command-map
+                                         (current-local-map)))))
+
+(defun vcomplete--setup-in-region ()
   "Setup `vcomplete-mode' for the current buffer."
   (vcomplete--reset-vars)
-  (if-let ((map (assq #'completion-in-region-mode
-                      minor-mode-overriding-map-alist)))
-      (progn
-        (when vcomplete-auto-update
-          (add-hook 'pre-command-hook
-                    #'vcomplete--set-last-string-in-region nil t)
-          (add-hook 'post-command-hook
-                    #'vcomplete--update-in-region nil t))
-        (setcdr map vcomplete-command-map))
-    (when minibuffer-completion-table
-      (when vcomplete-auto-update
-        (add-hook 'pre-command-hook
-                  #'vcomplete--set-last-string-in-minibuffer nil t)
-        (add-hook 'post-command-hook
-                  #'vcomplete--update-in-minibuffer nil t))
-      (use-local-map (make-composed-keymap vcomplete-command-map
-                                           (current-local-map))))))
+  ;; This has the nice side effect of also checking whether
+  ;; `completion-in-region-mode' is active.
+  (when-let ((map (assq #'completion-in-region-mode
+                        minor-mode-overriding-map-alist)))
+    (when vcomplete-auto-update
+      (add-hook 'pre-command-hook
+                #'vcomplete--set-last-string-in-region nil t)
+      (add-hook 'post-command-hook
+                #'vcomplete--update-in-region nil t))
+    (setcdr map vcomplete-command-map)))
 
 ;;;###autoload
 (define-minor-mode vcomplete-mode
@@ -272,14 +276,14 @@ completion:
       (progn
         (vcomplete--reset-vars)
         (add-hook 'completion-list-mode-hook #'vcomplete--setup-completions)
-        (add-hook 'minibuffer-setup-hook #'vcomplete--setup-current)
+        (add-hook 'minibuffer-setup-hook #'vcomplete--setup-minibuffer)
         (add-hook 'minibuffer-exit-hook #'vcomplete--reset-vars)
-        (add-hook 'completion-in-region-mode-hook #'vcomplete--setup-current))
+        (add-hook 'completion-in-region-mode-hook #'vcomplete--setup-in-region))
     (vcomplete--reset-vars)
     (remove-hook 'completion-list-mode-hook #'vcomplete--setup-completions)
-    (remove-hook 'minibuffer-setup-hook #'vcomplete--setup-current)
+    (remove-hook 'minibuffer-setup-hook #'vcomplete--setup-minibuffer)
     (remove-hook 'minibuffer-exit-hook #'vcomplete--reset-vars)
-    (remove-hook 'completion-in-region-mode-hook #'vcomplete--setup-current)))
+    (remove-hook 'completion-in-region-mode-hook #'vcomplete--setup-in-region)))
 
 ;;;; Embark integration:
 
