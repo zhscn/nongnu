@@ -1,5 +1,5 @@
 PKG     = vcomplete
-VERSION = 0.1
+VERSION = 1.0
 
 INSTALLINFO = install-info
 MAKEINFO    = makeinfo
