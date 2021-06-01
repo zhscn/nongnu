@@ -80,6 +80,7 @@
   "Whether the `*Completions*' buffer should open and update automatically.
 Non-nil means automatically open and update.
 Otherwise, operate according to `completion-auto-help'."
+  :link '(info-link "(Vcomplete)Customization")
   :type '(radio
           (const :tag "Automatically open and update" t)
           (const :tag "Operate according to `completion-auto-help'" nil))
