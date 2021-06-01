@@ -3,13 +3,14 @@ See the end of the file for an explanation of the versioning scheme.
 
 * 1.0 (in development)
 
+** Make auto updating the completion list buffer more responsive.
+
+** Support commands which use completion-in-region in the minibuffer.
+
 ** Add basic Embark support.
 
-** Highlight the completion at point in the completion list buffer.
+** Highlight the completion at point in the completion list buffer
 even when using normal navigation commands.
-This only works when completing in the minibuffer currently (although
-it wouldn't be very helpful when completing in-region since switching
-to the completion buffer exits completion-in-region mode).
 
 ** Remove vcomplete-kill-buffer.
 This was done as part of an effort to simplify the code base (since
@@ -17,9 +18,6 @@ third party solutions to completion actions exist).
 
 ** Optionally automatically update the completion list buffer.
 See vcomplete-auto-update's documentation string for more information.
-
-** Fix vcomplete--setup being removed from a wrong hook when.
-vcomplete-mode is turned off.
 
 * 0.1
 
