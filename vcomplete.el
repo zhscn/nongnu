@@ -178,7 +178,7 @@ With prefix argument N, move N items (negative N means move forward)."
     (define-key map [?\C-p] #'vcomplete-prev-completion)
     (define-key map [?\C-\M-m] #'vcomplete-choose-completion)
     map)
-  "Key map for `vcomplete-mode' commands.")
+  "Key map for completion commands.")
 
 ;;;; Visual completion mode:
 
@@ -193,8 +193,7 @@ With prefix argument N, move N items (negative N means move forward)."
     (setq vcomplete--last-string (minibuffer-contents))))
 
 (defun vcomplete--string-in-region ()
-  "Return a substring according to the markers in
-`completion-in-region--data'."
+  "Return a substring according to the markers in `completion-in-region--data'."
   (when completion-in-region--data
     (buffer-substring (car completion-in-region--data)
                       (cadr completion-in-region--data))))
@@ -232,12 +231,12 @@ With prefix argument N, move N items (negative N means move forward)."
   (remove-hook 'post-command-hook #'vcomplete--update-in-minibuffer t))
 
 (defun vcomplete--setup-completions ()
-  "Setup `vcomplete-mode' for the `*Completions*' buffer."
+  "Setup visual completions for the `*Completions*' buffer."
   (add-hook 'post-command-hook
             #'vcomplete--highlight-completion-at-point nil t))
 
 (defun vcomplete--setup-minibuffer ()
-  "Setup `vcomplete-mode' for the minibuffer."
+  "Setup visual completions for the minibuffer."
   (when minibuffer-completion-table
     (setq vcomplete--last-completion-overlay nil)
     (when vcomplete-auto-update
@@ -249,7 +248,7 @@ With prefix argument N, move N items (negative N means move forward)."
                                          (current-local-map)))))
 
 (defun vcomplete--setup-in-region ()
-  "Setup `vcomplete-mode' for the current buffer."
+  "Setup visual completions for the current buffer."
   (vcomplete--reset-vars)
   ;; This has the nice side effect of also checking whether
   ;; `completion-in-region-mode' is active.
