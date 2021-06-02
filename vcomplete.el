@@ -102,7 +102,7 @@ While evaluating BODY, BUFFER and WINDOW are locally bound to the
               (window (get-buffer-window buffer)))
      (save-current-buffer
        (set-buffer buffer)
-       (unless (eq major-mode 'completion-list-mode)
+       (unless (derived-mode-p 'completion-list-mode)
          (user-error
           "The `*Completions*' buffer is set to an incorrect mode"))
        ,@body)))
