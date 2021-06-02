@@ -31,8 +31,8 @@
 
 ;;; Code:
 
-(require 'vcomplete)
-(require 'embark)
+(eval-when-compile
+  (require 'vcomplete))
 
 (declare-function embark-target-completion-at-point "ext:embark")
 (declare-function embark-completions-buffer-candidates "ext:embark")
