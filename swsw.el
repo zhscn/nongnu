@@ -118,8 +118,9 @@ t means consider all windows on all existing frames.
 (defcustom swsw-display-function 'lighter
   "Function used to display the ID of each window.
 This function is called with t as the sole argument when enabling
-`swsw-mode', and with nil as the sole argument when disabling it.
-If set to `lighter', use the mode line lighter of `swsw-mode'."
+simple window switching, and with nil as the sole argument when
+disabling it.
+If set to `lighter', use a mode line lighter."
   :link '(info-link "(swsw)Display functions")
   :type '(radio (const :tag "Mode line lighter" lighter)
                 (function :tag "Display function"))
@@ -281,7 +282,8 @@ If less than three windows have been assigned an ID, switch to the
 window returned by `next-window'.
 Otherwise, window selection allows either choosing a window by its ID
 \(switching to it), or using a window manipulation command.
-This command is intended to be used only when `swsw-mode' is enabled."
+This command is intended to be used only when simple window switching
+is enabled."
   (interactive)
   (if (< swsw-window-count 3)
       (select-window (next-window))
@@ -289,7 +291,8 @@ This command is intended to be used only when `swsw-mode' is enabled."
 
 (defun swsw-select-minibuffer ()
   "Select the active minibuffer window (if it exists).
-This command is intended to be used only when `swsw-mode' is enabled."
+This command is intended to be used only when simple window switching
+is enabled."
   (interactive)
   (let ((window (active-minibuffer-window)))
     (if window (select-window window)
@@ -301,7 +304,8 @@ If less than three windows have been assigned an ID, delete the window
 returned by `next-window'.
 Otherwise, window deletion allows either choosing a window by its ID
 \(deleting it), or using a window manipulation command.
-This command is intended to be used only when `swsw-mode' is enabled."
+This command is intended to be used only when simple window switching
+is enabled."
   (interactive)
   (if (< swsw-window-count 3)
       (let ((window (next-window)))
