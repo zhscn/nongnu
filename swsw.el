@@ -88,8 +88,8 @@ This list should contain at least two characters."
            (user-error
             "`swsw-id-chars' should contain at least two characters"))
          (set-default sym chars)
-         (when (fboundp 'swsw-update)
-           (swsw-update)))
+         (when (fboundp 'swsw--update)
+           (swsw--update)))
   :risky t
   :package-version '(swsw . 1.0))
 
@@ -110,8 +110,8 @@ t means consider all windows on all existing frames.
                  current))
   :set (lambda (sym scope)
          (set-default sym scope)
-         (when (fboundp 'swsw-update)
-           (swsw-update)))
+         (when (fboundp 'swsw--update)
+           (swsw--update)))
   :risky t
   :package-version '(swsw . 1.1))
 
@@ -182,7 +182,7 @@ If set to `lighter', use a mode line lighter."
                   swsw--id-counter))
     id))
 
-(defun swsw-update-window (window)
+(defun swsw--update-window (window)
   "Update information for WINDOW."
   (let ((id (if (window-minibuffer-p window)
                 (progn
@@ -203,7 +203,7 @@ If set to `lighter', use a mode line lighter."
       (set-window-parameter window 'swsw-id id)
       (setq swsw-window-count (1+ swsw-window-count)))))
 
-(defun swsw-update (&optional _frame)
+(defun swsw--update (&optional _frame)
   "Update information for all windows."
   (setq swsw--id-map (make-sparse-keymap))
   (set-keymap-parent swsw--id-map swsw-command-map)
@@ -212,7 +212,7 @@ If set to `lighter', use a mode line lighter."
   ;; Clear and resize `swsw--id-counter' according to the ID length.
   (dotimes (_var (swsw--get-id-length))
     (push 0 swsw--id-counter))
-  (walk-windows #'swsw-update-window nil (swsw--get-scope)))
+  (walk-windows #'swsw--update-window nil (swsw--get-scope)))
 
 ;;;; Display functions:
 
@@ -265,7 +265,7 @@ This display function respects `swsw-id-format'."
 
 ;;;; Window commands:
 
-(defun swsw--run-window-command (fun)
+(defun swsw-run-window-command (fun)
   "Run FUN as a window command.
 Run `swsw-before-command-hook', set `this-command' to FUN and set a
 transient map for ID selection which runs `swsw-after-command-hook' on
@@ -287,7 +287,7 @@ is enabled."
   (interactive)
   (if (< swsw-window-count 3)
       (select-window (next-window))
-    (swsw--run-window-command #'select-window)))
+    (swsw-run-window-command #'select-window)))
 
 (defun swsw-select-minibuffer ()
   "Select the active minibuffer window (if it exists).
@@ -312,7 +312,7 @@ is enabled."
         (unless (or (minibufferp (window-buffer window))
                     (minibufferp)) ; Selected window.
           (delete-window window)))
-    (swsw--run-window-command #'delete-window)))
+    (swsw-run-window-command #'delete-window)))
 
 (defvar swsw-command-map (let ((map (make-sparse-keymap)))
                            (define-key map [?o] #'swsw-select)
@@ -340,19 +340,19 @@ selection:
   :keymap '(keymap (?\C-x . (keymap (?o . swsw-select))))
   (if swsw-mode
       (progn
-        (swsw-update)
+        (swsw--update)
         (unless (eq swsw-display-function 'lighter)
           (funcall swsw-display-function t))
-        (add-hook 'window-configuration-change-hook #'swsw-update)
-        (add-hook 'minibuffer-setup-hook #'swsw-update)
-        (add-hook 'minibuffer-exit-hook #'swsw-update)
-        (add-hook 'after-delete-frame-functions #'swsw-update))
+        (add-hook 'window-configuration-change-hook #'swsw--update)
+        (add-hook 'minibuffer-setup-hook #'swsw--update)
+        (add-hook 'minibuffer-exit-hook #'swsw--update)
+        (add-hook 'after-delete-frame-functions #'swsw--update))
     (unless (eq swsw-display-function 'lighter)
       (funcall swsw-display-function nil))
-    (remove-hook 'window-configuration-change-hook #'swsw-update)
-    (remove-hook 'minibuffer-setup-hook #'swsw-update)
-    (remove-hook 'minibuffer-exit-hook #'swsw-update)
-    (remove-hook 'after-delete-frame-functions #'swsw-update)))
+    (remove-hook 'window-configuration-change-hook #'swsw--update)
+    (remove-hook 'minibuffer-setup-hook #'swsw--update)
+    (remove-hook 'minibuffer-exit-hook #'swsw--update)
+    (remove-hook 'after-delete-frame-functions #'swsw--update)))
 
 (provide 'swsw)
 

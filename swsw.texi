@@ -262,7 +262,7 @@ Amount of windows currently tracked. This variable can be used to
 conditionally run window commands.
 @end defvar
 
-@defun swsw--run-window-command fun
+@defun swsw-run-window-command fun
 Run FUN as a window command. Run @code{swsw-before-command-hook}, set
 @code{this-command} to FUN, and set @code{swsw--id-map} as a transient
 map which runs @code{swsw-after-command-hook} on exit. This function
