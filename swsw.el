@@ -219,8 +219,9 @@ If set to `lighter', use a mode line lighter."
 
 (defun swsw-format-id (window)
   "Format an ID string for WINDOW."
-  (format swsw-id-format
-          (apply #'string (window-parameter window 'swsw-id))))
+  (format-spec swsw-id-format
+               `((?s .
+                  ,(apply #'string (window-parameter window 'swsw-id))))))
 
 (defun swsw--mode-line-display ()
   "Display window IDs at the beginning of the mode line."
