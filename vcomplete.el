@@ -148,6 +148,7 @@ If no completion is found, return nil."
 
 (defun vcomplete--move-n-completions (n)
   "Move N completions in the `*Completions*' buffer."
+  (setq this-command 'vcomplete-noop)
   (vcomplete-with-completions-buffer
     (next-completion n)
     (set-window-point window (point))
@@ -168,6 +169,7 @@ With prefix argument N, move N items (negative N means move forward)."
 (defun vcomplete-choose-completion ()
   "Choose the completion at point in the `*Completions*' buffer."
   (interactive)
+  (setq this-command 'vcomplete-noop)
   (when-let ((buf (get-buffer "*Completions*")))
     (switch-to-completions)
     (choose-completion)))
@@ -182,53 +184,35 @@ With prefix argument N, move N items (negative N means move forward)."
 
 ;;;; Visual completion mode:
 
-(defvar vcomplete--last-string nil
-  "Last pending completion string.")
-(put 'vcomplete--last-string 'risky-local-variable t)
-
-(defun vcomplete--set-last-string-in-minibuffer ()
-  "Set `vcomplete--last-string' in a minibuffer."
-  (while-no-input
-    (redisplay)
-    (setq vcomplete--last-string (minibuffer-contents))))
-
-(defun vcomplete--string-in-region ()
-  "Return a substring according to the markers in `completion-in-region--data'."
-  (when completion-in-region--data
-    (buffer-substring (car completion-in-region--data)
-                      (cadr completion-in-region--data))))
-
-(defun vcomplete--set-last-string-in-region ()
-  "Set `vcomplete--last-string' in-region."
-  (while-no-input
-    (redisplay)
-    (setq vcomplete--last-string
-          (vcomplete--string-in-region))))
-
-(defun vcomplete--update-in-minibuffer ()
+(defun vcomplete--update-in-minibuffer (&rest _args)
   "Update the completion list when completing in a minibuffer."
   (while-no-input
     (redisplay)
-    (unless (string= (minibuffer-contents) vcomplete--last-string)
+    (unless (eq this-command 'vcomplete-noop)
       (minibuffer-completion-help))))
 
-(defun vcomplete--update-in-region ()
+(defun vcomplete--update-in-region (&rest _args)
   "Update the completion list when completing in-region."
   (while-no-input
     (redisplay)
-    (if (get-buffer-window "*Completions*")
-        (unless (string= (vcomplete--string-in-region)
-                         vcomplete--last-string)
-          (completion-help-at-point))
-      (completion-in-region-mode -1))))
+    (unless (or (eq this-command 'vcomplete-noop)
+                (eq this-command 'completion-at-point))
+      (completion-help-at-point))))
+
+;; This function is required (in the local `post-command-hook') since
+;; `after-change-functions' runs before the `*Completions*' buffer is
+;; closed, so `completion-in-region-mode' can't be immediately
+;; disabled through `vcomplete--update-in-region'.
+(defun vcomplete--disable-completion-in-region ()
+  "Disable `completion-in-region-mode' when there is no `*Completions*' buffer."
+  (unless (get-buffer-window "*Completions*")
+    (completion-in-region-mode -1)))
 
 (defun vcomplete--reset-vars ()
   "Reset variables used by Vcomplete to their default values."
-  (setq vcomplete--last-string nil)
-  (remove-hook 'pre-command-hook #'vcomplete--set-last-string-in-minibuffer t)
-  (remove-hook 'pre-command-hook #'vcomplete--set-last-string-in-region t)
-  (remove-hook 'post-command-hook #'vcomplete--update-in-region t)
-  (remove-hook 'post-command-hook #'vcomplete--update-in-minibuffer t))
+  (remove-hook 'after-change-functions #'vcomplete--update-in-region t)
+  (remove-hook 'post-command-hook #'vcomplete--disable-completion-in-region t)
+  (remove-hook 'after-change-functions #'vcomplete--update-in-minibuffer t))
 
 (defun vcomplete--setup-completions ()
   "Setup visual completions for the `*Completions*' buffer."
@@ -240,9 +224,8 @@ With prefix argument N, move N items (negative N means move forward)."
   (when minibuffer-completion-table
     (setq vcomplete--last-completion-overlay nil)
     (when vcomplete-auto-update
-      (add-hook 'pre-command-hook
-                #'vcomplete--set-last-string-in-minibuffer nil t)
-      (add-hook 'post-command-hook
+      (vcomplete--update-in-minibuffer)
+      (add-hook 'after-change-functions
                 #'vcomplete--update-in-minibuffer nil t))
     (use-local-map (make-composed-keymap vcomplete-command-map
                                          (current-local-map)))))
@@ -256,10 +239,10 @@ With prefix argument N, move N items (negative N means move forward)."
                         minor-mode-overriding-map-alist)))
     (setq vcomplete--last-completion-overlay nil)
     (when vcomplete-auto-update
-      (add-hook 'pre-command-hook
-                #'vcomplete--set-last-string-in-region nil t)
+      (add-hook 'after-change-functions
+                #'vcomplete--update-in-region nil t)
       (add-hook 'post-command-hook
-                #'vcomplete--update-in-region nil t))
+                #'vcomplete--disable-completion-in-region nil t))
     (setcdr map vcomplete-command-map)))
 
 ;;;###autoload
