@@ -149,7 +149,7 @@ The following commands are available when completion is in progress:
 @item @kbd{C-n}
 Select the next displayed completion
 (@code{vcomplete-next-completion}).  This command moves point in the
-completion list buffer to the next available completion, and
+@code{*Completions*} buffer to the next available completion, and
 highlights it. This command may be used to advance multiple
 completions at a time with a prefix argument.
 @end table
@@ -160,7 +160,7 @@ completions at a time with a prefix argument.
 @item @kbd{C-p}
 Select the previous displayed completion
 (@code{vcomplete-prev-completion}).  This command moves point in the
-completion list buffer to the previous available completion, and
+@code{*Completions*} buffer to the previous available completion, and
 highlights it. This command may be used to advance multiple
 completions at a time with a prefix argument.
 @end table
@@ -169,8 +169,8 @@ completions at a time with a prefix argument.
 @cindex vcomplete-choose-completion
 @table @asis
 @item @kbd{M-RET}
-Choose the currently highlighted completion
-(@code{vcomplete-choose-completion}).
+Choose the currently highlighted completion in the
+@code{*Completions*} buffer (@code{vcomplete-choose-completion}).
 @end table
 
 @xref{Completion commands} for information regarding defining new
@@ -206,7 +206,9 @@ package. Consider disabling them or this option on slow computers.
 
 Completion commands are used to perform actions while completing. They
 are normal commands (interactive functions) which are bound to a key
-sequence in @code{vcomplete-command-map}.
+sequence in @code{vcomplete-command-map}. Completion commands which
+shouldn't cause the @code{*Completions*} buffer to update should set
+@code{this-command} to @code{vcomplete-noop}.
 
 @defvar vcomplete-command-map
 Key map which holds key bindings to completion commands. This key map
@@ -229,7 +231,8 @@ Evaluate BODY with the @code{*Completions*} buffer temporarily
 current.  While evaluating BODY, BUFFER and WINDOW are locally bound
 to the @code{*Completions*} buffer and window respectively. This macro
 can be used to easily manipulate or access the contents of the
-@code{*Completions*} buffer.
+@code{*Completions*} buffer. If there is no @code{*Completions*}
+buffer or no window displaying it BODY isn't executed.
 @end defmac
 
 @node Keystroke Index
