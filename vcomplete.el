@@ -84,10 +84,6 @@ Otherwise, operate according to `completion-auto-help'."
   :type '(radio
           (const :tag "Automatically open and update" t)
           (const :tag "Operate according to `completion-auto-help'" nil))
-  :set (lambda (sym val)
-         (set-default sym val)
-         (when (fboundp 'vcomplete--reset-vars)
-           (vcomplete--reset-vars)))
   :risky t
   :package-version '(vcomplete . 0.1))
 
@@ -208,12 +204,6 @@ With prefix argument N, move N items (negative N means move forward)."
   (unless (get-buffer-window "*Completions*")
     (completion-in-region-mode -1)))
 
-(defun vcomplete--reset-vars ()
-  "Reset variables used by Vcomplete to their default values."
-  (remove-hook 'after-change-functions #'vcomplete--update-in-region t)
-  (remove-hook 'post-command-hook #'vcomplete--disable-completion-in-region t)
-  (remove-hook 'after-change-functions #'vcomplete--update-in-minibuffer t))
-
 (defun vcomplete--setup-completions ()
   "Setup visual completions for the `*Completions*' buffer."
   (add-hook 'post-command-hook
@@ -232,7 +222,10 @@ With prefix argument N, move N items (negative N means move forward)."
 
 (defun vcomplete--setup-in-region ()
   "Setup visual completions for the current buffer."
-  (vcomplete--reset-vars)
+  (remove-hook 'after-change-functions
+               #'vcomplete--update-in-region t)
+  (remove-hook 'post-command-hook
+               #'vcomplete--disable-completion-in-region t)
   ;; This has the nice side effect of also checking whether
   ;; `completion-in-region-mode' is active.
   (when-let ((map (assq #'completion-in-region-mode
@@ -256,15 +249,11 @@ completion:
   :global t
   (if vcomplete-mode
       (progn
-        (vcomplete--reset-vars)
         (add-hook 'completion-list-mode-hook #'vcomplete--setup-completions)
         (add-hook 'minibuffer-setup-hook #'vcomplete--setup-minibuffer)
-        (add-hook 'minibuffer-exit-hook #'vcomplete--reset-vars)
         (add-hook 'completion-in-region-mode-hook #'vcomplete--setup-in-region))
-    (vcomplete--reset-vars)
     (remove-hook 'completion-list-mode-hook #'vcomplete--setup-completions)
     (remove-hook 'minibuffer-setup-hook #'vcomplete--setup-minibuffer)
-    (remove-hook 'minibuffer-exit-hook #'vcomplete--reset-vars)
     (remove-hook 'completion-in-region-mode-hook #'vcomplete--setup-in-region)))
 
 (provide 'vcomplete)
