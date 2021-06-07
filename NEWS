@@ -1,6 +1,12 @@
 Vcomplete NEWS -- history of user-visible changes.
 See the end of the file for an explanation of the versioning scheme.
 
+* 1.1 (in development)
+
+** Embark support has been moved to a separate file.
+It must be loaded explicitly (using '(require 'vcomplete-embark)' or
+similar).
+
 * 1.0
 
 ** Make auto updating the completion list buffer more responsive.
