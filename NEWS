@@ -3,6 +3,10 @@ See the end of the file for an explanation of the versioning scheme.
 
 * 1.1 (in development)
 
+** Add 'vcomplete-no-update-commands'.
+This custom variable is used to control which commands shouldn't cause
+the completions list buffer to update.
+
 ** Embark support has been moved to a separate file.
 It must be loaded explicitly (using '(require 'vcomplete-embark)' or
 similar).
