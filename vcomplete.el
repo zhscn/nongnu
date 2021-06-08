@@ -87,6 +87,19 @@ Otherwise, operate according to `completion-auto-help'."
   :risky t
   :package-version '(vcomplete . 0.1))
 
+(defcustom vcomplete-no-update-commands
+  '(vcomplete-next-completion
+    vcomplete-prev-completion
+    vcomplete-choose-completion
+    minibuffer-complete-and-exit
+    minibuffer-force-complete-and-exit
+    completion-at-point)
+  "List of commands which shouldn't cause the `*Completions*' buffer to update."
+  :link '(info-link "(Vcomplete)Completion commands")
+  :type '(hook :tag "Commands")
+  :risky t
+  :package-version '(vcomplete . 1.1))
+
 ;;;; Completion commands:
 
 (defmacro vcomplete-with-completions-buffer (&rest body)
@@ -144,7 +157,6 @@ If no completion is found, return nil."
 
 (defun vcomplete--move-n-completions (n)
   "Move N completions in the `*Completions*' buffer."
-  (setq this-command 'vcomplete-noop)
   (vcomplete-with-completions-buffer
     (next-completion n)
     (set-window-point window (point))
@@ -165,7 +177,6 @@ With prefix argument N, move N items (negative N means move forward)."
 (defun vcomplete-choose-completion ()
   "Choose the completion at point in the `*Completions*' buffer."
   (interactive)
-  (setq this-command 'vcomplete-noop)
   (when-let ((buf (get-buffer "*Completions*")))
     (switch-to-completions)
     (choose-completion)))
@@ -184,15 +195,14 @@ With prefix argument N, move N items (negative N means move forward)."
   "Update the completion list when completing in a minibuffer."
   (while-no-input
     (redisplay)
-    (unless (eq this-command 'vcomplete-noop)
+    (unless (memq this-command vcomplete-no-update-commands)
       (minibuffer-completion-help))))
 
 (defun vcomplete--update-in-region (&rest _args)
   "Update the completion list when completing in-region."
   (while-no-input
     (redisplay)
-    (unless (or (eq this-command 'vcomplete-noop)
-                (eq this-command 'completion-at-point))
+    (unless (memq this-command vcomplete-no-update-commands)
       (completion-help-at-point))))
 
 ;; This function is required (in the local `post-command-hook') since

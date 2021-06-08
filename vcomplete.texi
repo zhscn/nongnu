@@ -206,9 +206,12 @@ package. Consider disabling them or this option on slow computers.
 
 Completion commands are used to perform actions while completing. They
 are normal commands (interactive functions) which are bound to a key
-sequence in @code{vcomplete-command-map}. Completion commands which
-shouldn't cause the @code{*Completions*} buffer to update should set
-@code{this-command} to @code{vcomplete-noop}.
+sequence in @code{vcomplete-command-map}.
+
+@defopt vcomplete-no-update-commands
+List of commands which shouldn't cause the @code{*Completions*} buffer
+to update.
+@end defopt
 
 @defvar vcomplete-command-map
 Key map which holds key bindings to completion commands. This key map
