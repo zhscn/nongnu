@@ -210,7 +210,7 @@ With prefix argument N, move N items (negative N means move forward)."
 ;; closed, so `completion-in-region-mode' can't be immediately
 ;; disabled through `vcomplete--update-in-region'.
 (defun vcomplete--disable-completion-in-region ()
-  "Disable `completion-in-region-mode' when there is no `*Completions*' buffer."
+  "Stop completion in region when there is no visible `*Completions*' buffer."
   (unless (get-buffer-window "*Completions*")
     (completion-in-region-mode -1)))
 
