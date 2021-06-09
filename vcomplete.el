@@ -93,7 +93,8 @@ Otherwise, operate according to `completion-auto-help'."
     vcomplete-choose-completion
     minibuffer-complete-and-exit
     minibuffer-force-complete-and-exit
-    completion-at-point)
+    completion-at-point
+    choose-completion)
   "List of commands which shouldn't cause the `*Completions*' buffer to update."
   :link '(info-link "(Vcomplete)Completion commands")
   :type '(hook :tag "Commands")
