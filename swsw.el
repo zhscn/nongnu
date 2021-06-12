@@ -184,24 +184,23 @@ If set to `lighter', use a mode line lighter."
 
 (defun swsw--update-window (window)
   "Update information for WINDOW."
-  (let ((id (if (window-minibuffer-p window)
-                (progn
-                  (setq swsw-window-count (1+ swsw-window-count))
-                  nil)
-              (swsw--next-id))))
-    (when id
-      ;; Create a key sequence from the ID, which corresponds to a
-      ;; command which calls the last command (with the corresponding
-      ;; window as the sole argument).
-      ;; This allows controlling which command is invoked when
-      ;; choosing an ID by setting `this-command' in a command which
-      ;; sets the transient map to `swsw--id-map'.
-      (define-key swsw--id-map (apply #'vector id)
-        `(lambda ()
-           (interactive)
-           (funcall last-command ,window)))
-      (set-window-parameter window 'swsw-id id)
-      (setq swsw-window-count (1+ swsw-window-count)))))
+  (when-let ((id (if (window-minibuffer-p window)
+                     (progn
+                       (setq swsw-window-count (1+ swsw-window-count))
+                       nil)
+                   (swsw--next-id))))
+    ;; Create a key sequence from the ID, which corresponds to a
+    ;; command which calls the last command (with the corresponding
+    ;; window as the sole argument).
+    ;; This allows controlling which command is invoked when
+    ;; choosing an ID by setting `this-command' in a command which
+    ;; sets the transient map to `swsw--id-map'.
+    (define-key swsw--id-map (apply #'vector id)
+      `(lambda ()
+         (interactive)
+         (funcall last-command ,window)))
+    (set-window-parameter window 'swsw-id id)
+    (setq swsw-window-count (1+ swsw-window-count))))
 
 (defun swsw--update (&optional _frame)
   "Update information for all windows."
