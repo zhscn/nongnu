@@ -128,8 +128,7 @@ Install the package:
 @node Usage
 @chapter Usage
 
-In order to use any feature of the package, @code{vcomplete-mode} must
-be enabled:
+It is recommended for @code{vcomplete-mode} to be enabled:
 
 @cindex vcomplete-mode
 @table @asis
@@ -141,7 +140,8 @@ When @code{vcomplete-mode} is enabled, the @code{*Completions*} buffer
 appears and updates automatically (by default), and the completion at
 point in the @code{*Completions*} buffer is highlighted automatically.
 
-The following commands are available when completion is in progress:
+The following commands are also made available when completion is in
+progress:
 
 @kindex C-n
 @cindex vcomplete-next-completion
@@ -173,6 +173,8 @@ Choose the currently highlighted completion in the
 @code{*Completions*} buffer (@code{vcomplete-choose-completion}).
 @end table
 
+You may use these commands without enabling @code{vcomplete-mode}
+(although they won't be bound by default).
 @xref{Completion commands} for information regarding defining new
 commands.
 

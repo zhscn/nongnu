@@ -121,7 +121,9 @@ While evaluating BODY, BUFFER and WINDOW are locally bound to the
   "Get the completion candidate at POS.
 The completion candidate is returned as a list of the form:
  (COMPLETION-STRING . (BEGINNING . END))
-If no completion is found, return nil."
+If no completion is found, return nil.
+An error is thrown when the current buffer
+isn't a completion list buffer."
   (unless (derived-mode-p 'completion-list-mode)
     (error "Not in a valid completion list buffer"))
   ;; Modified from code in `choose-completion'.
