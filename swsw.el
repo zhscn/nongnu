@@ -283,6 +283,7 @@ Otherwise, window selection allows either choosing a window by its ID
 \(switching to it), or using a window manipulation command.
 This command is intended to be used only when simple window switching
 is enabled."
+  (declare (modes swsw-mode))
   (interactive)
   (if (< swsw-window-count 3)
       (select-window (next-window))
@@ -292,6 +293,7 @@ is enabled."
   "Select the active minibuffer window (if it exists).
 This command is intended to be used only when simple window switching
 is enabled."
+  (declare (modes swsw-mode))
   (interactive)
   (let ((window (active-minibuffer-window)))
     (if window (select-window window)
@@ -305,6 +307,7 @@ Otherwise, window deletion allows either choosing a window by its ID
 \(deleting it), or using a window manipulation command.
 This command is intended to be used only when simple window switching
 is enabled."
+  (declare (modes swsw-mode))
   (interactive)
   (if (< swsw-window-count 3)
       (let ((window (next-window)))
