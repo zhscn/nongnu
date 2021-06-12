@@ -107,7 +107,6 @@ Otherwise, operate according to `completion-auto-help'."
   "Evaluate BODY with the `*Completions*' buffer temporarily current.
 While evaluating BODY, BUFFER and WINDOW are locally bound to the
 `*Completions*' buffer and window respectively."
-  (declare (indent 0))
   `(when-let ((buffer (get-buffer "*Completions*"))
               (window (get-buffer-window buffer)))
      (save-current-buffer
