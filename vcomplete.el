@@ -101,6 +101,10 @@ Otherwise, operate according to `completion-auto-help'."
   :risky t
   :package-version '(vcomplete . 1.1))
 
+(defface vcomplete-highlight '((t :inherit highlight))
+  "Face for highlighting completions."
+  :package-version '(vcomplete . 1.1))
+
 ;;;; Completion commands:
 
 (defmacro vcomplete-with-completions-buffer (&rest body)
@@ -155,7 +159,7 @@ isn't a completion list buffer."
         (overlay-put
          (setq vcomplete--last-completion-overlay
                (make-overlay (car pos) (cdr pos)))
-         'face 'highlight)))))
+         'face 'vcomplete-highlight)))))
 
 (defun vcomplete--move-n-completions (n)
   "Move N completions in the `*Completions*' buffer."

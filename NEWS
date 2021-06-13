@@ -3,6 +3,10 @@ See the end of the file for an explanation of the versioning scheme.
 
 * 1.1 (in development)
 
+** Add the 'vcomplete-highlight' face.
+This face is used to highlight completions. By default, it is the same
+as the built-in 'highlight' face.
+
 ** Add 'vcomplete-no-update-commands'.
 This custom variable is used to control which commands shouldn't cause
 the completions list buffer to update.
