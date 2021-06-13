@@ -4,7 +4,7 @@
 
 ;; Author: Daniel Semyonov <daniel@dsemy.com>
 ;; Maintainer: Daniel Semyonov <daniel@dsemy.com>
-;; Version: 1.0
+;; Version: 1.1
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: convenience, matching
 ;; URL: https://dsemy.com/software/vcomplete

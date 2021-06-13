@@ -1,7 +1,7 @@
 Vcomplete NEWS -- history of user-visible changes.
 See the end of the file for an explanation of the versioning scheme.
 
-* 1.1 (in development)
+* 1.1
 
 ** Add the 'vcomplete-highlight' face.
 This face is used to highlight completions. By default, it is the same

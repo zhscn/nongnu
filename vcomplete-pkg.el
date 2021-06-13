@@ -1,4 +1,4 @@
-(define-package "vcomplete" "1.0" "Visual completions"
+(define-package "vcomplete" "1.1" "Visual completions"
   '((emacs "25.1"))
   :keywords ("convenience" "matching")
   :authors (("Daniel Semyonov" . "daniel@dsemy.com"))
