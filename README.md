@@ -26,11 +26,16 @@ See the Geiser manual for usage.
 
 # Installation
 
+## From MELPA
+
 Geiser-STklos is available on MELPA, so `M-x install-package` followed by `geiser-stklos`
 should get it installed, and this is the recommended method.
 
+## From source
+
 There are other ways to install Geiser and Geiser-STklos. One possibility is
-to add this to your Emacs configuration:
+to add this to your Emacs configuration (Guile is used here as an example
+of another supported implementation, used along with Geiser-STklos):
 
 ```
 (setq-default geiser-active-implementations
@@ -46,6 +51,23 @@ to add this to your Emacs configuration:
 (require 'geiser-guile)
 (require 'geiser-stklos)
 ```
+
+### Testing
+
+Geiser-STklos comes with two test suites -- one for the Emacs Lisp part of
+the system (using `ert`), and one for the STklos part (using STklos' own test
+system). To run both suites:
+
+```
+make test
+```
+
+The STklos tests will create a log file called `TEST.LOG`. The Emacs Lisp tests
+will write to `test-emacs-stdout.log`, but only when errors occur.
+
+The tests are very rudimentary because writing a full test suite for the Emacs
+Lisp part would be a bit complex, although not impossible: we'd need to start
+STklos, load geiser on it, and feed it some forms before starting the tests.
 
 # Bugs
 
