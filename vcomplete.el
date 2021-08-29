@@ -101,6 +101,44 @@ Otherwise, operate according to `completion-auto-help'."
   :risky t
   :package-version '(vcomplete . 1.1))
 
+(defcustom vcomplete-minibuffer-search-range 'visible
+  "Range of search for a `*Completions*' window during minibuffer completion.
+- t means consider all windows on all frames.
+- `visible' means consider all windows on all visible frames.
+- 0 (the number zero) means consider all windows on all visible and
+  iconified frames.
+- Any other value means consider all windows on the selected frame and
+  no others."
+  :link '(info-link "(Vcomplete)Customization")
+  :type '(radio (const :tag "All windows on all frames" t)
+                (const :tag "All windows on all visible frames" visible)
+                (const
+                 :tag "All windows on all visible and iconified frames" 0)
+                (const
+                 :tag "All windows on the currently selected frame"
+                 nil))
+  :risky t
+  :package-version '(vcomplete . 1.2))
+
+(defcustom vcomplete-in-region-search-range 'visible
+  "Range of search for a `*Completions*' window during in region completion.
+- t means consider all windows on all frames.
+- `visible' means consider all windows on all visible frames.
+- 0 (the number zero) means consider all windows on all visible and
+  iconified frames.
+- Any other value means consider all windows on the selected frame and
+  no others."
+  :link '(info-link "(Vcomplete)Customization")
+  :type '(radio (const :tag "All windows on all frames" t)
+                (const :tag "All windows on all visible frames" visible)
+                (const
+                 :tag "All windows on all visible and iconified frames" 0)
+                (const
+                 :tag "All windows on the currently selected frame"
+                 nil))
+  :risky t
+  :package-version '(vcomplete . 1.2))
+
 (defface vcomplete-highlight '((t :inherit highlight))
   "Face for highlighting completions."
   :package-version '(vcomplete . 1.1))
@@ -112,7 +150,8 @@ Otherwise, operate according to `completion-auto-help'."
 While evaluating BODY, BUFFER and WINDOW are locally bound to the
 `*Completions*' buffer and window respectively."
   `(when-let ((buffer (get-buffer "*Completions*"))
-              (window (get-buffer-window buffer)))
+              (window (get-buffer-window
+                       buffer vcomplete-minibuffer-search-range)))
      (save-current-buffer
        (set-buffer buffer)
        (unless (derived-mode-p 'completion-list-mode)
@@ -217,7 +256,7 @@ With prefix argument N, move N items (negative N means move forward)."
 ;; disabled through `vcomplete--update-in-region'.
 (defun vcomplete--disable-completion-in-region ()
   "Stop completion in region when there is no visible `*Completions*' buffer."
-  (unless (get-buffer-window "*Completions*")
+  (unless (get-buffer-window "*Completions*" vcomplete-in-region-search-range)
     (completion-in-region-mode -1)))
 
 (defun vcomplete--setup-completions ()

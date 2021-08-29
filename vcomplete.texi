@@ -199,6 +199,24 @@ also true for other ``annotation providers'' such as the Marginalia
 package. Consider disabling them or this option on slow computers.
 @end defopt
 
+@defopt vcomplete-minibuffer-search-range
+Range of search for a @code{completions} window during minibuffer
+completion. A value of @code{t} means consider all windows on all
+frames, @code{visible} means consider all windows on all visible
+frames, @code{0} (the number zero) means consider all windows on all
+visible and iconified frames and any other value means consider only
+the currently selected frame. By default, @code{visible} is used.
+@end defopt
+
+@defopt vcomplete-in-region-search-range
+Range of search for a @code{completions} window during minibuffer
+completion. A value of @code{t} means consider all windows on all
+frames, @code{visible} means consider all windows on all visible
+frames, @code{0} (the number zero) means consider all windows on all
+visible and iconified frames and any other value means consider only
+the currently selected frame. By default, @code{visible} is used.
+@end defopt
+
 @menu
 * Completion commands::
 @end menu
