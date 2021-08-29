@@ -95,11 +95,11 @@ This list should contain at least two characters."
 
 (defcustom swsw-scope t
   "Scope of all window operations.
-t means consider all windows on all existing frames.
-0 (the number zero) means consider all windows on all visible and
+- t means consider all windows on all existing frames.
+- 0 (the number zero) means consider all windows on all visible and
   iconified frames.
-`visible' means consider all windows on all visible frames.
-`current' means consider only the currently selected frame."
+- `visible' means consider all windows on all visible frames.
+- `current' means consider only the currently selected frame."
   :link '(info-link "(swsw)Customization")
   :type '(radio (const :tag "All windows on all frames" t)
                 (const
