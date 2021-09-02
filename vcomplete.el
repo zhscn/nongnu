@@ -237,7 +237,7 @@ With prefix argument N, move N items (negative N means move forward)."
 ;; disabled through `vcomplete--update-in-region'.
 (defun vcomplete--disable-completion-in-region ()
   "Stop completion in region when there is no visible `*Completions*' buffer."
-  (unless (get-buffer-window "*Completions*" vcomplete-in-search-range)
+  (unless (get-buffer-window "*Completions*" vcomplete-search-range)
     (completion-in-region-mode -1)))
 
 (defun vcomplete--setup-completions ()
