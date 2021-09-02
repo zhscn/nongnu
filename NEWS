@@ -3,9 +3,9 @@ See the end of the file for an explanation of the versioning scheme.
 
 * 1.2 (in development)
 
-** Add the ability to control where to search for the completion list buffer.
-See custom variables 'vcomplete-minibuffer-search-range' and
-'vcomplete-in-region-search-range' for more information.
+** Add 'vcomplete-search-range'.
+This custom variable is used to control in which frames the completion
+list buffer is searched for during completion.
 
 * 1.1
 
