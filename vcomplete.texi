@@ -200,7 +200,7 @@ package. Consider disabling them or this option on slow computers.
 @end defopt
 
 @defopt vcomplete-search-range
-Range of search for a @code{completions} window during completion.
+Range of search for a @code{*Completions*} window during completion.
 A value of @code{t} means consider all windows on all frames,
 @code{visible} means consider all windows on all visible frames,
 @code{0} (the number zero) means consider all windows on all visible
