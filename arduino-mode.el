@@ -1,4 +1,4 @@
-;;; arduino-mode.el --- Major mode for editing Arduino code
+;;; arduino-mode.el --- Major mode for editing Arduino code  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008  Christopher Grim
 ;; Authors: Christopher Grim <christopher.grim@gmail.com>
@@ -45,7 +45,7 @@
   ;; fall back on c-mode
   (c-add-language 'arduino-mode 'c-mode))
 
-(require 'flycheck-arduino)
+;; (require 'flycheck-arduino)
 
 (defgroup arduino-mode nil
   "Customize arduino-mode."
@@ -178,11 +178,12 @@ Value is a symbol.  The possible values are the symbols in the
     ("while" "while" c-electric-continued-statement 0)))
 
 (defvar arduino-mode-map
-  (let ((map (c-make-inherited-keymap)))
-    (define-key map (kbd "C-c C-c") 'arduino-upload)
-    (define-key map (kbd "C-c C-v") 'arduino-verify)
-    (define-key map (kbd "C-c C-m") 'arduino-serial-monitor)
-    (define-key map (kbd "C-c C-x") 'arduino-open-with-arduino)
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map c-mode-base-map)
+    (define-key map (kbd "C-c C-c") #'arduino-upload)
+    (define-key map (kbd "C-c C-v") #'arduino-verify)
+    (define-key map (kbd "C-c C-m") #'arduino-serial-monitor)
+    (define-key map (kbd "C-c C-x") #'arduino-open-with-arduino)
     map)
   "Keymap used in arduino-mode buffers.")
 
@@ -209,22 +210,22 @@ Value is a symbol.  The possible values are the symbols in the
   (interactive)
   (setq arduino-upload-process-buf (buffer-name))
   (let* ((proc-name "arduino-upload")
-         (proc-buffer "*arduino-upload*")
-         (proc (make-process
-                :command (list arduino-executable "--upload" (buffer-file-name))
-                :name proc-name
-                :buffer proc-buffer
-                :sentinel (lambda (proc event)
-                            (if (string= event "finished\n")
-                                (progn
-                                  (with-current-buffer arduino-upload-process-buf
-                                    (setq mode-line-process nil))
-                                  (message "Arduino upload succeed."))
-                              (with-current-buffer arduino-upload-process-buf
-                                (display-buffer "*arduino-upload*")))
-                            (setq-local mode-line-process nil)
-                            (with-current-buffer arduino-upload-process-buf
-                              (when spinner-current (spinner-stop)))))))
+         (proc-buffer "*arduino-upload*"))
+    (make-process
+     :command (list arduino-executable "--upload" (buffer-file-name))
+     :name proc-name
+     :buffer proc-buffer
+     :sentinel (lambda (_proc event)
+                 (if (string= event "finished\n")
+                     (progn
+                       (with-current-buffer arduino-upload-process-buf
+                         (setq mode-line-process nil))
+                       (message "Arduino upload succeed."))
+                   (with-current-buffer arduino-upload-process-buf
+                     (display-buffer "*arduino-upload*")))
+                 (setq-local mode-line-process nil)
+                 (with-current-buffer arduino-upload-process-buf
+                   (when spinner-current (spinner-stop)))))
     (spinner-start arduino-spinner-type)
     (setq mode-line-process proc-name)))
 
@@ -235,21 +236,23 @@ Value is a symbol.  The possible values are the symbols in the
   (interactive)
   (setq arduino-verify-process-buf (buffer-name))
   (let* ((proc-name "arduino-verify")
-         (proc-buffer "*arduino-verify*")
-         (proc (make-process
-                :command (list arduino-executable "--verify" (buffer-file-name))
-                :name proc-name
-                :buffer proc-buffer
-                :sentinel (lambda (proc event)
-                            (if (string= event "finished\n")
-                                (progn
-                                  (with-current-buffer arduino-verify-process-buf
-                                    (setq mode-line-process nil))
-                                  (message "Arduino verify build succeed."))
-                              (display-buffer "*arduino-verify*"))
-                            (setq-local mode-line-process nil)
-                            (with-current-buffer arduino-verify-process-buf
-                              (when spinner-current (spinner-stop)))))))
+         (proc-buffer "*arduino-verify*"))
+    ;; FIXME: Reduce redundancy with `arduino-upload' and
+    ;; `arduino-open-with-arduino'.
+    (make-process
+     :command (list arduino-executable "--verify" (buffer-file-name))
+     :name proc-name
+     :buffer proc-buffer
+     :sentinel (lambda (_proc event)
+                 (if (string= event "finished\n")
+                     (progn
+                       (with-current-buffer arduino-verify-process-buf
+                         (setq mode-line-process nil))
+                       (message "Arduino verify build succeed."))
+                   (display-buffer "*arduino-verify*"))
+                 (setq-local mode-line-process nil)
+                 (with-current-buffer arduino-verify-process-buf
+                   (when spinner-current (spinner-stop)))))
     (spinner-start arduino-spinner-type)
     (setq mode-line-process proc-name)))
 
@@ -260,31 +263,29 @@ Value is a symbol.  The possible values are the symbols in the
   (interactive)
   (setq arduino-open-process-buf (buffer-name))
   (let* ((proc-name "arduino-open")
-         (proc-buffer "*arduino-open*")
-         (proc (make-process
-                :command (list arduino-executable (buffer-file-name))
-                :name proc-name
-                :buffer proc-buffer
-                :sentinel (lambda (proc event)
-                            (if (string= event "finished\n")
-                                (progn
-                                  (with-current-buffer arduino-open-process-buf
-                                    (setq mode-line-process nil))
-                                  (message "Opened with Arduino succeed.")))
-                            (setq-local mode-line-process nil)
-                            (with-current-buffer arduino-open-process-buf
-                              (when spinner-current (spinner-stop)))))))
+         (proc-buffer "*arduino-open*"))
+    (make-process
+     :command (list arduino-executable (buffer-file-name))
+     :name proc-name
+     :buffer proc-buffer
+     :sentinel (lambda (_proc event)
+                 (if (string= event "finished\n")
+                     (progn
+                       (with-current-buffer arduino-open-process-buf
+                         (setq mode-line-process nil))
+                       (message "Opened with Arduino succeed.")))
+                 (setq-local mode-line-process nil)
+                 (with-current-buffer arduino-open-process-buf
+                   (when spinner-current (spinner-stop)))))
     (spinner-start arduino-spinner-type)
     (setq mode-line-process proc-name)))
 
-;;; NOTE: Because command-line arduino does not support search and list out
-;;; boards and libraries. So I will not write a sentinel for installing process.
+;; NOTE: Because command-line arduino does not support search and list out
+;; boards and libraries. So I will not write a sentinel for installing process.
 (defun arduino-install-boards (board)
   "Install `BOARD' support for Arduino."
-  (interactive (list (completing-read "Arduino install board: "
-                                      '()
-                                      nil nil
-                                      "arduino:sam")))
+  (interactive (list (read-string "Arduino install board: "
+                                  "arduino:sam")))
   (start-process
    "arduino-install-boards"
    "*arduino-install-boards*"
@@ -292,10 +293,8 @@ Value is a symbol.  The possible values are the symbols in the
 
 (defun arduino-install-library (library)
   "Install `LIBRARY' support for Arduino."
-  (interactive (list (completing-read "Arduino install library: "
-                                      '()
-                                      nil nil
-                                      "Bridge:1.0.0")))
+  (interactive (list (read-string "Arduino install library: "
+                                  "Bridge:1.0.0")))
   (start-process
    "arduino-install-library"
    "*arduino-install-library*"
@@ -344,12 +343,10 @@ Value is a symbol.  The possible values are the symbols in the
   ;; initialization to get the syntactic analysis and similar things working.
   (c-common-init 'arduino-mode)
   
-  (when (version<= emacs-version "28.1")
-    (easy-menu-add arduino-menu))
   (set (make-local-variable 'c-basic-offset) 2)
   (set (make-local-variable 'tab-width) 2)
 
-  (flycheck-arduino-setup))
+  (if (fboundp 'flycheck-mode) (flycheck-arduino-setup)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.pde\\'" . arduino-mode))

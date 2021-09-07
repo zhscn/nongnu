@@ -1,4 +1,4 @@
-;;; ede-arduino.el --- EDE support for arduino projects / sketches
+;;; ede-arduino.el --- EDE support for arduino projects / sketches  -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2012 Eric M. Ludlam
 ;;
@@ -106,7 +106,7 @@ Emacs back to the Arduino IDE."
          (kill nil))
     
     (when (not ede-arduino-active-prefs)
-      (setq ede-arduino-active-prefs (ede-arduino-prefs)))
+      (setq ede-arduino-active-prefs (make-instance 'ede-arduino-prefs)))
     
     ;; Only update the prefs if the prefs file changed.
     (when (or (not (oref ede-arduino-active-prefs timestamp))
@@ -172,7 +172,7 @@ This is also where Arduino.mk will be found."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'start-process "arduino" b ede-arduino-arduino-command nil)))
+    (apply #'start-process "arduino" b ede-arduino-arduino-command nil)))
 
 (defun ede-arduino-find-install (&optional full-path)
   "Return the `FULL-PATH' where arduino IDE code is installed.
@@ -336,14 +336,14 @@ Data returned is the intputs needed for the Makefile."
         
         (when kill (kill-buffer buff))
         
-        (ede-arduino-board boardname
-                           :name name
-                           :protocol protocol
-                           :speed speed
-                           :maximum-size size
-                           :mcu mcu
-                           :f_cpu f_cpu
-                           :core core)))))
+        (make-instance 'ede-arduino-board ;; boardname
+                       :name name
+                       :protocol protocol
+                       :speed speed
+                       :maximum-size size
+                       :mcu mcu
+                       :f_cpu f_cpu
+                       :core core)))))
 
 ;;;###autoload
 (defun ede-arduino-root (&optional dir basefile)
@@ -386,14 +386,14 @@ to check."
   (ede-arduino-root dir t))
 
 ;;;###autoload
-(defun ede-arduino-load (dir &optional rootproj)
+(defun ede-arduino-load (dir &optional _rootproj)
   "Return an Arduino project object if there is one.
 Return nil if there isn't one.
 Argument DIR is the directory it is created for.
-ROOTPROJ is nil, sinc there is only one project for a directory tree."
+ROOTPROJ is not used, sinc there is only one project for a directory tree."
   (let* ((root (ede-arduino-root dir))
          (proj (and root (ede-directory-get-open-project root)))
-         (prefs (ede-arduino-sync)))
+         (_prefs (ede-arduino-sync)))
     (if proj
         (progn
           (message "Opening existing project")
@@ -447,25 +447,25 @@ ROOTPROJ is nil, sinc there is only one project for a directory tree."
 
 ;;;###autoload
 (defclass ede-arduino-project (ede-project)
-  ((keybindings :initform (("U" . ede-arduino-upload)))
+  ((keybindings :initform '(("U" . ede-arduino-upload)))
    (menu :initform
-         (
-          [ "Upload Project to Board" ede-arduino-upload ]
-          [ "Serial Monitor" cedet-arduino-serial-monitor ]
-          "--"
-          [ "Edit Projectfile" ede-edit-file-target
-            (ede-buffer-belongs-to-project-p) ]
-          "--"
-          [ "Update Version" ede-update-version ede-object ]
-          [ "Version Control Status" ede-vc-project-directory ede-object ]
-          "--"
-          [ "Rescan Project Files" ede-rescan-toplevel t ]
-          )))
+         '(
+           [ "Upload Project to Board" ede-arduino-upload ]
+           [ "Serial Monitor" cedet-arduino-serial-monitor ]
+           "--"
+           [ "Edit Projectfile" ede-edit-file-target
+             (ede-buffer-belongs-to-project-p) ]
+           "--"
+           [ "Update Version" ede-update-version ede-object ]
+           [ "Version Control Status" ede-vc-project-directory ede-object ]
+           "--"
+           [ "Rescan Project Files" ede-rescan-toplevel t ]
+           )))
   "EDE Arduino project.")
 
 ;;; TARGET MANAGEMENT
 ;;
-(cl-defmethod ede-find-target ((proj ede-arduino-project) buffer)
+(cl-defmethod ede-find-target ((proj ede-arduino-project) _buffer)
   "Find an EDE target in PROJ for BUFFER.
 If one doesn't exist, create a new one for this directory."
   (let* ((targets (oref proj targets))
@@ -473,11 +473,11 @@ If one doesn't exist, create a new one for this directory."
          (ans (object-assoc dir :path targets))
          )
     (when (not ans)
-      (setq ans (ede-arduino-target dir
-                                    :name (file-name-nondirectory
-                                           (directory-file-name dir))
-                                    :path dir
-                                    :source nil))
+      (setq ans (make-instance 'ede-arduino-target ;; dir
+                               :name (file-name-nondirectory
+                                      (directory-file-name dir))
+                               :path dir
+                               :source nil))
       (object-add-to-list proj :targets ans))
     ans))
 
@@ -511,19 +511,19 @@ Argument COMMAND is the command to use when compiling."
   ;; 2) Call MAKE
   (compile (or command ede-arduino-make-command)))
 
-(cl-defmethod project-compile-target ((obj ede-arduino-target) &optional command)
+(cl-defmethod project-compile-target ((_obj ede-arduino-target) &optional command)
   "Compile the current target OBJ.
 Argument COMMAND is the command to use for compiling the target."
   (project-compile-project (ede-current-project) command))
 
-(cl-defmethod project-debug-target ((target ede-arduino-target))
+(cl-defmethod project-debug-target ((_target ede-arduino-target))
   "Run the current project derived from TARGET in a debugger."
   (error "No Debugger support for Arduino"))
 
 ;;; C/C++ support
 (require 'semantic/db)
 
-(cl-defmethod ede-preprocessor-map ((this ede-arduino-target))
+(cl-defmethod ede-preprocessor-map ((_this ede-arduino-target))
   "Get the pre-processor map for some generic C code."
   ;; wiring.h and pins_arduino.h have lots of #defines in them.
   ;; TODO: realpath
@@ -539,9 +539,9 @@ Argument COMMAND is the command to use for compiling the target."
       (setq filemap (append filemap (oref table lexical-table))))
     filemap))
 
-(cl-defmethod ede-system-include-path ((this ede-arduino-target))
+(cl-defmethod ede-system-include-path ((_this ede-arduino-target))
   "Get the system include path used by project THIS."
-  (let* ((prefs (ede-arduino-sync))
+  (let* ((_prefs (ede-arduino-sync))
          (iphardware (expand-file-name "hardware/arduino/cores/arduino"
                                        (ede-arduino-find-install)))
          (libs (ede-arduino-guess-libs))
@@ -580,7 +580,8 @@ Argument COMMAND is the command to use for compiling the target."
          (vers (ede-arduino-Arduino-Version))
          (sketch (ede-arduino-guess-sketch))
          (orig-buffer nil)
-         (buff-to-kill nil))
+         ;; (buff-to-kill nil)
+         )
     (when (and (string= (file-name-extension sketch) "ino")
                (version< vers "1.0"))
       (error "Makefile doesn't support .ino files until Arduino 1.0"))
@@ -588,9 +589,10 @@ Argument COMMAND is the command to use for compiling the target."
                (version<= "1.0" vers))
       (error "Makefile doesn't support .pde files after Arduino 1.0"))
 
-    (save-current-buffer
-      (setq orig-buffer (get-file-buffer mfilename))
-      (set-buffer (setq buff-to-kill (find-file-noselect mfilename)))
+    (setq orig-buffer (get-file-buffer mfilename))
+    (with-current-buffer
+        ;; (setq buff-to-kill
+        (find-file-noselect mfilename)
       (save-excursion
         (goto-char (point-min))
         (if (and (not (eobp))
@@ -605,7 +607,7 @@ Argument COMMAND is the command to use for compiling the target."
         (ede-srecode-insert
          "arduino:ede-empty"
          "TARGET" (oref proj name)
-         "ARDUINO_LIBS" (mapconcat 'identity (ede-arduino-guess-libs) " ")
+         "ARDUINO_LIBS" (mapconcat #'identity (ede-arduino-guess-libs) " ")
          "MCU" (oref board mcu)
          "F_CPU" (oref board f_cpu)
          "PORT" (oref prefs port)
@@ -626,8 +628,7 @@ Argument COMMAND is the command to use for compiling the target."
   (let* ((libs nil)
          (sketch (ede-arduino-guess-sketch))
          (sketch-buffer (find-file-noselect sketch))
-         (arduino-libraries (save-current-buffer
-                              (set-buffer sketch-buffer)
+         (arduino-libraries (with-current-buffer sketch-buffer
                               (if (boundp 'arduino-libraries)
                                   arduino-libraries
                                 nil))))
@@ -636,13 +637,11 @@ Argument COMMAND is the command to use for compiling the target."
       (dolist (lib (split-string arduino-libraries))
         (push lib libs)))
      (t
-      (let* ((libdir nil)
-             (orig-buffer (get-file-buffer sketch))
+      (let* ((orig-buffer (get-file-buffer sketch))
              (buff nil)
              (tmp nil))
-        (save-current-buffer
-          (setq buff (find-file-noselect sketch))
-          (set-buffer buff)
+        (with-current-buffer
+            (setq buff (find-file-noselect sketch))
           (save-excursion
             (goto-char (point-min))
             (while (re-search-forward "#include <\\([[:word:]_]+\\).h>" nil t)

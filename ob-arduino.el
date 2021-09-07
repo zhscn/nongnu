@@ -1,4 +1,4 @@
-;;; ob-arduino.el --- Org-mode Babel support for Arduino.
+;;; ob-arduino.el --- Org-mode Babel support for Arduino.  -*- lexical-binding: t; -*-
 ;;
 ;; Authors: stardiviner <numbchild@gmail.com>
 ;; Package-Requires: ((emacs "24.4") (org "24.1"))
@@ -41,32 +41,31 @@
 
 (defcustom ob-arduino:program "arduino"
   "Default Arduino program name."
-  :group 'ob-arduino
   :type 'string)
 
 (defcustom ob-arduino:port "/dev/ttyACM0"
   "Default Arduino port."
-  :group 'ob-arduino
   :type 'string)
 
 (defcustom ob-arduino:board "arduino:avr:uno"
   "Default Arduino board."
-  :group 'ob-arduino
   :type 'string)
 
 
-(defvar org-babel-default-header-args:sclang nil)
+(defvar org-babel-default-header-args:sclang nil) ;;FIXME: What's this for??
+(defvar org-babel-temporary-directory)
 
 ;;;###autoload
 (defun org-babel-execute:arduino (body params)
   "org-babel arduino hook."
   (let* ((port (cdr (assoc :port params)))
          (board (cdr (assoc :board params)))
-         (cmd (mapconcat 'identity (list
-                                    ob-arduino:program "--upload"
-                                    (if port (concat "--port " port))
-                                    (if board (concat "--board " board))
-                                    ) " "))
+         ;; (cmd (mapconcat #'identity (list
+         ;;                             ob-arduino:program "--upload"
+         ;;                             (if port (concat "--port " port))
+         ;;                             (if board (concat "--board " board))
+         ;;                             )
+         ;;                 " "))
          (code (org-babel-expand-body:generic body params))
          (src-file (org-babel-temp-file "ob-arduino-" ".ino")))
     ;; delete all `ob-arduino' temp files, otherwise arduino will compile all

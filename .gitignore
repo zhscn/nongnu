@@ -1,5 +1,7 @@
 # Compiled
 *.elc
+/arduino-mode-autoloads.el
+/arduino-mode-pkg.el
 
 # Packaging
 .cask

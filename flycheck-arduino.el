@@ -1,4 +1,4 @@
-;;; flycheck-arduino.el --- Arduino support for flycheck.
+;;; flycheck-arduino.el --- Arduino support for flycheck.  -*- lexical-binding: t; -*-
 
 ;; Authors: stardiviner <numbchild@gmail.com>
 ;; Version: 0.1
@@ -49,7 +49,10 @@ Add `arduino' to `flycheck-checkers'."
   (add-to-list 'flycheck-checkers 'arduino))
 
 
+;; Can't be compiled when `flycheck' is not available.
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
 
 (provide 'flycheck-arduino)
-
 ;;; flycheck-arduino.el ends here
