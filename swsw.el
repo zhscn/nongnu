@@ -217,9 +217,9 @@ If set to `lighter', use a mode line lighter."
 
 (defun swsw-format-id (window)
   "Format an ID string for WINDOW."
-  (format-spec swsw-id-format
-               `((?s .
-                  ,(apply #'string (window-parameter window 'swsw-id))))))
+  (format-spec
+   swsw-id-format
+   `((?s . ,(apply #'string (window-parameter window 'swsw-id))))))
 
 (defun swsw--mode-line-display ()
   "Display window IDs at the beginning of the mode line."
@@ -316,11 +316,12 @@ is enabled."
           (delete-window window)))
     (swsw-run-window-command #'delete-window)))
 
-(defvar swsw-command-map (let ((map (make-sparse-keymap)))
-                           (define-key map [?o] #'swsw-select)
-                           (define-key map [?m] #'swsw-select-minibuffer)
-                           (define-key map [?0] #'swsw-delete)
-                           map)
+(defvar swsw-command-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [?o] #'swsw-select)
+    (define-key map [?m] #'swsw-select-minibuffer)
+    (define-key map [?0] #'swsw-delete)
+    map)
   "Key map for window commands.
 This key map is set as the parent of `swsw--id-map' during ID
 selection.")
