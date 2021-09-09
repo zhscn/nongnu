@@ -213,7 +213,7 @@ With prefix argument N, move N items (negative N means move forward)."
     map)
   "Key map for completion commands.")
 
-;;;; Visual completion mode:
+;;;; Vcomplete mode:
 
 (defun vcomplete--update-in-minibuffer (&rest _args)
   "Update the completion list when completing in a minibuffer."
@@ -229,10 +229,10 @@ With prefix argument N, move N items (negative N means move forward)."
     (unless (memq this-command vcomplete-no-update-commands)
       (completion-help-at-point))))
 
-;; This function is required (in the local `post-command-hook') since
-;; `after-change-functions' runs before the `*Completions*' buffer is
-;; closed, so `completion-in-region-mode' can't be immediately
-;; disabled through `vcomplete--update-in-region'.
+;; This function is required (to be in the local `post-command-hook')
+;; since `after-change-functions' runs before the `*Completions*'
+;; buffer is closed, so `completion-in-region-mode' can't be
+;; immediately disabled through `vcomplete--update-in-region'.
 (defun vcomplete--disable-completion-in-region ()
   "Stop completion in region when there is no visible `*Completions*' buffer."
   (unless (get-buffer-window "*Completions*" vcomplete-search-range)
@@ -245,7 +245,7 @@ With prefix argument N, move N items (negative N means move forward)."
 
 (defun vcomplete--setup-minibuffer ()
   "Setup visual completions for the minibuffer."
-  (when minibuffer-completion-table
+  (when minibuffer-completion-table ; Ensure completion is in progress.
     (setq vcomplete--last-completion-overlay nil)
     (when vcomplete-auto-update
       (vcomplete--update-in-minibuffer)
@@ -274,10 +274,13 @@ With prefix argument N, move N items (negative N means move forward)."
 
 ;;;###autoload
 (define-minor-mode vcomplete-mode
-  "Minor mode enhancing interaction with default completion list buffer.
+  "Toggle Vcomplete mode.
 
-The following bindings are active during in-buffer and minibuffer
-completion:
+When Vcomplete mode is enabled, the completion list buffer appears and
+updates automatically (by default), and the completion at point in the
+completions list buffer is highlighted automatically.
+
+The following bindings are active completion:
 
 \\{vcomplete-command-map}"
   :global t
