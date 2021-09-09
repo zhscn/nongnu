@@ -3,6 +3,11 @@ See the end of the file for an explanation of the versioning scheme.
 
 * 2.1.0
 
+** Make 'swsw-select' and 'swsw-delete' respect 'swsw-scope'.
+Previously, 'swsw-select' and 'swsw-delete' would not select/delete
+the only other window if it was on a different frame and 'swsw-scope'
+allowed tracking it.
+
 ** Remap 'other-window' to 'swsw-select' when 'swsw-mode' is active.
 By default this changes nothing since the default binding for
 'other-window' is 'C-x o'.

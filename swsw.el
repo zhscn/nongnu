@@ -287,7 +287,7 @@ is enabled."
   (declare (modes swsw-mode))
   (interactive)
   (if (< swsw-window-count 3)
-      (select-window (next-window))
+      (select-window (next-window nil nil (swsw--get-scope)))
     (swsw-run-window-command #'select-window)))
 
 (defun swsw-select-minibuffer ()
@@ -311,7 +311,7 @@ is enabled."
   (declare (modes swsw-mode))
   (interactive)
   (if (< swsw-window-count 3)
-      (let ((window (next-window)))
+      (let ((window (next-window nil nil (swsw--get-scope))))
         (unless (or (minibufferp (window-buffer window))
                     (minibufferp)) ; Selected window.
           (delete-window window)))
