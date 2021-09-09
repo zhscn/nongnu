@@ -207,6 +207,8 @@ If set to `lighter', use a mode line lighter."
     (set-window-parameter window 'swsw-id id)
     (setq swsw-window-count (1+ swsw-window-count))))
 
+;; This is a separate function only to prevent running `swsw--update'
+;; on any window state change.
 (defun swsw--update-frame ()
   "Run `swsw--update' if the current frame isn't `swsw--current-frame'.
 This check is skipped (and this function does nothing) if `swsw-scope'
@@ -295,8 +297,7 @@ If less than three windows have been assigned an ID, switch to the
 window returned by `next-window'.
 Otherwise, window selection allows either choosing a window by its ID
 \(switching to it), or using a window manipulation command.
-This command is intended to be used only when simple window switching
-is enabled."
+This command is intended to be used only when swsw mode is enabled."
   (declare (modes swsw-mode))
   (interactive)
   (if (< swsw-window-count 3)
@@ -305,8 +306,7 @@ is enabled."
 
 (defun swsw-select-minibuffer ()
   "Select the active minibuffer window (if it exists).
-This command is intended to be used only when simple window switching
-is enabled."
+This command is intended to be used only when swsw mode is enabled."
   (declare (modes swsw-mode))
   (interactive)
   (let ((window (active-minibuffer-window)))
@@ -319,8 +319,7 @@ If less than three windows have been assigned an ID, delete the window
 returned by `next-window'.
 Otherwise, window deletion allows either choosing a window by its ID
 \(deleting it), or using a window manipulation command.
-This command is intended to be used only when simple window switching
-is enabled."
+This command is intended to be used only when swsw mode is enabled."
   (declare (modes swsw-mode))
   (interactive)
   (if (< swsw-window-count 3)
@@ -340,13 +339,15 @@ is enabled."
 This key map is set as the parent of `swsw--id-map' during ID
 selection.")
 
-;;;; Simple window switching mode:
+;;;; swsw mode:
 
 ;;;###autoload
 (define-minor-mode swsw-mode
-  "Minor mode for simple window management.
+  "Toggle swsw mode.
 
-When the mode is active, `other-window' is remapped to `swsw-select'.
+When swsw mode is enabled, window IDs are shown as mode line
+lighters of the form \"<ID>\" (by default), and `other-window' is remapped to
+`swsw-select' (a command used to select windows according to their ID).
 
 The following key bindings are available after starting window
 selection:

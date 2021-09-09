@@ -130,19 +130,20 @@ Install the package:
 
 In order to use any feature of the package, @code{swsw-mode} must be enabled:
 
-@cindex swsw-mode
 @table @asis
+@cindex swsw-mode
 @item @kbd{M-x swsw-mode RET}
 You can also add @code{(swsw-mode)} to your init file, instead.
 @end table
 
-By default, window IDs are shown as mode line lighters of the
-form @code{<ID>} (@xref{Display functions}), and @code{other-window}
-(@kbd{C-x o}) is remapped to @code{swsw-select}.
+When @code{swsw-mode} is enabled, window IDs are shown as mode line
+lighters of the form @code{<ID>} (by default, @xref{Display
+functions}), and @code{other-window} (@kbd{C-x o}) is remapped to
+@code{swsw-select}.
 
+@table @asis
 @kindex C-x o
 @cindex swsw-select
-@table @asis
 @item @kbd{C-x o}
 Start window selection (@code{swsw-select}).
 This command sets a transient key map in which several window
