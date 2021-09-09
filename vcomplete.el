@@ -280,7 +280,7 @@ When Vcomplete mode is enabled, the completion list buffer appears and
 updates automatically (by default), and the completion at point in the
 completions list buffer is highlighted.
 
-The following bindings are active completion:
+The following bindings are available during completion:
 
 \\{vcomplete-command-map}"
   :global t
