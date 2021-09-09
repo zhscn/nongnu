@@ -154,6 +154,10 @@ If set to `lighter', use a mode line lighter."
   "Amount of windows that have been assigned an ID.")
 (put 'swsw-window-count 'risky-local-variable t)
 
+(defvar swsw--current-frame nil
+  "Current frame (set by `swsw--update'), used to detect frame changes.")
+(put 'swsw--current-frame 'risky-local-variable t)
+
 (defun swsw--get-scope ()
   "Return the current scope in which windows should be tracked."
   (if (eq swsw-scope 'current)
@@ -203,12 +207,21 @@ If set to `lighter', use a mode line lighter."
     (set-window-parameter window 'swsw-id id)
     (setq swsw-window-count (1+ swsw-window-count))))
 
+(defun swsw--update-frame ()
+  "Run `swsw--update' if the current frame isn't `swsw--current-frame'.
+This check is skipped (and this function does nothing) if `swsw-scope'
+is t."
+  (unless (or (eq (swsw--get-scope) t)
+              (eq swsw--current-frame (selected-frame)))
+    (swsw--update)))
+
 (defun swsw--update (&optional _frame)
   "Update information for all windows."
   (setq swsw--id-map (make-sparse-keymap))
   (set-keymap-parent swsw--id-map swsw-command-map)
   (setq swsw--id-counter nil
-        swsw-window-count 0)
+        swsw-window-count 0
+        swsw--current-frame (selected-frame))
   ;; Clear and resize `swsw--id-counter' according to the ID length.
   (dotimes (_var (swsw--get-id-length))
     (push 0 swsw--id-counter))
@@ -351,12 +364,14 @@ selection:
         (unless (eq swsw-display-function 'lighter)
           (funcall swsw-display-function t))
         (add-hook 'window-configuration-change-hook #'swsw--update)
+        (add-hook 'window-state-change-hook #'swsw--update-frame)
         (add-hook 'minibuffer-setup-hook #'swsw--update)
         (add-hook 'minibuffer-exit-hook #'swsw--update)
         (add-hook 'after-delete-frame-functions #'swsw--update))
     (unless (eq swsw-display-function 'lighter)
       (funcall swsw-display-function nil))
     (remove-hook 'window-configuration-change-hook #'swsw--update)
+    (remove-hook 'window-state-change-hook #'swsw--update-frame)
     (remove-hook 'minibuffer-setup-hook #'swsw--update)
     (remove-hook 'minibuffer-exit-hook #'swsw--update)
     (remove-hook 'after-delete-frame-functions #'swsw--update)))

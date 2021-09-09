@@ -3,6 +3,9 @@ See the end of the file for an explanation of the versioning scheme.
 
 * 2.1.0
 
+** Update window information when switching frames.
+This fixes several issues when 'swsw-scope' isn't t.
+
 ** Make 'swsw-select' and 'swsw-delete' respect 'swsw-scope'.
 Previously, 'swsw-select' and 'swsw-delete' would not select/delete
 the only other window if it was on a different frame and 'swsw-scope'
