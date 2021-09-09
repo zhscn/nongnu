@@ -278,7 +278,7 @@ With prefix argument N, move N items (negative N means move forward)."
 
 When Vcomplete mode is enabled, the completion list buffer appears and
 updates automatically (by default), and the completion at point in the
-completions list buffer is highlighted automatically.
+completions list buffer is highlighted.
 
 The following bindings are active completion:
 
