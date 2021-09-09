@@ -1,6 +1,15 @@
 swsw NEWS -- history of user-visible changes.
 See the end of the file for an explanation of the versioning scheme.
 
+* 2.1.0
+
+** Remap 'other-window' to 'swsw-select' when 'swsw-mode' is active.
+By default this changes nothing since the default binding for
+'other-window' is 'C-x o'.
+This change has been made to add (simple) out-of-the-box compatibility
+with alternative key binding sets or different Emacs distributions
+(provided they bind 'other-window').
+
 * 2.0.2
 
 ** No user visible changes.

@@ -46,6 +46,7 @@
 ;;   function (see `swsw-display-function').
 ;; - Window IDs are assigned to all windows on all frames except for
 ;;   the minibuffer(by default, see `swsw-scope').
+;; - `other-window' (C-x o by default) is remapped to `swsw-select'.
 ;;
 ;; C-x o ID switches focus to the window which corresponds to ID.
 ;;
@@ -332,15 +333,18 @@ selection.")
 (define-minor-mode swsw-mode
   "Minor mode for simple window management.
 
+When the mode is active, `other-window' is remapped to `swsw-select'.
+
 The following key bindings are available after starting window
 selection:
 
 \\{swsw-command-map}"
   :global t
-  :lighter
-  (:eval (when (eq swsw-display-function 'lighter)
+  :lighter (:eval (when (eq swsw-display-function 'lighter)
            (swsw-format-id (selected-window))))
-  :keymap '(keymap (?\C-x . (keymap (?o . swsw-select))))
+  :keymap (let ((map (make-sparse-keymap)))
+            (define-key map [remap other-window] #'swsw-select)
+            map)
   (if swsw-mode
       (progn
         (swsw--update)
