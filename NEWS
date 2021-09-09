@@ -25,19 +25,19 @@ similar).
 
 ** Make auto updating the completion list buffer more responsive.
 
-** Support commands which use completion-in-region in the minibuffer.
+** Support commands which use 'completion-in-region' in the minibuffer.
 
 ** Add basic Embark support.
 
 ** Highlight the completion at point in the completion list buffer
 even when using normal navigation commands.
 
-** Remove vcomplete-kill-buffer.
+** Remove 'vcomplete-kill-buffer'.
 This was done as part of an effort to simplify the code base (since
 third party solutions to completion actions exist).
 
 ** Optionally automatically update the completion list buffer.
-See vcomplete-auto-update's documentation string for more information.
+See 'vcomplete-auto-update's documentation string for more information.
 
 * 0.1
 
