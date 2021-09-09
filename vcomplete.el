@@ -170,16 +170,14 @@ isn't a completion list buffer."
 
 (defun vcomplete--highlight-completion-at-point ()
   "Highlight the completion at point in the `*Completions*' buffer."
-  (while-no-input
-    (redisplay)
-    (let ((cur (vcomplete-current-completion (point))))
-      (when vcomplete--last-completion-overlay
-        (delete-overlay vcomplete--last-completion-overlay))
-      (when-let ((pos (cdr cur)))
-        (overlay-put
-         (setq vcomplete--last-completion-overlay
-               (make-overlay (car pos) (cdr pos)))
-         'face 'vcomplete-highlight)))))
+  (let ((cur (vcomplete-current-completion (point))))
+    (when vcomplete--last-completion-overlay
+      (delete-overlay vcomplete--last-completion-overlay))
+    (when-let ((pos (cdr cur)))
+      (overlay-put
+       (setq vcomplete--last-completion-overlay
+             (make-overlay (car pos) (cdr pos)))
+       'face 'vcomplete-highlight))))
 
 (defun vcomplete--move-n-completions (n)
   "Move N completions in the `*Completions*' buffer."
