@@ -103,7 +103,7 @@ package in detail.
 * 1.0
 
 ** Add support for multi-character IDs.
-IDs can now be constructed from multiple characters taken from swsw-id-chars,
+IDs can now be constructed from multiple characters taken from 'swsw-id-chars',
 when there are enough tracked windows.
 
 ** Add support for alternate display functions.
