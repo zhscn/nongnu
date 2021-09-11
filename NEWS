@@ -3,6 +3,8 @@ See the end of the file for an explanation of the versioning scheme.
 
 * 2.1.0 (in development)
 
+** Bump required Emacs version to 27.1.
+
 ** Update window information when switching frames.
 This fixes several issues when 'swsw-scope' isn't set to t.
 
