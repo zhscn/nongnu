@@ -1,4 +1,4 @@
-Vcomplete NEWS -- history of user-visible changes.
+Vcomplete NEWS -- history of user-visible changes. -*- mode: outline -*-
 See the end of the file for an explanation of the versioning scheme.
 
 * 1.2 (in development)
@@ -58,8 +58,3 @@ The PATCH version is bumped when no feature is added (e.g. a version
 with only fixes, or changes to documentation).
 
 Note that versions before 1.0 did not follow this scheme.
-
---
-Local variables:
-mode: outline
-end:
