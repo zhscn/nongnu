@@ -4,7 +4,7 @@
 
 ;; Author: Daniel Semyonov <daniel@dsemy.com>
 ;; Maintainer: Daniel Semyonov <daniel@dsemy.com>
-;; Version: 2.0.2
+;; Version: 2.1
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: convenience
 ;; URL: https://dsemy.com/software/swsw
