@@ -82,9 +82,15 @@
   ;; In a string.
   (nth 3 (syntax-ppss)))
 
+(defsubst idle-highlight--unhighlight ()
+  "Clear current highlight."
+  (when idle-highlight--regexp
+    (unhighlight-regexp idle-highlight--regexp)
+    (setq idle-highlight--regexp nil)))
+
 (defun idle-highlight--word-at-point ()
   "Highlight the word under the point."
-  (when idle-highlight-mode
+  (when (bound-and-true-p idle-highlight-mode)
     (idle-highlight--unhighlight)
     (let ((target-symbol (symbol-at-point)))
       (when
@@ -96,12 +102,6 @@
           (when (not (member target idle-highlight-exceptions))
             (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
             (highlight-regexp idle-highlight--regexp 'idle-highlight)))))))
-
-(defsubst idle-highlight--unhighlight ()
-  "Clear current highlight."
-  (when idle-highlight--regexp
-    (unhighlight-regexp idle-highlight--regexp)
-    (setq idle-highlight--regexp nil)))
 
 ;;;###autoload
 (define-minor-mode idle-highlight-mode
