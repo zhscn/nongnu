@@ -3,6 +3,14 @@ See the end of the file for an explanation of the versioning scheme.
 
 * 1.2 (in development)
 
+** Improve Embark integration.
+Fix Embark 'non-edit commands' not immediately exiting when
+'vcomplete-auto-update' is t.
+Add (auto loaded) 'vcomplete-embark-mode' which enables Embark
+integration.
+It is no longer required to explicitly load 'vcomplete-embark.el' to
+enable this integration.
+
 ** Add 'vcomplete-search-range'.
 This custom variable is used to control in which frames the completion
 list buffer is searched for during completion.

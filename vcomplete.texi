@@ -178,6 +178,14 @@ You may use these commands without enabling @code{vcomplete-mode}
 @xref{Completion commands} for information regarding defining new
 commands.
 
+Vcomplete also comes with (optional) support for Embark. To enable it:
+
+@cindex vcomplete-embark-mode
+@table @asis
+@item @kbd{M-x vcomplete-embark-mode RET}
+You can also add @code{(vcomplete-embark-mode)} to your init file, instead.
+@end table
+
 @node Customization
 @chapter Customization
 
@@ -190,7 +198,7 @@ be done through the customize interface:
 
 @defopt vcomplete-auto-update
 Whether the @code{*Completions*} buffer should open and update
-automatically.  Non-nil means automatically open and
+automatically. Non-nil means automatically open and
 update. Otherwise, operate according to
 @code{completion-auto-help}. By default, @code{t} is used. Note that
 with @code{completions-detailed} (introduced in Emacs 28) enabled, the

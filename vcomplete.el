@@ -41,7 +41,7 @@
 ;;   :config
 ;;   (vcomplete-mode))
 ;;
-;; When vcomplete-mode is active:
+;; When `vcomplete-mode' is active:
 ;; - The completion list buffer opens and updates automatically (see
 ;;   `vcomplete-auto-update').
 ;; - The completion list buffer can be controlled through the
