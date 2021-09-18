@@ -42,9 +42,7 @@
 ;; Example:
 ;;
 ;; (defun my-coding-hook ()
-;;   (make-local-variable 'column-number-mode)
-;;   (column-number-mode t)
-;;   (if window-system (hl-line-mode t))
+;;   (when window-system (hl-line-mode t))
 ;;   (idle-highlight-mode t))
 ;;
 ;; (add-hook 'emacs-lisp-mode-hook 'my-coding-hook)
