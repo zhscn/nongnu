@@ -126,6 +126,8 @@
 (define-minor-mode idle-highlight-mode
   "Idle-Highlight Minor Mode."
   :group 'idle-highlight
+  :global nil
+
   (if idle-highlight-mode
     (progn
       (unless idle-highlight--global-timer
