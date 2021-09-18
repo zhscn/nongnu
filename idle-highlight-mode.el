@@ -53,8 +53,15 @@
 
 ;;; Code:
 
+
+;; ---------------------------------------------------------------------------
+;; Require Dependencies
+
 (require 'thingatpt)
 
+
+;; ---------------------------------------------------------------------------
+;; Custom Variables
 
 (defgroup idle-highlight nil "Highlight other occurrences of the word at point." :group 'faces)
 
@@ -73,9 +80,17 @@
   :group 'idle-highlight
   :type 'float)
 
+
+;; ---------------------------------------------------------------------------
+;; Internal Variables
+
 (defvar-local idle-highlight--regexp nil "Buffer-local regexp to be idle-highlighted.")
 
 (defvar idle-highlight--global-timer nil "Timer to trigger highlighting.")
+
+
+;; ---------------------------------------------------------------------------
+;; Internal Functions
 
 (defsubst idle-highlight--ignore-context ()
   "Return non-nil when in a context that should be ignored."
@@ -102,6 +117,10 @@
           (when (not (member target idle-highlight-exceptions))
             (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
             (highlight-regexp idle-highlight--regexp 'idle-highlight)))))))
+
+
+;; ---------------------------------------------------------------------------
+;; Public Functions
 
 ;;;###autoload
 (define-minor-mode idle-highlight-mode
