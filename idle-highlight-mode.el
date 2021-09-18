@@ -77,6 +77,11 @@
 
 (defvar idle-highlight--global-timer nil "Timer to trigger highlighting.")
 
+(defsubst idle-highlight--ignore-context ()
+  "Return non-nil when in a context that should be ignored."
+  ;; In a string.
+  (nth 3 (syntax-ppss)))
+
 (defun idle-highlight--word-at-point ()
   "Highlight the word under the point."
   (if idle-highlight-mode
@@ -87,7 +92,7 @@
       (idle-highlight--unhighlight)
       (when
         (and
-          target-symbol (not (in-string-p))
+          target-symbol (not (idle-highlight--ignore-context))
           (looking-at-p "\\s_\\|\\sw") ;; Symbol characters
           (not (member target idle-highlight-exceptions)))
         (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
