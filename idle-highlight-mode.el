@@ -31,10 +31,10 @@
 
 ;;; Commentary:
 
-;; Based on some snippets by fledermaus from the #emacs channel.
+;; Based on some snippets by fledermaus from the Emacs channel.
 
 ;; M-x idle-highlight-mode sets an idle timer that highlights all
-;; occurences in the buffer of the word under the point.
+;; occurrences in the buffer of the word under the point.
 
 ;; Enabling it in a hook is recommended. But you don't want it enabled
 ;; for all buffers, just programming ones.
@@ -94,13 +94,14 @@
         (highlight-regexp idle-highlight--regexp 'idle-highlight)))))
 
 (defsubst idle-highlight--unhighlight ()
+  "Clear current highlight."
   (when idle-highlight--regexp
     (unhighlight-regexp idle-highlight--regexp)
     (setq idle-highlight--regexp nil)))
 
 ;;;###autoload
 (define-minor-mode idle-highlight-mode
-  "Idle-Highlight Minor Mode"
+  "Idle-Highlight Minor Mode."
   :group 'idle-highlight
   (if idle-highlight-mode
     (progn
