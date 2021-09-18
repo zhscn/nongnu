@@ -84,19 +84,18 @@
 
 (defun idle-highlight--word-at-point ()
   "Highlight the word under the point."
-  (if idle-highlight-mode
-    (let*
-      (
-        (target-symbol (symbol-at-point))
-        (target (symbol-name target-symbol)))
-      (idle-highlight--unhighlight)
+  (when idle-highlight-mode
+    (idle-highlight--unhighlight)
+    (let ((target-symbol (symbol-at-point)))
       (when
         (and
           target-symbol (not (idle-highlight--ignore-context))
-          (looking-at-p "\\s_\\|\\sw") ;; Symbol characters
-          (not (member target idle-highlight-exceptions)))
-        (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
-        (highlight-regexp idle-highlight--regexp 'idle-highlight)))))
+          ;; Symbol characters.
+          (looking-at-p "\\s_\\|\\sw"))
+        (let ((target (symbol-name target-symbol)))
+          (when (not (member target idle-highlight-exceptions))
+            (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
+            (highlight-regexp idle-highlight--regexp 'idle-highlight)))))))
 
 (defsubst idle-highlight--unhighlight ()
   "Clear current highlight."
