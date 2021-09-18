@@ -72,30 +72,30 @@
   :group 'idle-highlight
   :type 'float)
 
-(defvar idle-highlight-regexp nil "Buffer-local regexp to be idle-highlighted.")
+(defvar idle-highlight--regexp nil "Buffer-local regexp to be idle-highlighted.")
 
-(defvar idle-highlight-global-timer nil "Timer to trigger highlighting.")
+(defvar idle-highlight--global-timer nil "Timer to trigger highlighting.")
 
-(defun idle-highlight-word-at-point ()
+(defun idle-highlight--word-at-point ()
   "Highlight the word under the point."
   (if idle-highlight-mode
     (let*
       (
         (target-symbol (symbol-at-point))
         (target (symbol-name target-symbol)))
-      (idle-highlight-unhighlight)
+      (idle-highlight--unhighlight)
       (when
         (and
           target-symbol (not (in-string-p))
           (looking-at-p "\\s_\\|\\sw") ;; Symbol characters
           (not (member target idle-highlight-exceptions)))
-        (setq idle-highlight-regexp (concat "\\<" (regexp-quote target) "\\>"))
-        (highlight-regexp idle-highlight-regexp 'idle-highlight)))))
+        (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
+        (highlight-regexp idle-highlight--regexp 'idle-highlight)))))
 
-(defsubst idle-highlight-unhighlight ()
-  (when idle-highlight-regexp
-    (unhighlight-regexp idle-highlight-regexp)
-    (setq idle-highlight-regexp nil)))
+(defsubst idle-highlight--unhighlight ()
+  (when idle-highlight--regexp
+    (unhighlight-regexp idle-highlight--regexp)
+    (setq idle-highlight--regexp nil)))
 
 ;;;###autoload
 (define-minor-mode idle-highlight-mode
@@ -103,11 +103,11 @@
   :group 'idle-highlight
   (if idle-highlight-mode
     (progn
-      (unless idle-highlight-global-timer
-        (setq idle-highlight-global-timer
-          (run-with-idle-timer idle-highlight-idle-time :repeat 'idle-highlight-word-at-point)))
-      (set (make-local-variable 'idle-highlight-regexp) nil))
-    (idle-highlight-unhighlight)))
+      (unless idle-highlight--global-timer
+        (setq idle-highlight--global-timer
+          (run-with-idle-timer idle-highlight-idle-time :repeat 'idle-highlight--word-at-point)))
+      (set (make-local-variable 'idle-highlight--regexp) nil))
+    (idle-highlight--unhighlight)))
 
 (provide 'idle-highlight-mode)
 ;;; idle-highlight-mode.el ends here
