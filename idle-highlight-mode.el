@@ -8,6 +8,7 @@
 ;; Created: 2008-05-13
 ;; Keywords: convenience
 ;; EmacsWiki: IdleHighlight
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -72,7 +73,7 @@
   :group 'idle-highlight
   :type 'float)
 
-(defvar idle-highlight--regexp nil "Buffer-local regexp to be idle-highlighted.")
+(defvar-local idle-highlight--regexp nil "Buffer-local regexp to be idle-highlighted.")
 
 (defvar idle-highlight--global-timer nil "Timer to trigger highlighting.")
 
@@ -105,8 +106,7 @@
     (progn
       (unless idle-highlight--global-timer
         (setq idle-highlight--global-timer
-          (run-with-idle-timer idle-highlight-idle-time :repeat 'idle-highlight--word-at-point)))
-      (set (make-local-variable 'idle-highlight--regexp) nil))
+          (run-with-idle-timer idle-highlight-idle-time :repeat 'idle-highlight--word-at-point))))
     (idle-highlight--unhighlight)))
 
 (provide 'idle-highlight-mode)
