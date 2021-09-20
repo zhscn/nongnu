@@ -105,16 +105,17 @@
   "Highlight the word under the point."
   (when (bound-and-true-p idle-highlight-mode)
     (idle-highlight--unhighlight)
-    (let ((target-symbol (symbol-at-point)))
+    (let ((target-range (bounds-of-thing-at-point 'symbol)))
       (when
         (and
-          target-symbol (not (idle-highlight--ignore-context))
+          target-range (not (idle-highlight--ignore-context))
           ;; Symbol characters.
           (looking-at-p "\\s_\\|\\sw"))
-        (let ((target (symbol-name target-symbol)))
-          (when (not (member target idle-highlight-exceptions))
-            (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
-            (highlight-regexp idle-highlight--regexp 'idle-highlight)))))))
+        (pcase-let* ((`(,beg . ,end) target-range))
+          (let ((target (buffer-substring-no-properties beg end)))
+            (when (not (member target idle-highlight-exceptions))
+              (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
+              (highlight-regexp idle-highlight--regexp 'idle-highlight))))))))
 
 
 ;; ---------------------------------------------------------------------------
