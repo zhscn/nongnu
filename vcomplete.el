@@ -68,6 +68,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'subr-x))
+
 ;;;; Customization:
 
 (defgroup vcomplete nil
