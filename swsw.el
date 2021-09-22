@@ -66,8 +66,9 @@
 
 ;;; Code:
 
-;; Avoid byte-compilation warnings.
 (eval-when-compile
+  (require 'subr-x)
+  ;; Avoid byte-compilation warnings.
   (defvar swsw-display-function)
   (defvar swsw-command-map))
 
