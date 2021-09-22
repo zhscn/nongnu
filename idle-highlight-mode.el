@@ -8,7 +8,7 @@
 ;; Created: 2008-05-13
 ;; Keywords: convenience
 ;; EmacsWiki: IdleHighlight
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "27.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -84,9 +84,6 @@
 
 (defvar-local idle-highlight--regexp nil "Buffer-local regexp to be idle-highlighted.")
 
-(defvar idle-highlight--global-timer nil "Timer to trigger highlighting.")
-
-
 ;; ---------------------------------------------------------------------------
 ;; Internal Functions
 
@@ -103,20 +100,123 @@
 
 (defun idle-highlight--word-at-point ()
   "Highlight the word under the point."
-  (when (bound-and-true-p idle-highlight-mode)
-    (idle-highlight--unhighlight)
-    (let ((target-range (bounds-of-thing-at-point 'symbol)))
-      (when
-        (and
-          target-range (not (idle-highlight--ignore-context))
-          ;; Symbol characters.
-          (looking-at-p "\\s_\\|\\sw"))
-        (pcase-let* ((`(,beg . ,end) target-range))
-          (let ((target (buffer-substring-no-properties beg end)))
-            (when (not (member target idle-highlight-exceptions))
-              (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
-              (highlight-regexp idle-highlight--regexp 'idle-highlight))))))))
+  (idle-highlight--unhighlight)
+  (let ((target-range (bounds-of-thing-at-point 'symbol)))
+    (when
+      (and
+        target-range (not (idle-highlight--ignore-context))
+        ;; Symbol characters.
+        (looking-at-p "\\s_\\|\\sw"))
+      (pcase-let* ((`(,beg . ,end) target-range))
+        (let ((target (buffer-substring-no-properties beg end)))
+          (when (not (member target idle-highlight-exceptions))
+            (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
+            (highlight-regexp idle-highlight--regexp 'idle-highlight)))))))
 
+
+;; ---------------------------------------------------------------------------
+;; Internal Timer Management
+;;
+;; This works as follows:
+;;
+;; - The timer is kept active as long as the local mode is enabled.
+;; - Entering a buffer runs the buffer local `window-state-change-hook'
+;;   immediately which checks if the mode is enabled,
+;;   set up the global timer if it is.
+;; - Switching any other buffer wont run this hook,
+;;   rely on the idle timer it's self running, which detects the active mode,
+;;   canceling it's self if the mode isn't active.
+;;
+;; This is a reliable way of using a global,
+;; repeating idle timer that is effectively buffer local.
+;;
+
+;; Global idle timer (repeating), keep active while the buffer-local mode is enabled.
+(defvar idle-highlight--global-timer nil)
+;; When t, the timer will update buffers in all other visible windows.
+(defvar idle-highlight--dirty-flush-all nil)
+;; When true, the buffer should be updated when inactive.
+(defvar-local idle-highlight--dirty nil)
+
+(defun idle-highlight--time-callback-or-disable ()
+  "Callback that run the repeat timer."
+
+  ;; Ensure all other buffers are highlighted on request.
+  (let ((is-mode-active (bound-and-true-p idle-highlight-mode)))
+    ;; When this buffer is not in the mode, flush all other buffers.
+    (cond
+      (is-mode-active
+        ;; Don't update in the window loop to ensure we always
+        ;; update the current buffer in the current context.
+        (setq idle-highlight--dirty nil))
+      (t
+        ;; If the timer ran when in another buffer,
+        ;; a previous buffer may need a final refresh, ensure this happens.
+        (setq idle-highlight--dirty-flush-all t)))
+
+    (when idle-highlight--dirty-flush-all
+      ;; Run the mode callback for all other buffers in the queue.
+      (dolist (frame (frame-list))
+        (dolist (win (window-list frame -1))
+          (let ((buf (window-buffer win)))
+            (when
+              (and
+                (buffer-local-value 'idle-highlight-mode buf)
+                (buffer-local-value 'idle-highlight--dirty buf))
+              (with-selected-frame frame
+                (with-selected-window win
+                  (with-current-buffer buf
+                    (setq idle-highlight--dirty nil)
+                    (idle-highlight--word-at-point)))))))))
+    ;; Always keep the current buffer dirty
+    ;; so navigating away from this buffer will refresh it.
+    (if is-mode-active
+      (setq idle-highlight--dirty t))
+
+    (cond
+      (is-mode-active
+        (idle-highlight--word-at-point))
+      (t ;; Cancel the timer until the current buffer uses this mode again.
+        (idle-highlight--time-ensure nil)))))
+
+(defun idle-highlight--time-ensure (state)
+  "Ensure the timer is enabled when STATE is non-nil, otherwise disable."
+  (cond
+    (state
+      (unless idle-highlight--global-timer
+        (setq idle-highlight--global-timer
+          (run-with-idle-timer
+            idle-highlight-idle-time
+            :repeat 'idle-highlight--time-callback-or-disable))))
+    (t
+      (when idle-highlight--global-timer
+        (cancel-timer idle-highlight--global-timer)
+        (setq idle-highlight--global-timer nil)))))
+
+(defun idle-highlight--time-reset ()
+  "Run this when the buffer changes."
+  ;; Ensure changing windows doesn't leave other buffers with stale highlight.
+  (cond
+    ((bound-and-true-p idle-highlight-mode)
+      (setq idle-highlight--dirty-flush-all t)
+      (setq idle-highlight--dirty t)
+      (idle-highlight--time-ensure t))
+    (t
+      (idle-highlight--time-ensure nil))))
+
+(defun idle-highlight--time-buffer-local-enable ()
+  "Ensure buffer local state is enabled."
+  ;; Needed in case focus changes before the idle timer runs.
+  (setq idle-highlight--dirty-flush-all t)
+  (setq idle-highlight--dirty t)
+  (idle-highlight--time-ensure t)
+  (add-hook 'window-state-change-hook #'idle-highlight--time-reset nil t))
+
+(defun idle-highlight--time-buffer-local-disable ()
+  "Ensure buffer local state is disabled."
+  (kill-local-variable 'idle-highlight--dirty)
+  (idle-highlight--time-ensure nil)
+  (remove-hook 'window-state-change-hook #'idle-highlight--time-reset t))
 
 ;; ---------------------------------------------------------------------------
 ;; Public Functions
@@ -127,12 +227,12 @@
   :group 'idle-highlight
   :global nil
 
-  (if idle-highlight-mode
-    (progn
-      (unless idle-highlight--global-timer
-        (setq idle-highlight--global-timer
-          (run-with-idle-timer idle-highlight-idle-time :repeat 'idle-highlight--word-at-point))))
-    (idle-highlight--unhighlight)))
+  (cond
+    (idle-highlight-mode
+      (idle-highlight--time-buffer-local-enable))
+    (t
+      (idle-highlight--time-buffer-local-disable)
+      (idle-highlight--unhighlight))))
 
 (provide 'idle-highlight-mode)
 ;;; idle-highlight-mode.el ends here
