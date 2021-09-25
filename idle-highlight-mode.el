@@ -232,7 +232,8 @@
       (idle-highlight--time-buffer-local-enable))
     (t
       (idle-highlight--time-buffer-local-disable)
-      (idle-highlight--unhighlight))))
+      (idle-highlight--unhighlight)
+      (kill-local-variable 'idle-highlight--regexp))))
 
 (provide 'idle-highlight-mode)
 ;;; idle-highlight-mode.el ends here
