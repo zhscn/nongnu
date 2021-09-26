@@ -341,11 +341,13 @@ Argument BINARY is a string containing the binary name."
 
 (defconst geiser-stklos-builtin-keywords
   '("assume"
-    "fluid-let"
-    "dotimes"
-    "macro-expand"
-    "define-struct"
     "call/ec"
+    "define-struct"
+    "dotimes"
+    "fluid-let"
+    "macro-expand"
+    "repeat"
+    "tagbody"
     "with-handler" )
     "These are symbols that we want to be highlighted in STklos code.")
 
