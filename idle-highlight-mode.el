@@ -78,6 +78,17 @@
   :group 'idle-highlight
   :type 'float)
 
+(defcustom idle-highlight-ignore-modes nil
+  "List of major-modes to exclude when `idle-highlight' has been enabled globally."
+  :type '(repeat symbol)
+  :group 'idle-highlight)
+
+(defvar-local global-idle-highlight-ignore-buffer nil
+  "When non-nil, the global mode will not be enabled for this buffer.
+This variable can also be a predicate function, in which case
+it'll be called with one parameter (the buffer in question), and
+it should return non-nil to make Global `idle-highlight' Mode not
+check this buffer.")
 
 ;; ---------------------------------------------------------------------------
 ;; Internal Variables
@@ -218,6 +229,42 @@
   (idle-highlight--time-ensure nil)
   (remove-hook 'window-state-change-hook #'idle-highlight--time-reset t))
 
+
+;; ---------------------------------------------------------------------------
+;; Internal Mode Management
+
+(defun idle-highlight--enable ()
+  "Enable the buffer local minor mode."
+  (idle-highlight--time-buffer-local-enable))
+
+(defun idle-highlight--disable ()
+  "Disable the buffer local minor mode."
+  (idle-highlight--time-buffer-local-disable)
+  (idle-highlight--unhighlight)
+  (kill-local-variable 'idle-highlight--regexp))
+
+(defun idle-highlight--turn-on ()
+  "Enable command `idle-highlight-mode'."
+  (when
+    (and
+      ;; Not already enabled.
+      (not (bound-and-true-p idle-highlight-mode))
+      ;; Not in the mini-buffer.
+      (not (minibufferp))
+      ;; Not a special mode (package list, tabulated data ... etc)
+      ;; Instead the buffer is likely derived from `text-mode' or `prog-mode'.
+      (not (derived-mode-p 'special-mode))
+      ;; Not explicitly ignored.
+      (not (memq major-mode idle-highlight-ignore-modes))
+      ;; Optionally check if a function is used.
+      (or
+        (null global-idle-highlight-ignore-buffer)
+        (if (functionp global-idle-highlight-ignore-buffer)
+          (not (funcall global-idle-highlight-ignore-buffer (current-buffer)))
+          nil)))
+    (idle-highlight-mode 1)))
+
+
 ;; ---------------------------------------------------------------------------
 ;; Public Functions
 
@@ -229,11 +276,16 @@
 
   (cond
     (idle-highlight-mode
-      (idle-highlight--time-buffer-local-enable))
+      (idle-highlight--enable))
     (t
-      (idle-highlight--time-buffer-local-disable)
-      (idle-highlight--unhighlight)
-      (kill-local-variable 'idle-highlight--regexp))))
+      (idle-highlight--disable))))
+
+;;;###autoload
+(define-globalized-minor-mode
+  global-idle-highlight-mode
+
+  idle-highlight-mode idle-highlight--turn-on
+  :group 'idle-highlight)
 
 (provide 'idle-highlight-mode)
 ;;; idle-highlight-mode.el ends here
