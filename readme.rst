@@ -24,15 +24,15 @@ Global Settings
 
 ``idle-highlight``
    Face used for highlighting the symbol.
-``idle-highlight-exceptions`` nil
+``idle-highlight-exceptions``: ``nil``
    Words to exclude from highlighting.
-``idle-highlight-exceptions-face`` '(font-lock-keyword-face font-lock-string-face)
+``idle-highlight-exceptions-face``: ``'(font-lock-keyword-face font-lock-string-face)``
    Faces to exclude from highlighting (defaults to ignore keywords & strings).
-``idle-highlight-exclude-point`` nil
+``idle-highlight-exclude-point``: ``nil``
    When non-nil, don't highlight the symbol under the cursor.
-``idle-highlight-idle-time``
+``idle-highlight-idle-time``: ``0.5``
    Delay before highlighting (in seconds).
-``global-idle-highlight-ignore-modes`` nil
+``global-idle-highlight-ignore-modes``: ``nil``
    A list of modes that won't enable spell-checking from ``global-idle-highlight-mode``.
 
 Buffer Local Settings
