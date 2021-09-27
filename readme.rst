@@ -26,6 +26,13 @@ Global Settings
    Face used for highlighting the symbol.
 ``idle-highlight-exceptions``
    Words to exclude from highlighting.
+
+   You may wish to set this to a different value for each mode, e.g:
+
+   .. code-block:: elisp
+
+      (setq-local idle-highlight-exceptions '("end" "begin"))
+
 ``idle-highlight-idle-time``
    Delay before highlighting (in seconds).
 ``global-idle-highlight-ignore-modes`` nil

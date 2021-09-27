@@ -68,7 +68,7 @@
   "Face used to highlight other occurrences of the word at point."
   :group 'idle-highlight)
 
-(defcustom idle-highlight-exceptions '("end")
+(defcustom idle-highlight-exceptions nil
   "List of words to be excepted from highlighting."
   :group 'idle-highlight
   :type '(repeat string))
