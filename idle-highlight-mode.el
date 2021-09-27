@@ -169,7 +169,6 @@ Argument POS return faces at this point."
       (save-excursion
         (let
           (
-            (range-list nil)
             (beg-ex
               (progn
                 (goto-char (max (point-min) (min beg (window-start))))
@@ -181,14 +180,13 @@ Argument POS return faces at this point."
                 (beginning-of-line)
                 (end-of-line)
                 (point))))
-
-          (cond
-            (idle-highlight-exclude-point
-              (setq range-list (list (cons beg-ex beg) (cons end end-ex))))
-            (t
-              (setq range-list (cons beg-ex end-ex))))
-
-          (dolist (range range-list)
+          (dolist
+            (range
+              (cond
+                (idle-highlight-exclude-point
+                  (list (cons beg-ex beg) (cons end end-ex)))
+                (t
+                  (list (cons beg-ex end-ex)))))
             (goto-char (car range))
             (while (re-search-forward idle-highlight--regexp (cdr range) t)
               (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
