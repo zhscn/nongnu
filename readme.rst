@@ -26,13 +26,6 @@ Global Settings
    Face used for highlighting the symbol.
 ``idle-highlight-exceptions`` nil
    Words to exclude from highlighting.
-
-   You may wish to set this to a different value for each mode, e.g:
-
-   .. code-block:: elisp
-
-      (setq-local idle-highlight-exceptions '("end" "begin"))
-
 ``idle-highlight-exceptions-face`` '(font-lock-keyword-face font-lock-string-face)
    Faces to exclude from highlighting (defaults to ignore keywords & strings).
 ``idle-highlight-idle-time``
@@ -68,3 +61,17 @@ Installation
      :config (setq idle-highlight-idle-time 0.2)
 
      :hook ((prog-mode text-mode) . idle-highlight-mode)))
+
+Hints
+-----
+
+You may wish to set this to a different value for each mode, e.g:
+
+.. code-block:: elisp
+
+   (add-hook 'after-change-major-mode-hook
+     (lambda ()
+       (when (derived-mode-p 'c-mode)
+         (setq-local idle-highlight-exceptions '("unsigned" "signed" "long" "int" "shot" "char")))
+       (when (derived-mode-p 'python-mode)
+         (setq-local idle-highlight-exceptions '("list" "tuple" "int" "float" "str" "bool")))))
