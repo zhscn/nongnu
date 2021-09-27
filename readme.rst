@@ -24,7 +24,7 @@ Global Settings
 
 ``idle-highlight``
    Face used for highlighting the symbol.
-``idle-highlight-exceptions``
+``idle-highlight-exceptions`` nil
    Words to exclude from highlighting.
 
    You may wish to set this to a different value for each mode, e.g:
@@ -33,6 +33,8 @@ Global Settings
 
       (setq-local idle-highlight-exceptions '("end" "begin"))
 
+``idle-highlight-exceptions-face`` '(font-lock-keyword-face font-lock-string-face)
+   Faces to exclude from highlighting (defaults to ignore keywords & strings).
 ``idle-highlight-idle-time``
    Delay before highlighting (in seconds).
 ``global-idle-highlight-ignore-modes`` nil

@@ -73,6 +73,11 @@
   :group 'idle-highlight
   :type '(repeat string))
 
+(defcustom idle-highlight-exceptions-face '(font-lock-keyword-face font-lock-string-face)
+  "List of exception faces."
+  :group 'idle-highlight
+  :type '(repeat symbol))
+
 (defcustom idle-highlight-idle-time 0.5
   "Time after which to highlight the word at point."
   :group 'idle-highlight
@@ -98,10 +103,39 @@ check this buffer.")
 ;; ---------------------------------------------------------------------------
 ;; Internal Functions
 
-(defsubst idle-highlight--ignore-context ()
-  "Return non-nil when in a context that should be ignored."
-  ;; In a string.
-  (nth 3 (syntax-ppss)))
+(defun idle-highlight--faces-at-point (pos)
+  "Add the named faces that the `read-face-name' or `face' property use.
+Argument POS return faces at this point."
+  (let
+    ( ;; List of faces to return.
+      (faces nil)
+      (faceprop (or (get-char-property pos 'read-face-name) (get-char-property pos 'face))))
+    (cond
+      ((facep faceprop)
+        (push faceprop faces))
+      ((face-list-p faceprop)
+        (dolist (face faceprop)
+          (when (facep face)
+            (push face faces)))))
+    faces))
+
+(defun idle-highlight--check-faces-at-point (pos)
+  "Check if the position POS has faces that match the exclude argument."
+  (cond
+    (idle-highlight-exceptions-face
+      (let
+        (
+          (result t)
+          (faces-at-pos (idle-highlight--faces-at-point pos)))
+        (while faces-at-pos
+          (let ((face (pop faces-at-pos)))
+            (when (memq face idle-highlight-exceptions-face)
+              (setq result nil)
+              ;; Break.
+              (setq faces-at-pos nil))))
+        result))
+    (t ;; Default to true, if there are no exceptions.
+      t)))
 
 (defsubst idle-highlight--unhighlight ()
   "Clear current highlight."
@@ -115,7 +149,7 @@ check this buffer.")
   (let ((target-range (bounds-of-thing-at-point 'symbol)))
     (when
       (and
-        target-range (not (idle-highlight--ignore-context))
+        target-range (idle-highlight--check-faces-at-point (point))
         ;; Symbol characters.
         (looking-at-p "\\s_\\|\\sw"))
       (pcase-let* ((`(,beg . ,end) target-range))
