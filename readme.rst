@@ -1,8 +1,8 @@
-####################
-Idle  Highlight Mode
-####################
+###################
+Idle Highlight Mode
+###################
 
-Simple highlighting package for Emacs.
+Simple symbol highlighting package for Emacs that performs well with large files.
 
 Usage
 =====
