@@ -137,7 +137,7 @@ Argument POS return faces at this point."
     (t ;; Default to true, if there are no exceptions.
       t)))
 
-(defsubst idle-highlight--unhighlight ()
+(defun idle-highlight--unhighlight ()
   "Clear current highlight."
   (when idle-highlight--regexp
     (unhighlight-regexp idle-highlight--regexp)
