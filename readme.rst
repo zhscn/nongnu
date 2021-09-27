@@ -2,7 +2,27 @@
 Idle Highlight Mode
 ###################
 
-Simple symbol highlighting package for Emacs that performs well with large files.
+Simple symbol highlighting package for Emacs.
+
+
+Motivation
+==========
+
+The aim for this package is to be fast and light.
+
+While there are many similar packages (see `Other Packages`_) that have the same basic functionality
+these they tend towards being heavier by supporting advanced functionality.
+
+For example running operation on every key-stroke or marking symbols over the entire buffer
+which can cause poor performance editing large files.
+
+The following guarantees ensure good performance:
+
+- Only update when idle.
+- Only operate on visible regions.
+- The idle timer is only enabled as needed
+  *(it's turned off when the active buffer isn't using ``idle-highlight-mode``).*
+
 
 Usage
 =====
@@ -77,3 +97,11 @@ You may wish to set this to a different value for each mode, e.g:
          (setq-local idle-highlight-exceptions '("unsigned" "signed" "long" "int" "shot" "char")))
        (when (derived-mode-p 'python-mode)
          (setq-local idle-highlight-exceptions '("list" "tuple" "int" "float" "str" "bool")))))
+
+
+Other Packages
+==============
+
+- `auto-highlight-symbol <https://melpa.org/#/auto-highlight-symbol>`__.
+- `highlight-symbol <https://melpa.org/#/highlight-symbol>`__.
+- `symbol-overlay <https://melpa.org/#/symbol-overlay>`__.
