@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2008-2011 Phil Hagelberg, Cornelius Mika
 
-;; Author: Phil Hagelberg, Cornelius Mika
+;; Author: Phil Hagelberg, Cornelius Mika, Campbell Barton
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/IdleHighlight
 ;; Version: 1.1.3
 ;; Created: 2008-05-13
