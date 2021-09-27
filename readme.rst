@@ -30,7 +30,7 @@ Global Settings
    Faces to exclude from highlighting (defaults to ignore keywords & strings).
 ``idle-highlight-exclude-point``: ``nil``
    When non-nil, don't highlight the symbol under the cursor.
-``idle-highlight-idle-time``: ``0.5``
+``idle-highlight-idle-time``: ``0.35``
    Delay before highlighting (in seconds).
 ``global-idle-highlight-ignore-modes``: ``nil``
    A list of modes that won't enable spell-checking from ``global-idle-highlight-mode``.

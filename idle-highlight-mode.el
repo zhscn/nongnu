@@ -83,7 +83,7 @@
   :group 'idle-highlight
   :type 'boolean)
 
-(defcustom idle-highlight-idle-time 0.5
+(defcustom idle-highlight-idle-time 0.35
   "Time after which to highlight the word at point."
   :group 'idle-highlight
   :type 'float)
