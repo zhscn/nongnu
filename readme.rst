@@ -33,16 +33,16 @@ Global Settings
 ``idle-highlight-idle-time``: ``0.35``
    Delay before highlighting (in seconds).
 ``global-idle-highlight-ignore-modes``: ``nil``
-   A list of modes that won't enable spell-checking from ``global-idle-highlight-mode``.
+   A list of modes that won't enable idle-highlight from ``global-idle-highlight-mode``.
 
 Buffer Local Settings
 ^^^^^^^^^^^^^^^^^^^^^
 
 ``global-idle-highlight-ignore-buffer``
-   When not ``nil``, the buffer won't enable spell-checking from ``global-idle-highlight-mode``.
+   When not ``nil``, the buffer won't enable idle-highlight from ``global-idle-highlight-mode``.
 
    This may also be a function that takes a single buffer argument,
-   where returning ``nil`` will enable spell-checking, anything else will not.
+   where returning ``nil`` will enable idle-highlight, anything else will not.
 
    This example shows idle-highlight being disabled for ORG mode and for read-only buffers.
 
