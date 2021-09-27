@@ -78,6 +78,11 @@
   :group 'idle-highlight
   :type '(repeat symbol))
 
+(defcustom idle-highlight-exclude-point nil
+  "Exclude the current symbol from highlighting."
+  :group 'idle-highlight
+  :type 'boolean)
+
 (defcustom idle-highlight-idle-time 0.5
   "Time after which to highlight the word at point."
   :group 'idle-highlight
@@ -87,6 +92,9 @@
   "List of major-modes to exclude when `idle-highlight' has been enabled globally."
   :type '(repeat symbol)
   :group 'idle-highlight)
+
+(defvar idle-highlight-use-hi-lock-mode nil
+  "Use `hi-lock-mode' option, otherwise use a local list of overlays.")
 
 (defvar-local global-idle-highlight-ignore-buffer nil
   "When non-nil, the global mode will not be enabled for this buffer.
@@ -99,6 +107,7 @@ check this buffer.")
 ;; Internal Variables
 
 (defvar-local idle-highlight--regexp nil "Buffer-local regexp to be idle-highlighted.")
+(defvar-local idle-highlight--overlays nil "Buffer-local list of overlays.")
 
 ;; ---------------------------------------------------------------------------
 ;; Internal Functions
@@ -139,9 +148,52 @@ Argument POS return faces at this point."
 
 (defun idle-highlight--unhighlight ()
   "Clear current highlight."
-  (when idle-highlight--regexp
-    (unhighlight-regexp idle-highlight--regexp)
-    (setq idle-highlight--regexp nil)))
+  (cond
+    (idle-highlight-use-hi-lock-mode
+      (when idle-highlight--regexp
+        (unhighlight-regexp idle-highlight--regexp)
+        (setq idle-highlight--regexp nil)))
+    (t
+      (when idle-highlight--overlays
+        (mapc 'delete-overlay idle-highlight--overlays)
+        (setq idle-highlight--overlays nil)))))
+
+(defsubst idle-highlight--highlight (target beg end)
+  "Highlight TARGET found between BEG and END.h."
+  (idle-highlight--unhighlight)
+  (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
+  (cond
+    (idle-highlight-use-hi-lock-mode
+      (highlight-regexp idle-highlight--regexp 'idle-highlight))
+    (t
+      (save-excursion
+        (let
+          (
+            (range-list nil)
+            (beg-ex
+              (progn
+                (goto-char (max (point-min) (min beg (window-start))))
+                (beginning-of-line)
+                (point)))
+            (end-ex
+              (progn
+                (goto-char (min (point-max) (max end (window-end))))
+                (beginning-of-line)
+                (end-of-line)
+                (point))))
+
+          (cond
+            (idle-highlight-exclude-point
+              (setq range-list (list (cons beg-ex beg) (cons end end-ex))))
+            (t
+              (setq range-list (cons beg-ex end-ex))))
+
+          (dolist (range range-list)
+            (goto-char (car range))
+            (while (re-search-forward idle-highlight--regexp (cdr range) t)
+              (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
+                (overlay-put ov 'face 'idle-highlight)
+                (push ov idle-highlight--overlays)))))))))
 
 (defun idle-highlight--word-at-point ()
   "Highlight the word under the point."
@@ -155,8 +207,7 @@ Argument POS return faces at this point."
       (pcase-let* ((`(,beg . ,end) target-range))
         (let ((target (buffer-substring-no-properties beg end)))
           (when (not (member target idle-highlight-exceptions))
-            (setq idle-highlight--regexp (concat "\\<" (regexp-quote target) "\\>"))
-            (highlight-regexp idle-highlight--regexp 'idle-highlight)))))))
+            (idle-highlight--highlight target beg end)))))))
 
 
 ;; ---------------------------------------------------------------------------
@@ -275,7 +326,8 @@ Argument POS return faces at this point."
   "Disable the buffer local minor mode."
   (idle-highlight--time-buffer-local-disable)
   (idle-highlight--unhighlight)
-  (kill-local-variable 'idle-highlight--regexp))
+  (kill-local-variable 'idle-highlight--regexp)
+  (kill-local-variable 'idle-highlight--overlays))
 
 (defun idle-highlight--turn-on ()
   "Enable command `idle-highlight-mode'."
