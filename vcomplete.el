@@ -1,4 +1,4 @@
-;;; vcomplete.el --- Visual completions -*- lexical-binding: t; -*-
+;;; vcomplete.el --- Visual completions -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Daniel Semyonov
 
