@@ -71,12 +71,20 @@
 (defcustom idle-highlight-exceptions nil
   "List of words to be excepted from highlighting."
   :group 'idle-highlight
-  :type '(repeat string))
+  :type
+  '
+  (choice
+    (repeat :tag "A list of string literals that will be excluded." string)
+    (function :tag "A function taking a string, non-nil result excludes.")))
 
 (defcustom idle-highlight-exceptions-face '(font-lock-keyword-face font-lock-string-face)
   "List of exception faces."
   :group 'idle-highlight
-  :type '(repeat symbol))
+  :type
+  '
+  (choice
+    (repeat :tag "A list of face symbols that will be ignored." symbol)
+    (function :tag "A function that takes a list of faces, non-nil result excludes.")))
 
 (defcustom idle-highlight-exclude-point nil
   "Exclude the current symbol from highlighting."
@@ -128,16 +136,20 @@ Argument POS return faces at this point."
   "Check if the position POS has faces that match the exclude argument."
   (cond
     (idle-highlight-exceptions-face
-      (let
-        (
-          (result t)
-          (faces-at-pos (idle-highlight--faces-at-point pos)))
-        (while faces-at-pos
-          (let ((face (pop faces-at-pos)))
-            (when (memq face idle-highlight-exceptions-face)
-              (setq result nil)
-              ;; Break.
-              (setq faces-at-pos nil))))
+      (let ((result t))
+        (let ((faces-at-pos (idle-highlight--faces-at-point pos)))
+          (when faces-at-pos
+            (cond
+              ((functionp idle-highlight-exceptions-face)
+                (when (funcall idle-highlight-exceptions-face faces-at-pos)
+                  (setq result nil)))
+              (t
+                (while faces-at-pos
+                  (let ((face (pop faces-at-pos)))
+                    (when (memq face idle-highlight-exceptions-face)
+                      (setq result nil)
+                      ;; Break.
+                      (setq faces-at-pos nil))))))))
         result))
     (t ;; Default to true, if there are no exceptions.
       t)))
@@ -190,7 +202,12 @@ Argument POS return faces at this point."
         (looking-at-p "\\s_\\|\\sw"))
       (pcase-let* ((`(,beg . ,end) target-range))
         (let ((target (buffer-substring-no-properties beg end)))
-          (when (not (member target idle-highlight-exceptions))
+          (unless
+            (cond
+              ((functionp idle-highlight-exceptions)
+                (funcall idle-highlight-exceptions target))
+              (t
+                (member target idle-highlight-exceptions)))
             (idle-highlight--highlight target beg end)))))))
 
 

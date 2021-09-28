@@ -1,5 +1,7 @@
-- In development (2021-08-27)
+- In development (2021-08-29)
 
+  - Support setting ``idle-highlight-exceptions`` to a function that takes the word as an argument.
+  - Support setting ``idle-highlight-exceptions-face`` to a function that takes list of faces as an argument.
   - Add ``idle-highlight-exclude-point`` option to exclude the current word from highlighting.
   - Add ``idle-highlight-exceptions-face`` to support excluding words by face.
   - Add ``global-idle-highlight-mode`` (globalized minor mode).
