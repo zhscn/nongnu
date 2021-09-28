@@ -288,9 +288,9 @@ transient map for ID selection which runs `swsw-after-command-hook' on
 exit."
   (run-hooks 'swsw-before-command-hook)
   (setq this-command fun)
-  (set-transient-map swsw--id-map (lambda ()
-                                    (run-hooks
-                                     'swsw-after-command-hook))))
+  (set-transient-map swsw--id-map
+                     (lambda ()
+                       (run-hooks 'swsw-after-command-hook))))
 
 (defun swsw-select ()
   "Start window selection.
