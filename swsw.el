@@ -299,7 +299,8 @@ window returned by `next-window'.
 Otherwise, window selection allows either choosing a window by its ID
 \(switching to it), or using a window manipulation command.
 This command is intended to be used only when swsw mode is enabled."
-  (declare (modes swsw-mode))
+  (declare (modes swsw-mode)
+           (interactive-only t))
   (interactive)
   (if (< swsw-window-count 3)
       (select-window (next-window nil nil (swsw--get-scope)))
@@ -308,7 +309,8 @@ This command is intended to be used only when swsw mode is enabled."
 (defun swsw-select-minibuffer ()
   "Select the active minibuffer window (if it exists).
 This command is intended to be used only when swsw mode is enabled."
-  (declare (modes swsw-mode))
+  (declare (modes swsw-mode)
+           (interactive-only t))
   (interactive)
   (let ((window (active-minibuffer-window)))
     (if window (select-window window)
@@ -321,7 +323,8 @@ returned by `next-window'.
 Otherwise, window deletion allows either choosing a window by its ID
 \(deleting it), or using a window manipulation command.
 This command is intended to be used only when swsw mode is enabled."
-  (declare (modes swsw-mode))
+  (declare (modes swsw-mode)
+           (interactive-only t))
   (interactive)
   (if (< swsw-window-count 3)
       (let ((window (next-window nil nil (swsw--get-scope))))
