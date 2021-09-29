@@ -54,6 +54,10 @@ Global Settings
 
    This may also be set to a function that takes a list of faces,
    returning non-nil to exclude the word.
+``idle-highlight-exceptions-syntax``: ``^w_``
+   Syntax table to ignore.
+
+   see documentation for ``skip-syntax-forward``, use ``nil`` to skip this check.
 ``idle-highlight-exclude-point``: ``nil``
    When non-nil, don't highlight the symbol under the cursor.
 ``idle-highlight-idle-time``: ``0.35``
