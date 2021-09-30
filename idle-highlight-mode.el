@@ -192,8 +192,8 @@ Argument POS return faces at this point."
     (mapc 'delete-overlay idle-highlight--overlays)
     (setq idle-highlight--overlays nil)))
 
-(defsubst idle-highlight--highlight (target beg end)
-  "Highlight TARGET found between BEG and END.h."
+(defsubst idle-highlight--highlight (target target-beg target-end)
+  "Highlight TARGET found between TARGET-BEG and TARGET-END"
   (idle-highlight--unhighlight)
   (save-excursion
     (let
@@ -201,12 +201,12 @@ Argument POS return faces at this point."
         (target-regexp (concat "\\<" (regexp-quote target) "\\>"))
         (beg-ex
           (progn
-            (goto-char (max (point-min) (min beg (window-start))))
+            (goto-char (max (point-min) (min target-beg (window-start))))
             (beginning-of-line)
             (point)))
         (end-ex
           (progn
-            (goto-char (min (point-max) (max end (window-end))))
+            (goto-char (min (point-max) (max target-end (window-end))))
             (beginning-of-line)
             (end-of-line)
             (point))))
@@ -214,7 +214,7 @@ Argument POS return faces at this point."
         (range
           (cond
             (idle-highlight-exclude-point
-              (list (cons beg-ex beg) (cons end end-ex)))
+              (list (cons beg-ex target-beg) (cons target-end end-ex)))
             (t
               (list (cons beg-ex end-ex)))))
         (goto-char (car range))
@@ -229,10 +229,10 @@ Argument POS return faces at this point."
   (when (idle-highlight--check-symbol-at-point (point))
     (let ((target-range (bounds-of-thing-at-point 'symbol)))
       (when (and target-range (idle-highlight--check-faces-at-point (point)))
-        (pcase-let ((`(,beg . ,end) target-range))
-          (let ((target (buffer-substring-no-properties beg end)))
+        (pcase-let ((`(,target-beg . ,target-end) target-range))
+          (let ((target (buffer-substring-no-properties target-beg target-end)))
             (when (idle-highlight--check-word target)
-              (idle-highlight--highlight target beg end))))))))
+              (idle-highlight--highlight target target-beg target-end))))))))
 
 
 ;; ---------------------------------------------------------------------------
