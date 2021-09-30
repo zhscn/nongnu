@@ -139,6 +139,41 @@ Argument POS return faces at this point."
             (push face faces)))))
     faces))
 
+(defun idle-highlight--merge-overlapping-ranges (ranges)
+  "Destructively modify and return RANGES with overlapping values removed.
+
+Where RANGES is an unordered list of (min . max) cons cells."
+  (cond
+    ((cdr ranges)
+      ;; Simple < sorting of cons cells.
+      (setq ranges
+        (sort
+          ranges
+          (lambda (x y) (or (< (car x) (car y)) (and (= (car x) (car y)) (< (cdr x) (cdr y)))))))
+      ;; Step over `ranges', de-duplicating & adjusting elements as needed.
+      (let
+        (
+          (ranges-iter ranges)
+          (ranges-next (cdr ranges)))
+        (while ranges-next
+          (let
+            (
+              (head (car ranges-iter))
+              (next (car ranges-next)))
+            (cond
+              ((< (cdr head) (car next))
+                (setq ranges-iter ranges-next)
+                (setq ranges-next (cdr ranges-next)))
+              (t
+                (when (< (cdr head) (cdr next))
+                  (setcdr head (cdr next)))
+                (setq ranges-next (cdr ranges-next))
+                (setcdr ranges-iter ranges-next)))))
+        ranges))
+
+    (t ;; No need for complex logic single/empty lists.
+      ranges)))
+
 
 ;; ---------------------------------------------------------------------------
 ;; Internal Context Checking Functions
@@ -192,39 +227,32 @@ Argument POS return faces at this point."
     (mapc 'delete-overlay idle-highlight--overlays)
     (setq idle-highlight--overlays nil)))
 
-(defsubst idle-highlight--highlight (target target-beg target-end)
-  "Highlight TARGET found between TARGET-BEG and TARGET-END"
+(defun idle-highlight--highlight (target target-beg target-end visible-ranges)
+  "Highlight TARGET found between TARGET-BEG and TARGET-END.
+
+Argument VISIBLE-RANGES is a list of (min . max) ranges to highlight."
   (idle-highlight--unhighlight)
   (save-excursion
-    (let
-      (
-        (target-regexp (concat "\\<" (regexp-quote target) "\\>"))
-        (beg-ex
-          (progn
-            (goto-char (max (point-min) (min target-beg (window-start))))
-            (beginning-of-line)
-            (point)))
-        (end-ex
-          (progn
-            (goto-char (min (point-max) (max target-end (window-end))))
-            (beginning-of-line)
-            (end-of-line)
-            (point))))
-      (dolist
-        (range
-          (cond
-            (idle-highlight-exclude-point
-              (list (cons beg-ex target-beg) (cons target-end end-ex)))
-            (t
-              (list (cons beg-ex end-ex)))))
-        (goto-char (car range))
-        (while (re-search-forward target-regexp (cdr range) t)
-          (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
-            (overlay-put ov 'face 'idle-highlight)
-            (push ov idle-highlight--overlays)))))))
+    (let ((target-regexp (concat "\\<" (regexp-quote target) "\\>")))
+      (dolist (range visible-ranges)
+        (pcase-let ((`(,beg . ,end) range))
+          (goto-char beg)
+          (while (re-search-forward target-regexp end t)
+            (let
+              (
+                (match-beg (match-beginning 0))
+                (match-end (match-end 0)))
+              (unless
+                (and
+                  idle-highlight-exclude-point
+                  (eq target-beg match-beg)
+                  (eq target-end match-end))
+                (let ((ov (make-overlay match-beg match-end)))
+                  (overlay-put ov 'face 'idle-highlight)
+                  (push ov idle-highlight--overlays))))))))))
 
-(defun idle-highlight--word-at-point ()
-  "Highlight the word under the point."
+(defun idle-highlight--word-at-point (visible-ranges)
+  "Highlight the word under the point across all VISIBLE-RANGES."
   (idle-highlight--unhighlight)
   (when (idle-highlight--check-symbol-at-point (point))
     (let ((target-range (bounds-of-thing-at-point 'symbol)))
@@ -232,7 +260,7 @@ Argument POS return faces at this point."
         (pcase-let ((`(,target-beg . ,target-end) target-range))
           (let ((target (buffer-substring-no-properties target-beg target-end)))
             (when (idle-highlight--check-word target)
-              (idle-highlight--highlight target target-beg target-end))))))))
+              (idle-highlight--highlight target target-beg target-end visible-ranges))))))))
 
 
 ;; ---------------------------------------------------------------------------
@@ -262,41 +290,68 @@ Argument POS return faces at this point."
 (defun idle-highlight--time-callback-or-disable ()
   "Callback that run the repeat timer."
 
-  ;; Ensure all other buffers are highlighted on request.
-  (let ((is-mode-active (bound-and-true-p idle-highlight-mode)))
+  (let
+    ( ;; Ensure all other buffers are highlighted on request.
+      (is-mode-active (bound-and-true-p idle-highlight-mode))
+      (buf-current (current-buffer))
+      (dirty-buffer-list (list)))
+
     ;; When this buffer is not in the mode, flush all other buffers.
     (cond
       (is-mode-active
-        ;; Don't update in the window loop to ensure we always
-        ;; update the current buffer in the current context.
-        (setq idle-highlight--dirty nil))
+        (setq idle-highlight--dirty t))
       (t
         ;; If the timer ran when in another buffer,
         ;; a previous buffer may need a final refresh, ensure this happens.
         (setq idle-highlight--dirty-flush-all t)))
 
-    (when idle-highlight--dirty-flush-all
-      ;; Run the mode callback for all other buffers in the queue.
-      (dolist (frame (frame-list))
-        (dolist (win (window-list frame -1))
-          (let ((buf (window-buffer win)))
-            (when
-              (and
-                (buffer-local-value 'idle-highlight-mode buf)
-                (buffer-local-value 'idle-highlight--dirty buf))
-              (with-selected-frame frame
-                (with-selected-window win
-                  (with-current-buffer buf
-                    (setq idle-highlight--dirty nil)
-                    (idle-highlight--word-at-point)))))))))
-    ;; Always keep the current buffer dirty
-    ;; so navigating away from this buffer will refresh it.
-    (if is-mode-active
-      (setq idle-highlight--dirty t))
+    ;; Accumulate visible ranges in each buffers `idle-highlight--dirty'
+    ;; value which is temporarily used as a list to store ranges.
+    (dolist (frame (frame-list))
+      (dolist (win (window-list frame -1))
+        (let ((buf (window-buffer win)))
+          (when
+            (cond
+              (idle-highlight--dirty-flush-all
+                (and
+                  (buffer-local-value 'idle-highlight-mode buf)
+                  (buffer-local-value 'idle-highlight--dirty buf)))
+              (t
+                (eq buf buf-current)))
+
+            (unless (memq buf dirty-buffer-list)
+              (push buf dirty-buffer-list))
+
+            (with-current-buffer buf
+              (when (eq idle-highlight--dirty t)
+                (setq idle-highlight--dirty nil))
+              ;; Push a (min . max) cons cell,
+              ;; expanded to line bounds (to avoid clipping words).
+              (save-excursion
+                (push
+                  (cons
+                    (progn
+                      (goto-char (max (point-min) (window-start win)))
+                      (line-beginning-position))
+                    (progn
+                      (goto-char (min (point-max) (window-end win)))
+                      (line-end-position)))
+                  idle-highlight--dirty)))))))
+
+    (dolist (buf dirty-buffer-list)
+      (with-current-buffer buf
+        (let ((visible-ranges idle-highlight--dirty))
+          ;; Restore this values status as a boolean.
+          (setq idle-highlight--dirty nil)
+
+          (setq visible-ranges (idle-highlight--merge-overlapping-ranges visible-ranges))
+          (idle-highlight--word-at-point visible-ranges))))
 
     (cond
       (is-mode-active
-        (idle-highlight--word-at-point))
+        ;; Always keep the current buffer dirty
+        ;; so navigating away from this buffer will refresh it.
+        (setq idle-highlight--dirty t))
       (t ;; Cancel the timer until the current buffer uses this mode again.
         (idle-highlight--time-ensure nil)))))
 
