@@ -1,6 +1,7 @@
 - In development (2021-08-29)
 
   - Fix highlighting with multiple windows sharing one buffer.
+  - Add ``idle-highlight-visible-buffers`` to support highlighting all buffers with the current symbol.
   - Add ``idle-highlight-exceptions-syntax`` so the characters used in the syntax-table used can be customized.
   - Support setting ``idle-highlight-exceptions`` to a function that takes the word as an argument.
   - Support setting ``idle-highlight-exceptions-face`` to a function that takes list of faces as an argument.

@@ -98,6 +98,11 @@ See documentation for `skip-syntax-forward', nil to ignore."
   :group 'idle-highlight
   :type 'boolean)
 
+(defcustom idle-highlight-visible-buffers nil
+  "Apply the current highlight to all other visible buffers."
+  :group 'idle-highlight
+  :type 'boolean)
+
 (defcustom idle-highlight-idle-time 0.35
   "Time after which to highlight the word at point."
   :group 'idle-highlight
@@ -251,16 +256,21 @@ Argument VISIBLE-RANGES is a list of (min . max) ranges to highlight."
                   (overlay-put ov 'face 'idle-highlight)
                   (push ov idle-highlight--overlays))))))))))
 
-(defun idle-highlight--word-at-point (visible-ranges)
-  "Highlight the word under the point across all VISIBLE-RANGES."
-  (idle-highlight--unhighlight)
+(defun idle-highlight--word-at-point-args ()
   (when (idle-highlight--check-symbol-at-point (point))
     (let ((target-range (bounds-of-thing-at-point 'symbol)))
       (when (and target-range (idle-highlight--check-faces-at-point (point)))
         (pcase-let ((`(,target-beg . ,target-end) target-range))
           (let ((target (buffer-substring-no-properties target-beg target-end)))
             (when (idle-highlight--check-word target)
-              (idle-highlight--highlight target target-beg target-end visible-ranges))))))))
+              (cons target target-range))))))))
+
+(defun idle-highlight--word-at-point-highlight (target target-range visible-ranges)
+  "Highlight the word under the point across all VISIBLE-RANGES."
+  (idle-highlight--unhighlight)
+  (when target
+    (pcase-let ((`(,target-beg . ,target-end) target-range))
+      (idle-highlight--highlight target target-beg target-end visible-ranges))))
 
 
 ;; ---------------------------------------------------------------------------
@@ -294,7 +304,8 @@ Argument VISIBLE-RANGES is a list of (min . max) ranges to highlight."
     ( ;; Ensure all other buffers are highlighted on request.
       (is-mode-active (bound-and-true-p idle-highlight-mode))
       (buf-current (current-buffer))
-      (dirty-buffer-list (list)))
+      (dirty-buffer-list (list))
+      (force-all idle-highlight-visible-buffers))
 
     ;; When this buffer is not in the mode, flush all other buffers.
     (cond
@@ -304,6 +315,9 @@ Argument VISIBLE-RANGES is a list of (min . max) ranges to highlight."
         ;; If the timer ran when in another buffer,
         ;; a previous buffer may need a final refresh, ensure this happens.
         (setq idle-highlight--dirty-flush-all t)))
+
+    (when force-all
+      (setq idle-highlight--dirty-flush-all t))
 
     ;; Accumulate visible ranges in each buffers `idle-highlight--dirty'
     ;; value which is temporarily used as a list to store ranges.
@@ -315,7 +329,7 @@ Argument VISIBLE-RANGES is a list of (min . max) ranges to highlight."
               (idle-highlight--dirty-flush-all
                 (and
                   (buffer-local-value 'idle-highlight-mode buf)
-                  (buffer-local-value 'idle-highlight--dirty buf)))
+                  (or (buffer-local-value 'idle-highlight--dirty buf) force-all)))
               (t
                 (eq buf buf-current)))
 
@@ -338,14 +352,23 @@ Argument VISIBLE-RANGES is a list of (min . max) ranges to highlight."
                       (line-end-position)))
                   idle-highlight--dirty)))))))
 
-    (dolist (buf dirty-buffer-list)
-      (with-current-buffer buf
-        (let ((visible-ranges idle-highlight--dirty))
-          ;; Restore this values status as a boolean.
-          (setq idle-highlight--dirty nil)
 
-          (setq visible-ranges (idle-highlight--merge-overlapping-ranges visible-ranges))
-          (idle-highlight--word-at-point visible-ranges))))
+    (let ((target-args (and force-all (idle-highlight--word-at-point-args))))
+      (dolist (buf dirty-buffer-list)
+        (with-current-buffer buf
+          (let ((visible-ranges idle-highlight--dirty))
+            ;; Restore this values status as a boolean.
+            (setq idle-highlight--dirty nil)
+
+            (setq visible-ranges (idle-highlight--merge-overlapping-ranges visible-ranges))
+
+            (unless force-all
+              (setq target-args (idle-highlight--word-at-point-args)))
+
+            (pcase-let ((`(,target . ,target-range) target-args))
+              (when (and force-all (not (eq buf buf-current)))
+                (setq target-range nil))
+              (idle-highlight--word-at-point-highlight target target-range visible-ranges))))))
 
     (cond
       (is-mode-active
