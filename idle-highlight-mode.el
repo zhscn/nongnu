@@ -229,7 +229,7 @@ Argument POS return faces at this point."
   (when (idle-highlight--check-symbol-at-point (point))
     (let ((target-range (bounds-of-thing-at-point 'symbol)))
       (when (and target-range (idle-highlight--check-faces-at-point (point)))
-        (pcase-let* ((`(,beg . ,end) target-range))
+        (pcase-let ((`(,beg . ,end) target-range))
           (let ((target (buffer-substring-no-properties beg end)))
             (when (idle-highlight--check-word target)
               (idle-highlight--highlight target beg end))))))))
