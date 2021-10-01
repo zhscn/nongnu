@@ -82,7 +82,9 @@
 ;; Generic Functions/Macros
 
 (defmacro recomplete--with-advice (fn-orig where fn-advice &rest body)
-  "Execute BODY with advice added WHERE using FN-ADVICE temporarily added to FN-ORIG."
+  "Execute BODY with advice added.
+
+WHERE using FN-ADVICE temporarily added to FN-ORIG."
   `
   (let ((fn-advice-var ,fn-advice))
     (unwind-protect
@@ -345,7 +347,9 @@ Argument FN-CACHE stores the result for reuse."
 ;;;###autoload
 (defun recomplete-with-callback (fn-symbol cycle-offset)
   "Run FN-SYMBOL, chaining executions for any function in FN-GROUP.
-Argument CYCLE-OFFSET The offset for cycling words, 1 or -1 for forward/backward."
+
+Argument CYCLE-OFFSET The offset for cycling words,
+1 or -1 for forward/backward."
 
   ;; Default to 1 (one step forward).
   (setq cycle-offset (or cycle-offset 1))
