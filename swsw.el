@@ -85,13 +85,13 @@
 This list should contain at least two characters."
   :link '(info-link "(swsw)Customization")
   :type '(repeat character)
+  :initialize #'custom-initialize-changed
   :set (lambda (sym chars)
          (unless (nth 1 chars)
            (user-error
             "`swsw-id-chars' should contain at least two characters"))
          (set-default sym chars)
-         (when (fboundp 'swsw--update)
-           (swsw--update)))
+         (swsw--update))
   :risky t
   :package-version '(swsw . 1.0))
 
@@ -110,10 +110,10 @@ This list should contain at least two characters."
                 (const
                  :tag "All windows on the currently selected frame"
                  current))
+  :initialize #'custom-initialize-changed
   :set (lambda (sym scope)
          (set-default sym scope)
-         (when (fboundp 'swsw--update)
-           (swsw--update)))
+         (swsw--update))
   :risky t
   :package-version '(swsw . 1.1))
 
