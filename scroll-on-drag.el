@@ -211,11 +211,13 @@ Returns true when scrolling took place, otherwise nil."
       (y-init (funcall mouse-y-fn))
 
       (point-of-last-line
-        (if scroll-on-drag-smooth
-          (save-excursion
-            (goto-char (point-max))
-            (line-beginning-position))
-          0))
+        (cond
+          (scroll-on-drag-smooth
+            (save-excursion
+              (goto-char (point-max))
+              (line-beginning-position)))
+          (t
+            0)))
 
       (mouse-y-delta-scale-fn
         ;; '(f * motion-scale) ^ power', then truncate to int.
@@ -280,9 +282,9 @@ Returns true when scrolling took place, otherwise nil."
                   (do-draw nil)
                   (delta-scaled (funcall mouse-y-delta-scale-fn delta)))
 
-                (if scroll-on-drag-smooth
+                (cond
                   ;; Smooth-Scrolling.
-                  (progn
+                  (scroll-on-drag-smooth
                     (scroll-on-drag--scroll-by-pixels
                       this-window
                       this-frame-char-height
@@ -294,7 +296,7 @@ Returns true when scrolling took place, otherwise nil."
 
                   ;; Non-Smooth-Scrolling (snap to lines).
                   ;; Basically same logic as above, but only step over lines.
-                  (progn
+                  (t
                     (setq delta-px-accum (+ delta-scaled delta-px-accum))
                     (let ((lines (/ delta-px-accum this-frame-char-height)))
 
@@ -367,21 +369,24 @@ Returns true when scrolling took place, otherwise nil."
               t)
             ((mouse-movement-p event)
               (setq delta (- (funcall mouse-y-fn) y-init))
-              (if (zerop delta)
-                (funcall timer-stop-fn)
-                (when (zerop delta-prev)
-                  (unless has-scrolled
-                    ;; Clamp point to scroll bounds on first scroll,
-                    ;; allow pressing 'Esc' to use unclamped position.
-                    (when scroll-on-drag-smooth
-                      (funcall scroll-consrtain-point-below-window-start-fn))
-                    (setq has-scrolled t))
-                  (unless has-scrolled-real
-                    (let ((inhibit-redisplay nil))
-                      (run-hooks 'scroll-on-drag-pre-hook)))
-                  (setq has-scrolled-real t)
-                  (funcall timer-stop-fn)
-                  (funcall timer-update-fn timer-update-fn)))
+              (cond
+                ((zerop delta)
+                  (funcall timer-stop-fn))
+                (t
+                  (when (zerop delta-prev)
+                    (unless has-scrolled
+                      ;; Clamp point to scroll bounds on first scroll,
+                      ;; allow pressing 'Esc' to use unclamped position.
+                      (when scroll-on-drag-smooth
+                        (funcall scroll-consrtain-point-below-window-start-fn))
+                      (setq has-scrolled t))
+                    (unless has-scrolled-real
+                      (let ((inhibit-redisplay nil))
+                        (run-hooks 'scroll-on-drag-pre-hook)))
+                    (setq has-scrolled-real t)
+                    (funcall timer-stop-fn)
+                    (funcall timer-update-fn timer-update-fn))))
+
               (setq delta-prev delta)
               t)
             ;; Cancel...
