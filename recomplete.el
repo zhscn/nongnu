@@ -116,11 +116,12 @@ WHERE using FN-ADVICE temporarily added to FN-ORIG."
           (activate-change-group ,handle)
           (prog1 ,(macroexp-progn body)
             (setq ,success t)))
-        (if ,success
-          (progn
+        (cond
+          (,success
             (accept-change-group ,handle)
             (undo-amalgamate-change-group ,handle))
-          (cancel-change-group ,handle))))))
+          (t
+            (cancel-change-group ,handle)))))))
 
 (defmacro recomplete--with-messages-as-list (message-list &rest body)
   "Run BODY adding any message call to the MESSAGE-LIST list."
@@ -194,9 +195,11 @@ Argument LIST compatible list `buffer-undo-list'."
         (let
           (
             (msg-prefix
-              (if cycle-reverse
-                "<"
-                ">"))
+              (cond
+                (cycle-reverse
+                  "<")
+                (t
+                  ">")))
             (msg-text (alist-get 'msg-text recomplete--alist)))
           (message "%s%s" msg-prefix msg-text))
 
@@ -465,9 +468,11 @@ Argument CYCLE-OFFSET The offset for cycling words,
           (let
             (
               (msg-prefix
-                (if cycle-reverse
-                  "<"
-                  ">"))
+                (cond
+                  (cycle-reverse
+                    "<")
+                  (t
+                    ">")))
 
               ;; Notes on formatting output:
               ;; - Use double spaces as a separator even though it uses more room because:
@@ -480,9 +485,11 @@ Argument CYCLE-OFFSET The offset for cycling words,
                     (mapcar
                       (lambda (iter-word)
                         (prog1
-                          (if (eq iter-index cycle-index)
-                            (format "[%s]" (propertize iter-word 'face 'match))
-                            (format " %s " iter-word))
+                          (cond
+                            ((eq iter-index cycle-index)
+                              (format "[%s]" (propertize iter-word 'face 'match)))
+                            (t
+                              (format " %s " iter-word)))
                           (setq iter-index (1+ iter-index))))
                       result-choices))
                   "")))
