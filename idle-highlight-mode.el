@@ -447,9 +447,11 @@ Argument VISIBLE-RANGES is a list of (min . max) ranges to highlight."
       ;; Optionally check if a function is used.
       (or
         (null global-idle-highlight-ignore-buffer)
-        (if (functionp global-idle-highlight-ignore-buffer)
-          (not (funcall global-idle-highlight-ignore-buffer (current-buffer)))
-          nil)))
+        (cond
+          ((functionp global-idle-highlight-ignore-buffer)
+            (not (funcall global-idle-highlight-ignore-buffer (current-buffer))))
+          (t
+            nil))))
     (idle-highlight-mode 1)))
 
 
