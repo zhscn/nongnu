@@ -65,12 +65,10 @@
 
 (defface idle-highlight
   '((t (:inherit region)))
-  "Face used to highlight other occurrences of the word at point."
-  :group 'idle-highlight)
+  "Face used to highlight other occurrences of the word at point.")
 
 (defcustom idle-highlight-exceptions nil
   "List of words to be excepted from highlighting."
-  :group 'idle-highlight
   :type
   '
   (choice
@@ -79,7 +77,6 @@
 
 (defcustom idle-highlight-exceptions-face '(font-lock-keyword-face font-lock-string-face)
   "List of exception faces."
-  :group 'idle-highlight
   :type
   '
   (choice
@@ -90,28 +87,23 @@
   "Syntax table to to skip.
 
 See documentation for `skip-syntax-forward', nil to ignore."
-  :group 'idle-highlight
   :type '(choice (const nil) string))
 
 (defcustom idle-highlight-exclude-point nil
   "Exclude the current symbol from highlighting."
-  :group 'idle-highlight
   :type 'boolean)
 
 (defcustom idle-highlight-visible-buffers nil
   "Apply the current highlight to all other visible buffers."
-  :group 'idle-highlight
   :type 'boolean)
 
 (defcustom idle-highlight-idle-time 0.35
   "Time after which to highlight the word at point."
-  :group 'idle-highlight
   :type 'float)
 
 (defcustom idle-highlight-ignore-modes nil
   "List of major-modes to exclude when `idle-highlight' has been enabled globally."
-  :type '(repeat symbol)
-  :group 'idle-highlight)
+  :type '(repeat symbol))
 
 (defvar-local global-idle-highlight-ignore-buffer nil
   "When non-nil, the global mode will not be enabled for this buffer.
@@ -465,7 +457,6 @@ should be the result of `idle-highlight--word-at-point-args'."
 ;;;###autoload
 (define-minor-mode idle-highlight-mode
   "Idle-Highlight Minor Mode."
-  :group 'idle-highlight
   :global nil
 
   (cond
@@ -478,8 +469,7 @@ should be the result of `idle-highlight--word-at-point-args'."
 (define-globalized-minor-mode
   global-idle-highlight-mode
 
-  idle-highlight-mode idle-highlight--turn-on
-  :group 'idle-highlight)
+  idle-highlight-mode idle-highlight--turn-on)
 
 (provide 'idle-highlight-mode)
 ;;; idle-highlight-mode.el ends here
