@@ -49,9 +49,10 @@
 ;; ---------------------------------------------------------------------------
 ;; Custom Variables
 
+(defgroup recomplete nil "Extensible, immediate completion utility." :group 'tools)
+
 (defcustom recomplete-single-line-display t
   "Display completion options to a single line, centered around the current item."
-  :group 'recomplete
   :type 'boolean)
 
 
