@@ -257,6 +257,7 @@ Argument VISIBLE-RANGES is a list of (min . max) ranges to highlight."
                   (push ov idle-highlight--overlays))))))))))
 
 (defun idle-highlight--word-at-point-args ()
+  "Return arguments for `idle-highlight--highlight'."
   (when (idle-highlight--check-symbol-at-point (point))
     (let ((target-range (bounds-of-thing-at-point 'symbol)))
       (when (and target-range (idle-highlight--check-faces-at-point (point)))
@@ -266,7 +267,10 @@ Argument VISIBLE-RANGES is a list of (min . max) ranges to highlight."
               (cons target target-range))))))))
 
 (defun idle-highlight--word-at-point-highlight (target target-range visible-ranges)
-  "Highlight the word under the point across all VISIBLE-RANGES."
+  "Highlight the word under the point across all VISIBLE-RANGES.
+
+Arguments TARGET and TARGET-RANGE
+should be the result of `idle-highlight--word-at-point-args'."
   (idle-highlight--unhighlight)
   (when target
     (pcase-let ((`(,target-beg . ,target-end) target-range))
