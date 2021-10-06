@@ -35,44 +35,32 @@
 ;; ---------------------------------------------------------------------------
 ;; Custom Variables
 
+(defgroup scroll-on-drag nil "Configure smooth scrolling on drag." :group 'scrolling)
+
 (defcustom scroll-on-drag-style 'line-by-pixel
   "The method of scrolling."
-  :group 'scroll-on-drag
   :type '(choice (const :tag "Line" line) (const :tag "Line-By-Pixel" line-by-pixel)))
 
-(defcustom scroll-on-drag-delay 0.01
-  "Idle time between scroll updates."
-  :group 'scroll-on-drag
-  :type 'float)
+(defcustom scroll-on-drag-delay 0.01 "Idle time between scroll updates (in seconds)." :type 'float)
 
-(defcustom scroll-on-drag-motion-scale 0.25
-  "Scroll speed multiplier."
-  :group 'scroll-on-drag
-  :type 'float)
+(defcustom scroll-on-drag-motion-scale 0.25 "Scroll speed multiplier." :type 'float)
 
 (defcustom scroll-on-drag-motion-accelerate 0.3
   "Non-linear scroll power (0.0 for linear speed, 1.0 for very fast acceleration)."
-  :group 'scroll-on-drag
   :type 'float)
 
-(defcustom scroll-on-drag-smooth t
-  "Use smooth (pixel) scrolling."
-  :group 'scroll-on-drag
-  :type 'boolean)
+(defcustom scroll-on-drag-smooth t "Use smooth (pixel) scrolling." :type 'boolean)
 
 (defcustom scroll-on-drag-pre-hook nil
   "List of functions to be called when `scroll-on-drag' starts."
-  :group 'scroll-on-drag
   :type 'hook)
 
 (defcustom scroll-on-drag-post-hook nil
   "List of functions to be called when `scroll-on-drag' finishes."
-  :group 'scroll-on-drag
   :type 'hook)
 
 (defcustom scroll-on-drag-redisplay-hook nil
   "List of functions to run on scroll redraw."
-  :group 'scroll-on-drag
   :type 'hook)
 
 
