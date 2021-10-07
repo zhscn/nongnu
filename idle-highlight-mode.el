@@ -36,7 +36,7 @@
 ;; M-x idle-highlight-mode sets an idle timer that highlights all
 ;; occurrences in the buffer of the word under the point.
 
-;; Enabling it in a hook is recommended. But you don't want it enabled
+;; Enabling it in a hook is recommended if you don't want it enabled
 ;; for all buffers, just programming ones.
 ;;
 ;; Example:
@@ -98,7 +98,7 @@ See documentation for `skip-syntax-forward', nil to ignore."
   :type 'boolean)
 
 (defcustom idle-highlight-idle-time 0.35
-  "Time after which to highlight the word at point."
+  "Time after which to highlight the word at point (in seconds)."
   :type 'float)
 
 (defcustom idle-highlight-ignore-modes nil
@@ -389,7 +389,7 @@ should be the result of `idle-highlight--word-at-point-args'."
         (setq idle-highlight--global-timer nil)))))
 
 (defun idle-highlight--time-reset ()
-  "Run this when the buffer changes."
+  "Run this when the buffer change was changed."
   ;; Ensure changing windows doesn't leave other buffers with stale highlight.
   (cond
     ((bound-and-true-p idle-highlight-mode)
