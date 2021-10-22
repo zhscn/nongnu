@@ -83,3 +83,6 @@ While the defaults seem to work well, these values can be customized.
    Values greater than 0.0 apply non-linear scaling,
    this gives control when scrolling individual lines while allowing much
    greater speed without having to move the mouse a long distance.
+``scroll-on-drag-follow-mouse``
+   When non-nil, scroll the window under the mouse cursor (even when it's not active)
+   returning focus on completion.

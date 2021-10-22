@@ -51,6 +51,10 @@
 
 (defcustom scroll-on-drag-smooth t "Use smooth (pixel) scrolling." :type 'boolean)
 
+(defcustom scroll-on-drag-follow-mouse t
+  "Scroll the window under the mouse cursor (instead of the current active window)."
+  :type 'boolean)
+
 (defcustom scroll-on-drag-pre-hook nil
   "List of functions to be called when `scroll-on-drag' starts."
   :type 'hook)
@@ -147,11 +151,9 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
 ;; ---------------------------------------------------------------------------
 ;; Public Functions
 
-;;;###autoload
-(defun scroll-on-drag ()
+(defun scroll-on-drag-impl ()
   "Interactively scroll (typically on click event).
 Returns true when scrolling took place, otherwise nil."
-  (interactive)
   (let*
     (
       ;; Don't run unnecessary logic when scrolling.
@@ -401,6 +403,22 @@ Returns true when scrolling took place, otherwise nil."
     ;; Result so we know if any scrolling occurred,
     ;; allowing a fallback action on 'click'.
     has-scrolled-real))
+
+(defun scroll-on-drag (&optional event)
+  "Main scroll on drag function.
+
+EVENT is optionally used to find the active window
+when `scroll-on-drag-follow-mouse' is non-nil."
+  (interactive "e")
+  (let ((scroll-win nil))
+    (when scroll-on-drag-follow-mouse
+      (setq scroll-win (posn-window (or (event-start event) last-input-event))))
+
+    (cond
+      (scroll-win
+        (with-selected-window scroll-win (scroll-on-drag-impl)))
+      (t
+        (scroll-on-drag-impl)))))
 
 ;;;###autoload
 (defmacro scroll-on-drag-with-fallback (&rest body)
