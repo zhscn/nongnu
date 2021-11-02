@@ -94,35 +94,32 @@ WHERE using FN-ADVICE temporarily added to FN-ORIG."
         ,@body)
       (advice-remove ,fn-orig fn-advice-var))))
 
+;; Back-ported from emacs-29.1 (remove once older versions have beeen dropped).
+(defmacro recomplete--with-undo-amalgamate (&rest body)
+  "Like `progn' but perform BODY with amalgamated undo barriers.
 
-;; See: https://emacs.stackexchange.com/a/54412/2418
-(defmacro recomplete--with-undo-collapse (&rest body)
-  "Like `progn' but perform BODY with undo collapsed."
+This allows multiple operations to be undone in a single step.
+When undo is disabled this behaves like `progn'."
   (declare (indent 0) (debug t))
-  (let
-    (
-      (handle (make-symbol "--change-group-handle--"))
-      (success (make-symbol "--change-group-success--")))
+  (let ((handle (make-symbol "--change-group-handle--")))
     `
     (let
       (
         (,handle (prepare-change-group))
-        ;; Don't truncate any undo data in the middle of this.
+        ;; Don't truncate any undo data in the middle of this,
+        ;; otherwise Emacs might truncate part of the resulting
+        ;; undo step: we want to mimic the behavior we'd get if the
+        ;; undo-boundaries were never added in the first place.
         (undo-outer-limit nil)
         (undo-limit most-positive-fixnum)
-        (undo-strong-limit most-positive-fixnum)
-        (,success nil))
+        (undo-strong-limit most-positive-fixnum))
       (unwind-protect
         (progn
           (activate-change-group ,handle)
-          (prog1 ,(macroexp-progn body)
-            (setq ,success t)))
-        (cond
-          (,success
-            (accept-change-group ,handle)
-            (undo-amalgamate-change-group ,handle))
-          (t
-            (cancel-change-group ,handle)))))))
+          ,@body)
+        (progn
+          (accept-change-group ,handle)
+          (undo-amalgamate-change-group ,handle))))))
 
 (defmacro recomplete--with-messages-as-list (message-list &rest body)
   "Run BODY adding any message call to the MESSAGE-LIST list."
@@ -451,7 +448,7 @@ Argument CYCLE-OFFSET The offset for cycling words,
           ;; Without storing these in a list we get an unsightly flicker.
           (recomplete--with-messages-as-list message-list
             ;; Needed in case the operation does multiple undo pushes.
-            (recomplete--with-undo-collapse
+            (recomplete--with-undo-amalgamate
               (apply (symbol-function fn-symbol) (list cycle-index fn-cache))))))
 
       (cond
