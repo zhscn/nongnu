@@ -498,7 +498,8 @@ Argument CYCLE-OFFSET The offset for cycling words,
                 (let
                   (
                     (msg-width (string-width msg-text))
-                    (display-width (- (window-width (minibuffer-window)) (length msg-prefix))))
+                    (display-width
+                      (- (window-body-width (minibuffer-window)) (length msg-prefix))))
                   (when (> msg-width display-width)
                     (let
                       (
