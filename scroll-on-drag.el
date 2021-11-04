@@ -51,6 +51,8 @@
 
 (defcustom scroll-on-drag-smooth t "Use smooth (pixel) scrolling." :type 'boolean)
 
+(defcustom scroll-on-drag-clamp nil "Prevent scrolling past the buffer end." :type 'boolean)
+
 (defcustom scroll-on-drag-follow-mouse t
   "Scroll the window under the mouse cursor (instead of the current active window)."
   :type 'boolean)
@@ -187,6 +189,32 @@ Returns true when scrolling took place, otherwise nil."
       (restore-window-start (window-start))
       (restore-point (point))
 
+      ;; Don't move past the buffer end.
+      (point-clamp-max
+        (cond
+          (scroll-on-drag-clamp
+            (cond
+              ((eq (window-end) (point-max))
+                (line-beginning-position))
+              (t
+                (save-excursion
+                  (goto-char (line-beginning-position))
+                  (let
+                    (
+                      (lines
+                        (-
+                          (window-body-height)
+                          ;; When the point is at the window top,
+                          ;; account for it being clamped while scrolling.
+                          (1+
+                            (max
+                              scroll-margin (count-lines restore-window-start restore-point))))))
+                    (goto-char (point-max))
+                    (forward-line (- lines))
+                    (point))))))
+          (t
+            nil)))
+
       ;; Restore indent (lost when scrolling).
       (restore-column (current-column))
 
@@ -294,6 +322,27 @@ Returns true when scrolling took place, otherwise nil."
                         (setq delta-px-accum (- delta-px-accum (* lines this-frame-char-height)))
                         (scroll-on-drag--scroll-by-lines this-window lines t)
                         (setq do-draw t)))))
+
+                ;; Clamp the buffer inside the window.
+                (when point-clamp-max
+                  ;; Scrolling down.
+                  (when (< 0 delta)
+                    (let
+                      (
+                        (scroll-pt
+                          (cond
+                            ((eq restore-point (point))
+                              (line-beginning-position))
+                            (t
+                              (point)))))
+                      (cond
+                        ((= point-clamp-max scroll-pt)
+                          (set-window-vscroll this-window 0 t))
+
+                        ((< point-clamp-max scroll-pt)
+                          (let ((lines (count-lines scroll-pt point-clamp-max)))
+                            (set-window-vscroll this-window 0 t)
+                            (scroll-on-drag--scroll-by-lines this-window (- lines) t)))))))
 
                 (when do-draw
                   (let ((inhibit-redisplay nil))

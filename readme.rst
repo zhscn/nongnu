@@ -75,6 +75,8 @@ While the defaults seem to work well, these values can be customized.
 
 ``scroll-on-drag-smooth``: t
    Smooth (pixel) scroll *(snapped to line on completion).*
+``scroll-on-drag-clamp``: nil
+   Prevent scrolling past the end of the buffer.
 ``scroll-on-drag-delay``: 0.01, typically in range [0.005 .. 0.1]
    Time between scroll updates.
 ``scroll-on-drag-motion-scale``: 0.25, typically in range [0.01 .. 1.0]
