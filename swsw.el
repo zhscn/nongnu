@@ -7,7 +7,7 @@
 ;; Version: 2.1
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: convenience
-;; URL: https://dsemy.com/software/swsw
+;; URL: https://dsemy.com/projects/swsw
 
 ;; This file is not part of GNU Emacs.
 

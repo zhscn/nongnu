@@ -101,7 +101,7 @@ swsw can be installed from GNU ELPA: (not available yet)
 @node Installing a release
 @section Installing a release
 
-Simply download a release (from <https://dsemy.com/software/swsw>), and install
+Simply download a release (from <https://dsemy.com/projects/swsw>), and install
 it:
 
 @table @asis
