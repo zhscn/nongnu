@@ -3,7 +3,7 @@
   :keywords ("convenience" "matching")
   :authors (("Daniel Semyonov" . "daniel@dsemy.com"))
   :maintainer ("Daniel Semyonov" . "daniel@dsemy.com")
-  :url "https://dsemy.com/software/vcomplete")
+  :url "https://dsemy.com/projects/vcomplete")
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; end:

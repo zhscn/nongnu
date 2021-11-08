@@ -102,7 +102,7 @@ Vcomplete can be installed from GNU ELPA: (not available yet)
 @section Installing a release
 
 Simply download a release (from
-<https://dsemy.com/software/vcomplete>), and install it:
+<https://dsemy.com/projects/vcomplete>), and install it:
 
 @table @asis
 @item @kbd{M-x package-install-file RET /path/to/download/vcomplete-VERSION.tar RET}

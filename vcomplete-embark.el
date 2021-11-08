@@ -7,7 +7,7 @@
 ;; Version: 1.1
 ;; Package-Requires: ((emacs "25.1") (embark "0.10"))
 ;; Keywords: convenience, matching
-;; URL: https://dsemy.com/software/vcomplete
+;; URL: https://dsemy.com/projects/vcomplete
 
 ;; This file is not part of GNU Emacs.
 
