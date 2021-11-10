@@ -287,8 +287,8 @@ and `text-scale-mode-step'."
 (defun visual-fill-column--add-extra-width (left right add-width)
   "Calculate new margins given additional text width.
 LEFT and RIGHT are the current margins, ADD-WIDTH a cons cell of
-  additional columns to be added to the text area.  Return a cons
-  cell of the new margins, which will never be less than zero."
+additional columns to be added to the text area.  Return a cons
+cell of the new margins, which will never be less than zero."
   (cons (max 0 (- left (car add-width)))
         (max 0 (- right (cdr add-width)))))
 
