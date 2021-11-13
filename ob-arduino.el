@@ -32,7 +32,6 @@
 ;;; Code:
 
 (require 'ob)
-(require 'arduino-mode nil t)
 
 (defgroup ob-arduino nil
   "org-mode blocks for Arduino."
