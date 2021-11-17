@@ -73,6 +73,9 @@ STklos, load geiser on it, and feed it some forms before starting the tests.
 
 See the issue tracker in Gitlab.
 
+IMPORTANT: when writing STklos keywords, use the sharp sign (`:#a` instead of `:a`),
+otherwise Geiser will treat is as a symbol (`|:a|`), not a keyword.
+
 # About the implementation
 
 Geiser support for a Scheme implementation consists of two programs:
