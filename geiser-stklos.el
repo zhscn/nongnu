@@ -9,7 +9,7 @@
 ;; Keywords: languages, stklos, scheme, geiser
 ;; Package-Requires: ((emacs "24.4") (geiser "0.16"))
 ;; SPDX-License-Identifier: BSD-3-Clause
-;; Version: 1.3
+;; Version: 1.4
 
 ;; This file is not part of GNU Emacs.
 
@@ -17,7 +17,7 @@
 
 ;;; Commentary:
 ;;
-;; Geiser, STklos and Geisr-STklos
+;; Geiser, STklos and Geiser-STklos
 ;; ───────────────────────────────
 ;;
 ;; Geiser (https://www.nongnu.org/geiser/) is a collection of Emacs
@@ -40,7 +40,7 @@
 ;; * macroexpansion
 ;; * symbol completion
 ;; * listing of module exported symbols
-;; * autodoc (signature of procedurs and values of symbols are displayed in the minibuffer
+;; * autodoc (signature of procedures and values of symbols are displayed in the minibuffer
 ;;   when the mouse hovers over their names)
 ;; * symbol documentation (docstrings for procedures, and values of variables)
 ;;
@@ -127,6 +127,20 @@ option."
   :type 'boolean
   :group 'geiser-stklos)
 
+;; (geiser-custom--defcustom geiser-stklos-log-file
+;;     nil
+;;   "Name of the file where the STklos part of the system will log its
+;; actions."
+;;   :type 'string
+;;   :group 'geiser-stklos)
+
+;; (geiser-custom--defcustom geiser-emacs-log-buffer
+;;     '*geiser-log*
+;;   "Name of the Emacs buffer where the Emacs Lisp part of the system
+;; will log its actions."
+;;   :type 'symbol
+;;   :group 'geiser-stklos)
+
 
 
 ;;; REPL support:
@@ -167,23 +181,32 @@ This function uses `geiser-stklos-init-file' if it exists."
   "Translates symbols into Scheme procedure calls from geiser.stk.
 Argument PROC is the procedure to be called.
 Optional argument ARGS are the arguments to the procedure."
+  ;; Adapted from Geiser-Gauche
   (cl-case proc
+    ((autodoc symbol-location completions)
+     (format "(eval '(geiser:%s %s {{cur-module}}) (find-module 'GEISER))"
+	     proc (mapconcat #'identity args " ")))
+
     ((eval compile)
-     (let ((form (mapconcat #'identity (cdr args) " "))
-           (module (cond ((string-equal "'()" (car args))
-                          "'()")
-                         ((and (car args))
-                          (concat "'" (car args)))
-                         (t
-                          "#f"))))
+     (let ((module (if (car args) (concat "'" (car args)) "#f"))
+	         (form (mapconcat #'identity (cdr args) " ")))
        (format "((in-module GEISER geiser:eval) %s '%s)" module form)))
+       ;; ;; The {{cur-module}} cookie is replaced by the current module for
+       ;; ;; commands that need it
+       ;; (replace-regexp-in-string
+	     ;;  "{{cur-module}}"
+	     ;;  (if (string= module "'#f")
+	     ;;      (format "'%s" (geiser-stklos--get-module))
+	     ;;    module)
+	     ;;  (format "(eval '(geiser:eval %s '%s) (find-module 'GEISER))" module form))))
     ((load-file compile-file)
      (format "((in-module GEISER geiser:load-file) %s)" (car args)))
     ((no-values)
      "((in-module GEISER geiser:no-values))")
+    ;; The rest of the commands are all evaluated in the geiser module
     (t
      (let ((form (mapconcat #'identity args " ")))
-       (format "(geiser:%s %s)" proc form)))))
+       (format "((in-module GEISER geiser:%s) %s)" proc form)))))
 
 ;;; Modules
 
@@ -295,7 +318,7 @@ if a closing match is not found."
 ;; This will possibly fail:
 ;;
 ;; - with false negative, if the buffer is running STklos
-;; but th euser is in not in the stklos module, AND
+;; but the user is in not in the stklos module, AND
 ;; the user was not in the stklos module recently, so
 ;; there are no "stklos" strings in the buffer.
 ;;
@@ -336,7 +359,8 @@ Argument BINARY is a string containing the binary name."
 (defun geiser-stklos--startup (_remote)
   "Hook for startup.  The argument is ignored."
   (let ((geiser-log-verbose-p t))
-    (compilation-setup t)))
+    (compilation-setup t)
+    (geiser:eval "GEISER" geiser:set-log-file geiser-stklos-log-file)))
 
 
 (defconst geiser-stklos-builtin-keywords

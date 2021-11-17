@@ -21,7 +21,21 @@
           geiser:module-exports
           geiser:symbol-documentation
           geiser:autodoc
-          geiser:no-values)
+          geiser:no-values
+          geiser:set-log-file)
+
+
+(define geiser-log-file #f)
+
+;; Opens the Geiser log file
+(define (geiser:set-log-file name)
+  (when (string? name)
+    (set! geiser-log-file (open-output-file name))))
+
+(define (geiser-format port . rest)
+  (when (output-port? port)
+    (apply format (cons port rest))
+    (flush-output-port port)))
 
 ;; executes thunk, with all its output (standar and error) redirected
 ;; to a string.
@@ -50,8 +64,8 @@
 ;; =>  ((result "1" "2" "3") (output . "OK"))
 ;;
 (define (call-with-result thunk)
-  (let* ((result (if #f #f))
-         (output (if #f #f)))
+  (let* ((result #void)
+         (output #void))
     
     (set! output
           (with-handler (lambda (exn)
@@ -65,40 +79,40 @@
           (cond
            ((list? result)
             (map (lambda (v) (with-all-output-to-string (lambda () (write v)))) result))
-             ((eq? result (if #f #t))
-              ;;              '())
-              (list output))
-             (else
-              (list (with-all-output-to-string (lambda () (write result)))))))
+           ((eq? result #void)
+            (list output))
+           (else
+            (list (with-all-output-to-string (lambda () (write result)))))))
     
     (let ((out-form
                  `((result ,@result)
                    (output . ,output))))
       (write out-form)
-      (write-to-log '[[RESPONSE]])
-      (write-to-log out-form))
+      (geiser-format geiser-log-file "call-with-result response: ~s~%" out-form))
     
     (newline)))
 
-;; to log forms, uncomment the following line and the
-;; lines that were commented out in the write-to-log
-;; procedure below:
-;; (define log (open-output-file "geiser-log.txt"))
-
-(define (write-to-log form)
-;;  (write form log)
-;;  (newline log)
-  (values))
 
 ;; evaluates form inside a module.
 ;; the result is in the same format as call-with-result.
 ;;
-;; Example:
+;; Examples:
+;; 
 ;; (geiser:eval #f '(begin (display "OK") (values 1 2 3)))
 ;; => ((result "1" "2" "3") (output . "OK"))
 ;;
+;;
+;; (define-module a
+;;   (export b)
+;;   (define b -2))
+;;
+;; (geiser:eval 'a 'b)
+;; => ((result "-2") (output . ""))
+;;
 (define (geiser:eval module-name form . rest)
-  
+  (geiser-format geiser-log-file "_________________~%")
+  (geiser-format geiser-log-file "geiser:eval form: ~s~%" form)
+
   ;; All calls start at toplevel
   (let ((module (or (and (symbol? module-name )
 			 (find-module module-name))
@@ -108,12 +122,13 @@
                       (else
                        (write `((error (key . ,(error-object-message err)))))))
                    (lambda () (eval form module)))))
-      
-      (write-to-log form)
-      (call-with-result thunk))))
+      (let ((ret (call-with-result thunk)))
+        (geiser-format geiser-log-file "geiser:eval return: ~s~%" ret)
+        ret))))
 
-;; Load a file
 
+;; Load a file in STklos
+;;
 (define (geiser:load-file file)
   (let* ((file (if (symbol? file) (symbol->string file) file))
          (found-file (geiser-find-file file)))
@@ -132,8 +147,6 @@
 (define (geiser:macroexpand form . rest)
   (format "~S" (macro-expand form)))
 
-
-
 ;; do not use string-index, because the native STklos version
 ;; is different from that in SRFI-13, and we can't tell in advance
 ;; what's the correct way to call it...
@@ -145,6 +158,7 @@
                    (string-ref name i)))
          (name-match-with-start? prefix name (+ 1 i)))
         (else #f)))
+
 (define (name-match? prefix name) (name-match-with-start? prefix name 0))
 
 ;; Geiser calls this procedure when it wants to complete
@@ -298,7 +312,7 @@
 ;; nullify-last-cdr! turns improper lists into proper lists by removing
 ;; the last element and putting '() in its place.
 ;;
-;; *** The lists MUST BE MUTABLE! (hence the user of
+;; *** The lists MUST BE MUTABLE! (hence the use of
 ;;     "list-copy" in the examples below ***
 ;;
 ;; (define a (list-copy '(1 2 . 3)))
