@@ -95,6 +95,15 @@ If this option is set, `visual-fill-column' sets the variable
   :type '(choice (const :tag "Allow vertical window split" nil)
                  (const :tag "Use standard window split" t)))
 
+(defcustom visual-fill-column-adjust-for-text-scale t
+  "Adjust the margins for text scaling.
+If set to t, the calculated margins are additionally adjusted for
+the text scale factor, so that the text is wrapped at
+`fill-column'."
+  :group 'visual-fill-column
+  :type '(choice (const :tag "Adjust margins for text scaling" t)
+                 (const :tag "Do not adjust margins for text scaling" nil)))
+
 (defvar visual-fill-column--use-split-window-parameter nil "If set, the window parameter `split-window' is used.")
 
 (defvar visual-fill-column--use-min-margins nil "If set, the window parameter `min-margins' is used.")
@@ -273,7 +282,8 @@ and `text-scale-mode-step'."
   (or window (setq window (selected-window)))
   (let* ((margins (window-margins window))
          (buffer (window-buffer window))
-         (scale (if (and (boundp 'text-scale-mode-step)
+         (scale (if (and visual-fill-column-adjust-for-text-scale
+                         (boundp 'text-scale-mode-step)
                          (boundp 'text-scale-mode-amount))
                     (with-current-buffer buffer
                       (expt text-scale-mode-step
