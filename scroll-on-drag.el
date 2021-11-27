@@ -169,9 +169,6 @@ Returns true when scrolling took place, otherwise nil."
       ;; Only draw explicitly once all actions have been done.
       (inhibit-redisplay t)
 
-      ;; Don't call idle timers (use as only key input resets Emacs idle timer).
-      (timer-idle-list nil)
-
       ;; Variables for re-use.
       (this-window (selected-window))
       (this-frame-char-height (frame-char-height))
