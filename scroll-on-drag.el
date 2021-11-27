@@ -149,6 +149,12 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
 
 ;; End generic scrolling functions.
 
+(defsubst scroll-on-drag--force-redisplay-with-hooks ()
+  "Wrapper for `redisplay' that ignores `inhibit-redisplay'."
+  (let ((inhibit-redisplay nil))
+    (run-hooks 'scroll-on-drag-redisplay-hook)
+    (redisplay)))
+
 
 ;; ---------------------------------------------------------------------------
 ;; Public Functions
@@ -285,9 +291,7 @@ Returns true when scrolling took place, otherwise nil."
                   (setq delta-px-accum (- delta-px-accum (* lines this-frame-char-height)))
                   (let ((lines-remainder (scroll-on-drag--scroll-by-lines this-window lines t)))
                     (unless (zerop (- lines lines-remainder))
-                      (let ((inhibit-redisplay nil))
-                        (run-hooks 'scroll-on-drag-redisplay-hook)
-                        (redisplay))))))
+                      (scroll-on-drag--force-redisplay-with-hooks)))))
               (funcall timer-start-fn self-fn)))
 
           ((eq scroll-on-drag-style 'line-by-pixel)
@@ -345,9 +349,7 @@ Returns true when scrolling took place, otherwise nil."
                             (scroll-on-drag--scroll-by-lines this-window (- lines) t)))))))
 
                 (when do-draw
-                  (let ((inhibit-redisplay nil))
-                    (run-hooks 'scroll-on-drag-redisplay-hook)
-                    (redisplay))))
+                  (scroll-on-drag--force-redisplay-with-hooks)))
               (funcall timer-start-fn self-fn)))))
 
       ;; Apply pixel offset and snap to a line.
@@ -358,9 +360,7 @@ Returns true when scrolling took place, otherwise nil."
               (scroll-on-drag--scroll-by-lines this-window 1 nil))
             (set-window-vscroll this-window 0 t)
             (setq delta-px-accum 0)
-            (let ((inhibit-redisplay nil))
-              (run-hooks 'scroll-on-drag-redisplay-hook)
-              (redisplay)))))
+            (scroll-on-drag--force-redisplay-with-hooks))))
 
       (scroll-reset-fn
         (lambda ()
@@ -381,9 +381,7 @@ Returns true when scrolling took place, otherwise nil."
           (let ((lines-from-top (count-lines (window-start) (line-beginning-position))))
             (when (> scroll-margin lines-from-top)
               (forward-line (- scroll-margin lines-from-top))
-              (let ((inhibit-redisplay nil))
-                (run-hooks 'scroll-on-drag-redisplay-hook)
-                (redisplay)))))))
+              (scroll-on-drag--force-redisplay-with-hooks))))))
 
     ;; ---------------
     ;; Main Event Loop
@@ -397,9 +395,7 @@ Returns true when scrolling took place, otherwise nil."
               (setq has-scrolled nil)
               (funcall scroll-reset-fn)
               (funcall scroll-restore-fn)
-              (let ((inhibit-redisplay nil))
-                (run-hooks 'scroll-on-drag-redisplay-hook)
-                (redisplay))
+              (scroll-on-drag--force-redisplay-with-hooks)
               t)
 
             ;; Space keeps current position, restarts scrolling.
