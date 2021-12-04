@@ -4,9 +4,9 @@
 ;; Maintainer: Jose A Ortega Ruiz <jao@gnu.org>
 ;; Keywords: languages, mit, scheme, geiser
 ;; Homepage: https://gitlab.com/emacs-geiser/mit
-;; Package-Requires: ((emacs "24.4") (geiser "0.12"))
+;; Package-Requires: ((emacs "24.4") (geiser "0.18"))
 ;; SPDX-License-Identifier: BSD-3-Clause
-;; Version: 0.13
+;; Version: 0.15
 
 ;;; Commentary:
 
@@ -194,8 +194,6 @@ This function uses `geiser-mit-init-file' if it exists."
   ;; (keywords geiser-mit--keywords)
   ;; (case-sensitive geiser-mit-case-sensitive-p)
   )
-
-(geiser-impl--add-to-alist 'regexp "\\.scm$" 'mit t)
 
 ;;;###autoload
 (geiser-impl--add-to-alist 'regexp "\\.pkg$" 'mit t)
