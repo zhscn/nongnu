@@ -455,7 +455,9 @@ Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
     (save-excursion
       (doc-show-inline--with-advice 'run-mode-hooks
         :override
-        (lambda (_hooks) (run-hooks 'doc-show-inline-buffer-hook))
+        (lambda (_hooks)
+          (with-demoted-errors "doc-show-inline-buffer-hook: %S"
+            (run-hooks 'doc-show-inline-buffer-hook)))
 
         (dolist (item xref-list)
           (let*
@@ -475,9 +477,11 @@ Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
                     ;; note that we could assume this only uses the comment face
                     ;; however some configurations highlight tags such as TODO
                     ;; or even bad spelling, so font lock this text.
-                    (font-lock-ensure pos-beg pos-end)
+                    (with-demoted-errors "doc-show-inline/font-lock-ensure: %S"
+                      (font-lock-ensure pos-beg pos-end))
 
-                    (run-hook-with-args 'doc-show-inline-fontify-hook pos-beg pos-end)
+                    (with-demoted-errors "doc-show-inline-fontify-hook: %S"
+                      (run-hook-with-args 'doc-show-inline-fontify-hook pos-beg pos-end))
 
                     (let
                       (
