@@ -277,16 +277,13 @@ the point should not be moved by this function."
 
 (defun doc-show-inline-extract-doc-default (sym)
   "Extract doc-string for SYM."
-  (let
-    (
-      ;; There may be blank lines between the comment beginning.
-      (pos-end
-        (progn
-          (beginning-of-line)
-          (skip-chars-backward " \t\n" (point-min))
-          (point))))
 
+  ;; There may be blank lines between the comment beginning,
+  ;; include these since it's useful to display the the space to know if the comment
+  ;; was directly above the text or not.
+  (let ((pos-end (max (point-min) (1- (line-beginning-position)))))
     ;; Move one character into the comment.
+    (goto-char pos-end)
     (cond
       ((forward-comment -1)
         (let
