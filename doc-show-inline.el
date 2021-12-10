@@ -70,6 +70,10 @@
 Set to 0.0 to highlight immediately (as part of syntax highlighting)."
   :type 'float)
 
+(defcustom doc-show-inline-exclude-regexp nil
+  "Optionally skip comments that match this regular expression."
+  :type '(choice (const nil) (regexp)))
+
 (defcustom doc-show-inline-face-background-highlight -0.04
   "Use to tint the background color for overlay text (between -1.0 and 1.0).
 Ignored when `doc-show-inline-face'
@@ -307,7 +311,24 @@ the point should not be moved by this function."
                 sym
                 (current-buffer)
                 (point))
-              ;; Failure.
+              ;; Skip this comment.
+              nil)
+            ;; Optionally exclude a regexp.
+            (
+              (and
+                doc-show-inline-exclude-regexp
+                (save-match-data
+                  (goto-char pos-beg)
+                  (search-forward-regexp doc-show-inline-exclude-regexp pos-end t)))
+
+              (doc-show-inline--log-info
+                "comment \"%s\" in %S at point %d was skipped because of regex match with %S"
+                sym
+                (current-buffer)
+                pos-beg
+                doc-show-inline-exclude-regexp)
+
+              ;; Skip this comment.
               nil)
 
             (t

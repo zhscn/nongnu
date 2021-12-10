@@ -38,6 +38,12 @@ Customization
 ``doc-show-inline-idle-delay`` (float ``0.75``)
    The idle delay to use before updating doc-strings.
 
+``doc-show-inline-exclude-regexp`` (regexp / nil ``nil``)
+   Optionally exclude comments that contain text matching this regular expression.
+
+   This can be useful for excluding comments which define function grouping or other kinds of file sections,
+   which aren't intended to represent documentation for the following symbol.
+
 ``doc-show-inline-face-background-highlight`` (float ``-0.04``)
    The tint to use when generating the background color for the background of doc-string overlays.
    The value is between -1.0 and 1.0 where negative numbers darken, positive numbers brighten.
