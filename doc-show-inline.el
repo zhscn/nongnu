@@ -116,8 +116,10 @@ This hook is called instead of the mode hooks such as:
 (defvar-local doc-show-inline-extract-doc 'doc-show-inline-extract-doc-default
   "Function to extract the doc-string given the destination buffer.
 The buffer and point will be the destination (the header file for example).
-The function must return a (BEG . END) cons cell representing the range
-or nil on failure.")
+The function must return a (BEG . END) cons cell representing the range to
+display or nil on failure.
+Note that the beginning may contain white-space (before the comment begins)
+in order to maintain alignment with the following lines.")
 
 (defvar-local doc-show-inline-filter nil
   "Optionally skip some symbols when this function returns nil.
@@ -310,7 +312,7 @@ the point should not be moved by this function."
 
             (t
               ;; Success.
-              (cons pos-beg pos-end)))))
+              (cons pos-beg-of-line pos-end)))))
       (t
         (doc-show-inline--log-info
           "symbol \"%s\" in %S at point %d has no comment before it"

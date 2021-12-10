@@ -4,6 +4,9 @@ Change Log
 ##########
 
 
+- 2021-12-10
+  - Include leading white-space to properly align indented multi-line doc-strings.
+
 - 2021-12-08
   - Keep blank space between the symbol and comments.
 
