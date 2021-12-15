@@ -809,8 +809,8 @@ XREF-BACKEND is the back-end used to find this symbol."
   "Advice for `c-context-expand-fl-region' (OLD-FN),extract the region (BEG END)."
   (let ((bounds (funcall old-fn beg end)))
     (when (bound-and-true-p doc-show-inline-mode)
-      (doc-show-inline--idle-font-lock-region-pending (car bounds) (cdr bounds))
-      bounds)))
+      (doc-show-inline--idle-font-lock-region-pending (car bounds) (cdr bounds)))
+    bounds))
 
 (defun doc-show-inline--jit-or-gapless-hack-is-needed ()
   "Check if any buffers need this hack."

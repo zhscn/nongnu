@@ -3,6 +3,8 @@
 Change Log
 ##########
 
+- 2021-12-15
+  - Fix error with C/C++ range checking causing an error in font locking.
 
 - 2021-12-10
   - Include leading white-space to properly align indented multi-line doc-strings.
