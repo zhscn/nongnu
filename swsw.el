@@ -202,9 +202,9 @@ If set to `lighter', use a mode line lighter."
     ;; choosing an ID by setting `this-command' in a command which
     ;; sets the transient map to `swsw--id-map'.
     (define-key swsw--id-map (apply #'vector id)
-      `(lambda ()
-         (interactive)
-         (funcall last-command ,window)))
+                `(lambda ()
+                   (interactive)
+                   (funcall last-command ,window)))
     (set-window-parameter window 'swsw-id id)
     (setq swsw-window-count (1+ swsw-window-count))))
 
@@ -359,7 +359,7 @@ selection:
 \\{swsw-command-map}"
   :global t
   :lighter (:eval (when (eq swsw-display-function 'lighter)
-           (swsw-format-id (selected-window))))
+                    (swsw-format-id (selected-window))))
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map [remap other-window] #'swsw-select)
             map)
