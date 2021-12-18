@@ -226,6 +226,9 @@ is t."
         swsw-window-count 0
         swsw--current-frame (selected-frame))
   ;; Clear and resize `swsw--id-counter' according to the ID length.
+  ;; `swsw--id-counter' is treated as a base-N number where N is the
+  ;; length of `swsw-id-chars' and each digit M represents the Mth
+  ;; char in `swsw-id-chars'.
   (dotimes (_var (swsw--get-id-length))
     (push 0 swsw--id-counter))
   (walk-windows #'swsw--update-window nil (swsw--get-scope)))
