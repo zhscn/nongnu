@@ -250,6 +250,13 @@ With prefix argument N, move N items (negative N means move forward)."
   (add-hook 'post-command-hook
             #'vcomplete--highlight-completion-at-point nil t))
 
+(defun vcomplete--reset-completions ()
+  "Stop highlighting the completion at point in the `*Completions*' buffer."
+  (when-let ((buf (get-buffer "*Completions*")))
+    (with-current-buffer buf
+      (remove-hook 'post-command-hook
+                   #'vcomplete--highlight-completion-at-point t))))
+
 (defun vcomplete--setup-minibuffer ()
   "Setup visual completions for the minibuffer."
   (when minibuffer-completion-table ; Ensure completion is in progress.
@@ -297,6 +304,7 @@ The following bindings are available during completion:
         (add-hook 'minibuffer-setup-hook #'vcomplete--setup-minibuffer)
         (add-hook 'completion-in-region-mode-hook #'vcomplete--setup-in-region))
     (remove-hook 'completion-list-mode-hook #'vcomplete--setup-completions)
+    (vcomplete--reset-completions)
     (remove-hook 'minibuffer-setup-hook #'vcomplete--setup-minibuffer)
     (remove-hook 'completion-in-region-mode-hook #'vcomplete--setup-in-region)))
 

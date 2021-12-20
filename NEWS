@@ -3,6 +3,9 @@ See the end of the file for an explanation of the versioning scheme.
 
 * 1.2 (in development)
 
+** Fix the completion list window still highlighting completions in some
+cases after 'vcomplete-mode' is disabled.
+
 ** Improve Embark integration.
 Fix Embark 'non-edit commands' not immediately exiting when
 'vcomplete-auto-update' is t.
