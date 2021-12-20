@@ -222,7 +222,7 @@ With prefix argument N, move N items (negative N means move forward)."
 
 ;;;; Vcomplete mode:
 
-(defun vcomplete--update-in-minibuffer (&rest _args)
+(defun vcomplete--update-minibuffer (&rest _args)
   "Update the completion list when completing in a minibuffer."
   (while-no-input
     (redisplay)
@@ -255,9 +255,9 @@ With prefix argument N, move N items (negative N means move forward)."
   (when minibuffer-completion-table ; Ensure completion is in progress.
     (setq vcomplete--last-completion-overlay nil)
     (when vcomplete-auto-update
-      (vcomplete--update-in-minibuffer)
+      (vcomplete--update-minibuffer)
       (add-hook 'after-change-functions
-                #'vcomplete--update-in-minibuffer nil t))
+                #'vcomplete--update-minibuffer nil t))
     (use-local-map (make-composed-keymap vcomplete-command-map
                                          (current-local-map)))))
 
