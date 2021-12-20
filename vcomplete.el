@@ -189,9 +189,9 @@ isn't a completion list buffer."
 (defun vcomplete--move-n-completions (n)
   "Move N completions in the `*Completions*' buffer."
   (vcomplete-with-completions-buffer
-    (next-completion n)
-    (set-window-point window (point))
-    (vcomplete--highlight-completion-at-point)))
+   (next-completion n)
+   (set-window-point window (point))
+   (vcomplete--highlight-completion-at-point)))
 
 (defun vcomplete-next-completion (&optional n)
   "Move to the next item in the `*Completions*' buffer.
@@ -246,7 +246,7 @@ With prefix argument N, move N items (negative N means move forward)."
     (completion-in-region-mode -1)))
 
 (defun vcomplete--setup-completions ()
-  "Setup visual completions for the `*Completions*' buffer."
+  "Setup the `*Completions*' buffer for highlighting the completion at point."
   (add-hook 'post-command-hook
             #'vcomplete--highlight-completion-at-point nil t))
 
