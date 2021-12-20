@@ -128,14 +128,18 @@ Otherwise, operate according to `completion-auto-help'."
 
 ;;;; Completion commands:
 
+(defun vcomplete--get-completions-window ()
+  "Return the window associated with the `*Completions*' buffer).
+This function only searches the frames specified in `vcomplete-search-range'."
+  (get-buffer-window "*Completions*" vcomplete-search-range))
+
 (defmacro vcomplete-with-completions-buffer (&rest body)
   "Evaluate BODY with the `*Completions*' buffer temporarily current.
 While evaluating BODY, BUFFER and WINDOW are locally bound to the
 `*Completions*' buffer and window respectively."
   (declare (debug (&rest form)))
   `(when-let ((buffer (get-buffer "*Completions*"))
-              (window (get-buffer-window
-                       buffer vcomplete-search-range)))
+              (window (vcomplete--get-completions-window)))
      (save-current-buffer
        (set-buffer buffer)
        (unless (derived-mode-p 'completion-list-mode)
@@ -238,7 +242,7 @@ With prefix argument N, move N items (negative N means move forward)."
 ;; immediately disabled through `vcomplete--update-in-region'.
 (defun vcomplete--disable-completion-in-region ()
   "Stop completion in region when there is no visible `*Completions*' buffer."
-  (unless (get-buffer-window "*Completions*" vcomplete-search-range)
+  (unless (vcomplete--get-completions-window)
     (completion-in-region-mode -1)))
 
 (defun vcomplete--setup-completions ()
