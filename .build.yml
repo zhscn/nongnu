@@ -2,10 +2,10 @@ image: alpine/latest
 packages:
         - texinfo
 sources:
-        - https://git.sr.ht/~dsemy/vcomplete
+        - https://git.sr.ht/~dsemy/swsw
 tasks:
         - build: |
-                cd vcomplete
+                cd swsw
                 make
 artifacts:
-        - vcomplete/vcomplete-1.1.tar
+        - swsw/swsw-2.1.tar
