@@ -1,0 +1,11 @@
+image: alpine/latest
+packages:
+        - texinfo
+sources:
+        - https://git.sr.ht/~dsemy/vcomplete
+tasks:
+        - build: |
+                cd vcomplete
+                make
+artifacts:
+        - vcomplete/vcomplete-1.1.tar
