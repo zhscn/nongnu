@@ -730,6 +730,11 @@ XREF-BACKEND is the back-end used to find this symbol."
       ;; The buffer has been deleted, so cancel the timer directly.
       (cancel-timer this-timer))
     (t
+      ;; Needed since the initial time might have been 0.0.
+      ;; Ideally this wouldn't need to be set every time.
+      (when doc-show-inline--idle-timer
+        (timer-set-idle-time doc-show-inline--idle-timer doc-show-inline-idle-delay t))
+
       (with-current-buffer buf
         (cond
           ((null (get-buffer-window buf t))
@@ -924,7 +929,8 @@ When IS-INTERACTIVE is true, use `doc-show-inline-idle-delay-init'."
           0.0)
         (t
           doc-show-inline-idle-delay-init))
-      nil)))
+      ;; Repeat.
+      t)))
 
 (defun doc-show-inline-mode-disable ()
   "Turn off option `doc-show-inline-mode' for the current buffer."
