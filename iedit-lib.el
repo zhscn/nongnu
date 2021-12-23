@@ -138,10 +138,10 @@ Either nil, t, or 'open.  'open means the same as t except that
 opens hidden overlays. ")
 
 (defvar iedit-lib-skip-invisible-count 0
-  "This is buffer local varible which is the number of skipped invisible occurrence. ")
+  "This is buffer local variable which is the number of skipped invisible occurrence. ")
 
 (defvar iedit-lib-skip-filtered-count 0
-  "This is buffer local varible which is the number of filtered occurrence. ")
+  "This is buffer local variable which is the number of filtered occurrence. ")
 
 (defvar iedit-hiding nil
   "This is buffer local variable which indicates whether buffer lines are hided. ")
@@ -914,7 +914,7 @@ FORMAT."
 			  (replace-match (format format-string counter) t)
 			(insert (format format-string counter)))
 		  (iedit-move-conjoined-overlays ov)
-		  ;; goto the beginning of the next occourrence overlay
+		  ;; goto the beginning of the next occurrence overlay
 		  (if (iedit-find-overlay-at-point (overlay-end ov) 'iedit-occurrence-overlay-name)
 			  (goto-char (overlay-end ov)) ; conjoined overlay
 			(when (< (point) (overlay-end ov))
@@ -1009,10 +1009,10 @@ If the defining macro was not started from `iedit-start-macro',
 end it only.
 
 This command is intended to eliminate a restriction of other
-commands - monidfications allowed only inside of occurrences.
+commands - modifications allowed only inside of occurrences.
 The recorded modifications can be outside of the occurrences.
-The cursor is moved to the relative positon of every occurrence
-before calling the last keboard macro."
+The cursor is moved to the relative position of every occurrence
+before calling the last keyboard macro."
   (interactive "P")
   (cond
    ((and iedit-buffering (not defining-kbd-macro))
@@ -1036,18 +1036,18 @@ before calling the last keboard macro."
 	  (if (iedit-same-length)
 		  (message "Keyboard macro applied to the occurrences.")
 		(iedit--quit)
-		(message "Abort Iedit mode due to different change made to occurrrences.")))))
+		(message "Abort Iedit mode due to different change made to occurrences.")))))
 
 (defun iedit-case-pattern (beg end)
   "Distinguish the case pattern of the text between `beg' and `end'.
 
-These case ptterns are the same as the ones Emacs replace
+These case patterns are the same as the ones Emacs replace
 commands can recognized - three alternatives - all caps,
-captilized, the others.
+capitalized, the others.
 
 If the text has only capital letters and has at least one
-multiletter word, it is 'all caps'. If all words are capitalized,
-it is captilized.'"
+multi letter word, it is 'all caps'. If all words are capitalized,
+it is capitalized.'"
   (let ((some-word nil)
 		(some-lowercase nil)
 		(some-uppercase nil)
