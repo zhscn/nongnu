@@ -3,7 +3,7 @@
 
 ;; Copyright (C) 2010 - 2019, 2020, 2021 Victor Ren
 
-;; Time-stamp: <2021-08-12 15:17:29 Victor Ren>
+;; Time-stamp: <2021-12-23 18:18:46 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous rectangle refactoring
 ;; Version: 0.9.9.9
@@ -413,6 +413,7 @@ Return the start position of the new occurrence if successful."
         ))
     pos))
 
+;; todo: this function is not used yet.
 (defun iedit-add-region-as-occurrence (beg end)
   "Add region as an occurrence.
 The length of the region must the same as other occurrences if
