@@ -32,8 +32,10 @@
 
 (require 'plstore)
 (require 'json)
+(require 'url)
 
 (defvar mastodon-instance-url)
+(defvar mastodon-active-user)
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--post "mastodon-http")
 

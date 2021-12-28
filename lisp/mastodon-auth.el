@@ -39,7 +39,14 @@
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--get-json "mastodon-http")
 (autoload 'mastodon-http--post "mastodon-http")
+(autoload 'mastodon-http-append-query-string "mastodon-http")
+(autoload 'mastodon-client-store-access-token "mastodon-client")
+(autoload 'mastodon-client-active-user "mastodon-client")
+(autoload 'mastodon-client-make-user-active "mastodon-client")
+(autoload 'mastodon-client-form-user-from-vars "mastodon-client")
 (defvar mastodon-instance-url)
+(defvar mastodon-client-scopes)
+(defvar mastodon-client-redirect-uri)
 
 (defgroup mastodon-auth nil
   "Authenticate with Mastodon."
