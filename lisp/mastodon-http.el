@@ -32,6 +32,7 @@
 
 (require 'json)
 (require 'request) ; for attachments upload
+(require 'url)
 
 (defvar mastodon-instance-url)
 (defvar mastodon-toot--media-attachment-ids)
@@ -155,6 +156,13 @@ Pass response buffer to CALLBACK function."
                                        (mastodon-auth--access-token))))))
     (with-temp-buffer
       (mastodon-http--url-retrieve-synchronously url))))
+
+(defun mastodon-http-append-query-string (url params)
+  "Append PARAMS to URL as query strings and return it.
+
+PARAMS should be an alist as required `url-build-query-string'."
+  (let ((query-string (url-build-query-string params)))
+    (concat url "?" query-string)))
 
 ;; search functions:
 (defun mastodon-http--process-json-search ()
