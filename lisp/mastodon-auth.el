@@ -111,16 +111,26 @@ if you are happy with unencryped storage use e.g. \"~/authinfo\"."
       (json-read-from-string json-string))))
 
 (defun mastodon-auth--access-token ()
-  "Return exiting or generate new access token.
+  "Return the access token to use with `mastodon-instance-url'.
 
-If an access token for `mastodon-instance-url' is in
-`mastodon-auth--token-alist', return it.
-
-Otherwise, generate a token and pass it to
-`mastodon-auth--handle-token-reponse'."
-  (if-let ((token (cdr (assoc mastodon-instance-url mastodon-auth--token-alist))))
-      token
-    (mastodon-auth--handle-token-response (mastodon-auth--get-token))))
+Generate/save token if none known yet."
+  (cond (mastodon-auth--token-alist
+         ;; user variables are known and
+         ;; initialised already.
+         (alist-get mastodon-instance-url mastodon-auth--token-alist
+                    nil nil 'equal))
+        ((plist-get (mastodon-client-active-user) :access_token)
+         ;; user variables needs to initialised by reading from
+         ;; plstore.
+         (push (cons mastodon-instance-url
+                     (plist-get (mastodon-client-active-user) :access_token))
+               mastodon-auth--token-alist)
+         (alist-get mastodon-instance-url mastodon-auth--token-alist
+                    nil nil 'equal))
+        (t
+         ;; user access-token needs to fetched from the server and
+         ;; stored and variables initialised.
+         (mastodon-auth--handle-token-response (mastodon-auth--get-token)))))
 
 (defun mastodon-auth--handle-token-response (response)
   "Add token RESPONSE to `mastodon-auth--token-alist'.
@@ -131,6 +141,8 @@ Handle any errors from the server."
   (pcase response
     ((and (let token (plist-get response :access_token))
           (guard token))
+     (mastodon-client-make-user-active
+      (mastodon-client-store-access-token token))
      (cdar (push (cons mastodon-instance-url token)
                  mastodon-auth--token-alist)))
 
