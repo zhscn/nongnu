@@ -46,14 +46,23 @@
 (defvar mastodon-client--client-details-alist nil
   "An alist of Client id and secrets keyed by the instance url.")
 
+(defvar mastodon-client-scopes "read write follow"
+  "Scopes to pass to oauth during registration.")
+
+(defvar mastodon-client-website "https://codeberg.org/martianh/mastodon.el"
+  "Website of mastodon.el.")
+
+(defvar mastodon-client-redirect-uri "urn:ietf:wg:oauth:2.0:oob"
+  "Redirect_uri as required by oauth.")
+
 (defun mastodon-client--register ()
   "POST client to Mastodon."
   (mastodon-http--post
    (mastodon-http--api "apps")
-   '(("client_name" . "mastodon.el")
-     ("redirect_uris" . "urn:ietf:wg:oauth:2.0:oob")
-     ("scopes" . "read write follow")
-     ("website" . "https://github.com/jdenen/mastodon.el"))
+   `(("client_name" . "mastodon.el")
+     ("redirect_uris" . ,mastodon-client-redirect-uri)
+     ("scopes" . ,mastodon-client-scopes)
+     ("website" . ,mastodon-client-website))
    nil
    :unauthenticated))
 
