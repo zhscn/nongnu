@@ -1,6 +1,7 @@
 ;;; mastodon-client.el --- Client functions for mastodon.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2019 Johnson Denen
+;; Copyright (C) 2021 Abhiseck Paira <abhiseckpaira@disroot.org>
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 0.10.0
