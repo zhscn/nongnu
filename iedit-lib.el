@@ -3,7 +3,7 @@
 
 ;; Copyright (C) 2010 - 2019, 2020, 2021 Victor Ren
 
-;; Time-stamp: <2021-12-23 19:28:21 Victor Ren>
+;; Time-stamp: <2021-12-28 12:46:19 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous rectangle refactoring
 ;; Version: 0.9.9.9
@@ -331,6 +331,7 @@ It should be set before occurrence overlay is created.")
   "Quit the current mode by calling mode exit function."
   (interactive)
   (when iedit-buffering
+	;; keep the content and quit iedit only
 	(setq iedit-buffering nil)
 	(when defining-kbd-macro
 	  (kmacro-keyboard-quit)
@@ -473,7 +474,10 @@ there are."
   "Clean up occurrence overlay, invisible overlay and local variables."
   (when iedit-buffering
 	(if defining-kbd-macro
-		(iedit-end-and-call-kmacro nil)
+		(progn
+		  (kmacro-end-macro nil)
+		  (setq iedit-buffering nil)
+		  (iedit--apply-kmacro))
 	  (iedit-stop-buffering)))
   (iedit-cleanup-occurrences-overlays)
   (remove-hook 'post-command-hook 'iedit-update-occurrences t)
@@ -1024,19 +1028,25 @@ before calling the last keyboard macro."
 		;; (and defining-kbd-macro iedit-buffering-overlay) iedit-start-kmacro was called
 		(kmacro-end-macro nil)
 		(setq iedit-buffering nil))
-	  (let ((iedit-updating t))
-		(save-excursion
-		  (when iedit-buffering-overlay (iedit-move-conjoined-overlays iedit-buffering-overlay))
-		  (dolist (another-occurrence iedit-occurrences-overlays)
-			(when (not (eq another-occurrence iedit-buffering-overlay))
-			  (goto-char (+ (overlay-start another-occurrence) iedit-start-kmacro-offset))
-			  (kmacro-call-macro nil t)
-			  (iedit-move-conjoined-overlays another-occurrence)))))
+	  (iedit--apply-kmacro)
 	  (setq iedit-buffering-overlay nil)
 	  (if (iedit-same-length)
-		  (message "Keyboard macro applied to the occurrences.")
+		  nil
 		(iedit--quit)
 		(message "Abort Iedit mode due to different change made to occurrences.")))))
+
+(defun iedit--apply-kmacro ()
+  "Apply last keyboard macro on all the occurrences."
+  (let ((iedit-updating t))
+	(save-excursion
+	  (when iedit-buffering-overlay (iedit-move-conjoined-overlays iedit-buffering-overlay))
+	  (dolist (another-occurrence iedit-occurrences-overlays)
+		(when (not (eq another-occurrence iedit-buffering-overlay))
+		  (goto-char (+ (overlay-start another-occurrence) iedit-start-kmacro-offset))
+		  (kmacro-call-macro nil t)
+		  (iedit-move-conjoined-overlays another-occurrence)))
+	  )
+	(message "Keyboard macro applied to the occurrences.")))
 
 (defun iedit-case-pattern (beg end)
   "Distinguish the case pattern of the text between `beg' and `end'.
