@@ -405,7 +405,9 @@ the point should not be moved by this function."
       ;; typically when the file is intended for another platform (for example).
       (imenu--make-index-alist)
       (error
-        (doc-show-inline--log-fail "IMENU couldn't access symbols (failed to parse?): %s" err))))
+        (doc-show-inline--log-fail
+          "IMENU couldn't access symbols (failed to parse?): %s"
+          (error-message-string err)))))
   (let
     (
       (alist imenu--index-alist)
