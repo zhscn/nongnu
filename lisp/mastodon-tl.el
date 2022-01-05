@@ -35,6 +35,8 @@
 (require 'time-date)
 (require 'cl-lib) ; for cl-mapcar
 
+(require 'mpv nil :no-error)
+
 (autoload 'mastodon-auth--get-account-name "mastodon-auth")
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--get-json "mastodon-http")
@@ -152,6 +154,7 @@ types of mastodon links and not just shr.el-generated ones.")
     (define-key map (kbd "u") 'mastodon-tl--update)
     ;; keep new my-profile binding; shr 'O' doesn't work here anyway
     (define-key map (kbd "O") 'mastodon-profile--my-profile)
+    (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-at-point)
     (keymap-canonicalize map))
   "The keymap to be set for shr.el generated image links.
 
@@ -838,6 +841,20 @@ a notification."
                              (lambda ()
                                (message "You voted for option %s: %s!"
                                         (car option) (cdr option)))))))
+
+(defun mastodon-tl--mpv-play-video-at-point ()
+  "Play the video or gif at point with an mpv process."
+  (interactive)
+  (let ((url (get-text-property (point) 'image-url))
+        (type (mastodon-tl--property 'mastodon-media-type)))
+    (if url
+        (if (or (equal type "gifv")
+                (equal type "video"))
+            (progn
+              (message "'q' to kill mpv.")
+              (mpv-start "--loop" url))
+          (message "no moving image here?"))
+      (message "no moving image here?"))))
 
 (defun mastodon-tl--toot (toot)
   "Formats TOOT and insertes it into the buffer."

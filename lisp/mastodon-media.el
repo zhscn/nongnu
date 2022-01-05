@@ -298,7 +298,7 @@ Replace them with the referenced image."
 FULL-REMOTE-URL is used for `shr-browse-image'.
 TYPE is the attachment's type field on the server."
   (let ((help-echo
-         "RET/i: load full image (prefix: copy URL), +/-: zoom, r: rotate, o: save preview"))
+         "RET/i: load full image (prefix: copy URL), C-RET: play moving image, +/-: zoom, r: rotate, o: save preview"))
     (concat
      (propertize "[img]"
                  'media-url media-url
