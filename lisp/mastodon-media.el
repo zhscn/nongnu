@@ -280,7 +280,12 @@ Replace them with the referenced image."
         (type (get-text-property start 'mastodon-media-type)))
     (when (or (equal type "gifv")
               (equal type "video"))
-      (overlay-put ov 'after-string " [ ⏯ ]"))))
+      (overlay-put
+       ov
+       'after-string
+       (propertize " "
+                   'face
+                   '((:height 1.5 :inherit 'font-lock-comment-face)))))))
 
 (defun mastodon-media--get-avatar-rendering (avatar-url)
   "Return the string to be written that renders the avatar at AVATAR-URL."
