@@ -492,8 +492,6 @@ START and END are the boundaries of the link in the toot."
                               mastodon-instance-url))
          (maybe-hashtag (mastodon-tl--extract-hashtag-from-url
                          url toot-instance-url))
-         (url-instance (concat "https://"
-                               (url-host (url-generic-parse-url url))))
          (maybe-userhandle (mastodon-tl--extract-userhandle-from-url
                             url (buffer-substring-no-properties start end))))
     (cond (;; Hashtags:
