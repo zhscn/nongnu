@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2010 - 2019, 2020, 2021 Victor Ren
 
-;; Time-stamp: <2022-01-12 13:43:27 Victor Ren>
+;; Time-stamp: <2022-01-12 14:32:55 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous refactoring
 ;; Version: 0.9.9.9
@@ -428,6 +428,7 @@ Keymap used within overlays:
 (unless (boundp 'isearch-regexp-function)
   (defvaralias 'isearch-regexp-function 'isearch-word))
 
+;;;###autoload
 (defun iedit-mode-from-isearch (&optional arg)
   "Start Iedit mode using last search string as the regexp."
   (interactive "P")
@@ -628,6 +629,7 @@ the initial string globally."
 	  (iedit-done)
 	(iedit-mode 0)))
 
+;;;###autoload
 (defun iedit-execute-last-modification (&optional arg)
   "Apply last modification in Iedit mode to the current buffer or an active region."
   (interactive "*P")
