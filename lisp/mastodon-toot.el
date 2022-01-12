@@ -170,8 +170,7 @@ Valid values are \"direct\", \"private\" (followers-only),
                      (alist-get 'statuses
                                 (alist-get 'configuration
                                            json-response))))))
-  (setq mastodon-toot--max-toot-chars
-        (number-to-string max-chars))
+  (setq mastodon-toot--max-toot-chars max-chars)
   (with-current-buffer "*new toot*"
     (mastodon-toot--update-status-fields))))
 
@@ -501,7 +500,7 @@ If media items have been attached and uploaded with
                             (length mastodon-toot--media-attachment-ids)))))
            (message "Something is wrong with your uploads. Wait for them to complete or try again."))
           ((and mastodon-toot--max-toot-chars
-                (> (length toot) (string-to-number mastodon-toot--max-toot-chars)))
+                (> (length toot) mastodon-toot--max-toot-chars))
            (message "Looks like your toot is longer than that maximum allowed length."))
           (empty-toot-p
            (message "Empty toot. Cowardly refusing to post this."))
@@ -857,7 +856,7 @@ REPLY-JSON is the full JSON of the toot being replied to."
                            (list 'display
                                  (format "%s/%s characters"
                                          (- (point-max) (cdr header-region))
-                                         mastodon-toot--max-toot-chars)))
+                                         (number-to-string mastodon-toot--max-toot-chars))))
       (add-text-properties (car visibility-region) (cdr visibility-region)
                            (list 'display
                                  (format "Visibility: %s"
