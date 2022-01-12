@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2010 - 2019, 2020 Victor Ren
 
-;; Time-stamp: <2021-12-23 19:28:33 Victor Ren>
+;; Time-stamp: <2022-01-12 11:48:28 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Version: 0.9.9.9
 ;; X-URL: https://github.com/victorhge/iedit
@@ -39,7 +39,7 @@
   (with-temp-buffer
 	(call-process-shell-command "emacs -L . -Q --batch -f batch-byte-compile *.el" nil (current-buffer))
     (should (string= (buffer-string) "Iedit default key binding is C-;
-Iedit-rect default key binding is <C-x> <r> <RET>
+Iedit-rect default key binding is <C-x> <r> <;>
 "))
 	(delete-file (byte-compile-dest-file "iedit-lib.el") nil)
 	(delete-file (byte-compile-dest-file "iedit-rect.el") nil)
