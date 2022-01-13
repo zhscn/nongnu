@@ -94,7 +94,21 @@
   :group 'external)
 
 (defcustom mastodon-instance-url "https://mastodon.social"
-  "Base URL for the Masto instance from which you toot."
+  "Base URL for the Mastodon instance you want to be active.
+
+For example, if your mastodon username is
+\"example_user@social.instance.org\", and you want this account
+to be active, the value of this variable should be
+\"https://social.instance.org\".
+
+Also for completeness, the value of `mastodon-active-user' should
+be \"example_user\".
+
+After setting these variables you should restart Emacs for these
+changes to take effect."
+  :group 'mastodon
+  :type 'string)
+
 (defcustom mastodon-active-user "user"
   "Username of the active user.
 
