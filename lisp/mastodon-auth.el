@@ -61,17 +61,32 @@ if you are happy with unencryped storage use e.g. \"~/authinfo\"."
 (defvar mastodon-auth--acct-alist nil
   "Alist of account accts (name@domain) keyed by instance url.")
 
-(defun mastodon-auth--generate-token ()
-  "Make POST to generate auth token.
+(defun mastodon-auth--get-browser-login-url ()
+  "Return properly formed browser login url."
+  (mastodon-http-append-query-string
+   (concat mastodon-instance-url "/oauth/authorize/")
+   `(("response_type" "code")
+     ("redirect_uri" ,mastodon-client-redirect-uri)
+     ("scope" ,mastodon-client-scopes)
+     ("client_id" ,(plist-get (mastodon-client) :client_id)))))
 
-If no auth-sources file, runs
-`mastodon-auth--generate-token-no-storing-credentials'. If
-auth-sources file exists, runs
-`mastodon-auth--generate-token-and-store'."
-  (if (or (null mastodon-auth-source-file)
-	  (string= "" mastodon-auth-source-file))
-      (mastodon-auth--generate-token-no-storing-credentials)
-    (mastodon-auth--generate-token-and-store)))
+(defvar mastodon-auth--explanation
+  (format
+   (concat "A URL has been copied to your clipboard.\n"
+           "Open this URL in a javascript capable browser.\n"
+           "Login to your account (%s) and authorize \"mastodon.el\".\n"
+           "Paste Authorization Code here: ")
+   (mastodon-client-form-user-from-vars)))
+
+(defun mastodon-auth--ask-authorization-code ()
+  "Ask authorization code and return it."
+  (let ((url (mastodon-auth--get-browser-login-url))
+        authorization-code)
+    (kill-new url)
+    (setq authorization-code (read-string mastodon-auth--explanation))
+    authorization-code))
+
+(defun mastodon-auth--generate-token ()
 
 (defun mastodon-auth--generate-token-no-storing-credentials ()
   "Make POST to generate auth token, without using auth-sources file."
@@ -115,6 +130,17 @@ Reads and/or stores secrets in `MASTODON-AUTH-SOURCE-FILE'."
 	 :unauthenticated)
       (when (functionp (plist-get credentials-plist :save-function))
         (funcall (plist-get credentials-plist :save-function))))))
+  "Generate access_token for the user.  Return response buffer."
+  (let ((authorization-code (mastodon-auth--ask-authorization-code)))
+    (mastodon-http--post
+     (concat mastodon-instance-url "/oauth/token")
+     `(("grant_type" . "authorization_code")
+       ("client_secret" . ,(plist-get (mastodon-client) :client_secret))
+       ("client_id" . ,(plist-get (mastodon-client) :client_id))
+       ("code" . ,authorization-code)
+       ("redirect_uri" . ,mastodon-client-redirect-uri))
+     nil
+     :unauthenticated)))
 
 (defun mastodon-auth--get-token ()
   "Make a request to generate an auth token and return JSON response."
