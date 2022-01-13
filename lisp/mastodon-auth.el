@@ -87,49 +87,6 @@ if you are happy with unencryped storage use e.g. \"~/authinfo\"."
     authorization-code))
 
 (defun mastodon-auth--generate-token ()
-
-(defun mastodon-auth--generate-token-no-storing-credentials ()
-  "Make POST to generate auth token, without using auth-sources file."
-  (mastodon-http--post
-   (concat mastodon-instance-url "/oauth/token")
-   `(("client_id" . ,(plist-get (mastodon-client) :client_id))
-     ("client_secret" . ,(plist-get (mastodon-client) :client_secret))
-     ("grant_type" . "password")
-     ("username" . ,(read-string "Email: " user-mail-address))
-     ("password" . ,(read-passwd "Password: "))
-     ("scope" . "read write follow"))
-   nil
-   :unauthenticated))
-
-(defun mastodon-auth--generate-token-and-store ()
-  "Make POST to generate auth token.
-
-Reads and/or stores secrets in `MASTODON-AUTH-SOURCE-FILE'."
-  (let* ((auth-sources (list mastodon-auth-source-file))
-	 (auth-source-creation-prompts
-          '((user . "Enter email for %h: ")
-            (secret . "Password: ")))
-         (credentials-plist (nth 0 (auth-source-search
-                                    :create t
-                                    :host mastodon-instance-url
-                                    :port 443
-                                    :require '(:user :secret)))))
-    (prog1
-        (mastodon-http--post
-         (concat mastodon-instance-url "/oauth/token")
-         `(("client_id" . ,(plist-get (mastodon-client) :client_id))
-           ("client_secret" . ,(plist-get (mastodon-client) :client_secret))
-           ("grant_type" . "password")
-           ("username" . ,(plist-get credentials-plist :user))
-           ("password" . ,(let ((secret (plist-get credentials-plist :secret)))
-                            (if (functionp secret)
-                                (funcall secret)
-                              secret)))
-           ("scope" . "read write follow"))
-         nil
-	 :unauthenticated)
-      (when (functionp (plist-get credentials-plist :save-function))
-        (funcall (plist-get credentials-plist :save-function))))))
   "Generate access_token for the user.  Return response buffer."
   (let ((authorization-code (mastodon-auth--ask-authorization-code)))
     (mastodon-http--post
