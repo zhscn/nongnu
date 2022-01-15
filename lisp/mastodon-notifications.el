@@ -48,6 +48,7 @@
 (autoload 'mastodon-tl--spoiler "mastodon-tl.el")
 (autoload 'mastodon-tl--toot-id "mastodon-tl.el")
 (defvar mastodon-tl--display-media-p)
+(defvar mastodon-tl--buffer-spec)
 
 (defvar mastodon-notifications--types-alist
   '(("mention" . mastodon-notifications--mention)
@@ -174,8 +175,8 @@ Status notifications are given when
          (propertize (if (equal type 'follow)
                          "Congratulations, you have a new follower!"
                        (format "You have a follow request from... %s"
-                               follower)
-                       'face 'default))
+                               follower))
+                       'face 'default)
        (mastodon-tl--clean-tabs-and-nl
         (if (mastodon-tl--has-spoiler status)
             (mastodon-tl--spoiler status)
@@ -192,7 +193,7 @@ Status notifications are given when
         (cond ((equal type 'boost)
                "Boosted")
               ((equal type 'favorite)
-               "Favorited")
+               "Favourited")
               ((equal type 'follow-request)
                "Requested to follow")
               ((equal type 'follow)
