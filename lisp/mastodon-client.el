@@ -116,6 +116,28 @@ Return plist without the KEY."
          (plstore-item (plstore-get plstore key)))
     (mastodon-client--remove-key-from-plstore plstore-item)))
 
+(defun mastodon-client--make-user-details-plist ()
+  "Make a plist with current user details.  Return it."
+  `(:username ,(mastodon-client-form-user-from-vars)
+              :instance ,mastodon-instance-url
+              :client_id ,(plist-get (mastodon-client) :client_id)
+              :client_secret ,(plist-get (mastodon-client) :client_secret)))
+
+(defun mastodon-client-store-access-token (token)
+  "Save TOKEN as :access_token in plstore of the current user.
+Return the plist after the operation."
+  (let* ((user-details (mastodon-client--make-user-details-plist))
+         (plstore (plstore-open (mastodon-client--token-file)))
+         (username (plist-get user-details :username))
+         (plstore-value (setq user-details
+                              (plist-put user-details :access_token token)))
+         (print-length nil)
+         (print-level nil))
+    (plstore-put plstore (concat "user-" username) plstore-value nil)
+    (plstore-save plstore)
+    (plstore-close plstore)
+    plstore-value))
+
 (defun mastodon-client-form-user-from-vars ()
   "Create a username from user variable.  Return that username.
 
