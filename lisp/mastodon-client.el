@@ -138,6 +138,15 @@ Return the plist after the operation."
     (plstore-close plstore)
     plstore-value))
 
+(defun mastodon-client-make-user-active (user-details)
+  "USER-DETAILS is a plist consisting of user details."
+  (let ((plstore (plstore-open (mastodon-client--token-file)))
+        (print-length nil)
+        (print-level nil))
+    (plstore-put plstore "active-user" user-details nil)
+    (plstore-save plstore)
+    (plstore-close plstore)))
+
 (defun mastodon-client-form-user-from-vars ()
   "Create a username from user variable.  Return that username.
 
@@ -147,6 +156,24 @@ variables `mastodon-instance-url' and `mastodon-active-user'."
           "@"
           (url-host (url-generic-parse-url mastodon-instance-url))))
 
+(defun mastodon-client--make-current-user-active ()
+  "Make the user specified by user variables active user.
+Return the details (plist)."
+  (let ((username (mastodon-client-form-user-from-vars))
+        user-plist)
+    (when (setq user-plist
+                (mastodon-client--general-read (concat "user-" username)))
+      (mastodon-client-make-user-active user-plist))
+    user-plist))
+
+(defun mastodon-client--current-user-active-p ()
+  "Return user-details if the current user is active.
+Otherwise return nil."
+  (let ((username (mastodon-client-form-user-from-vars))
+        (user-details (mastodon-client--general-read "active-user")))
+    (when (and user-details
+               (equal (plist-get user-details :username) username))
+      user-details)))
 (defun mastodon-client ()
   "Return variable client secrets to use for `mastodon-instance-url'.
 
