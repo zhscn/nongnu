@@ -46,6 +46,9 @@
 (defvar mastodon-client--client-details-alist nil
   "An alist of Client id and secrets keyed by the instance url.")
 
+(defvar mastodon-client--active-user-details-plist nil
+  "A plist of active user details.")
+
 (defvar mastodon-client-scopes "read write follow"
   "Scopes to pass to oauth during registration.")
 
@@ -174,6 +177,20 @@ Otherwise return nil."
     (when (and user-details
                (equal (plist-get user-details :username) username))
       user-details)))
+
+(defun mastodon-client-active-user ()
+  "Return the details of the currently active user.
+
+Details is a plist."
+  (let ((active-user-details mastodon-client--active-user-details-plist))
+    (unless active-user-details
+      (setq active-user-details
+            (or (mastodon-client--current-user-active-p)
+                (mastodon-client--make-current-user-active)))
+      (setq mastodon-client--active-user-details-plist
+            active-user-details))
+    active-user-details))
+
 (defun mastodon-client ()
   "Return variable client secrets to use for `mastodon-instance-url'.
 
