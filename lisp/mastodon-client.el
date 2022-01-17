@@ -116,6 +116,15 @@ Return plist without the KEY."
          (plstore-item (plstore-get plstore key)))
     (mastodon-client--remove-key-from-plstore plstore-item)))
 
+(defun mastodon-client-form-user-from-vars ()
+  "Create a username from user variable.  Return that username.
+
+Username in the form user@instance.com is formed from the
+variables `mastodon-instance-url' and `mastodon-active-user'."
+  (concat mastodon-active-user
+          "@"
+          (url-host (url-generic-parse-url mastodon-instance-url))))
+
 (defun mastodon-client ()
   "Return variable client secrets to use for `mastodon-instance-url'.
 
