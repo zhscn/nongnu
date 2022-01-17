@@ -97,11 +97,17 @@ Make `mastodon-client--fetch' call to determine client values."
     (plstore-close plstore)
     client))
 
+(defun mastodon-client--remove-key-from-plstore (plstore)
+  "Remove KEY from PLSTORE."
+  (cdr plstore))
+
+;; Actually it returns a plist with client-details if such details are
+;; already stored in mastodon.plstore
 (defun mastodon-client--read ()
   "Retrieve client_id and client_secret from `mastodon-client--token-file'."
   (let* ((plstore (plstore-open (mastodon-client--token-file)))
          (mastodon (plstore-get plstore (concat "mastodon-" mastodon-instance-url))))
-    (cdr mastodon)))
+    (mastodon-client--remove-key-from-plstore mastodon)))
 
 (defun mastodon-client ()
   "Return variable client secrets to use for `mastodon-instance-url'.
