@@ -1,5 +1,6 @@
-- In development (2021-08-29)
+- In development (2022-01-20)
 
+  - Fix #1 font face detection when overlays were in use (such as ``hl-line-mode``).
   - Fix highlighting with multiple windows sharing one buffer.
   - Add ``idle-highlight-visible-buffers`` to support highlighting all buffers with the current symbol.
   - Add ``idle-highlight-exceptions-syntax`` so the characters used in the syntax-table used can be customized.
