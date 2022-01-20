@@ -1,4 +1,4 @@
-;; Copyright (C) 2015-2016 Codingteam
+;; Copyright (C) 2015-2016 Codingteam  -*- lexical-binding: t; -*-
 
 ;; Permission is hereby granted, free of charge, to any person
 ;; obtaining a copy of this software and associated documentation
@@ -19,6 +19,8 @@
 ;; ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 ;; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;; SOFTWARE.
+
+(require 'el-mock)
 
 (ert-deftest pacmacs-load-image-test ()
   (with-mock
@@ -129,3 +131,9 @@
   (with-mock
    (mock (pacmacs--anim-object-next-frame 42 43) :times 5)
    (pacmacs--anim-object-list-next-frame (make-list 5 42) 43)))
+
+;; FIXME: Can't be compiled without `el-mock', but we don't want a hard
+;; dependency on `el-mock'.
+;; Local Variables:
+;; no-byte-compile: t
+;; End:

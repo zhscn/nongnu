@@ -1,4 +1,4 @@
-;; Copyright (C) 2015-2016 Codingteam
+;; Copyright (C) 2015-2016 Codingteam  -*- lexical-binding: t; -*-
 
 ;; Permission is hereby granted, free of charge, to any person
 ;; obtaining a copy of this software and associated documentation
@@ -20,6 +20,8 @@
 ;; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;; SOFTWARE.
 
+(require 'el-mock)
+
 (ert-deftest pacmacs-insert-image-test ()
   (let ((resource "khooy")
         (resource-vector "pew"))
@@ -34,3 +36,9 @@
       (pacmacs--render-track-board track-board)
       (should (equal "\t10\t.\n\t.\t.\n"
                      (buffer-string))))))
+
+;; FIXME: Can't be compiled without `el-mock', but we don't want a hard
+;; dependency on `el-mock'.
+;; Local Variables:
+;; no-byte-compile: t
+;; End:

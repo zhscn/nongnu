@@ -32,7 +32,6 @@
 
 ;;; Code:
 
-(require 'f)
 (require 'dash)
 
 (defconst pacmacs--max-score-nick-size 8)
@@ -42,11 +41,10 @@
 
 (defun pacmacs--read-score-table ()
   (when (file-exists-p pacmacs--score-file-name)
-    (->> pacmacs--score-file-name
-         (f-read-text)
-         (read-from-string)
-         (car)
-         (pacmacs--sort-score-table))))
+    (pacmacs--sort-score-table
+     (with-temp-buffer
+       (insert-file-contents pacmacs--score-file-name)
+       (read (current-buffer))))))
 
 (defun pacmacs--write-score-table (score-table)
   (with-temp-buffer

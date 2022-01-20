@@ -1,4 +1,4 @@
-;; Copyright (C) 2015-2016 Codingteam
+;; Copyright (C) 2015-2016 Codingteam  -*- lexical-binding: t; -*-
 
 ;; Permission is hereby granted, free of charge, to any person
 ;; obtaining a copy of this software and associated documentation
@@ -19,6 +19,9 @@
 ;; ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 ;; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;; SOFTWARE.
+
+(require 'pacmacs)
+(require 'el-mock)
 
 (ert-deftest pacmacs--cell-tracked-p-test ()
   (let ((pacmacs--track-board (list :width 2
@@ -178,3 +181,9 @@
      (mock (pacmacs--track-object-to-player 'ghost) :times 10)
      (mock (pacmacs--step-object 'ghost) :times 10)
      (pacmacs--step-ghosts))))
+
+;; FIXME: Can't be compiled without `el-mock', but we don't want a hard
+;; dependency on `el-mock'.
+;; Local Variables:
+;; no-byte-compile: t
+;; End:

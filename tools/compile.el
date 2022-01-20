@@ -1,4 +1,4 @@
-;; Copyright (C) 2015-2016 Codingteam
+;; Copyright (C) 2015-2016 Codingteam  -*- lexical-binding: t; -*-
 
 ;; Permission is hereby granted, free of charge, to any person
 ;; obtaining a copy of this software and associated documentation
@@ -20,21 +20,24 @@
 ;; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;; SOFTWARE.
 
-(require 'cask "~/.cask/cask.el")
+(require 'dash)
+
+(if t (require 'cask "~/.cask/cask.el")) ;Don't load when compiling compile.el
 
 (let ((bundle (cask-initialize default-directory)))
-  (require 'dash)
-  (require 'f)
   (require 'bytecomp)
   (let* ((byte-compile-error-on-warn t)
          (load-path (cons (cask-path bundle) (cask-load-path bundle)))
-         (compilation-failed (->> (cask-files bundle)
-                                  (-filter (-lambda (path)
-                                             (and (f-file? path)
-                                                  (f-ext? path "el"))))
-                                  (-map (-lambda (file)
-                                          (byte-compile-file file nil)))
-                                  (-any #'null))))
+         (compilation-failed
+          (->> (cask-files bundle)
+               (-filter (-lambda (file)
+                          (and (file-regular-p file)
+                               (equal (file-name-extension file) "el"))))
+               ;; FIXME: Why not use #'byte-compile-file especially, since that
+               ;; function doesn't accept the second arg we pass to it!
+               (-map (-lambda (file)
+                       (byte-compile-file file nil)))
+               (-any #'null))))
     (cask-clean-elc bundle)
     (when compilation-failed
       (kill-emacs 1))))

@@ -1,4 +1,4 @@
-;; Copyright (C) 2015-2016 Codingteam
+;; Copyright (C) 2015-2016 Codingteam  -*- lexical-binding: t; -*-
 
 ;; Permission is hereby granted, free of charge, to any person
 ;; obtaining a copy of this software and associated documentation
@@ -19,6 +19,10 @@
 ;; ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 ;; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;; SOFTWARE.
+
+(require 'dash)
+(require 'el-mock)
+(require 'pacmacs-walls)
 
 (ert-deftest pacmacs--put-wall-tile-corner-test ()
   (let ((input-wall-tile [[nil nil nil]
@@ -125,3 +129,9 @@
     (with-mock
      (mock (clrhash 42) :times 1)
      (pacmacs--clear-wall-tiles-cache))))
+
+;; FIXME: Can't be compiled without `el-mock', but we don't want a hard
+;; dependency on `el-mock'.
+;; Local Variables:
+;; no-byte-compile: t
+;; End:

@@ -2,3 +2,5 @@
 dist/
 *.elc
 att.txt
+/pacmacs-autoloads.el
+/pacmacs-pkg.el

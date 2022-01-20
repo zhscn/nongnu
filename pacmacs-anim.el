@@ -60,9 +60,9 @@
          (aseprite-frames (cdr (assoc 'frames aseprite-json)))
          (sprite-sheet (pacmacs-load-image sprite-sheet-file)))
     (pacmacs-make-anim
-     (mapcar 'pacmacs-convert-aseprite-frame
+     (mapcar #'pacmacs-convert-aseprite-frame
              (sort aseprite-frames
-                   'pacmacs-compare-aseprite-frames))
+                   #'pacmacs-compare-aseprite-frames))
      sprite-sheet)))
 
 (defun pacmacs-aseprite-frame-get-order (aseprite-frame)

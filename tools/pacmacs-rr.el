@@ -36,7 +36,6 @@
 (require 'pacmacs)
 
 (require 'dash)
-(require 'f)
 (require 'cl-lib)
 
 (defvar pacmacs--tick-counter 0)
@@ -68,9 +67,9 @@
     (write-file filename)))
 
 (defun pacmacs--load-test-case (filename)
-  (-> (f-read-text filename)
-      (read-from-string)
-      (car)))
+  (with-temp-buffer
+    (insert-file-contents filename)
+    (read (current-buffer))))
 
 (defun pacmacs-record-up ()
   (interactive)
@@ -111,11 +110,15 @@
     (pacmacs-quit)
     (run-hooks 'pacmacs-replay-finished-hook)))
 
-(define-derived-mode pacmacs-it-recorder-mode pacmacs-mode "pacmacs-it-recorder-mode"
-  (define-key pacmacs-it-recorder-mode-map (kbd "<up>") 'pacmacs-record-up)
-  (define-key pacmacs-it-recorder-mode-map (kbd "<down>") 'pacmacs-record-down)
-  (define-key pacmacs-it-recorder-mode-map (kbd "<left>") 'pacmacs-record-left)
-  (define-key pacmacs-it-recorder-mode-map (kbd "<right>") 'pacmacs-record-right))
+(defvar pacmacs-it-recorder-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<up>")    #'pacmacs-record-up)
+    (define-key map (kbd "<down>")  #'pacmacs-record-down)
+    (define-key map (kbd "<left>")  #'pacmacs-record-left)
+    (define-key map (kbd "<right>") #'pacmacs-record-right)
+    map))
+
+(define-derived-mode pacmacs-it-recorder-mode pacmacs-mode "pacmacs-it-recorder-mode")
 
 (defun pacmacs--average-tick-time ()
   (/ (-sum pacmacs--tick-times) (length pacmacs--tick-times)))

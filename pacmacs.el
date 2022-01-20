@@ -6,7 +6,7 @@
 ;; Maintainer: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/codingteam/pacmacs.el
 ;; Version: 0.1
-;; Package-Requires: ((emacs "24.4") (dash "2.18.0") (cl-lib "0.5") (f "0.18.0"))
+;; Package-Requires: ((emacs "24.4") (dash "2.18.0"))
 
 ;; Permission is hereby granted, free of charge, to any person
 ;; obtaining a copy of this software and associated documentation
@@ -38,7 +38,6 @@
 
 (require 'cl-lib)
 (require 'dash)
-(require 'f)
 (require 'widget)
 (require 'wid-edit)
 
@@ -91,30 +90,34 @@
 
 (defcustom pacmacs-levels-folder nil
   "A folder from where the Pacmacs game loads its levels."
-  :group 'pacmacs
   :type '(radio (const :tag "Default path")
                 (directory :tag "Custom path")))
 
+(defvar pacmacs-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<up>") #'pacmacs-up)
+    (define-key map (kbd "<down>") #'pacmacs-down)
+    (define-key map (kbd "<left>") #'pacmacs-left)
+    (define-key map (kbd "<right>") #'pacmacs-right)
+    (define-key map (kbd "q") #'pacmacs-quit)
+    (define-key map (kbd "SPC") #'pacmacs-pause)
+    map))
+
 (define-derived-mode pacmacs-mode special-mode "Pacmacs"
-  (define-key pacmacs-mode-map (kbd "<up>") 'pacmacs-up)
-  (define-key pacmacs-mode-map (kbd "<down>") 'pacmacs-down)
-  (define-key pacmacs-mode-map (kbd "<left>") 'pacmacs-left)
-  (define-key pacmacs-mode-map (kbd "<right>") 'pacmacs-right)
-  (define-key pacmacs-mode-map (kbd "q") 'pacmacs-quit)
-  (define-key pacmacs-mode-map (kbd "SPC") 'pacmacs-pause)
-  (add-hook 'kill-buffer-hook 'pacmacs-destroy nil t)
+  (add-hook 'kill-buffer-hook #'pacmacs-destroy nil t)
   (setq cursor-type nil)
   (setq truncate-lines t))
 
+(defvar pacmacs-game-over-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "q") #'pacmacs-quit)
+    map))
+
 (define-derived-mode pacmacs-game-over-mode special-mode "Pacmacs-Game-Over"
-  (define-key pacmacs-game-over-mode-map (kbd "q") 'pacmacs-quit)
   (setq cursor-type nil)
   (setq truncate-lines t))
 
 (define-derived-mode pacmacs-scores-mode special-mode "Pacmacs-Scores"
-  (define-key pacmacs-game-over-mode-map (kbd "q")
-    (-partial #'pacmacs--kill-buffer-and-its-window
-              pacmacs--score-buffer-name))
   (setq cursor-type nil)
   (setq truncate-lines t))
 
@@ -300,6 +303,8 @@
 
 (defun pacmacs-quit ()
   (interactive)
+  (when (get-buffer pacmacs--score-buffer-name)
+    (pacmacs--kill-buffer-and-its-window pacmacs--score-buffer-name))
   (when (get-buffer pacmacs-buffer-name)
     (pacmacs--kill-buffer-and-its-window pacmacs-buffer-name)))
 
@@ -773,9 +778,11 @@
        (pacmacs--load-map-file)))
 
 (defun pacmacs--load-map-file (map-file-name)
-  (let* ((lines (split-string (f-read-text map-file-name)
+  (let* ((lines (split-string (with-temp-buffer
+                                (insert-file-contents map-file-name)
+                                (buffer-string))
                               "\n" t))
-         (board-width (apply 'max (mapcar #'length lines)))
+         (board-width (apply #'max (mapcar #'length lines)))
          (board-height (length lines)))
     (setq pacmacs--object-board (pacmacs--make-board board-width
                                                      board-height))

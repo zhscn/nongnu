@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'dash))
+
 (defun pacmacs--vector-components-operation (vector1 vector2 operation)
   (-let (((row1 . column1) vector1)
          ((row2 . column2) vector2))

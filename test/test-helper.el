@@ -1,4 +1,4 @@
-;; Copyright (C) 2015-2016 Codingteam
+;; Copyright (C) 2015-2016 Codingteam  -*- lexical-binding: t; -*-
 
 ;; Permission is hereby granted, free of charge, to any person
 ;; obtaining a copy of this software and associated documentation
@@ -20,8 +20,10 @@
 ;; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;; SOFTWARE.
 
-(require 'cl)                           ;el-mock doesn't work without
-                                        ;this
+;; If `el-mock' doesn't work without this, then it's a bug in `el-mock'
+;; which should be trivial to fix.  Also, `el-mock' migrated to cl-lib
+;; back in 2017.
+;;(require 'cl)                        ;el-mock doesn't work without this
 (require 'el-mock)
 (require 'undercover)
 (require 'dash)
@@ -49,3 +51,9 @@
 
 (add-to-list 'load-path ".")
 (load "pacmacs.el")
+
+;; FIXME: Can't be compiled without `el-mock', but we don't want a hard
+;; dependency on `el-mock'.
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
