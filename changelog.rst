@@ -1,5 +1,5 @@
 - In development (2022-01-20)
-
+  - Fix #2 use symbol instead of word bounds when scanning items to highlight.
   - Fix #1 font face detection when overlays were in use (such as ``hl-line-mode``).
   - Fix highlighting with multiple windows sharing one buffer.
   - Add ``idle-highlight-visible-buffers`` to support highlighting all buffers with the current symbol.

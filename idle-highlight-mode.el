@@ -232,7 +232,7 @@ Where RANGES is an unordered list of (min . max) cons cells."
 Argument VISIBLE-RANGES is a list of (min . max) ranges to highlight."
   (idle-highlight--unhighlight)
   (save-excursion
-    (let ((target-regexp (concat "\\<" (regexp-quote target) "\\>")))
+    (let ((target-regexp (concat "\\_<" (regexp-quote target) "\\_>")))
       (dolist (range visible-ranges)
         (pcase-let ((`(,beg . ,end) range))
           (goto-char beg)
