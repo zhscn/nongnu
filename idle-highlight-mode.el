@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008-2011 Phil Hagelberg, Cornelius Mika
 
 ;; Author: Phil Hagelberg, Cornelius Mika, Campbell Barton
-;; URL: http://www.emacswiki.org/cgi-bin/wiki/IdleHighlight
+;; URL: https://gitlab.com/ideasman42/emacs-idle-highlight-mode
 ;; Version: 1.1.3
 ;; Created: 2008-05-13
 ;; Keywords: convenience
@@ -31,23 +31,18 @@
 
 ;;; Commentary:
 
-;; Based on some snippets by fledermaus from the Emacs channel.
-
 ;; M-x idle-highlight-mode sets an idle timer that highlights all
-;; occurrences in the buffer of the word under the point.
+;; occurrences in the buffer of the symbol under the point.
 
 ;; Enabling it in a hook is recommended if you don't want it enabled
 ;; for all buffers, just programming ones.
 ;;
 ;; Example:
 ;;
-;; (defun my-coding-hook ()
-;;   (when window-system (hl-line-mode t))
+;; (defun my-prog-mode-hook ()
 ;;   (idle-highlight-mode t))
 ;;
-;; (add-hook 'emacs-lisp-mode-hook 'my-coding-hook)
-;; (add-hook 'ruby-mode-hook 'my-coding-hook)
-;; (add-hook 'js2-mode-hook 'my-coding-hook)
+;; (add-hook 'prog-mode-hook 'my-prog-mode-hook)
 
 ;;; Code:
 
@@ -112,10 +107,12 @@ it'll be called with one parameter (the buffer in question), and
 it should return non-nil to make Global `idle-highlight' Mode not
 check this buffer.")
 
+
 ;; ---------------------------------------------------------------------------
 ;; Internal Variables
 
 (defvar-local idle-highlight--overlays nil "Buffer-local list of overlays.")
+
 
 ;; ---------------------------------------------------------------------------
 ;; Internal Functions
