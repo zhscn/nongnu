@@ -10,7 +10,7 @@
                                '(("client_name" . "mastodon.el")
                                  ("redirect_uris" . "urn:ietf:wg:oauth:2.0:oob")
                                  ("scopes" . "read write follow")
-                                 ("website" . "https://github.com/jdenen/mastodon.el"))
+                                 ("website" . "https://codeberg.org/martianh/mastodon.el"))
                                nil
                                :unauthenticated))
     (mastodon-client--register)))
