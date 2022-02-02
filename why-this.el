@@ -29,13 +29,16 @@
 
 ;;; Code:
 
+(require 'subr-x)
+(require 'timezone)
+
 (defgroup why-this nil
   "Show why the current line was changed."
   :group 'tools
   :link '(url-link "https://codeberg.org/akib/emacs-why-this")
   :prefix "why-this-")
 
-(defcustom why-this-backends nil
+(defcustom why-this-backends '(why-this-backend-git)
   "List of enabled backends."
   :type '(repeat (function :tag "Backend"))
   :group 'why-this)
@@ -77,6 +80,11 @@ NICK."
        :italic t))
   "Face for Why-This data."
   :group 'why-this)
+
+(defvar why-this--git-author-name (string-trim
+                                   (shell-command-to-string
+                                    "git config --get user.name"))
+  "Name of author.")
 
 (defvar why-this--overlays nil
   "Overlays created by Why-This.")
@@ -130,7 +138,8 @@ NICK."
                                             (region-end)
                                           (point)))))
            (backend why-this--backend)
-           (data (funcall backend 'get-data (buffer-file-name) begin end)))
+           (data (funcall backend 'line-data (buffer-file-name)
+                          begin end)))
       (dolist (i (number-sequence 0 (- end begin 1)))
         (let ((pos (save-excursion
                      (goto-char (point-min))
@@ -214,6 +223,82 @@ Actually the supported backend is returned."
       (remove-hook 'post-command-hook #'why-this--update-overlays t)
       (cancel-timer why-this--idle-timer)
       (setq why-this--idle-timer nil))))
+
+(defun why-this-backend-git (cmd &rest args)
+  "Git backend for Why-This mode.
+
+Do CMD with ARGS."
+  (pcase cmd
+    ('supported-p
+     (string= "true\n" (shell-command-to-string
+                        "git rev-parse --is-inside-work-tree")))
+    ('line-data
+     (when (> (- (nth 2 args) (nth 1 args)) 0)
+       (let ((lines (butlast
+                     (split-string
+                      (shell-command-to-string
+                       (format
+                        "git blame -L %i,%i \"%s\" --line-porcelain"
+                        (nth 1 args) (1- (nth 2 args)) (nth 0 args)))
+                      "\n")))
+             line-data
+             uncommitted
+             commit-author
+             commit-time
+             commit-timezone-offset
+             commit-message)
+         (let ((line-data-add
+                (lambda ()
+                  (let ((author (if uncommitted
+                                    why-this--git-author-name
+                                  commit-author))
+                        (time (if uncommitted
+                                  (floor (float-time))
+                                commit-time))
+                        (tz-offset (if uncommitted
+                                       (* (timezone-zone-to-minute
+                                           (current-time-zone))
+                                          60)
+                                     commit-timezone-offset))
+                        (message (if uncommitted
+                                     "Uncommitted changes"
+                                   commit-message)))
+                    (setq
+                     line-data
+                     (append
+                      line-data
+                      (list
+                       (list :author
+                             author
+                             :time
+                             (time-convert (+ (- time tz-offset)
+                                              (* (timezone-zone-to-minute
+                                                  (current-time-zone))
+                                                 60)))
+                             :message
+                             message))))))))
+           (dolist (line lines)
+             (if (string-prefix-p
+                  "0000000000000000000000000000000000000000"
+                  line)
+                 (setq uncommitted t)
+               (if (eq (aref line 0) ?\t)
+                   (funcall line-data-add)
+                 (unless uncommitted
+                   (let ((words (split-string line " ")))
+                     (pcase (car words)
+                       ("author"
+                        (setq commit-author (substring line 7)))
+                       ("author-time"
+                        (setq commit-time
+                              (string-to-number (nth 1 words))))
+                       ("author-tz"
+                        (setq commit-timezone-offset
+                              (* (timezone-zone-to-minute (nth 1 words))
+                                 60)))
+                       ("summary"
+                        (setq commit-message (substring line 8))))))))))
+         line-data)))))
 
 (provide 'why-this)
 ;;; why-this.el ends here
