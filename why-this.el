@@ -41,16 +41,18 @@
 (defcustom why-this-backends '(why-this-backend-git)
   "List of enabled backends."
   :type '(repeat (function :tag "Backend"))
+  :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-message-format "     %A, %T * %i"
+(defcustom why-this-message-format "     %A, %t * %i"
   "Format string for formatting message.
 
 All characters are written as is, except certain constructs which are
 substituted by text describing the author, time or message:
 
   %a    Author name, as returned by the backend.
-  %A    Author nick name.
+  %A    Author's nick name.
+  %t    Relative time when last change.  (E.g. \"a month ago\")
   %T    Time when last changed, formatted as \"%d %B %Y\" (see
         `format-time-string').
   %i    Message.
@@ -58,6 +60,7 @@ substituted by text describing the author, time or message:
 The value can also be a function to do the formatting itself."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
+  :package-version '(why-this "1.0")
   :group 'why-this)
 
 (defcustom why-this-nick-name-alist nil
@@ -67,18 +70,22 @@ Each element is of the following form: (NICK . AUTHORS), where NICK is the
 nick name and AUTHORS is list of the name of authors corresponding to
 NICK."
   :type '(repeat (cons (string :tag "Nick")
-                       (repeat (string :tag "Author")))))
+                       (repeat (string :tag "Author"))))
+  :package-version '(why-this "1.0")
+  :group 'why-this)
 
 (defcustom why-this-idle-delay 0.5
-  "Idle delay for rendering."
+  "Idle delay for rendering in seconds."
   :type 'number
+  :package-version '(why-this "1.0")
   :group 'why-this)
 
 (defface why-this-face
-  '((t :foreground "#a8a8a8"
+  '((t :foreground "#82b0ec"
        :background nil
        :italic t))
   "Face for Why-This data."
+  :package-version '(why-this "1.0")
   :group 'why-this)
 
 (defvar why-this--git-author-name (string-trim
@@ -103,6 +110,39 @@ NICK."
         (throw 'name (car nick))))
     author))
 
+(defun why-this-relative-time (time &optional exact)
+  "Format TIME as a relative age.
+
+When EXACT is non-nil, be as exact as possible."
+  (let* ((elapsed (max (floor (float-time (time-since time))) 0))
+         str
+         (calc-time
+          (lambda (type length)
+            (let ((count (/ elapsed length)))
+              (setq str (concat str
+                                (unless (zerop count)
+                                  (if (eq count 1)
+                                      (format "a%s %s "
+                                              (if (string= type "hour")
+                                                  "n" "")
+                                              type)
+                                    (format "%i %ss " count type))))
+                    elapsed (% elapsed length))))))
+    (if (zerop elapsed)
+        "Now"
+      (funcall calc-time "year" (floor (* 365.25 24 3600)))
+      (when (or exact (zerop (length str)))
+        (funcall calc-time "month" (* 30 24 3600))
+        (when (or exact (zerop (length str)))
+          (funcall calc-time "day" (* 24 3600))
+          (when (or exact (zerop (length str)))
+            (funcall calc-time "hour" 3600)
+            (when (or exact (zerop (length str)))
+              (funcall calc-time "minute" 60)
+              (when (or exact (zerop (length str)))
+                (funcall calc-time "second" 1))))))
+      (concat str "ago"))))
+
 (defun why-this-format-data (data)
   "Format DATA."
   (if (functionp why-this-message-format)
@@ -111,6 +151,7 @@ NICK."
                    (?A . (why-this-nick-name (plist-get data :author)))
                    (?T . (format-time-string "%d %B %Y"
                                              (plist-get data :time)))
+                   (?t . (why-this-relative-time (plist-get data :time)))
                    (?i . (plist-get data :message)))))
       (replace-regexp-in-string
        "%."
@@ -138,8 +179,7 @@ NICK."
                                             (region-end)
                                           (point)))))
            (backend why-this--backend)
-           (data (funcall backend 'line-data (buffer-file-name)
-                          begin end)))
+           (data (funcall backend 'line-data begin end)))
       (dolist (i (number-sequence 0 (- end begin 1)))
         (let ((pos (save-excursion
                      (goto-char (point-min))
@@ -233,13 +273,13 @@ Do CMD with ARGS."
      (string= "true\n" (shell-command-to-string
                         "git rev-parse --is-inside-work-tree")))
     ('line-data
-     (when (> (- (nth 2 args) (nth 1 args)) 0)
+     (when (> (- (nth 1 args) (nth 0 args)) 0)
        (let ((lines (butlast
                      (split-string
                       (shell-command-to-string
                        (format
                         "git blame -L %i,%i \"%s\" --line-porcelain"
-                        (nth 1 args) (1- (nth 2 args)) (nth 0 args)))
+                        (nth 0 args) (1- (nth 1 args)) (buffer-file-name)))
                       "\n")))
              line-data
              uncommitted
@@ -264,6 +304,7 @@ Do CMD with ARGS."
                                      "Uncommitted changes"
                                    commit-message)))
                     (setq
+                     uncommitted nil
                      line-data
                      (append
                       line-data
@@ -297,7 +338,10 @@ Do CMD with ARGS."
                               (* (timezone-zone-to-minute (nth 1 words))
                                  60)))
                        ("summary"
-                        (setq commit-message (substring line 8))))))))))
+                        (setq commit-message (substring line 8)))))))))
+           (while (< (length line-data) (- (nth 1 args) (nth 0 args)))
+             (setq uncommitted t)
+             (funcall line-data-add)))
          line-data)))))
 
 (provide 'why-this)
