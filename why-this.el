@@ -108,6 +108,9 @@ NICK."
 (defvar why-this--idle-timer nil
   "Timer for rendering.")
 
+(defvar why-this--buffer-count 0
+  "Count of buffers where Why-This mode is enabled.")
+
 (defvar-local why-this--backend nil
   "Backend for current buffer.")
 
@@ -283,10 +286,13 @@ Actually the supported backend is returned."
             (setq why-this--idle-timer nil))
           (setq why-this--idle-timer
                 (run-with-idle-timer why-this-idle-delay t
-                                     #'why-this--render-non-blocking)))
+                                     #'why-this--render-non-blocking))
+          (setq why-this--buffer-count (1+ why-this--buffer-count)))
       (remove-hook 'post-command-hook #'why-this--update-overlays t)
-      (cancel-timer why-this--idle-timer)
-      (setq why-this--idle-timer nil))))
+      (setq why-this--buffer-count (1- why-this--buffer-count))
+      (when (zerop why-this--buffer-count)
+        (cancel-timer why-this--idle-timer)
+        (setq why-this--idle-timer nil)))))
 
 (defun why-this-backend-git (cmd &rest args)
   "Git backend for Why-This mode.
