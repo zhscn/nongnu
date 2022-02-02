@@ -30,15 +30,34 @@
 
 (defcustom why-this-backends nil
   "List of enabled backends."
-  :type '(repeat function)
+  :type '(repeat (function :tag "Backend"))
   :group 'why-this)
 
-(defcustom why-this-message-format "     %a, %T * %i"
+(defcustom why-this-message-format "     %A, %T * %i"
   "Format string for formatting message.
 
-It can also be a function to do the formatting itself."
-  :type '(choice string function)
+All characters are written as is, except certain constructs which are
+substituted by text describing the author, time or message:
+
+  %a    Author name, as returned by the backend.
+  %A    Author nick name.
+  %T    Time when last changed, formatted as \"%d %B %Y\" (see
+        `format-time-string').
+  %i    Message.
+
+The value can also be a function to do the formatting itself."
+  :type '(choice (string :tag "Format string")
+                 (function :tag "Formatter function"))
   :group 'why-this)
+
+(defcustom why-this-nick-name-alist nil
+  "Alist of nick name of authors.
+
+Each element is of the following form: (NICK . AUTHORS), where NICK is the
+nick name and AUTHORS is list of the name of authors corresponding to
+NICK."
+  :type '(repeat (cons (string :tag "Nick")
+                       (repeat (string :tag "Author")))))
 
 (defcustom why-this-idle-delay 0.5
   "Idle delay for rendering."
@@ -61,21 +80,33 @@ It can also be a function to do the formatting itself."
 (defvar-local why-this--backend nil
   "Backend for current buffer.")
 
+(defun why-this-nick-name (author)
+  "Return nick name of AUTHOR."
+  (catch 'name
+    (dolist (nick why-this-nick-name-alist)
+      (when (member author (cdr nick))
+        (throw 'name (car nick))))
+    author))
+
 (defun why-this-format-data (data)
   "Format DATA."
   (if (functionp why-this-message-format)
       (funcall why-this-message-format data)
-    (let ((alist `((?a . ,(plist-get data :author))
-                   (?T . ,(format-time-string "%d %B %Y"
-                                              (plist-get data :time)))
-                   (?i . ,(plist-get data :message)))))
+    (let ((alist `((?a . (plist-get data :author))
+                   (?A . (why-this-nick-name (plist-get data :author)))
+                   (?T . (format-time-string "%d %B %Y"
+                                             (plist-get data :time)))
+                   (?i . (plist-get data :message)))))
       (replace-regexp-in-string
        "%."
        (lambda (str)
          (let ((char (aref str 1)))
            (if (eq char ?%)
                "%"
-             (or (cdr (assoc char alist)) str))))
+             (let ((sexp (cdr (assoc char alist))))
+               (if sexp
+                   (eval sexp `((data . ,data)))
+                 str)))))
        why-this-message-format t t))))
 
 (defvar why-this-mode)
