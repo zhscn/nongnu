@@ -63,6 +63,15 @@ The value can also be a function to do the formatting itself."
   :package-version '(why-this "1.0")
   :group 'why-this)
 
+(defcustom why-this-echo-format "%A, t * %i"
+  "Format string for formatting echo area message.
+
+See `why-this-message-format'."
+  :type '(choice (string :tag "Format string")
+                 (function :tag "Formatter function"))
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
 (defcustom why-this-nick-name-alist nil
   "Alist of nick name of authors.
 
@@ -143,10 +152,10 @@ When EXACT is non-nil, be as exact as possible."
                 (funcall calc-time "second" 1))))))
       (concat str "ago"))))
 
-(defun why-this-format-data (data)
-  "Format DATA."
-  (if (functionp why-this-message-format)
-      (funcall why-this-message-format data)
+(defun why-this-format-data (format data)
+  "Format DATA using FORMAT."
+  (if (functionp format)
+      (funcall format data)
     (let ((alist `((?a . (plist-get data :author))
                    (?A . (why-this-nick-name (plist-get data :author)))
                    (?T . (format-time-string "%d %B %Y"
@@ -163,7 +172,7 @@ When EXACT is non-nil, be as exact as possible."
                (if sexp
                    (eval sexp `((data . ,data)))
                  str)))))
-       why-this-message-format t t))))
+       format t t))))
 
 (defvar why-this-mode)
 
@@ -187,6 +196,7 @@ When EXACT is non-nil, be as exact as possible."
           (let ((ov (make-overlay pos pos)))
             (overlay-put ov 'after-string
                          (propertize (why-this-format-data
+                                      why-this-message-format
                                       (append `(:backend ,backend)
                                               (nth i data)))
                                      'cursor t 'face 'why-this-face))
@@ -243,6 +253,20 @@ Actually the supported backend is returned."
         (when result
           (throw 'yes backend))))
     nil))
+
+;;;###autoload
+(defun why-this ()
+  "Show why the current line contains this."
+  (interactive)
+  (let ((backend (why-this-supported-p)))
+    (if backend
+        (message "%s" (why-this-format-data
+                       why-this-echo-format
+                       (append
+                        `(:backend ,backend)
+                        (car (funcall backend 'line-data
+                                      (line-number-at-pos)
+                                      (1+ (line-number-at-pos))))))))))
 
 ;;;###autoload
 (define-minor-mode why-this-mode
