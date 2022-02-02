@@ -166,4 +166,5 @@ Actually the supported backend is returned."
       (cancel-timer why-this--idle-timer)
       (setq why-this--idle-timer nil))))
 
+(provide 'why-this)
 ;;; why-this.el ends here
