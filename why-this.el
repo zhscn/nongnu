@@ -63,7 +63,7 @@ The value can also be a function to do the formatting itself."
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-echo-format "%A, t * %i"
+(defcustom why-this-echo-format "%A, %t * %i"
   "Format string for formatting echo area message.
 
 See `why-this-message-format'."
