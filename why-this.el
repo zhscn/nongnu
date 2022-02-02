@@ -2,6 +2,12 @@
 
 ;; Copyright (C) 2021 Akib Azmain Turja.
 
+;; Author: Akib Azmain Turja <akib@disroot.org>
+;; Version: 1.0
+;; Package-Requires: ((emacs "27.2"))
+;; Keywords: tools, convenience, vc
+;; URL: https://codeberg.org/akib/emacs-why-this
+
 ;; This file is not part of GNU Emacs.
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -26,6 +32,7 @@
 (defgroup why-this nil
   "Show why the current line was changed."
   :group 'tools
+  :link '(url-link "https://codeberg.org/akib/emacs-why-this")
   :prefix "why-this-")
 
 (defcustom why-this-backends nil
@@ -134,6 +141,7 @@ NICK."
                                       (append `(:backend ,backend)
                                               (nth i data)))
                                      'cursor t 'face 'why-this-face))
+            (overlay-put ov 'why-this-line (+ begin i))
             (push (cons ov (current-buffer)) why-this--overlays)))))))
 
 (defun why-this--render-non-blocking ()
@@ -141,8 +149,8 @@ NICK."
   (while-no-input
     (why-this--render)))
 
-(defun why-this--delete-overlays ()
-  "Delete all overlays unneeded overlays."
+(defun why-this--update-overlays ()
+  "Update overlays."
   (let ((begin (line-number-at-pos (if (use-region-p)
                                        (region-beginning)
                                      (point))))
@@ -159,8 +167,18 @@ NICK."
                   (let ((line (line-number-at-pos
                                (overlay-start (car ov)))))
                     (and (>= line begin)
-                         (< line end))))
-             ov
+                         (< line end)
+                         (eq line (overlay-get (car ov) 'why-this-line)))))
+             (progn
+               (let ((ov-start (overlay-start (car ov))))
+                 (when (and (eq (line-number-at-pos)
+                                (line-number-at-pos ov-start))
+                            (> (point) ov-start))
+                   (let ((pos (save-excursion
+                                (goto-char ov-start)
+                                (line-end-position))))
+                     (move-overlay (car ov) pos pos))))
+               ov)
            (delete-overlay (car ov))
            nil))
        why-this--overlays)))))
@@ -186,14 +204,14 @@ Actually the supported backend is returned."
       (setq why-this-mode nil)
     (if why-this-mode
         (progn
-          (add-hook 'post-command-hook #'why-this--delete-overlays nil t)
+          (add-hook 'post-command-hook #'why-this--update-overlays nil t)
           (when why-this--idle-timer
             (cancel-timer why-this--idle-timer)
             (setq why-this--idle-timer nil))
           (setq why-this--idle-timer
                 (run-with-idle-timer why-this-idle-delay t
                                      #'why-this--render-non-blocking)))
-      (remove-hook 'post-command-hook #'why-this--delete-overlays t)
+      (remove-hook 'post-command-hook #'why-this--update-overlays t)
       (cancel-timer why-this--idle-timer)
       (setq why-this--idle-timer nil))))
 
