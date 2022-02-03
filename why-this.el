@@ -31,6 +31,7 @@
 
 (require 'subr-x)
 (require 'timezone)
+(require 'color)
 
 (defgroup why-this nil
   "Show why the current line was changed."
@@ -86,6 +87,42 @@ NICK."
 (defcustom why-this-idle-delay 0.5
   "Idle delay for rendering in seconds."
   :type 'number
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defcustom why-this-annonate-length 70
+  "Length of annonation done by `why-this-annonate'."
+  :type 'integer
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defcustom why-this-annonate-author-length 20
+  "Length of author name in annonation done by `why-this-annonate'."
+  :type 'integer
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defcustom why-this-annonate-separator " \x2502 "
+  "Separator between annonation and file contents."
+  :type 'string
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defcustom why-this-annonate-enable-heat-map t
+  "Non-nil means show heat map in annonatation buffer."
+  :type 'boolean
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defcustom why-this-annonate-heat-map-cold "blue"
+  "Cold background for heat map in annonatation buffer."
+  :type 'color
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defcustom why-this-annonate-heat-map-warm "red"
+  "Warm background for heat map in annonatation buffer."
+  :type 'color
   :package-version '(why-this "1.0")
   :group 'why-this)
 
@@ -257,6 +294,35 @@ Actually the supported backend is returned."
           (throw 'yes backend))))
     nil))
 
+(defun why-this--insert-and-truncate (str len)
+  "Insert and truncate STR to LEN using overlay."
+  (if (<= (length str) len)
+      (insert str)
+    (let* ((visible-len (- len 3))
+           (visible (substring str 0 visible-len))
+           (invisible (substring str visible-len)))
+      (insert (propertize visible 'help-echo str))
+      (let ((point (point))
+            ov)
+        (insert invisible)
+        (setq ov (make-overlay point (point)))
+        (overlay-put ov 'invisible 'ellipsis)
+        (overlay-put ov 'isearch-open-invisible #'delete-overlay)))))
+
+(defun why-this--mix-colors (a b ratio)
+  "Mix A and B by RATIO."
+  (let* ((a-color (color-name-to-rgb a))
+         (b-color (color-name-to-rgb b))
+         (mix (lambda (i)
+                (+ (nth i a-color)
+                   (* (- (nth i b-color)
+                         (nth i a-color))
+                      ratio)))))
+    (color-rgb-to-hex (funcall mix 0)
+                      (funcall mix 1)
+                      (funcall mix 2)
+                      2)))
+
 ;;;###autoload
 (defun why-this ()
   "Show why the current line contains this."
@@ -269,12 +335,114 @@ Actually the supported backend is returned."
                         `(:backend ,backend)
                         (car (funcall backend 'line-data
                                       (line-number-at-pos)
-                                      (1+ (line-number-at-pos))))))))))
+                                      (1+ (line-number-at-pos)))))))
+      (user-error "No backend"))))
+
+;;;###autoload
+(defun why-this-annonate ()
+  "Annonate current buffer with editing history."
+  (interactive)
+  (let ((backend (why-this-supported-p)))
+    (if backend
+        (let* ((line-count (line-number-at-pos (1- (point-max))))
+               (data (funcall backend 'line-data 1 (1+ line-count)))
+               (contents (split-string (buffer-substring (point-min)
+                                                         (point-max))
+                                       "\n"))
+               (i 0)
+               (change-times (mapcar
+                              (lambda (line)
+                                (float-time (plist-get line :time)))
+                              data))
+               (newest-change (apply #'max change-times))
+               (oldest-change (apply #'min change-times))
+               (last-change-begin 0)
+               (add-heat
+                (lambda ()
+                  (let (ov)
+                    (setq ov (make-overlay last-change-begin (point)))
+                    (overlay-put ov 'face
+                                 `(:background
+                                   ,(why-this--mix-colors
+                                     why-this-annonate-heat-map-cold
+                                     why-this-annonate-heat-map-warm
+                                     (if (equal newest-change
+                                                oldest-change)
+                                         0.5
+                                       (/ (- (float-time
+                                              (plist-get (nth (1- i) data)
+                                                         :time))
+                                             oldest-change)
+                                          (- newest-change
+                                             oldest-change))))
+                                   :extend t))))))
+          (with-current-buffer (get-buffer-create
+                                (format "*why-this-annonate %s*"
+                                        (buffer-name)))
+            (why-this-annonate-mode)
+            (setq buffer-read-only nil)
+            (erase-buffer)
+            (dolist (line data)
+              (if (and (not (zerop i))
+                       (equal (plist-get line :id)
+                              (plist-get (nth (1- i) data) :id)))
+                  (insert
+                   (format (format "%%%is" why-this-annonate-length) "")
+                   why-this-annonate-separator
+                   (format (format "%%%ii" (length (number-to-string
+                                                    line-count)))
+                           (1+ i))
+                   " "
+                   (nth i contents)
+                   "\n")
+                (unless (zerop i)
+                  (let (ov)
+                    (setq ov (make-overlay (line-beginning-position 0)
+                                           (point)))
+                    (overlay-put ov 'face `(:underline
+                                            ,(face-foreground 'default)
+                                            :extend t)))
+                  (when why-this-annonate-enable-heat-map
+                    (funcall add-heat)))
+                (setq last-change-begin (point))
+                (let* ((time (why-this-relative-time
+                              (plist-get line :time)))
+                       (author (format
+                                (format "%%-%is"
+                                        why-this-annonate-author-length)
+                                (plist-get line :author)))
+                       (message-length (- why-this-annonate-length
+                                          why-this-annonate-author-length
+                                          (length time) 4))
+                       (message (format
+                                 (format "%%-%is" message-length)
+                                 (plist-get line :message))))
+                  (why-this--insert-and-truncate
+                   author why-this-annonate-author-length)
+                  (insert "  ")
+                  (why-this--insert-and-truncate message message-length)
+                  (insert
+                   "  "
+                   time
+                   why-this-annonate-separator
+                   (format (format "%%%ii" (length (number-to-string
+                                                    line-count)))
+                           (1+ i))
+                   " "
+                   (nth i contents)
+                   "\n")))
+              (setq i (1+ i)))
+            (funcall add-heat)
+            (setq buffer-read-only t)
+            (goto-char (point-min))
+            (display-buffer (current-buffer))))
+      (user-error "No backend"))))
 
 ;;;###autoload
 (define-minor-mode why-this-mode
   "Toggle showing why the current line was changed."
   nil " Why-This" nil
+  :group 'why-this
   (setq why-this--backend (why-this-supported-p))
   (if (not why-this--backend)
       (setq why-this-mode nil)
@@ -293,6 +461,12 @@ Actually the supported backend is returned."
       (when (zerop why-this--buffer-count)
         (cancel-timer why-this--idle-timer)
         (setq why-this--idle-timer nil)))))
+
+(define-derived-mode why-this-annonate-mode
+  special-mode "Why-This-Annonate"
+  "Major mode for output buffer of `why-this-annonate'."
+  :group 'why-this
+  (add-to-invisibility-spec '(ellipsis . t)))
 
 (defun why-this-backend-git (cmd &rest args)
   "Git backend for Why-This mode.
@@ -313,6 +487,7 @@ Do CMD with ARGS."
                       "\n")))
              line-data
              uncommitted
+             commit
              commit-author
              commit-time
              commit-timezone-offset
@@ -339,7 +514,9 @@ Do CMD with ARGS."
                      (append
                       line-data
                       (list
-                       (list :author
+                       (list :id
+                             commit
+                             :author
                              author
                              :time
                              (time-convert (+ (- time tz-offset)
@@ -352,11 +529,18 @@ Do CMD with ARGS."
              (if (string-prefix-p
                   "0000000000000000000000000000000000000000"
                   line)
-                 (setq uncommitted t)
-               (if (eq (aref line 0) ?\t)
-                   (funcall line-data-add)
-                 (unless uncommitted
-                   (let ((words (split-string line " ")))
+                 (setq uncommitted t))
+             (if (eq (aref line 0) ?\t)
+                 (funcall line-data-add)
+               (let ((words (split-string line " ")))
+                 (if (eq (length (car words)) 40)
+                     (progn
+                       (setq commit (car words))
+                       (when (string=
+                              commit
+                              "0000000000000000000000000000000000000000")
+                         (setq uncommitted t)))
+                   (unless uncommitted
                      (pcase (car words)
                        ("author"
                         (setq commit-author (substring line 7)))
