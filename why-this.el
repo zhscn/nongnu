@@ -341,101 +341,103 @@ Actually the supported backend is returned."
   "Annotate current buffer with editing history."
   (interactive)
   (let ((backend (why-this-supported-p)))
-    (if backend
-        (let* ((line-count (line-number-at-pos (1- (point-max))))
-               (data (funcall backend 'line-data 1 (1+ line-count)))
-               (contents (split-string (buffer-substring (point-min)
-                                                         (point-max))
-                                       "\n"))
-               (i 0)
-               (change-times (mapcar
-                              (lambda (line)
-                                (float-time (plist-get line :time)))
-                              data))
-               (newest-change (apply #'max change-times))
-               (oldest-change (apply #'min change-times))
-               (last-change-begin 0)
-               (add-heat
-                (lambda ()
-                  (let (ov)
-                    (setq ov (make-overlay last-change-begin (point)))
-                    (overlay-put ov 'face
-                                 `(:background
-                                   ,(why-this--mix-colors
-                                     why-this-annotate-heat-map-cold
-                                     why-this-annotate-heat-map-warm
-                                     (if (equal newest-change
-                                                oldest-change)
-                                         0.5
-                                       (/ (- (float-time
-                                              (plist-get (nth (1- i) data)
-                                                         :time))
-                                             oldest-change)
-                                          (- newest-change
-                                             oldest-change))))
-                                   :extend t))))))
-          (with-current-buffer (get-buffer-create
-                                (format "*why-this-annotate %s*"
-                                        (buffer-name)))
-            (why-this-annotate-mode)
-            (setq buffer-read-only nil)
-            (erase-buffer)
-            (dolist (line data)
-              (if (and (not (zerop i))
-                       (equal (plist-get line :id)
-                              (plist-get (nth (1- i) data) :id)))
-                  (insert
-                   (format (format "%%%is" why-this-annotate-length) "")
-                   why-this-annotate-separator
-                   (format (format "%%%ii" (length (number-to-string
-                                                    line-count)))
-                           (1+ i))
-                   " "
-                   (nth i contents)
-                   "\n")
-                (unless (zerop i)
-                  (let (ov)
-                    (setq ov (make-overlay (line-beginning-position 0)
-                                           (point)))
-                    (overlay-put ov 'face `(:underline
-                                            ,(face-foreground 'default)
-                                            :extend t)))
-                  (when why-this-annotate-enable-heat-map
-                    (funcall add-heat)))
-                (setq last-change-begin (point))
-                (let* ((time (why-this-relative-time
-                              (plist-get line :time)))
-                       (author (format
-                                (format "%%-%is"
-                                        why-this-annotate-author-length)
-                                (plist-get line :author)))
-                       (message-length (- why-this-annotate-length
-                                          why-this-annotate-author-length
-                                          (length time) 4))
-                       (message (format
-                                 (format "%%-%is" message-length)
-                                 (plist-get line :message))))
-                  (why-this--insert-and-truncate
-                   author why-this-annotate-author-length)
-                  (insert "  ")
-                  (why-this--insert-and-truncate message message-length)
-                  (insert
-                   "  "
-                   time
-                   why-this-annotate-separator
-                   (format (format "%%%ii" (length (number-to-string
-                                                    line-count)))
-                           (1+ i))
-                   " "
-                   (nth i contents)
-                   "\n")))
-              (setq i (1+ i)))
-            (when why-this-annotate-enable-heat-map
-              (funcall add-heat))
-            (setq buffer-read-only t)
-            (goto-char (point-min))
-            (display-buffer (current-buffer))))
-      (user-error "No backend"))))
+    (if (not backend)
+        (user-error "No backend")
+      (save-excursion
+        (font-lock-fontify-region (point-min) (point-max)))
+      (let* ((line-count (line-number-at-pos (1- (point-max))))
+             (data (funcall backend 'line-data 1 (1+ line-count)))
+             (contents (split-string (buffer-substring (point-min)
+                                                       (point-max))
+                                     "\n"))
+             (i 0)
+             (change-times (mapcar
+                            (lambda (line)
+                              (float-time (plist-get line :time)))
+                            data))
+             (newest-change (apply #'max change-times))
+             (oldest-change (apply #'min change-times))
+             (last-change-begin 0)
+             (add-heat
+              (lambda ()
+                (let (ov)
+                  (setq ov (make-overlay last-change-begin (point)))
+                  (overlay-put ov 'face
+                               `(:background
+                                 ,(why-this--mix-colors
+                                   why-this-annotate-heat-map-cold
+                                   why-this-annotate-heat-map-warm
+                                   (if (equal newest-change
+                                              oldest-change)
+                                       0.5
+                                     (/ (- (float-time
+                                            (plist-get (nth (1- i) data)
+                                                       :time))
+                                           oldest-change)
+                                        (- newest-change
+                                           oldest-change))))
+                                 :extend t))))))
+        (with-current-buffer (get-buffer-create
+                              (format "*why-this-annotate %s*"
+                                      (buffer-name)))
+          (why-this-annotate-mode)
+          (setq buffer-read-only nil)
+          (erase-buffer)
+          (dolist (line data)
+            (if (and (not (zerop i))
+                     (equal (plist-get line :id)
+                            (plist-get (nth (1- i) data) :id)))
+                (insert
+                 (format (format "%%%is" why-this-annotate-length) "")
+                 why-this-annotate-separator
+                 (format (format "%%%ii" (length (number-to-string
+                                                  line-count)))
+                         (1+ i))
+                 " "
+                 (nth i contents)
+                 "\n")
+              (unless (zerop i)
+                (let (ov)
+                  (setq ov (make-overlay (line-beginning-position 0)
+                                         (point)))
+                  (overlay-put ov 'face `(:underline
+                                          ,(face-foreground 'default)
+                                          :extend t)))
+                (when why-this-annotate-enable-heat-map
+                  (funcall add-heat)))
+              (setq last-change-begin (point))
+              (let* ((time (why-this-relative-time
+                            (plist-get line :time)))
+                     (author (format
+                              (format "%%-%is"
+                                      why-this-annotate-author-length)
+                              (plist-get line :author)))
+                     (message-length (- why-this-annotate-length
+                                        why-this-annotate-author-length
+                                        (length time) 4))
+                     (message (format
+                               (format "%%-%is" message-length)
+                               (plist-get line :message))))
+                (why-this--insert-and-truncate
+                 author why-this-annotate-author-length)
+                (insert "  ")
+                (why-this--insert-and-truncate message message-length)
+                (insert
+                 "  "
+                 time
+                 why-this-annotate-separator
+                 (format (format "%%%ii" (length (number-to-string
+                                                  line-count)))
+                         (1+ i))
+                 " "
+                 (nth i contents)
+                 "\n")))
+            (setq i (1+ i)))
+          (when why-this-annotate-enable-heat-map
+            (funcall add-heat))
+          (setq buffer-read-only t)
+          (goto-char (point-min))
+          (display-buffer (current-buffer)))))))
 
 ;;;###autoload
 (define-minor-mode why-this-mode
