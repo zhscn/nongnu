@@ -432,7 +432,8 @@ Actually the supported backend is returned."
                    (nth i contents)
                    "\n")))
               (setq i (1+ i)))
-            (funcall add-heat)
+            (when why-this-annonate-enable-heat-map
+              (funcall add-heat))
             (setq buffer-read-only t)
             (goto-char (point-min))
             (display-buffer (current-buffer))))
