@@ -1,0 +1,62 @@
+#+title: why-this - Why the current line contains this?
+
+~why-this~ shows why the current line was changed on the right side of
+line.  It can also show editing history with heat map.
+
+* Screenshots
+
+#+caption: why-this-mode
+[[./images/blame.png]]
+Blame on the right side of current line.
+
+#+caption: why-this-mode with region activated
+[[./images/blame-region.png]]
+Blame on the right side of each line in region.
+
+#+caption: why-this-annotate with heat map
+[[./images/annotate.png]]
+Editing history with heat map.
+
+* Install
+
+** straight.el
+
+#+begin_src emacs-lisp
+(straight-use-package
+ '(why-this :type git
+            :repo "https://codeberg.org/akib/emacs-why-this.git"))
+#+end_src
+
+* Usage
+
+Type =M-x why-this-mode= to enable showing blame.
+
+Type =M-x why-this= to show blame on echo area.
+
+Type =M-x why-this-annotate= to show editing history on a dedicated buffer.
+
+* Configuration
+
+Put the following in your init file to enable ~why-this-mode~ in every
+possible buffer:
+
+#+begin_src emacs-lisp
+(global-why-this-mode)
+#+end_src
+
+Output by ~why-this-annotate~ may be hard to read depending on the theme.
+Put the following in your init file to change the colors:
+
+- For dark theme users:
+
+  #+begin_src emacs-lisp
+  (setq why-this-annotate-heat-map-cold "#203448")
+  (setq why-this-annotate-heat-map-warm "#382f27")
+  #+end_src
+
+- For light theme users:
+
+  #+begin_src emacs-lisp
+  (setq why-this-annotate-heat-map-cold "#dde3f4")
+  (setq why-this-annotate-heat-map-warm "#f0e0d4")
+  #+end_src
