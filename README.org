@@ -5,15 +5,12 @@ line.  It can also show editing history with heat map.
 
 * Screenshots
 
-#+caption: why-this-mode
 [[./images/blame.png]]
 Blame on the right side of current line.
 
-#+caption: why-this-mode with region activated
 [[./images/blame-region.png]]
 Blame on the right side of each line in region.
 
-#+caption: why-this-annotate with heat map
 [[./images/annotate.png]]
 Editing history with heat map.
 
