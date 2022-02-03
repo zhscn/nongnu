@@ -269,14 +269,12 @@ When EXACT is non-nil, be as exact as possible."
                          (< line end)
                          (eq line (overlay-get (car ov) 'why-this-line)))))
              (progn
-               (let ((ov-start (overlay-start (car ov))))
-                 (when (and (eq (line-number-at-pos)
-                                (line-number-at-pos ov-start))
-                            (> (point) ov-start))
-                   (let ((pos (save-excursion
-                                (goto-char ov-start)
-                                (line-end-position))))
-                     (move-overlay (car ov) pos pos))))
+               (let* ((ov-start (overlay-start (car ov)))
+                      (pos (save-excursion
+                             (goto-char ov-start)
+                             (line-end-position))))
+                 (unless (eq ov-start pos)
+                   (move-overlay (car ov) pos pos)))
                ov)
            (delete-overlay (car ov))
            nil))
@@ -465,7 +463,7 @@ Actually the supported backend is returned."
 
 ;;;###autoload
 (define-globalized-minor-mode global-why-this-mode why-this-mode
-  #'why-this-mode)
+  why-this-mode)
 
 (define-derived-mode why-this-annotate-mode
   special-mode "Why-This-Annotate"
