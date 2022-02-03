@@ -114,13 +114,13 @@ NICK."
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-annotate-heat-map-cold "blue"
+(defcustom why-this-annotate-heat-map-cold "#dde3f4"
   "Cold background for heat map in annotation buffer."
   :type 'color
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-annotate-heat-map-warm "red"
+(defcustom why-this-annotate-heat-map-warm "#f0e0d4"
   "Warm background for heat map in annotation buffer."
   :type 'color
   :package-version '(why-this "1.0")
