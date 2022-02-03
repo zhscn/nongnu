@@ -90,38 +90,38 @@ NICK."
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-annonate-length 70
-  "Length of annonation done by `why-this-annonate'."
+(defcustom why-this-annotate-length 70
+  "Length of annotation done by `why-this-annotate'."
   :type 'integer
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-annonate-author-length 20
-  "Length of author name in annonation done by `why-this-annonate'."
+(defcustom why-this-annotate-author-length 20
+  "Length of author name in annotation done by `why-this-annotate'."
   :type 'integer
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-annonate-separator " \x2502 "
-  "Separator between annonation and file contents."
+(defcustom why-this-annotate-separator " \x2502 "
+  "Separator between annotation and file contents."
   :type 'string
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-annonate-enable-heat-map t
-  "Non-nil means show heat map in annonatation buffer."
+(defcustom why-this-annotate-enable-heat-map t
+  "Non-nil means show heat map in annotation buffer."
   :type 'boolean
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-annonate-heat-map-cold "blue"
-  "Cold background for heat map in annonatation buffer."
+(defcustom why-this-annotate-heat-map-cold "blue"
+  "Cold background for heat map in annotation buffer."
   :type 'color
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-annonate-heat-map-warm "red"
-  "Warm background for heat map in annonatation buffer."
+(defcustom why-this-annotate-heat-map-warm "red"
+  "Warm background for heat map in annotation buffer."
   :type 'color
   :package-version '(why-this "1.0")
   :group 'why-this)
@@ -339,8 +339,8 @@ Actually the supported backend is returned."
       (user-error "No backend"))))
 
 ;;;###autoload
-(defun why-this-annonate ()
-  "Annonate current buffer with editing history."
+(defun why-this-annotate ()
+  "Annotate current buffer with editing history."
   (interactive)
   (let ((backend (why-this-supported-p)))
     (if backend
@@ -364,8 +364,8 @@ Actually the supported backend is returned."
                     (overlay-put ov 'face
                                  `(:background
                                    ,(why-this--mix-colors
-                                     why-this-annonate-heat-map-cold
-                                     why-this-annonate-heat-map-warm
+                                     why-this-annotate-heat-map-cold
+                                     why-this-annotate-heat-map-warm
                                      (if (equal newest-change
                                                 oldest-change)
                                          0.5
@@ -377,9 +377,9 @@ Actually the supported backend is returned."
                                              oldest-change))))
                                    :extend t))))))
           (with-current-buffer (get-buffer-create
-                                (format "*why-this-annonate %s*"
+                                (format "*why-this-annotate %s*"
                                         (buffer-name)))
-            (why-this-annonate-mode)
+            (why-this-annotate-mode)
             (setq buffer-read-only nil)
             (erase-buffer)
             (dolist (line data)
@@ -387,8 +387,8 @@ Actually the supported backend is returned."
                        (equal (plist-get line :id)
                               (plist-get (nth (1- i) data) :id)))
                   (insert
-                   (format (format "%%%is" why-this-annonate-length) "")
-                   why-this-annonate-separator
+                   (format (format "%%%is" why-this-annotate-length) "")
+                   why-this-annotate-separator
                    (format (format "%%%ii" (length (number-to-string
                                                     line-count)))
                            (1+ i))
@@ -402,29 +402,29 @@ Actually the supported backend is returned."
                     (overlay-put ov 'face `(:underline
                                             ,(face-foreground 'default)
                                             :extend t)))
-                  (when why-this-annonate-enable-heat-map
+                  (when why-this-annotate-enable-heat-map
                     (funcall add-heat)))
                 (setq last-change-begin (point))
                 (let* ((time (why-this-relative-time
                               (plist-get line :time)))
                        (author (format
                                 (format "%%-%is"
-                                        why-this-annonate-author-length)
+                                        why-this-annotate-author-length)
                                 (plist-get line :author)))
-                       (message-length (- why-this-annonate-length
-                                          why-this-annonate-author-length
+                       (message-length (- why-this-annotate-length
+                                          why-this-annotate-author-length
                                           (length time) 4))
                        (message (format
                                  (format "%%-%is" message-length)
                                  (plist-get line :message))))
                   (why-this--insert-and-truncate
-                   author why-this-annonate-author-length)
+                   author why-this-annotate-author-length)
                   (insert "  ")
                   (why-this--insert-and-truncate message message-length)
                   (insert
                    "  "
                    time
-                   why-this-annonate-separator
+                   why-this-annotate-separator
                    (format (format "%%%ii" (length (number-to-string
                                                     line-count)))
                            (1+ i))
@@ -432,7 +432,7 @@ Actually the supported backend is returned."
                    (nth i contents)
                    "\n")))
               (setq i (1+ i)))
-            (when why-this-annonate-enable-heat-map
+            (when why-this-annotate-enable-heat-map
               (funcall add-heat))
             (setq buffer-read-only t)
             (goto-char (point-min))
@@ -463,9 +463,9 @@ Actually the supported backend is returned."
         (cancel-timer why-this--idle-timer)
         (setq why-this--idle-timer nil)))))
 
-(define-derived-mode why-this-annonate-mode
-  special-mode "Why-This-Annonate"
-  "Major mode for output buffer of `why-this-annonate'."
+(define-derived-mode why-this-annotate-mode
+  special-mode "Why-This-Annotate"
+  "Major mode for output buffer of `why-this-annotate'."
   :group 'why-this
   (add-to-invisibility-spec '(ellipsis . t)))
 
