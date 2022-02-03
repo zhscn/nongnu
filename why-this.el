@@ -463,6 +463,10 @@ Actually the supported backend is returned."
         (cancel-timer why-this--idle-timer)
         (setq why-this--idle-timer nil)))))
 
+;;;###autoload
+(define-globalized-minor-mode global-why-this-mode why-this-mode
+  #'why-this-mode)
+
 (define-derived-mode why-this-annotate-mode
   special-mode "Why-This-Annotate"
   "Major mode for output buffer of `why-this-annotate'."
@@ -475,8 +479,9 @@ Actually the supported backend is returned."
 Do CMD with ARGS."
   (pcase cmd
     ('supported-p
-     (string= "true\n" (shell-command-to-string
-                        "git rev-parse --is-inside-work-tree")))
+     (and (buffer-file-name)
+          (string= "true\n" (shell-command-to-string
+                             "git rev-parse --is-inside-work-tree"))))
     ('line-data
      (when (> (- (nth 1 args) (nth 0 args)) 0)
        (let ((lines (butlast
