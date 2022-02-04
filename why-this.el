@@ -73,6 +73,12 @@ See `why-this-message-format'."
   :package-version '(why-this "1.0")
   :group 'why-this)
 
+(defcustom why-this-enable-tooltip t
+  "Non-nil means show tooltip."
+  :type 'boolean
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
 (defcustom why-this-nick-name-alist nil
   "Alist of nick name of authors.
 
@@ -239,7 +245,13 @@ When EXACT is non-nil, be as exact as possible."
                                       why-this-message-format
                                       (append `(:backend ,backend)
                                               (nth i data)))
-                                     'cursor t 'face 'why-this-face))
+                                     'cursor t 'face 'why-this-face
+                                     'help-echo
+                                     (when why-this-enable-tooltip
+                                       (why-this-format-data
+                                        why-this-echo-format
+                                        (append `(:backend ,backend)
+                                                (nth i data))))))
             (overlay-put ov 'why-this-line (+ begin i))
             (push (cons ov (current-buffer)) why-this--overlays)))))))
 
@@ -465,7 +477,8 @@ Actually the supported backend is returned."
 
 ;;;###autoload
 (define-globalized-minor-mode global-why-this-mode why-this-mode
-  why-this-mode)
+  why-this-mode
+  :group 'why-this)
 
 (define-derived-mode why-this-annotate-mode
   special-mode "Why-This-Annotate"
