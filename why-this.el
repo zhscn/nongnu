@@ -484,84 +484,81 @@ Do CMD with ARGS."
                              "git rev-parse --is-inside-work-tree"))))
     ('line-data
      (when (> (- (nth 1 args) (nth 0 args)) 0)
-       (let ((lines (butlast
-                     (split-string
-                      (shell-command-to-string
-                       (format
-                        "git blame -L %i,%i \"%s\" --line-porcelain"
-                        (nth 0 args) (1- (nth 1 args)) (buffer-file-name)))
-                      "\n")))
-             line-data
-             uncommitted
-             commit
-             commit-author
-             commit-time
-             commit-timezone-offset
-             commit-message)
-         (let ((line-data-add
-                (lambda ()
-                  (let ((author (if uncommitted
-                                    why-this--git-author-name
-                                  commit-author))
-                        (time (if uncommitted
-                                  (floor (float-time))
-                                commit-time))
-                        (tz-offset (if uncommitted
-                                       (* (timezone-zone-to-minute
-                                           (current-time-zone))
-                                          60)
-                                     commit-timezone-offset))
-                        (message (if uncommitted
-                                     "Uncommitted changes"
-                                   commit-message)))
-                    (setq
-                     uncommitted nil
+       (let* ((temp-file (let ((file (make-temp-file "why-this-git-"))
+                               (text (buffer-substring-no-properties
+                                      (point-min) (point-max))))
+                           (with-temp-file file
+                             (insert text))
+                           file))
+              (command (format (concat
+                                "git blame -L %i,%i \"%s\" --porcelain"
+                                " --contents \"%s\" ; echo $?")
+                               (nth 0 args) (1- (nth 1 args))
+                               (buffer-file-name) temp-file))
+              (blame (butlast
+                      (split-string (shell-command-to-string command)
+                       "\n")))
+              (status (string-to-number (car (last blame))))
+              line-data
+              (i 0)
+              (uncommitted-commit-hash
+               "0000000000000000000000000000000000000000")
+              (add-uncommitted
+               (lambda ()
+                 (setq line-data
+                       (append line-data
+                               (list
+                                (list
+                                 :id uncommitted-commit-hash
+                                 :author why-this--git-author-name
+                                 :time (current-time)
+                                 :message "Uncommitted changes")))))))
+         (delete-file temp-file)
+         (setq blame (butlast blame))
+         (when (zerop status)
+           (let (commit-alist)
+             (while (< i (length blame))
+               (let* ((commit (car (split-string (nth i blame))))
+                      (data (assoc commit commit-alist)))
+                 (setq i (1+ i))
+                 (unless data
+                   (while (not (eq (aref (nth i blame) 0) ?\t))
+                     (unless (equal commit uncommitted-commit-hash)
+                       (let ((line (nth i blame)))
+                         (string-match split-string-default-separators
+                                       line)
+                         (push (cons (substring line 0 (match-beginning 0))
+                                     (substring line (match-end 0)))
+                               data)))
+                     (setq i (1+ i)))
+                   (push (cons commit data) commit-alist))
+                 (while (not (eq (aref (nth i blame) 0) ?\t))
+                   (setq i (1+ i)))
+                 (if (equal commit uncommitted-commit-hash)
+                     (funcall add-uncommitted)
+                   (setq
+                    line-data
+                    (append
                      line-data
-                     (append
-                      line-data
+                     (list
                       (list
-                       (list :id
-                             commit
-                             :author
-                             author
-                             :time
-                             (time-convert (+ (- time tz-offset)
-                                              (* (timezone-zone-to-minute
-                                                  (current-time-zone))
-                                                 60)))
-                             :message
-                             message))))))))
-           (dolist (line lines)
-             (if (string-prefix-p
-                  "0000000000000000000000000000000000000000"
-                  line)
-                 (setq uncommitted t))
-             (if (eq (aref line 0) ?\t)
-                 (funcall line-data-add)
-               (let ((words (split-string line " ")))
-                 (if (eq (length (car words)) 40)
-                     (progn
-                       (setq commit (car words))
-                       (when (string=
-                              commit
-                              "0000000000000000000000000000000000000000")
-                         (setq uncommitted t)))
-                   (unless uncommitted
-                     (pcase (car words)
-                       ("author"
-                        (setq commit-author (substring line 7)))
-                       ("author-time"
-                        (setq commit-time
-                              (string-to-number (nth 1 words))))
-                       ("author-tz"
-                        (setq commit-timezone-offset
-                              (* (timezone-zone-to-minute (nth 1 words))
-                                 60)))
-                       ("summary"
-                        (setq commit-message (substring line 8)))))))))
-           (while (< (length line-data) (- (nth 1 args) (nth 0 args)))
-             (setq uncommitted t)
-             (funcall line-data-add)))
+                       :id commit
+                       :author (cdr (assoc-string "author" data))
+                       :time (time-convert
+                              (+ (- (string-to-number
+                                     (cdr
+                                      (assoc-string "author-time" data)))
+                                    (* (timezone-zone-to-minute
+                                        (cdr
+                                         (assoc-string "author-tz" data)))
+                                       60))
+                                 (* (timezone-zone-to-minute
+                                     (current-time-zone))
+                                    60)))
+                       :message (cdr (assoc-string "summary" data)))))))
+                 (setq i (1+ i))))))
+         (while (< (length line-data) (- (nth 1 args) (nth 0 args)))
+           (funcall add-uncommitted))
          line-data)))))
 
 (provide 'why-this)
