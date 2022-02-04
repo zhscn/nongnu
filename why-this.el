@@ -177,10 +177,13 @@ When EXACT is non-nil, be as exact as possible."
               (setq str (concat str
                                 (unless (zerop count)
                                   (if (eq count 1)
-                                      (format "a%s %s "
-                                              (if (string= type "hour")
-                                                  "n" "")
-                                              type)
+                                      (if (and (not exact)
+                                               (string= type "day"))
+                                          "Yesterday"
+                                        (format "A%s %s "
+                                                (if (string= type "hour")
+                                                    "n" "")
+                                                type))
                                     (format "%i %ss " count type))))
                     elapsed (% elapsed length))))))
     (if (zerop elapsed)
@@ -196,7 +199,9 @@ When EXACT is non-nil, be as exact as possible."
               (funcall calc-time "minute" 60)
               (when (or exact (zerop (length str)))
                 (funcall calc-time "second" 1))))))
-      (concat str "ago"))))
+      (if (and (not exact) (string= str "Yesterday"))
+          str
+        (concat str "ago")))))
 
 (defun why-this-format-data (format data)
   "Format DATA using FORMAT."
