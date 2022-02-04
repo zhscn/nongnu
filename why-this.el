@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; This package shows the last commit which changed the current line.
+;; Show the when and why the current line was last changed.
 
 ;;; Code:
 
