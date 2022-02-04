@@ -132,6 +132,12 @@ NICK."
   :package-version '(why-this "1.0")
   :group 'why-this)
 
+(defcustom why-this-calculate-background t
+  "Non-nil means calculate background for message."
+  :type 'boolean
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
 (defface why-this-face
   '((t :foreground "#82b0ec"
        :background nil
@@ -225,6 +231,41 @@ When EXACT is non-nil, be as exact as possible."
                  str)))))
        format t t))))
 
+(defun why-this--overlay-bg-type (pos)
+  "Return the background type for overlay at POS."
+  (cond
+   ((and (use-region-p)
+         (>= pos (region-beginning))
+         (< pos (region-end)))
+    'region)
+   ((eq (line-number-at-pos)
+        (line-number-at-pos pos))
+    'line)
+   (t
+    nil)))
+
+(defun why-this--get-face (type)
+  "Return face for showing message with background type TYPE."
+  (if (not why-this-calculate-background)
+      'why-this-face
+    `(:background
+      ,(face-background
+        (pcase type
+          ('region
+           (if (bound-and-true-p solaire-mode)
+               'solaire-region-face
+             'region))
+          ('line
+           (if (bound-and-true-p hl-line-mode)
+               (if (bound-and-true-p solaire-mode)
+                   'solaire-hl-line-face
+                 'hl-line)
+             'why-this-face))
+          (_
+           'why-this-face))
+        nil t)
+      :inherit why-this-face)))
+
 (defvar why-this-mode)
 
 (defun why-this--render ()
@@ -244,13 +285,15 @@ When EXACT is non-nil, be as exact as possible."
         (let ((pos (save-excursion
                      (goto-char (point-min))
                      (line-end-position (+ begin i)))))
-          (let ((ov (make-overlay pos pos)))
+          (let ((ov (make-overlay pos pos))
+                (type (why-this--overlay-bg-type pos)))
             (overlay-put ov 'after-string
                          (propertize (why-this-format-data
                                       why-this-message-format
                                       (append `(:backend ,backend)
                                               (nth i data)))
-                                     'cursor t 'face 'why-this-face
+                                     'cursor t
+                                     'face (why-this--get-face type)
                                      'help-echo
                                      (when why-this-enable-tooltip
                                        (why-this-format-data
@@ -258,6 +301,7 @@ When EXACT is non-nil, be as exact as possible."
                                         (append `(:backend ,backend)
                                                 (nth i data))))))
             (overlay-put ov 'why-this-line (+ begin i))
+            (overlay-put ov 'why-this-bg-type type)
             (push (cons ov (current-buffer)) why-this--overlays)))))))
 
 (defun why-this--render-non-blocking ()
@@ -292,6 +336,16 @@ When EXACT is non-nil, be as exact as possible."
                              (line-end-position))))
                  (unless (eq ov-start pos)
                    (move-overlay (car ov) pos pos)))
+               (when why-this-calculate-background
+                 (let ((type (why-this--overlay-bg-type
+                              (overlay-start (car ov)))))
+                   (unless (eq (overlay-get (car ov) 'why-this-bg-type)
+                               type)
+                     (overlay-put (car ov) 'after-string
+                                  (propertize
+                                   (overlay-get (car ov) 'after-string)
+                                   'face (why-this--get-face type)))
+                     (overlay-put (car ov) 'why-this-bg-type type))))
                ov)
            (delete-overlay (car ov))
            nil))
