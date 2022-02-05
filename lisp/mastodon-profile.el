@@ -146,7 +146,6 @@ extra keybindings."
 (defun mastodon-profile--view-follow-requests ()
   "Open a new buffer displaying the user's follow requests."
   (interactive)
-  (mastodon-profile-mode)
   (mastodon-tl--init "follow-requests"
                      "follow_requests"
                      'mastodon-profile--add-author-bylines))
