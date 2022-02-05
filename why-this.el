@@ -87,6 +87,14 @@ is the backend which generated the plist."
   :package-version '(why-this "1.0")
   :group 'why-this)
 
+(defcustom why-this-minimum-column 55
+  "Minimum column for displaying message.
+
+Messages are never shown before this column.  Set to 0 to disable."
+  :type 'integer
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
 (defcustom why-this-echo-format "%A, %t * %i"
   "Format string for formatting echo area message.
 
@@ -305,24 +313,39 @@ When EXACT is non-nil, be as exact as possible."
            (backend why-this--backend)
            (data (funcall backend 'line-data begin end)))
       (dolist (i (number-sequence 0 (- end begin 1)))
-        (let ((pos (save-excursion
-                     (goto-char (point-min))
-                     (line-end-position (+ begin i)))))
-          (let ((ov (make-overlay pos pos))
-                (type (why-this--overlay-bg-type pos)))
+        (let (line-begin
+              line-end)
+          (save-excursion
+            (goto-char (point-min))
+            (setq line-begin (line-beginning-position (+ begin i)))
+            (setq line-end (line-end-position (+ begin i))))
+          (let ((ov (make-overlay line-end line-end))
+                (type (why-this--overlay-bg-type line-end))
+                (column (- line-end line-begin)))
+            (overlay-put ov 'why-this-message (why-this-format-data
+                                               why-this-message-format
+                                               (append `(:backend ,backend)
+                                                       (nth i data))))
+            (overlay-put ov 'why-this-props
+                         (list 'cursor t
+                               'face (why-this--get-face type)
+                               'help-echo
+                               (when why-this-enable-tooltip
+                                 (why-this-format-data
+                                  why-this-echo-format
+                                  (append `(:backend ,backend)
+                                          (nth i data))))))
             (overlay-put ov 'after-string
-                         (propertize (why-this-format-data
-                                      why-this-message-format
-                                      (append `(:backend ,backend)
-                                              (nth i data)))
-                                     'cursor t
-                                     'face (why-this--get-face type)
-                                     'help-echo
-                                     (when why-this-enable-tooltip
-                                       (why-this-format-data
-                                        why-this-echo-format
-                                        (append `(:backend ,backend)
-                                                (nth i data))))))
+                         (apply
+                          #'propertize
+                          (concat
+                           (make-string (max (- why-this-minimum-column
+                                                column)
+                                             0)
+                                        ? )
+                           (overlay-get ov 'why-this-message))
+                          (overlay-get ov 'why-this-props)))
+            (overlay-put ov 'why-this-column column)
             (overlay-put ov 'why-this-line (+ begin i))
             (overlay-put ov 'why-this-bg-type type)
             (push (cons ov (current-buffer)) why-this--overlays)))))))
@@ -333,7 +356,7 @@ When EXACT is non-nil, be as exact as possible."
     (why-this--render)))
 
 (defun why-this--update-overlays ()
-  "Update overlays."
+  "Update all overlays."
   (let ((begin (line-number-at-pos (if (use-region-p)
                                        (region-beginning)
                                      (point))))
@@ -354,16 +377,39 @@ When EXACT is non-nil, be as exact as possible."
                          (eq line (overlay-get (car ov) 'why-this-line)))))
              (progn
                (let* ((ov-start (overlay-start (car ov)))
-                      (pos (save-excursion
-                             (goto-char ov-start)
-                             (line-end-position))))
-                 (unless (eq ov-start pos)
-                   (move-overlay (car ov) pos pos)))
+                      line-begin
+                      line-end
+                      column)
+                 (save-excursion
+                   (goto-char ov-start)
+                   (setq line-begin (line-beginning-position))
+                   (setq line-end (line-end-position))
+                   (setq column (- line-end line-begin)))
+                 (unless (eq ov-start line-end)
+                   (move-overlay (car ov) line-end line-end))
+                 (unless (eq (overlay-get (car ov) 'why-this-column)
+                             column)
+                   (overlay-put (car ov) 'after-string
+                                (apply
+                                 #'propertize
+                                 (concat
+                                  (make-string
+                                   (max (- why-this-minimum-column column)
+                                        0)
+                                   ? )
+                                  (overlay-get (car ov) 'why-this-message))
+                                 (overlay-get (car ov) 'why-this-props)))
+                   (overlay-put (car ov) 'why-this-column column)))
                (when why-this-calculate-background
                  (let ((type (why-this--overlay-bg-type
                               (overlay-start (car ov)))))
                    (unless (eq (overlay-get (car ov) 'why-this-bg-type)
                                type)
+                     (overlay-put (car ov) 'why-this-props
+                                  (plist-put (overlay-get (car ov)
+                                                          'why-this-props)
+                                             'face (why-this--get-face
+                                                    type)))
                      (overlay-put (car ov) 'after-string
                                   (propertize
                                    (overlay-get (car ov) 'after-string)
