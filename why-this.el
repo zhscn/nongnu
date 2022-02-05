@@ -1,4 +1,4 @@
-;;; why-this.el --- Minor mode for showing why the current line was changed -*- lexical-binding: t -*-
+;;; why-this.el --- Show why the current line contains this -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022 Akib Azmain Turja.
 
@@ -25,7 +25,10 @@
 
 ;;; Commentary:
 
-;; Show the when and why the current line was last changed.
+;; why-this shows when and why the current line was last changed.  Enable
+;; with M-x why-this-mode.  Or see why a line was change without enabling
+;; with M-x why-this.  See editing history of whole file with heat map with
+;; M-x why-this-annotate.
 
 ;;; Code:
 
@@ -39,7 +42,8 @@
   :link '(url-link "https://codeberg.org/akib/emacs-why-this")
   :prefix "why-this-")
 
-(defcustom why-this-backends '(why-this-backend-git)
+(defcustom why-this-backends '(why-this-git
+                               why-this-hg)
   "List of enabled backends."
   :type '(repeat (function :tag "Backend"))
   :package-version '(why-this "1.0")
@@ -545,7 +549,7 @@ Actually the supported backend is returned."
   :group 'why-this
   (add-to-invisibility-spec '(ellipsis . t)))
 
-(defun why-this-backend-git (cmd &rest args)
+(defun why-this-git (cmd &rest args)
   "Git backend for Why-This mode.
 
 Do CMD with ARGS."
@@ -624,6 +628,47 @@ Do CMD with ARGS."
          (while (< (length line-data) (- (nth 1 args) (nth 0 args)))
            (funcall add-uncommitted))
          line-data)))))
+
+(defun why-this-hg (cmd &rest args)
+  "Mercurial backend for Why-This mode.
+
+Do CMD with ARGS."
+  (pcase cmd
+    ('supported-p
+     (and (buffer-file-name)
+          (string= "t" (shell-command-to-string
+                        (format "hg annotate \"%s\" --template \"t\""
+                                (buffer-file-name))))))
+    ('line-data
+     (when (> (- (nth 1 args) (nth 0 args)) 0)
+       (let ((output
+              (car
+               (read-from-string
+                (shell-command-to-string
+                 (format
+                  (concat
+                   "hg annotate \"%s\" --template \"({lines %% '(:id"
+                   " {rev} :author \\\"{person(user)}\\\" :time"
+                   " ({hgdate(date)}) :message \\\"{sub(\\\"\\\\\\\"\\\","
+                   " \\\"\\\\\\\\\\\\\\\"\\\", sub(\\\"\\n.*\\\","
+                   " \\\"\\\", desc))}\\\") '})\"")
+                  (buffer-file-name))))))
+             data)
+         (dolist (i (number-sequence (1- (nth 1 args)) (nth 0 args) -1))
+           (if (<= i (length output))
+               (let ((plist (nth (1- i) output)))
+                 (plist-put plist :time (time-convert
+                                         (car (plist-get plist :time))))
+                 (push plist data))
+             (setq data
+                   (append data
+                           (list
+                            (list
+                             :id nil
+                             :author user-full-name
+                             :time (current-time)
+                             :message "Uncommitted changes"))))))
+         data)))))
 
 (provide 'why-this)
 ;;; why-this.el ends here
