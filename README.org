@@ -24,6 +24,13 @@ Editing history with heat map.
             :repo "https://codeberg.org/akib/emacs-why-this.git"))
 #+end_src
 
+* Supported version control systems
+
+Current only two version control systems are supported:
+
+- Git
+- Mercurial (Note: changes must be commited to be shown)
+
 * Usage
 
 Type =M-x why-this-mode= to enable showing blame.
@@ -41,6 +48,8 @@ possible buffer:
 (global-why-this-mode)
 #+end_src
 
+Note: ~why-this-mode~ won't be enabled on unsupported buffer.
+
 Output by ~why-this-annotate~ may be hard to read depending on the theme.
 Put the following in your init file to change the colors:
 
@@ -57,3 +66,17 @@ Put the following in your init file to change the colors:
   (setq why-this-annotate-heat-map-cold "#dde3f4")
   (setq why-this-annotate-heat-map-warm "#f0e0d4")
   #+end_src
+
+To disable the heat map:
+
+#+begin_src emacs-lisp
+(setq why-this-annotate-enable-heat-map nil)
+#+end_src
+
+Hovering on the message shows a tooltip, to disable it:
+
+#+begin_src emacs-lisp
+(setq why-this-enable-tooltip nil)
+#+end_src
+
+To see all user options =M-x customize-group RET why-this=.

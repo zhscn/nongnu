@@ -44,7 +44,22 @@
 
 (defcustom why-this-backends '(why-this-git
                                why-this-hg)
-  "List of enabled backends."
+  "List of enabled backends.
+
+Each backend is a function taking variable number of arguments, where the
+first argument is the command (which is a symbol):
+
+`supported-p': Return whether the current buffer is supported.
+
+`line-data': Return a list of plist containing data about lines from BEGIN
+to END (exclusive), where BEGIN is the second argument and END is the third
+argument.  Each plist describe BEGIN+Nth line, where N is the index of the
+plist in list.  Plist contains the following properties:
+
+  `:id'         Unique ID for each change (or commit).
+  `:author'     Name of the author.
+  `:time'       Time of change (local).
+  `:desc'       Single line description of change."
   :type '(repeat (function :tag "Backend"))
   :package-version '(why-this "1.0")
   :group 'why-this)
@@ -62,7 +77,11 @@ substituted by text describing the author, time or message:
         `format-time-string').
   %i    Message.
 
-The value can also be a function to do the formatting itself."
+The value can also be a function to do the formatting itself.  The function
+should take a plist as the first and only argument.  The plist is same as
+the plists returned by backends when `line-data' command is given (see
+`why-this-backends'), with an additional property `:backend' whose value is
+is the backend which generated the plist."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
   :package-version '(why-this "1.0")
@@ -100,8 +119,8 @@ NICK."
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-annotate-length 70
-  "Length of annotation done by `why-this-annotate'."
+(defcustom why-this-annotate-width 70
+  "Width of annotation done by `why-this-annotate'."
   :type 'integer
   :package-version '(why-this "1.0")
   :group 'why-this)
@@ -222,7 +241,7 @@ When EXACT is non-nil, be as exact as possible."
                    (?T . (format-time-string "%d %B %Y"
                                              (plist-get data :time)))
                    (?t . (why-this-relative-time (plist-get data :time)))
-                   (?i . (plist-get data :message)))))
+                   (?i . (plist-get data :desc)))))
       (replace-regexp-in-string
        "%."
        (lambda (str)
@@ -463,7 +482,7 @@ Actually the supported backend is returned."
                      (equal (plist-get line :id)
                             (plist-get (nth (1- i) data) :id)))
                 (insert
-                 (format (format "%%%is" why-this-annotate-length) "")
+                 (format (format "%%%is" why-this-annotate-width) "")
                  why-this-annotate-separator
                  (format (format "%%%ii" (length (number-to-string
                                                   line-count)))
@@ -487,12 +506,12 @@ Actually the supported backend is returned."
                               (format "%%-%is"
                                       why-this-annotate-author-length)
                               (plist-get line :author)))
-                     (message-length (- why-this-annotate-length
+                     (message-length (- why-this-annotate-width
                                         why-this-annotate-author-length
                                         (length time) 4))
                      (message (format
                                (format "%%-%is" message-length)
-                               (plist-get line :message))))
+                               (plist-get line :desc))))
                 (why-this--insert-and-truncate
                  author why-this-annotate-author-length)
                 (insert "  ")
@@ -588,7 +607,7 @@ Do CMD with ARGS."
                                  :id uncommitted-commit-hash
                                  :author why-this--git-author-name
                                  :time (current-time)
-                                 :message "Uncommitted changes")))))))
+                                 :desc "Uncommitted changes")))))))
          (delete-file temp-file)
          (setq blame (butlast blame))
          (when (zerop status)
@@ -623,7 +642,7 @@ Do CMD with ARGS."
                        :time (time-convert
                               (string-to-number
                                (cdr (assoc-string "author-time" data))))
-                       :message (cdr (assoc-string "summary" data)))))))
+                       :desc (cdr (assoc-string "summary" data)))))))
                  (setq i (1+ i))))))
          (while (< (length line-data) (- (nth 1 args) (nth 0 args)))
            (funcall add-uncommitted))
@@ -649,7 +668,7 @@ Do CMD with ARGS."
                   (concat
                    "hg annotate \"%s\" --template \"({lines %% '(:id"
                    " {rev} :author \\\"{person(user)}\\\" :time"
-                   " ({hgdate(date)}) :message \\\"{sub(\\\"\\\\\\\"\\\","
+                   " ({hgdate(date)}) :desc \\\"{sub(\\\"\\\\\\\"\\\","
                    " \\\"\\\\\\\\\\\\\\\"\\\", sub(\\\"\\n.*\\\","
                    " \\\"\\\", desc))}\\\") '})\"")
                   (buffer-file-name))))))
@@ -657,8 +676,10 @@ Do CMD with ARGS."
          (dolist (i (number-sequence (1- (nth 1 args)) (nth 0 args) -1))
            (if (<= i (length output))
                (let ((plist (nth (1- i) output)))
-                 (plist-put plist :time (time-convert
-                                         (car (plist-get plist :time))))
+                 (setq plist
+                       (plist-put plist :time
+                                  (time-convert
+                                   (car (plist-get plist :time)))))
                  (push plist data))
              (setq data
                    (append data
@@ -667,7 +688,7 @@ Do CMD with ARGS."
                              :id nil
                              :author user-full-name
                              :time (current-time)
-                             :message "Uncommitted changes"))))))
+                             :desc "Uncommitted changes"))))))
          data)))))
 
 (provide 'why-this)
