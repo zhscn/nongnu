@@ -617,16 +617,8 @@ Do CMD with ARGS."
                        :id commit
                        :author (cdr (assoc-string "author" data))
                        :time (time-convert
-                              (+ (- (string-to-number
-                                     (cdr
-                                      (assoc-string "author-time" data)))
-                                    (* (timezone-zone-to-minute
-                                        (cdr
-                                         (assoc-string "author-tz" data)))
-                                       60))
-                                 (* (timezone-zone-to-minute
-                                     (current-time-zone))
-                                    60)))
+                              (string-to-number
+                               (cdr (assoc-string "author-time" data))))
                        :message (cdr (assoc-string "summary" data)))))))
                  (setq i (1+ i))))))
          (while (< (length line-data) (- (nth 1 args) (nth 0 args)))
