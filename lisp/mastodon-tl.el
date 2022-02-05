@@ -1339,6 +1339,7 @@ JSON is the data returned from the server."
      mastodon-tl--timestamp-next-update (time-add (current-time)
                                                   (seconds-to-time 300)))
     (funcall update-function json))
+  (mastodon-tl--goto-next-toot)
   (mastodon-mode)
   (when (equal endpoint "follow_requests")
     (mastodon-profile-mode))
