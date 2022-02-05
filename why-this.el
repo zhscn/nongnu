@@ -1,6 +1,6 @@
 ;;; why-this.el --- Minor mode for showing why the current line was changed -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021 Akib Azmain Turja.
+;; Copyright (C) 2022 Akib Azmain Turja.
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Version: 1.0
