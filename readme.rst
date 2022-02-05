@@ -113,23 +113,23 @@ Limitations
 Calling ``recomplete`` from macros (including ``evil-repeat``)
 runs the complete action but doesn't support cycling.
 
-..
-   Installation
-   ============
 
-   The package is `available in melpa <https://melpa.org/#/recomplete>`__ as ``recomplete``.
+Installation
+============
 
-   .. code-block:: elisp
+The package is `available in melpa <https://melpa.org/#/recomplete>`__ as ``recomplete``.
 
-      (use-package recomplete)
+.. code-block:: elisp
 
-   Combined with key bindings, for evil-mode:
+   (use-package recomplete)
 
-   .. code-block:: elisp
+Combined with key bindings, for evil-mode:
 
-      (use-package recomplete
-        :config
-        (define-key evil-normal-state-map (kbd "M-z") 'recomplete-ispell-word))
+.. code-block:: elisp
+
+   (use-package recomplete
+     :config
+     (define-key evil-normal-state-map (kbd "M-z") 'recomplete-ispell-word))
 
 
 Other Packages
