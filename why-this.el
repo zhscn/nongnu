@@ -37,7 +37,7 @@
 (require 'color)
 
 (defgroup why-this nil
-  "Show why the current line was changed."
+  "Show why the current line contains this."
   :group 'tools
   :link '(url-link "https://codeberg.org/akib/emacs-why-this")
   :prefix "why-this-")
@@ -49,33 +49,47 @@
 Each backend is a function taking variable number of arguments, where the
 first argument is the command (which is a symbol):
 
-`supported-p': Return whether the current buffer is supported.
+`supported-p'
+  The backend should return whether the current buffer is supported by it.
 
-`line-data': Return a list of plist containing data about lines from BEGIN
-to END (exclusive), where BEGIN is the second argument and END is the third
-argument.  Each plist describe BEGIN+Nth line, where N is the index of the
-plist in list.  Plist contains the following properties:
+`line-data'
+  The backend should return a list of plist containing data about lines
+  from BEGIN to END (exclusive), where BEGIN is the second argument and END
+  is the third argument.  Each plist should describe BEGIN+Nth line, where
+  N is the index of the plist in list.  Plist should contain the following
+  properties:
 
-  `:id'         Unique ID for each change (or commit).
-  `:author'     Name of the author.
-  `:time'       Time of change (local).
-  `:desc'       Single line description of change."
+    `:id'       Unique ID for each change (or commit).
+    `:author'   Name of the author.
+    `:time'     Time of change (local).
+    `:desc'     Single line description of change."
   :type '(repeat (function :tag "Backend"))
   :package-version '(why-this "1.0")
   :group 'why-this)
 
+(defcustom why-this-message-time-format #'why-this-relative-time
+  "Format string or formatter function for time in message.
+
+See `format-time-string' for the syntax of format string.
+
+When the value is a function it should take the time as the first argument
+and return a string."
+  :type '(choice (string :tag "Format string")
+                 (function :tag "Formatter function"))
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
 (defcustom why-this-message-format "     %A, %t * %i"
-  "Format string for formatting message.
+  "Format string or formatter function for formatting message.
 
 All characters are written as is, except certain constructs which are
 substituted by text describing the author, time or message:
 
   %a    Author name, as returned by the backend.
   %A    Author's nick name.
-  %t    Relative time when last change.  (E.g. \"a month ago\")
-  %T    Time when last changed, formatted as \"%d %B %Y\" (see
-        `format-time-string').
-  %i    Message.
+  %t    Time when last changed, formatted with
+        `why-this-message-time-format'.
+  %i    Description.
 
 The value can also be a function to do the formatting itself.  The function
 should take a plist as the first and only argument.  The plist is same as
@@ -95,10 +109,23 @@ Messages are never shown before this column.  Set to 0 to disable."
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defcustom why-this-echo-format "%A, %t * %i"
-  "Format string for formatting echo area message.
+(defcustom why-this-echo-time-format #'why-this-relative-time
+  "Format string or formatter function for time in echo area message.
 
-See `why-this-message-format'."
+See `format-time-string' for the syntax of format string.
+
+When the value is a function it should take the time as the first argument
+and return a string."
+  :type '(choice (string :tag "Format string")
+                 (function :tag "Formatter function"))
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defcustom why-this-echo-format "%A, %t * %i"
+  "Format string or formatter function for formatting echo area message.
+
+See `why-this-message-format' for possible values.
+`why-this-echo-time-format' is used to format time."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
   :package-version '(why-this "1.0")
@@ -130,6 +157,42 @@ NICK."
 (defcustom why-this-annotate-width 70
   "Width of annotation done by `why-this-annotate'."
   :type 'integer
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defcustom why-this-annotate-author-format "%s"
+  "Format string or formatter function for author name in annotation.
+
+See `format' for the syntax of format string.
+
+When the value is a function it should take the author name as the first
+argument and return a string to show."
+  :type '(choice (string :tag "Format string")
+                 (function :tag "Formatter function"))
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defcustom why-this-annotate-description-format "%s"
+  "Format string or formatter function for description in annotation.
+
+See `format' for the syntax of format string.
+
+When the value is a function it should take the description of change as
+the first argument and return a string to show."
+  :type '(choice (string :tag "Format string")
+                 (function :tag "Formatter function"))
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defcustom why-this-annotate-time-format #'why-this-relative-time
+  "Format string or formatter function for time in annotation.
+
+See `format-time-string' for the syntax of format string.
+
+When the value is a function it should take the time as the first argument
+and return a string."
+  :type '(choice (string :tag "Format string")
+                 (function :tag "Formatter function"))
   :package-version '(why-this "1.0")
   :group 'why-this)
 
@@ -189,7 +252,7 @@ NICK."
   "Timer for rendering.")
 
 (defvar why-this--buffer-count 0
-  "Count of buffers where Why-This mode is enabled.")
+  "Count of buffers with Why-This mode enabled.")
 
 (defvar-local why-this--backend nil
   "Backend for current buffer.")
@@ -240,15 +303,22 @@ When EXACT is non-nil, be as exact as possible."
           str
         (concat str "ago")))))
 
-(defun why-this-format-data (format data)
-  "Format DATA using FORMAT."
+(defun why-this-format-time (format time)
+  "Format TIME using FORMAT."
+  (if (functionp format)
+      (funcall format time)
+    (format-time-string format time)))
+
+(defun why-this-format-data (format time-format data)
+  "Format DATA using FORMAT and TIME-FORMAT.
+
+TIME-FORMAT is used to format data."
   (if (functionp format)
       (funcall format data)
     (let ((alist `((?a . (plist-get data :author))
                    (?A . (why-this-nick-name (plist-get data :author)))
-                   (?T . (format-time-string "%d %B %Y"
-                                             (plist-get data :time)))
-                   (?t . (why-this-relative-time (plist-get data :time)))
+                   (?t . (why-this-format-time time-format
+                                               (plist-get data :time)))
                    (?i . (plist-get data :desc)))))
       (replace-regexp-in-string
        "%."
@@ -258,7 +328,8 @@ When EXACT is non-nil, be as exact as possible."
                "%"
              (let ((sexp (cdr (assoc char alist))))
                (if sexp
-                   (eval sexp `((data . ,data)))
+                   (eval sexp `((data . ,data)
+                                (time-format . ,time-format)))
                  str)))))
        format t t))))
 
@@ -324,6 +395,7 @@ When EXACT is non-nil, be as exact as possible."
                 (column (- line-end line-begin)))
             (overlay-put ov 'why-this-message (why-this-format-data
                                                why-this-message-format
+                                               why-this-message-time-format
                                                (append `(:backend ,backend)
                                                        (nth i data))))
             (overlay-put ov 'why-this-props
@@ -333,6 +405,7 @@ When EXACT is non-nil, be as exact as possible."
                                (when why-this-enable-tooltip
                                  (why-this-format-data
                                   why-this-echo-format
+                                  why-this-echo-time-format
                                   (append `(:backend ,backend)
                                           (nth i data))))))
             (overlay-put ov 'after-string
@@ -469,6 +542,7 @@ Actually the supported backend is returned."
     (if backend
         (message "%s" (why-this-format-data
                        why-this-echo-format
+                       why-this-echo-time-format
                        (append
                         `(:backend ,backend)
                         (car (funcall backend 'line-data
@@ -546,22 +620,25 @@ Actually the supported backend is returned."
                 (when why-this-annotate-enable-heat-map
                   (funcall add-heat)))
               (setq last-change-begin (point))
-              (let* ((time (why-this-relative-time
+              (let* ((time (why-this-format-time
+                            why-this-annotate-time-format
                             (plist-get line :time)))
                      (author (format
                               (format "%%-%is"
                                       why-this-annotate-author-length)
-                              (plist-get line :author)))
-                     (message-length (- why-this-annotate-width
-                                        why-this-annotate-author-length
-                                        (length time) 4))
-                     (message (format
-                               (format "%%-%is" message-length)
-                               (plist-get line :desc))))
+                              (format why-this-annotate-author-format
+                                      (plist-get line :author))))
+                     (desc-length (- why-this-annotate-width
+                                     why-this-annotate-author-length
+                                     (length time) 4))
+                     (desc (format
+                            (format "%%-%is" desc-length)
+                            (format why-this-annotate-description-format
+                                    (plist-get line :desc)))))
                 (why-this--insert-and-truncate
                  author why-this-annotate-author-length)
                 (insert "  ")
-                (why-this--insert-and-truncate message message-length)
+                (why-this--insert-and-truncate desc desc-length)
                 (insert
                  "  "
                  time
