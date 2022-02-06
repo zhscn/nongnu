@@ -5,7 +5,7 @@
 ;; Author: Campbell Barton <ideasman42@gmail.com>
 
 ;; URL: https://gitlab.com/ideasman42/emacs-recomplete
-;; Version: 0.1
+;; Version: 0.2
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -346,11 +346,16 @@ Argument FN-CACHE stores the result for reuse."
 ;; Make public since users may want to add their own callbacks.
 
 ;;;###autoload
-(defun recomplete-with-callback (fn-symbol cycle-offset)
+(defun recomplete-with-callback (fn-symbol cycle-offset &optional cycle-index-init)
   "Run FN-SYMBOL, chaining executions for any function in FN-GROUP.
 
 Argument CYCLE-OFFSET The offset for cycling words,
-1 or -1 for forward/backward."
+1 or -1 for forward/backward.
+
+Optional argument CYCLE-INDEX-INIT The initial index to use,
+defaulting to zero (which makes sense for corrections) you may wish to set
+the value to 1 when the current symbol is included in the list
+(so as to step onto the next item)."
 
   ;; Default to 1 (one step forward).
   (setq cycle-offset (or cycle-offset 1))
@@ -365,7 +370,7 @@ Argument CYCLE-OFFSET The offset for cycling words,
       (point-init (point))
       (buffer-undo-list-init buffer-undo-list)
       (pending-undo-list-init pending-undo-list)
-      (cycle-index 0)
+      (cycle-index (or cycle-index-init 0))
       (cycle-reverse nil)
       (fn-cache nil)
 
