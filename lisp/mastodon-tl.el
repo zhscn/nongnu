@@ -993,6 +993,24 @@ webapp"
             (mastodon-tl--goto-next-toot)))
       (message "No Thread!"))))
 
+(defun mastodon-tl--create-filter (word contexts)
+  "Create a filter for WORD.
+CONTEXTS must be a list containting at least one of \"home\",
+\"notifications\", \"public\", \"thread\". "
+  (interactive)
+  (let* ((url (mastodon-http--api "filters"))
+         (contexts-processed
+          (mapcar (lambda (x)
+                    (cons "context[]" x))
+                  contexts))
+         (response
+          (mastodon-http--post url (push
+                                    `("phrase" . ,word)
+                                    contexts-processed)
+                               nil)))
+    (with-current-buffer response
+      (switch-to-buffer (current-buffer)))))
+
 (defun mastodon-tl--get-follow-suggestions ()
 "Display a buffer of suggested accounts to follow."
   (interactive)
