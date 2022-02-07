@@ -60,6 +60,7 @@
 ;; make notifications--get available via M-x and outside our keymap:
 (autoload 'mastodon-notifications--get "mastodon-notifications"
   "Display NOTIFICATIONS in buffer." t) ; interactive
+(autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 (defvar mastodon-instance-url)
 (defvar mastodon-toot-timestamp-format)
 (defvar shr-use-fonts)  ;; declare it since Emacs24 didn't have this
@@ -990,6 +991,25 @@ webapp"
                                     `(,toot)
                                     (alist-get 'descendants context)))))
       (message "No Thread!"))))
+
+(defun mastodon-tl--get-follow-suggestions ()
+"Display a buffer of suggested accounts to follow."
+  (interactive)
+  (let* ((buffer (format "*mastodon-follow-suggestions*"))
+         (response
+          (mastodon-http--get-json
+           (mastodon-http--api "suggestions")))
+         (users (mapcar 'mastodon-search--get-user-info response)))
+    (with-output-to-temp-buffer buffer
+      (let ((inhibit-read-only t))
+        (switch-to-buffer buffer)
+        (mastodon-mode)
+        (insert (mastodon-tl--set-face
+                 (concat "\n ------------\n"
+                         " SUGGESTED ACCOUNTS\n"
+                         " ------------\n\n")
+                 'success))
+        (mastodon-search--insert-users-propertized users :note)))))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
   "Query for USER-HANDLE from current status and follow that user.
