@@ -989,7 +989,8 @@ webapp"
             (mastodon-tl--timeline (vconcat
                                     (alist-get 'ancestors context)
                                     `(,toot)
-                                    (alist-get 'descendants context)))))
+                                    (alist-get 'descendants context)))
+            (mastodon-tl--goto-next-toot)))
       (message "No Thread!"))))
 
 (defun mastodon-tl--get-follow-suggestions ()
