@@ -977,19 +977,21 @@ webapp"
     (if (> (+ (length (alist-get 'ancestors context))
               (length (alist-get 'descendants context)))
            0)
-        (with-output-to-temp-buffer buffer
-          (switch-to-buffer buffer)
-          (mastodon-mode)
-          (setq mastodon-tl--buffer-spec
-                `(buffer-name ,buffer
-                              endpoint ,(format "statuses/%s/context" id)
-                              update-function
-                              (lambda(toot) (message "END of thread."))))
-          (let ((inhibit-read-only t))
-            (mastodon-tl--timeline (vconcat
-                                    (alist-get 'ancestors context)
-                                    `(,toot)
-                                    (alist-get 'descendants context)))))
+        (progn
+          (with-output-to-temp-buffer buffer
+            (switch-to-buffer buffer)
+            (mastodon-mode)
+            (setq mastodon-tl--buffer-spec
+                  `(buffer-name ,buffer
+                                endpoint ,(format "statuses/%s/context" id)
+                                update-function
+                                (lambda (toot) (message "END of thread."))))
+            (let ((inhibit-read-only t))
+              (mastodon-tl--timeline (vconcat
+                                      (alist-get 'ancestors context)
+                                      `(,toot)
+                                      (alist-get 'descendants context)))))
+          (mastodon-tl--goto-next-toot))
       (message "No Thread!"))))
 
 (defun mastodon-tl--get-follow-suggestions ()
