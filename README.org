@@ -1,3 +1,7 @@
+* Intro
+
+Arduino IDE for Emacs developer.
+
 * Screenshots
 
 #+ATTR_ORG: :width 600
