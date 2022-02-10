@@ -24,25 +24,22 @@
                                              (current-buffer)))
       (should (equal (mastodon-client--fetch) '(:foo "bar"))))))
 
-(ert-deftest mastodon-client--store-1 ()
-  "Should return the client plist."
+(ert-deftest mastodon-client--store ()
+  "Test the value `mastodon-client--store' returns/stores."
   (let ((mastodon-instance-url "http://mastodon.example")
         (plist '(:client_id "id" :client_secret "secret")))
     (with-mock
       (mock (mastodon-client--token-file) => "stubfile.plstore")
-      (mock (mastodon-client--fetch) => '(:client_id "id" :client_secret "secret"))
-      (let* ((plstore (plstore-open "stubfile.plstore"))
-             (client (cdr (plstore-get plstore "mastodon-http://mastodon.example"))))
-        (should (equal (mastodon-client--store) plist))))))
+      (mock (mastodon-client--fetch) => plist)
+      (should (equal (mastodon-client--store) plist)))
+    (let* ((plstore (plstore-open "stubfile.plstore"))
+           (client (mastodon-client--remove-key-from-plstore
+                    (plstore-get plstore "mastodon-http://mastodon.example"))))
+      (plstore-close plstore)
+      (should (equal client plist))
+      ;; clean up - delete the stubfile
+      (delete-file "stubfile.plstore"))))
 
-(ert-deftest mastodon-client--store-2 ()
-  "Should store client in `mastodon-client--token-file'."
-  (let* ((mastodon-instance-url "http://mastodon.example")
-         (plstore (plstore-open "stubfile.plstore"))
-         (client (cdr (plstore-get plstore "mastodon-http://mastodon.example"))))
-    (plstore-close plstore)
-    (should (string= (plist-get client :client_id) "id"))
-    (should (string= (plist-get client :client_secret) "secret"))))
 
 (ert-deftest mastodon-client--read-finds-match ()
   "Should return mastodon client from `mastodon-token-file' if it exists."
