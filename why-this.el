@@ -234,7 +234,6 @@ and return a string."
 
 (defface why-this-face
   '((t :foreground "#82b0ec"
-       :background nil
        :italic t))
   "Face for Why-This data."
   :package-version '(why-this "1.0")
@@ -276,9 +275,9 @@ When EXACT is non-nil, be as exact as possible."
             (let ((count (/ elapsed length)))
               (setq str (concat str
                                 (unless (zerop count)
-                                  (if (eq count 1)
-                                      (if (and (not exact)
-                                               (string= type "day"))
+                                  (if (and (not exact)
+                                           (eq count 1))
+                                      (if (string= type "day")
                                           "Yesterday"
                                         (format "A%s %s "
                                                 (if (string= type "hour")
@@ -292,13 +291,15 @@ When EXACT is non-nil, be as exact as possible."
       (when (or exact (zerop (length str)))
         (funcall calc-time "month" (* 30 24 3600))
         (when (or exact (zerop (length str)))
-          (funcall calc-time "day" (* 24 3600))
+          (funcall calc-time "week" (* 7 24 3600))
           (when (or exact (zerop (length str)))
-            (funcall calc-time "hour" 3600)
+            (funcall calc-time "day" (* 24 3600))
             (when (or exact (zerop (length str)))
-              (funcall calc-time "minute" 60)
+              (funcall calc-time "hour" 3600)
               (when (or exact (zerop (length str)))
-                (funcall calc-time "second" 1))))))
+                (funcall calc-time "minute" 60)
+                (when (or exact (zerop (length str)))
+                  (funcall calc-time "second" 1)))))))
       (if (and (not exact) (string= str "Yesterday"))
           str
         (concat str "ago")))))
