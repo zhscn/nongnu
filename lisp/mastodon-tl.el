@@ -116,6 +116,16 @@ If nil `(point-min)' is used instead.")
 (defvar-local mastodon-tl--timestamp-update-timer nil
   "The timer that, when set will scan the buffer to update the timestamps.")
 
+(defun mastodon-tl--get-media-types (toot)
+  "Return a list of the media attachment types of the toot at point."
+  (let* (;(toot (mastodon-tl--property 'toot-json))
+         (medias (or (alist-get 'media_attachments
+                                (alist-get 'reblog toot))
+                     (alist-get 'media_attachments toot))))
+    (mapcar (lambda (x)
+              (alist-get 'type x))
+            medias)))
+
 (defvar mastodon-tl--link-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [return] 'mastodon-tl--do-link-action-at-point)
@@ -303,29 +313,37 @@ Optionally start from POS."
      (propertize (concat "@" handle)
                  'face 'mastodon-handle-face
                  'mouse-face 'highlight
-		         ;; TODO: Replace url browsing with native profile viewing
-		         'mastodon-tab-stop 'user-handle
+		 'mastodon-tab-stop 'user-handle
                  'account account
-		         'shr-url profile-url
-		         'keymap mastodon-tl--link-keymap
+		 'shr-url profile-url
+		 'keymap mastodon-tl--link-keymap
                  'mastodon-handle (concat "@" handle)
-		         'help-echo (concat "Browse user profile of @" handle))
+		 'help-echo (concat "Browse user profile of @" handle))
      ")")))
 
 (defun mastodon-tl--format-faves-count (toot)
   "Format a favorites, boosts, replies count for a TOOT.
 Used to help-echo when point is at the start of a byline,
 i.e. where `mastodon-tl--goto-next-toot' leaves point."
-  (let ((toot-to-count
-         (or
-          ;; simply praying this order works
-          (alist-get 'status toot) ; notifications timeline
-          (alist-get 'reblog toot) ; boosts
-          toot))) ; everything else
-    (format "%s faves | %s boosts | %s replies"
-            (alist-get 'favourites_count toot-to-count)
-            (alist-get 'reblogs_count toot-to-count)
-            (alist-get 'replies_count toot-to-count))))
+  (let* ((toot-to-count
+          (or
+           ;; simply praying this order works
+           (alist-get 'status toot) ; notifications timeline
+           (alist-get 'reblog toot) ; boosts
+           toot)) ; everything else
+         (media-types (mastodon-tl--get-media-types toot))
+         ;; (mastodon-tl--get-media-types toot) " "))
+         (format-faves (format "%s faves | %s boosts | %s replies"
+                               (alist-get 'favourites_count toot-to-count)
+                               (alist-get 'reblogs_count toot-to-count)
+                               (alist-get 'replies_count toot-to-count)))
+         (format-media (when media-types
+                         (format " | media: %s"
+                                 (mapconcat #'identity media-types " ")))))
+    (format "%s" (concat format-faves format-media))))
+            ;; (mapconcat #'identity (mastodon-tl--get-media-types toot) " "))))
+            ;; (alist-get 'media_attachments toot-to-count)))
+
 
 (defun mastodon-tl--byline-boosted (toot)
   "Add byline for boosted data from TOOT."
