@@ -342,7 +342,6 @@ i.e. where `mastodon-tl--goto-next-toot' leaves point."
            (alist-get 'reblog toot) ; boosts
            toot)) ; everything else
          (media-types (mastodon-tl--get-media-types toot))
-         ;; (mastodon-tl--get-media-types toot) " "))
          (format-faves (format "%s faves | %s boosts | %s replies"
                                (alist-get 'favourites_count toot-to-count)
                                (alist-get 'reblogs_count toot-to-count)
@@ -351,8 +350,6 @@ i.e. where `mastodon-tl--goto-next-toot' leaves point."
                          (format " | media: %s"
                                  (mapconcat #'identity media-types " ")))))
     (format "%s" (concat format-faves format-media))))
-            ;; (mapconcat #'identity (mastodon-tl--get-media-types toot) " "))))
-            ;; (alist-get 'media_attachments toot-to-count)))
 
 (defun mastodon-tl--get-attachments-for-byline (toot)
   (let ((media-attachments (mastodon-tl--field 'media_attachments toot)))
@@ -461,20 +458,19 @@ By default it is `mastodon-tl--byline-boosted'"
         (boosted (equal 't (mastodon-tl--field 'reblogged toot)))
         (visibility (mastodon-tl--field 'visibility toot)))
     (concat
-     ;; (propertize "\n | " 'face 'default)
-     (propertize
+     ;; Boosted/favourited markers are not part of the byline, so we don't
+     ;; propertize them with 'byline t', as per the rest. This ensures that
+     ;; `mastodon-tl--goto-next-toot' puts point on author-byline not on the
+     ;; (F) or (B) marker. Not propertizing like this makes the behaviour of
+     ;; these markers consistent whether they are displayed for an already
+     ;; boosted/favourited toot or the result of the toot having just been
+     ;; favourited/boosted.
       (concat (when boosted
-                (format
-                 (propertize "(%s) "
-                             'help-echo
-                             (mastodon-tl--format-faves-count toot))
-                 (propertize "B" 'face 'mastodon-boost-fave-face)))
+                (mastodon-tl--format-faved-or-boosted-byline "B"))
               (when faved
-                (format
-                 (propertize "(%s) "
-                             'help-echo
-                             (mastodon-tl--format-faves-count toot))
-                 (propertize "F" 'face 'mastodon-boost-fave-face)))
+                (mastodon-tl--format-faved-or-boosted-byline "F")))
+      (propertize
+       (concat
               ;; we propertize help-echo format faves for author name
               ;; in `mastodon-tl--byline-author'
               (funcall author-byline toot)
@@ -500,6 +496,12 @@ By default it is `mastodon-tl--byline-boosted'"
       'favourited-p faved
       'boosted-p    boosted
       'byline       t))))
+
+(defun mastodon-tl--format-faved-or-boosted-byline (letter)
+  "Format the byline marker for a boosted or favorited status.
+LETTER is a string, either F or B."
+  (format "(%s) "
+          (propertize letter 'face 'mastodon-boost-fave-face)))
 
 (defun mastodon-tl--render-text (string toot)
   "Return a propertized text rendering the given HTML string STRING.
