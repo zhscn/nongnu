@@ -713,10 +713,9 @@ message is a link which unhides/hides the main body."
                           (let ((preview-url
                                  (alist-get 'preview_url media-attachement))
                                 (remote-url
-                                 (if (alist-get 'remote_url media-attachement)
-                                     (alist-get 'remote_url media-attachement)
-                                   ;; fallback b/c notifications don't have remote_url
-                                   (alist-get 'url media-attachement)))
+                                 (or (alist-get 'remote_url media-attachement)
+                                     ;; fallback b/c notifications don't have remote_url
+                                     (alist-get 'url media-attachement)))
                                 (type (alist-get 'type media-attachement)))
                             (if mastodon-tl--display-media-p
                                 (mastodon-media--get-media-link-rendering
