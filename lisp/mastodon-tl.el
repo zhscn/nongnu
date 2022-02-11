@@ -2,10 +2,11 @@
 
 ;; Copyright (C) 2017-2019 Johnson Denen
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
+;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 0.10.0
 ;; Package-Requires: ((emacs "27.1"))
-;; Homepage: https://git.blast.noho.st/mouse/mastodon.el
+;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
 
@@ -58,7 +59,10 @@
 (autoload 'mastodon-http--get-json-async "mastodon-http")
 (autoload 'mastodon-profile--lookup-account-in-status "mastodon-profile")
 (autoload 'mastodon-profile-mode "mastodon-profile")
-(autoload 'mastodon-notifications--get "mastodon-notifications")
+;; make notifications--get available via M-x and outside our keymap:
+(autoload 'mastodon-notifications--get "mastodon-notifications"
+  "Display NOTIFICATIONS in buffer." t) ; interactive
+(autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 (defvar mastodon-instance-url)
 (defvar mastodon-toot-timestamp-format)
 (defvar shr-use-fonts)  ;; declare it since Emacs24 didn't have this
@@ -463,22 +467,23 @@ By default it is `mastodon-tl--byline-boosted'"
 
 The contents comes from the given TOOT which is used in parsing
 links in the text. If TOOT is nil no parsing occurs."
-  (with-temp-buffer
-    (insert string)
-    (let ((shr-use-fonts mastodon-tl--enable-proportional-fonts)
-          (shr-width (when mastodon-tl--enable-proportional-fonts
-                       (- (window-width) 1))))
-      (shr-render-region (point-min) (point-max)))
-    ;; Make all links a tab stop recognized by our own logic, make things point
-    ;; to our own logic (e.g. hashtags), and update keymaps where needed:
-    (when toot
-      (let (region)
-        (while (setq region (mastodon-tl--find-property-range
-                             'shr-url (or (cdr region) (point-min))))
-          (mastodon-tl--process-link toot
-                                     (car region) (cdr region)
-                                     (get-text-property (car region) 'shr-url)))))
-    (buffer-string)))
+  (when string ; handle rare empty notif server bug
+    (with-temp-buffer
+      (insert string)
+      (let ((shr-use-fonts mastodon-tl--enable-proportional-fonts)
+            (shr-width (when mastodon-tl--enable-proportional-fonts
+                         (- (window-width) 1))))
+        (shr-render-region (point-min) (point-max)))
+      ;; Make all links a tab stop recognized by our own logic, make things point
+      ;; to our own logic (e.g. hashtags), and update keymaps where needed:
+      (when toot
+        (let (region)
+          (while (setq region (mastodon-tl--find-property-range
+                               'shr-url (or (cdr region) (point-min))))
+            (mastodon-tl--process-link toot
+                                       (car region) (cdr region)
+                                       (get-text-property (car region) 'shr-url)))))
+      (buffer-string))))
 
 (defun mastodon-tl--process-link (toot start end url)
   "Process link URL in TOOT as hashtag, userhandle, or normal link.
@@ -989,20 +994,41 @@ webapp"
     (if (> (+ (length (alist-get 'ancestors context))
               (length (alist-get 'descendants context)))
            0)
-        (with-output-to-temp-buffer buffer
-          (switch-to-buffer buffer)
-          (mastodon-mode)
-          (setq mastodon-tl--buffer-spec
-                `(buffer-name ,buffer
-                              endpoint ,(format "statuses/%s/context" id)
-                              update-function
-                              (lambda(toot) (message "END of thread."))))
-          (let ((inhibit-read-only t))
-            (mastodon-tl--timeline (vconcat
-                                    (alist-get 'ancestors context)
-                                    `(,toot)
-                                    (alist-get 'descendants context)))))
+        (progn
+          (with-output-to-temp-buffer buffer
+            (switch-to-buffer buffer)
+            (mastodon-mode)
+            (setq mastodon-tl--buffer-spec
+                  `(buffer-name ,buffer
+                                endpoint ,(format "statuses/%s/context" id)
+                                update-function
+                                (lambda (toot) (message "END of thread."))))
+            (let ((inhibit-read-only t))
+              (mastodon-tl--timeline (vconcat
+                                      (alist-get 'ancestors context)
+                                      `(,toot)
+                                      (alist-get 'descendants context)))))
+          (mastodon-tl--goto-next-toot))
       (message "No Thread!"))))
+
+(defun mastodon-tl--get-follow-suggestions ()
+"Display a buffer of suggested accounts to follow."
+  (interactive)
+  (let* ((buffer (format "*mastodon-follow-suggestions*"))
+         (response
+          (mastodon-http--get-json
+           (mastodon-http--api "suggestions")))
+         (users (mapcar 'mastodon-search--get-user-info response)))
+    (with-output-to-temp-buffer buffer
+      (let ((inhibit-read-only t))
+        (switch-to-buffer buffer)
+        (mastodon-mode)
+        (insert (mastodon-tl--set-face
+                 (concat "\n ------------\n"
+                         " SUGGESTED ACCOUNTS\n"
+                         " ------------\n\n")
+                 'success))
+        (mastodon-search--insert-users-propertized users :note)))))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
   "Query for USER-HANDLE from current status and follow that user.
@@ -1107,7 +1133,7 @@ NOTIFY is only non-nil when called by `mastodon-tl--follow-user'."
                       ;; if unmuting/unblocking, we got handle from mute/block list
                       (mastodon-profile--search-account-by-handle
                        user-handle)
-                      ;; if muting/blocking, we select from handles in current status
+                    ;; if muting/blocking, we select from handles in current status
                     (mastodon-profile--lookup-account-in-status
                      user-handle (mastodon-profile--toot-json))))
          (user-id (mastodon-profile--account-field account 'id))
@@ -1352,6 +1378,7 @@ JSON is the data returned from the server."
      mastodon-tl--timestamp-next-update (time-add (current-time)
                                                   (seconds-to-time 300)))
     (funcall update-function json))
+  (mastodon-tl--goto-next-toot)
   (mastodon-mode)
   (when (equal endpoint "follow_requests")
     (mastodon-profile-mode))
