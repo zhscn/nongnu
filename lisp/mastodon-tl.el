@@ -175,6 +175,13 @@ types of mastodon links and not just shr.el-generated ones.")
 We need to override the keymap so tabbing will navigate to all
 types of mastodon links and not just shr.el-generated ones.")
 
+(defvar mastodon-tl--byline-link-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-from-byline)
+    (keymap-canonicalize map))
+   "The keymap to be set for the author byline.
+The idea is that you can play media without navigating to it.")
+
 (defun mastodon-tl--next-tab-item ()
   "Move to the next interesting item.
 
@@ -305,6 +312,9 @@ Optionally start from POS."
        (mastodon-media--get-avatar-rendering avatar-url))
      (propertize name
                  'face 'mastodon-display-name-face
+                 ;; enable playing of videos when point is on byline:
+                 'attachments (mastodon-tl--get-attachments-for-byline toot)
+                 'keymap mastodon-tl--byline-link-keymap
                  ;; echo faves count when point on post author name:
                  ;; which is where --goto-next-toot puts point.
                  'help-echo
@@ -344,6 +354,17 @@ i.e. where `mastodon-tl--goto-next-toot' leaves point."
             ;; (mapconcat #'identity (mastodon-tl--get-media-types toot) " "))))
             ;; (alist-get 'media_attachments toot-to-count)))
 
+(defun mastodon-tl--get-attachments-for-byline (toot)
+  (let ((media-attachments (mastodon-tl--field 'media_attachments toot)))
+    (mapcar
+     (lambda (attachement)
+       (let ((remote-url
+              (or (alist-get 'remote_url attachement)
+                  ;; fallback b/c notifications don't have remote_url
+                  (alist-get 'url attachement)))
+             (type (alist-get 'type attachement)))
+         `(:url ,remote-url :type ,type)))
+     media-attachments)))
 
 (defun mastodon-tl--byline-boosted (toot)
   "Add byline for boosted data from TOOT."
@@ -864,11 +885,40 @@ a notification."
                                (message "You voted for option %s: %s!"
                                         (car option) (cdr option)))))))
 
-(defun mastodon-tl--mpv-play-video-at-point ()
-  "Play the video or gif at point with an mpv process."
+(defun mastodon-tl--find-first-video-in-attachments ()
+  "Return the first media attachment that is a moving image."
+  (let ((attachments (mastodon-tl--property 'attachments))
+        vids)
+    (mapcar (lambda (x)
+              (let ((att-type (plist-get x :type)))
+                (when (or (string= "video" att-type)
+                          (string= "gifv" att-type))
+                  (push x vids))))
+            attachments)
+    (first vids)))
+
+(defun mastodon-tl--mpv-play-video-from-byline ()
+  "Run `mastodon-tl--mpv-play-video-at-point' on first moving image in post."
   (interactive)
-  (let ((url (get-text-property (point) 'image-url))
-        (type (mastodon-tl--property 'mastodon-media-type)))
+  (let* ((video (mastodon-tl--find-first-video-in-attachments))
+         (url (plist-get video :url))
+         (type (plist-get video :type)))
+    (mastodon-tl--mpv-play-video-at-point url type)))
+
+(defun mastodon-tl--mpv-play-video-at-point (&optional url type)
+  "Play the video or gif at point with an mpv process.
+URL and TYPE are provided when called while point is on byline,
+in which case play first video or gif from current toot."
+  (interactive)
+  (let ((url (or
+              ;; point in byline:
+              url
+              ;; point in toot:
+              (get-text-property (point) 'image-url)))
+        (type (or ;; in byline:
+               type
+               ;; point in toot:
+              (mastodon-tl--property 'mastodon-media-type))))
     (if url
         (if (or (equal type "gifv")
                 (equal type "video"))
