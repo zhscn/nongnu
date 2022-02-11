@@ -63,6 +63,8 @@
 (autoload 'mastodon-notifications--get "mastodon-notifications"
   "Display NOTIFICATIONS in buffer." t) ; interactive
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
+(when (require 'mpv nil :no-error)
+  (declare-function mpv-start "mpv"))
 (defvar mastodon-instance-url)
 (defvar mastodon-toot-timestamp-format)
 (defvar shr-use-fonts)  ;; declare it since Emacs24 didn't have this
@@ -117,7 +119,7 @@ If nil `(point-min)' is used instead.")
   "The timer that, when set will scan the buffer to update the timestamps.")
 
 (defun mastodon-tl--get-media-types (toot)
-  "Return a list of the media attachment types of the toot at point."
+  "Return a list of the media attachment types of the TOOT at point."
   (let* (;(toot (mastodon-tl--property 'toot-json))
          (medias (or (alist-get 'media_attachments
                                 (alist-get 'reblog toot))
@@ -352,6 +354,7 @@ i.e. where `mastodon-tl--goto-next-toot' leaves point."
     (format "%s" (concat format-faves format-media))))
 
 (defun mastodon-tl--get-attachments-for-byline (toot)
+  "Return a list of attachment URLs and types for TOOT."
   (let ((media-attachments (mastodon-tl--field 'media_attachments toot)))
     (mapcar
      (lambda (attachement)
@@ -891,13 +894,13 @@ a notification."
   "Return the first media attachment that is a moving image."
   (let ((attachments (mastodon-tl--property 'attachments))
         vids)
-    (mapcar (lambda (x)
+    (mapc (lambda (x)
               (let ((att-type (plist-get x :type)))
                 (when (or (string= "video" att-type)
                           (string= "gifv" att-type))
                   (push x vids))))
             attachments)
-    (first vids)))
+    (car vids)))
 
 (defun mastodon-tl--mpv-play-video-from-byline ()
   "Run `mastodon-tl--mpv-play-video-at-point' on first moving image in post."
