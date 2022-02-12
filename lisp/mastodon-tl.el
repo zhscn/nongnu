@@ -118,15 +118,6 @@ If nil `(point-min)' is used instead.")
 (defvar-local mastodon-tl--timestamp-update-timer nil
   "The timer that, when set will scan the buffer to update the timestamps.")
 
-(defun mastodon-tl--get-media-types (toot)
-  "Return a list of the media attachment types of the TOOT at point."
-  (let* ((medias (or (alist-get 'media_attachments
-                                (alist-get 'reblog toot))
-                     (alist-get 'media_attachments toot))))
-    (mapcar (lambda (x)
-              (alist-get 'type x))
-            medias)))
-
 (defvar mastodon-tl--link-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [return] 'mastodon-tl--do-link-action-at-point)
@@ -334,8 +325,10 @@ Optionally start from POS."
 
 (defun mastodon-tl--format-faves-count (toot)
   "Format a favorites, boosts, replies count for a TOOT.
-Used to help-echo when point is at the start of a byline,
-i.e. where `mastodon-tl--goto-next-toot' leaves point."
+Used to help-echo when point is at the start of a byline, i.e.
+where `mastodon-tl--goto-next-toot' leaves point. Also displays a
+toot's media types and optionally the binding to play moving
+image media from the byline."
   (let* ((toot-to-count
           (or
            ;; simply praying this order works
@@ -356,8 +349,18 @@ i.e. where `mastodon-tl--goto-next-toot' leaves point."
                                  (format " | C-RET to view with mpv"))))
     (format "%s" (concat format-faves format-media format-media-binding))))
 
+(defun mastodon-tl--get-media-types (toot)
+  "Return a list of the media attachment types of the TOOT at point."
+  (let* ((attachments (or (alist-get 'media_attachments
+                                     (alist-get 'reblog toot))
+                          (alist-get 'media_attachments toot))))
+    (mapcar (lambda (x)
+              (alist-get 'type x))
+            medias)))
+
 (defun mastodon-tl--get-attachments-for-byline (toot)
-  "Return a list of attachment URLs and types for TOOT."
+  "Return a list of attachment URLs and types for TOOT.
+The result is added as an attachments property to author-byline."
   (let ((media-attachments (mastodon-tl--field 'media_attachments toot)))
     (mapcar
      (lambda (attachement)
