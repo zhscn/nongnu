@@ -351,12 +351,10 @@ image media from the byline."
 
 (defun mastodon-tl--get-media-types (toot)
   "Return a list of the media attachment types of the TOOT at point."
-  (let* ((attachments (or (alist-get 'media_attachments
-                                     (alist-get 'reblog toot))
-                          (alist-get 'media_attachments toot))))
+  (let* ((attachments (mastodon-tl--field 'media_attachments toot)))
     (mapcar (lambda (x)
               (alist-get 'type x))
-            medias)))
+            attachments)))
 
 (defun mastodon-tl--get-attachments-for-byline (toot)
   "Return a list of attachment URLs and types for TOOT.
