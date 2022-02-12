@@ -1269,7 +1269,7 @@ is a no-op."
           ;; We need to re-schedule for an earlier time
           (cancel-timer mastodon-tl--timestamp-update-timer)
           (setq mastodon-tl--timestamp-update-timer
-                (run-at-time this-update
+                (run-at-time (time-to-seconds (time-subtract this-update (current-time)))
                              nil ;; don't repeat
                              #'mastodon-tl--update-timestamps-callback
                              (current-buffer) nil)))))))
@@ -1322,7 +1322,9 @@ from the start if it is nil."
                            (copy-marker previous-timestamp))
             ;; otherwise we are done for now; schedule a new run for when needed
             (setq mastodon-tl--timestamp-update-timer
-                  (run-at-time mastodon-tl--timestamp-next-update
+                  (run-at-time (time-to-seconds
+                                (time-subtract mastodon-tl--timestamp-next-update
+                                               (current-time)))
                                nil ;; don't repeat
                                #'mastodon-tl--update-timestamps-callback
                                buffer nil))))))))
@@ -1372,7 +1374,9 @@ JSON is the data returned from the server."
                         update-function ,update-function)
           mastodon-tl--timestamp-update-timer
           (when mastodon-tl--enable-relative-timestamps
-            (run-at-time mastodon-tl--timestamp-next-update
+            (run-at-time (time-to-seconds
+                          (time-subtract mastodon-tl--timestamp-next-update
+                                         (current-time)))
                          nil ;; don't repeat
                          #'mastodon-tl--update-timestamps-callback
                          (current-buffer)
@@ -1402,7 +1406,9 @@ Runs synchronously."
                           ,update-function)
             mastodon-tl--timestamp-update-timer
             (when mastodon-tl--enable-relative-timestamps
-              (run-at-time mastodon-tl--timestamp-next-update
+              (run-at-time (time-to-seconds
+                            (time-subtract mastodon-tl--timestamp-next-update
+                                           (current-time)))
                            nil ;; don't repeat
                            #'mastodon-tl--update-timestamps-callback
                            (current-buffer)
