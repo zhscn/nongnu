@@ -120,8 +120,7 @@ If nil `(point-min)' is used instead.")
 
 (defun mastodon-tl--get-media-types (toot)
   "Return a list of the media attachment types of the TOOT at point."
-  (let* (;(toot (mastodon-tl--property 'toot-json))
-         (medias (or (alist-get 'media_attachments
+  (let* ((medias (or (alist-get 'media_attachments
                                 (alist-get 'reblog toot))
                      (alist-get 'media_attachments toot))))
     (mapcar (lambda (x)
@@ -350,8 +349,12 @@ i.e. where `mastodon-tl--goto-next-toot' leaves point."
                                (alist-get 'replies_count toot-to-count)))
          (format-media (when media-types
                          (format " | media: %s"
-                                 (mapconcat #'identity media-types " ")))))
-    (format "%s" (concat format-faves format-media))))
+                                 (mapconcat #'identity media-types " "))))
+         (format-media-binding (when (or
+                                      (member "video" media-types)
+                                      (member "gifv" media-types))
+                                 (format " | C-RET to view with mpv"))))
+    (format "%s" (concat format-faves format-media format-media-binding))))
 
 (defun mastodon-tl--get-attachments-for-byline (toot)
   "Return a list of attachment URLs and types for TOOT."
