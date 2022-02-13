@@ -5,7 +5,7 @@
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 0.10.0
 ;; Package-Requires: ((emacs "27.1"))
-;; Homepage: https://git.blast.noho.st/mouse/mastodon.el
+;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
 
@@ -47,6 +47,8 @@
 (autoload 'mastodon-tl--property "mastodon-tl.el")
 (autoload 'mastodon-tl--spoiler "mastodon-tl.el")
 (autoload 'mastodon-tl--toot-id "mastodon-tl.el")
+(autoload 'mastodon-http--get-params-async-json "mastodon-http.el")
+(defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
 (defvar mastodon-tl--buffer-spec)
 
@@ -221,7 +223,8 @@ takes a single function. By default it is
 `mastodon-tl--byline-boosted'.
 
 ID is the notification's own id, which is attached as a property."
-  (mastodon-tl--insert-status toot body author-byline action-byline id))
+  (when toot ; handle rare blank notif server bug
+    (mastodon-tl--insert-status toot body author-byline action-byline id)))
 
 (defun mastodon-notifications--by-type (note)
   "Filters NOTE for those listed in `mastodon-notifications--types-alist'."
@@ -235,8 +238,10 @@ ID is the notification's own id, which is attached as a property."
 
 (defun mastodon-notifications--timeline (json)
   "Format JSON in Emacs buffer."
-  (mapc #'mastodon-notifications--by-type json)
-  (goto-char (point-min)))
+  (if (equal json '[])
+      (message "Looks like you have no notifications for the moment.")
+    (mapc #'mastodon-notifications--by-type json)
+    (goto-char (point-min))))
 
 (defun mastodon-notifications--get ()
   "Display NOTIFICATIONS in buffer."
