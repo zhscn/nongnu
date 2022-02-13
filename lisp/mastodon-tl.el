@@ -168,10 +168,11 @@ We need to override the keymap so tabbing will navigate to all
 types of mastodon links and not just shr.el-generated ones.")
 
 (defvar mastodon-tl--byline-link-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-from-byline)
-    (keymap-canonicalize map))
-   "The keymap to be set for the author byline.
+  (when (require 'mpv nil :no-error)
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-from-byline)
+      (keymap-canonicalize map)))
+  "The keymap to be set for the author byline.
 The idea is that you can play media without navigating to it.")
 
 (defun mastodon-tl--next-tab-item ()
@@ -343,9 +344,10 @@ image media from the byline."
          (format-media (when media-types
                          (format " | media: %s"
                                  (mapconcat #'identity media-types " "))))
-         (format-media-binding (when (or
-                                      (member "video" media-types)
-                                      (member "gifv" media-types))
+         (format-media-binding (when (and (or
+                                           (member "video" media-types)
+                                           (member "gifv" media-types))
+                                          (require 'mpv nil :no-error))
                                  (format " | C-RET to view with mpv"))))
     (format "%s" (concat format-faves format-media format-media-binding))))
 
