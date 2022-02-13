@@ -81,9 +81,12 @@ It looks like 2-factor auth was never completed in the original repo. It's not a
 
 ** contributing
 
-Contributions are welcome. Registration is disabled by default on the gitea instance, but if you are interested, get in touch with me on mastodon: [[https://todon.nl/@mousebot][@mousebot@todon.nl]]. Or just leave an issue on github.
+Contributions are welcome!
 
-For now, to get started with hacking, pull off the develop branch of the blast repo.
+1. Create an here on codeberg detailing the feature you'd like to add.
+2. Fork the repository and create a branch off of =develop=.
+3. Create a pull request referencing the issue created in step 1.
+
 * Original README
 
 ** Installation
