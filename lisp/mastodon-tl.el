@@ -325,7 +325,7 @@ Optionally start from POS."
 
 (defun mastodon-tl--format-faves-count (toot)
   "Format a favorites, boosts, replies count for a TOOT.
-Used to help-echo when point is at the start of a byline, i.e.
+Used as a help-echo when point is at the start of a byline, i.e.
 where `mastodon-tl--goto-next-toot' leaves point. Also displays a
 toot's media types and optionally the binding to play moving
 image media from the byline."
@@ -455,9 +455,9 @@ TIME-STAMP is assumed to be in the past."
 (defun mastodon-tl--byline (toot author-byline action-byline)
   "Generate byline for TOOT.
 
-AUTHOR-BYLINE is function for adding the author portion of
+AUTHOR-BYLINE is a function for adding the author portion of
 the byline that takes one variable.
-ACTION-BYLINE is a function for adding an action, such as boosting
+ACTION-BYLINE is a function for adding an action, such as boosting,
 favouriting and following to the byline. It also takes a single function.
 By default it is `mastodon-tl--byline-boosted'"
   (let ((parsed-time (date-to-time (mastodon-tl--field 'created_at toot)))
@@ -465,13 +465,13 @@ By default it is `mastodon-tl--byline-boosted'"
         (boosted (equal 't (mastodon-tl--field 'reblogged toot)))
         (visibility (mastodon-tl--field 'visibility toot)))
     (concat
-     ;; Boosted/favourited markers are not part of the byline, so we don't
-     ;; propertize them with 'byline t', as per the rest. This ensures that
-     ;; `mastodon-tl--goto-next-toot' puts point on author-byline not on the
-     ;; (F) or (B) marker. Not propertizing like this makes the behaviour of
-     ;; these markers consistent whether they are displayed for an already
-     ;; boosted/favourited toot or the result of the toot having just been
-     ;; favourited/boosted.
+     ;; Boosted/favourited markers are not technically part of the byline, so
+     ;; we don't propertize them with 'byline t', as per the rest. This
+     ;; ensures that `mastodon-tl--goto-next-toot' puts point on
+     ;; author-byline, not before the (F) or (B) marker. Not propertizing like
+     ;; this makes the behaviour of these markers consistent whether they are
+     ;; displayed for an already boosted/favourited toot or as the result of
+     ;; the toot having just been favourited/boosted.
       (concat (when boosted
                 (mastodon-tl--format-faved-or-boosted-byline "B"))
               (when faved
