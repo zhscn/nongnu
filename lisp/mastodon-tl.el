@@ -63,6 +63,7 @@
 (autoload 'mastodon-notifications--get "mastodon-notifications"
   "Display NOTIFICATIONS in buffer." t) ; interactive
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
+(autoload 'mastodon-search--get-user-info "mastodon-search")
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
 (defvar mastodon-instance-url)
