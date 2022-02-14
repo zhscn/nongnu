@@ -162,6 +162,12 @@ types of mastodon links and not just shr.el-generated ones.")
 We need to override the keymap so tabbing will navigate to all
 types of mastodon links and not just shr.el-generated ones.")
 
+(defvar mastodon-tl--view-filters-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "d") 'mastodon-tl--delete-filter)
+    (keymap-canonicalize map))
+    "Keymap for viewing filters.")
+
 (defun mastodon-tl--next-tab-item ()
   "Move to the next interesting item.
 
@@ -1015,7 +1021,58 @@ Prompt for a context, must be a list containting at least one of \"home\",
                                         nil)))
     (mastodon-http--triage response
                            (lambda ()
-                             (message "Filter created for %s!" word)))))
+                             (message "Filter created for %s!" word)
+                             (when (string= (plist-get mastodon-tl--buffer-spec 'buffer-name)
+                                            "*mastodon-filters*")
+                               (mastodon-tl--view-filters))))))
+
+(defun mastodon-tl--view-filters ()
+  ""
+  (interactive)
+  (let ((url (mastodon-http--api "filters")))
+    (mastodon-tl--init-sync "*mastodon-filters*"
+                            "filters"
+                            'mastodon-tl--insert-filters)
+    (mastodon-tl--goto-next-toot)))
+
+(defun mastodon-tl--insert-filters (json)
+  ""
+  (insert (mastodon-tl--set-face
+           (concat "\n ------------\n"
+                   " CURRENT FILTERS\n"
+                   " ------------\n\n")
+                 'success))
+  (mapc (lambda (x)
+          (mastodon-tl--insert-filter-string x)
+          (insert "\n\n"))
+        json))
+
+(defun mastodon-tl--insert-filter-string (filter)
+  ""
+  (let* ((phrase (alist-get 'phrase filter))
+         (contexts (alist-get 'context filter))
+         (id (alist-get 'id filter))
+         (filter-string (concat "- \"" phrase "\" filtered in: "
+                                (mapconcat #'identity contexts ", "))))
+    (insert
+     (propertize filter-string
+                 'toot-id id ;for goto-next-toot compat
+                 'phrase phrase
+                 'help-echo "d to delete filter at point, n/p to go to next/prev filter."
+                 'keymap mastodon-tl--view-filters-keymap
+                 'byline t)))) ;for goto-next-toot compat
+
+(defun mastodon-tl--delete-filter ()
+  ""
+  (interactive)
+  (let* ((filter-id (mastodon-tl--property 'toot-id))
+         (phrase (mastodon-tl--property 'phrase))
+         (url (mastodon-http--api
+               (format "filters/%s" filter-id)))
+         (response (mastodon-http--delete url)))
+    (mastodon-http--triage response (lambda ()
+                                      (message "Filter for \"%s\" deleted!" phrase)
+                                      (mastodon-tl--view-filters)))))
 
 (defun mastodon-tl--get-follow-suggestions ()
 "Display a buffer of suggested accounts to follow."
