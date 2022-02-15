@@ -333,11 +333,10 @@ Used on initializing a timeline or thread."
                  'face 'mastodon-display-name-face
                  ;; enable playing of videos when point is on byline:
                  'attachments (mastodon-tl--get-attachments-for-byline toot)
-                 'keymap mastodon-tl--byline-link-keymap
-                 ;; echo faves count when point on post author name:
-                 ;; which is where --goto-next-toot puts point.
-                 'help-echo
-                 (mastodon-tl--format-faves-count toot))
+                 'keymap mastodon-tl--byline-link-keymap)
+                 ;; help-echo propertized moved to `mastodon-tl--byline
+                 ;; 'help-echo
+                 ;; (mastodon-tl--format-faves-count toot))
      " ("
      (propertize (concat "@" handle)
                  'face 'mastodon-handle-face
@@ -505,32 +504,34 @@ By default it is `mastodon-tl--byline-boosted'"
               (when faved
                 (mastodon-tl--format-faved-or-boosted-byline "F")))
       (propertize
-       (concat
-              ;; we propertize help-echo format faves for author name
-              ;; in `mastodon-tl--byline-author'
-              (funcall author-byline toot)
-              (cond ((equal visibility "direct")
-                     (if (fontp (char-displayable-p #10r128274))
-                         " ✉"
-                       " [direct]"))
-                    ((equal visibility "private")
-                     (if (fontp (char-displayable-p #10r9993))
-                         " 🔒"
-                       " [followers]")))
-              (funcall action-byline toot)
-              " "
-              ;; TODO: Once we have a view for toot (responses etc.) make
-              ;; this a tab stop and attach an action.
-              (propertize
-               (format-time-string mastodon-toot-timestamp-format parsed-time)
-               'timestamp parsed-time
-               'display (if mastodon-tl--enable-relative-timestamps
-                            (mastodon-tl--relative-time-description parsed-time)
-                          parsed-time))
-              (propertize "\n  ------------\n" 'face 'default))
-      'favourited-p faved
-      'boosted-p    boosted
-      'byline       t))))
+       ;; echo faves count when point on
+       ;; author byline, which is where --goto-next-toot puts
+       ;; point.
+       (concat (propertize
+                (funcall author-byline toot)
+                'help-echo (mastodon-tl--format-faves-count toot))
+               (cond ((equal visibility "direct")
+                      (if (fontp (char-displayable-p #10r128274))
+                          " ✉"
+                        " [direct]"))
+                     ((equal visibility "private")
+                      (if (fontp (char-displayable-p #10r9993))
+                          " 🔒"
+                        " [followers]")))
+               (funcall action-byline toot)
+               " "
+               ;; TODO: Once we have a view for toot (responses etc.) make
+               ;; this a tab stop and attach an action.
+               (propertize
+                (format-time-string mastodon-toot-timestamp-format parsed-time)
+                'timestamp parsed-time
+                'display (if mastodon-tl--enable-relative-timestamps
+                             (mastodon-tl--relative-time-description parsed-time)
+                           parsed-time))
+               (propertize "\n  ------------\n" 'face 'default))
+       'favourited-p faved
+       'boosted-p    boosted
+       'byline       t))))
 
 (defun mastodon-tl--format-faved-or-boosted-byline (letter)
   "Format the byline marker for a boosted or favorited status.
