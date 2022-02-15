@@ -309,14 +309,14 @@ Optionally start from POS."
   (mastodon-tl--goto-toot-pos 'previous-single-property-change
                               'mastodon-tl--update))
 
-(defun mastodon-tl--goto-first-toot ()
+(defun mastodon-tl--goto-first-item ()
   "Jump to first toot or item in buffer.
 Used on initializing a timeline or thread."
   ;; goto-next-toot assumes we already have toots, and is therefore
   ;; incompatible with any view where it is possible to have no items.
   ;; when that is the case the call to goto-toot-pos loops infinitely
-  (mastodon-tl--goto-toot-pos 'next-single-property-change
-                              'next-line)) ;dummy function as we need to feed it something
+  (goto-char (point-min))
+  (mastodon-tl--goto-next-item))
 
 (defun mastodon-tl--goto-next-item ()
   "Jump to next item, e.g. filter or follow request."
@@ -1635,8 +1635,9 @@ JSON is the data returned from the server."
                          nil)))
     (when (or (equal endpoint "notifications")
               (string-prefix-p "timelines" endpoint)
+              (string-prefix-p "favourites" endpoint)
               (string-prefix-p "statuses" endpoint))
-      (mastodon-tl--goto-first-toot))))
+      (mastodon-tl--goto-first-item))))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
@@ -1672,8 +1673,9 @@ Runs synchronously."
       (when (and (not (equal json '[]))
                  (or (equal endpoint "notifications")
                      (string-prefix-p "timelines" endpoint)
+                     (string-prefix-p "favourites" endpoint)
                      (string-prefix-p "statuses" endpoint))
-                 (mastodon-tl--goto-first-toot))))
+                 (mastodon-tl--goto-first-item))))
       buffer))
 
 (provide 'mastodon-tl)
