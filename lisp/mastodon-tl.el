@@ -1253,7 +1253,7 @@ RESPONSE is the JSON returned by the server."
                      " SUGGESTED ACCOUNTS\n"
                      " ------------\n\n")
              'success))
-    (mastodon-profile--add-author-bylines response)
+    (mastodon-search--insert-users-propertized users :note)
     (goto-char (point-min))))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
