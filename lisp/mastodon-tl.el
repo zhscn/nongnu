@@ -303,6 +303,12 @@ Optionally start from POS."
   (mastodon-tl--goto-toot-pos 'next-single-property-change
                               'mastodon-tl--more))
 
+(defun mastodon-tl--goto-prev-toot ()
+  "Jump to last toot header."
+  (interactive)
+  (mastodon-tl--goto-toot-pos 'previous-single-property-change
+                              'mastodon-tl--update))
+
 (defun mastodon-tl--goto-first-toot ()
   "Jump to first toot or item in buffer.
 Used on initializing a timeline or thread."
@@ -312,11 +318,17 @@ Used on initializing a timeline or thread."
   (mastodon-tl--goto-toot-pos 'next-single-property-change
                               'next-line)) ;dummy function as we need to feed it something
 
-(defun mastodon-tl--goto-prev-toot ()
-  "Jump to last toot header."
+(defun mastodon-tl--goto-next-item ()
+  "Jump to next item, e.g. filter or follow request."
+  (interactive)
+  (mastodon-tl--goto-toot-pos 'next-single-property-change
+                              'next-line))
+
+(defun mastodon-tl--goto-prev-item ()
+  "Jump to previous item, e.g. filter or follow request."
   (interactive)
   (mastodon-tl--goto-toot-pos 'previous-single-property-change
-                              'mastodon-tl--update))
+                              'previous-line))
 
 (defun mastodon-tl--remove-html (toot)
   "Remove unrendered tags from TOOT."
@@ -1222,18 +1234,6 @@ JSON is what is returned by by the server."
           (mastodon-http--triage response (lambda ()
                                             (mastodon-tl--view-filters)
                                             (message "Filter for \"%s\" deleted!" phrase)))))))
-
-(defun mastodon-tl--goto-next-item ()
-  "Jump to next item, e.g. filter or follow request."
-  (interactive)
-  (mastodon-tl--goto-toot-pos 'next-single-property-change
-                              'next-line))
-
-(defun mastodon-tl--goto-prev-item ()
-  "Jump to previous item, e.g. filter or follow request."
-  (interactive)
-  (mastodon-tl--goto-toot-pos 'previous-single-property-change
-                              'previous-line))
 
 (defun mastodon-tl--get-follow-suggestions ()
   "Display a buffer of suggested accounts to follow."
