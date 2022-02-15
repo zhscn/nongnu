@@ -184,6 +184,19 @@ types of mastodon links and not just shr.el-generated ones.")
     (keymap-canonicalize map))
     "Keymap for viewing filters.")
 
+(defvar mastodon-tl--view-suggestions-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "W") 'mastodon-tl--follow-user)
+    (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
+    (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
+    (define-key map (kbd "TAB") 'mastodon-tl--goto-next-item)
+    (define-key map (kbd "g") 'mastodon-tl--get-follow-suggestions)
+    (define-key map (kbd "t") 'mastodon-toot)
+    (define-key map (kbd "q") 'kill-current-buffer)
+    (define-key map (kbd "Q") 'kill-buffer-and-window)
+    (keymap-canonicalize map))
+    "Keymap for viewing follow suggestions.")
+
 (defvar mastodon-tl--byline-link-keymap
   (when (require 'mpv nil :no-error)
     (let ((map (make-sparse-keymap)))
@@ -1223,24 +1236,25 @@ JSON is what is returned by by the server."
                               'previous-line))
 
 (defun mastodon-tl--get-follow-suggestions ()
-"Display a buffer of suggested accounts to follow."
+  "Display a buffer of suggested accounts to follow."
   (interactive)
-  (let* ((buffer (format "*mastodon-follow-suggestions*"))
-         (response
-          (mastodon-http--get-json
-           (mastodon-http--api "suggestions")))
-         (users (mapcar 'mastodon-search--get-user-info response)))
-    (with-output-to-temp-buffer buffer
-      (let ((inhibit-read-only t))
-        (switch-to-buffer buffer)
-        (mastodon-mode)
-        (insert (mastodon-tl--set-face
-                 (concat "\n ------------\n"
-                         " SUGGESTED ACCOUNTS\n"
-                         " ------------\n\n")
-                 'success))
-        (mastodon-profile--add-author-bylines response)))))
-        ;; (mastodon-search--insert-users-propertized users :note)))))
+  (mastodon-tl--init-sync "follow-suggestions"
+                          "suggestions"
+                          'mastodon-tl--insert-follow-suggestions)
+  (use-local-map mastodon-tl--view-suggestions-keymap)
+  (mastodon-tl--goto-next-item))
+
+(defun mastodon-tl--insert-follow-suggestions (response)
+  "Insert follow suggestions into buffer.
+RESPONSE is the JSON returned by the server."
+  (let* ((users (mapcar 'mastodon-search--get-user-info response)))
+    (insert (mastodon-tl--set-face
+             (concat "\n ------------\n"
+                     " SUGGESTED ACCOUNTS\n"
+                     " ------------\n\n")
+             'success))
+    (mastodon-profile--add-author-bylines response)
+    (goto-char (point-min))))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
   "Query for USER-HANDLE from current status and follow that user.
