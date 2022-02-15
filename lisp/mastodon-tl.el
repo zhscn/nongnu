@@ -1582,10 +1582,10 @@ JSON is the data returned from the server."
      mastodon-tl--timestamp-next-update (time-add (current-time)
                                                   (seconds-to-time 300)))
     (funcall update-function json))
-  (mastodon-tl--goto-next-toot)
   (mastodon-mode)
   (when (equal endpoint "follow_requests")
-    (mastodon-profile-mode))
+    (mastodon-profile-mode)
+    (use-local-map mastodon-profile--view-follow-requests-keymap))
   (with-current-buffer buffer
     (setq mastodon-tl--buffer-spec
           `(buffer-name ,buffer
@@ -1599,7 +1599,11 @@ JSON is the data returned from the server."
                          nil ;; don't repeat
                          #'mastodon-tl--update-timestamps-callback
                          (current-buffer)
-                         nil)))))
+                         nil)))
+    (when (or (equal endpoint "notifications")
+              (string-prefix-p "timelines" endpoint)
+              (string-prefix-p "statuses" endpoint))
+      (mastodon-tl--goto-next-toot))))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
@@ -1631,7 +1635,11 @@ Runs synchronously."
                            nil ;; don't repeat
                            #'mastodon-tl--update-timestamps-callback
                            (current-buffer)
-                           nil))))
+                           nil)))
+      (when (or (equal endpoint "notifications")
+                (string-prefix-p "timelines" endpoint)
+                (string-prefix-p "statuses" endpoint))
+        (mastodon-tl--goto-next-toot)))
     buffer))
 
 (provide 'mastodon-tl)
