@@ -172,7 +172,10 @@ JSON is the data returned by the server."
            (concat "\n ------------\n"
                    " FOLLOW REQUESTS\n"
                    " ------------\n\n")
-           'success))
+           'success)
+          (mastodon-tl--set-face
+           "[a/r - accept/reject request at point\n n/p - go to next/prev request]\n\n"
+           'font-lock-comment-face))
   (if (equal json '[])
       (insert (propertize
                "Looks like you have no follow requests for now."
