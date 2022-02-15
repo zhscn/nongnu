@@ -1107,7 +1107,8 @@ webapp"
                          " SUGGESTED ACCOUNTS\n"
                          " ------------\n\n")
                  'success))
-        (mastodon-search--insert-users-propertized users :note)))))
+        (mastodon-profile--add-author-bylines response)))))
+        ;; (mastodon-search--insert-users-propertized users :note)))))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
   "Query for USER-HANDLE from current status and follow that user.

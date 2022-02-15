@@ -398,8 +398,7 @@ FIELD is used to identify regions under 'account"
 (defun mastodon-profile--add-author-bylines (tootv)
   "Convert TOOTV into a author-bylines and insert."
   (let ((inhibit-read-only t))
-    (if (equal tootv '[])
-        (message "Looks like you have no follow requests for the moment.")
+    (when (not (equal tootv '[]))
       (mapc (lambda (toot)
               (let ((start-pos (point)))
                 (insert "\n"
