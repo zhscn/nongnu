@@ -71,6 +71,7 @@
 (defvar mastodon-instance-url)
 (defvar mastodon-toot-timestamp-format)
 (defvar shr-use-fonts)  ;; declare it since Emacs24 didn't have this
+(defvar mastodon-mode-map)
 
 (defgroup mastodon-tl nil
   "Timelines in Mastodon."
@@ -171,33 +172,27 @@ We need to override the keymap so tabbing will navigate to all
 types of mastodon links and not just shr.el-generated ones.")
 
 (defvar mastodon-tl--view-filters-keymap
-  (let ((map (make-sparse-keymap)))
+  (let ((map ;(make-sparse-keymap)))
+         (copy-keymap mastodon-mode-map)))
     (define-key map (kbd "d") 'mastodon-tl--delete-filter)
     (define-key map (kbd "c") 'mastodon-tl--create-filter)
     (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
     (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
-    (define-key map (kbd "TAB") 'mastodon-tl--goto-next-filter)
+    (define-key map (kbd "TAB") 'mastodon-tl--goto-next-item)
     (define-key map (kbd "g") 'mastodon-tl--view-filters)
-    (define-key map (kbd "t") 'mastodon-toot)
-    (define-key map (kbd "q") 'kill-current-buffer)
-    (define-key map (kbd "Q") 'kill-buffer-and-window)
     (keymap-canonicalize map))
-    "Keymap for viewing filters.")
+  "Keymap for viewing filters.")
 
-(defvar mastodon-tl--view-suggestions-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "W") 'mastodon-tl--follow-user)
+(defvar mastodon-tl--follow-suggestions-map
+  (let ((map ;(make-sparse-keymap)))
+         (copy-keymap mastodon-mode-map)))
     (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
     (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
-    (define-key map (kbd "TAB") 'mastodon-tl--goto-next-item)
     (define-key map (kbd "g") 'mastodon-tl--get-follow-suggestions)
-    (define-key map (kbd "t") 'mastodon-toot)
-    (define-key map (kbd "q") 'kill-current-buffer)
-    (define-key map (kbd "Q") 'kill-buffer-and-window)
     (keymap-canonicalize map))
-    "Keymap for viewing follow suggestions.")
+  "Keymap for viewing follow suggestions.")
 
-(defvar mastodon-tl--byline-link-keymap
+  (defvar mastodon-tl--byline-link-keymap
   (when (require 'mpv nil :no-error)
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-from-byline)
@@ -1241,20 +1236,19 @@ JSON is what is returned by by the server."
   (mastodon-tl--init-sync "follow-suggestions"
                           "suggestions"
                           'mastodon-tl--insert-follow-suggestions)
-  (use-local-map mastodon-tl--view-suggestions-keymap)
+  (use-local-map mastodon-tl--follow-suggestions-map)
   (mastodon-tl--goto-next-item))
 
 (defun mastodon-tl--insert-follow-suggestions (response)
   "Insert follow suggestions into buffer.
 RESPONSE is the JSON returned by the server."
-  (let* ((users (mapcar 'mastodon-search--get-user-info response)))
-    (insert (mastodon-tl--set-face
-             (concat "\n ------------\n"
-                     " SUGGESTED ACCOUNTS\n"
-                     " ------------\n\n")
-             'success))
-    (mastodon-search--insert-users-propertized response :note)
-    (goto-char (point-min))))
+  (insert (mastodon-tl--set-face
+           (concat "\n ------------\n"
+                   " SUGGESTED ACCOUNTS\n"
+                   " ------------\n\n")
+           'success))
+  (mastodon-search--insert-users-propertized response :note)
+  (goto-char (point-min)))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
   "Query for USER-HANDLE from current status and follow that user.
@@ -1616,9 +1610,6 @@ JSON is the data returned from the server."
                                                   (seconds-to-time 300)))
     (funcall update-function json))
   (mastodon-mode)
-  (when (equal endpoint "follow_requests")
-    (mastodon-profile-mode)
-    (use-local-map mastodon-profile--view-follow-requests-keymap))
   (with-current-buffer buffer
     (setq mastodon-tl--buffer-spec
           `(buffer-name ,buffer

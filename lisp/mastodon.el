@@ -166,6 +166,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "k") #'mastodon-toot--bookmark-toot-toggle)
     (define-key map (kbd "K") #'mastodon-profile--view-bookmarks)
     (define-key map (kbd "I") #'mastodon-tl--view-filters)
+    (define-key map (kbd "G") #'mastodon-tl--get-follow-suggestions)
     map)
 
   "Keymap for `mastodon-mode'.")
