@@ -161,7 +161,21 @@ extra keybindings."
   (interactive)
   (mastodon-tl--init "follow-requests"
                      "follow_requests"
-                     'mastodon-profile--add-author-bylines))
+                     'mastodon-profile--insert-follow-requests))
+
+(defun mastodon-profile--insert-follow-requests (json)
+  "Insert the user's current follow requests.
+JSON is the data returned by the server."
+  (insert (mastodon-tl--set-face
+           (concat "\n ------------\n"
+                   " FOLLOW REQUESTS\n"
+                   " ------------\n\n")
+           'success))
+  (if (equal json '[])
+      (insert (propertize
+               "Looks like you have no follow requests for now."
+               'face font-lock-comment-face))
+    (mastodon-profile--add-author-bylines json)))
 
 (defun mastodon-profile--update-user-profile-note ()
   "Fetch user's profile note and display for editing."
