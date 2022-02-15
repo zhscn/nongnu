@@ -1158,8 +1158,9 @@ Prompt for a context, must be a list containting at least one of \"home\",
     (mastodon-http--triage response
                            (lambda ()
                              (message "Filter created for %s!" word)
-                             (when (string= (plist-get mastodon-tl--buffer-spec 'buffer-name)
-                                            "*mastodon-filters*")
+                             ;; reload if we are in filters view:
+                             (when (string= (mastodon-tl--get-endpoint)
+                                            "filters")
                                (mastodon-tl--view-filters))))))
 
 (defun mastodon-tl--view-filters ()
