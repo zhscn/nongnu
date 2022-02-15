@@ -1462,7 +1462,8 @@ JSON is the data returned from the server."
   (mastodon-tl--goto-next-toot)
   (mastodon-mode)
   (when (equal endpoint "follow_requests")
-    (mastodon-profile-mode))
+    (mastodon-profile-mode)
+    (use-local-map mastodon-profile--view-follow-requests-keymap))
   (with-current-buffer buffer
     (setq mastodon-tl--buffer-spec
           `(buffer-name ,buffer
