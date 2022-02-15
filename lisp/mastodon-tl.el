@@ -1168,17 +1168,16 @@ JSON is what is returned by by the server."
           (mastodon-tl--set-face
            "[c - create filter\n d - delete filter at point\n n/p - go to next/prev filter]\n\n"
            'font-lock-comment-face))
-  (if (not (equal json '[]))
-      (progn
-      (mapc (lambda (x)
-              (mastodon-tl--insert-filter-string x)
-              (insert "\n\n"))
-            json))
-    (insert (propertize
-             "Looks like you have no filters for now."
-             'face font-lock-comment-face
-             'byline t
-             'toot-id "0")))) ; so point can move here when no filters
+  (if (equal json '[])
+      (insert (propertize
+               "Looks like you have no filters for now."
+               'face font-lock-comment-face
+               'byline t
+               'toot-id "0")) ; so point can move here when no filters
+    (mapc (lambda (x)
+            (mastodon-tl--insert-filter-string x)
+            (insert "\n\n"))
+          json)))
 
 (defun mastodon-tl--insert-filter-string (filter)
   "Insert a single FILTER."
