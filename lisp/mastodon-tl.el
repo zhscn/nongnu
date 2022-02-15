@@ -1253,7 +1253,7 @@ RESPONSE is the JSON returned by the server."
                      " SUGGESTED ACCOUNTS\n"
                      " ------------\n\n")
              'success))
-    (mastodon-search--insert-users-propertized users :note)
+    (mastodon-search--insert-users-propertized response :note)
     (goto-char (point-min))))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
@@ -1321,8 +1321,17 @@ Can be called to toggle NOTIFY on users already being followed."
 
 (defun mastodon-tl--interactive-user-handles-get (action)
   "Get the list of user-handles for ACTION from the current toot."
-  (let ((user-handles (mastodon-profile--extract-users-handles
-                       (mastodon-profile--toot-json))))
+  (let ((user-handles
+         ;; follow suggests / search compat:
+         (cond ((or (equal (buffer-name) "*mastodon-follow-suggestions*")
+                    (string-prefix-p "*mastodon-search" (buffer-name)))
+                (list (alist-get 'acct (mastodon-tl--property 'user-json))))
+               ;; profile view follows/followers compat:
+               ((string-prefix-p "accounts" (mastodon-tl--get-endpoint))
+                (list (alist-get 'acct (mastodon-tl--property 'toot-json))))
+               (t
+                (mastodon-profile--extract-users-handles
+                 (mastodon-profile--toot-json))))))
     (completing-read (if (or (equal action "disable")
                              (equal action "enable"))
                          (format "%s notifications when user posts: " action)

@@ -89,16 +89,16 @@ Returns a nested list containing user handle, display name, and URL."
                                   status-ids-list)))
     (with-current-buffer (get-buffer-create buffer)
       (switch-to-buffer buffer)
-      (erase-buffer)
       (mastodon-mode)
       (let ((inhibit-read-only t))
+        (erase-buffer)
         ;; user results:
         (insert (mastodon-tl--set-face
                  (concat "\n ------------\n"
                          " USERS\n"
                          " ------------\n\n")
                  'success))
-        (mastodon-search--insert-users-propertized user-ids :note)
+        (mastodon-search--insert-users-propertized accts :note)
         ;; hashtag results:
         (insert (mastodon-tl--set-face
                  (concat "\n ------------\n"
@@ -124,26 +124,34 @@ Returns a nested list containing user handle, display name, and URL."
         (mapc 'mastodon-tl--toot toots-list-json)
         (goto-char (point-min))))))
 
-(defun mastodon-search--insert-users-propertized (users &optional note)
-  "Insert USERS list into the buffer.
+(defun mastodon-search--insert-users-propertized (json &optional note)
+  "Insert users list into the buffer.
+JSON is the data from the server..
 If NOTE is non-nil, include user's profile note.
 This is also called by `mastodon-tl--get-follow-suggestions'."
-  (mapc (lambda (el)
-          (insert (propertize (car el) 'face 'mastodon-display-name-face)
-                  " : \n : "
-                  (propertize (concat "@" (car (cdr el)))
-                              'face 'mastodon-handle-face
-                              'mouse-face 'highlight
-		                      'mastodon-tab-stop 'user-handle
-		                      'keymap mastodon-tl--link-keymap
-                              'mastodon-handle (concat "@" (car (cdr el)))
-		                      'help-echo (concat "Browse user profile of @" (car (cdr el))))
-                  " : \n"
-                  (if note
-                      (mastodon-tl--render-text (cadddr el) nil)
-                  "")
-                  "\n"))
-        users))
+    (mapc (lambda (acct)
+            (let ((user (mastodon-search--get-user-info acct)))
+              (insert
+               (propertize
+                (concat (propertize (car user)
+                                    'face 'mastodon-display-name-face
+                                    'byline t
+                                    'toot-id "0")
+                        " : \n : "
+                        (propertize (concat "@" (cadr user))
+                                    'face 'mastodon-handle-face
+                                    'mouse-face 'highlight
+		                    'mastodon-tab-stop 'user-handle
+		                    'keymap mastodon-tl--link-keymap
+                                    'mastodon-handle (concat "@" (cadr user))
+		                    'help-echo (concat "Browse user profile of @" (cadr user)))
+                        " : \n"
+                        (if note
+                            (mastodon-tl--render-text (cadddr user) nil)
+                          "")
+                        "\n")
+                'user-json acct))))
+          json))
 
 (defun mastodon-search--get-user-info (account)
   "Get user handle, display name, account URL and profile note from ACCOUNT."
