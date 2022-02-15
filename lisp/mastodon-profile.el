@@ -454,7 +454,12 @@ If the handle does not match a search return then retun NIL."
 
 These include the author, author of reblogged entries and any user mentioned."
   (when status
-    (let ((this-account (alist-get 'account status))
+    (let ((this-account
+           ;; follow suggestions view compat:
+           (if (or (equal (buffer-name) "*mastodon-follow-suggestions*")
+                   (string-prefix-p "accounts" (mastodon-tl--get-endpoint)))
+               (mastodon-tl--property 'toot-json)
+             (alist-get 'account status)))
 	      (mentions (alist-get 'mentions status))
 	      (reblog (alist-get 'reblog status)))
       (seq-filter
