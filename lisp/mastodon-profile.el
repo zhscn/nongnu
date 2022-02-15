@@ -78,8 +78,10 @@
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") #'mastodon-notifications--follow-request-reject)
     (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
-    ;; (define-key map (kbd "g") 'mastodon-notifications--view-follow-requests
-    ;; (define-key map (kbd "t") #'mastodon-toot)
+    (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
+    (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
+    (define-key map (kbd "g") 'mastodon-notifications--view-follow-requests)
+    (define-key map (kbd "t") #'mastodon-toot)
     (define-key map (kbd "q") #'kill-current-buffer)
     (define-key map (kbd "Q") #'kill-buffer-and-window)
     map)

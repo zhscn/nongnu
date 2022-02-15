@@ -174,8 +174,8 @@ types of mastodon links and not just shr.el-generated ones.")
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "d") 'mastodon-tl--delete-filter)
     (define-key map (kbd "c") 'mastodon-tl--create-filter)
-    (define-key map (kbd "n") 'mastodon-tl--goto-next-filter)
-    (define-key map (kbd "p") 'mastodon-tl--goto-prev-filter)
+    (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
+    (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
     (define-key map (kbd "TAB") 'mastodon-tl--goto-next-filter)
     (define-key map (kbd "g") 'mastodon-tl--view-filters)
     (define-key map (kbd "t") 'mastodon-toot)
@@ -1155,7 +1155,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
                           "filters"
                           'mastodon-tl--insert-filters)
   (use-local-map mastodon-tl--view-filters-keymap)
-  (mastodon-tl--goto-next-filter))
+  (mastodon-tl--goto-next-item))
 
 (defun mastodon-tl--insert-filters (json)
   "Insert the user's current filters.
@@ -1210,14 +1210,14 @@ JSON is what is returned by by the server."
                                             (mastodon-tl--view-filters)
                                             (message "Filter for \"%s\" deleted!" phrase)))))))
 
-(defun mastodon-tl--goto-next-filter ()
-  "Jump to next filter."
+(defun mastodon-tl--goto-next-item ()
+  "Jump to next item, e.g. filter or follow request."
   (interactive)
   (mastodon-tl--goto-toot-pos 'next-single-property-change
                               'next-line))
 
-(defun mastodon-tl--goto-prev-filter ()
-  "Jump to previous filter."
+(defun mastodon-tl--goto-prev-item ()
+  "Jump to previous item, e.g. filter or follow request."
   (interactive)
   (mastodon-tl--goto-toot-pos 'previous-single-property-change
                               'previous-line))
