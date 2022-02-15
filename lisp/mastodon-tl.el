@@ -64,6 +64,8 @@
   "Display NOTIFICATIONS in buffer." t) ; interactive
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 (autoload 'mastodon-search--get-user-info "mastodon-search")
+(autoload 'mastodon-http--delete "mastodon-http")
+
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
 (defvar mastodon-instance-url)
@@ -167,6 +169,20 @@ types of mastodon links and not just shr.el-generated ones.")
 
 We need to override the keymap so tabbing will navigate to all
 types of mastodon links and not just shr.el-generated ones.")
+
+(defvar mastodon-tl--view-filters-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "d") 'mastodon-tl--delete-filter)
+    (define-key map (kbd "c") 'mastodon-tl--create-filter)
+    (define-key map (kbd "n") 'mastodon-tl--goto-next-filter)
+    (define-key map (kbd "p") 'mastodon-tl--goto-prev-filter)
+    (define-key map (kbd "TAB") 'mastodon-tl--goto-next-filter)
+    (define-key map (kbd "g") 'mastodon-tl--view-filters)
+    (define-key map (kbd "t") 'mastodon-toot)
+    (define-key map (kbd "q") 'kill-current-buffer)
+    (define-key map (kbd "Q") 'kill-buffer-and-window)
+    (keymap-canonicalize map))
+    "Keymap for viewing filters.")
 
 (defvar mastodon-tl--byline-link-keymap
   (when (require 'mpv nil :no-error)
@@ -1058,7 +1074,6 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
-
 (defun mastodon-tl--thread ()
   "Open thread buffer for toot under `point'."
   (interactive)
@@ -1089,6 +1104,114 @@ webapp"
                                       (alist-get 'descendants context)))))
           (mastodon-tl--goto-next-toot))
       (message "No Thread!"))))
+
+(defun mastodon-tl--create-filter ()
+  "Create a filter for a word.
+Prompt for a context, must be a list containting at least one of \"home\",
+\"notifications\", \"public\", \"thread\"."
+  (interactive)
+  (let* ((url (mastodon-http--api "filters"))
+         (word (read-string
+                (format "Word(s) to filter (%s): " (or (current-word) ""))
+                nil nil (or (current-word) "")))
+         (contexts
+          (if (equal "" word)
+              (error "You must select at least one word for a filter")
+            (completing-read-multiple
+             "Contexts to filter [TAB for options]:"
+             '("home" "notifications" "public" "thread")
+             nil ; no predicate
+             t))) ; require-match, as context is mandatory
+         (contexts-processed
+          (if (equal nil contexts)
+              (error "You must select at least one context for a filter")
+            (mapcar (lambda (x)
+                      (cons "context[]" x))
+                    contexts)))
+         (response (mastodon-http--post url (push
+                                             `("phrase" . ,word)
+                                             contexts-processed)
+                                        nil)))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (message "Filter created for %s!" word)
+                             (when (string= (plist-get mastodon-tl--buffer-spec 'buffer-name)
+                                            "*mastodon-filters*")
+                               (mastodon-tl--view-filters))))))
+
+(defun mastodon-tl--view-filters ()
+  "View the user's filters in a new buffer."
+  (interactive)
+  (mastodon-tl--init-sync "filters"
+                          "filters"
+                          'mastodon-tl--insert-filters)
+  (use-local-map mastodon-tl--view-filters-keymap)
+  (mastodon-tl--goto-next-filter))
+
+(defun mastodon-tl--insert-filters (json)
+  "Insert the user's current filters.
+JSON is what is returned by by the server."
+  (insert (mastodon-tl--set-face
+           (concat "\n ------------\n"
+                   " CURRENT FILTERS\n"
+                   " ------------\n\n")
+           'success)
+          (mastodon-tl--set-face
+           "[c - create filter\n d - delete filter at point\n n/p - go to next/prev filter]\n\n"
+           'font-lock-comment-face))
+  (if (not (equal json '[]))
+      (progn
+      (mapc (lambda (x)
+              (mastodon-tl--insert-filter-string x)
+              (insert "\n\n"))
+            json))
+    (insert (propertize
+             "Looks like you have no filters for now."
+             'face font-lock-comment-face
+             'byline t
+             'toot-id "0")))) ; so point can move here when no filters
+
+(defun mastodon-tl--insert-filter-string (filter)
+  "Insert a single FILTER."
+  (let* ((phrase (alist-get 'phrase filter))
+         (contexts (alist-get 'context filter))
+         (id (alist-get 'id filter))
+         (filter-string (concat "- \"" phrase "\" filtered in: "
+                                (mapconcat #'identity contexts ", "))))
+    (insert
+     (propertize filter-string
+                 'toot-id id ;for goto-next-filter compat
+                 'phrase phrase
+                 ;'help-echo "n/p to go to next/prev filter, c to create new filter, d to delete filter at point."
+                 ;'keymap mastodon-tl--view-filters-keymap
+                 'byline t)))) ;for goto-next-filter compat
+
+(defun mastodon-tl--delete-filter ()
+  "Delete filter at point."
+  (interactive)
+    (let* ((filter-id (get-text-property (point) 'toot-id))
+           (phrase (get-text-property (point) 'phrase))
+           (url (mastodon-http--api
+                 (format "filters/%s" filter-id))))
+      (if (equal nil filter-id)
+          (error "No filter at point?")
+        (when (y-or-n-p (format "Delete this filter? ")))
+        (let ((response (mastodon-http--delete url)))
+          (mastodon-http--triage response (lambda ()
+                                            (mastodon-tl--view-filters)
+                                            (message "Filter for \"%s\" deleted!" phrase)))))))
+
+(defun mastodon-tl--goto-next-filter ()
+  "Jump to next filter."
+  (interactive)
+  (mastodon-tl--goto-toot-pos 'next-single-property-change
+                              'next-line))
+
+(defun mastodon-tl--goto-prev-filter ()
+  "Jump to previous filter."
+  (interactive)
+  (mastodon-tl--goto-toot-pos 'previous-single-property-change
+                              'previous-line))
 
 (defun mastodon-tl--get-follow-suggestions ()
 "Display a buffer of suggested accounts to follow."
