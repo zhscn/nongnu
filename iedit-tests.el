@@ -37,6 +37,7 @@
 
 (ert-deftest iedit-batch-compile-test ()
   (with-temp-buffer
+	(cd (file-name-directory (locate-library "iedit-tests")))
 	(call-process-shell-command "emacs -L . -Q --batch -f batch-byte-compile *.el" nil (current-buffer))
     (should (string= (buffer-string) "Iedit default key binding is C-;
 Iedit-rect default key binding is <C-x> <r> <;>
