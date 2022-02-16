@@ -1319,8 +1319,10 @@ Can be called to toggle NOTIFY on users already being followed."
                     (string-prefix-p "*mastodon-search" (buffer-name)))
                 (list (alist-get 'acct (mastodon-tl--property 'user-json))))
                ;; profile view follows/followers compat:
-               ((string-prefix-p "accounts" (mastodon-tl--get-endpoint))
-                (list (alist-get 'acct (mastodon-tl--property 'toot-json))))
+               ;; but not for profile statuses:
+               ((when (and (string-prefix-p "accounts" (mastodon-tl--get-endpoint))
+                         (not (string-suffix-p "statuses" (mastodon-tl--get-endpoint))))
+                    (list (alist-get 'acct (mastodon-tl--property 'toot-json)))))
                (t
                 (mastodon-profile--extract-users-handles
                  (mastodon-profile--toot-json))))))
