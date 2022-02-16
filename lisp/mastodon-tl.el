@@ -362,12 +362,12 @@ Used on initializing a timeline or thread."
      (propertize (concat "@" handle)
                  'face 'mastodon-handle-face
                  'mouse-face 'highlight
-		 'mastodon-tab-stop 'user-handle
+		         'mastodon-tab-stop 'user-handle
                  'account account
-		 'shr-url profile-url
-		 'keymap mastodon-tl--link-keymap
+		         'shr-url profile-url
+		         'keymap mastodon-tl--link-keymap
                  'mastodon-handle (concat "@" handle)
-		 'help-echo (concat "Browse user profile of @" handle))
+		         'help-echo (concat "Browse user profile of @" handle))
      ")")))
 
 (defun mastodon-tl--format-faves-count (toot)
@@ -520,34 +520,34 @@ By default it is `mastodon-tl--byline-boosted'"
      ;; this makes the behaviour of these markers consistent whether they are
      ;; displayed for an already boosted/favourited toot or as the result of
      ;; the toot having just been favourited/boosted.
-      (concat (when boosted
-                (mastodon-tl--format-faved-or-boosted-byline "B"))
-              (when faved
-                (mastodon-tl--format-faved-or-boosted-byline "F")))
-      (propertize
-       (concat
-              ;; we propertize help-echo format faves for author name
-              ;; in `mastodon-tl--byline-author'
-              (funcall author-byline toot)
-              (cond ((equal visibility "direct")
-                     (if (fontp (char-displayable-p #10r128274))
-                         " ✉"
-                       " [direct]"))
-                    ((equal visibility "private")
-                     (if (fontp (char-displayable-p #10r9993))
-                         " 🔒"
-                       " [followers]")))
-              (funcall action-byline toot)
-              " "
-              ;; TODO: Once we have a view for toot (responses etc.) make
-              ;; this a tab stop and attach an action.
-              (propertize
-               (format-time-string mastodon-toot-timestamp-format parsed-time)
-               'timestamp parsed-time
-               'display (if mastodon-tl--enable-relative-timestamps
-                            (mastodon-tl--relative-time-description parsed-time)
-                          parsed-time))
-              (propertize "\n  ------------\n" 'face 'default))
+     (concat (when boosted
+               (mastodon-tl--format-faved-or-boosted-byline "B"))
+             (when faved
+               (mastodon-tl--format-faved-or-boosted-byline "F")))
+     (propertize
+      (concat
+       ;; we propertize help-echo format faves for author name
+       ;; in `mastodon-tl--byline-author'
+       (funcall author-byline toot)
+       (cond ((equal visibility "direct")
+              (if (fontp (char-displayable-p #10r128274))
+                  " ✉"
+                " [direct]"))
+             ((equal visibility "private")
+              (if (fontp (char-displayable-p #10r9993))
+                  " 🔒"
+                " [followers]")))
+       (funcall action-byline toot)
+       " "
+       ;; TODO: Once we have a view for toot (responses etc.) make
+       ;; this a tab stop and attach an action.
+       (propertize
+        (format-time-string mastodon-toot-timestamp-format parsed-time)
+        'timestamp parsed-time
+        'display (if mastodon-tl--enable-relative-timestamps
+                     (mastodon-tl--relative-time-description parsed-time)
+                   parsed-time))
+       (propertize "\n  ------------\n" 'face 'default))
       'favourited-p faved
       'boosted-p    boosted
       'byline       t))))
@@ -947,11 +947,11 @@ a notification."
   (let ((attachments (mastodon-tl--property 'attachments))
         vids)
     (mapc (lambda (x)
-              (let ((att-type (plist-get x :type)))
-                (when (or (string= "video" att-type)
-                          (string= "gifv" att-type))
-                  (push x vids))))
-            attachments)
+            (let ((att-type (plist-get x :type)))
+              (when (or (string= "video" att-type)
+                        (string= "gifv" att-type))
+                (push x vids))))
+          attachments)
     (car vids)))
 
 (defun mastodon-tl--mpv-play-video-from-byline ()
@@ -975,7 +975,7 @@ in which case play first video or gif from current toot."
         (type (or ;; in byline:
                type
                ;; point in toot:
-              (mastodon-tl--property 'mastodon-media-type))))
+               (mastodon-tl--property 'mastodon-media-type))))
     (if url
         (if (or (equal type "gifv")
                 (equal type "video"))
@@ -1211,24 +1211,24 @@ JSON is what is returned by by the server."
      (propertize filter-string
                  'toot-id id ;for goto-next-filter compat
                  'phrase phrase
-                 ;'help-echo "n/p to go to next/prev filter, c to create new filter, d to delete filter at point."
-                 ;'keymap mastodon-tl--view-filters-keymap
+                 ;;'help-echo "n/p to go to next/prev filter, c to create new filter, d to delete filter at point."
+                 ;;'keymap mastodon-tl--view-filters-keymap
                  'byline t)))) ;for goto-next-filter compat
 
 (defun mastodon-tl--delete-filter ()
   "Delete filter at point."
   (interactive)
-    (let* ((filter-id (get-text-property (point) 'toot-id))
-           (phrase (get-text-property (point) 'phrase))
-           (url (mastodon-http--api
-                 (format "filters/%s" filter-id))))
-      (if (equal nil filter-id)
-          (error "No filter at point?")
-        (when (y-or-n-p (format "Delete this filter? ")))
-        (let ((response (mastodon-http--delete url)))
-          (mastodon-http--triage response (lambda ()
-                                            (mastodon-tl--view-filters)
-                                            (message "Filter for \"%s\" deleted!" phrase)))))))
+  (let* ((filter-id (get-text-property (point) 'toot-id))
+         (phrase (get-text-property (point) 'phrase))
+         (url (mastodon-http--api
+               (format "filters/%s" filter-id))))
+    (if (equal nil filter-id)
+        (error "No filter at point?")
+      (when (y-or-n-p (format "Delete this filter? ")))
+      (let ((response (mastodon-http--delete url)))
+        (mastodon-http--triage response (lambda ()
+                                          (mastodon-tl--view-filters)
+                                          (message "Filter for \"%s\" deleted!" phrase)))))))
 
 (defun mastodon-tl--get-follow-suggestions ()
   "Display a buffer of suggested accounts to follow."

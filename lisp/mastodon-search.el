@@ -130,29 +130,29 @@ Returns a nested list containing user handle, display name, and URL."
 JSON is the data from the server..
 If NOTE is non-nil, include user's profile note.
 This is also called by `mastodon-tl--get-follow-suggestions'."
-    (mapc (lambda (acct)
-            (let ((user (mastodon-search--get-user-info acct)))
-              (insert
-               (propertize
-                (concat (propertize (car user)
-                                    'face 'mastodon-display-name-face
-                                    'byline t
-                                    'toot-id "0")
-                        " : \n : "
-                        (propertize (concat "@" (cadr user))
-                                    'face 'mastodon-handle-face
-                                    'mouse-face 'highlight
-		                    'mastodon-tab-stop 'user-handle
-		                    'keymap mastodon-tl--link-keymap
-                                    'mastodon-handle (concat "@" (cadr user))
-		                    'help-echo (concat "Browse user profile of @" (cadr user)))
-                        " : \n"
-                        (if note
-                            (mastodon-tl--render-text (cadddr user) nil)
-                          "")
-                        "\n")
-                'user-json acct))))
-          json))
+  (mapc (lambda (acct)
+          (let ((user (mastodon-search--get-user-info acct)))
+            (insert
+             (propertize
+              (concat (propertize (car user)
+                                  'face 'mastodon-display-name-face
+                                  'byline t
+                                  'toot-id "0")
+                      " : \n : "
+                      (propertize (concat "@" (cadr user))
+                                  'face 'mastodon-handle-face
+                                  'mouse-face 'highlight
+		                          'mastodon-tab-stop 'user-handle
+		                          'keymap mastodon-tl--link-keymap
+                                  'mastodon-handle (concat "@" (cadr user))
+		                          'help-echo (concat "Browse user profile of @" (cadr user)))
+                      " : \n"
+                      (if note
+                          (mastodon-tl--render-text (cadddr user) nil)
+                        "")
+                      "\n")
+              'user-json acct))))
+        json))
 
 (defun mastodon-search--get-user-info (account)
   "Get user handle, display name, account URL and profile note from ACCOUNT."
