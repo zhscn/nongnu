@@ -55,14 +55,20 @@
 (autoload 'mastodon-tl--toot-id "mastodon-tl")
 (autoload 'mastodon-tl--toot "mastodon-tl")
 (autoload 'mastodon-tl--init "mastodon-tl.el")
+(autoload 'mastodon-tl--init-sync "mastodon-tl")
 (autoload 'mastodon-http--patch "mastodon-http")
 (autoload 'mastodon-http--patch-json "mastodon-http")
 (autoload 'mastodon-notifications--follow-request-reject "mastodon-notifications")
 (autoload 'mastodon-notifications--follow-request-accept "mastodon-notifications")
+(autoload 'mastodon-tl--goto-next-item "mastodon-tl")
+(autoload 'mastodon-tl--goto-prev-item "mastodon-tl")
+(autoload 'mastodon-tl--goto-first-item "mastodon-tl")
+(autoload 'mastodon-toot "mastodon")
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--update-point)
+(defvar mastodon-mode-map)
 
 (defvar-local mastodon-profile--account nil
   "The data for the account being described in the current profile buffer.")
@@ -75,15 +81,16 @@
   "Keymap for `mastodon-profile-mode'.")
 
 (defvar mastodon-profile--view-follow-requests-keymap
-  (let ((map (make-sparse-keymap)))
+  (let ((map ;(make-sparse-keymap)))
+         (copy-keymap mastodon-mode-map)))
     (define-key map (kbd "r") #'mastodon-notifications--follow-request-reject)
     (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
     (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
     (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
-    (define-key map (kbd "g") 'mastodon-notifications--view-follow-requests)
-    (define-key map (kbd "t") #'mastodon-toot)
-    (define-key map (kbd "q") #'kill-current-buffer)
-    (define-key map (kbd "Q") #'kill-buffer-and-window)
+    (define-key map (kbd "g") 'mastodon-profile--view-follow-requests)
+    ;; (define-key map (kbd "t") #'mastodon-toot)
+    ;; (define-key map (kbd "q") #'kill-current-buffer)
+    ;; (define-key map (kbd "Q") #'kill-buffer-and-window)
     map)
   "Keymap for viewing follow requests.")
 
@@ -161,9 +168,11 @@ extra keybindings."
 (defun mastodon-profile--view-follow-requests ()
   "Open a new buffer displaying the user's follow requests."
   (interactive)
-  (mastodon-tl--init "follow-requests"
-                     "follow_requests"
-                     'mastodon-profile--insert-follow-requests))
+  (mastodon-tl--init-sync "follow-requests"
+                          "follow_requests"
+                          'mastodon-profile--insert-follow-requests)
+  (use-local-map mastodon-profile--view-follow-requests-keymap)
+  (mastodon-tl--goto-first-item))
 
 (defun mastodon-profile--insert-follow-requests (json)
   "Insert the user's current follow requests.
@@ -179,7 +188,9 @@ JSON is the data returned by the server."
   (if (equal json '[])
       (insert (propertize
                "Looks like you have no follow requests for now."
-               'face font-lock-comment-face))
+               'face font-lock-comment-face
+               'byline t
+               'toot-id "0"))
     (mastodon-profile--add-author-bylines json)))
 
 (defun mastodon-profile--update-user-profile-note ()
