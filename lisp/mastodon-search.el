@@ -77,8 +77,9 @@ Returns a nested list containing user handle, display name, and URL."
          (accts (alist-get 'accounts response))
          (tags (alist-get 'hashtags response))
          (statuses (alist-get 'statuses response))
-         (user-ids (mapcar #'mastodon-search--get-user-info
-                           accts)) ; returns a list of three-item lists
+         ;; this is now done in search--insert-users-propertized
+         ;; (user-ids (mapcar #'mastodon-search--get-user-info
+         ;; accts)) ; returns a list of three-item lists
          (tags-list (mapcar #'mastodon-search--get-hashtag-info
                             tags))
          ;; (status-list (mapcar #'mastodon-search--get-status-info
