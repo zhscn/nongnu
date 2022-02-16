@@ -121,3 +121,54 @@
       (should (equal (mastodon-client) '(:client_id "foo" :client_secret "baz")))
       (should (equal mastodon-client--client-details-alist
                      '(("http://mastodon.example" :client_id "foo" :client_secret "baz")))))))
+
+(ert-deftest mastodon-client-form-user-from-vars ()
+  (let ((mastodon-active-user "test9000")
+        (mastodon-instance-url "https://mastodon.example"))
+    (should
+     (equal (mastodon-client-form-user-from-vars)
+            "test9000@mastodon.example"))))
+
+(ert-deftest mastodon-client--current-user-active-p ()
+  (let ((mastodon-active-user "test9000")
+        (mastodon-instance-url "https://mastodon.example"))
+    ;; when the current user /is/ the active user
+    (with-mock
+      (mock (mastodon-client--general-read "active-user") => '(:username "test9000@mastodon.example" :client_id "id1"))
+      (should (equal (mastodon-client--current-user-active-p)
+                     '(:username "test9000@mastodon.example" :client_id "id1"))))
+    ;; when the current user is /not/ the active user
+    (with-mock
+      (mock (mastodon-client--general-read "active-user") => '(:username "user@other.example" :client_id "id1"))
+      (should (null (mastodon-client--current-user-active-p))))))
+
+(ert-deftest mastodon-client-store-access-token ()
+  (let ((mastodon-instance-url "https://mastodon.example")
+        (mastodon-active-user "test8000")
+        (user-details
+         '(:username "test8000@mastodon.example"
+                     :instance "https://mastodon.example"
+                     :client_id "id" :client_secret "secret"
+                     :access_token "token")))
+    ;; test if mastodon-client-store-access-token /returns/ right
+    ;; value
+    (with-mock
+      (mock (mastodon-client) => '(:client_id "id" :client_secret "secret"))
+      (mock (mastodon-client--token-file) => "stubfile.plstore")
+      (should (equal (mastodon-client-store-access-token "token")
+                     user-details)))
+    ;; test if mastodon-client-store-access-token /stores/ right value
+    (with-mock
+      (mock (mastodon-client--token-file) => "stubfile.plstore")
+      (should (equal (mastodon-client--general-read
+                      "user-test8000@mastodon.example")
+                     user-details)))
+    (delete-file "stubfile.plstore")))
+
+(ert-deftest mastodon-client-make-user-active ()
+  (let ((user-details '(:username "test@mastodon.example")))
+    (with-mock
+      (mock (mastodon-client--token-file) => "stubfile.plstore")
+      (mastodon-client-make-user-active user-details)
+      (should (equal (mastodon-client--general-read "active-user")
+                     user-details)))))
