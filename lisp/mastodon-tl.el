@@ -357,7 +357,12 @@ Used on initializing a timeline or thread."
                  ;; echo faves count when point on post author name:
                  ;; which is where --goto-next-toot puts point.
                  'help-echo
-                 (mastodon-tl--format-faves-count toot))
+                 ;; but don't add it to "following"/"follows" on profile views:
+                 ;; we don't have a tl--buffer-spec yet:
+                 (unless (or (string-suffix-p "-followers*" (buffer-name))
+                             (string-suffix-p "-following*" (buffer-name)))
+                   ;; (mastodon-tl--get-endpoint)))
+                   (mastodon-tl--format-faves-count toot)))
      " ("
      (propertize (concat "@" handle)
                  'face 'mastodon-handle-face
