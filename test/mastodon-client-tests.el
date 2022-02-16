@@ -49,6 +49,27 @@
       (should (equal (mastodon-client--read)
                      '(:client_id "id2" :client_secret "secret2"))))))
 
+(ert-deftest mastodon-client--general-read-finds-match ()
+  (with-mock
+    (mock (mastodon-client--token-file) => "fixture/client.plstore")
+    (should (equal (mastodon-client--general-read "user-test8000@mastodon.example")
+                   '(:username "test8000@mastodon.example"
+                               :instance "http://mastodon.example"
+                               :client_id "id2" :client_secret "secret2"
+                               :access_token "token2")))))
+
+(ert-deftest mastodon-client--general-read-finds-no-match ()
+  (with-mock
+    (mock (mastodon-client--token-file) => "fixture/client.plstore")
+    (should (equal (mastodon-client--general-read "nonexistant-key")
+                   nil))))
+
+(ert-deftest mastodon-client--general-read-empty-store ()
+  (with-mock
+    (mock (mastodon-client--token-file) => "fixture/empty.plstore")
+    (should (equal (mastodon-client--general-read "something")
+                   nil))))
+
 (ert-deftest mastodon-client--read-finds-no-match ()
   "Should return mastodon client from `mastodon-token-file' if it exists."
   (let ((mastodon-instance-url "http://mastodon.social"))
