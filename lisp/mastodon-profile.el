@@ -378,7 +378,6 @@ Returns a list of lists."
           (mastodon-profile--insert-statuses-pinned pinned)
           (setq mastodon-tl--update-point (point))) ;updates to follow pinned toots
         (funcall update-function json)))
-    ;;(mastodon-tl--goto-next-toot)
     (goto-char (point-min))))
 
 (defun mastodon-profile--get-toot-author ()

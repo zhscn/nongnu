@@ -1175,8 +1175,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
   (mastodon-tl--init-sync "filters"
                           "filters"
                           'mastodon-tl--insert-filters)
-  (use-local-map mastodon-tl--view-filters-keymap)
-  (mastodon-tl--goto-next-item))
+  (use-local-map mastodon-tl--view-filters-keymap))
 
 (defun mastodon-tl--insert-filters (json)
   "Insert the user's current filters.
@@ -1236,8 +1235,7 @@ JSON is what is returned by by the server."
   (mastodon-tl--init-sync "follow-suggestions"
                           "suggestions"
                           'mastodon-tl--insert-follow-suggestions)
-  (use-local-map mastodon-tl--follow-suggestions-map)
-  (mastodon-tl--goto-next-item))
+  (use-local-map mastodon-tl--follow-suggestions-map))
 
 (defun mastodon-tl--insert-follow-suggestions (response)
   "Insert follow suggestions into buffer.
@@ -1624,11 +1622,14 @@ JSON is the data returned from the server."
                          #'mastodon-tl--update-timestamps-callback
                          (current-buffer)
                          nil)))
-    (when (or (equal endpoint "notifications")
-              (string-prefix-p "timelines" endpoint)
-              (string-prefix-p "favourites" endpoint)
-              (string-prefix-p "statuses" endpoint))
-      (mastodon-tl--goto-first-item))))
+    (unless
+        ;; for everything save profiles:
+        (string-prefix-p "accounts" endpoint))
+    ;;(or (equal endpoint "notifications")
+    ;; (string-prefix-p "timelines" endpoint)
+    ;; (string-prefix-p "favourites" endpoint)
+    ;; (string-prefix-p "statuses" endpoint))
+    (mastodon-tl--goto-first-item)))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
@@ -1661,13 +1662,11 @@ Runs synchronously."
                            #'mastodon-tl--update-timestamps-callback
                            (current-buffer)
                            nil)))
-      (when (and (not (equal json '[]))
-                 (or (equal endpoint "notifications")
-                     (string-prefix-p "timelines" endpoint)
-                     (string-prefix-p "favourites" endpoint)
-                     (string-prefix-p "statuses" endpoint))
-                 (mastodon-tl--goto-first-item))))
-      buffer))
+      (when ;(and (not (equal json '[]))
+                 ;; for everything save profiles:
+          (not (string-prefix-p "accounts" endpoint))
+        (mastodon-tl--goto-first-item)))
+    buffer))
 
 (provide 'mastodon-tl)
 ;;; mastodon-tl.el ends here
