@@ -64,6 +64,7 @@
 (autoload 'mastodon-tl--goto-prev-item "mastodon-tl")
 (autoload 'mastodon-tl--goto-first-item "mastodon-tl")
 (autoload 'mastodon-toot "mastodon")
+(autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
@@ -191,7 +192,8 @@ JSON is the data returned by the server."
                'face font-lock-comment-face
                'byline t
                'toot-id "0"))
-    (mastodon-profile--add-author-bylines json)))
+    (mastodon-search--insert-users-propertized json :note)))
+    ;; (mastodon-profile--add-author-bylines json)))
 
 (defun mastodon-profile--update-user-profile-note ()
   "Fetch user's profile note and display for editing."
