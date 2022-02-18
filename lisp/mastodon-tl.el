@@ -1319,15 +1319,15 @@ Can be called to toggle NOTIFY on users already being followed."
 (defun mastodon-tl--interactive-user-handles-get (action)
   "Get the list of user-handles for ACTION from the current toot."
   (let ((user-handles
-         ;; follow suggests / search compat:
          (cond ((or (equal (buffer-name) "*mastodon-follow-suggestions*")
-                    (string-prefix-p "*mastodon-search" (buffer-name)))
-                (list (alist-get 'acct (mastodon-tl--property 'user-json))))
-               ;; profile view follows/followers compat:
-               ;; but not for profile statuses:
-               ((when (and (string-prefix-p "accounts" (mastodon-tl--get-endpoint))
-                           (not (string-suffix-p "statuses" (mastodon-tl--get-endpoint))))
-                  (list (alist-get 'acct (mastodon-tl--property 'toot-json)))))
+         ;; follow suggests / search / foll requests compat:
+                    (string-prefix-p "*mastodon-search" (buffer-name))
+                    (equal (buffer-name) "*mastodon-follow-requests*")
+                    ;; profile view follows/followers compat:
+                    ;; but not for profile statuses:
+                    (and (string-prefix-p "accounts" (mastodon-tl--get-endpoint))
+                         (not (string-suffix-p "statuses" (mastodon-tl--get-endpoint)))))
+                (list (alist-get 'acct (mastodon-tl--property 'toot-json))))
                (t
                 (mastodon-profile--extract-users-handles
                  (mastodon-profile--toot-json))))))
