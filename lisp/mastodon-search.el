@@ -151,7 +151,7 @@ This is also called by `mastodon-tl--get-follow-suggestions'."
                           (mastodon-tl--render-text (cadddr user) nil)
                         "")
                       "\n")
-              'user-json acct))))
+              'toot-json acct)))) ; so named for compat w other processing functions
         json))
 
 (defun mastodon-search--get-user-info (account)
