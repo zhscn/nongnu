@@ -1371,7 +1371,9 @@ NOTIFY is only non-nil when called by `mastodon-tl--follow-user'."
                     (mastodon-profile--lookup-account-in-status
                      user-handle (mastodon-profile--toot-json))))
          (user-id (mastodon-profile--account-field account 'id))
-         (name (mastodon-profile--account-field account 'display_name))
+         (name (if (not (equal "" (mastodon-profile--account-field account 'display_name)))
+                   (mastodon-profile--account-field account 'display_name)
+                 (mastodon-profile--account-field account 'username)))
          (url (mastodon-http--api
                (if notify
                    (format "accounts/%s/%s?notify=%s" user-id action notify)
