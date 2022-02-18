@@ -127,9 +127,10 @@ Returns a nested list containing user handle, display name, and URL."
 
 (defun mastodon-search--insert-users-propertized (json &optional note)
   "Insert users list into the buffer.
-JSON is the data from the server..
-If NOTE is non-nil, include user's profile note.
-This is also called by `mastodon-tl--get-follow-suggestions'."
+JSON is the data from the server.. If NOTE is non-nil, include
+user's profile note. This is also called by
+`mastodon-tl--get-follow-suggestions' and
+`mastodon-profile--insert-follow-requests'."
   (mapc (lambda (acct)
           (let ((user (mastodon-search--get-user-info acct)))
             (insert
