@@ -429,8 +429,7 @@ FIELD is used to identify regions under 'account"
 (defun mastodon-profile--add-author-bylines (tootv)
   "Convert TOOTV into a author-bylines and insert.
 Also insert their profile note.
-Used to view a user's followers and those they're following, as
-well as the list of suggested followers and for search results."
+Used to view a user's followers and those they're following."
   ;;FIXME change the name of this fun now that we've edited what it does!
   (let ((inhibit-read-only t))
     (when (not (equal tootv '[]))
