@@ -4,6 +4,8 @@
 
 This is an updated version of the great but seemingly dormant mastodon client for emacs.
 
+This is now the version available via MELPA.
+
 [The original readme is below.]
 
 It adds the following features:
@@ -68,7 +70,10 @@ To enable, it, add =(require 'mastodon-async)= to your =init.el=. Then you can v
 
 This version depends on the library =request= (for uploading attachments). You can install it from MELPA, or https://github.com/tkf/emacs-request. It also depends on =seq=.
 
-Optional dependencies are =company= for autocompletion of mentions when composing a toot, and =emojify= for inserting and viewing emojis.
+Optional dependencies:
+- =company= for autocompletion of mentions when composing a toot
+- =emojify= for inserting and viewing emojis
+- =mpv= and =mpv.el= for viewing videos and gifs
 
 ** NB: bugs
 
