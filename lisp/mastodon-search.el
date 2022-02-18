@@ -156,7 +156,9 @@ This is also called by `mastodon-tl--get-follow-suggestions'."
 
 (defun mastodon-search--get-user-info (account)
   "Get user handle, display name, account URL and profile note from ACCOUNT."
-  (list (alist-get 'display_name account)
+  (list (if (not (equal "" (alist-get 'display_name account)))
+            (alist-get 'display_name account)
+          (alist-get 'username account))
         (alist-get 'acct account)
         (alist-get 'url account)
         (alist-get 'note account)))
