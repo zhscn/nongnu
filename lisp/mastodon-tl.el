@@ -192,7 +192,7 @@ types of mastodon links and not just shr.el-generated ones.")
     (keymap-canonicalize map))
   "Keymap for viewing follow suggestions.")
 
-  (defvar mastodon-tl--byline-link-keymap
+(defvar mastodon-tl--byline-link-keymap
   (when (require 'mpv nil :no-error)
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-from-byline)
@@ -1326,8 +1326,8 @@ Can be called to toggle NOTIFY on users already being followed."
                ;; profile view follows/followers compat:
                ;; but not for profile statuses:
                ((when (and (string-prefix-p "accounts" (mastodon-tl--get-endpoint))
-                         (not (string-suffix-p "statuses" (mastodon-tl--get-endpoint))))
-                    (list (alist-get 'acct (mastodon-tl--property 'toot-json)))))
+                           (not (string-suffix-p "statuses" (mastodon-tl--get-endpoint))))
+                  (list (alist-get 'acct (mastodon-tl--property 'toot-json)))))
                (t
                 (mastodon-profile--extract-users-handles
                  (mastodon-profile--toot-json))))))
@@ -1608,6 +1608,14 @@ UPDATE-FUNCTION is used to recieve more toots.
 JSON is the data returned from the server."
   (with-output-to-temp-buffer buffer
     (switch-to-buffer buffer)
+    ;; mastodon-mode wipes buffer-spec, so order must unforch be:
+    ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
+    ;; which means we cannot use buffer-spec for update-function
+    ;; unless we set it both before and after the others
+    (setq mastodon-tl--buffer-spec
+          `(buffer-name ,buffer
+                        endpoint ,endpoint
+                        update-function ,update-function))
     (setq
      ;; Initialize with a minimal interval; we re-scan at least once
      ;; every 5 minutes to catch any timestamps we may have missed
@@ -1648,6 +1656,14 @@ Runs synchronously."
          (json (mastodon-http--get-json url)))
     (with-output-to-temp-buffer buffer
       (switch-to-buffer buffer)
+      ;; mastodon-mode wipes buffer-spec, so order must unforch be:
+      ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
+      ;; which means we cannot use buffer-spec for update-function
+      ;; unless we set it both before and after the others
+      (setq mastodon-tl--buffer-spec
+            `(buffer-name ,buffer
+                          endpoint ,endpoint
+                          update-function ,update-function))
       (setq
        ;; Initialize with a minimal interval; we re-scan at least once
        ;; every 5 minutes to catch any timestamps we may have missed
@@ -1670,7 +1686,7 @@ Runs synchronously."
                            (current-buffer)
                            nil)))
       (when ;(and (not (equal json '[]))
-                 ;; for everything save profiles:
+          ;; for everything save profiles:
           (not (string-prefix-p "accounts" endpoint))
         (mastodon-tl--goto-first-item)))
     buffer))
