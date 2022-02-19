@@ -448,7 +448,9 @@ Used to view a user's followers and those they're following."
                          'toot-json toot))
                 (mastodon-media--inline-images start-pos (point))
                 (insert "\n"
-                        (mastodon-tl--render-text (alist-get 'note toot) nil)
+                        (propertize
+                         (mastodon-tl--render-text (alist-get 'note toot) nil)
+                         'toot-json toot)                         '
                         "\n")))
             tootv))))
 
