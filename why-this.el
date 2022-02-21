@@ -703,17 +703,21 @@ Do CMD with ARGS."
                              "git rev-parse --is-inside-work-tree"))))
     ('line-data
      (when (> (- (nth 1 args) (nth 0 args)) 0)
-       (let* ((temp-file (let ((file (make-temp-file "why-this-git-"))
-                               (text (buffer-substring-no-properties
-                                      (point-min) (point-max))))
-                           (with-temp-file file
-                             (insert text))
-                           file))
-              (command (format (concat
-                                "git blame -L %i,%i \"%s\" --porcelain"
-                                " --contents \"%s\" ; echo $?")
-                               (nth 0 args) (1- (nth 1 args))
-                               (buffer-file-name) temp-file))
+       (let* ((command (let ((temp-file
+                              (let ((file (make-temp-file "why-this-git-"))
+                                    (text (buffer-substring-no-properties
+                                           (point-min) (point-max))))
+                                (with-temp-file file
+                                  (insert text))
+                                file)))
+                         (unwind-protect
+                             (format (concat
+                                      "git blame -L %i,%i \"%s\""
+                                      " --porcelain --contents \"%s\""
+                                      " ; echo $?")
+                                     (nth 0 args) (1- (nth 1 args))
+                                     (buffer-file-name) temp-file)
+                           (delete-file temp-file))))
               (blame (butlast
                       (split-string (shell-command-to-string command)
                        "\n")))
@@ -732,7 +736,6 @@ Do CMD with ARGS."
                                  :author why-this--git-author-name
                                  :time (current-time)
                                  :desc "Uncommitted changes")))))))
-         (delete-file temp-file)
          (setq blame (butlast blame))
          (when (zerop status)
            (let (commit-alist)
