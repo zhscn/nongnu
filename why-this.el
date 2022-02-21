@@ -1,4 +1,4 @@
-;;; why-this.el --- Show why the current line contains this -*- lexical-binding: t -*-
+;;; why-this.el --- Why is this line here?  Ask version control -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022 Akib Azmain Turja.
 

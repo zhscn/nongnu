@@ -1,4 +1,4 @@
-#+title: why-this - Why the current line contains this?
+#+title: why-this - Why is this line here?  Ask version control
 
 ~why-this~ shows why the current line was changed on the right side of
 line.  It can also show editing history with heat map.
