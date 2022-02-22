@@ -374,7 +374,7 @@ TIME-FORMAT is used to format data."
 (defun why-this--render ()
   "Render overlays."
   (while why-this--overlays
-    (delete-overlay (car (pop why-this--overlays))))
+    (delete-overlay (pop why-this--overlays)))
   (when why-this-mode
     (let* ((begin (line-number-at-pos (if (use-region-p)
                                           (region-beginning)
@@ -422,7 +422,7 @@ TIME-FORMAT is used to format data."
             (overlay-put ov 'why-this-column column)
             (overlay-put ov 'why-this-line (+ begin i))
             (overlay-put ov 'why-this-bg-type type)
-            (push (cons ov (current-buffer)) why-this--overlays)))))))
+            (push ov why-this--overlays)))))))
 
 (defun why-this--render-non-blocking ()
   "Render overlays, but don't block Emacs."
@@ -443,14 +443,14 @@ TIME-FORMAT is used to format data."
       nil
       (mapcar
        (lambda (ov)
-         (if (and (eq (cdr ov) (current-buffer))
+         (if (and (eq (overlay-buffer ov) (current-buffer))
                   (let ((line (line-number-at-pos
-                               (overlay-start (car ov)))))
+                               (overlay-start ov))))
                     (and (>= line begin)
                          (< line end)
-                         (eq line (overlay-get (car ov) 'why-this-line)))))
+                         (eq line (overlay-get ov 'why-this-line)))))
              (progn
-               (let* ((ov-start (overlay-start (car ov)))
+               (let* ((ov-start (overlay-start ov))
                       line-begin
                       line-end
                       column)
@@ -460,10 +460,10 @@ TIME-FORMAT is used to format data."
                    (setq line-end (line-end-position))
                    (setq column (- line-end line-begin)))
                  (unless (eq ov-start line-end)
-                   (move-overlay (car ov) line-end line-end))
-                 (unless (eq (overlay-get (car ov) 'why-this-column)
+                   (move-overlay ov line-end line-end))
+                 (unless (eq (overlay-get ov 'why-this-column)
                              column)
-                   (overlay-put (car ov) 'after-string
+                   (overlay-put ov 'after-string
                                 (apply
                                  #'propertize
                                  (concat
@@ -471,26 +471,26 @@ TIME-FORMAT is used to format data."
                                    (max (- why-this-minimum-column column)
                                         0)
                                    ? )
-                                  (overlay-get (car ov) 'why-this-message))
-                                 (overlay-get (car ov) 'why-this-props)))
-                   (overlay-put (car ov) 'why-this-column column)))
+                                  (overlay-get ov 'why-this-message))
+                                 (overlay-get ov 'why-this-props)))
+                   (overlay-put ov 'why-this-column column)))
                (when why-this-calculate-background
                  (let ((type (why-this--overlay-bg-type
-                              (overlay-start (car ov)))))
-                   (unless (eq (overlay-get (car ov) 'why-this-bg-type)
+                              (overlay-start ov))))
+                   (unless (eq (overlay-get ov 'why-this-bg-type)
                                type)
-                     (overlay-put (car ov) 'why-this-props
-                                  (plist-put (overlay-get (car ov)
+                     (overlay-put ov 'why-this-props
+                                  (plist-put (overlay-get ov
                                                           'why-this-props)
                                              'face (why-this--get-face
                                                     type)))
-                     (overlay-put (car ov) 'after-string
+                     (overlay-put ov 'after-string
                                   (propertize
-                                   (overlay-get (car ov) 'after-string)
+                                   (overlay-get ov 'after-string)
                                    'face (why-this--get-face type)))
-                     (overlay-put (car ov) 'why-this-bg-type type))))
+                     (overlay-put ov 'why-this-bg-type type))))
                ov)
-           (delete-overlay (car ov))
+           (delete-overlay ov)
            nil))
        why-this--overlays)))))
 
@@ -537,7 +537,7 @@ Actually the supported backend is returned."
 
 ;;;###autoload
 (defun why-this ()
-  "Show why the current line contains this."
+  "Why is this line here?  Ask version control."
   (interactive)
   (let ((backend (why-this-supported-p)))
     (if backend
@@ -675,6 +675,8 @@ Actually the supported backend is returned."
                 (run-with-idle-timer why-this-idle-delay t
                                      #'why-this--render-non-blocking))
           (setq why-this--buffer-count (1+ why-this--buffer-count)))
+      (while why-this--overlays
+        (delete-overlay (pop why-this--overlays)))
       (remove-hook 'post-command-hook #'why-this--update-overlays t)
       (setq why-this--buffer-count (1- why-this--buffer-count))
       (when (zerop why-this--buffer-count)
