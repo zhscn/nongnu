@@ -56,8 +56,8 @@
         (mastodon-auth--token-alist nil))
     (with-mock
       (mock (mastodon-auth--get-token) => '(:access_token "foobaz"))
-      (mock (mastodon-client-store-access-token "foobaz"))
-      (stub mastodon-client-make-user-active)
+      (mock (mastodon-client--store-access-token "foobaz"))
+      (stub mastodon-client--make-user-active)
       (should
        (string= (mastodon-auth--access-token)
                 "foobaz"))

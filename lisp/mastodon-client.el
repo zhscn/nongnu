@@ -124,12 +124,12 @@ Return plist without the KEY."
 
 (defun mastodon-client--make-user-details-plist ()
   "Make a plist with current user details.  Return it."
-  `(:username ,(mastodon-client-form-user-from-vars)
+  `(:username ,(mastodon-client--form-user-from-vars)
               :instance ,mastodon-instance-url
               :client_id ,(plist-get (mastodon-client) :client_id)
               :client_secret ,(plist-get (mastodon-client) :client_secret)))
 
-(defun mastodon-client-store-access-token (token)
+(defun mastodon-client--store-access-token (token)
   "Save TOKEN as :access_token in plstore of the current user.
 Return the plist after the operation."
   (let* ((user-details (mastodon-client--make-user-details-plist))
@@ -144,7 +144,7 @@ Return the plist after the operation."
     (plstore-close plstore)
     plstore-value))
 
-(defun mastodon-client-make-user-active (user-details)
+(defun mastodon-client--make-user-active (user-details)
   "USER-DETAILS is a plist consisting of user details."
   (let ((plstore (plstore-open (mastodon-client--token-file)))
         (print-length nil)
@@ -153,7 +153,7 @@ Return the plist after the operation."
     (plstore-save plstore)
     (plstore-close plstore)))
 
-(defun mastodon-client-form-user-from-vars ()
+(defun mastodon-client--form-user-from-vars ()
   "Create a username from user variable.  Return that username.
 
 Username in the form user@instance.com is formed from the
@@ -165,23 +165,23 @@ variables `mastodon-instance-url' and `mastodon-active-user'."
 (defun mastodon-client--make-current-user-active ()
   "Make the user specified by user variables active user.
 Return the details (plist)."
-  (let ((username (mastodon-client-form-user-from-vars))
+  (let ((username (mastodon-client--form-user-from-vars))
         user-plist)
     (when (setq user-plist
                 (mastodon-client--general-read (concat "user-" username)))
-      (mastodon-client-make-user-active user-plist))
+      (mastodon-client--make-user-active user-plist))
     user-plist))
 
 (defun mastodon-client--current-user-active-p ()
   "Return user-details if the current user is active.
 Otherwise return nil."
-  (let ((username (mastodon-client-form-user-from-vars))
+  (let ((username (mastodon-client--form-user-from-vars))
         (user-details (mastodon-client--general-read "active-user")))
     (when (and user-details
                (equal (plist-get user-details :username) username))
       user-details)))
 
-(defun mastodon-client-active-user ()
+(defun mastodon-client--active-user ()
   "Return the details of the currently active user.
 
 Details is a plist."

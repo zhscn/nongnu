@@ -40,11 +40,11 @@
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--get-json "mastodon-http")
 (autoload 'mastodon-http--post "mastodon-http")
-(autoload 'mastodon-http-append-query-string "mastodon-http")
-(autoload 'mastodon-client-store-access-token "mastodon-client")
-(autoload 'mastodon-client-active-user "mastodon-client")
-(autoload 'mastodon-client-make-user-active "mastodon-client")
-(autoload 'mastodon-client-form-user-from-vars "mastodon-client")
+(autoload 'mastodon-http--append-query-string "mastodon-http")
+(autoload 'mastodon-client--store-access-token "mastodon-client")
+(autoload 'mastodon-client--active-user "mastodon-client")
+(autoload 'mastodon-client--make-user-active "mastodon-client")
+(autoload 'mastodon-client--form-user-from-vars "mastodon-client")
 (defvar mastodon-instance-url)
 (defvar mastodon-client-scopes)
 (defvar mastodon-client-redirect-uri)
@@ -71,7 +71,7 @@ if you are happy with unencryped storage use e.g. \"~/authinfo\"."
 
 (defun mastodon-auth--get-browser-login-url ()
   "Return properly formed browser login url."
-  (mastodon-http-append-query-string
+  (mastodon-http--append-query-string
    (concat mastodon-instance-url "/oauth/authorize/")
    `(("response_type" "code")
      ("redirect_uri" ,mastodon-client-redirect-uri)
@@ -127,11 +127,11 @@ Generate/save token if none known yet."
          ;; initialised already.
          (alist-get mastodon-instance-url mastodon-auth--token-alist
                     nil nil 'equal))
-        ((plist-get (mastodon-client-active-user) :access_token)
+        ((plist-get (mastodon-client--active-user) :access_token)
          ;; user variables needs to initialised by reading from
          ;; plstore.
          (push (cons mastodon-instance-url
-                     (plist-get (mastodon-client-active-user) :access_token))
+                     (plist-get (mastodon-client--active-user) :access_token))
                mastodon-auth--token-alist)
          (alist-get mastodon-instance-url mastodon-auth--token-alist
                     nil nil 'equal))
@@ -149,8 +149,8 @@ Handle any errors from the server."
   (pcase response
     ((and (let token (plist-get response :access_token))
           (guard token))
-     (mastodon-client-make-user-active
-      (mastodon-client-store-access-token token))
+     (mastodon-client--make-user-active
+      (mastodon-client--store-access-token token))
      (cdar (push (cons mastodon-instance-url token)
                  mastodon-auth--token-alist)))
 

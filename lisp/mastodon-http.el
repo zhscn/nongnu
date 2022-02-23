@@ -157,7 +157,7 @@ Pass response buffer to CALLBACK function."
     (with-temp-buffer
       (mastodon-http--url-retrieve-synchronously url))))
 
-(defun mastodon-http-append-query-string (url params)
+(defun mastodon-http--append-query-string (url params)
   "Append PARAMS to URL as query strings and return it.
 
 PARAMS should be an alist as required `url-build-query-string'."
