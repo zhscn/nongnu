@@ -55,14 +55,10 @@
   :prefix "mastodon-auth-"
   :group 'mastodon)
 
-(defcustom mastodon-auth-source-file ""
-  "Filename to use to store user names and passwords.
-
-Leave empty to not permanently store any secrets.
-Otherwise set to e.g. \"~/.authinfo.gpg\" to have encrypted storage, or
-if you are happy with unencryped storage use e.g. \"~/authinfo\"."
-  :group 'mastodon-auth
-  :type 'string)
+(defvar mastodon-auth-source-file nil
+  "This variable is obsolete.
+This variable currently serves no purpose and will be removed in
+the future.")
 
 (defvar mastodon-auth--token-alist nil
   "Alist of User access tokens keyed by instance url.")
