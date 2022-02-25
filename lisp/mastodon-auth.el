@@ -70,6 +70,21 @@ if you are happy with unencryped storage use e.g. \"~/authinfo\"."
 (defvar mastodon-auth--acct-alist nil
   "Alist of account accts (name@domain) keyed by instance url.")
 
+(defvar mastodon-auth--user-unaware
+  "          ** MASTODON.EL - NOTICE **
+
+It appears that you are not aware of the recent developments in
+mastodon.el.  In short we now require that you also set the
+variable `mastodon-active-user' in your init file in addition to
+`mastodon-instance-url'.
+
+Please see its documentation to understand what value it accepts
+by running M-x describe-variable on it or visiting our web page:
+https://codeberg.org/martianh/mastodon.el
+
+We apologize for the inconvenience.
+")
+
 (defun mastodon-auth--get-browser-login-url ()
   "Return properly formed browser login url."
   (mastodon-http--append-query-string
