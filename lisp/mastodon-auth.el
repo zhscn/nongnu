@@ -80,11 +80,17 @@ if you are happy with unencryped storage use e.g. \"~/authinfo\"."
 
 (defvar mastodon-auth--explanation
   (format
-   (concat "A URL has been copied to your clipboard.\n"
-           "Open this URL in a javascript capable browser.\n"
-           "Login to your account (%s) and authorize \"mastodon.el\".\n"
-           "Paste Authorization Code here: ")
-   (mastodon-client-form-user-from-vars)))
+   "
+1. A URL has been copied to your clipboard.  Open this URL in a
+javascript capable browser and your browser will take you to your
+Mastodon instance's login page.
+
+2. Login to your account (%s) and authorize \"mastodon.el\".
+
+3. After authorization you will be presented an authorization
+code. Copy this code and paste it in the minibuffer prompt."
+   (mastodon-client--form-user-from-vars)))
+
 (defun mastodon-auth--show-notice (notice buffer-name &optional ask)
   "Display NOTICE to user.
 NOTICE is displayed in vertical split occupying 50% of total
