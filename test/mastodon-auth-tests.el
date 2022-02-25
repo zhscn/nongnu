@@ -53,6 +53,7 @@
 (ert-deftest mastodon-auth--access-token-not-found ()
   "Should set and return `mastodon-auth--token' if nil."
   (let ((mastodon-instance-url "https://instance.url")
+        (mastodon-active-user "user")
         (mastodon-auth--token-alist nil))
     (with-mock
       (mock (mastodon-auth--get-token) => '(:access_token "foobaz"))
