@@ -64,3 +64,11 @@
       (should
        (equal mastodon-auth--token-alist
               '(("https://instance.url" . "foobaz")))))))
+
+(ert-deftest mastodon-auth--user-unaware ()
+  (let ((mastodon-instance-url "https://instance.url")
+        (mastodon-active-user nil)
+        (mastodon-auth--token-alist nil))
+    (with-mock
+      (mock (mastodon-client--active-user))
+      (should-error (mastodon-auth--access-token)))))
