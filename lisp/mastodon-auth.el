@@ -85,13 +85,44 @@ if you are happy with unencryped storage use e.g. \"~/authinfo\"."
            "Login to your account (%s) and authorize \"mastodon.el\".\n"
            "Paste Authorization Code here: ")
    (mastodon-client-form-user-from-vars)))
+(defun mastodon-auth--show-notice (notice buffer-name &optional ask)
+  "Display NOTICE to user.
+NOTICE is displayed in vertical split occupying 50% of total
+width.  The buffer name of the buffer being displayed in the
+window is BUFFER-NAME.
+
+When optional argument ASK is given which should be a string, use
+ASK as the minibuffer prompt.  Return whatever user types in
+response to the prompt.
+
+When ASK is absent return nil."
+  (let ((buffer (get-buffer-create buffer-name))
+        (inhibit-read-only t)
+        ask-value window)
+    (set-buffer buffer)
+    (erase-buffer)
+    (insert notice)
+    (fill-region (point-min) (point-max))
+    (read-only-mode)
+    (setq window (select-window
+                  (split-window (frame-root-window) nil 'left)
+                  t))
+    (switch-to-buffer buffer t)
+    (when ask
+      (setq ask-value (read-string ask))
+      (kill-buffer buffer)
+      (delete-window window))
+    ask-value))
 
 (defun mastodon-auth--request-authorization-code ()
   "Ask authorization code and return it."
   (let ((url (mastodon-auth--get-browser-login-url))
         authorization-code)
     (kill-new url)
-    (setq authorization-code (read-string mastodon-auth--explanation))
+    (setq authorization-code
+          (mastodon-auth--show-notice mastodon-auth--explanation
+                                      "*mastodon-notice*"
+                                      "Authorization Code: "))
     authorization-code))
 
 (defun mastodon-auth--generate-token ()
