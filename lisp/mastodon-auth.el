@@ -86,7 +86,7 @@ if you are happy with unencryped storage use e.g. \"~/authinfo\"."
            "Paste Authorization Code here: ")
    (mastodon-client-form-user-from-vars)))
 
-(defun mastodon-auth--ask-authorization-code ()
+(defun mastodon-auth--request-authorization-code ()
   "Ask authorization code and return it."
   (let ((url (mastodon-auth--get-browser-login-url))
         authorization-code)
@@ -96,7 +96,7 @@ if you are happy with unencryped storage use e.g. \"~/authinfo\"."
 
 (defun mastodon-auth--generate-token ()
   "Generate access_token for the user.  Return response buffer."
-  (let ((authorization-code (mastodon-auth--ask-authorization-code)))
+  (let ((authorization-code (mastodon-auth--request-authorization-code)))
     (mastodon-http--post
      (concat mastodon-instance-url "/oauth/token")
      `(("grant_type" . "authorization_code")
