@@ -48,6 +48,7 @@
 (defvar mastodon-instance-url)
 (defvar mastodon-client-scopes)
 (defvar mastodon-client-redirect-uri)
+(defvar mastodon-active-user)
 
 (defgroup mastodon-auth nil
   "Authenticate with Mastodon."
@@ -172,6 +173,13 @@ Generate/save token if none known yet."
                mastodon-auth--token-alist)
          (alist-get mastodon-instance-url mastodon-auth--token-alist
                     nil nil 'equal))
+        ((null mastodon-active-user)
+         ;; user not aware of 2FA related changes and has not set the
+         ;; `mastodon-active-user' properly. Make user aware and error
+         ;; out.
+         (mastodon-auth--show-notice mastodon-auth--user-unaware
+                                     "*mastodon-notice*")
+         (error "Variables not set properly"))
         (t
          ;; user access-token needs to fetched from the server and
          ;; stored and variables initialised.

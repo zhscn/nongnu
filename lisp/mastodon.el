@@ -110,7 +110,7 @@ changes to take effect."
   :group 'mastodon
   :type 'string)
 
-(defcustom mastodon-active-user "user"
+(defcustom mastodon-active-user nil
   "Username of the active user.
 
 For example, if your mastodon username is
