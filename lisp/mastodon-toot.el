@@ -271,6 +271,13 @@ Makes a POST request to the server."
     (kill-new url)
     (message "Toot URL copied to the clipboard.")))
 
+(defun mastodon-toot--copy-toot-text ()
+  "Copy text of toot at point."
+  (interactive)
+  (let* ((toot (mastodon-tl--property 'toot-json)))
+    (kill-new (mastodon-tl--content toot))
+    (message "Toot content copied to the clipboard.")))
+
 (defun mastodon-toot--own-toot-p (toot)
   "Check if TOOT is user's own, e.g. for deleting it."
   (and (not (alist-get 'reblog toot))
