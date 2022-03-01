@@ -1,7 +1,7 @@
 Vcomplete NEWS -- history of user-visible changes. -*- mode: outline -*-
 See the end of the file for an explanation of the versioning scheme.
 
-* 1.2 (in development)
+* 1.2
 
 ** Fix the completion list window still highlighting completions in some
 cases after 'vcomplete-mode' is disabled.

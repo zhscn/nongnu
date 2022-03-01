@@ -8,4 +8,4 @@ tasks:
                 cd vcomplete
                 make
 artifacts:
-        - vcomplete/vcomplete-1.1.tar
+        - vcomplete/vcomplete-1.2.tar
