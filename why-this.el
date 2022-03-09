@@ -705,7 +705,7 @@ Do CMD with ARGS."
                              "git rev-parse --is-inside-work-tree"))))
     ('line-data
      (when (> (- (nth 1 args) (nth 0 args)) 0)
-       (let* ((command (let ((temp-file
+       (let* ((blame (let ((temp-file
                               (let ((file (make-temp-file "why-this-git-"))
                                     (text (buffer-substring-no-properties
                                            (point-min) (point-max))))
@@ -713,16 +713,17 @@ Do CMD with ARGS."
                                   (insert text))
                                 file)))
                          (unwind-protect
-                             (format (concat
-                                      "git blame -L %i,%i \"%s\""
-                                      " --porcelain --contents \"%s\""
-                                      " ; echo $?")
-                                     (nth 0 args) (1- (nth 1 args))
-                                     (buffer-file-name) temp-file)
+                             (butlast
+                              (split-string
+                               (shell-command-to-string
+                                (format (concat
+                                         "git blame -L %i,%i \"%s\""
+                                         " --porcelain --contents \"%s\""
+                                         " ; echo $?")
+                                        (nth 0 args) (1- (nth 1 args))
+                                        (buffer-file-name) temp-file))
+                               "\n"))
                            (delete-file temp-file))))
-              (blame (butlast
-                      (split-string (shell-command-to-string command)
-                       "\n")))
               (status (string-to-number (car (last blame))))
               line-data
               (i 0)
