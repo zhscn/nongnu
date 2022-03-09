@@ -706,24 +706,24 @@ Do CMD with ARGS."
     ('line-data
      (when (> (- (nth 1 args) (nth 0 args)) 0)
        (let* ((blame (let ((temp-file
-                              (let ((file (make-temp-file "why-this-git-"))
-                                    (text (buffer-substring-no-properties
-                                           (point-min) (point-max))))
-                                (with-temp-file file
-                                  (insert text))
-                                file)))
-                         (unwind-protect
-                             (butlast
-                              (split-string
-                               (shell-command-to-string
-                                (format (concat
-                                         "git blame -L %i,%i \"%s\""
-                                         " --porcelain --contents \"%s\""
-                                         " ; echo $?")
-                                        (nth 0 args) (1- (nth 1 args))
-                                        (buffer-file-name) temp-file))
-                               "\n"))
-                           (delete-file temp-file))))
+                            (let ((file (make-temp-file "why-this-git-"))
+                                  (text (buffer-substring-no-properties
+                                         (point-min) (point-max))))
+                              (with-temp-file file
+                                (insert text))
+                              file)))
+                       (unwind-protect
+                           (butlast
+                            (split-string
+                             (shell-command-to-string
+                              (format (concat
+                                       "git blame -L %i,%i \"%s\""
+                                       " --porcelain --contents \"%s\""
+                                       " ; echo $?")
+                                      (nth 0 args) (1- (nth 1 args))
+                                      (buffer-file-name) temp-file))
+                             "\n"))
+                         (delete-file temp-file))))
               (status (string-to-number (car (last blame))))
               line-data
               (i 0)
