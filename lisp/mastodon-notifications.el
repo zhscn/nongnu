@@ -168,12 +168,18 @@ Status notifications are given when
         (status (mastodon-tl--field 'status note))
         (follower (alist-get 'username (alist-get 'account note))))
     (mastodon-notifications--insert-status
-     (if (or (equal type 'follow)
-             (equal type 'follow-request))
-         ;; Using reblog with an empty id will mark this as something
-         ;; non-boostable/non-favable.
-         (cons '(reblog (id . nil)) note)
-       status)
+     (cond ((or (equal type 'follow)
+                (equal type 'follow-request))
+            ;; Using reblog with an empty id will mark this as something
+            ;; non-boostable/non-favable.
+            (cons '(reblog (id . nil)) note))
+           ;; reblogs/faves use 'note' to process their own json
+           ;; not the toot's. this ensures following etc. work on such notifs
+           ((or (equal type 'favourite)
+                (equal type 'boost))
+            note)
+           (t
+            status))
      (if (or (equal type 'follow)
              (equal type 'follow-request))
          (propertize (if (equal type 'follow)
