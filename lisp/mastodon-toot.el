@@ -70,6 +70,11 @@
 (autoload 'mastodon-tl--toot-id "mastodon-tl")
 (autoload 'mastodon-toot "mastodon")
 
+; for mastodon-toot--translate-toot-text
+(autoload 'mastodon-tl--content "mastodon-tl")
+(when (require 'lingva nil :no-error)
+  (declare-function lingva-translate "lingva"))
+
 (defgroup mastodon-toot nil
   "Tooting in Mastodon."
   :prefix "mastodon-toot-"
@@ -277,6 +282,18 @@ Makes a POST request to the server."
   (let* ((toot (mastodon-tl--property 'toot-json)))
     (kill-new (mastodon-tl--content toot))
     (message "Toot content copied to the clipboard.")))
+
+(when (require 'lingva nil :no-error)
+  (defun mastodon-toot--translate-toot-text ()
+    "Translate text of toot at point.
+Uses `lingva.el'."
+    (interactive)
+    (if mastodon-tl--buffer-spec
+        (let* ((toot (mastodon-tl--property 'toot-json)))
+          (if toot
+              (lingva-translate nil (mastodon-tl--content toot))
+            (message "No toot to translate?")))
+      (message "No mastodon buffer?"))))
 
 (defun mastodon-toot--own-toot-p (toot)
   "Check if TOOT is user's own, e.g. for deleting it."
