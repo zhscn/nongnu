@@ -29,7 +29,7 @@ Editing history with heat map.
 Current only two version control systems are supported:
 
 - Git
-- Mercurial (Note: changes must be commited to be shown)
+- Mercurial (note: changes must be saved to be shown)
 
 * Usage
 
