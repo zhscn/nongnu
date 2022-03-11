@@ -328,7 +328,9 @@ TYPE is the attachment's type field on the server."
                  'mastodon-tab-stop 'image ; for do-link-action-at-point
                  'image-url full-remote-url ; for shr-browse-image
                  'keymap mastodon-tl--shr-image-map-replacement
-                 'help-echo (if (string= type "image")
+                 'help-echo (if (or (string= type "image")
+                                    (string= type nil)
+                                    (string= type "unknown")) ;handle borked images
                                 help-echo
                               (concat help-echo "\nC-RET: play " type " with mpv")))
                  " ")))
