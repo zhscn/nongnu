@@ -400,7 +400,8 @@ If toot is a boost, opens the profile of the booster."
   "Query for USER-HANDLE from current status and show that user's profile."
   (interactive
    (list
-    (if (not (get-text-property (point) 'toot-json))
+    (if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
+             (not (get-text-property (point) 'toot-json)))
         (message "Looks like there's no toot or user at point?")
       (let ((user-handles (mastodon-profile--extract-users-handles
                            (mastodon-profile--toot-json))))
