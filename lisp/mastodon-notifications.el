@@ -146,7 +146,7 @@ Can be called in notifications view or in follow-requests view."
 
 (defun mastodon-notifications--favourite (note)
   "Format for a `favourite' NOTE."
-  (mastodon-notifications--format-note note 'favorite))
+  (mastodon-notifications--format-note note 'favourite))
 
 (defun mastodon-notifications--reblog (note)
   "Format for a `boost' NOTE."
@@ -202,7 +202,7 @@ Status notifications are given when
        (mastodon-notifications--byline-concat
         (cond ((equal type 'boost)
                "Boosted")
-              ((equal type 'favorite)
+              ((equal type 'favourite)
                "Favourited")
               ((equal type 'follow-request)
                "Requested to follow")

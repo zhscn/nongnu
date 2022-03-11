@@ -376,7 +376,7 @@ Used on initializing a timeline or thread."
      ")")))
 
 (defun mastodon-tl--format-faves-count (toot)
-  "Format a favorites, boosts, replies count for a TOOT.
+  "Format a favourites, boosts, replies count for a TOOT.
 Used as a help-echo when point is at the start of a byline, i.e.
 where `mastodon-tl--goto-next-toot' leaves point. Also displays a
 toot's media types and optionally the binding to play moving
@@ -558,7 +558,7 @@ By default it is `mastodon-tl--byline-boosted'"
       'byline       t))))
 
 (defun mastodon-tl--format-faved-or-boosted-byline (letter)
-  "Format the byline marker for a boosted or favorited status.
+  "Format the byline marker for a boosted or favourited status.
 LETTER is a string, either F or B."
   (format "(%s) "
           (propertize letter 'face 'mastodon-boost-fave-face)))

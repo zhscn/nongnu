@@ -264,7 +264,7 @@ Makes a POST request to the server."
                                    (mastodon-toot--action-success
                                     "F" byline-region remove))
                                  (message (format "%s #%s" action id))))
-      (message "Nothing to favorite here?!?"))))
+      (message "Nothing to favourite here?!?"))))
 
 (defun mastodon-toot--copy-toot-url ()
   "Copy URL of toot at point."
