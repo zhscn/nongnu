@@ -1262,16 +1262,18 @@ Can be called to toggle NOTIFY on users already being followed."
     (interactive
      (list
       (mastodon-tl--interactive-user-handles-get "follow")))
-    (if (not (get-text-property (point) 'toot-json))
+    (if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
+             (not (get-text-property (point) 'toot-json)))
         (message "Looks like there's no toot or user at point?")
-    (mastodon-tl--do-user-action-and-response user-handle "follow" nil notify)))
+      (mastodon-tl--do-user-action-and-response user-handle "follow" nil notify)))
 
 (defun mastodon-tl--enable-notify-user-posts (user-handle)
   "Query for USER-HANDLE and enable notifications when they post."
   (interactive
    (list
     (mastodon-tl--interactive-user-handles-get "enable")))
-  (if (not (get-text-property (point) 'toot-json))
+  (if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
+           (not (get-text-property (point) 'toot-json)))
       (message "Looks like there's no toot or user at point?")
     (mastodon-tl--follow-user user-handle "true")))
 
@@ -1287,18 +1289,20 @@ Can be called to toggle NOTIFY on users already being followed."
   (interactive
    (list
     (mastodon-tl--interactive-user-handles-get "unfollow")))
-  (if (not (get-text-property (point) 'toot-json))
+  (if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
+           (not (get-text-property (point) 'toot-json)))
       (message "Looks like there's no toot or user at point?")
-  (mastodon-tl--do-user-action-and-response user-handle "unfollow" t)))
+    (mastodon-tl--do-user-action-and-response user-handle "unfollow" t)))
 
 (defun mastodon-tl--block-user (user-handle)
   "Query for USER-HANDLE from current status and block that user."
   (interactive
    (list
     (mastodon-tl--interactive-user-handles-get "block")))
-  (if (not (get-text-property (point) 'toot-json))
+  (if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
+           (not (get-text-property (point) 'toot-json)))
       (message "Looks like there's no toot or user at point?")
-  (mastodon-tl--do-user-action-and-response user-handle "block")))
+    (mastodon-tl--do-user-action-and-response user-handle "block")))
 
 (defun mastodon-tl--unblock-user (user-handle)
   "Query for USER-HANDLE from list of blocked users and unblock that user."
@@ -1314,9 +1318,10 @@ Can be called to toggle NOTIFY on users already being followed."
   (interactive
    (list
     (mastodon-tl--interactive-user-handles-get "mute")))
-  (if (not (get-text-property (point) 'toot-json))
+  (if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
+           (not (get-text-property (point) 'toot-json)))
       (message "Looks like there's no toot or user at point?")
-  (mastodon-tl--do-user-action-and-response user-handle "mute")))
+    (mastodon-tl--do-user-action-and-response user-handle "mute")))
 
 (defun mastodon-tl--unmute-user (user-handle)
   "Query for USER-HANDLE from list of muted users and unmute that user."
@@ -1329,7 +1334,8 @@ Can be called to toggle NOTIFY on users already being followed."
 
 (defun mastodon-tl--interactive-user-handles-get (action)
   "Get the list of user-handles for ACTION from the current toot."
-  (if (not (get-text-property (point) 'toot-json))
+  (if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
+           (not (get-text-property (point) 'toot-json)))
       (message "Looks like there's no toot or user at point?")
     (let ((user-handles
            (cond ((or (equal (buffer-name) "*mastodon-follow-suggestions*")
