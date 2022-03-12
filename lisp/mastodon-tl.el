@@ -513,10 +513,19 @@ the byline that takes one variable.
 ACTION-BYLINE is a function for adding an action, such as boosting,
 favouriting and following to the byline. It also takes a single function.
 By default it is `mastodon-tl--byline-boosted'"
-  (let ((parsed-time (date-to-time (mastodon-tl--field 'created_at toot)))
-        (faved (equal 't (mastodon-tl--field 'favourited toot)))
-        (boosted (equal 't (mastodon-tl--field 'reblogged toot)))
-        (visibility (mastodon-tl--field 'visibility toot)))
+  (let* ((created-time
+          ;; bosts and faves in notifs view
+          ;; (makes timestamps be for the original toot
+          ;; not the boost/fave):
+          (or (mastodon-tl--field 'created_at
+                                  (mastodon-tl--field 'status toot))
+              ;; all other toots, inc. boosts/faves in timelines:
+              ;; (mastodon-tl--field auto fetches from reblogs if needed):
+              (mastodon-tl--field 'created_at toot)))
+         (parsed-time (date-to-time created-time))
+         (faved (equal 't (mastodon-tl--field 'favourited toot)))
+         (boosted (equal 't (mastodon-tl--field 'reblogged toot)))
+         (visibility (mastodon-tl--field 'visibility toot)))
     (concat
      ;; Boosted/favourited markers are not technically part of the byline, so
      ;; we don't propertize them with 'byline t', as per the rest. This
