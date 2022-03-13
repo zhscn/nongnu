@@ -88,6 +88,9 @@
 (autoload 'mastoton-tl--view-filters "mastodon-tl")
 ;; (autoload 'mastodon-toot--bookmark-toot-toggle "mastodon-toot")
 
+(when (require 'lingva nil :no-error)
+  (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
+
 (defgroup mastodon nil
   "Interface with Mastodon."
   :prefix "mastodon-"
@@ -167,6 +170,8 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "K") #'mastodon-profile--view-bookmarks)
     (define-key map (kbd "I") #'mastodon-tl--view-filters)
     (define-key map (kbd "G") #'mastodon-tl--get-follow-suggestions)
+    (when (require 'lingva nil :no-error)
+      (define-key map (kbd "s") #'mastodon-toot--translate-toot-text))
     map)
 
   "Keymap for `mastodon-mode'.")
