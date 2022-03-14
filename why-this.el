@@ -713,6 +713,7 @@ Do CMD with ARGS."
   (pcase cmd
     ('supported-p
      (and (buffer-file-name)
+          (file-exists-p (file-name-directory (buffer-file-name)))
           (string= "true\n" (shell-command-to-string
                              (format "%s rev-parse --is-inside-work-tree"
                                      (shell-quote-argument
@@ -805,6 +806,7 @@ Do CMD with ARGS."
   (pcase cmd
     ('supported-p
      (and (buffer-file-name)
+          (file-exists-p (file-name-directory (buffer-file-name)))
           (string= "t" (shell-command-to-string
                         (format "%s annotate \"%s\" --template \"t\""
                                 (shell-quote-argument why-this-hg-program)
