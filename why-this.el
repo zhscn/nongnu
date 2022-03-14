@@ -239,9 +239,21 @@ and return a string."
   :package-version '(why-this "1.0")
   :group 'why-this)
 
-(defvar why-this--git-author-name (string-trim
-                                   (shell-command-to-string
-                                    "git config --get user.name"))
+(defcustom why-this-git-program "git"
+  "Path to or name of `git' executable."
+  :type '(choice (string :tag "Name")
+                 (file :tag "Path"))
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defcustom why-this-hg-program "hg"
+  "Path to or name of `hg' executable."
+  :type '(choice (string :tag "Name")
+                 (file :tag "Path"))
+  :package-version '(why-this "1.0")
+  :group 'why-this)
+
+(defvar why-this--git-author-name nil
   "Name of author.")
 
 (defvar why-this--overlays nil
@@ -702,24 +714,32 @@ Do CMD with ARGS."
     ('supported-p
      (and (buffer-file-name)
           (string= "true\n" (shell-command-to-string
-                             "git rev-parse --is-inside-work-tree"))))
+                             (format "%s rev-parse --is-inside-work-tree"
+                                     (shell-quote-argument
+                                      why-this-git-program))))))
     ('line-data
+     (unless why-this--git-author-name
+       (setq why-this--git-author-name
+             (string-trim (shell-command-to-string
+                           (format "%s config --get user.name"
+                                   (shell-quote-argument
+                                    why-this-git-program))))))
      (when (> (- (nth 1 args) (nth 0 args)) 0)
-       (let* ((blame (let ((temp-file
-                            (let ((file (make-temp-file "why-this-git-"))
-                                  (text (buffer-substring-no-properties
-                                         (point-min) (point-max))))
-                              (with-temp-file file
-                                (insert text))
-                              file)))
+       (let* ((blame (let ((temp-file (make-temp-file "why-this-git-")))
+                       (let ((text (buffer-substring-no-properties
+                                    (point-min) (point-max))))
+                         (with-temp-file temp-file
+                           (insert text)))
                        (unwind-protect
                            (butlast
                             (split-string
                              (shell-command-to-string
                               (format (concat
-                                       "git blame -L %i,%i \"%s\""
+                                       "%s blame -L %i,%i \"%s\""
                                        " --porcelain --contents \"%s\""
                                        " ; echo $?")
+                                      (shell-quote-argument
+                                       why-this-git-program)
                                       (nth 0 args) (1- (nth 1 args))
                                       (buffer-file-name) temp-file))
                              "\n"))
@@ -786,7 +806,8 @@ Do CMD with ARGS."
     ('supported-p
      (and (buffer-file-name)
           (string= "t" (shell-command-to-string
-                        (format "hg annotate \"%s\" --template \"t\""
+                        (format "%s annotate \"%s\" --template \"t\""
+                                (shell-quote-argument why-this-hg-program)
                                 (buffer-file-name))))))
     ('line-data
      (when (> (- (nth 1 args) (nth 0 args)) 0)
@@ -796,11 +817,12 @@ Do CMD with ARGS."
                 (shell-command-to-string
                  (format
                   (concat
-                   "hg annotate \"%s\" --template \"({lines %% '(:id"
+                   "%s annotate \"%s\" --template \"({lines %% '(:id"
                    " {rev} :author \\\"{person(user)}\\\" :time"
                    " ({hgdate(date)}) :desc \\\"{sub(\\\"\\\\\\\"\\\","
                    " \\\"\\\\\\\\\\\\\\\"\\\", sub(\\\"\\n.*\\\","
                    " \\\"\\\", desc))}\\\") '})\"")
+                  (shell-quote-argument why-this-hg-program)
                   (buffer-file-name))))))
              data)
          (dolist (i (number-sequence (1- (nth 1 args)) (nth 0 args) -1))
