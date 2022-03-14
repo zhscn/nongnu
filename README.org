@@ -67,9 +67,26 @@ Works for federated, local, and home timelines and for notifications. It's prett
 
 To enable, it, add =(require 'mastodon-async)= to your =init.el=. Then you can view a timeline with one of the commands that begin with =mastodon-async--stream-=.
 
+** translating toots
+
+You can translate toots with =mastodon-toot--translate-toot-text=. At the moment this requires [[https://codeberg.org/martianh/lingva.el][lingva.el]], a little interface I wrote to https://lingva.ml, to be installed to work.
+
+You could easily modify the simple function to use your emacs translator of choice (=google-translate=, =babel=, =go-translate=, etc.), you just need to fetch the toot's content with =(mastodon-tl--content toot)= and pass it to your translator function as its text argument. Here's what =mastodon-toot--translate-toot-text= looks like:
+
+#+begin_src emacs-lisp
+  (defun mastodon-toot--translate-toot-text ()
+    "Translate text of toot at point.
+    Uses `lingva.el'."
+      (interactive)
+      (let* ((toot (mastodon-tl--property 'toot-json)))
+        (if toot
+            (lingva-translate nil (mastodon-tl--content toot))
+          (message "No toot to translate?"))))
+#+end_src
+
 ** NB: dependency
 
-This version depends on the library =request= (for uploading attachments). You can install it from MELPA, or https://github.com/tkf/emacs-request.
+This version depends on the library =request= (for uploading attachments). If you installed =mastodon.el= from MELPA, it should be fine, else you can install it yourself from MELPA or https://github.com/tkf/emacs-request.
 
 ** NB: bugs
 
@@ -83,7 +100,7 @@ It looks like 2-factor auth was never completed in the original repo. It's not a
 
 ** contributing
 
-Contributions are welcome. Registration is disabled by default on the gitea instance, but if you are interested, get in touch with me on mastodon:
+Contributions are welcome. Feel free to open an issue or get in touch with me on mastodon:
 
 [[https://todon.nl/@mousebot][@mousebot@todon.nl]]
 
