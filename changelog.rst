@@ -3,6 +3,10 @@
 Change Log
 ##########
 
+- 2022-03-14
+  - Add option ``doc-show-inline-exclude-blank-lines`` to exclude doc-strings with blank lines
+    between the declarations and the doc-strings.
+
 - 2021-12-15
   - Fix error with C/C++ range checking causing an error in font locking.
 

@@ -38,6 +38,10 @@ Customization
 ``doc-show-inline-idle-delay`` (float ``0.75``)
    The idle delay to use before updating doc-strings.
 
+``doc-show-inline-exclude-blank-lines`` (integer ``0``)
+   Exclude doc-strings when there are at least this many blank lines between the declaration
+   and the doc-string (zero disables).
+
 ``doc-show-inline-exclude-regexp`` (regexp / nil ``nil``)
    Optionally exclude comments that contain text matching this regular expression.
 

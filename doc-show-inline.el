@@ -62,6 +62,12 @@ Set to 0.0 to highlight immediately (as part of syntax highlighting)."
   "Optionally skip comments that match this regular expression."
   :type '(choice (const nil) (regexp)))
 
+(defcustom doc-show-inline-exclude-blank-lines 0
+  "Optionally skip comments which have blank lines above the declaration.
+Ignore comments that have at least this many blank lines after the doc-string.
+Zero disables."
+  :type 'integer)
+
 (defcustom doc-show-inline-face-background-highlight -0.04
   "Use to tint the background color for overlay text (between -1.0 and 1.0).
 Ignored when `doc-show-inline-face'
@@ -301,6 +307,35 @@ the point should not be moved by this function."
                 (point))
               ;; Skip this comment.
               nil)
+
+            ;; Optionally exclude blank lines between the comment and the function definition.
+            (
+              (and
+                ;; Checking blank lines?
+                (not (zerop doc-show-inline-exclude-blank-lines))
+                (let ((blank-lines 0))
+                  (save-excursion
+                    (goto-char pos-end)
+                    ;; It's important the point is at the beginning of the line
+                    ;; so `looking-at-p' works as expected.
+                    (beginning-of-line)
+                    (while
+                      (and
+                        (looking-at-p "[[:blank:]]*$")
+                        (< (setq blank-lines (1+ blank-lines)) doc-show-inline-exclude-blank-lines)
+                        (zerop (forward-line -1)))))
+                  (eq blank-lines doc-show-inline-exclude-blank-lines)))
+
+              (doc-show-inline--log-info
+                "comment \"%s\" in %S at point %d was skipped because of at least %d blank lines"
+                sym
+                (current-buffer)
+                pos-beg
+                doc-show-inline-exclude-blank-lines)
+
+              ;; Found at least `doc-show-inline-exclude-blank-lines' blank-lines, skipping.
+              nil)
+
             ;; Optionally exclude a regexp.
             (
               (and
