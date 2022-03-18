@@ -1,0 +1,23 @@
+#+title: ~gnu-indent~ - Indent your code with GNU Indent
+
+Keeping code correctly indented can be tedious.  And when the project is
+large, maintaining a consistent style everywhere by hand can become almost
+impossible.  ~gnu-indent~ solves this problem by doing the job itself.
+Enable ~gnu-indent-mode~ and continue with the your editing; your file will
+be reindented by [[https://gnu.org/software/indent][GNU Indent]] just before saving it maintaining the position
+of point.
+
+GNU Indent supports C, C++ is also partially supported.
+
+* Commands
+
+- ~gnu-indent-mode~ :: Toggle auto reindentation on save.
+- ~gnu-indent-buffer~ :: Reindent current buffer.
+- ~gnu-indent-region~ :: Reindent current region.
+
+* User options
+
+- ~gnu-indent-program~ :: Name of GNU Indent program (default ~"indent"~).
+- ~gnu-indent-options~ :: Arguments to pass to GNU Indent (default ~nil~).
+  See GNU Indent manual (=C-h i m Indent RET= on Emacs, ~info indent~ on
+  shell) for available options.
