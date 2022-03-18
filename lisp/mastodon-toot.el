@@ -283,7 +283,7 @@ Makes a POST request to the server."
     (kill-new (mastodon-tl--content toot))
     (message "Toot content copied to the clipboard.")))
 
-(when (require 'lingva nil :no-error)
+;; (when (require 'lingva nil :no-error)
   (defun mastodon-toot--translate-toot-text ()
     "Translate text of toot at point.
 Uses `lingva.el'."
@@ -293,7 +293,7 @@ Uses `lingva.el'."
           (if toot
               (lingva-translate nil (mastodon-tl--content toot))
             (message "No toot to translate?")))
-      (message "No mastodon buffer?"))))
+      (message "No mastodon buffer?")))
 
 (defun mastodon-toot--own-toot-p (toot)
   "Check if TOOT is user's own, e.g. for deleting it."
