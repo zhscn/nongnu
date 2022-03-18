@@ -59,6 +59,7 @@
             valid))
   :group 'gnu-indent)
 
+;;;###autoload
 (defun gnu-indent-region (beg end &optional interactive-p)
   "Indent current region with GNU Indent.
 
@@ -94,11 +95,13 @@ When called non-interactively, indent text between BEG and END."
         (delete-file temp-file)))
     (when interactive-p (message "Indenting...done"))))
 
+;;;###autoload
 (defun gnu-indent-buffer ()
   "Indent current buffer with GNU Indent."
   (interactive)
   (gnu-indent-region (point-min) (point-max)))
 
+;;;###autoload
 (define-minor-mode gnu-indent-mode
   "Indent buffer automatically with GNU Indent."
   nil nil nil
