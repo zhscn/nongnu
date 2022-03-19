@@ -5,7 +5,7 @@
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Version: 1.0
 ;; Package-Requires: ((emacs "27.2"))
-;; Keywords: tools, convenience, vc
+;; Keywords: tools, c
 ;; URL: https://codeberg.org/akib/emacs-why-this
 
 ;; This file is not part of GNU Emacs.
