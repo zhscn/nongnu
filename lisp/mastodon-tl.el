@@ -852,7 +852,7 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
        (mastodon-tl--get-poll toot))
      (mastodon-tl--media toot))))
 
-(defun mastodon-tl--insert-status (toot body author-byline action-byline &optional id)
+(defun mastodon-tl--insert-status (toot body author-byline action-byline &optional id parent-toot)
   "Display the content and byline of timeline element TOOT.
 
 BODY will form the section of the toot above the byline.
@@ -876,7 +876,8 @@ a notification."
       'toot-id      (or id ; for notifications
                         (alist-get 'id toot))
       'base-toot-id (mastodon-tl--toot-id toot)
-      'toot-json    toot)
+      'toot-json    toot
+      'parent-toot parent-toot)
      "\n")
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))

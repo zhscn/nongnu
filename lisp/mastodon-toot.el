@@ -617,11 +617,12 @@ candidate ARG. IGNORED remains a mystery."
   "Reply to toot at `point'."
   (interactive)
   (let* ((toot (mastodon-tl--property 'toot-json))
+         (parent (mastodon-tl--property 'parent-toot)) ; for new notifs handling
          (id (mastodon-tl--as-string (mastodon-tl--field 'id toot)))
          (account (mastodon-tl--field 'account toot))
          (user (alist-get 'acct account))
-         (mentions (mastodon-toot--mentions toot))
-         (boosted (mastodon-tl--field 'reblog toot))
+         (mentions (mastodon-toot--mentions (or parent toot)))
+         (boosted (mastodon-tl--field 'reblog (or parent toot)))
          (booster (when boosted
                     (alist-get 'acct
                                (alist-get 'account toot)))))
@@ -637,7 +638,7 @@ candidate ARG. IGNORED remains a mystery."
                                    mentions))
                        (concat (mastodon-toot--process-local user)
                                mentions)))
-                   id toot)))
+                   id (or parent toot))))
 
 (defun mastodon-toot--toggle-warning ()
   "Toggle `mastodon-toot--content-warning'."

@@ -214,9 +214,12 @@ Status notifications are given when
                "Posted")
               ((equal type 'poll)
                "Posted a poll"))))
-     id)))
+     id
+     (when (or (equal type 'favourite)
+               (equal type 'boost))
+       status))))
 
-(defun mastodon-notifications--insert-status (toot body author-byline action-byline id)
+(defun mastodon-notifications--insert-status (toot body author-byline action-byline id &optional parent-toot)
   "Display the content and byline of timeline element TOOT.
 
 BODY will form the section of the toot above the byline.
@@ -232,7 +235,7 @@ takes a single function. By default it is
 
 ID is the notification's own id, which is attached as a property."
   (when toot ; handle rare blank notif server bug
-    (mastodon-tl--insert-status toot body author-byline action-byline id)))
+    (mastodon-tl--insert-status toot body author-byline action-byline id parent-toot)))
 
 (defun mastodon-notifications--by-type (note)
   "Filters NOTE for those listed in `mastodon-notifications--types-alist'."
