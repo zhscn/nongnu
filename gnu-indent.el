@@ -60,7 +60,7 @@
   :group 'gnu-indent)
 
 ;;;###autoload
-(defun gnu-indent-region (beg end &optional interactive-p)
+(defun gnu-indent-region (beg end)
   "Indent current region with GNU Indent.
 
 When called non-interactively, indent text between BEG and END."
@@ -68,7 +68,8 @@ When called non-interactively, indent text between BEG and END."
                    (list (region-beginning) (region-end) t)
                  (list (point) (point) t)))
   (unless (eq beg end)
-    (when interactive-p (message "Indenting..."))
+    (when (called-interactively-p 'interactive)
+      (message "Indenting..."))
     (let ((buffer (get-buffer-create "*gnu-indent*"))
           (temp-file (make-temp-file "gnu-indent-")))
       (with-current-buffer buffer
@@ -93,7 +94,8 @@ When called non-interactively, indent text between BEG and END."
                 (insert-file-contents temp-file nil nil nil
                                       t))))
         (delete-file temp-file)))
-    (when interactive-p (message "Indenting...done"))))
+    (when (called-interactively-p 'interactive)
+      (message "Indenting...done"))))
 
 ;;;###autoload
 (defun gnu-indent-buffer ()

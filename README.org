@@ -19,5 +19,6 @@ GNU Indent supports C, C++ is also partially supported.
 
 - ~gnu-indent-program~ :: Name of GNU Indent program (default ~"indent"~).
 - ~gnu-indent-options~ :: Arguments to pass to GNU Indent (default ~nil~).
-  See GNU Indent manual (=C-h i m Indent RET= on Emacs, ~info indent~ on
-  shell) for available options.
+  You'd probably want to set it as a file local variable.  See GNU Indent
+  manual (=C-h i m Indent RET= on Emacs, ~info indent~ on shell) for
+  available options.
