@@ -1,6 +1,7 @@
 ;;; mastodon.el --- Client for Mastodon  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2019 Johnson Denen
+;; Copyright (C) 2021 Abhiseck Paira <abhiseckpaira@disroot.org>
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 0.10.0
@@ -97,7 +98,34 @@
   :group 'external)
 
 (defcustom mastodon-instance-url "https://mastodon.social"
-  "Base URL for the Masto instance from which you toot."
+  "Base URL for the Mastodon instance you want to be active.
+
+For example, if your mastodon username is
+\"example_user@social.instance.org\", and you want this account
+to be active, the value of this variable should be
+\"https://social.instance.org\".
+
+Also for completeness, the value of `mastodon-active-user' should
+be \"example_user\".
+
+After setting these variables you should restart Emacs for these
+changes to take effect."
+  :group 'mastodon
+  :type 'string)
+
+(defcustom mastodon-active-user nil
+  "Username of the active user.
+
+For example, if your mastodon username is
+\"example_user@social.instance.org\", and you want this account
+to be active, the value of this variable should be
+\"example_user\".
+
+Also for completeness, the value of `mastodon-instance-url'
+should be \"https://social.instance.org\".
+
+After setting these variables you should restart Emacs for these
+changes to take effect."
   :group 'mastodon
   :type 'string)
 
