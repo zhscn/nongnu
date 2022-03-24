@@ -47,17 +47,21 @@
   :type 'string
   :group 'gnu-indent)
 
-(defcustom gnu-indent-options nil
-  "Arguments to pass to GNU Indent."
-  :type '(repeat string)
-  :safe (lambda (val)
-          (let ((valid t))
-            (while (and valid val)
-              (unless (stringp (car val))
-                (setq valid nil))
-              (setq val (cdr val)))
-            valid))
-  :group 'gnu-indent)
+;; Autoload so that users can set it as file local variable without
+;; warning.
+;;;###autoload
+(progn
+  (defcustom gnu-indent-options nil
+    "Arguments to pass to GNU Indent."
+    :type '(repeat string)
+    :safe (lambda (val)
+            (let ((valid t))
+              (while (and valid val)
+                (unless (stringp (car val))
+                  (setq valid nil))
+                (setq val (cdr val)))
+              valid))
+    :group 'gnu-indent))
 
 ;;;###autoload
 (defun gnu-indent-region (beg end)
