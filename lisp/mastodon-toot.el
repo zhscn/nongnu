@@ -289,9 +289,12 @@ Makes a POST request to the server."
 Uses `lingva.el'."
     (interactive)
     (if mastodon-tl--buffer-spec
-        (let* ((toot (mastodon-tl--property 'toot-json)))
+        (let ((toot (mastodon-tl--property 'toot-json)))
           (if toot
-              (lingva-translate nil (mastodon-tl--content toot))
+              (lingva-translate nil
+                                (mastodon-tl--content toot)
+                                (when mastodon-tl--enable-proportional-fonts
+                                  t))
             (message "No toot to translate?")))
       (message "No mastodon buffer?")))
 
