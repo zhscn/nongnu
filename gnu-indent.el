@@ -74,7 +74,7 @@ When called non-interactively, indent text between BEG and END."
   (unless (eq beg end)
     (when (called-interactively-p 'interactive)
       (message "Indenting..."))
-    (let ((buffer (get-buffer-create "*gnu-indent*"))
+    (let ((buffer (get-buffer-create " *gnu-indent*"))
           (temp-file (make-temp-file "gnu-indent-")))
       (with-current-buffer buffer
         (erase-buffer))
