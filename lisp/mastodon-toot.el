@@ -621,7 +621,8 @@ candidate ARG. IGNORED remains a mystery."
   (interactive)
   (let* ((toot (mastodon-tl--property 'toot-json))
          (parent (mastodon-tl--property 'parent-toot)) ; for new notifs handling
-         (id (mastodon-tl--as-string (mastodon-tl--field 'id toot)))
+         (id (mastodon-tl--as-string
+              (mastodon-tl--field 'id (or parent toot))))
          (account (mastodon-tl--field 'account toot))
          (user (alist-get 'acct account))
          (mentions (mastodon-toot--mentions (or parent toot)))
@@ -634,14 +635,27 @@ candidate ARG. IGNORED remains a mystery."
                          (if (and
                               (not (equal user booster))
                               (not (string-match booster mentions)))
+                             ;; different booster, user and mentions:
                              (concat (mastodon-toot--process-local user)
                                      ;; "@" booster " "
-                                     (mastodon-toot--process-local booster) mentions)
+                                     (mastodon-toot--process-local booster)
+                                     mentions)
+                           ;; booster is either user or in mentions:
+                           (if (not string-match user mentions)
+                               ;; user not already in mentions:
+                               (concat (mastodon-toot--process-local user)
+                                       mentions)
+                             ;; user already in mentions:
+                             mentions))
+                       ;; no booster:
+                       (if (not (string-match user mentions))
+                           ;; user not in mentions:
                            (concat (mastodon-toot--process-local user)
-                                   mentions))
-                       (concat (mastodon-toot--process-local user)
-                               mentions)))
-                   id (or parent toot))))
+                                   mentions)
+                         ;; user in mentions already:
+                         mentions)))
+                   id
+                   (or parent toot))))
 
 (defun mastodon-toot--toggle-warning ()
   "Toggle `mastodon-toot--content-warning'."
