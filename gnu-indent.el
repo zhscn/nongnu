@@ -6,7 +6,7 @@
 ;; Version: 1.0
 ;; Package-Requires: ((emacs "27.2"))
 ;; Keywords: tools, c
-;; URL: https://codeberg.org/akib/emacs-why-this
+;; URL: https://codeberg.org/akib/emacs-gnu-indent
 
 ;; This file is not part of GNU Emacs.
 
