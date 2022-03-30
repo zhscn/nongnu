@@ -40,7 +40,8 @@
 
 (defgroup gnu-indent nil
   "Indent your code with GNU Indent."
-  :group 'tools)
+  :group 'tools
+  :link '(url-link "https://codeberg.org/akib/emacs-gnu-indent"))
 
 (defcustom gnu-indent-program "indent"
   "Name of GNU Indent executable."
