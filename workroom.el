@@ -749,6 +749,8 @@ The default workroom cannot be saved."
                                                      cand)))))
                      (workroom--read-bookmark "Save to bookmark: ")
                      current-prefix-arg))
+  (when (stringp room)
+    (setq room (workroom-get room)))
   (dolist (frame (frame-list))
     (with-selected-frame frame
       (setf (workroom-view-window-config (workroom-current-view))
