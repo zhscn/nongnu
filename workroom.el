@@ -36,6 +36,12 @@
   :prefix "workroom-"
   :link '(url-link "https://codeberg.org/akib/emacs-workroom"))
 
+(defcustom workroom-command-map-prefix (kbd "C-x x")
+  "Prefix key of Workroom commands.
+
+Workroom-Mode must be reenabled for changes to take effect."
+  :type 'key-sequence)
+
 (defcustom workroom-default-room-name "master"
   "Name of the default workroom.
 
@@ -109,6 +115,30 @@ can't restored."
   "`completing-read' history list of workroom view names.")
 
 (defvar workroom-mode)
+
+(defvar workroom-mode-map (make-sparse-keymap)
+  "Keymap for Workroom-Mode.")
+
+(defvar workroom-command-map nil
+  "Keymap containing all useful commands of Workroom.")
+
+(define-prefix-command 'workroom-command-map)
+(define-key workroom-mode-map workroom-command-map-prefix
+  workroom-command-map)
+
+(define-key workroom-command-map "s" #'workroom-switch)
+(define-key workroom-command-map "d" #'workroom-kill-view)
+(define-key workroom-command-map "D" #'workroom-kill)
+(define-key workroom-command-map "r" #'workroom-rename-view)
+(define-key workroom-command-map "R" #'workroom-rename)
+(define-key workroom-command-map "c" #'workroom-clone-view)
+(define-key workroom-command-map "C" #'workroom-clone)
+(define-key workroom-command-map "m" #'workroom-bookmark)
+(define-key workroom-command-map "M" #'workroom-bookmark-all)
+(define-key workroom-command-map "b" #'workroom-switch-to-buffer)
+(define-key workroom-command-map "a" #'workroom-add-buffer)
+(define-key workroom-command-map "k" #'workroom-remove-buffer)
+(define-key workroom-command-map "K" #'workroom-kill-buffer)
 
 (defun workroom-get (name)
   "Return the workroom named NAME.
@@ -504,6 +534,18 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
     (let ((data (alist-get 'data (bookmark-get-bookmark-record bookmark))))
       (workroom--restore-rooms data))))
 
+(defun workroom--init-frame (frame)
+  "Initialize frame FRAME."
+  (when (and (not (frame-parameter frame 'parent-frame))
+             (eq (frame-parameter frame 'minibuffer) t))
+    (with-selected-frame frame
+      (workroom-switch (workroom-get-default)
+                       workroom--default-view-of-default-room)
+      (set-frame-parameter nil 'workroom-previous-room-list
+                           (cdr
+                            (frame-parameter
+                             nil 'workroom-previous-room-list))))))
+
 (defun workroom-switch (room view)
   "Switch to workroom ROOM if not already and switch to view VIEW of ROOM.
 
@@ -575,8 +617,8 @@ name if it doesn't exist, then switch to the workroom."
             (if current-prefix-arg
                 (workroom-get
                  (workroom--read
-                  "Parent workroom"
-                  (workroom-name (workroom-current-room))))
+                  "Parent workroom" (workroom-name (workroom-current-room))
+                  t))
               (workroom-current-room))))
        (list room (workroom--read-view
                    room "Kill view"
@@ -593,6 +635,103 @@ name if it doesn't exist, then switch to the workroom."
       (workroom-switch room (car (workroom-views room)))
       (pop (workroom-previous-view-list room)))
     (setf (workroom-views room) (delete view (workroom-views room)))))
+
+(defun workroom-rename (room new-name)
+  "Rename workroom ROOM to NEW-NAME."
+  (interactive
+   (workroom--require-mode-enable
+     (let ((room (workroom--read
+                  "Rename workroom" (workroom-name
+                                     (workroom-current-room))
+                  t (lambda (cand)
+                      (listp (workroom-buffers
+                              (workroom-get (if (consp cand)
+                                                (car cand)
+                                              cand))))))))
+       (list room (read-string (format-message
+                                "Rename workroom `%s' to: " room))))))
+  (when (stringp room)
+    (setq room (workroom-get room)))
+  (setf (workroom-name room) new-name))
+
+(defun workroom-rename-view (room view new-name)
+  "Rename view VIEW of workroom ROOM to NEW-NAME."
+  (interactive
+   (workroom--require-mode-enable
+     (let* ((room
+             (if current-prefix-arg
+                 (workroom-get
+                  (workroom--read
+                   "Parent workroom" (workroom-name
+                                      (workroom-current-room))
+                   t))
+               (workroom-current-room)))
+            (view (workroom--read-view
+                   room (format-message "Rename view of workroom `%s'"
+                                        (workroom-name room))
+                   (when (eq room (workroom-current-room))
+                     (workroom-view-name (workroom-current-view)))
+                   t)))
+       (list room view
+             (read-string (format-message
+                           "Rename view `%s' of workroom `%s' to: "
+                           view (workroom-name room)))))))
+  (when (stringp room)
+    (setq room (workroom-get room)))
+  (when (stringp view)
+    (setq view (workroom-view-get room view)))
+  (setf (workroom-view-name view) new-name))
+
+(defun workroom-clone (room name)
+  "Create a new workroom named NAME which is a clone of workroom ROOM."
+  (interactive
+   (workroom--require-mode-enable
+     (let ((room (workroom--read
+                  "Clone workroom" (workroom-name
+                                    (workroom-current-room))
+                  t (lambda (cand)
+                      (listp (workroom-buffers
+                              (workroom-get (if (consp cand)
+                                                (car cand)
+                                              cand))))))))
+       (list room (read-string "Name of cloned workroom: ")))))
+  (when (stringp room)
+    (setq room (workroom-get room)))
+  (let ((clone (make-workroom :name name
+                              :views (mapcar #'copy-sequence
+                                             (workroom-views room))
+                              :buffers (workroom-buffers room))))
+    (push clone workroom--rooms)
+    clone))
+
+(defun workroom-clone-view (room view name)
+  "Create a view of workroom ROOM named NAME which is clone of view VIEW."
+  (interactive
+   (workroom--require-mode-enable
+     (let* ((room
+             (if current-prefix-arg
+                 (workroom-get
+                  (workroom--read
+                   "Parent workroom" (workroom-name
+                                      (workroom-current-room))
+                   t))
+               (workroom-current-room)))
+            (view (workroom--read-view
+                   room (format-message "Clone view of workroom `%s'"
+                                        (workroom-name room))
+                   (when (eq room (workroom-current-room))
+                     (workroom-view-name (workroom-current-view)))
+                   t)))
+       (list room view (read-string "Name of cloned view: ")))))
+  (when (stringp room)
+    (setq room (workroom-get room)))
+  (when (stringp view)
+    (setq view (workroom-view-get room view)))
+  (let ((clone (make-workroom-view
+                :name name
+                :window-config (workroom-view-window-config view))))
+    (push clone (workroom-views room))
+    clone))
 
 (defun workroom-bookmark (room name no-overwrite)
   "Save workroom ROOM to a bookmark named NAME.
@@ -701,9 +840,34 @@ arg is given." fn)
 (define-minor-mode workroom-mode
   "Toggle workroom mode."
   :init-value nil
-  :lighter (" WR[" (:eval (workroom-name (workroom-current-room))) "]["
-            (:eval (workroom-view-name (workroom-current-view))) "]")
+  :lighter (" WR["
+            (:eval (propertize (workroom-name (workroom-current-room))
+                               'face (if (or (not
+                                              (listp
+                                               (workroom-buffers
+                                                (workroom-current-room))))
+                                             (member
+                                              (current-buffer)
+                                              (workroom-buffers
+                                               (workroom-current-room))))
+                                         'compilation-info
+                                       'warning)))
+            "]["
+            (:eval (propertize (workroom-view-name (workroom-current-view))
+                               'face (if (or (not
+                                              (listp
+                                               (workroom-buffers
+                                                (workroom-current-room))))
+                                             (member
+                                              (current-buffer)
+                                              (workroom-buffers
+                                               (workroom-current-room))))
+                                         'compilation-info
+                                       'warning))) "]")
   :global t
+  (substitute-key-definition 'workroom-command-map nil workroom-mode-map)
+  (define-key workroom-mode-map workroom-command-map-prefix
+    workroom-command-map)
   (if workroom-mode
       (progn
         (let ((default-room (workroom-get-default)))
@@ -721,23 +885,19 @@ arg is given." fn)
           (unless (equal (workroom-name default-room)
                          workroom-default-room-name)
             (setf (workroom-name default-room)
-                  workroom-default-room-name))
-          (dolist (frame (frame-list))
-            (with-selected-frame frame
-              (workroom-switch default-room
-                               workroom--default-view-of-default-room)
-              (set-frame-parameter nil 'workroom-previous-room-list
-                                   (cdr
-                                    (frame-parameter
-                                     nil 'workroom-previous-room-list))))))
+                  workroom-default-room-name)))
+        (mapc #'workroom--init-frame (frame-list))
+        (add-hook 'after-make-frame-functions #'workroom--init-frame)
         (add-hook 'kill-buffer-hook #'workroom--remove-buffer-refs))
     (dolist (frame (frame-list))
       (with-selected-frame frame
-        (setf (workroom-view-window-config (workroom-current-view))
-              (workroom--save-window-config))
-        (set-frame-parameter nil 'workroom-current-room nil)
-        (set-frame-parameter nil 'workroom-current-view nil)
-        (set-frame-parameter nil 'workroom-previous-room-list nil)))
+        (when (frame-parameter nil 'workroom-current-room)
+          (setf (workroom-view-window-config (workroom-current-view))
+                (workroom--save-window-config))
+          (set-frame-parameter nil 'workroom-current-room nil)
+          (set-frame-parameter nil 'workroom-current-view nil)
+          (set-frame-parameter nil 'workroom-previous-room-list nil))))
+    (remove-hook 'after-make-frame-functions #'workroom--init-frame)
     (remove-hook 'kill-buffer-hook #'workroom--remove-buffer-refs)))
 
 (provide 'workroom)
