@@ -20,35 +20,21 @@ rename or bookmark this workroom, but you can customize the variable
 
 All the useful commands can be called with following key sequences:
 
-+-----------+------------------------------+
 | Key       | Command                      |
-+-----------+------------------------------+
+|-----------+------------------------------|
 | ~C-x x s~ | ~workroom-switch~            |
-+-----------+------------------------------+
 | ~C-x x d~ | ~workroom-kill-view~         |
-+-----------+------------------------------+
 | ~C-x x D~ | ~workroom-kill~              |
-+-----------+------------------------------+
 | ~C-x x r~ | ~workroom-rename-view~       |
-+-----------+------------------------------+
 | ~C-x x R~ | ~workroom-rename~            |
-+-----------+------------------------------+
 | ~C-x x c~ | ~workroom-clone-view~        |
-+-----------+------------------------------+
 | ~C-x x C~ | ~workroom-clone~             |
-+-----------+------------------------------+
 | ~C-x x m~ | ~workroom-bookmark~          |
-+-----------+------------------------------+
 | ~C-x x M~ | ~workroom-bookmark-all~      |
-+-----------+------------------------------+
 | ~C-x x b~ | ~workroom-switch-to-buffer~  |
-+-----------+------------------------------+
 | ~C-x x a~ | ~workroom-add-buffer~        |
-+-----------+------------------------------+
 | ~C-x x k~ | ~workroom-remove-buffer~     |
-+-----------+------------------------------+
 | ~C-x x K~ | ~workroom-kill-buffer~       |
-+-----------+------------------------------+
 
 Here the prefix key sequence is ~C-x x~, but you can customize
 ~workroom-command-map-prefix~ to change it.
