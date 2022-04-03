@@ -25,6 +25,45 @@
 
 ;;; Commentary:
 
+;; Workroom provides named "workrooms" (or workspaces), somewhat similar to
+;; multiple desktops in GNOME.
+
+;; Each workroom has own set of buffers, allowing you to work on multiple
+;; projects without getting lost in all buffers.
+
+;; Each workroom also has its own set of views.  Views are just named
+;; window configurations.  They allow you to switch to another window
+;; configuration without losing your well-planned current window setup.
+
+;; You can also bookmark a workroom or all your workrooms to restore them
+;; at a later time, possibly in another Emacs session.
+
+;; There is always a workroom named "master", which contains all live
+;; buffers.  Removing any buffer from this workroom kills that buffer.  You
+;; can't kill, rename or bookmark this workroom, but you can customize the
+;; variable `workroom-default-room-name' to change its name.
+
+;; All the useful commands can be called with following key sequences:
+
+;;   Key        Command
+;;   --------------------------------------
+;;   C-x x s    `workroom-switch'
+;;   C-x x d    `workroom-kill-view'
+;;   C-x x D    `workroom-kill'
+;;   C-x x r    `workroom-rename-view'
+;;   C-x x R    `workroom-rename'
+;;   C-x x c    `workroom-clone-view'
+;;   C-x x C    `workroom-clone'
+;;   C-x x m    `workroom-bookmark'
+;;   C-x x M    `workroom-bookmark-all'
+;;   C-x x b    `workroom-switch-to-buffer'
+;;   C-x x a    `workroom-add-buffer'
+;;   C-x x k    `workroom-remove-buffer'
+;;   C-x x K    `workroom-kill-buffer'
+
+;; Here the prefix key sequence is "C-x x", but you can customize
+;; `workroom-command-map-prefix' to change it.
+
 ;;; Code:
 
 (require 'cl-lib)
@@ -126,6 +165,7 @@ can't restored."
 (define-key workroom-mode-map workroom-command-map-prefix
   workroom-command-map)
 
+;; NOTE:  Be sure to update commentary and README when you modify this.
 (define-key workroom-command-map "s" #'workroom-switch)
 (define-key workroom-command-map "d" #'workroom-kill-view)
 (define-key workroom-command-map "D" #'workroom-kill)
@@ -270,19 +310,12 @@ See `workroom--read' for PROMPT, DEF, REQUIRE-MATCH and PREDICATE."
                          predicate)))
 
 (defun workroom--read-member-buffer (room prompt &optional def
-                                          require-match predicate
-                                          literal-prompt)
+                                          require-match predicate)
   "Read the name of a member buffer of ROOM.
 
 ROOM should be a `workroom'.  Prompt with PROMPT, where PROMPT should be a
-string.  When LITERAL-PROMPT is nil, \": \" is appended to PROMPT.  DEF,
-REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
+string.  DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
   (let ((read-buffer-function nil))
-    (unless literal-prompt
-      (setq prompt (concat prompt
-                           (when def
-                             (format " (default %s)" def))
-                           ": ")))
     (if (not (listp (workroom-buffers room)))
         (read-buffer prompt def require-match predicate)
       (read-buffer prompt def require-match
@@ -295,19 +328,12 @@ REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
                             t)))))))
 
 (defun workroom--read-non-member-buffer (room prompt &optional def
-                                              require-match predicate
-                                              literal-prompt)
+                                              require-match predicate)
   "Read the name of a buffer which isn't a member of ROOM.
 
 ROOM should be a `workroom'.  Prompt with PROMPT, where PROMPT should be a
-string.  When LITERAL-PROMPT is nil, \": \" is appended to PROMPT.  DEF,
-REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
+string.  DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
   (let ((read-buffer-function nil))
-    (unless literal-prompt
-      (setq prompt (concat prompt
-                           (when def
-                             (format " (default %s)" def))
-                           ": ")))
     (if (not (listp (workroom-buffers room)))
         (read-buffer prompt def require-match #'ignore) ; No candidate
       (read-buffer prompt def require-match
@@ -327,7 +353,7 @@ REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
 
 PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
   (workroom--read-member-buffer (workroom-current-room) prompt def
-                                require-match predicate t))
+                                require-match predicate))
 
 (defun workroom--save-window-config ()
   "Return a object describing the current window configuration."
@@ -403,6 +429,9 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
                      entry)
                     (t
                      (mapcar #'sanitize entry)))))
+
+        ;; Sanitize window state (remove references to non-existant
+        ;; buffers) before loading it.
         (window-state-put (cons (car state) (sanitize (cdr state)))
                           (frame-root-window) 'safe))
     (delete-other-windows)
@@ -780,7 +809,7 @@ bookmark with the same name."
                   no-overwrite))
 
 (defun workroom-add-buffer (buffer &optional room)
-  "Add BUFFER to ROOM.
+  "Add BUFFER to workroom ROOM.
 
 ROOM should be a `workroom'.  When ROOM is a `workroom' object, add BUFFER
 to it.  If ROOM is nil, add BUFFER to the room of the selected frame.
@@ -789,7 +818,14 @@ If ROOM is the default workroom, do nothing."
   (interactive (workroom--require-mode-enable
                  (list (get-buffer-create
                         (workroom--read-non-member-buffer
-                         (workroom-current-room) "Add buffer"))
+                         (workroom-current-room) "Add buffer"
+                         (when (and (listp (workroom-buffers
+                                            (workroom-current-room)))
+                                    (not
+                                     (member (current-buffer)
+                                             (workroom-buffers
+                                              (workroom-current-room)))))
+                           (current-buffer))))
                        nil)))
   (unless room
     (setq room (workroom-current-room)))
@@ -798,7 +834,7 @@ If ROOM is the default workroom, do nothing."
       (push buffer (workroom-buffers room)))))
 
 (defun workroom-remove-buffer (buffer &optional room)
-  "Remove BUFFER from ROOM.
+  "Remove BUFFER from workroom ROOM.
 
 ROOM should be a `workroom'.  When ROOM is a `workroom' object, remove
 BUFFER from it.  If ROOM is nil, remove BUFFER to the room of the selected
