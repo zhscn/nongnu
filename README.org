@@ -1,4 +1,4 @@
-#+title: Workroom - Named rooms for doing work without irrelevant distracting buffers
+#+title: Workroom - Named rooms for work without irrelevant distracting buffers
 
 Workroom provides named "workrooms" (or workspaces), somewhat similar to
 multiple desktops in GNOME.

@@ -1,4 +1,4 @@
-;;; workroom.el --- Named rooms for doing work without irrelevant distracting buffers  -*- lexical-binding: t; -*-
+;;; workroom.el --- Named rooms for work without irrelevant distracting buffers  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Akib Azmain Turja.
 
@@ -77,7 +77,7 @@
 (require 'bookmark)
 
 (defgroup workroom nil
-  "Named rooms for doing work without irrelevant distracting buffers."
+  "Named rooms for work without irrelevant distracting buffers."
   :group 'convenience
   :prefix "workroom-"
   :link '(url-link "https://codeberg.org/akib/emacs-workroom"))
