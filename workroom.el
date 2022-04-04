@@ -579,7 +579,7 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
      ,@body))
 
 ;;;###autoload
-(defun workroom--handle-bookmark (bookmark)
+(defun workroom-bookmark-jump (bookmark)
   "Handle BOOKMARK."
   (workroom--require-mode-enable
     (let ((data (alist-get 'data (bookmark-get-bookmark-record bookmark))))
@@ -810,7 +810,7 @@ The default workroom cannot be saved."
         (setf (workroom-view-window-config (workroom-current-view))
               (workroom--save-window-config)))))
   (bookmark-store name `((data . (workroom . ,(workroom--encode room)))
-                         (handler . workroom--handle-bookmark))
+                         (handler . workroom-bookmark-jump))
                   no-overwrite))
 
 (defun workroom-bookmark-all (name no-overwrite)
@@ -831,7 +831,7 @@ bookmark with the same name."
                                               (remove
                                                (workroom-get-default)
                                                workroom--rooms))))
-                    (handler . workroom--handle-bookmark))
+                    (handler . workroom-bookmark-jump))
                   no-overwrite))
 
 (defun workroom-add-buffer (buffer &optional room)
