@@ -233,7 +233,9 @@ such as boosting favouriting and following to the byline. It also
 takes a single function. By default it is
 `mastodon-tl--byline-boosted'.
 
-ID is the notification's own id, which is attached as a property."
+ID is the notification's own id, which is attached as a property.
+If the status is a favourite or a boost, PARENT-TOOT is the JSON
+of the toot responded to."
   (when toot ; handle rare blank notif server bug
     (mastodon-tl--insert-status toot body author-byline action-byline id parent-toot)))
 

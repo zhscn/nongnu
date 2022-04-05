@@ -865,7 +865,8 @@ takes a single function. By default it is
 `mastodon-tl--byline-boosted'.
 
 ID is that of the toot, which is attached as a property if it is
-a notification."
+a notification. If the status is a favourite or a boost,
+PARENT-TOOT is the JSON of the toot responded to."
   (let ((start-pos (point)))
     (insert
      (propertize
