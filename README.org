@@ -10,49 +10,51 @@ This is now the version available via MELPA.
 
 It adds the following features:
 
-| Profiles:       |                                                                                    |
-|                 | display profile metadata fields                                                    |
-|                 | display pinned toots first                                                         |
-|                 | display relationship (follows you/followed by you)                                 |
-|                 | display toots/follows/followers counts                                             |
-|                 | links/tags/mentions in profile bios are active links                               |
-|                 | show a lock icon for locked accounts                                               |
-| =R=, =C-c a=, =C-c r= | view/accept/reject follow requests                                                 |
-| =V=               | view your favorited toots                                                          |
-| =i=               | toggle pinning of toots                                                            |
-| =S-C-P=           | jump to your profile                                                               |
-| =U=               | update your profile bio note                                                       |
-| =O=               | jump to own profile                                                                |
-| Notifications:  |                                                                                    |
-|                 | follow requests now also appear in notifications                                   |
-| =a=, =r=            | accept/reject follow request                                                       |
-|                 | notifications for when a user posts (=mastodon-tl--enable-notify-user-posts=)        |
-| Timelines:      |                                                                                    |
-| =C=               | copy url of toot at point                                                          |
-| =d=               | delete your toot at point, and reload current timeline                             |
-| =D=               | delete and redraft toot at point, preserving reply/CW/visibility                   |
-| =W=, =M=, =B=         | (un)follow, (un)mute, (un)block author of toot at point                            |
-| =k=, =K=            | toggle bookmark of toot at point, view bookmarked toots                            |
-|                 | display polls and vote on them                                                     |
-|                 | images are links to the full image, can be zoomed/rotated/saved (see image keymap) |
-|                 | images scale properly                                                              |
-|                 | toot visibility (direct, followers only) icon appears in toot bylines              |
-|                 | display toot's number of favorites, boosts and replies                             |
-|                 | play gifs and videos (requires =mpv= to be installed)                              |
-|                 | customize option to cache images                                                   |
-| Toots:          |                                                                                    |
-|                 | mention booster in replies by default                                              |
-|                 | replies preserve visibility status/CW of original toot                             |
-|                 | autocompletion of user mentions, via =company-mode= (must be installed to work)      |
-| =C-c C-a=         | media uploads, asynchronous                                                        |
-|                 | media upload previews displayed in toot compose buffer                             |
-| =C-c C-n=         | and sensitive media/nsfw flag                                                      |
-| =C-c C-e=         | add emoji (if =emojify= installed)                                                   |
-|                 | download and use your instance's custom emoji                                      |
-|                 | server's maximum toot length shown in toot compose buffer                          |
-| Search:         |                                                                                    |
-| =S=               | search (posts, users, tags) (NB: only posts you have interacted with are searched) |
-|                 |                                                                                    |
+| Profiles:      |                                                                                    |
+|                | display profile metadata fields                                                    |
+|                | display pinned toots first                                                         |
+|                | display relationship (follows you/followed by you)                                 |
+|                | display toots/follows/followers counts                                             |
+|                | links/tags/mentions in profile bios are active links                               |
+|                | show a lock icon for locked accounts                                               |
+| =G=              | view follow suggestions                                                            |
+| =R=, =a=, =r=        | view/accept/reject follow requests                                                 |
+| =V=              | view your favorited toots                                                          |
+| =i=              | toggle pinning of toots                                                            |
+| =U=              | update your profile bio note                                                       |
+| =O=              | jump to own profile                                                                |
+| Notifications: |                                                                                    |
+|                | follow requests now also appear in notifications                                   |
+| =a=, =j=           | accept/reject follow request                                                       |
+|                | notifications for when a user posts (=mastodon-tl--enable-notify-user-posts=)        |
+| Timelines:     |                                                                                    |
+| =C=              | copy url of toot at point                                                          |
+| =d=              | delete your toot at point, and reload current timeline                             |
+| =D=              | delete and redraft toot at point, preserving reply/CW/visibility                   |
+| =W=, =M=, =B=        | (un)follow, (un)mute, (un)block author of toot at point                            |
+| =k=, =K=           | toggle bookmark of toot at point, view bookmarked toots                            |
+| =I=, =c=, =d=        | view, create, and delete filters                                                   |
+|                | display image captions                                                             |
+|                | display polls and vote on them                                                     |
+|                | images are links to the full image, can be zoomed/rotated/saved (see image keymap) |
+|                | images scale properly                                                              |
+|                | toot visibility (direct, followers only) icon appears in toot bylines              |
+|                | display toot's number of favorites, boosts and replies                             |
+|                | play gifs and videos (requires =mpv= to be installed)                                |
+|                | customize option to cache images                                                   |
+| Toots:         |                                                                                    |
+|                | mention booster in replies by default                                              |
+|                | replies preserve visibility status/CW of original toot                             |
+|                | autocompletion of user mentions, via =company-mode= (must be installed to work)      |
+| =C-c C-a=        | media uploads, asynchronous                                                        |
+|                | media upload previews displayed in toot compose buffer                             |
+| =C-c C-n=        | and sensitive media/nsfw flag                                                      |
+| =C-c C-e=        | add emoji (if =emojify= installed)                                                   |
+|                | download and use your instance's custom emoji                                      |
+|                | server's maximum toot length shown in toot compose buffer                          |
+| Search:        |                                                                                    |
+| =S=              | search (posts, users, tags) (NB: only posts you have interacted with are searched) |
+|                |                                                                                    |
 
 It also makes some small cosmetic changes to make timelines easier to read, and makes some functions asynchronous, based on https://github.com/ieure/mastodon.el.
 
@@ -66,6 +68,23 @@ Works for federated, local, and home timelines and for notifications. It's a lit
 
 To enable, it, add =(require 'mastodon-async)= to your =init.el=. Then you can view a timeline with one of the commands that begin with =mastodon-async--stream-=.
 
+** translating toots
+
+You can translate toots with =mastodon-toot--translate-toot-text=. At the moment this requires [[https://codeberg.org/martianh/lingva.el][lingva.el]], a little interface I wrote to https://lingva.ml, to be installed to work.
+
+You could easily modify the simple function to use your emacs translator of choice (=google-translate=, =babel=, =go-translate=, etc.), you just need to fetch the toot's content with =(mastodon-tl--content toot)= and pass it to your translator function as its text argument. Here's what =mastodon-toot--translate-toot-text= looks like:
+
+#+begin_src emacs-lisp
+  (defun mastodon-toot--translate-toot-text ()
+    "Translate text of toot at point.
+    Uses `lingva.el'."
+      (interactive)
+      (let* ((toot (mastodon-tl--property 'toot-json)))
+        (if toot
+            (lingva-translate nil (mastodon-tl--content toot))
+          (message "No toot to translate?"))))
+#+end_src
+
 ** NB: dependencies
 
 This version depends on the library =request= (for uploading attachments). You can install it from MELPA, or https://github.com/tkf/emacs-request. It also depends on =seq=.
@@ -74,6 +93,7 @@ Optional dependencies:
 - =company= for autocompletion of mentions when composing a toot
 - =emojify= for inserting and viewing emojis
 - =mpv= and =mpv.el= for viewing videos and gifs
+- =lingva.el= for translating toots
 
 ** NB: bugs
 
@@ -81,13 +101,9 @@ This repo also incorporates fixes for two bugs that were never merged into the u
 - https://github.com/jdenen/mastodon.el/issues/227 (and https://github.com/jdenen/mastodon.el/issues/234)
 - https://github.com/jdenen/mastodon.el/issues/228
 
-** 2FA
-
-It looks like 2-factor auth was never completed in the original repo. It's not a priority for me, auth ain't my thing. If you want to hack on it, its on the develop branch in the original repo.
-
 ** contributing
 
-Contributions are welcome!
+Contributions are welcome.
 
 1. Create an here on codeberg detailing the feature you'd like to add.
 2. Fork the repository and create a branch off of =develop=.
@@ -155,21 +171,31 @@ Or, with =use-package=:
 #+END_SRC
 
 ** Usage
-*** 2 Factor Auth
-2FA is not supported yet. It is in the [[https://github.com/jdenen/mastodon.el/milestone/2][plans]] for the =1.0.0= release.
-
-If you have 2FA enabled and try to use mastodon.el, your Emacs client will hang until you `C-g` your way out.
 *** Instance
 
-Set =mastodon-instance-url= in your =.emacs= or =customize=. Defaults to the [[https://mastodon.social][flagship]].
+You need to set 2 variables in your init file to get started:
+
+1. mastodon-instance-url
+2. mastodon-active-user
+
+(see their doc strings for details). For example If you want to post
+toots as "example_user@social.instance.org", then put this in your init
+file:
 
 #+BEGIN_SRC emacs-lisp
-    (setq mastodon-instance-url "https://my.instance.url")
+    (setq mastodon-instance-url "https://social.instance.org"
+          mastodon-active-user "example_user")
 #+END_SRC
 
-There is an option to have your user credentials (email address and password) saved to disk so you don't have to re-enter them on every restart.
-The default is not to do this because if not properly configured it would save these unencrypted which is not a good default to have.
-Customize the variable =mastodon-auth-source-file= if you want to enable this feature.
+Then *restart* Emacs and run =M-x mastodon=. Make sure you are connected
+to internet before you do this. If you have multiple mastodon accounts
+you can activate one at a time by changing those two variables and
+restarting Emacs.
+
+If you have been using mastodon.el before this change and the above
+steps do not work it's advisable that you delete the old file specified
+by =mastodon-client--token-file= and restart Emacs and follow the steps
+again.
 
 *** Timelines
 

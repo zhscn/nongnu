@@ -86,7 +86,8 @@ With no argument, the request is accepted. Argument REJECT means
 reject the request. Can be called in notifications view or in
 follow-requests view."
   (interactive)
-  (when (mastodon-tl--find-property-range 'toot-json (point))
+  (if (not (mastodon-tl--find-property-range 'toot-json (point)))
+      (message "No follow request at point?")
     (let* ((toot-json (mastodon-tl--property 'toot-json))
            (f-reqs-view-p (string= "follow_requests"
                                    (plist-get mastodon-tl--buffer-spec 'endpoint)))
@@ -109,7 +110,8 @@ follow-requests view."
                         nil nil)))
                   (mastodon-http--triage response
                                          (lambda ()
-                                           (unless f-reqs-view-p
+                                           (if f-reqs-view-p
+                                               (mastodon-profile--view-follow-requests)
                                              (mastodon-notifications--get))
                                            (message "Follow request of %s (@%s) %s!"
                                                     name handle (if reject
@@ -144,7 +146,7 @@ Can be called in notifications view or in follow-requests view."
 
 (defun mastodon-notifications--favourite (note)
   "Format for a `favourite' NOTE."
-  (mastodon-notifications--format-note note 'favorite))
+  (mastodon-notifications--format-note note 'favourite))
 
 (defun mastodon-notifications--reblog (note)
   "Format for a `boost' NOTE."
@@ -166,12 +168,18 @@ Status notifications are given when
         (status (mastodon-tl--field 'status note))
         (follower (alist-get 'username (alist-get 'account note))))
     (mastodon-notifications--insert-status
-     (if (or (equal type 'follow)
-             (equal type 'follow-request))
-         ;; Using reblog with an empty id will mark this as something
-         ;; non-boostable/non-favable.
-         (cons '(reblog (id . nil)) note)
-       status)
+     (cond ((or (equal type 'follow)
+                (equal type 'follow-request))
+            ;; Using reblog with an empty id will mark this as something
+            ;; non-boostable/non-favable.
+            (cons '(reblog (id . nil)) note))
+           ;; reblogs/faves use 'note' to process their own json
+           ;; not the toot's. this ensures following etc. work on such notifs
+           ((or (equal type 'favourite)
+                (equal type 'boost))
+            note)
+           (t
+            status))
      (if (or (equal type 'follow)
              (equal type 'follow-request))
          (propertize (if (equal type 'follow)
@@ -194,7 +202,7 @@ Status notifications are given when
        (mastodon-notifications--byline-concat
         (cond ((equal type 'boost)
                "Boosted")
-              ((equal type 'favorite)
+              ((equal type 'favourite)
                "Favourited")
               ((equal type 'follow-request)
                "Requested to follow")
@@ -206,9 +214,12 @@ Status notifications are given when
                "Posted")
               ((equal type 'poll)
                "Posted a poll"))))
-     id)))
+     id
+     (when (or (equal type 'favourite)
+               (equal type 'boost))
+       status))))
 
-(defun mastodon-notifications--insert-status (toot body author-byline action-byline id)
+(defun mastodon-notifications--insert-status (toot body author-byline action-byline id &optional parent-toot)
   "Display the content and byline of timeline element TOOT.
 
 BODY will form the section of the toot above the byline.
@@ -222,9 +233,11 @@ such as boosting favouriting and following to the byline. It also
 takes a single function. By default it is
 `mastodon-tl--byline-boosted'.
 
-ID is the notification's own id, which is attached as a property."
+ID is the notification's own id, which is attached as a property.
+If the status is a favourite or a boost, PARENT-TOOT is the JSON
+of the toot responded to."
   (when toot ; handle rare blank notif server bug
-    (mastodon-tl--insert-status toot body author-byline action-byline id)))
+    (mastodon-tl--insert-status toot body author-byline action-byline id parent-toot)))
 
 (defun mastodon-notifications--by-type (note)
   "Filters NOTE for those listed in `mastodon-notifications--types-alist'."
@@ -239,7 +252,7 @@ ID is the notification's own id, which is attached as a property."
 (defun mastodon-notifications--timeline (json)
   "Format JSON in Emacs buffer."
   (if (equal json '[])
-      (message "Looks like you have no notifications for the moment.")
+      (message "Looks like you have no (more) notifications for the moment.")
     (mapc #'mastodon-notifications--by-type json)
     (goto-char (point-min))))
 

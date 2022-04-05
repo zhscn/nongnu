@@ -48,6 +48,7 @@
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
+(defvar mastodon-tl--enable-proportional-fonts)
 (autoload 'mastodon-auth--user-acct "mastodon-auth")
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--delete "mastodon-http")
@@ -69,6 +70,11 @@
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (autoload 'mastodon-tl--toot-id "mastodon-tl")
 (autoload 'mastodon-toot "mastodon")
+
+;; for mastodon-toot--translate-toot-text
+(autoload 'mastodon-tl--content "mastodon-tl")
+(when (require 'lingva nil :no-error)
+  (declare-function lingva-translate "lingva"))
 
 (defgroup mastodon-toot nil
   "Tooting in Mastodon."
@@ -171,9 +177,9 @@ Valid values are \"direct\", \"private\" (followers-only),
                      (alist-get 'statuses
                                 (alist-get 'configuration
                                            json-response))))))
-  (setq mastodon-toot--max-toot-chars max-chars)
-  (with-current-buffer "*new toot*"
-    (mastodon-toot--update-status-fields))))
+    (setq mastodon-toot--max-toot-chars max-chars)
+    (with-current-buffer "*new toot*"
+      (mastodon-toot--update-status-fields))))
 
 (defun mastodon-toot--action-success (marker byline-region remove)
   "Insert/remove the text MARKER with 'success face in byline.
@@ -197,7 +203,7 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
                         (propertize marker 'face 'success)))))
     ;; leave point after the marker:
     (unless remove
-        (mastodon-tl--goto-next-toot))))
+      (mastodon-tl--goto-next-toot))))
 
 (defun mastodon-toot--action (action callback)
   "Take ACTION on toot at point, then execute CALLBACK.
@@ -259,7 +265,7 @@ Makes a POST request to the server."
                                    (mastodon-toot--action-success
                                     "F" byline-region remove))
                                  (message (format "%s #%s" action id))))
-      (message "Nothing to favorite here?!?"))))
+      (message "Nothing to favourite here?!?"))))
 
 (defun mastodon-toot--copy-toot-url ()
   "Copy URL of toot at point."
@@ -270,6 +276,30 @@ Makes a POST request to the server."
                 (alist-get 'url toot))))
     (kill-new url)
     (message "Toot URL copied to the clipboard.")))
+
+(defun mastodon-toot--copy-toot-text ()
+  "Copy text of toot at point."
+  (interactive)
+  (let* ((toot (mastodon-tl--property 'toot-json)))
+    (kill-new (mastodon-tl--content toot))
+    (message "Toot content copied to the clipboard.")))
+
+;; (when (require 'lingva nil :no-error)
+(defun mastodon-toot--translate-toot-text ()
+  "Translate text of toot at point.
+Uses `lingva.el'."
+  (interactive)
+  (if (not (require 'lingva nil :no-error))
+      (message "Looks like you need to install lingva.el first.")
+    (if mastodon-tl--buffer-spec
+        (let ((toot (mastodon-tl--property 'toot-json)))
+          (if toot
+              (lingva-translate nil
+                                (mastodon-tl--content toot)
+                                (when mastodon-tl--enable-proportional-fonts
+                                  t))
+            (message "No toot to translate?")))
+      (message "No mastodon buffer?"))))
 
 (defun mastodon-toot--own-toot-p (toot)
   "Check if TOOT is user's own, e.g. for deleting it."
@@ -323,7 +353,7 @@ NO-REDRAFT means delete toot only."
                (if no-redraft
                    (progn
                      (when mastodon-tl--buffer-spec
-                            (mastodon-tl--reload-timeline-or-profile))
+                       (mastodon-tl--reload-timeline-or-profile))
                      (message "Toot deleted!"))
                  (mastodon-toot--redraft response
                                          reply-id
@@ -492,9 +522,9 @@ If media items have been attached and uploaded with
                                             (symbol-name t)))
                           ("spoiler_text" . ,spoiler)))
          (args-media (when mastodon-toot--media-attachments
-                           (mapcar (lambda (id)
-                                     (cons "media_ids[]" id))
-                                   mastodon-toot--media-attachment-ids)))
+                       (mapcar (lambda (id)
+                                 (cons "media_ids[]" id))
+                               mastodon-toot--media-attachment-ids)))
          (args (append args-media args-no-media)))
     (cond ((and mastodon-toot--media-attachments
                 ;; make sure we have media args
@@ -593,11 +623,13 @@ candidate ARG. IGNORED remains a mystery."
   "Reply to toot at `point'."
   (interactive)
   (let* ((toot (mastodon-tl--property 'toot-json))
-         (id (mastodon-tl--as-string (mastodon-tl--field 'id toot)))
+         (parent (mastodon-tl--property 'parent-toot)) ; for new notifs handling
+         (id (mastodon-tl--as-string
+              (mastodon-tl--field 'id (or parent toot))))
          (account (mastodon-tl--field 'account toot))
          (user (alist-get 'acct account))
-         (mentions (mastodon-toot--mentions toot))
-         (boosted (mastodon-tl--field 'reblog toot))
+         (mentions (mastodon-toot--mentions (or parent toot)))
+         (boosted (mastodon-tl--field 'reblog (or parent toot)))
          (booster (when boosted
                     (alist-get 'acct
                                (alist-get 'account toot)))))
@@ -606,14 +638,27 @@ candidate ARG. IGNORED remains a mystery."
                          (if (and
                               (not (equal user booster))
                               (not (string-match booster mentions)))
+                             ;; different booster, user and mentions:
                              (concat (mastodon-toot--process-local user)
                                      ;; "@" booster " "
-                                     (mastodon-toot--process-local booster) mentions)
+                                     (mastodon-toot--process-local booster)
+                                     mentions)
+                           ;; booster is either user or in mentions:
+                           (if (not (string-match user mentions))
+                               ;; user not already in mentions:
+                               (concat (mastodon-toot--process-local user)
+                                       mentions)
+                             ;; user already in mentions:
+                             mentions))
+                       ;; ELSE no booster:
+                       (if (not (string-match user mentions))
+                           ;; user not in mentions:
                            (concat (mastodon-toot--process-local user)
-                                   mentions))
-                       (concat (mastodon-toot--process-local user)
-                               mentions)))
-                   id toot)))
+                                   mentions)
+                         ;; user in mentions already:
+                         mentions)))
+                   id
+                   (or parent toot))))
 
 (defun mastodon-toot--toggle-warning ()
   "Toggle `mastodon-toot--content-warning'."
