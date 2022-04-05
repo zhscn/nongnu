@@ -642,13 +642,13 @@ candidate ARG. IGNORED remains a mystery."
                                      (mastodon-toot--process-local booster)
                                      mentions)
                            ;; booster is either user or in mentions:
-                           (if (not string-match user mentions)
+                           (if (not (string-match user mentions))
                                ;; user not already in mentions:
                                (concat (mastodon-toot--process-local user)
                                        mentions)
                              ;; user already in mentions:
                              mentions))
-                       ;; no booster:
+                       ;; ELSE no booster:
                        (if (not (string-match user mentions))
                            ;; user not in mentions:
                            (concat (mastodon-toot--process-local user)
