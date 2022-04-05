@@ -285,10 +285,12 @@ Makes a POST request to the server."
     (message "Toot content copied to the clipboard.")))
 
 ;; (when (require 'lingva nil :no-error)
-  (defun mastodon-toot--translate-toot-text ()
-    "Translate text of toot at point.
+(defun mastodon-toot--translate-toot-text ()
+  "Translate text of toot at point.
 Uses `lingva.el'."
-    (interactive)
+  (interactive)
+  (if (not (require 'lingva nil :no-error))
+      (message "Looks like you need to install lingva.el first.")
     (if mastodon-tl--buffer-spec
         (let ((toot (mastodon-tl--property 'toot-json)))
           (if toot
