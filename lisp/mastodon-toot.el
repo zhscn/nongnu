@@ -48,6 +48,7 @@
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
+(defvar mastodon-tl--enable-proportional-fonts)
 (autoload 'mastodon-auth--user-acct "mastodon-auth")
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--delete "mastodon-http")
@@ -70,7 +71,7 @@
 (autoload 'mastodon-tl--toot-id "mastodon-tl")
 (autoload 'mastodon-toot "mastodon")
 
-; for mastodon-toot--translate-toot-text
+;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
 (when (require 'lingva nil :no-error)
   (declare-function lingva-translate "lingva"))
@@ -176,9 +177,9 @@ Valid values are \"direct\", \"private\" (followers-only),
                      (alist-get 'statuses
                                 (alist-get 'configuration
                                            json-response))))))
-  (setq mastodon-toot--max-toot-chars max-chars)
-  (with-current-buffer "*new toot*"
-    (mastodon-toot--update-status-fields))))
+    (setq mastodon-toot--max-toot-chars max-chars)
+    (with-current-buffer "*new toot*"
+      (mastodon-toot--update-status-fields))))
 
 (defun mastodon-toot--action-success (marker byline-region remove)
   "Insert/remove the text MARKER with 'success face in byline.
@@ -202,7 +203,7 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
                         (propertize marker 'face 'success)))))
     ;; leave point after the marker:
     (unless remove
-        (mastodon-tl--goto-next-toot))))
+      (mastodon-tl--goto-next-toot))))
 
 (defun mastodon-toot--action (action callback)
   "Take ACTION on toot at point, then execute CALLBACK.
@@ -296,7 +297,7 @@ Uses `lingva.el'."
                                 (when mastodon-tl--enable-proportional-fonts
                                   t))
             (message "No toot to translate?")))
-      (message "No mastodon buffer?")))
+      (message "No mastodon buffer?"))))
 
 (defun mastodon-toot--own-toot-p (toot)
   "Check if TOOT is user's own, e.g. for deleting it."
@@ -350,7 +351,7 @@ NO-REDRAFT means delete toot only."
                (if no-redraft
                    (progn
                      (when mastodon-tl--buffer-spec
-                            (mastodon-tl--reload-timeline-or-profile))
+                       (mastodon-tl--reload-timeline-or-profile))
                      (message "Toot deleted!"))
                  (mastodon-toot--redraft response
                                          reply-id
@@ -519,9 +520,9 @@ If media items have been attached and uploaded with
                                             (symbol-name t)))
                           ("spoiler_text" . ,spoiler)))
          (args-media (when mastodon-toot--media-attachments
-                           (mapcar (lambda (id)
-                                     (cons "media_ids[]" id))
-                                   mastodon-toot--media-attachment-ids)))
+                       (mapcar (lambda (id)
+                                 (cons "media_ids[]" id))
+                               mastodon-toot--media-attachment-ids)))
          (args (append args-media args-no-media)))
     (cond ((and mastodon-toot--media-attachments
                 ;; make sure we have media args
