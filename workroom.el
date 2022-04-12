@@ -150,7 +150,7 @@ can't restored."
   (window-config nil
                  :documentation "Window configuration of the view."))
 
-(defalias 'workroom-p 'workroomp)
+(defalias 'workroomp #'workroom-p)
 
 (defvar workroom--default-view-of-default-room "main"
   "Name of default view of default workroom.")
@@ -531,8 +531,7 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
        (when-let ((existing (workroom-get (workroom-name room))))
          (unless (y-or-n-p (format-message "Workroom `%s' already\
  exists, overwrite? " (workroom-name room)))
-           (user-error (format-message "Workroom `%s' exists"
-                                       (workroom-name room))))
+           (user-error "Workroom `%s' exists" (workroom-name room)))
          (workroom-kill existing))
        (push room workroom--rooms)))
     ('workroom-set
@@ -545,8 +544,7 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
            (when-let ((existing (workroom-get (workroom-name room))))
              (unless (y-or-n-p (format-message "Workroom `%s' already\
  exists, overwrite? " (workroom-name room)))
-               (user-error (format-message "Workroom `%s' exists"
-                                           (workroom-name room))))
+               (user-error "Workroom `%s' exists" (workroom-name room)))
              (push existing rooms-to-kill))
            (push room rooms)))
        (mapc #'workroom-kill rooms-to-kill)
