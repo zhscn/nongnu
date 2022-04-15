@@ -287,11 +287,18 @@ when LINE-BEGINNINGS was calculated.")
       (dolist (block line-map)
         (let ((ov (make-overlay (caar block) (cdar block))))
           (push ov (window-parameter nil 'popon-overlays))
+          (overlay-put ov 'window (selected-window))
           (overlay-put ov 'display (if newline-at-display "\n" ""))
           (overlay-put
            ov 'before-string
            (let ((text "")
                  (current-offset 0))
+             (when (and (= (caar block) (cdar block) (point-max))
+                        (> (caar block) 0)
+                        (not (equal (buffer-substring-no-properties
+                                     (1- (caar block)) (caar block))
+                                    "\n")))
+               (setq text "\n"))
              (dolist (line (sort (cdr block) #'car-less-than-car))
                (setq text (concat text
                                   (make-string (- (car line)
@@ -301,7 +308,6 @@ when LINE-BEGINNINGS was calculated.")
                (setq current-offset (car line)))
              (add-face-text-property 0 (length text) 'default 'append text)
              (concat text (unless newline-at-display "\n"))))
-          (overlay-put ov 'window (selected-window))
           (setq newline-at-display (not newline-at-display)))))))
 
 (defun popon--redisplay-1 (force)
