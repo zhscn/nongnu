@@ -3,6 +3,9 @@
 Change Log
 ##########
 
+- 2022-04-19
+  - Fix use of marker-position on an integer.
+
 - 2022-03-14
   - Add option ``doc-show-inline-exclude-blank-lines`` to exclude doc-strings with blank lines
     between the declarations and the doc-strings.

@@ -454,7 +454,14 @@ the point should not be moved by this function."
               (setq alist (cdr pair)))
 
             ((number-or-marker-p (setq mark (cdr pair)))
-              (let ((pos (marker-position mark)))
+              (let
+                (
+                  (pos
+                    (cond
+                      ((markerp mark)
+                        (marker-position mark))
+                      (t ;; Integer.
+                        mark))))
                 (unless (or (and pos-beg (<= pos pos-beg)) (and pos-end (>= pos pos-end)))
                   (push pos result))))))
         (t
