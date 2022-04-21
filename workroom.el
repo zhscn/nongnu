@@ -169,27 +169,28 @@ can't restored."
 (defvar workroom-mode-map (make-sparse-keymap)
   "Keymap for Workroom-Mode.")
 
-(defvar workroom-command-map nil
+(defvar workroom-command-map
+  (let ((keymap (make-sparse-keymap)))
+    ;; NOTE:  Be sure to update commentary and README when you modify this.
+    (define-key keymap "s" #'workroom-switch)
+    (define-key keymap "d" #'workroom-kill-view)
+    (define-key keymap "D" #'workroom-kill)
+    (define-key keymap "r" #'workroom-rename-view)
+    (define-key keymap "R" #'workroom-rename)
+    (define-key keymap "c" #'workroom-clone-view)
+    (define-key keymap "C" #'workroom-clone)
+    (define-key keymap "m" #'workroom-bookmark)
+    (define-key keymap "M" #'workroom-bookmark-all)
+    (define-key keymap "b" #'workroom-switch-to-buffer)
+    (define-key keymap "a" #'workroom-add-buffer)
+    (define-key keymap "k" #'workroom-remove-buffer)
+    (define-key keymap "K" #'workroom-kill-buffer)
+    keymap)
   "Keymap containing all useful commands of Workroom.")
 
 (define-prefix-command 'workroom-command-map)
 (define-key workroom-mode-map workroom-command-map-prefix
   workroom-command-map)
-
-;; NOTE:  Be sure to update commentary and README when you modify this.
-(define-key workroom-command-map "s" #'workroom-switch)
-(define-key workroom-command-map "d" #'workroom-kill-view)
-(define-key workroom-command-map "D" #'workroom-kill)
-(define-key workroom-command-map "r" #'workroom-rename-view)
-(define-key workroom-command-map "R" #'workroom-rename)
-(define-key workroom-command-map "c" #'workroom-clone-view)
-(define-key workroom-command-map "C" #'workroom-clone)
-(define-key workroom-command-map "m" #'workroom-bookmark)
-(define-key workroom-command-map "M" #'workroom-bookmark-all)
-(define-key workroom-command-map "b" #'workroom-switch-to-buffer)
-(define-key workroom-command-map "a" #'workroom-add-buffer)
-(define-key workroom-command-map "k" #'workroom-remove-buffer)
-(define-key workroom-command-map "K" #'workroom-kill-buffer)
 
 (defun workroom-get (name)
   "Return the workroom named NAME.
