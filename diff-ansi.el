@@ -666,8 +666,9 @@ Store the result in TARGET-BUF when non-nil."
         (save-excursion
           (cond
             ((eq disp-beg disp-end)
-              (cancel-timer diff-ansi--ansi-color-timer)
-              (setq diff-ansi--ansi-color-timer nil))
+              (when diff-ansi--ansi-color-timer
+                (cancel-timer diff-ansi--ansi-color-timer)
+                (setq diff-ansi--ansi-color-timer nil)))
             (t
               (let ((disp-end-mark (set-marker (make-marker) disp-end)))
                 (diff-ansi--ansi-color-apply-on-region-with-bg disp-beg disp-end)
