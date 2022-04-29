@@ -31,7 +31,7 @@
 ;; even don't go away when switching buffer, but you can bind a popon to a
 ;; specific buffer to only show on that buffer.
 
-;; If some popons annoying you and you can't kill them, do M-x
+;; If some popons are annoying you and you can't kill them, do M-x
 ;; popon-kill-all to kill all popons.
 
 ;;; Code:
