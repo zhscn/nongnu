@@ -16,6 +16,10 @@ Editing history with heat map.
 
 * Install
 
+** MELPA
+
+=M-x package-refresh-contents= and =M-x package-install RET why-this=.
+
 ** straight.el
 
 #+begin_src emacs-lisp

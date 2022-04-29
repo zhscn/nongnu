@@ -364,21 +364,22 @@ TIME-FORMAT is used to format data."
   (if (not why-this-calculate-background)
       'why-this-face
     `(:background
-      ,(face-background
-        (pcase type
-          ('region
-           (if (bound-and-true-p solaire-mode)
-               'solaire-region-face
-             'region))
-          ('line
-           (if (bound-and-true-p hl-line-mode)
+      ,(or (face-background
+            (pcase type
+              ('region
                (if (bound-and-true-p solaire-mode)
-                   'solaire-hl-line-face
-                 'hl-line)
-             'why-this-face))
-          (_
-           'why-this-face))
-        nil t)
+                   'solaire-region-face
+                 'region))
+              ('line
+               (if (bound-and-true-p hl-line-mode)
+                   (if (bound-and-true-p solaire-mode)
+                       'solaire-hl-line-face
+                     'hl-line)
+                 'why-this-face))
+              (_
+               'why-this-face))
+            nil t)
+           'unspecified)
       :inherit why-this-face)))
 
 (defvar why-this-mode)
