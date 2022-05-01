@@ -536,7 +536,7 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
          (workroom-kill existing))
        (push room workroom--rooms)))
     ('workroom-set
-     (unless (y-or-n-p "Your all workrooms will be overwritten, proceed? ")
+     (unless (y-or-n-p "All your workrooms will be overwritten, proceed? ")
        (user-error "Cancelled"))
      (let ((rooms nil)
            (rooms-to-kill nil))
