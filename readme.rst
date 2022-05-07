@@ -103,8 +103,6 @@ Installation
 
 The package is available in melpa as ``diff-ansi``, here is an example with ``use-package``:
 
-The package can be installed using ``straight``.
-
 .. code-block:: elisp
 
    (use-package diff-ansi
