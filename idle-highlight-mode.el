@@ -4,7 +4,7 @@
 ;; Copyright (C) 2008-2011 Phil Hagelberg, Cornelius Mika
 
 ;; Author: Phil Hagelberg, Cornelius Mika, Campbell Barton
-;; URL: https://gitlab.com/ideasman42/emacs-idle-highlight-mode
+;; URL: https://codeberg.com/ideasman42/emacs-idle-highlight-mode
 ;; Version: 1.1.3
 ;; Created: 2008-05-13
 ;; Keywords: convenience
