@@ -104,11 +104,13 @@ FRAMEBUFFER and LINES shouldn't contain newlines.  Example:
             (setf (cadr (nth (+ y i) framebuffer)) t))))
       framebuffer)))
 
+;;;###autoload
 (defun poponp (object)
   "Return t if OBJECT is a popon."
   (and (proper-list-p object)
        (eq (car-safe object) 'popon)))
 
+;;;###autoload
 (defun popon-live-p (object)
   "Return t if OBJECT is a popon and not killed."
   (and (poponp object)
@@ -119,20 +121,24 @@ FRAMEBUFFER and LINES shouldn't contain newlines.  Example:
            (buffer-live-p (plist-get (cdr object) :buffer)))
        t))
 
+;;;###autoload
 (defun popon-get (popon prop)
   "Get the PROP property of popon POPON."
   (plist-get (plist-get (cdr popon) :plist) prop))
 
+;;;###autoload
 (defun popon-put (popon prop value)
   "Set the PROP property of popon POPON to VALUE."
   (setcdr popon (plist-put (cdr popon)
                            :plist (plist-put (plist-get (cdr popon) :plist)
                                              prop value))))
 
+;;;###autoload
 (defun popon-properties (popon)
   "Return a copy the property list of popon POPON."
   (copy-sequence (plist-get (cdr popon) :plist)))
 
+;;;###autoload
 (defun popon-position (popon)
   "Return the position of popon POPON as a cons (X, Y).
 
@@ -141,6 +147,7 @@ When popon POPON is killed, return nil."
     (cons (plist-get (cdr popon) :x)
           (plist-get (cdr popon) :y))))
 
+;;;###autoload
 (defun popon-size (popon)
   "Return the size of popon POPON as a cons (WIDTH . HEIGHT).
 
@@ -149,6 +156,7 @@ When popon POPON is killed, return nil."
     (cons (plist-get (cdr popon) :width)
           (length (plist-get (cdr popon) :lines)))))
 
+;;;###autoload
 (defun popon-window (popon)
   "Return the window popon POPON belongs to.
 
@@ -156,6 +164,7 @@ Return nil if popon POPON is killed."
   (when (popon-live-p popon)
     (plist-get (cdr popon) :window)))
 
+;;;###autoload
 (defun popon-buffer (popon)
   "Return the buffer popon POPON belongs to.
 
@@ -163,6 +172,7 @@ Return nil if popon POPON is killed."
   (when (popon-live-p popon)
     (plist-get (cdr popon) :buffer)))
 
+;;;###autoload
 (defun popon-text (popon)
   "Return the text popon POPON is displaying.
 
@@ -178,6 +188,7 @@ POPON may be a killed popon.  Return nil if POPON isn't a popon at all."
                        (plist-get (cdr popon) :lines)
                        (plist-get (cdr popon) :width)))
 
+;;;###autoload
 (defun popon-create (text pos &optional window buffer)
   "Create a popon showing TEXT at POS of WINDOW.
 
@@ -203,6 +214,7 @@ width."
     (popon-update)
     popon))
 
+;;;###autoload
 (defun popon-kill (popon)
   "Kill popon POPON.
 
@@ -378,10 +390,12 @@ When FORCE is non-nil, update all overlays."
         (add-hook 'window-configuration-change-hook #'popon-update)
       (remove-hook 'window-configuration-change-hook #'popon-update))))
 
+;;;###autoload
 (defun popon-redisplay ()
   "Redisplay popon overlays."
   (popon--redisplay-1 t))
 
+;;;###autoload
 (defun popon-update ()
   "Update popons if needed."
   (popon--redisplay-1 nil))
@@ -390,6 +404,7 @@ When FORCE is non-nil, update all overlays."
   "Update popons."
   (popon-update))
 
+;;;###autoload
 (defun popon-x-y-at-pos (point)
   "Return the (X, Y) coodinate of POINT in selected window as a cons cell.
 
@@ -402,6 +417,7 @@ to this function."
     (cons (- (car point-x-y) (car window-start-x-y))
           (- (cdr point-x-y) (cdr window-start-x-y)))))
 
+;;;###autoload
 (defun popon-kill-all ()
   "Kill all popons."
   (interactive)
