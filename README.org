@@ -1,4 +1,4 @@
-#+title: Miniline - Modular status bar in echo area
+#+title: Minibar - Modular status bar in minibuffer
 
 The echo area is unused most of the time.  Sometimes this empty area so
 annoying that some people want to get rid of it.  This package makes it
@@ -10,30 +10,30 @@ helpful when you use Emacs as your X window manager using EXWM.
 ** Quelpa
 
 #+begin_src emacs-lisp
-(quelpa '(miniline :fetcher git
-                   :url "https://codeberg.org/akib/emacs-miniline.git"))
+(quelpa '(minibar :fetcher git
+                  :url "https://codeberg.org/akib/emacs-minibar.git"))
 #+end_src
 
 ** Straight.el
 
 #+begin_src emacs-lisp
 (straight-use-package
- '(miniline :type git
-            :repo "https://codeberg.org/akib/emacs-miniline.git"))
+ '(minibar :type git
+           :repo "https://codeberg.org/akib/emacs-minibar.git"))
 #+end_src
 
 ** Manual
 
 First install =minibuffer-line= package from ELPA.  Then download
-=miniline.el= and put it in your ~load-path~.
+=minibar.el= and put it in your ~load-path~.
 
 * Usage
 
-Enable ~miniline-mode~ to display miniline.  You may want to put
-~(miniline-mode +1)~ in your init file.  There are several user options you
+Enable ~minibar-mode~ to display Minibar.  You may want to put
+~(minibar-mode +1)~ in your init file.  There are several user options you
 can customize, use ~customize-group~ to see and possibly customize them.
 
-Miniline renders the status bar and it uses =minibuffer-line= package to
+Minibar renders the status bar and it uses =minibuffer-line= package to
 show the line in echo area.  To change the refresh rate, customize the
 ~minibuffer-line-refresh-interval~ variable.  To change the face, customize
 the ~minibuffer-line~ face.
