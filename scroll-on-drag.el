@@ -138,7 +138,7 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
 ;; End generic scrolling functions.
 
 (defsubst scroll-on-drag--force-redisplay-with-hooks ()
-  "Wrapper for `redisplay' that ignores `inhibit-redisplay'."
+  "Wrapper for `redisplay' to ignore `inhibit-redisplay'."
   (let ((inhibit-redisplay nil))
     (run-hooks 'scroll-on-drag-redisplay-hook)
     (redisplay)))
