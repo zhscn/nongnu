@@ -588,23 +588,22 @@ Actually the supported backend is returned."
              (last-change-begin 0)
              (add-heat
               (lambda ()
-                (let (ov)
-                  (setq ov (make-overlay last-change-begin (point)))
-                  (overlay-put ov 'face
-                               `(:background
-                                 ,(why-this--mix-colors
-                                   why-this-annotate-heat-map-cold
-                                   why-this-annotate-heat-map-warm
-                                   (if (equal newest-change
-                                              oldest-change)
-                                       0.5
-                                     (/ (- (float-time
-                                            (plist-get (nth (1- i) data)
-                                                       :time))
-                                           oldest-change)
-                                        (- newest-change
-                                           oldest-change))))
-                                 :extend t))))))
+                (add-face-text-property
+                 last-change-begin (point)
+                 `(:background ,(why-this--mix-colors
+                                 why-this-annotate-heat-map-cold
+                                 why-this-annotate-heat-map-warm
+                                 (if (equal newest-change
+                                            oldest-change)
+                                     0.5
+                                   (/ (- (float-time
+                                          (plist-get (nth (1- i) data)
+                                                     :time))
+                                         oldest-change)
+                                      (- newest-change
+                                         oldest-change))))
+                               :extend t)
+                 t))))
         (with-current-buffer (get-buffer-create
                               (format "*why-this-annotate %s*"
                                       (buffer-name)))
@@ -625,12 +624,10 @@ Actually the supported backend is returned."
                  (nth i contents)
                  "\n")
               (unless (zerop i)
-                (let (ov)
-                  (setq ov (make-overlay (line-beginning-position 0)
-                                         (point)))
-                  (overlay-put ov 'face `(:underline
+                (add-face-text-property (line-beginning-position 0) (point)
+                                        `(:underline
                                           ,(face-foreground 'default)
-                                          :extend t)))
+                                          :extend t))
                 (when why-this-annotate-enable-heat-map
                   (funcall add-heat)))
               (setq last-change-begin (point))
