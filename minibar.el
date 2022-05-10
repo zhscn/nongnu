@@ -4,7 +4,7 @@
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Version: 0.1
-;; Package-Requires: ((emacs "27.2") minibuffer-line)
+;; Package-Requires: ((emacs "27.2"))
 ;; Keywords: calendar, hardware
 ;; URL: https://codeberg.org/akib/emacs-minibar
 
@@ -37,15 +37,8 @@
 ;; (minibar-mode +1) in your init file.  There are several user options
 ;; you can customize, use `customize-group' to see and possibly customize
 ;; them.
-;;
-;; Minibar renders the status bar and it uses `minibuffer-line' package
-;; to show the line in echo area.  To change the refresh rate, customize
-;; the `minibuffer-line-refresh-interval' variable.  To change the face,
-;; customize the `minibuffer-line' face.
 
 ;;; Code:
-
-(require 'minibuffer-line)
 
 (defgroup minibar nil
   "Modular status bar in echo bar."
@@ -82,44 +75,59 @@ The value should be a list of functions.  Each function should return a
 string to display, or nil in case there is to show."
   :type '(repeat function))
 
+(defcustom minibar-update-interval 1
+  "Update Minibar every this many seconds."
+  :type 'number)
+
+(defface minibar-face
+  '((t :inherit default))
+  "Default face of Minibar.")
+
+(defvar minibar--update-timer nil
+  "Timer to update Minibar.")
+
 (defun minibar--render-group (modules)
   "Render MODULES."
   (mapconcat #'identity (delete nil (mapcar #'funcall modules))
              minibar-module-separator))
 
 ;;;###autoload
-(defun minibar-render ()
-  "Render Minibar."
-  (with-temp-buffer
-    (let ((bar "")
-          (width (frame-width (window-frame (minibuffer-window))))
-          (left (minibar--render-group
-                 minibar-group-left))
-          (middle (minibar--render-group
-                   minibar-group-middle))
-          (right (minibar--render-group
-                  minibar-group-right)))
+(defun minibar--update ()
+  "Update Minibar."
+  (while-no-input
+    (with-temp-buffer
+      (let ((bar "")
+            (width (frame-width (window-frame (minibuffer-window))))
+            (left (minibar--render-group
+                   minibar-group-left))
+            (middle (minibar--render-group
+                     minibar-group-middle))
+            (right (minibar--render-group
+                    minibar-group-right)))
 
-      ;; HACK: Emacs doesn't show the last character on terminal, so
-      ;; decrease the width by one in that case.
-      (unless (display-graphic-p)
-        (setq width (1- width)))
-      (unless (zerop (length left))
-        (setq bar (concat left minibar-group-separator)))
-      (unless (zerop (length middle))
-        (setq bar (concat bar (make-list
-			       (max 0 (- (/ (- width (length middle)) 2)
-					 (length bar)))
-                               ? )
-                          middle minibar-group-separator)))
-      (unless (zerop (length right))
-        (setq bar (concat bar (make-list
-			       (max 0 (- width (length right)
-					 (length bar)))
-                               ? )
-                          right)))
-      (replace-regexp-in-string
-       "%" "%%" (format (format "%%-%i.%is" width width) bar)))))
+        ;; HACK: Emacs doesn't show the last character on terminal, so
+        ;; decrease the width by one in that case.
+        (unless (display-graphic-p)
+          (setq width (1- width)))
+        (unless (zerop (length left))
+          (setq bar (concat left minibar-group-separator)))
+        (unless (zerop (length middle))
+          (setq bar (concat bar (make-list
+			         (max 0 (- (/ (- width (length middle)) 2)
+					   (length bar)))
+                                 ? )
+                            middle minibar-group-separator)))
+        (unless (zerop (length right))
+          (setq bar (concat bar (make-list
+			         (max 0 (- width (length right)
+					   (length bar)))
+                                 ? )
+                            right)))
+        (let ((text (format (format "%%-%i.%is" width width) bar)))
+          (add-face-text-property 0 width 'minibar-face t text)
+          (with-current-buffer (get-buffer-create " *Minibuf-0*")
+            (erase-buffer)
+            (insert text)))))))
 
 ;;;###autoload
 (define-minor-mode minibar-mode
@@ -130,12 +138,17 @@ string to display, or nil in case there is to show."
   :global t
   (if minibar-mode
       (progn
-        (setq minibuffer-line-format '(:eval (minibar-render)))
-        (minibuffer-line-mode +1))
-    (setq minibuffer-line-format
-          (ignore-errors
-            (eval (car (get 'minibuffer-line-format 'standard-value)))))
-    (minibuffer-line-mode -1)))
+        (minibar--update)
+        (when minibar--update-timer
+          (cancel-timer minibar--update-timer))
+        (setq minibar--update-timer
+              (run-with-timer t minibar-update-interval
+                              #'minibar--update)))
+    (when minibar--update-timer
+      (cancel-timer minibar--update-timer)
+      (setq minibar--update-timer nil))
+    (with-current-buffer (get-buffer-create " *Minibuf-0*")
+      (erase-buffer))))
 
 (defcustom minibar-module-time-format "%a %b %d %H:%M"
   "Time format for time module."
@@ -187,7 +200,7 @@ it was recorded.")
                                          (alist-get ?m status))
                                         60)))
             (concat
-             (if (and (< load 30)
+             (if (and (< load minibar-module-battery-low-threshold)
                       (not charging))
                  (propertize (format "%i%%" load) 'face
                              'minibar-module-battery-low-face)
@@ -233,7 +246,7 @@ The value is a cons cell whose car is the temperature and cdr is the time
 when it was recorded.")
 
 (defun minibar-module-temperature ()
-  "Module for showing CPU temperature"
+  "Module for showing CPU temperature."
   (when (or (not minibar--module-temperature-cache)
             (>= (float-time
                  (time-since (cdr minibar--module-temperature-cache)))
@@ -395,7 +408,7 @@ it was recorded.")
          0.0))))
 
 (defun minibar-module-cpu ()
-  "Module for showing CPU loads."
+  "Module for showing CPU load."
   (when (or (not minibar--module-cpu-cache)
             (>= (float-time
                  (time-since (cdr minibar--module-cpu-cache)))

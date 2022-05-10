@@ -32,8 +32,3 @@ First install =minibuffer-line= package from ELPA.  Then download
 Enable ~minibar-mode~ to display Minibar.  You may want to put
 ~(minibar-mode +1)~ in your init file.  There are several user options you
 can customize, use ~customize-group~ to see and possibly customize them.
-
-Minibar renders the status bar and it uses =minibuffer-line= package to
-show the line in echo area.  To change the refresh rate, customize the
-~minibuffer-line-refresh-interval~ variable.  To change the face, customize
-the ~minibuffer-line~ face.
