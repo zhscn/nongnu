@@ -1454,6 +1454,7 @@ For use after e.g. deleting a toot."
 (defun mastodon-tl--more ()
   "Append older toots to timeline, asynchronously."
   (interactive)
+  (message "Loading older toots...")
   (mastodon-tl--more-json-async (mastodon-tl--get-endpoint) (mastodon-tl--oldest-id)
                                 'mastodon-tl--more* (current-buffer) (point)))
 
@@ -1466,7 +1467,8 @@ When done, places point at POINT-BEFORE."
       (let ((inhibit-read-only t))
         (goto-char (point-max))
         (funcall (mastodon-tl--get-update-function) json)
-        (goto-char point-before)))))
+        (goto-char point-before)
+        (message "Loading older toots... done.")))))
 
 (defun mastodon-tl--find-property-range (property start-point &optional search-backwards)
   "Return `nil` if no such range is found.
