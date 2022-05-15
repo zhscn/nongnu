@@ -111,7 +111,8 @@ When called non-interactively, indent text between BEG and END."
 ;;;###autoload
 (define-minor-mode gnu-indent-mode
   "Indent buffer automatically with GNU Indent."
-  nil nil nil
+  :lighter " GNU-Indent"
+  :keymap nil
   (if gnu-indent-mode
       (add-hook 'before-save-hook #'gnu-indent-buffer nil t)
     (remove-hook 'before-save-hook #'gnu-indent-buffer t)))
