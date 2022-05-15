@@ -5,7 +5,7 @@
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Created: 2022-04-11
 ;; Version: 0.1
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: lisp extensions frames
 ;; Homepage: https://codeberg.org/akib/emacs-popon
 
@@ -95,7 +95,8 @@ shouldn't contain newlines.  Example:
         (when (< (+ y i) (length framebuffer))
           (erase-buffer)
           (insert (car (nth (+ y i) framebuffer)))
-          (let ((end (point-max)))
+          (goto-char (point-min))
+          (let ((end (line-end-position)))
             (move-to-column x t)
             (let ((mark (point)))
               (move-to-column (+ x width) t)
@@ -111,7 +112,7 @@ shouldn't contain newlines.  Example:
 ;;;###autoload
 (defun poponp (object)
   "Return t if OBJECT is a popon."
-  (and (proper-list-p object)
+  (and (listp object)
        (eq (car-safe object) 'popon)))
 
 ;;;###autoload
@@ -266,18 +267,15 @@ when LINE-BEGINNINGS was calculated.")
             (unless line
               (setq line i)
               (setf (alist-get mark point-to-line) line))
-            (let ((str (buffer-substring mark (point)))
-                  (disp-str (string-trim-right
-                             (buffer-substring mark (point))
-                             "\n")))
-              (push (list (string-trim-right disp-str) nil nil line mark
+            (let* ((str (buffer-substring mark (point)))
+                   (disp-str (string-trim-right str "\n")))
+              (push (list disp-str nil nil line mark
                           (if (equal str disp-str) (point) (1- (point))))
                     framebuffer)))
           (push (cons mark (point)) line-boundaries)
           (setq mark (point)))))
     (let ((line-beginnings nil))
-      (dolist (pair (sort (cl-delete-duplicates line-boundaries
-                                                :test #'equal)
+      (dolist (pair (sort (delete-dups line-boundaries)
                           #'car-less-than-car))
         (unless (eq (car line-beginnings) (car pair))
           (when (car line-beginnings)
@@ -377,8 +375,10 @@ When FORCE is non-nil, update all overlays."
                             (floor (window-screen-lines))))
                        (< (car (popon-position popon))
                           (- (window-width window)
-                             (with-selected-window window
-                               (line-number-display-width))))))
+                               (if (fboundp 'line-number-display-width)
+                                   (with-selected-window window
+                                     (line-number-display-width))
+                                 0)))))
                 (window-parameter window 'popon-list))))
           (when (or force
                     (not
