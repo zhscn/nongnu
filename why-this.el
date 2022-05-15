@@ -670,7 +670,7 @@ Actually the supported backend is returned."
 ;;;###autoload
 (define-minor-mode why-this-mode
   "Toggle showing why the current line was changed."
-  nil " Why-This" nil
+  :lighter " Why-This"
   :group 'why-this
   (setq why-this--backend (why-this-supported-p))
   (if (not why-this--backend)
