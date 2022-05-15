@@ -9,6 +9,22 @@ of point.
 
 GNU Indent supports C, C++ is also partially supported.
 
+* Installation
+
+* Package
+
+Add MELPA to ~package-archives~ then =M-x package-install RET gnu-indent=.
+
+* Quelpa
+
+Do =M-x quelpa RET gnu-indent=, Quelpa should get the recipe from MELPA and
+install it.
+
+* Straight.el
+
+Put this in ~(straight-use-package 'gnu-indent)~ your init file,
+Straight.el should get the recipe from MELPA and install it.
+
 * Commands
 
 - ~gnu-indent-mode~ :: Toggle auto reindentation on save.
