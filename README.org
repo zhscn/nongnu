@@ -11,16 +11,16 @@ GNU Indent supports C, C++ is also partially supported.
 
 * Installation
 
-* Package
+** Package
 
 Add MELPA to ~package-archives~ then =M-x package-install RET gnu-indent=.
 
-* Quelpa
+** Quelpa
 
 Do =M-x quelpa RET gnu-indent=, Quelpa should get the recipe from MELPA and
 install it.
 
-* Straight.el
+** Straight.el
 
 Put this in ~(straight-use-package 'gnu-indent)~ your init file,
 Straight.el should get the recipe from MELPA and install it.
