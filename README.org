@@ -20,7 +20,12 @@ Editing history with heat map.
 
 =M-x package-refresh-contents= and =M-x package-install RET why-this=.
 
-** straight.el
+** Quelpa
+
+Do =M-x quelpa RET why-this=, Quelpa should get the recipe from MELPA and
+install it.
+
+** Straight.el
 
 #+begin_src emacs-lisp
 (straight-use-package
