@@ -45,3 +45,19 @@ without arguments returning a list of live buffers.  That list of buffer
 will be used as the list of buffers of that workroom.  The default workroom
 is an example of this type of workroom, which uses ~buffer-list~ for the
 list of buffers.
+
+* Install
+
+** MELPA
+
+=M-x package-refresh-contents= and =M-x package-install RET workroom=.
+
+** Quelpa
+
+Do =M-x quelpa RET workroom=, Quelpa should get the recipe from MELPA and
+install it.
+
+** Straight.el
+
+Put this in ~(straight-use-package 'workroom)~ your init file, Straight.el
+should get the recipe from MELPA and install it.
