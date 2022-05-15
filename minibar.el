@@ -91,43 +91,41 @@ string to display, or nil in case there is to show."
   (mapconcat #'identity (delete nil (mapcar #'funcall modules))
              minibar-module-separator))
 
-;;;###autoload
 (defun minibar--update ()
   "Update Minibar."
-  (while-no-input
-    (with-temp-buffer
-      (let ((bar "")
-            (width (frame-width (window-frame (minibuffer-window))))
-            (left (minibar--render-group
-                   minibar-group-left))
-            (middle (minibar--render-group
-                     minibar-group-middle))
-            (right (minibar--render-group
-                    minibar-group-right)))
+  (with-temp-buffer
+    (let ((bar "")
+          (width (frame-width (window-frame (minibuffer-window))))
+          (left (minibar--render-group
+                 minibar-group-left))
+          (middle (minibar--render-group
+                   minibar-group-middle))
+          (right (minibar--render-group
+                  minibar-group-right)))
 
-        ;; HACK: Emacs doesn't show the last character on terminal, so
-        ;; decrease the width by one in that case.
-        (unless (display-graphic-p)
-          (setq width (1- width)))
-        (unless (zerop (length left))
-          (setq bar (concat left minibar-group-separator)))
-        (unless (zerop (length middle))
-          (setq bar (concat bar (make-list
-			         (max 0 (- (/ (- width (length middle)) 2)
-					   (length bar)))
-                                 ? )
-                            middle minibar-group-separator)))
-        (unless (zerop (length right))
-          (setq bar (concat bar (make-list
-			         (max 0 (- width (length right)
-					   (length bar)))
-                                 ? )
-                            right)))
-        (let ((text (format (format "%%-%i.%is" width width) bar)))
-          (add-face-text-property 0 width 'minibar-face t text)
-          (with-current-buffer (get-buffer-create " *Minibuf-0*")
-            (erase-buffer)
-            (insert text)))))))
+      ;; HACK: Emacs doesn't show the last character on terminal, so
+      ;; decrease the width by one in that case.
+      (unless (display-graphic-p)
+        (setq width (1- width)))
+      (unless (zerop (length left))
+        (setq bar (concat left minibar-group-separator)))
+      (unless (zerop (length middle))
+        (setq bar (concat bar (make-list
+			       (max 0 (- (/ (- width (length middle)) 2)
+					 (length bar)))
+                               ? )
+                          middle minibar-group-separator)))
+      (unless (zerop (length right))
+        (setq bar (concat bar (make-list
+			       (max 0 (- width (length right)
+					 (length bar)))
+                               ? )
+                          right)))
+      (let ((text (format (format "%%-%i.%is" width width) bar)))
+        (add-face-text-property 0 width 'minibar-face t text)
+        (with-current-buffer (get-buffer-create " *Minibuf-0*")
+          (erase-buffer)
+          (insert text))))))
 
 ;;;###autoload
 (define-minor-mode minibar-mode
