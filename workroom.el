@@ -904,8 +904,9 @@ The defined function is restricts user to the buffers of current workroom
 while selecting buffer by setting `read-buffer' function to
 `workroom-read-buffer-function', unless prefix arg is given."
   `(defun ,(intern (format "workroom-%S" fn)) ()
-     ,(format "Like `%S' but restricted to current workroom unless prefix \
-arg is given." fn)
+     ,(format "Like `%S' but restricted to current workroom.
+
+When prefix arg is given, don't restrict." fn)
      (declare (interactive-only ,(format "Use `%S' instead." fn)))
      (interactive)
      (if current-prefix-arg
@@ -919,7 +920,6 @@ arg is given." fn)
 ;;;###autoload
 (define-minor-mode workroom-mode
   "Toggle workroom mode."
-  :init-value nil
   :lighter (" WR["
             (:eval (propertize (workroom-name (workroom-current-room))
                                'face (if  (member
