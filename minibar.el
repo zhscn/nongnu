@@ -422,7 +422,13 @@ it was recorded.")
         (format
          "%3i%%%s"
          (minibar--module-cpu-calculate-load "cpu")
-         (if (display-graphic-p)
+         (if (and (char-displayable-p ?█)  ;; #x2588
+                  (char-displayable-p ?▇)  ;; #x2587
+                  (char-displayable-p ?▆)  ;; #x2586
+                  (char-displayable-p ?▅)  ;; #x2585
+                  (char-displayable-p ?▄)  ;; #x2584
+                  (char-displayable-p ?▃)  ;; #x2583
+                  (char-displayable-p ?▂)) ;; #x2582
              (concat
               " "
               (mapconcat
@@ -431,19 +437,19 @@ it was recorded.")
                               (format "cpu%i" i))))
                    (cond
                     ((>= load 87.5)
-                     (propertize (string #x2588) 'face 'bold))
+                     (propertize "█" 'face 'bold))
                     ((>= load 75)
-                     (propertize (string #x2587) 'face 'bold))
+                     (propertize "▇" 'face 'bold))
                     ((>= load 62.5)
-                     (propertize (string #x2586) 'face 'bold))
+                     (propertize "▆" 'face 'bold))
                     ((>= load 50)
-                     (propertize (string #x2585) 'face 'bold))
+                     (propertize "▅" 'face 'bold))
                     ((>= load 37.5)
-                     (propertize (string #x2584) 'face 'bold))
+                     (propertize "▄" 'face 'bold))
                     ((>= load 25)
-                     (propertize (string #x2583) 'face 'bold))
+                     (propertize "▃" 'face 'bold))
                     ((>= load 12.5)
-                     (propertize (string #x2582) 'face 'bold))
+                     (propertize "▂" 'face 'bold))
                     (t
                      (propertize
                       (string #x2581) 'face
