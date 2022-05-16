@@ -602,8 +602,7 @@ Actually the supported backend is returned."
                                          oldest-change)
                                       (- newest-change
                                          oldest-change))))
-                               :extend t)
-                 t))))
+                               :extend t)))))
         (with-current-buffer (get-buffer-create
                               (format "*why-this-annotate %s*"
                                       (buffer-name)))
