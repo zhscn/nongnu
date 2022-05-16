@@ -91,7 +91,7 @@ string to display, or nil in case there is to show."
   (mapconcat #'identity (delete nil (mapcar #'funcall modules))
              minibar-module-separator))
 
-(defun minibar--update ()
+(defun minibar-update ()
   "Update Minibar."
   (with-temp-buffer
     (let ((bar "")
@@ -136,12 +136,12 @@ string to display, or nil in case there is to show."
   :global t
   (if minibar-mode
       (progn
-        (minibar--update)
+        (minibar-update)
         (when minibar--update-timer
           (cancel-timer minibar--update-timer))
         (setq minibar--update-timer
               (run-with-timer t minibar-update-interval
-                              #'minibar--update)))
+                              #'minibar-update)))
     (when minibar--update-timer
       (cancel-timer minibar--update-timer)
       (setq minibar--update-timer nil))
