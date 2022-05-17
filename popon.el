@@ -88,7 +88,8 @@ shouldn't contain newlines.  Example:
     (\"found in the GNU General Public License\"               nil nil)
     (\"that comes with Emacs and also appears\"                nil nil)
     (\"in this manual(1).  See Copying.\"                      t nil))"
-  (let ((tab-size tab-width))
+  (let ((tab-size tab-width)
+        (inhibit-read-only t)) ; The text might have `read-only' property.
     (with-temp-buffer
       (setq-local tab-width tab-size) ; Preseve tab width.
       (dotimes (i (length lines))
@@ -331,6 +332,18 @@ when LINE-BEGINNINGS was calculated.")
                                 (cdr line)))
              (setq current-offset (car line)))
            (add-face-text-property 0 (length text) 'default 'append text)
+
+           ;; Pay attention to the `font-lock-face' property.
+           (when font-lock-mode
+             (let ((pos 0))
+               (while (< pos (length text))
+                 (let ((next-pos (or (next-single-property-change
+                                      pos 'font-lock-face text)
+                                     (length text))))
+                   (when-let ((face (get-pos-property pos 'font-lock-face
+                                                      text)))
+                     (add-face-text-property pos next-pos face nil text))
+                   (setq pos next-pos)))))
            text)))
       (when (and (cadr block)
                  (< (cdar block) (point-max))
