@@ -396,10 +396,15 @@ When FORCE is non-nil, update all overlays."
                             (floor (window-screen-lines))))
                        (< (car (popon-position popon))
                           (- (window-width window)
-                               (if (fboundp 'line-number-display-width)
-                                   (with-selected-window window
-                                     (line-number-display-width))
-                                 0)))))
+                             (if (fboundp 'line-number-display-width)
+                                 (with-selected-window window
+                                   (line-number-display-width))
+                               0)
+                             (if (display-graphic-p)
+                                 (let ((fringes (window-fringes window)))
+                                   (/ (+ (car fringes) (cadr fringes))
+                                      (frame-char-width frame)))
+                               (if (zerop (window-hscroll)) 0 1))))))
                 (window-parameter window 'popon-list))))
           (when (or force
                     (not
