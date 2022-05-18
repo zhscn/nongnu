@@ -175,7 +175,9 @@ that actually visit a file."
     (setq-default split-window-preferred-function #'visual-fill-column-split-window-sensibly))
 
   (cond
-   ((version<= emacs-version "27.1")
+   ((version< emacs-version "27.1")
+    (add-hook 'window-size-change-functions #'visual-fill-colum--adjust-frame))
+   ((version= emacs-version "27.1")
     (add-hook 'window-size-change-functions #'visual-fill-column--adjust-window 'append 'local)
     (setq visual-fill-column--use-split-window-parameter t))
 
@@ -191,7 +193,9 @@ that actually visit a file."
 
   (let ((window (get-buffer-window (current-buffer))))
     (cond
-     ((version<= emacs-version "27.1")
+     ((version< emacs-version "27.1")
+      (remove-hook 'window-size-change-functions #'visual-fill-column--adjust-frame))
+     ((version= emacs-version "27.1")
       (remove-hook 'window-size-change-functions #'visual-fill-column--adjust-window 'local))
 
      ((version< "27.1" emacs-version)
@@ -263,6 +267,14 @@ selected window has `visual-fill-column-mode' enabled."
       (if visual-fill-column--use-min-margins  ; This is non-nil if the window parameter `min-margins' is used (Emacs 27.2).
           (set-window-parameter window 'min-margins '(0 . 0)))
       (visual-fill-column--set-margins window))))
+
+(defun visual-fill-column--adjust-frame (frame)
+  "Adjust the windows on FRAME.
+This function is added to `window-size-change-functions' in older
+Emacsen (before 27.1), in which the functions in this hook are
+passed the frame as argument."
+  (dolist (window (window-list frame))
+    (visual-fill-column--adjust-window window)))
 
 (defun visual-fill-column-adjust (&optional _inc)
   "Adjust the window margins and fringes.
