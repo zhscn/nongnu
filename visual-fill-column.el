@@ -8,7 +8,7 @@
 ;; Maintainer: Joost Kremers <joostkremers@fastmail.fm>
 ;; URL: https://codeberg.org/joostkremers/visual-fill-column
 ;; Created: 2015
-;; Version: 2.4
+;; Version: 2.5
 ;; Package-Requires: ((emacs "25.1"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -175,13 +175,13 @@ that actually visit a file."
     (setq-default split-window-preferred-function #'visual-fill-column-split-window-sensibly))
 
   (cond
-   ((version< emacs-version "27.1")
+   ((< emacs-major-version 27)
     (add-hook 'window-size-change-functions #'visual-fill-column--adjust-frame))
-   ((version= emacs-version "27.1")
+   ((= emacs-major-version 27)
     (add-hook 'window-size-change-functions #'visual-fill-column--adjust-window 'append 'local)
     (setq visual-fill-column--use-split-window-parameter t))
 
-   ((version< "27.1" emacs-version)
+   ((< 27 emacs-major-version)
     (add-hook 'window-state-change-functions #'visual-fill-column--adjust-window 'append 'local)
     (setq visual-fill-column--use-min-margins t)))
 
@@ -193,12 +193,12 @@ that actually visit a file."
 
   (let ((window (get-buffer-window (current-buffer))))
     (cond
-     ((version< emacs-version "27.1")
+     ((< emacs-major-version 27)
       (remove-hook 'window-size-change-functions #'visual-fill-column--adjust-frame))
-     ((version= emacs-version "27.1")
+     ((= emacs-major-version 27)
       (remove-hook 'window-size-change-functions #'visual-fill-column--adjust-window 'local))
 
-     ((version< "27.1" emacs-version)
+     ((< 27 emacs-majon-version)
       (remove-hook 'window-state-change-functions #'visual-fill-column--adjust-window 'local)
       (set-window-margins window 0 0)
       (set-window-parameter window 'min-margins nil)))
