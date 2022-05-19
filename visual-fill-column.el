@@ -176,7 +176,7 @@ that actually visit a file."
 
   (cond
    ((version< emacs-version "27.1")
-    (add-hook 'window-size-change-functions #'visual-fill-colum--adjust-frame))
+    (add-hook 'window-size-change-functions #'visual-fill-column--adjust-frame))
    ((version= emacs-version "27.1")
     (add-hook 'window-size-change-functions #'visual-fill-column--adjust-window 'append 'local)
     (setq visual-fill-column--use-split-window-parameter t))
