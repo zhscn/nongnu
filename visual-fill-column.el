@@ -198,7 +198,7 @@ that actually visit a file."
      ((= emacs-major-version 27)
       (remove-hook 'window-size-change-functions #'visual-fill-column--adjust-window 'local))
 
-     ((< 27 emacs-majon-version)
+     ((< 27 emacs-major-version)
       (remove-hook 'window-state-change-functions #'visual-fill-column--adjust-window 'local)
       (set-window-margins window 0 0)
       (set-window-parameter window 'min-margins nil)))
