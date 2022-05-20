@@ -188,22 +188,22 @@ it was recorded.")
                       (funcall battery-status-function))))
         (when (and (listp status)
                    (assq ?p status)
-                   (assq ?L status)
+                   (assq ?B status)
                    (assq ?h status)
                    (assq ?m status))
           (let ((load (floor (string-to-number (alist-get ?p status))))
-                (charging (string= (alist-get ?L status) "AC"))
+                (state (alist-get ?b status))
                 (remaining-hours (string-to-number (alist-get ?h status)))
                 (remaining-minutes (mod (string-to-number
                                          (alist-get ?m status))
                                         60)))
             (concat
              (if (and (< load minibar-module-battery-low-threshold)
-                      (not charging))
+                      (not (zerop (length state))))
                  (propertize (format "%i%%" load) 'face
                              'minibar-module-battery-low-face)
                (format "%s%%" load))
-             (if charging "+" " ")
+             (format "%1s" state)
              (if (eq load 100)
                  "(full)"
                (format "(%02i:%02i)" remaining-hours
@@ -422,13 +422,13 @@ it was recorded.")
         (format
          "%3i%%%s"
          (minibar--module-cpu-calculate-load "cpu")
-         (if (and (char-displayable-p ?█)  ;; #x2588
-                  (char-displayable-p ?▇)  ;; #x2587
-                  (char-displayable-p ?▆)  ;; #x2586
-                  (char-displayable-p ?▅)  ;; #x2585
-                  (char-displayable-p ?▄)  ;; #x2584
-                  (char-displayable-p ?▃)  ;; #x2583
-                  (char-displayable-p ?▂)) ;; #x2582
+         (if (or (char-displayable-p ?█)  ; #x2588
+                 (char-displayable-p ?▇)  ; #x2587
+                 (char-displayable-p ?▆)  ; #x2586
+                 (char-displayable-p ?▅)  ; #x2585
+                 (char-displayable-p ?▄)  ; #x2584
+                 (char-displayable-p ?▃)  ; #x2583
+                 (char-displayable-p ?▂)) ; #x2582
              (concat
               " "
               (mapconcat
@@ -436,23 +436,33 @@ it was recorded.")
                  (let ((load (minibar--module-cpu-calculate-load
                               (format "cpu%i" i))))
                    (cond
-                    ((>= load 87.5)
+                    ((and (char-displayable-p ?█)  ; #x2588
+                          (>= load 87.5))
                      (propertize "█" 'face 'bold))
-                    ((>= load 75)
+                    ((and (char-displayable-p ?▇)  ; #x2587
+                          (>= load 75))
                      (propertize "▇" 'face 'bold))
-                    ((>= load 62.5)
+                    ((and (char-displayable-p ?▆)  ; #x2586
+                          (>= load 62.5))
                      (propertize "▆" 'face 'bold))
-                    ((>= load 50)
+                    ((and (char-displayable-p ?▅)  ; #x2585
+                          (>= load 50))
                      (propertize "▅" 'face 'bold))
-                    ((>= load 37.5)
+                    ((and (char-displayable-p ?▄)  ; #x2584
+                          (>= load 37.5))
                      (propertize "▄" 'face 'bold))
-                    ((>= load 25)
+                    ((and (char-displayable-p ?▃)  ; #x2583
+                          (>= load 25))
                      (propertize "▃" 'face 'bold))
-                    ((>= load 12.5)
+                    ((and (char-displayable-p ?▂)  ; #x2582
+                          (>= load 12.5))
                      (propertize "▂" 'face 'bold))
-                    (t
+                    (t ; (char-displayable-p ? ) => t
                      (propertize
-                      (string #x2581) 'face
+                      (if (char-displayable-p ?▁)  ;  #x2581
+                          "▁"
+                        " ")
+                      'face
                       '(:weight bold :inherit font-lock-comment-face))))))
                (number-sequence 0 (1- minibar--module-cpu-count)) ""))
            "")))
