@@ -166,8 +166,8 @@ killed.
 Check if BUFFER is a Flymake diagnostics buffer of a killed buffer."
   (and (eq (buffer-local-value 'major-mode buffer)
            'flymake-diagnostics-buffer-mode)
-       (buffer-live-p (buffer-local-value
-                       'flymake--diagnostics-buffer-source buffer))))
+       (not (buffer-live-p (buffer-local-value
+                            'flymake--diagnostics-buffer-source buffer)))))
 
 (defun gc-buffers-flymake-diagnostics-all (buffer)
   "Kill all Flymake diagnostics buffers.
