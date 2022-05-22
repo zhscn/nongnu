@@ -139,7 +139,7 @@ string to display, or nil in case there is to show."
         (when minibar--update-timer
           (cancel-timer minibar--update-timer))
         (setq minibar--update-timer
-              (run-with-idle-timer t minibar-update-interval
+              (run-with-idle-timer minibar-update-interval t
                                    #'minibar-update)))
     (when minibar--update-timer
       (cancel-timer minibar--update-timer)
