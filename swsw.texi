@@ -87,7 +87,7 @@ and easy to hack on.
 @node Installation
 @chapter Installation
 
-swsw can be installed from GNU ELPA: (not available yet)
+swsw can be installed from NonGNU ELPA:
 
 @table @asis
 @item @kbd{M-x package-install RET swsw RET}
