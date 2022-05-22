@@ -41,7 +41,7 @@
 ;;   :config
 ;;   (swsw-mode))
 ;;
-;; When swsw-mode is active:
+;; When `swsw-mode' is active:
 ;; - A window ID is displayed using a mode line lighter or a display
 ;;   function (see `swsw-display-function').
 ;; - Window IDs are assigned to all windows on all frames except for
@@ -62,7 +62,7 @@
 ;;
 ;; M-x customize-group RET swsw RET
 ;;
-;; For more information see the (swsw) info node.
+;; For more information see info node `(swsw)'.
 
 ;;; Code:
 
