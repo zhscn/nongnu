@@ -136,12 +136,11 @@ string to display, or nil in case there is to show."
   :global t
   (if minibar-mode
       (progn
-        (minibar-update)
         (when minibar--update-timer
           (cancel-timer minibar--update-timer))
         (setq minibar--update-timer
-              (run-with-timer t minibar-update-interval
-                              #'minibar-update)))
+              (run-with-idle-timer t minibar-update-interval
+                                   #'minibar-update)))
     (when minibar--update-timer
       (cancel-timer minibar--update-timer)
       (setq minibar--update-timer nil))
