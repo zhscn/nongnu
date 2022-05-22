@@ -64,7 +64,7 @@
 ;;
 ;; M-x customize-group RET vcomplete RET
 ;;
-;; For more information see the (Vcomplete) info node.
+;; For more information see info node `(Vcomplete)'.
 
 ;;; Code:
 
