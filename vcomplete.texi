@@ -87,7 +87,7 @@ normal buffers.
 @node Installation
 @chapter Installation
 
-Vcomplete can be installed from GNU ELPA: (not available yet)
+Vcomplete can be installed from NonGNU ELPA:
 
 @table @asis
 @item @kbd{M-x package-install RET vcomplete RET}
