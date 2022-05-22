@@ -1,6 +1,6 @@
 ;;; vcomplete-embark.el --- Embark integration for Vcomplete -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021 Daniel Semyonov
+;; Copyright (C) 2021-2022 Daniel Semyonov
 
 ;; Author: Daniel Semyonov <daniel@dsemy.com>
 ;; Maintainer: Daniel Semyonov <daniel@dsemy.com>
