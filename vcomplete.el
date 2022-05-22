@@ -3,7 +3,7 @@
 ;; Copyright (C) 2021-2022 Daniel Semyonov
 
 ;; Author: Daniel Semyonov <daniel@dsemy.com>
-;; Maintainer: Daniel Semyonov <daniel@dsemy.com>
+;; Maintainer: Vcomplete Mailing List <~dsemy/vcomplete-devel@lists.sr.ht>
 ;; Version: 1.2
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: convenience, matching
