@@ -4,7 +4,7 @@
 
 ;; Author: Daniel Semyonov <daniel@dsemy.com>
 ;; Maintainer: Vcomplete Mailing List <~dsemy/vcomplete-devel@lists.sr.ht>
-;; Version: 1.2
+;; Version: 1.2.1
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: convenience, matching
 ;; URL: https://dsemy.com/projects/vcomplete
@@ -58,7 +58,7 @@
 ;;
 ;; More commands can be added through `vcomplete-command-map':
 ;;
-;; (define-key vcomplete-command-map [?\C-a] #'my-command)
+;; (define-key vcomplete-command-map (kbd "C-a") #'my-command)
 ;;
 ;; You can customize `vcomplete-mode' using the customize interface:
 ;;
