@@ -4,7 +4,7 @@
 
 ;; Author: Daniel Semyonov <daniel@dsemy.com>
 ;; Maintainer: swsw Mailing List <~dsemy/swsw-devel@lists.sr.ht>
-;; Version: 2.1
+;; Version: 2.1.1
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: convenience
 ;; URL: https://dsemy.com/projects/swsw

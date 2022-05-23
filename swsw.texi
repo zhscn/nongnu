@@ -28,7 +28,7 @@ General Public License for more details.
 
 @titlepage
 @title swsw User Manual
-@subtitle for version 2.1.
+@subtitle for version 2.1.1.
 @author Daniel Semyonov
 @page
 @vskip 0pt plus 1filll
@@ -45,7 +45,7 @@ swsw provides a minor mode for switching to windows using IDs assigned
 to them automatically.
 
 @noindent
-This manual is for swsw version 2.1.
+This manual is for swsw version 2.1.1.
 
 @insertcopying
 @end ifnottex
