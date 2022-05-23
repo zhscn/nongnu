@@ -1,11 +1,14 @@
 Vcomplete NEWS -- history of user-visible changes. -*- mode: outline -*-
 See the end of the file for an explanation of the versioning scheme.
 
-* 1.3
+* 1.2.1
 
 ** Remove Embark integration.
 Embark integration broke in a non-trivial way, so it has been removed
-due to a lack of interest in maintaining it.
+due to a lack of interest in maintaining it.  This integration is
+compatible with older versions of Embark (and will continue to
+be compatible with Vcomplete for versions before 2.0) so it is
+possible to install it manually from a previous release.
 
 * 1.2
 
