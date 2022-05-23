@@ -3,4 +3,5 @@
 dir
 *.tar
 vcomplete
+vcomplete-pkg.el
 *~
