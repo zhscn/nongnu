@@ -3,3 +3,4 @@ LICENSE
 Makefile
 README
 config.mk
+vcomplete-embark.el

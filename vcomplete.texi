@@ -178,14 +178,6 @@ You may use these commands without enabling @code{vcomplete-mode}
 @xref{Completion commands} for information regarding defining new
 commands.
 
-Vcomplete also comes with (optional) support for Embark. To enable it:
-
-@cindex vcomplete-embark-mode
-@table @asis
-@item @kbd{M-x vcomplete-embark-mode RET}
-You can also add @code{(vcomplete-embark-mode)} to your init file, instead.
-@end table
-
 @node Customization
 @chapter Customization
 
