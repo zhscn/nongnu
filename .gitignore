@@ -3,4 +3,5 @@
 dir
 *.tar
 swsw
+swsw-pkg.el
 *~
