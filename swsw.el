@@ -56,7 +56,7 @@
 ;;
 ;; More commands can be added through `swsw-command-map':
 ;;
-;; (define-key swsw-command-map [?a] #'my-command)
+;; (define-key swsw-command-map (kbd "a") #'my-command)
 ;;
 ;; You can customize `swsw-mode' using the customize interface:
 ;;
