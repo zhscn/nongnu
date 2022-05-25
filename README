@@ -5,7 +5,7 @@ for switching to windows using IDs assigned to them automatically.
 
 Installation:
 
-From ELPA: (not available yet)
+From NonGNU ELPA:
 
 M-x package-install RET swsw RET
 
