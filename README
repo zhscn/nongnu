@@ -5,7 +5,7 @@ list buffer, providing visual aids for selecting completions.
 
 Installation:
 
-From ELPA: (not available yet)
+From NonGNU ELPA:
 
 M-x package-install RET vcomplete RET
 
