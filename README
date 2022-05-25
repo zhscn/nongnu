@@ -54,7 +54,7 @@ M-RET (C-M-m) chooses the completion at point.
 
 More commands can be added through ‘vcomplete-command-map’:
 
-(define-key vcomplete-command-map [?\C-a] #'my-command)
+(define-key vcomplete-command-map (kbd "C-a") #'my-command)
 
 You can customize ‘vcomplete-mode’ using the customize interface:
 
