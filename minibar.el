@@ -76,7 +76,7 @@ string to display, or nil in case there is to show."
   :type '(repeat function))
 
 (defcustom minibar-update-interval 1
-  "Update Minibar every this many seconds."
+  "Update Minibar every this many seconds while idling."
   :type 'number)
 
 (defface minibar-face
@@ -127,6 +127,18 @@ string to display, or nil in case there is to show."
           (erase-buffer)
           (insert text))))))
 
+(defun minibar--cancel-timer ()
+  "Cancel timer for updating Minibar."
+  (when minibar--update-timer
+    (cancel-timer minibar--update-timer)
+    (setq minibar--update-timer nil)))
+
+(defun minibar--start-timer ()
+  "Start timer to update Minibar."
+  (minibar--cancel-timer)
+  (setq minibar--update-timer
+        (run-with-timer t minibar-update-interval #'minibar-update)))
+
 ;;;###autoload
 (define-minor-mode minibar-mode
   "Toggle Minibar display."
@@ -136,11 +148,10 @@ string to display, or nil in case there is to show."
   :global t
   (if minibar-mode
       (progn
-        (when minibar--update-timer
-          (cancel-timer minibar--update-timer))
-        (setq minibar--update-timer
-              (run-with-idle-timer minibar-update-interval t
-                                   #'minibar-update)))
+        (add-hook 'pre-command-hook #'minibar--cancel-timer)
+        (add-hook 'post-command-hook #'minibar--start-timer))
+    (remove-hook 'pre-command-hook #'minibar--cancel-timer)
+    (remove-hook 'post-command-hook #'minibar--start-timer)
     (when minibar--update-timer
       (cancel-timer minibar--update-timer)
       (setq minibar--update-timer nil))
