@@ -409,29 +409,28 @@ When FORCE is non-nil, update all overlays."
           (when (or force
                     (not
                      (and
-                      (null (cl-set-difference
-                             popons
-                             (window-parameter window
-                                               'popon-visible-popons)))
-                      (null (cl-set-difference
-                             (window-parameter window
-                                               'popon-visible-popons)
-                             popons))
                       (eq (window-parameter window 'popon-window-start)
                           (window-start window))
                       (eq (window-parameter window 'popon-window-hscroll)
                           (window-hscroll window))
                       (eq (window-parameter window 'popon-window-buffer)
-                          (window-buffer window)))))
+                          (window-buffer window))
+                      (null (cl-set-exclusive-or
+                             popons
+                             (window-parameter window
+                                               'popon-visible-popons))))))
             (while (window-parameter window 'popon-overlays)
-              (delete-overlay (pop (window-parameter window
-                                                     'popon-overlays))))
+              (delete-overlay
+               (pop (window-parameter window 'popon-overlays))))
             (with-selected-window window
               (let* ((framebuffer (popon--make-framebuffer)))
                 (dolist (popon popons)
                   (popon--render popon framebuffer (window-hscroll)))
                 (popon--make-overlays framebuffer)))
-            (set-window-parameter window 'popon-visible-popons popons)
+            (set-window-parameter window 'popon-visible-popons
+                                  ;; We must copy it to prevent changes
+                                  ;; from any side-effect of anything else.
+                                  (copy-sequence popons))
             (set-window-parameter window 'popon-window-start
                                   (window-start window))
             (set-window-parameter window 'popon-window-hscroll
