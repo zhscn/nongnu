@@ -52,11 +52,13 @@
   :link '(url-link "https://codeberg.org/akib/emacs-gc-buffers")
   :prefix "gc-buffers-")
 
-(defcustom gc-buffers-functions (list #'gc-buffers-elisp-flymake
-                                      #'gc-buffers-elisp-flymake-stderr
-                                      #'gc-buffers-inactive-minibuffer
-                                      #'gc-buffers-flymake-diagnostics
-                                      #'gc-buffers-helpful-all)
+(defcustom gc-buffers-functions
+  (list #'gc-buffers-elisp-flymake
+        #'gc-buffers-elisp-flymake-stderr
+        #'gc-buffers-inactive-minibuffer
+        #'gc-buffers-flymake-diagnostics
+        #'gc-buffers-helpful-all
+        #'gc-buffers-async-shell-command-buffer)
   "Functions to find garbage buffers.
 
 Each function is called with the buffer to test, and if any of the
@@ -72,7 +74,8 @@ example, never put `always' here, that would delete all buffers."
                  #'gc-buffers-inactive-minibuffer
                  #'gc-buffers-flymake-diagnostics
                  #'gc-buffers-flymake-diagnostics-all
-                 #'gc-buffers-helpful-all))
+                 #'gc-buffers-helpful-all
+                 #'gc-buffers-async-shell-command-buffer))
 
 (defcustom gc-buffers-ignore-functions (list #'gc-buffers-ignore-visible)
   "Functions to ignore buffers while killing.
@@ -184,6 +187,19 @@ Check if the major mode of BUFFER is `flymake-diagnostics-buffer-mode'."
 
 Check if the major mode of BUFFER is `helpful-mode'."
   (eq (buffer-local-value 'major-mode buffer) 'helpful-mode))
+
+(defun gc-buffers-async-shell-command-buffer (buffer)
+  "Kill garbage *Async Shell Command* buffer.
+
+A buffer is considered garbage if it has no process.
+
+Check if the name of BUFFER begins with *Async Shell Command* and it has
+no process."
+  (and (string-match-p (rx string-start "*Async Shell Command*"
+                           (zero-or-more not-newline)
+                           string-end)
+                       (buffer-name buffer))
+       (not (get-buffer-process buffer))))
 
 
 ;;;; Ignore functions:
