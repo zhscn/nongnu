@@ -24,8 +24,7 @@ helpful when you use Emacs as your X window manager using EXWM.
 
 ** Manual
 
-First install =minibuffer-line= package from ELPA.  Then download
-=minibar.el= and put it in your ~load-path~.
+Download =minibar.el= and put it in your ~load-path~.
 
 * Usage
 
