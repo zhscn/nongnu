@@ -4,7 +4,7 @@
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Created: 2022-04-11
-;; Version: 0.2
+;; Version: 0.3
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: lisp extensions frames
 ;; Homepage: https://codeberg.org/akib/emacs-popon
@@ -226,7 +226,7 @@ larger priority values are rendered first."
     (signal 'wrong-type-argument `(windowp ,window)))
   (when (and buffer (not (bufferp buffer)))
     (signal 'wrong-type-argument `(bufferp ,buffer)))
-  (when (not (numberp priority))
+  (when (and priority (not (numberp priority)))
     (signal 'wrong-type-argument `(numberp ,priority)))
   (let* ((lines (split-string (if (consp text) (car text) text) "\n"))
          (popon `(popon :live t
@@ -428,7 +428,7 @@ When FORCE is non-nil, update all overlays."
                                    (/ (+ (car fringes) (cadr fringes))
                                       (frame-char-width frame)))
                                (if (zerop (window-hscroll)) 0 1))))))
-                (window-parameter window 'popon-list))))
+                (copy-sequence (window-parameter window 'popon-list)))))
           (when (or force
                     (not
                      (and
@@ -445,16 +445,15 @@ When FORCE is non-nil, update all overlays."
             (while (window-parameter window 'popon-overlays)
               (delete-overlay
                (pop (window-parameter window 'popon-overlays))))
-            (setq popons (nreverse (sort popons #'popon-priority)))
+            (setq popons (sort popons (lambda (a b)
+                                        (< (popon-priority a)
+                                           (popon-priority b)))))
             (with-selected-window window
               (let* ((framebuffer (popon--make-framebuffer)))
                 (dolist (popon popons)
                   (popon--render popon framebuffer (window-hscroll)))
                 (popon--make-overlays framebuffer)))
-            (set-window-parameter window 'popon-visible-popons
-                                  ;; We must copy it to prevent changes
-                                  ;; from any side-effect of anything else.
-                                  (copy-sequence popons))
+            (set-window-parameter window 'popon-visible-popons popons)
             (set-window-parameter window 'popon-window-start
                                   (window-start window))
             (set-window-parameter window 'popon-window-hscroll
