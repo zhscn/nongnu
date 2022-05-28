@@ -178,6 +178,14 @@ Return nil if popon POPON is killed."
   (when (popon-live-p popon)
     (plist-get (cdr popon) :buffer)))
 
+;;;###autaload
+(defun popon-priority (popon)
+  "Return the priority of popon POPON.
+
+Return nil if popon POPON is killed."
+  (when (popon-live-p popon)
+    (plist-get (cdr popon) :priority)))
+
 ;;;###autoload
 (defun popon-text (popon)
   "Return the text popon POPON is displaying.
@@ -195,7 +203,7 @@ POPON may be a killed popon.  Return nil if POPON isn't a popon at all."
                        (plist-get (cdr popon) :width)))
 
 ;;;###autoload
-(defun popon-create (text pos &optional window buffer)
+(defun popon-create (text pos &optional window buffer priority)
   "Create a popon showing TEXT at POS of WINDOW.
 
 Display popon only if WINDOW is displaying BUFFER.
@@ -205,7 +213,21 @@ should be a string or a cons cell of form (STR . WIDTH).  When TEXT is a
 string, each line of it should be of same length (i.e `string-width' should
 return the same length for every line).  When TEXT is a cons cell, STR is
 used as the text to display and each line of it should be of visual length
-width."
+width.
+
+PRIORITY is a number (integer or float) between -100 and 100.  Popons with
+larger priority values are rendered first."
+  (when (not (or (consp text) (stringp text)))
+    (signal 'wrong-type-argument
+            `((or (consp text) (stringp text)) ,text)))
+  (when (not (consp pos))
+    (signal 'wrong-type-argument `(consp ,pos)))
+  (when (and window (not (windowp window)))
+    (signal 'wrong-type-argument `(windowp ,window)))
+  (when (and buffer (not (bufferp buffer)))
+    (signal 'wrong-type-argument `(bufferp ,buffer)))
+  (when (not (numberp priority))
+    (signal 'wrong-type-argument `(numberp ,priority)))
   (let* ((lines (split-string (if (consp text) (car text) text) "\n"))
          (popon `(popon :live t
                         :x ,(car pos)
@@ -215,6 +237,7 @@ width."
                                     (string-width (car lines)))
                         :window ,(or window (selected-window))
                         :buffer ,buffer
+                        :priority ,(or priority 0)
                         :plist nil)))
     (push popon (window-parameter window 'popon-list))
     (popon-update)
@@ -422,6 +445,7 @@ When FORCE is non-nil, update all overlays."
             (while (window-parameter window 'popon-overlays)
               (delete-overlay
                (pop (window-parameter window 'popon-overlays))))
+            (setq popons (nreverse (sort popons #'popon-priority)))
             (with-selected-window window
               (let* ((framebuffer (popon--make-framebuffer)))
                 (dolist (popon popons)
