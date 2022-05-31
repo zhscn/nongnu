@@ -319,8 +319,8 @@ when LINE-BEGINNINGS was calculated.")
       (while lines-left
         (let ((line (pop lines-left)))
           (when (nth 1 line)
-            (when (and (< (nth 4 line) (point-max))
-                       (/= (char-before (nth 4 line)) ?\n))
+            (when (and (< (point-min) (nth 4 line) (point-max))
+                       (not (eq (char-before (nth 4 line)) ?\n)))
               (let ((ov (make-overlay (nth 4 line) (nth 4 line))))
                 (push ov (window-parameter nil 'popon-overlays))
                 (overlay-put ov 'window (selected-window))
@@ -445,14 +445,15 @@ When FORCE is non-nil, update all overlays."
             (while (window-parameter window 'popon-overlays)
               (delete-overlay
                (pop (window-parameter window 'popon-overlays))))
-            (setq popons (sort popons (lambda (a b)
-                                        (< (popon-priority a)
-                                           (popon-priority b)))))
-            (with-selected-window window
-              (let* ((framebuffer (popon--make-framebuffer)))
-                (dolist (popon popons)
-                  (popon--render popon framebuffer (window-hscroll)))
-                (popon--make-overlays framebuffer)))
+            (when popons
+              (setq popons (sort popons (lambda (a b)
+                                          (< (popon-priority a)
+                                             (popon-priority b)))))
+              (with-selected-window window
+                (let* ((framebuffer (popon--make-framebuffer)))
+                  (dolist (popon popons)
+                    (popon--render popon framebuffer (window-hscroll)))
+                  (popon--make-overlays framebuffer))))
             (set-window-parameter window 'popon-visible-popons popons)
             (set-window-parameter window 'popon-window-start
                                   (window-start window))
