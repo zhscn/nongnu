@@ -687,6 +687,7 @@ Actually the supported backend is returned."
 (define-derived-mode why-this-annotate-mode
   special-mode "Why-This-Annotate"
   "Major mode for output buffer of `why-this-annotate'."
+  (setq-local truncate-lines t)
   (add-to-invisibility-spec '(ellipsis . t)))
 
 (defun why-this-git (cmd &rest args)
