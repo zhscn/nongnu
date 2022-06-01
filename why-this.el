@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(require 'subr-x)
+(eval-when-compile (require 'subr-x))
 (require 'timezone)
 (require 'color)
 
@@ -64,8 +64,7 @@ first argument is the command (which is a symbol):
     `:time'     Time of change (local).
     `:desc'     Single line description of change."
   :type '(repeat (function :tag "Backend"))
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-message-time-format #'why-this-relative-time
   "Format string or formatter function for time in message.
@@ -76,8 +75,7 @@ When the value is a function it should take the time as the first argument
 and return a string."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-message-format "     %A, %t * %i"
   "Format string or formatter function for formatting message.
@@ -98,16 +96,14 @@ the plists returned by backends when `line-data' command is given (see
 is the backend which generated the plist."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-minimum-column 55
   "Minimum column for displaying message.
 
 Messages are never shown before this column.  Set to 0 to disable."
   :type 'integer
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-echo-time-format #'why-this-relative-time
   "Format string or formatter function for time in echo area message.
@@ -118,8 +114,7 @@ When the value is a function it should take the time as the first argument
 and return a string."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-echo-format "%A, %t * %i"
   "Format string or formatter function for formatting echo area message.
@@ -128,14 +123,12 @@ See `why-this-message-format' for possible values.
 `why-this-echo-time-format' is used to format time."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-enable-tooltip t
   "Non-nil means show tooltip."
   :type 'boolean
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-nick-name-alist nil
   "Alist of nick name of authors.
@@ -145,20 +138,17 @@ nick name and AUTHORS is list of the name of authors corresponding to
 NICK."
   :type '(repeat (cons (string :tag "Nick")
                        (repeat (string :tag "Author"))))
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-idle-delay 0.5
   "Idle delay for rendering in seconds."
   :type 'number
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-annotate-width 70
   "Width of annotation done by `why-this-annotate'."
   :type 'integer
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-annotate-author-format "%s"
   "Format string or formatter function for author name in annotation.
@@ -169,8 +159,7 @@ When the value is a function it should take the author name as the first
 argument and return a string to show."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-annotate-description-format "%s"
   "Format string or formatter function for description in annotation.
@@ -181,8 +170,7 @@ When the value is a function it should take the description of change as
 the first argument and return a string to show."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-annotate-time-format #'why-this-relative-time
   "Format string or formatter function for time in annotation.
@@ -193,65 +181,64 @@ When the value is a function it should take the time as the first argument
 and return a string."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-annotate-author-length 20
   "Length of author name in annotation done by `why-this-annotate'."
   :type 'integer
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
-(defcustom why-this-annotate-separator " \x2502 "
+(defcustom why-this-annotate-separator
+  (if (char-displayable-p #x2502) " \x2502 " " | ")
   "Separator between annotation and file contents."
   :type 'string
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "2.0"))
 
 (defcustom why-this-annotate-enable-heat-map t
   "Non-nil means show heat map in annotation buffer."
   :type 'boolean
-  :package-version '(why-this "1.0")
-  :group 'why-this)
-
-(defcustom why-this-annotate-heat-map-cold "#dde3f4"
-  "Cold background for heat map in annotation buffer."
-  :type 'color
-  :package-version '(why-this "1.0")
-  :group 'why-this)
-
-(defcustom why-this-annotate-heat-map-warm "#f0e0d4"
-  "Warm background for heat map in annotation buffer."
-  :type 'color
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-calculate-background t
   "Non-nil means calculate background for message."
   :type 'boolean
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defface why-this-face
-  '((t :foreground "#82b0ec"
-       :italic t))
+  '((t :foreground "cyan" :italic t))
   "Face for Why-This data."
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "2.0"))
+
+(defface why-this-annotate-heat-map-cold
+  '((t :background "blue"))
+  "Cold background for heat map in annotation buffer.
+
+Only the background attribute is used, others are ignored."
+  :package-version '(why-this "2.0"))
+
+(defface why-this-annotate-heat-map-warm
+  '((t :background "red"))
+  "Warm background for heat map in annotation buffer.
+
+Only the background attribute is used, others are ignored."
+  :package-version '(why-this "2.0"))
+
+(defface why-this-annotate-underline
+  '((t :underline "black" :extend t))
+  "Face to use to underline in annotation buffer."
+  :package-version '(why-this "2.0"))
 
 (defcustom why-this-git-program "git"
   "Path to or name of `git' executable."
   :type '(choice (string :tag "Name")
                  (file :tag "Path"))
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defcustom why-this-hg-program "hg"
   "Path to or name of `hg' executable."
   :type '(choice (string :tag "Name")
                  (file :tag "Path"))
-  :package-version '(why-this "1.0")
-  :group 'why-this)
+  :package-version '(why-this "1.0"))
 
 (defvar why-this--git-author-name nil
   "Name of author.")
@@ -590,19 +577,22 @@ Actually the supported backend is returned."
               (lambda ()
                 (add-face-text-property
                  last-change-begin (point)
-                 `(:background ,(why-this--mix-colors
-                                 why-this-annotate-heat-map-cold
-                                 why-this-annotate-heat-map-warm
-                                 (if (equal newest-change
-                                            oldest-change)
-                                     0.5
-                                   (/ (- (float-time
-                                          (plist-get (nth (1- i) data)
-                                                     :time))
-                                         oldest-change)
-                                      (- newest-change
-                                         oldest-change))))
-                               :extend t)))))
+                 `(:background
+                   ,(why-this--mix-colors
+                     (face-background 'why-this-annotate-heat-map-cold nil
+                                      t)
+                     (face-background 'why-this-annotate-heat-map-warm nil
+                                      t)
+                     (if (equal newest-change
+                                oldest-change)
+                         0.5
+                       (/ (- (float-time
+                              (plist-get (nth (1- i) data)
+                                         :time))
+                             oldest-change)
+                          (- newest-change
+                             oldest-change))))
+                   :extend t)))))
         (with-current-buffer (get-buffer-create
                               (format "*why-this-annotate %s*"
                                       (buffer-name)))
@@ -623,10 +613,9 @@ Actually the supported backend is returned."
                  (nth i contents)
                  "\n")
               (unless (zerop i)
-                (add-face-text-property (line-beginning-position 0) (point)
-                                        `(:underline
-                                          ,(face-foreground 'default)
-                                          :extend t))
+                (add-face-text-property
+                 (line-beginning-position 0) (point)
+                 'why-this-annotate-underline)
                 (when why-this-annotate-enable-heat-map
                   (funcall add-heat)))
               (setq last-change-begin (point))
@@ -670,7 +659,6 @@ Actually the supported backend is returned."
 (define-minor-mode why-this-mode
   "Toggle showing why the current line was changed."
   :lighter " Why-This"
-  :group 'why-this
   (setq why-this--backend (why-this-supported-p))
   (if (not why-this--backend)
       (setq why-this-mode nil)
@@ -694,13 +682,11 @@ Actually the supported backend is returned."
 
 ;;;###autoload
 (define-globalized-minor-mode global-why-this-mode why-this-mode
-  why-this-mode
-  :group 'why-this)
+  why-this-mode)
 
 (define-derived-mode why-this-annotate-mode
   special-mode "Why-This-Annotate"
   "Major mode for output buffer of `why-this-annotate'."
-  :group 'why-this
   (add-to-invisibility-spec '(ellipsis . t)))
 
 (defun why-this-git (cmd &rest args)

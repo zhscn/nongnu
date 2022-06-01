@@ -65,15 +65,15 @@ Put the following in your init file to change the colors:
 - For dark theme users:
 
   #+begin_src emacs-lisp
-  (setq why-this-annotate-heat-map-cold "#203448")
-  (setq why-this-annotate-heat-map-warm "#382f27")
+  (set-face-background 'why-this-annotate-heat-map-cold "#203448")
+  (set-face-background 'why-this-annotate-heat-map-warm "#382f27")
   #+end_src
 
 - For light theme users:
 
   #+begin_src emacs-lisp
-  (setq why-this-annotate-heat-map-cold "#dde3f4")
-  (setq why-this-annotate-heat-map-warm "#f0e0d4")
+  (set-face-background 'why-this-annotate-heat-map-cold "#dde3f4")
+  (set-face-background 'why-this-annotate-heat-map-warm "#f0e0d4")
   #+end_src
 
 To disable the heat map:
