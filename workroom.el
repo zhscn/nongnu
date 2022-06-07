@@ -148,6 +148,21 @@ can't restored."
 The value is a mode line terminal like `mode-line-format'."
   :type 'sexp)
 
+(defvar workroom-switch-hook nil
+  "Normal hook run after switching room or view.")
+
+(defvar workroom-kill-room-hook nil
+  "Normal hook run after killing a room.")
+
+(defvar workroom-kill-view-hook nil
+  "Normal hook run after killing a view.")
+
+(defvar workroom-rename-room-hook nil
+  "Normal hook run after renaming a room.")
+
+(defvar workroom-rename-view-hook nil
+  "Normal hook run after renaming a view.")
+
 (cl-defstruct workroom
   "Structure for workroom."
   (name nil
@@ -663,7 +678,8 @@ name if it doesn't exist, then switch to the workroom."
       (setf (workroom-view-window-config (workroom-current-view))
             (workroom--save-window-config)))
     (set-frame-parameter nil 'workroom-current-view view)
-    (workroom--load-window-config (workroom-view-window-config view))))
+    (workroom--load-window-config (workroom-view-window-config view))
+    (run-hooks 'workroom-switch-hook)))
 
 (defun workroom-kill (room)
   "Kill workroom ROOM."
@@ -684,7 +700,8 @@ name if it doesn't exist, then switch to the workroom."
     (when (eq room (workroom-current-room))
       (workroom-switch (workroom-get-default)
                        workroom--default-view-of-default-room))
-    (setq workroom--rooms (delete room workroom--rooms))))
+    (setq workroom--rooms (delete room workroom--rooms))
+    (run-hooks 'workroom-kill-room-hook)))
 
 (defun workroom-kill-view (room view)
   "Kill view VIEW of workroom ROOM."
@@ -713,7 +730,8 @@ name if it doesn't exist, then switch to the workroom."
     (when (eq view (workroom-current-view))
       (workroom-switch room (car (workroom-views room)))
       (pop (workroom-previous-view-list room)))
-    (setf (workroom-views room) (delete view (workroom-views room)))))
+    (setf (workroom-views room) (delete view (workroom-views room)))
+    (run-hooks 'workroom-kill-view-hook)))
 
 (defun workroom-rename (room new-name)
   "Rename workroom ROOM to NEW-NAME."
@@ -731,7 +749,8 @@ name if it doesn't exist, then switch to the workroom."
                                 "Rename workroom `%s' to: " room))))))
   (when (stringp room)
     (setq room (workroom-get room)))
-  (setf (workroom-name room) new-name))
+  (setf (workroom-name room) new-name)
+  (run-hooks 'workroom-rename-room-hook))
 
 (defun workroom-rename-view (room view new-name)
   "Rename view VIEW of workroom ROOM to NEW-NAME."
@@ -759,7 +778,8 @@ name if it doesn't exist, then switch to the workroom."
     (setq room (workroom-get room)))
   (when (stringp view)
     (setq view (workroom-view-get room view)))
-  (setf (workroom-view-name view) new-name))
+  (setf (workroom-view-name view) new-name)
+  (run-hooks 'workroom-rename-view-hook))
 
 (defun workroom-clone (room name)
   "Create a new workroom named NAME which is a clone of workroom ROOM."
