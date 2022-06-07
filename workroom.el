@@ -96,6 +96,10 @@ This workroom contains all live buffers of the current Emacs session.
 Workroom-Mode must be reenabled for changes to take effect."
   :type 'string)
 
+(defcustom workroom-default-view-name "main"
+  "Name of the default view."
+  :type 'string)
+
 (defcustom workroom-buffer-handler-alist
   '((bookmark :encoder workroom--encode-buffer-bookmark
               :decoder workroom--decode-buffer-bookmark))
@@ -207,7 +211,6 @@ The value is a mode line terminal like `mode-line-format'."
     keymap)
   "Keymap containing all useful commands of Workroom.")
 
-(define-prefix-command 'workroom-command-map)
 (define-key workroom-mode-map workroom-command-map-prefix
   workroom-command-map)
 
@@ -634,11 +637,16 @@ name if it doesn't exist, then switch to the workroom."
                   (when-let ((prev (car (workroom-previous-room-list))))
                     (workroom-name prev))))
               (workroom-current-room))))
-       (list room (workroom--read-view-to-switch
-                   room "Switch to view"
-                   (when-let ((prev
-                               (car (workroom-previous-view-list room))))
-                     (workroom-view-name prev)))))))
+       (when (and (stringp room) (string-empty-p room))
+         (setq room workroom-default-room-name))
+       (let ((view
+              (workroom--read-view-to-switch
+               room "Switch to view"
+               (when-let ((prev (car (workroom-previous-view-list room))))
+                 (workroom-view-name prev)))))
+         (when (and (stringp view) (string-empty-p view))
+           (setq view workroom-default-view-name))
+         (list room view)))))
   (when (stringp room)
     (setq room (workroom-get-create room)))
   (when (stringp view)
@@ -953,7 +961,7 @@ When prefix arg is given, don't restrict." fn)
                    :name workroom-default-room-name
                    :views (list
                            (make-workroom-view
-                            :name workroom--default-view-of-default-room
+                            :name workroom-default-view-name
                             :window-config
                             (workroom--save-window-config)))
                    :buffers #'buffer-list
