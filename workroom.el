@@ -123,6 +123,27 @@ can't restored."
                             (const :decoder)
                             (function :tag "Decoder function"))))
 
+(defcustom workroom-mode-lighter
+  '(" WR["
+    (:eval (propertize (workroom-name (workroom-current-room)) 'face
+                       (if (member (current-buffer)
+                                   (workroom-buffer-list
+                                    (workroom-current-room)))
+                           'compilation-info
+                         'warning)))
+    "]["
+    (:eval (propertize (workroom-view-name (workroom-current-view)) 'face
+                       (if (member (current-buffer)
+                                   (workroom-buffer-list
+                                    (workroom-current-room)))
+                           'compilation-info
+                         'warning)))
+    "]")
+  "Format of Workroom mode lighter.
+
+The value is a mode line terminal like `mode-line-format'."
+  :type 'sexp)
+
 (cl-defstruct workroom
   "Structure for workroom."
   (name nil
@@ -134,8 +155,6 @@ can't restored."
   (buffers nil
            :documentation "Buffers of the workroom.")
   (default-p nil
-
-    ;; Why this line is indented like this?
     :documentation "Whether the workroom is the default one.")
   (previous-view-list nil
                       :documentation "List of previously selected views.")
@@ -920,22 +939,7 @@ When prefix arg is given, don't restrict." fn)
 ;;;###autoload
 (define-minor-mode workroom-mode
   "Toggle workroom mode."
-  :lighter (" WR["
-            (:eval (propertize (workroom-name (workroom-current-room))
-                               'face (if  (member
-                                           (current-buffer)
-                                           (workroom-buffer-list
-                                            (workroom-current-room)))
-                                         'compilation-info
-                                       'warning)))
-            "]["
-            (:eval (propertize (workroom-view-name (workroom-current-view))
-                               'face (if (member
-                                          (current-buffer)
-                                          (workroom-buffer-list
-                                           (workroom-current-room)))
-                                         'compilation-info
-                                       'warning))) "]")
+  :lighter (:eval workroom-mode-lighter) ; TODO: Why the `:eval' is needed?
   :global t
   (substitute-key-definition 'workroom-command-map nil workroom-mode-map)
   (define-key workroom-mode-map workroom-command-map-prefix
