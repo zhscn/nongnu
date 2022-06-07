@@ -646,19 +646,30 @@ name if it doesn't exist, then switch to the workroom."
    (workroom--require-mode-enable
      (let ((room
             (if current-prefix-arg
-                (workroom-get-create
-                 (workroom--read-to-switch
-                  "Switch to workroom"
-                  (when-let ((prev (car (workroom-previous-room-list))))
-                    (workroom-name prev))))
+                (workroom--read-to-switch
+                 "Switch to workroom"
+                 (cond
+                  ((and (eq (car (workroom-previous-room-list))
+                            (workroom-current-room))
+                        (< 1 (length (workroom-previous-room-list))))
+                   (workroom-name (cadr (workroom-previous-room-list))))
+                  ((car (workroom-previous-room-list))
+                   (workroom-name (car (workroom-previous-room-list))))))
               (workroom-current-room))))
        (when (and (stringp room) (string-empty-p room))
          (setq room workroom-default-room-name))
+       (setq room (workroom-get-create room))
        (let ((view
               (workroom--read-view-to-switch
                room "Switch to view"
-               (when-let ((prev (car (workroom-previous-view-list room))))
-                 (workroom-view-name prev)))))
+               (cond
+                ((and (eq (car (workroom-previous-view-list room))
+                          (workroom-current-view))
+                      (< 1 (length (workroom-previous-view-list room))))
+                 (workroom-name (cadr (workroom-previous-view-list room))))
+                ((car (workroom-previous-view-list room))
+                 (workroom-name
+                  (car (workroom-previous-view-list room))))))))
          (when (and (stringp view) (string-empty-p view))
            (setq view workroom-default-view-name))
          (list room view)))))
