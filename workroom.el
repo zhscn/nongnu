@@ -163,6 +163,9 @@ The value is a mode line terminal like `mode-line-format'."
 (defvar workroom-rename-view-hook nil
   "Normal hook run after renaming a view.")
 
+(defvar workroom-buffer-list-change-hook nil
+  "Normal hook run after changing the buffer list of a workroom.")
+
 (cl-defstruct workroom
   "Structure for workroom."
   (name nil
@@ -916,7 +919,8 @@ If ROOM is the default workroom, do nothing."
   (if (functionp (workroom-buffers room))
       (error "Cannot add buffer to workroom with dynamic buffer list")
     (unless (member buffer (workroom-buffers room))
-      (push buffer (workroom-buffers room)))))
+      (push buffer (workroom-buffers room))
+      (run-hooks 'workroom-buffer-list-change-hook))))
 
 (defun workroom-remove-buffer (buffer &optional room)
   "Remove BUFFER from workroom ROOM.
@@ -949,11 +953,12 @@ If ROOM is the default workroom, kill buffer."
   (if (not (functionp (workroom-buffers room)))
       (when (member buffer (workroom-buffers room))
         (setf (workroom-buffers room)
-              (delete buffer (workroom-buffers room))))
-    (if (workroom-default-p room)
-        (kill-buffer buffer)
+              (delete buffer (workroom-buffers room)))
+        (run-hooks 'workroom-buffer-list-change-hook))
+    (unless (workroom-default-p room)
       (error (concat "Cannot remove buffer from non-default workroom with"
-                     " dynamic buffer list")))))
+                     " dynamic buffer list")))
+    (kill-buffer buffer)))
 
 (defmacro workroom-define-replacement (fn)
   "Define `workroom-FN' as replacement for FN.
