@@ -93,15 +93,15 @@ string to display, or nil in case there is to show."
 
 (defun minibar-update ()
   "Update Minibar."
-  (with-temp-buffer
-    (let ((bar "")
-          (width (frame-width (window-frame (minibuffer-window))))
-          (left (minibar--render-group
-                 minibar-group-left))
-          (middle (minibar--render-group
-                   minibar-group-middle))
-          (right (minibar--render-group
-                  minibar-group-right)))
+  (let ((bar "")
+        (width (frame-width (window-frame (minibuffer-window))))
+        (left (minibar--render-group
+               minibar-group-left))
+        (middle (minibar--render-group
+                 minibar-group-middle))
+        (right (minibar--render-group
+                minibar-group-right)))
+    (with-temp-buffer
 
       ;; HACK: Emacs doesn't show the last character on terminal, so
       ;; decrease the width by one in that case.
@@ -111,14 +111,14 @@ string to display, or nil in case there is to show."
         (setq bar (concat left minibar-group-separator)))
       (unless (zerop (length middle))
         (setq bar (concat bar (make-list
-			       (max 0 (- (/ (- width (length middle)) 2)
-					 (length bar)))
+                               (max 0 (- (/ (- width (length middle)) 2)
+                                         (length bar)))
                                ? )
                           middle minibar-group-separator)))
       (unless (zerop (length right))
         (setq bar (concat bar (make-list
-			       (max 0 (- width (length right)
-					 (length bar)))
+                               (max 0 (- width (length right)
+                                         (length bar)))
                                ? )
                           right)))
       (let ((text (format (format "%%-%i.%is" width width) bar)))
