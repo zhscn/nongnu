@@ -167,9 +167,10 @@ If set to `lighter', use a mode line lighter."
 
 (defun swsw--get-id-length ()
   "Return the current length of a window ID."
-  (let ((windows (length (window-list-1 nil nil (swsw--get-scope)))))
-    (if (= windows 1) 1 ; If there is only one window, return 1.
-      (ceiling (log windows (length swsw-id-chars))))))
+  (if-let ((windows (length (window-list-1 nil nil (swsw--get-scope))))
+           ((= windows 1)))
+      1 ; If there is only one window, return 1.
+    (ceiling (log windows (length swsw-id-chars)))))
 
 (defun swsw--next-id ()
   "Get the next available ID."
@@ -315,9 +316,9 @@ This command is intended to be used only when swsw mode is enabled."
   (declare (modes swsw-mode)
            (interactive-only t))
   (interactive)
-  (let ((window (active-minibuffer-window)))
-    (if window (select-window window)
-      (user-error "There is no active minibuffer window"))))
+  (if-let ((window (active-minibuffer-window)))
+      (select-window window)
+    (user-error "There is no active minibuffer window")))
 
 (defun swsw-delete ()
   "Start window deletion.
@@ -329,11 +330,11 @@ This command is intended to be used only when swsw mode is enabled."
   (declare (modes swsw-mode)
            (interactive-only t))
   (interactive)
-  (if (< swsw-window-count 3)
-      (let ((window (next-window nil nil (swsw--get-scope))))
-        (unless (or (minibufferp (window-buffer window))
-                    (minibufferp)) ; Selected window.
-          (delete-window window)))
+  (if-let (((< swsw-window-count 3))
+           (window (next-window nil nil (swsw--get-scope))))
+      (unless (or (minibufferp (window-buffer window))
+                  (minibufferp)) ; Selected window.
+        (delete-window window))
     (swsw-run-window-command #'delete-window)))
 
 (defvar swsw-command-map
