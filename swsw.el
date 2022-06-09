@@ -248,8 +248,8 @@ is t."
                 `((swsw-mode
                    (:eval (swsw-format-id (selected-window))))
                   ,@(assq-delete-all
-                     `swsw-mode
-                     (default-value `mode-line-format))))
+                     'swsw-mode
+                     (default-value 'mode-line-format))))
   (force-mode-line-update t))
 
 (defun swsw--mode-line-hide ()
