@@ -147,7 +147,7 @@ lighters of the form @code{<ID>} (by default, @xref{ID display}), and
 Start window selection (@code{swsw-select}).
 This command sets a transient key map in which several window
 commands are defined, and window IDs can be selected.
-Selecting a window ID (by pressing @kbd{ID}) will switch to window
+Selecting a window ID (by pressing @kbd{ID}) will switch to the window
 corresponding to it.
 
 @kindex C-x o m
@@ -266,22 +266,28 @@ Window commands are used to perform operations on specific
 windows. They are normal commands (interactive functions) which are
 bound to a key sequence in @code{swsw-command-map}. @code{swsw-select},
 @code{swsw-select-minibuffer} and @code{swsw-delete} are implemented
-as window commands.
+as window commands (@xref{Usage}).
+
+@code{swsw-run-window-command} should be used to define window
+commands which require window selection. Alternatively, ensure
+@code{swsw-before-command-hook} runs before window selection, and
+@code{swsw-after-command-hook} runs after window selection. Window
+selection can be started by setting @code{swsw--id-map} as a transient
+map.
 
 @defvar swsw--id-map
 Key map which is populated automatically with elements corresponding
 to all tracked windows. The ID of each window is converted to a vector
-(to serve as a key sequence), and corresponds to a command which calls
+(to serve as a key sequence), and is bound to a command which calls
 @code{last-command} with the window corresponding to the ID as the
-sole argument. There should be no reason to modify it directly;
-it is reset whenever window configuration is updated.
+sole argument. There should be no reason to modify it directly; it is
+reset whenever window configuration is updated.
 @end defvar
 
 @defvar swsw-command-map
-Key map which holds (usually) single character key bindings to window
-commands. This key map is set as the parent of @code{swsw--id-map}, so
-all window commands are available when it's active, unless they are
-shadowed by a window ID.
+Key map which holds bindings to window commands. This key map is set
+as the parent of @code{swsw--id-map}, so all window commands are
+available when it's active (unless they are shadowed by a window ID).
 @end defvar
 
 @defvar swsw-window-count
