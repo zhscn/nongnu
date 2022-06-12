@@ -43,7 +43,7 @@
 ;;
 ;; When `swsw-mode' is active:
 ;; - A window ID is displayed using a mode line lighter or a display
-;;   function (see `swsw-display-function').
+;;   function (see `swsw-display-lighter').
 ;; - Window IDs are assigned to all windows on all frames except for
 ;;   the minibuffer(by default, see `swsw-scope').
 ;; - `other-window' (C-x o by default) is remapped to `swsw-select'.
@@ -69,7 +69,7 @@
 (eval-when-compile
   (require 'subr-x)
   ;; Avoid byte-compilation warnings.
-  (defvar swsw-display-function)
+  (defvar swsw-mode)
   (defvar swsw-command-map))
 
 ;;;; Customization:
@@ -117,29 +117,50 @@ This list should contain at least two characters."
   :risky t
   :package-version '(swsw . 1.1))
 
-(defcustom swsw-display-function 'lighter
+(define-obsolete-variable-alias 'swsw-display-function
+  'swsw-display-lighter "version 2.2 of the swsw package"
   "Function used to display the ID of each window.
 This function is called with t as the sole argument when enabling
 simple window switching, and with nil as the sole argument when
-disabling it.
-If set to `lighter', use a mode line lighter."
+disabling it.")
+
+(defcustom swsw-display-lighter t
+  "Whether or not to show a mode line lighter.
+- non-nil means show a mode line lighter.
+- nil means don't show a mode line lighter.
+
+This variable can also accept a \"display function\" for backwards
+compatibility (see `swsw-display-function')."
   :link '(info-link "(swsw)Display functions")
-  :type '(radio (const :tag "Mode line lighter" lighter)
-                (function :tag "Display function"))
+  :type '(radio (const :tag "Show mode line lighter" t)
+                (const :tag "Don't show mode line lighter" nil))
   :set (lambda (sym fun)
-         (unless (or (not (boundp 'swsw-display-function))
-                     (eq swsw-display-function 'lighter))
-           (funcall swsw-display-function nil))
+         (and (boundp sym) (functionp (symbol-value sym))
+              (funcall (symbol-value sym) nil))
          (set-default sym fun)
-         (unless (eq fun 'lighter)
+         (when (functionp fun)
            (funcall fun t)))
+  :package-version '(swsw . 2.2))
+
+(defcustom swsw-mode-hook nil
+  "Hook run when enabling or disabling simple window switching."
+  :link '(info-link "(swsw)Display functions")
+  :type 'hook
+  :options '(swsw-mode-line-display-function
+             swsw-mode-line-conditional-display-function)
+  :initialize #'custom-initialize-changed
+  :set (lambda (sym hooks)
+         (let ((swsw-mode nil))
+           (when (boundp sym) (run-hooks sym)))
+         (set-default sym hooks)
+         (run-hooks sym))
   :package-version '(swsw . 1.0))
 
 (defcustom swsw-id-format " <%s>"
   "Format string for the window ID.
 %s is replaced with a representation of the window's ID."
   :link '(info-link "(swsw)Customization")
-  :type '(string)
+  :type 'string
   :package-version '(swsw . 1.0))
 
 ;;;; Window tracking:
@@ -260,23 +281,33 @@ is t."
                  (default-value 'mode-line-format)))
   (force-mode-line-update t))
 
-(defun swsw-mode-line-display-function (switch)
+(defun swsw-mode-line-display-function (&optional switch)
   "Display window IDs at the beginning of the mode line.
-Display window IDs if SWITCH isn't nil, and disable displaying window
-IDs if SWITCH is nil.
-This display function respects `swsw-id-format'."
-  (if switch
+Display window IDs if simple window switching is enabled, and disable
+displaying window IDs if simple window switching is disabled.
+This display function respects `swsw-id-format'.
+
+It is also possible to supply a single SWITCH argument, which will
+override the value of `swsw-mode';
+this form is obsolete since version 2.2 of the swsw package."
+  (declare (advertised-calling-convention nil "2.2"))
+  (if (or switch swsw-mode)
       (swsw--mode-line-display)
     (swsw--mode-line-hide)))
 
-(defun swsw-mode-line-conditional-display-function (switch)
-  "Display window IDs at the beginning of the mode line, conditionally.
+(defun swsw-mode-line-conditional-display-function (&optional switch)
+  "Display window IDs at the beginning of the mode line during window selection.
 Add a hook to `swsw-before-command-hook' which displays window IDs on
 the mode line and add a hook to `swsw-after-command-hook' which hides
-window IDs from the mode line if SWITCH isn't nil, and remove those
-hooks if SWITCH is nil.
-This display function respects `swsw-id-format'."
-  (if switch
+window IDs from the mode line if simple window switching is enabled,
+and remove those hooks if simple window switching is disabled.
+This display function respects `swsw-id-format'.
+
+It is also possible to supply a single SWITCH argument, which will
+override the value of `swsw-mode';
+this form is obsolete since version 2.2 of the swsw package."
+  (declare (advertised-calling-convention nil "2.2"))
+  (if (or switch swsw-mode)
       (progn
         (add-hook 'swsw-before-command-hook #'swsw--mode-line-display)
         (add-hook 'swsw-after-command-hook #'swsw--mode-line-hide))
@@ -362,23 +393,24 @@ selection:
 
 \\{swsw-command-map}"
   :global t
-  :lighter (:eval (when (eq swsw-display-function 'lighter)
-                    (swsw-format-id (selected-window))))
+  :lighter (:eval (and swsw-display-lighter
+                       (not (functionp swsw-display-lighter))
+                       (swsw-format-id (selected-window))))
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map [remap other-window] #'swsw-select)
             map)
   (if swsw-mode
       (progn
         (swsw--update)
-        (unless (eq swsw-display-function 'lighter)
-          (funcall swsw-display-function t))
+        (when (functionp swsw-display-lighter)
+          (funcall swsw-display-lighter))
         (add-hook 'window-configuration-change-hook #'swsw--update)
         (add-hook 'window-state-change-hook #'swsw--update-frame)
         (add-hook 'minibuffer-setup-hook #'swsw--update)
         (add-hook 'minibuffer-exit-hook #'swsw--update)
         (add-hook 'after-delete-frame-functions #'swsw--update))
-    (unless (eq swsw-display-function 'lighter)
-      (funcall swsw-display-function nil))
+    (when (functionp swsw-display-lighter)
+      (funcall swsw-display-lighter))
     (remove-hook 'window-configuration-change-hook #'swsw--update)
     (remove-hook 'window-state-change-hook #'swsw--update-frame)
     (remove-hook 'minibuffer-setup-hook #'swsw--update)

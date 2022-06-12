@@ -70,7 +70,7 @@ Installation
 
 Customization
 
-* Display functions::
+* ID display::
 * Window commands::
 
 @end detailmenu
@@ -137,9 +137,8 @@ You can also add @code{(swsw-mode)} to your init file, instead.
 @end table
 
 When @code{swsw-mode} is enabled, window IDs are shown as mode line
-lighters of the form @code{<ID>} (by default, @xref{Display
-functions}), and @code{other-window} (@kbd{C-x o}) is remapped to
-@code{swsw-select}.
+lighters of the form @code{<ID>} (by default, @xref{ID display}), and
+@code{other-window} (@kbd{C-x o}) is remapped to @code{swsw-select}.
 
 @table @asis
 @kindex C-x o
@@ -185,13 +184,6 @@ list of characters. By default, the home row (@code{a s d f g h j k l}) is
 used.
 @end defopt
 
-@defopt swsw-id-format
-Format string for the window ID. Display functions may use this format string
-to display the ID, but they can also ignore it. The string should contain a
-single occurrence of @code{%s}, which will be replaced by the ID. By default,
-@code{" <%s>"} is used.
-@end defopt
-
 @defopt swsw-scope
 Scope of all window operations. Used to determine on which frames to track
 windows. A value of @code{t} means consider all windows on all frames, @code{0}
@@ -202,36 +194,69 @@ frames, @code{visible} means consider all windows on all visible frames and
 @end defopt
 
 @menu
-* Display functions::
+* ID display::
 * Window commands::
 @end menu
 
-@node Display functions
-@section Display functions
+@node ID display
+@section ID display
 
-Display functions are used to display the ID of each window.
+By default, the ID of each tracked window is displayed as a mode line
+lighter. This behavior is controlled by @code{swsw-display-lighter}.
 
-@defopt swsw-display-function
-Function used to display the ID of each window. This should either be a
-display function or @code{lighter}, in which case window IDs are shown using
-a mode line lighter. A display function must accept a single argument, which
-will be @code{t} when enabling @code{swsw-mode} and @code{nil} when disabling
-it. By default, @code{lighter} is used.
+Additionally, (custom) display functions could be added to
+@code{swsw-mode-hook}. These functions should enable ID display when
+@code{swsw-mode} is enabled, and disable ID display when
+@code{swsw-mode} is disabled. They can also make use of
+@code{swsw-before-command-hook} and @code{swsw-after-command-hook}
+(see @xref{Window commands}) to display IDs only during window
+selection. See the description and implementation of
+@code{swsw-mode-line-display-function} and
+@code{swsw-mode-line-conditional-display-function} below for more
+information.
+
+It is also possible to use @code{swsw-format-id} directly in
+e.g. @code{mode-line-format}, although details vary depending on how
+and where you want the IDs to be displayed.
+
+@defopt swsw-display-lighter
+Whether or not to show a mode line lighter. A non-nil value means show
+a mode line lighter.  A value of @code{nil} means don't show a mode
+line lighter. By default, @code{t} is used.
 @end defopt
 
-@defun swsw-mode-line-display-function switch
-Reference implementation of a ``simple'' display function. Display window IDs on
-the mode line if SWITCH isn't @code{nil}, and hide window IDs from the mode
-line if SWITCH is @code{nil}. This display function respects
+@defopt swsw-mode-hook
+Hook run when enabling or disabling @code{swsw-mode}.
+@end defopt
+
+@defopt swsw-id-format
+Format string for the window ID. Used in the mode line lighter, and
+display functions may use this format string to display the ID, but
+they can also ignore it. The string should contain a single occurrence
+of @code{%s}, which will be replaced by the ID. By default,
+@code{" <%s>"} is used.
+@end defopt
+
+@defun swsw-format-id window
+Format an ID string (according to @code{swsw-id-format}) for WINDOW.
+@end defun
+
+@defun swsw-mode-line-display-function
+Reference implementation of a ``simple'' display function, displaying
+window IDs at the beginning of the mode line. Display window IDs if
+@code{swsw-mode} is enabled, and disable displaying window IDs if
+@code{swsw-mode} is disabled.  This display function respects
 @code{swsw-id-format}.
 @end defun
 
-@defun swsw-mode-line-conditional-display-function switch
-Reference implementation of a conditional display function. Add a hook to
-@code{swsw-before-command-hook} which displays window IDs on the mode line and
-add a hook to @code{swsw-after-command-hook} which hides window IDs from the
-mode line if SWITCH isn't @code{nil}, and remove those hooks if SWITCH is
-@code{nil}. This display function respects @code{swsw-id-format}.
+@defun swsw-mode-line-conditional-display-function
+Reference implementation of a conditional display function, displaying
+window IDs at the beginning of the mode line during window selection.
+Add a hook to @code{swsw-before-command-hook} which displays window
+IDs on the mode line and add a hook to @code{swsw-after-command-hook}
+which hides window IDs from the mode line if @code{swsw-mode} is
+enabled, and remove those hooks if @code{swsw-mode} is disabled.  This
+display function respects @code{swsw-id-format}.
 @end defun
 
 @node Window commands
@@ -260,8 +285,9 @@ shadowed by a window ID.
 @end defvar
 
 @defvar swsw-window-count
-Amount of windows currently tracked. This variable can be used to
-conditionally run window commands.
+Amount of windows currently tracked, including the minibuffer (if it's
+active). It can be used to change the behavior of window commands (or
+display functions, @xref{ID display}).
 @end defvar
 
 @defun swsw-run-window-command fun

@@ -1,6 +1,18 @@
 swsw NEWS -- history of user-visible changes. -*- mode: outline -*-
 See the end of the file for an explanation of the versioning scheme.
 
+* 2.2
+
+** Rework display functions
+'swsw-display-function' has been replaced by 'swsw-display-lighter',
+display functions should now be added to 'swsw-mode-hook'.
+For backwards compatibility, 'swsw-display-function' has been
+redefined as an obsolete alias of 'swsw-display-lighter', and
+'swsw-mode' currently still handles cases where the value of
+'swsw-display-lighter' is a function.
+Display functions which are added to 'swsw-mode-hook' shouldn't
+require any arguments.
+
 * 2.1.1
 
 ** Indicate that some functions are for interactive use only.

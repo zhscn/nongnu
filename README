@@ -39,7 +39,7 @@ For use-package users:
 
 When swsw-mode is active:
 - A window ID is displayed using a mode line lighter or a display
-  function (see ‘swsw-display-function’).
+  function (see ‘swsw-display-lighter’).
 - Window IDs are assigned to all windows on all frames except for
   the minibuffer(by default, see ‘swsw-scope’).
 
