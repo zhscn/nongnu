@@ -292,7 +292,11 @@ when LINE-BEGINNINGS was calculated.")
               (setq line i)
               (setf (alist-get mark point-to-line) line))
             (let* ((str (buffer-substring mark (point)))
-                   (disp-str (string-trim-right str "\n")))
+                   (disp-str (if (>= emacs-major-version 26)
+                                 (string-trim-right str "\n")
+                               (let ((i (string-match-p
+                                         (concat "\\(?:\n\\)\\'") str)))
+                                 (if i (substring str 0 i) str)))))
               (push (list disp-str nil nil line mark
                           (if (equal str disp-str) (point) (1- (point))))
                     framebuffer)))
