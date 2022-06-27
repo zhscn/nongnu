@@ -263,6 +263,33 @@ The value is of form (TICK . LINE-BEGINNINGS), where LINE-BEGINNINGS is the
 sorted list of beginning of lines and TICK is the value of tick counter
 when LINE-BEGINNINGS was calculated.")
 
+(defun popon--buffer-visible-substring (start end)
+  "Return the visible contents of part of the current buffer as a string.
+
+Take the `invisible' text property into account.
+
+START and END specifies which part to return.  They can be in any order."
+  (when (> start end)
+    (let ((tmp end))
+      (setq end start)
+      (setq start tmp)))
+  (let ((str ""))
+    (save-excursion
+      (goto-char start)
+      (while (< (point) end)
+        (let ((prop (get-char-property (point) 'invisible))
+              (next-change (next-single-char-property-change
+                            (point) 'invisible nil end)))
+          (cond
+           ((null prop)
+            (setq str (concat str (buffer-substring (point) next-change))))
+           ((and (consp buffer-invisibility-spec)
+                 (member (cons prop t) buffer-invisibility-spec))
+            (setq str (concat str (apply #'propertize "..." 'invisible nil
+                                         (text-properties-at (point)))))))
+          (goto-char next-change))))
+    str))
+
 (defun popon--make-framebuffer ()
   "Create a framebuffer for current window and buffer."
   (let ((framebuffer nil)
@@ -280,18 +307,37 @@ when LINE-BEGINNINGS was calculated.")
     (save-excursion
       (goto-char (window-start))
       (let ((mark (point))
-            (point-to-line nil))
+            (point-to-line nil)
+            (next-invisible
+             (if (get-char-property (point) 'invisible)
+                 (point)
+               (next-single-char-property-change (point) 'invisible nil
+                                                 (window-end)))))
         (dotimes (i (floor (window-screen-lines)))
           (if-let ((next (alist-get (point) line-boundaries)))
               (goto-char next)
             (if truncate-lines
                 (forward-line 1)
-              (vertical-motion 1)))
+              (vertical-motion 1))
+            (when (< next-invisible (point))
+              (let ((next-visible
+                     (let ((pos next-invisible))
+                       (while (get-char-property pos 'invisible)
+                         (setq pos (next-single-char-property-change
+                                    pos 'invisible nil (window-end))))
+                       pos)))
+                (setq next-invisible (next-single-char-property-change
+                                      next-visible 'invisible nil
+                                      (window-end)))
+                (while (> next-visible (point))
+                  (if truncate-lines
+                      (forward-line 1)
+                    (vertical-motion 1))))))
           (let ((line (alist-get mark point-to-line)))
             (unless line
               (setq line i)
               (setf (alist-get mark point-to-line) line))
-            (let* ((str (buffer-substring mark (point)))
+            (let* ((str (popon--buffer-visible-substring mark (point)))
                    (disp-str (if (>= emacs-major-version 26)
                                  (string-trim-right str "\n")
                                (let ((i (string-match-p
