@@ -381,7 +381,8 @@ START and END specifies which part to return.  They can be in any order."
                 (setq pair (list key nil nil))
                 (push pair line-map))
               (setf (cadr pair) (or (cadr pair) (nth 2 line)))
-              (push (cons (- i (nth 3 line)) (car line)) (caddr pair)))))
+              (push (cons (- i (nth 3 line)) (car line))
+                    (cadr (cdr pair))))))
         (setq i (1+ i))))
     (dolist (block line-map)
       (let ((ov (make-overlay (caar block) (cdar block))))
@@ -397,7 +398,7 @@ START and END specifies which part to return.  They can be in any order."
                                    (1- (caar block)) (caar block))
                                   "\n")))
              (setq text "\n"))
-           (dolist (line (sort (caddr block) #'car-less-than-car))
+           (dolist (line (sort (cadr (cdr block)) #'car-less-than-car))
              (setq text (concat text
                                 (make-string (- (car line)
                                                 current-offset)
