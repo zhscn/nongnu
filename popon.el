@@ -107,7 +107,7 @@ shouldn't contain newlines.  Example:
                             (buffer-substring (point) (point-max))))
               (setf (cadr (nth (+ y i) framebuffer)) t)
               (when (< end (point-max))
-                (setf (caddr (nth (+ y i) framebuffer)) t))))))
+                (setf (cadr (cdr (nth (+ y i) framebuffer))) t))))))
       framebuffer)))
 
 ;;;###autoload
