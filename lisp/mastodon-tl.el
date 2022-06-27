@@ -1122,8 +1122,13 @@ webapp"
 (defun mastodon-tl--thread ()
   "Open thread buffer for toot under `point'."
   (interactive)
-  (let* ((id (mastodon-tl--as-string (mastodon-tl--toot-id
-                                      (mastodon-tl--property 'toot-json))))
+  (let* ((id
+          (if (equal (mastodon-tl--get-endpoint) "notifications")
+              (if (mastodon-tl--property 'parent-toot)
+                  (mastodon-tl--as-string (mastodon-tl--toot-id
+                                           (mastodon-tl--property 'parent-toot)))
+                (mastodon-tl--property 'base-toot-id))
+            (mastodon-tl--property 'base-toot-id)))
          (url (mastodon-http--api (format "statuses/%s/context" id)))
          (buffer (format "*mastodon-thread-%s*" id))
          (toot (mastodon-tl--property 'toot-json))
