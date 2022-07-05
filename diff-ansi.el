@@ -646,48 +646,56 @@ Store the result in TARGET-BUF when non-nil."
 ;; ---------------------------------------------------------------------------
 ;; ANSI Conversion (Progressive)
 
-(defun diff-ansi-progressive-highlight-impl (buf range)
-  "Callback to update colors for BUF in RANGE."
+(defun diff-ansi--ansi-color-timer-cancel ()
+  "Cancel the timer."
+  (cancel-timer diff-ansi--ansi-color-timer)
+  (setq diff-ansi--ansi-color-timer nil))
+
+(defun diff-ansi-progressive-highlight-impl (buf range timer)
+  "Callback to update colors for BUF in RANGE for TIMER."
   (unless (input-pending-p)
     (with-current-buffer buf
-      (let*
-        (
-          (do-redisplay nil)
-          (inhibit-read-only t)
-          (end (cdr range))
-          (end-trailing-chars (- (buffer-size) end))
-          (disp-beg (car range))
-          (disp-end
-            (min
-              end ;; Clamp twice because `line-end-position' could exceed the value.
-              (save-excursion
-                (goto-char (min (+ disp-beg diff-ansi-chunks-size) end))
-                (line-end-position)))))
-        (save-excursion
-          (cond
-            ((eq disp-beg disp-end)
-              (when diff-ansi--ansi-color-timer
-                (cancel-timer diff-ansi--ansi-color-timer)
-                (setq diff-ansi--ansi-color-timer nil)))
-            (t
-              (let ((disp-end-mark (set-marker (make-marker) disp-end)))
-                (diff-ansi--ansi-color-apply-on-region-with-bg disp-beg disp-end)
+      (cond
+        ((null diff-ansi--ansi-color-timer)
+          ;; Local variables may have been cleared,
+          ;; in this case use the timer passed in to this function.
+          (cancel-timer timer))
+        (t
+          (let*
+            (
+              (do-redisplay nil)
+              (inhibit-read-only t)
+              (end (cdr range))
+              (end-trailing-chars (- (buffer-size) end))
+              (disp-beg (car range))
+              (disp-end
+                (min
+                  end ;; Clamp twice because `line-end-position' could exceed the value.
+                  (save-excursion
+                    (goto-char (min (+ disp-beg diff-ansi-chunks-size) end))
+                    (line-end-position)))))
+            ;;
+            (save-excursion
+              (cond
+                ((eq disp-beg disp-end)
+                  (when diff-ansi--ansi-color-timer
+                    (diff-ansi--ansi-color-timer-cancel)))
+                (t
+                  (let ((disp-end-mark (set-marker (make-marker) disp-end)))
+                    (diff-ansi--ansi-color-apply-on-region-with-bg disp-beg disp-end)
 
-                (setq do-redisplay t)
-                ;; Update the display start and actual end.
-                (setcar range (marker-position disp-end-mark))
-                (setcdr range (- (buffer-size) end-trailing-chars))))))
+                    (setq do-redisplay t)
+                    ;; Update the display start and actual end.
+                    (setcar range (marker-position disp-end-mark))
+                    (setcdr range (- (buffer-size) end-trailing-chars))))))
 
-        ;; Re-display outside the block that moves the cursor.
-        (when do-redisplay
-          (redisplay))))))
+            ;; Re-display outside the block that moves the cursor.
+            (when do-redisplay
+              (redisplay))))))))
 
 (defun diff-ansi--progressive-impl (beg end &optional target-buf)
   "Colorize the text between BEG and END using a timer.
 Store the result in TARGET-BUF when non-nil."
-  (when diff-ansi--ansi-color-timer
-    (cancel-timer diff-ansi--ansi-color-timer)
-    (setq diff-ansi--ansi-color-timer nil))
   (let
     (
       (diff-command (diff-ansi--command-preset-impl))
@@ -698,18 +706,24 @@ Store the result in TARGET-BUF when non-nil."
       (goto-char beg))
 
     (with-current-buffer (or target-buf (current-buffer))
+      ;; Potentially an existing timer will exist.
+      (when diff-ansi--ansi-color-timer
+        (diff-ansi--ansi-color-timer-cancel))
+
       (let ((inhibit-read-only t))
         (setq beg (point))
         (diff-ansi--call-process-pipe-chain diff-command :input diff-str :output (current-buffer))
         (setq end (point))
 
-        (setq diff-ansi--ansi-color-timer
-          (run-at-time
-            0.0
-            0.001
+        ;; Postpone activation until the timer can take it's self as an argument.
+        (diff-ansi--with-advice 'timer-activate
+          :override (lambda (&rest _) nil)
+          (setq diff-ansi--ansi-color-timer (run-at-time 0.0 0.001 nil))
+          (timer-set-function
+            diff-ansi--ansi-color-timer
             #'diff-ansi-progressive-highlight-impl
-            (current-buffer)
-            (cons beg end)))))))
+            (list (current-buffer) (cons beg end) diff-ansi--ansi-color-timer)))
+        (timer-activate diff-ansi--ansi-color-timer)))))
 
 
 ;; ---------------------------------------------------------------------------
