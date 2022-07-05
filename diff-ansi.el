@@ -377,7 +377,7 @@ Optional keywords in KEYWORDS.
   - t: returns the result as an array of strings.
   - function: runs the function with argument index & string result arguments.
 
-:progress-message STRING
+`:progress-message' STRING
   When set, show progress percentage."
   (let
     ( ;; Keyword arguments.
@@ -810,11 +810,11 @@ This calls OLD-FN with ARGS."
 
 Optional keywords in ARGS.
 
-:create-buffer
+`:create-buffer'
   When t, create a new buffer for the diff contents and return it.
   Note that the buffer is not made active.
 
-:preserve-point
+`:preserve-point'
   When t, place the cursor at the relative line offset based on the location
   in the original buffer (this uses a simple method that doesn't ensure
   an exact match for the current line).
