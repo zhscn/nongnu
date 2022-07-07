@@ -82,6 +82,10 @@ but may be extended to adjust default behavior.
    - ``'progressive`` uses a timer (avoids blocking input).
    - ``'multiprocess`` to span multiple external processes for improved performance on large diffs.
 
+``diff-ansi-verbose-progress``: nil
+   Display progress for progressive conversion in the echo area for
+   when ``diff-ansi-method`` is set to ``progressive``.
+
 ``diff-ansi-chunks-size``: 8192
    The number of characters to process at a time for
    when ``diff-ansi-method`` is set to ``progressive`` or ``multiprocess``.

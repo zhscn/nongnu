@@ -92,6 +92,12 @@ Used for `progressive' and `multiprocess' methods."
 A nil value detects the number of processes on the system (when supported)."
   :type 'integer)
 
+(defcustom diff-ansi-verbose-progress nil
+  "When enabled, show the progress of progressive conversion in the echo area.
+
+It can be useful to show progress when viewing very large diffs."
+  :type 'boolean)
+
 ;; ---------------------------------------------------------------------------
 ;; Internal Variables
 
@@ -651,8 +657,9 @@ Store the result in TARGET-BUF when non-nil."
   (cancel-timer diff-ansi--ansi-color-timer)
   (setq diff-ansi--ansi-color-timer nil))
 
-(defun diff-ansi-progressive-highlight-impl (buf range timer)
-  "Callback to update colors for BUF in RANGE for TIMER."
+(defun diff-ansi-progressive-highlight-impl (buf beg range timer)
+  "Callback to update colors for BUF in RANGE for TIMER.
+Argument BEG is only used to calculate the progress percentage."
   (unless (input-pending-p)
     (with-current-buffer buf
       (cond
@@ -674,20 +681,36 @@ Store the result in TARGET-BUF when non-nil."
                   (save-excursion
                     (goto-char (min (+ disp-beg diff-ansi-chunks-size) end))
                     (line-end-position)))))
-            ;;
             (save-excursion
               (cond
                 ((eq disp-beg disp-end)
                   (when diff-ansi--ansi-color-timer
-                    (diff-ansi--ansi-color-timer-cancel)))
+                    (diff-ansi--ansi-color-timer-cancel)
+                    (when diff-ansi-verbose-progress
+                      (message nil))))
                 (t
                   (let ((disp-end-mark (set-marker (make-marker) disp-end)))
                     (diff-ansi--ansi-color-apply-on-region-with-bg disp-beg disp-end)
 
                     (setq do-redisplay t)
                     ;; Update the display start and actual end.
-                    (setcar range (marker-position disp-end-mark))
-                    (setcdr range (- (buffer-size) end-trailing-chars))))))
+                    (let
+                      (
+                        (disp-beg-next (marker-position disp-end-mark))
+                        (end-next (- (buffer-size) end-trailing-chars)))
+
+                      (setcar range disp-beg-next)
+                      (setcdr range end-next)
+
+                      (when diff-ansi-verbose-progress
+                        (let ((message-log-max nil))
+                          (message
+                            "diff-ansi: %2d%% complete"
+                            (min
+                              (/ (* 100 (- disp-beg-next beg)) (- end-next beg))
+                              ;; Never show 100 because there is work left to do,
+                              ;; actual completion will hide the message.
+                              99)))))))))
 
             ;; Re-display outside the block that moves the cursor.
             (when do-redisplay
@@ -722,7 +745,7 @@ Store the result in TARGET-BUF when non-nil."
           (timer-set-function
             diff-ansi--ansi-color-timer
             #'diff-ansi-progressive-highlight-impl
-            (list (current-buffer) (cons beg end) diff-ansi--ansi-color-timer)))
+            (list (current-buffer) beg (cons beg end) diff-ansi--ansi-color-timer)))
         (timer-activate diff-ansi--ansi-color-timer)))))
 
 
