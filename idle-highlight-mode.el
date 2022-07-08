@@ -4,6 +4,7 @@
 ;; Copyright (C) 2008-2011 Phil Hagelberg, Cornelius Mika
 
 ;; Author: Phil Hagelberg, Cornelius Mika, Campbell Barton
+;; Maintainer: Campbell Barton <ideasman42@gmail.com>
 ;; URL: https://codeberg.org/ideasman42/emacs-idle-highlight-mode
 ;; Version: 1.1.3
 ;; Created: 2008-05-13
@@ -202,7 +203,7 @@ Where RANGES is an unordered list of (min . max) cons cells."
 (defun idle-highlight--unhighlight ()
   "Clear current highlight."
   (when idle-highlight--overlays
-    (mapc 'delete-overlay idle-highlight--overlays)
+    (mapc #'delete-overlay idle-highlight--overlays)
     (setq idle-highlight--overlays nil)))
 
 (defun idle-highlight--highlight (target target-beg target-end visible-ranges)
@@ -363,7 +364,7 @@ should be the result of `idle-highlight--word-at-point-args'."
         (setq idle-highlight--global-timer
           (run-with-idle-timer
             idle-highlight-idle-time
-            :repeat 'idle-highlight--time-callback-or-disable))))
+            :repeat #'idle-highlight--time-callback-or-disable))))
     (t
       (when idle-highlight--global-timer
         (cancel-timer idle-highlight--global-timer)

@@ -1,0 +1,3 @@
+*.elc
+/idle-highlight-mode-pkg.el
+/idle-highlight-mode-autoloads.el
