@@ -8,4 +8,4 @@ tasks:
                 cd swsw
                 make
 artifacts:
-        - swsw/swsw-2.1.1.tar
+        - swsw/swsw-2.2.tar
