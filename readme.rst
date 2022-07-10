@@ -17,7 +17,9 @@ can help understanding the changes that have been made.
 
 3rd party tools are available that support these features - this package aims to make those accessible within Emacs.
 
-.. figure:: https://gitlab.com/ideasman42/emacs-diff-ansi/uploads/0dc4a85d55627707c801b002a8fc6ab0/diff-ansi-screenshot.png
+.. This is a PNG image.
+
+.. figure:: https://codeberg.org/attachments/11a778fd-f48f-4648-bbe7-68bc649043b5
    :scale: 50 %
    :align: center
 
