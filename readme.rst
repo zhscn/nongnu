@@ -7,8 +7,10 @@ Shows doc-strings inline (in the source code) for projects that contain doc-stri
 External doc-strings are displayed above functions & variables with syntax highlighting,
 with a modified background color so they are distinct from the editable code.
 
-.. figure:: https://gitlab.com/ideasman42/emacs-doc-show-inline/uploads/3dd58be0262c1cfb336101335bd49a02/doc-show-inline-small.png
-   :target: https://gitlab.com/ideasman42/emacs-doc-show-inline/uploads/167d42282f4150c95850c40784deb25b/doc-show-inline.png
+.. PNG images.
+
+.. figure:: https://codeberg.org/attachments/250a5183-e1f1-40a2-a4ab-de871f49c77e
+   :target: https://codeberg.org/attachments/a6d8b446-33e1-4132-b0b4-d1259c62a7a9
 
    Source file (left) showing public doc-stings inline (right).
 
