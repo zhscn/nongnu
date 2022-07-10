@@ -11,7 +11,7 @@
 
 ;;; Commentary:
 
-;; Support showing diffs using external tools.
+;; Support showing color diffs using external tools.
 
 ;;; Usage
 
