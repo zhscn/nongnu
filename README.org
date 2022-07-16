@@ -1,0 +1,31 @@
+#+title: GC Buffers - Take picture with your camera
+
+This package allows you to take photos from Emacs.
+
+* Installation
+
+~camera~ isn't available on any ELPA right now.  So, you have to follow one
+of the following methods:
+
+** Quelpa
+
+#+begin_src emacs-lisp
+(quelpa '(camera :fetcher git
+                 :url "https://codeberg.org/akib/emacs-camera.git"))
+#+end_src
+
+** Straight.el
+
+#+begin_src emacs-lisp
+(straight-use-package
+ '(camera :type git :repo "https://codeberg.org/akib/emacs-camera.git"))
+#+end_src
+
+** Manual
+
+Download the ~gc-buffers.el~ file and put it in your ~load-path~.
+
+* Usage
+
+Open camera with =M-x camera= and take photos with =SPC= or
+=M-x camera-capture=.
