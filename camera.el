@@ -147,6 +147,7 @@ Don't do anything if current buffer is not BUFFER."
   (add-hook 'pre-command-hook #'camera--pre-command nil t)
   (add-hook 'post-command-hook #'camera--post-command nil t))
 
+;;;###autoload
 (defun camera ()
   "Open camera."
   (interactive)
