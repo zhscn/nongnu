@@ -1,6 +1,6 @@
-#+title: GC Buffers - Take picture with your camera
+#+title: Camera - Take picture with your camera
 
-This package allows you to take photos from Emacs.
+This package allows you to take photos using your camera/webcam from Emacs.
 
 * Installation
 

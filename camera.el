@@ -26,7 +26,8 @@
 
 ;;; Commentary:
 
-;; This package allows you to take photos from Emacs.
+;; This package allows you to take photos using your camera/webcam from
+;; Emacs.
 
 ;; Open camera with M-x camera and take photos with SPC or
 ;; M-x camera-capture.
