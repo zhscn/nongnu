@@ -39,4 +39,4 @@ Download the ~gc-buffers.el~ file and put it in your ~load-path~.
 Clean garbage buffers with =M-x gc-buffers=.  To enable automatically
 doing this, do =M-x gc-buffers-mode=.
 
-Don't let buggy packages to make Emacs "Emacs Makes A Computer Slow"!
+Don't let buggy packages make Emacs "Emacs Makes A Computer Slow"!
