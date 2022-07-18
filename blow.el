@@ -167,6 +167,12 @@ Don't modify this variable from Lisp programs, use `blow' instead."
              blow--original-lighters)
     (blow--replace-lighters-on-all-buffer changed-lighters)))
 
+(defun blow--after-major-mode-change ()
+  "Set `mode-name' after major-mode change."
+  (let ((entry (assq major-mode blow-mode-list)))
+    (when entry
+      (setq mode-name (cadr entry)))))
+
 ;;;###autoload
 (defun blow (mode &optional replacement)
   "Blow mode lighter of MODE and use REPLACEMENT as it's lighter."
@@ -191,13 +197,20 @@ Don't modify this variable from Lisp programs, use `blow' instead."
   :global t
   :lighter " Blow"
   (if blow-mode
-      (blow--setup-all-buffers)
+      (progn
+        (blow--setup-all-buffers)
+        (add-hook 'after-change-major-mode-hook
+                  #'blow--after-major-mode-change))
     (let ((blow-mode-list nil))
       (blow--setup-all-buffers)
-      (setq blow--original-lighters nil))))
+      (setq blow--original-lighters nil)
+      (remove-hook 'after-change-major-mode-hook
+                   #'blow--after-major-mode-change))))
 
 (defun blow-original-lighter (mode)
-  "Return the original lighter of mode MODE."
+  "Return the original lighter of mode MODE.
+
+This only works for minor modes and blown major modes."
   (if (and blow-mode (blow--hash-exists-p mode blow--original-lighters))
       (gethash mode blow--original-lighters)
     (cadr (assq mode minor-mode-alist))))
