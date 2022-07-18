@@ -23,7 +23,7 @@ of the following methods:
 
 ** Manual
 
-Download the ~gc-buffers.el~ file and put it in your ~load-path~.
+Download the ~camera.el~ file and put it in your ~load-path~.
 
 * Usage
 
