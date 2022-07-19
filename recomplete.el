@@ -342,8 +342,8 @@ Argument CYCLE-OFFSET The offset for cycling words,
 
 Optional argument CYCLE-INDEX-INIT The initial index to use,
 defaulting to zero (which makes sense for corrections) you may wish to set
-the value to 1 when the current symbol is included in the list
-(so as to step onto the next item)."
+the value to 1 when the current symbol is included in the list (so as to
+step onto the next item)."
 
   ;; Default to 1 (one step forward).
   (setq cycle-offset (or cycle-offset 1))
