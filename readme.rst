@@ -4,6 +4,8 @@ Idle Highlight Mode
 
 Simple symbol highlighting package for Emacs.
 
+Available via `melpa <https://melpa.org/#/idle-highlight-mode>`__.
+
 
 Motivation
 ==========
