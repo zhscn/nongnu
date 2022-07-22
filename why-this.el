@@ -393,7 +393,8 @@ TIME-FORMAT is used to format data."
             (setq line-end (line-end-position (+ begin i))))
           (let ((ov (make-overlay line-end line-end))
                 (type (why-this--overlay-bg-type line-end))
-                (column (- line-end line-begin)))
+                (column (string-width (buffer-substring
+                                       line-begin line-end))))
             (overlay-put ov 'why-this-message (why-this-format-data
                                                why-this-message-format
                                                why-this-message-time-format
