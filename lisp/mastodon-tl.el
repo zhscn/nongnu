@@ -385,8 +385,14 @@ image media from the byline."
           (or
            ;; simply praying this order works
            (alist-get 'status toot) ; notifications timeline
+           ;; fol-req notif, has 'type
+           ;; placed before boosts coz fol-reqs have a (useless) reblog entry:
+           ;; TODO: cd also test for notifs buffer before we do this to be sure
+           (when (alist-get 'type toot)
+             toot)
            (alist-get 'reblog toot) ; boosts
            toot)) ; everything else
+         (fol-req-p (equal (alist-get 'type toot-to-count) "follow"))
          (media-types (mastodon-tl--get-media-types toot))
          (format-faves (format "%s faves | %s boosts | %s replies"
                                (alist-get 'favourites_count toot-to-count)
@@ -400,7 +406,8 @@ image media from the byline."
                                            (member "gifv" media-types))
                                           (require 'mpv nil :no-error))
                                  (format " | C-RET to view with mpv"))))
-    (format "%s" (concat format-faves format-media format-media-binding))))
+    (unless fol-req-p
+      (format "%s" (concat format-faves format-media format-media-binding)))))
 
 (defun mastodon-tl--get-media-types (toot)
   "Return a list of the media attachment types of the TOOT at point."
