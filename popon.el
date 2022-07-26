@@ -546,7 +546,8 @@ NOTE: This uses `posn-at-point', which is slow.  So try to minimize calls
 to this function."
   (let ((window-start-x-y (posn-col-row (posn-at-point (window-start))))
         (point-x-y (posn-col-row (posn-at-point point))))
-    (cons (- (car point-x-y) (car window-start-x-y))
+    (cons (- (save-excursion (goto-char point) (current-column))
+             (window-hscroll))
           (- (cdr point-x-y) (cdr window-start-x-y)))))
 
 ;;;###autoload
