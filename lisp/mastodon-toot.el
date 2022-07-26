@@ -216,56 +216,61 @@ Makes a POST request to the server."
     (let ((response (mastodon-http--post url nil nil)))
       (mastodon-http--triage response callback))))
 
-(defun mastodon-toot--toggle-boost ()
-  "Boost/unboost toot at `point'."
+
+
+(defun mastodon-toot--toggle-boost-or-favourite (type)
+  "Toggle boost or favourite of toot at `point'.
+TYPE is a symbol, either 'favourite or 'boost."
   (interactive)
-  (let* ((has-id (mastodon-tl--property 'base-toot-id))
+  (let* ((boost-p (equal type 'boost))
+         (has-id (mastodon-tl--property 'base-toot-id))
          (byline-region (when has-id
                           (mastodon-tl--find-property-range 'byline (point))))
          (id (when byline-region
                (mastodon-tl--as-string (mastodon-tl--property 'base-toot-id))))
          (boosted (when byline-region
                     (get-text-property (car byline-region) 'boosted-p)))
-         (action (if boosted "unreblog" "reblog"))
+         (faved (when byline-region
+                  (get-text-property (car byline-region) 'favourited-p)))
+         (action (if boost-p
+                     (if boosted "unreblog" "reblog")
+                   (if faved "unfavourite" "favourite")))
          (msg (if boosted "unboosted" "boosted"))
-         (remove (when boosted t)))
+         (action-string (if boost-p "boost" "favourite"))
+         (remove (if boost-p (when boosted t) (when faved t)))
+         (toot-type (alist-get 'type (mastodon-tl--property 'toot-json))))
     (if byline-region
-        (mastodon-toot--action action
-                               (lambda ()
-                                 (let ((inhibit-read-only t))
-                                   (add-text-properties (car byline-region)
-                                                        (cdr byline-region)
-                                                        (list 'boosted-p
-                                                              (not boosted)))
-                                   (mastodon-toot--action-success
-                                    "B" byline-region remove))
-                                 (message (format "%s #%s" msg id))))
-      (message "Nothing to boost here?!?"))))
+        (cond ((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
+               (error "You can't %s your own toots." action-string))
+              ((equal "reblog" toot-type)
+               (error "You can't %s boosts." action-string))
+              ((equal "favourite" toot-type)
+               (error "Your can't %s favourites." action-string))
+              (t
+               (mastodon-toot--action
+                action
+                (lambda ()
+                  (let ((inhibit-read-only t))
+                    (add-text-properties (car byline-region)
+                                         (cdr byline-region)
+                                         (if boost-p
+                                             (list 'boosted-p (not boosted))
+                                           (list 'favourited-p (not faved))))
+                    (mastodon-toot--action-success
+                     (if boost-p "B" "F")
+                     byline-region remove))
+                  (message (format "%s #%s" (if boost-p msg action) id))))))
+      (message (format "Nothing to %s here?!?" action-string)))))
+
+(defun mastodon-toot--toggle-boost ()
+  "Boost/unboost toot at `point'."
+  (interactive)
+  (mastodon-toot--toggle-boost-or-favourite 'boost))
 
 (defun mastodon-toot--toggle-favourite ()
   "Favourite/unfavourite toot at `point'."
   (interactive)
-  (let* ((has-id (mastodon-tl--property 'base-toot-id))
-         (byline-region (when has-id
-                          (mastodon-tl--find-property-range 'byline (point))))
-         (id (when byline-region
-               (mastodon-tl--as-string (mastodon-tl--property 'base-toot-id))))
-         (faved (when byline-region
-                  (get-text-property (car byline-region) 'favourited-p)))
-         (action (if faved "unfavourite" "favourite"))
-         (remove (when faved t)))
-    (if byline-region
-        (mastodon-toot--action action
-                               (lambda ()
-                                 (let ((inhibit-read-only t))
-                                   (add-text-properties (car byline-region)
-                                                        (cdr byline-region)
-                                                        (list 'favourited-p
-                                                              (not faved)))
-                                   (mastodon-toot--action-success
-                                    "F" byline-region remove))
-                                 (message (format "%s #%s" action id))))
-      (message "Nothing to favourite here?!?"))))
+  (mastodon-toot--toggle-boost-or-favourite 'favourite))
 
 (defun mastodon-toot--copy-toot-url ()
   "Copy URL of toot at point."
