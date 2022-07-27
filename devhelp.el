@@ -539,6 +539,8 @@ the conbined table of contents of all available Devhelp books."
 (defun devhelp--make-bookmark-record ()
   "Make a bookmark record."
   (let ((entry (nth (car devhelp--history) (cdr devhelp--history))))
+    (when (eq (nth 1 entry) 'history)
+      (error "Can't bookmark history page"))
     `(,(nth 0 entry)
       (filename . ,(when (stringp (nth 1 entry)) (nth 1 entry)))
       (file . ,(nth 1 entry))
@@ -589,7 +591,7 @@ the conbined table of contents of all available Devhelp books."
 (define-derived-mode devhelp-mode special-mode "Devhelp"
   "Major mode for browsing Devhelp books."
   (setq-local devhelp--books nil)
-  (setq-local devhelp--history '(nil . nil))
+  (setq-local devhelp--history (copy-sequence '(nil . nil)))
   (setq-local bookmark-make-record-function
               #'devhelp--make-bookmark-record))
 
