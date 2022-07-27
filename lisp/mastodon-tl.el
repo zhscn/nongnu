@@ -1140,10 +1140,8 @@ webapp"
          (buffer (format "*mastodon-thread-%s*" id))
          (toot
           ;; refetch current toot in case we just faved/boosted:
-          (mastodon-http--get-json (concat
-                                    mastodon-instance-url
-                                    "/api/v1/statuses/"
-                                    id)))
+          (mastodon-http--get-json
+           (mastodon-http--api (concat "statuses/" id))))
          (context (mastodon-http--get-json url)))
     (when (member (alist-get 'type toot) '("reblog" "favourite"))
       (setq toot (alist-get 'status toot)))
