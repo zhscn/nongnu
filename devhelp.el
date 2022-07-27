@@ -549,38 +549,46 @@ the conbined table of contents of all available Devhelp books."
       (filename . ,(when (stringp (nth 1 entry)) (nth 1 entry)))
       (file . ,(nth 1 entry))
       (position . ,(nth 2 entry))
-      (handler . devhelp-bookmake-jump))))
+      (handler . devhelp-bookmark-jump))))
 
 ;;;###autoload
-(defun devhelp-bookmake-jump (bookmark)
+(defun devhelp-bookmark-jump (bookmark)
   "Jump to BOOKMARK."
   (unless (fboundp 'libxml-parse-html-region)
     (error "This function requires Emacs to be compiled with libxml2"))
-  (with-current-buffer (generate-new-buffer "*devhelp*")
-    (devhelp-mode)
-    (display-buffer (current-buffer))
-    (setq devhelp--books (devhelp--search-for-books))
-    (setq devhelp--history
-          `(0 . ((nil ,(bookmark-prop-get bookmark 'file)
-                      ,(bookmark-prop-get bookmark 'position)))))
-    (if (symbolp (bookmark-prop-get bookmark 'file))
-        (pcase (bookmark-prop-get bookmark 'file)
-          ('toc (devhelp--toc-1))
-          ('index (devhelp--index-1)))
-      (let ((file (url-filename
-                   (url-generic-parse-url
-                    (devhelp--file-to-url
-                     (bookmark-prop-get bookmark 'file))))))
-        (devhelp--set-title "Untitled")
-        (devhelp--render-html-file
-         (if (memq system-type '(windows-nt ms-dos))
-             (substring file 1)
-           file))
-        (goto-char (min (max (bookmark-prop-get bookmark 'position)
-                             (point-min))
-                        (point-max)))
-        (recenter 0)
-        (setf (nth 2 (nth 0 (cdr devhelp--history))) (point))))))
+  (let ((buffer-existed-p (get-buffer "*devhelp*")))
+    (with-current-buffer (get-buffer-create "*devhelp*")
+      (unless buffer-existed-p
+        (devhelp-mode))
+      (display-buffer (current-buffer))
+      (setq devhelp--books (devhelp--search-for-books))
+      (if buffer-existed-p
+          (setq devhelp--history
+                `(0 . ((nil ,(bookmark-prop-get bookmark 'file)
+                            ,(bookmark-prop-get bookmark 'position))
+                       . ,(nthcdr (car devhelp--history)
+                                  (cdr devhelp--history)))))
+        (setq devhelp--history
+              `(0 . ((nil ,(bookmark-prop-get bookmark 'file)
+                          ,(bookmark-prop-get bookmark 'position))))))
+      (if (symbolp (bookmark-prop-get bookmark 'file))
+          (pcase (bookmark-prop-get bookmark 'file)
+            ('toc (devhelp--toc-1))
+            ('index (devhelp--index-1)))
+        (let ((file (url-filename
+                     (url-generic-parse-url
+                      (devhelp--file-to-url
+                       (bookmark-prop-get bookmark 'file))))))
+          (devhelp--set-title "Untitled")
+          (devhelp--render-html-file
+           (if (memq system-type '(windows-nt ms-dos))
+               (substring file 1)
+             file))
+          (goto-char (min (max (bookmark-prop-get bookmark 'position)
+                               (point-min))
+                          (point-max)))
+          (recenter 0)
+          (setf (nth 2 (nth 0 (cdr devhelp--history))) (point)))))))
 
 (defvar devhelp-mode-map
   (let ((map (make-sparse-keymap)))
