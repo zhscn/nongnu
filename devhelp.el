@@ -6,7 +6,7 @@
 ;; Created: 2022-07-26
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "27.1"))
-;; Keywords: convenience
+;; Keywords: docs
 ;; URL: https://codeberg.org/akib/emacs-devhelp
 
 ;; This file is not part of GNU Emacs.
@@ -59,7 +59,7 @@
 
 (defgroup devhelp nil
   "Browse documentation in Devhelp format."
-  :group 'convenience
+  :group 'docs
   :link '(url-link "https://codeberg.org/akib/emacs-devhelp")
   :prefix "devhelp-")
 
