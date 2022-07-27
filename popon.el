@@ -4,7 +4,7 @@
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Created: 2022-04-11
-;; Version: 0.8
+;; Version: 0.9
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: lisp extensions frames
 ;; Homepage: https://codeberg.org/akib/emacs-popon
