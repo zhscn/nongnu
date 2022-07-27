@@ -514,7 +514,9 @@ EVENT is a mouse event, if any."
 
 Interactively, when a non-numeric prefix argument is given, the Devhelp
 file name is read interactively from the minibuffer.  When a numeric
-argument N is given, a buffer named \"*devhelp*<N>\" is selected.
+argument N is given, a buffer named `*devhelp*<N>' is selected.  When no
+prefix argument is given and `*devhelp*' buffer already exists, just
+display it.
 
 Optional argument BUFFER specifies the BUFFER to use, it can be a live
 buffer or a buffer name.  If BUFFER is a buffer name and the buffer doesn't
@@ -529,12 +531,14 @@ the conbined table of contents of all available Devhelp books."
            (format "*devhelp*<%s>" current-prefix-arg))))
   (unless (fboundp 'libxml-parse-html-region)
     (error "This function requires Emacs to be compiled with libxml2"))
-  (with-current-buffer (get-buffer-create (or buffer "*devhelp*"))
-    (devhelp-mode)
-    (display-buffer (current-buffer))
-    (if (not file)
-        (devhelp--directory)
-      (devhelp--open-file file))))
+  (if (and (not buffer) (get-buffer "*devhelp*"))
+      (display-buffer "*devhelp*")
+    (with-current-buffer (get-buffer-create (or buffer "*devhelp*"))
+      (devhelp-mode)
+      (display-buffer (current-buffer))
+      (if (not file)
+          (devhelp--directory)
+        (devhelp--open-file file)))))
 
 (defun devhelp--make-bookmark-record ()
   "Make a bookmark record."
