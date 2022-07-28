@@ -7,7 +7,7 @@ integrating of these manuals with Emacs hard, although not impossible.
 This package make tries to integrate one of those stupid formats, Devhelp,
 with Emacs.
 
-[[./devhelp-demo.png]]
+[[./devhelp-demo.gif]]
 
 * Usage
 
