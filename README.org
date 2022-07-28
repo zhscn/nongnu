@@ -7,6 +7,8 @@ integrating of these manuals with Emacs hard, although not impossible.
 This package make tries to integrate one of those stupid formats, Devhelp,
 with Emacs.
 
+[[./devhelp-demo.png]]
+
 * Usage
 
 =M-x devhelp= and you are good to go.  But you use a system that isn't FHS
