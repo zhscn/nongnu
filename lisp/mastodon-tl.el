@@ -1204,12 +1204,12 @@ ID is that of the toot to view."
                                 update-function
                                 (lambda (toot) (message "END of thread."))))
             (let ((inhibit-read-only t))
-              (mastodon-tl--timeline (vconcat
-                                      (alist-get 'ancestors context)
-                                      `(,toot)
-                                      (alist-get 'descendants context)))))
+              (mastodon-tl--timeline (alist-get 'ancestors context))
+              (goto-char (point-max))
+              (mastodon-tl--toot toot :detailed-p)
+              (mastodon-tl--timeline (alist-get 'descendants context))))
           (mastodon-tl--goto-next-toot))
-      (message "No Thread!"))))
+      (mastodon-tl--single-toot id))))
 
 (defun mastodon-tl--create-filter ()
   "Create a filter for a word.
