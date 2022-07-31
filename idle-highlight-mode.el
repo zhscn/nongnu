@@ -29,6 +29,10 @@
 
 ;;; Code:
 
+(eval-when-compile
+  ;; For `pcase-dolist'.
+  (require 'pcase))
+
 
 ;; ---------------------------------------------------------------------------
 ;; Require Dependencies
