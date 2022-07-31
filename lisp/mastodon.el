@@ -4,7 +4,7 @@
 ;; Copyright (C) 2021 Abhiseck Paira <abhiseckpaira@disroot.org>
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
-;; Version: 0.10.0
+;; Version: 1.0.0
 ;; Package-Requires: ((emacs "27.1") (request "0.3.2") (seq "1.0"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
@@ -28,8 +28,8 @@
 ;;; Commentary:
 
 ;; mastodon.el is an Emacs client for Mastodon <https://github.com/tootsuite/mastodon>,
-;; the federated microblogging social network. It is very much a work-in-progress, but
-;; it is a labor of love.
+;; the federated microblogging social network. It also works with Pleroma instances.
+;; see the readme file at https://codeberg.org/martianh/mastodon.el for set up and usage details.
 
 ;;; Code:
 (require 'cl-lib) ; for `cl-some' call in mastodon
