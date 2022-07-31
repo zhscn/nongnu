@@ -476,14 +476,14 @@ the point should not be moved by this function."
 Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
   ;; (printf "SYM: %S\n" sym)
   (let ((xref-list nil))
-    (doc-show-inline--with-advice 'xref--not-found-error
+    (doc-show-inline--with-advice #'xref--not-found-error
       :override (lambda (_kind _input) nil)
-      (doc-show-inline--with-advice 'xref--show-defs
+      (doc-show-inline--with-advice #'xref--show-defs
         :override
         (lambda (fetcher _display-action) (setq xref-list (funcall fetcher)))
         (let ((xref-prompt-for-identifier nil))
           ;; Needed to suppress `etags' from requesting a file.
-          (doc-show-inline--with-advice 'read-file-name
+          (doc-show-inline--with-advice #'read-file-name
             :override
             (lambda (&rest _args)
               (doc-show-inline--log-info
@@ -509,7 +509,7 @@ Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
     ;; only for the purpose of reading their comments.
     ;; `doc-show-inline-fontify-hook' can be used to enable features needed for comment extraction.
     (save-excursion
-      (doc-show-inline--with-advice 'run-mode-hooks
+      (doc-show-inline--with-advice #'run-mode-hooks
         :override
         (lambda (_hooks)
           (with-demoted-errors "doc-show-inline-buffer-hook: %S"
@@ -681,7 +681,7 @@ XREF-BACKEND is the back-end used to find this symbol."
                 (xref-backend (xref-find-backend)))
 
               ;; Track buffers loaded.
-              (doc-show-inline--with-advice 'create-file-buffer
+              (doc-show-inline--with-advice #'create-file-buffer
                 :around
                 (lambda (fn-orig filename)
                   (let ((buf (funcall fn-orig filename)))
