@@ -177,7 +177,7 @@ Where positive brighten and negative numbers darken."
     (
       (value (color-values color))
       (factor-int (truncate (* 65535 factor))))
-    (apply 'format
+    (apply #'format
       (cons
         "#%02x%02x%02x"
         (mapcar
