@@ -114,7 +114,7 @@ When undo is disabled this behaves like `progn'."
   (declare (indent 1))
   `
   (let ((temp-message-list (list)))
-    (recomplete--with-advice 'message
+    (recomplete--with-advice #'message
       :override
       (lambda (&rest args)
         ;; Only check if non-null because this is a signal not to log at all.
@@ -206,7 +206,7 @@ Argument FN-CACHE stores the result for reuse."
   (pcase-let ((`(,result-choices ,word-beg ,word-end) (or fn-cache '(nil nil nil))))
 
     (unless result-choices
-      (recomplete--with-advice 'ispell-command-loop
+      (recomplete--with-advice #'ispell-command-loop
         :override
         (lambda (miss _guess _word start end)
           (when miss
