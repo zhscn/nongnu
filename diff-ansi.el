@@ -739,7 +739,7 @@ Store the result in TARGET-BUF when non-nil."
         (setq end (point))
 
         ;; Postpone activation until the timer can take it's self as an argument.
-        (diff-ansi--with-advice 'timer-activate
+        (diff-ansi--with-advice #'timer-activate
           :override (lambda (&rest _) nil)
           (setq diff-ansi--ansi-color-timer (run-at-time 0.0 0.001 nil))
           (timer-set-function
@@ -816,7 +816,7 @@ Store the result in TARGET-BUF when non-nil."
 
 This calls OLD-FN with ARGS."
   (let ((point-begin (point)))
-    (diff-ansi--with-advice 'magit-wash-sequence
+    (diff-ansi--with-advice #'magit-wash-sequence
       :override (lambda (&rest _) nil)
 
       (apply old-fn args)
