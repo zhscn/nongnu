@@ -242,5 +242,19 @@ WINDOWS and CALLBACK is described in the docstring of
                         (not (eq window (selected-window)))))))
     (select-window window)))
 
+;;;###autoload
+(defun iwindow-swap ()
+  "Swap buffers of current window and WINDOW."
+  (interactive)
+  (when-let ((window (iwindow-choose
+                      (lambda (window)
+                        (not (eq window (selected-window)))))))
+    (unless (eq (window-frame window) (selected-frame))
+      (select-frame-set-input-focus (window-frame window)))
+    (let ((current-buffer (window-buffer (selected-window))))
+      (set-window-buffer (selected-window) (window-buffer window))
+      (set-window-buffer window current-buffer)
+      (select-window window))))
+
 (provide 'iwindow)
 ;;; iwindow.el ends here
