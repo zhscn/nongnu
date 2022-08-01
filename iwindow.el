@@ -233,11 +233,14 @@ WINDOWS and CALLBACK is described in the docstring of
                          (funcall payload)
                        (let ((face-remapping-alist
                               face-remapping-alist))
-                         (dolist (pair iwindow-highlight-faces)
-                           (face-remap-add-relative
-                            (car pair)
-                            `(:filtered (:window ,sym ,sym)
-                                        ,(cdr pair))))
+                         (cl-letf (((symbol-function
+                                     'make-local-variable)
+                                    #'ignore))
+                           (dolist (pair iwindow-highlight-faces)
+                             (face-remap-add-relative
+                              (car pair)
+                              `(:filtered (:window ,sym ,sym)
+                                          ,(cdr pair)))))
                          (push (current-buffer) buffers)
                          (funcall payload)))))))
       (setup-windows windows))))
