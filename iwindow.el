@@ -58,6 +58,7 @@ Each element should be a key that `read-key' can return."
 
 (defcustom iwindow-decoration-functions
   (list #'iwindow-show-keys-on-mode-line
+        #'iwindow-show-keys-for-minibuffer
         #'iwindow-highlight-window)
   "Hook run to decorate candidate window.
 
@@ -72,7 +73,11 @@ function should make any changes (e.g. let-bind a variable), call
 CALLBACK and revert the changes it has done."
   :type 'hook
   :options (list #'iwindow-show-keys-on-mode-line
+                 #'iwindow-show-keys-for-minibuffer
                  #'iwindow-highlight-window))
+
+(defface iwindow-minibuffer-keys-face '((t :inherit (highlight bold)))
+  "Face to use for showing keys on minibuffer.")
 
 (defcustom iwindow-highlight-faces
   '((default . iwindow-highlight-default)
@@ -219,19 +224,52 @@ WINDOWS and CALLBACK is described in the docstring of
                  (window-list)
                  (with-selected-window (caar window-list)
                    (cl-letf* (((window-parameter nil sym) sym)
-                              (face-remapping-alist
-                               face-remapping-alist))
-                     (unless (memq (current-buffer) buffers)
-                       (dolist (pair iwindow-highlight-faces)
-                         (face-remap-add-relative
-                          (car pair)
-                          `(:filtered (:window ,sym ,sym)
-                                      ,(cdr pair)))))
-                     (push (current-buffer) buffers)
-                     (if (cdr window-list)
-                         (setup-windows (cdr window-list))
-                       (funcall callback))))))
+                              (payload
+                               (lambda ()
+                                 (if (cdr window-list)
+                                     (setup-windows (cdr window-list))
+                                   (funcall callback)))))
+                     (if (memq (current-buffer) buffers)
+                         (funcall payload)
+                       (let ((face-remapping-alist
+                              face-remapping-alist))
+                         (dolist (pair iwindow-highlight-faces)
+                           (face-remap-add-relative
+                            (car pair)
+                            `(:filtered (:window ,sym ,sym)
+                                        ,(cdr pair))))
+                         (push (current-buffer) buffers)
+                         (funcall payload)))))))
       (setup-windows windows))))
+
+(defun iwindow-show-keys-for-minibuffer (windows callback)
+  "Show the keys to choose minibuffer in minibuffer.
+
+WINDOWS and CALLBACK is described in the docstring of
+`iwindow-decoration-functions', which see."
+  (cl-labels ((setup-windows
+               (window-list)
+               (with-selected-window (caar window-list)
+                 (let ((ov nil))
+                   (when (minibufferp)
+                     (setq ov (make-overlay (point-min)
+                                            (point-min)))
+                     (overlay-put
+                      ov 'before-string
+                      (concat (propertize
+                               (mapconcat #'string (cdar window-list)
+                                          " ")
+                               'face '(iwindow-minibuffer-keys-face
+                                       default))
+                              " "))
+                     (overlay-put ov 'window (selected-window)))
+                   (unwind-protect
+                       (if (cdr window-list)
+                           (setup-windows (cdr window-list))
+                         (funcall callback))
+                     (when ov
+                       (delete-overlay ov)))))))
+    (setup-windows windows)))
 
 ;;;###autoload
 (defun iwindow-select ()
