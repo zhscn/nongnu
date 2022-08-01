@@ -74,8 +74,18 @@ CALLBACK and revert the changes it has done."
   :options (list #'iwindow-show-keys-on-mode-line
                  #'iwindow-highlight-window))
 
-(defface iwindow-highlight-face '((t :background "blue"))
-  "Face to use to highlight candidate windows.")
+(defcustom iwindow-highlight-faces
+  '((default . iwindow-highlight-default)
+    (fringe . iwindow-highlight-fringe))
+  "Alist of face and their replacements in candidate windows."
+  :type '(alist :key-type (face :tag "Face")
+                :value-type (face :tag "Replacement")))
+
+(defface iwindow-highlight-default '((t :background "blue"))
+  "`default' face for highlighted windows.")
+
+(defface iwindow-highlight-fringe '((t :background "blue"))
+  "`fringe' face for highlighted windows.")
 
 (defun iwindow--make-decision-tree (windows start end)
   "Make a decision tree from window in WINDOWS from START to END.
@@ -131,13 +141,16 @@ form (OPTION...), whose length of no more than the length of
 
 Return the window chosen."
   (if (windowp tree)
-      tree
+      (prog1
+          tree
+        (redraw-display))
     (let ((option nil)
           (choices (cl-mapcar #'cons iwindow-selection-keys
                                      tree)))
       (iwindow--decorate-windows
        tree
        (lambda ()
+         (redraw-display)
          (while (not option)
            (let ((key (read-key)))
              (if (eql key ?\C-g)
@@ -162,9 +175,11 @@ WINDOW and ignore WINDOW when PREDICATE returns nil."
                      (seq-filter predicate (window-list))
                    (window-list))))
     (when windows
-      (let* ((tree (iwindow--make-decision-tree (vconcat windows)
-                                                0 (length windows))))
-        (iwindow--ask tree)))))
+      (if (cdr windows)                 ; (> (length windows) 1)
+          (let* ((tree (iwindow--make-decision-tree
+                        (vconcat windows) 0 (length windows))))
+            (iwindow--ask tree))
+        (car windows)))))
 
 (defun iwindow-show-keys-on-mode-line (windows callback)
   "Change mode line of windows to show the keys to choose the window.
@@ -203,19 +218,15 @@ WINDOWS and CALLBACK is described in the docstring of
     (cl-labels ((setup-windows
                  (window-list)
                  (with-selected-window (caar window-list)
-                   (cl-letf* ((remap-p (not (memq (current-buffer)
-                                                  buffers)))
-                              ((window-parameter nil sym) sym)
+                   (cl-letf* (((window-parameter nil sym) sym)
                               (face-remapping-alist
-                               (if remap-p
-                                   (append
-                                    `((default
-                                        (:filtered
-                                         (:window ,sym ,sym)
-                                         iwindow-highlight-face)
-                                        default))
-                                    face-remapping-alist)
-                                 face-remapping-alist)))
+                               face-remapping-alist))
+                     (unless (memq (current-buffer) buffers)
+                       (dolist (pair iwindow-highlight-faces)
+                         (face-remap-add-relative
+                          (car pair)
+                          `(:filtered (:window ,sym ,sym)
+                                      ,(cdr pair)))))
                      (push (current-buffer) buffers)
                      (if (cdr window-list)
                          (setup-windows (cdr window-list))
