@@ -14,6 +14,10 @@ to somewhere, for example:
 (global-set-key (kbd "C-x o") #'iwindow-select)
 #+end_src
 
+You can swap windows with `iwindow-swap'.  To delete a window, you can
+use `iwindow-delete'.  And there is `iwindow-delete-others' to delete
+all window except the chosen one.
+
 * Installation
 
 IWindow isn't available on any ELPA right now.  So, you have to follow

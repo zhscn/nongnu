@@ -39,6 +39,10 @@
 
 ;;     (global-set-key (kbd "C-x o") #'iwindow-select)
 
+;; You can swap windows with `iwindow-swap'.  To delete a window, you
+;; can use `iwindow-delete'.  And there is `iwindow-delete-others' to
+;; delete all window except the chosen one.
+
 ;;; Code:
 
 (require 'cl-lib)
@@ -285,7 +289,7 @@ WINDOWS and CALLBACK is described in the docstring of
 
 ;;;###autoload
 (defun iwindow-swap ()
-  "Swap buffers of current window and WINDOW."
+  "Interactively swap two windows."
   (interactive)
   (when-let ((window (iwindow-choose
                       (lambda (window)
@@ -296,6 +300,18 @@ WINDOWS and CALLBACK is described in the docstring of
       (set-window-buffer (selected-window) (window-buffer window))
       (set-window-buffer window current-buffer)
       (select-window window))))
+
+;;;###autoload
+(defun iwindow-delete ()
+  "Interactively delete a window."
+  (interactive)
+  (delete-window (iwindow-choose)))
+
+;;;###autoload
+(defun iwindow-delete-others ()
+  "Interactively delete a window."
+  (interactive)
+  (delete-other-windows (iwindow-choose)))
 
 (provide 'iwindow)
 ;;; iwindow.el ends here
