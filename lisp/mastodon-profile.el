@@ -221,6 +221,7 @@ JSON is the data returned by the server."
          (buffer (get-buffer-create "*mastodon-update-profile*"))
          (inhibit-read-only t))
     (switch-to-buffer-other-window buffer)
+    (text-mode)
     (setq-local header-line-format
                 (propertize
                  "Edit your profile note. C-c C-c to send, C-c C-k to cancel."
