@@ -365,7 +365,7 @@ NO-REDRAFT means delete toot only."
                                          toot-visibility
                                          toot-cw)))))))))
 
-(defun mastodon-toot-set-cw (cw)
+(defun mastodon-toot-set-cw (&optional cw)
   "Set content warning to CW if it is non-nil"
   (unless (equal cw "")
     (setq mastodon-toot--content-warning t)
