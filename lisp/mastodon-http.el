@@ -97,37 +97,38 @@ Message status and JSON error from RESPONSE if unsuccessful."
     (insert-file-contents filename)
     (string-to-unibyte (buffer-string))))
 
-(defun mastodon-http--post (url args headers &optional unauthenticed-p)
-  "POST synchronously to URL with ARGS and HEADERS.
-
-Authorization header is included by default unless UNAUTHENTICED-P is non-nil."
-  (let ((url-request-method "POST")
-        (url-request-data
-         (when args
-           (mapconcat (lambda (arg)
-                        (concat (url-hexify-string (car arg))
-                                "="
-                                (url-hexify-string (cdr arg))))
-                      args
-                      "&")))
-        (url-request-extra-headers
-	 (append
-	  (unless unauthenticed-p
-	    `(("Authorization" . ,(concat "Bearer " (mastodon-auth--access-token)))))
-          ;; pleroma compatibility:
-          (unless (assoc "Content-Type" headers)
-            '(("Content-Type" . "application/x-www-form-urlencoded")))
-          headers)))
-    (with-temp-buffer
-      (mastodon-http--url-retrieve-synchronously url))))
-
-(defmacro mastodon-http--authorized-request (method body)
+(defmacro mastodon-http--authorized-request (method body &optional unauthenticated-p)
   "Make a METHOD request with Mastodon authorization."
   `(let ((url-request-method ,method)
          (url-request-extra-headers
+          (unless ,unauthenticated-p
           (("Authorization"
-            (concat "Bearer " (mastodon-auth--access-token))))))
+            (concat "Bearer " (mastodon-auth--access-token)))))))
      ,body))
+
+(defun mastodon-http--post (url args headers &optional unauthenticated-p)
+  "POST synchronously to URL with ARGS and HEADERS.
+
+Authorization header is included by default unless UNAUTHENTICATED-P is non-nil."
+  (mastodon-http--authorized-request
+   "POST"
+     (let ((url-request-data
+            (when args
+              (mapconcat (lambda (arg)
+                           (concat (url-hexify-string (car arg))
+                                   "="
+                                   (url-hexify-string (cdr arg))))
+                         args
+                         "&")))
+           (url-request-extra-headers
+            (append url-request-extra-headers ; auth set in macro
+                    ;; pleroma compat:
+                    (unless (assoc "Content-Type" headers)
+                      '(("Content-Type" . "application/x-www-form-urlencoded")))
+                    headers)))
+       (with-temp-buffer
+         (mastodon-http--url-retrieve-synchronously url))
+       unauthenticated-p)))
 
 (defun mastodon-http--get (url)
   "Make synchronous GET request to URL.
