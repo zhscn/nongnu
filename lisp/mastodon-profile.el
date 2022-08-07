@@ -267,15 +267,23 @@ Returns a list of lists."
 (defun mastodon-profile--fields-insert (fields)
   "Format and insert field pairs (a.k.a profile metadata) in FIELDS."
   (let* ((car-fields (mapcar 'car fields))
+         ;; (cdr-fields (mapcar 'cadr fields))
+         ;; (cdr-fields-rendered
+         ;; (list
+         ;; (mapcar (lambda (x)
+         ;; (mastodon-tl--render-text x nil))
+         ;; cdr-fields)))
          (left-width (car (sort (mapcar 'length car-fields) '>))))
     ;; (right-width (car (sort (mapcar 'length cdr-fields) '>))))
     (mapconcat (lambda (field)
                  (mastodon-tl--render-text
                   (concat
-                   (format "_ '%-54s " (car field))
-                   ;; (make-string (- (+ 1 left-width) (length (car field))) ?_)
+                   (format "_ %s " (car field))
+                   (make-string (- (+ 1 left-width) (length (car field))) ?_)
                    (format " :: %s" (cadr field)))
-                  field)) ; hack to make links tabstops
+                  ;; (make-string (- (+ 1 right-width) (length (cdr field))) ?_)
+                  ;; " |")
+                  field)) ; nil)) ; hack to make links tabstops
                fields "")))
 
 (defun mastodon-profile--get-statuses-pinned (account)
