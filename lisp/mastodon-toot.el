@@ -469,10 +469,10 @@ The list is formatted for `emojify-user-emojis', which see."
     (mapc (lambda (x)
             (push
              `(,(concat ":"
-                        (file-name-base x)
-                        ":") . (("name" . ,(file-name-base x))
-                        ("image" . ,(concat mastodon-custom-emojis-dir x))
-                        ("style" . "github")))
+                        (file-name-base x) ":")
+               . (("name" . ,(file-name-base x))
+                  ("image" . ,(concat mastodon-custom-emojis-dir x))
+                  ("style" . "github")))
              mastodon-emojify-user-emojis))
           custom-emoji-files)
     (reverse mastodon-emojify-user-emojis)))
@@ -486,7 +486,8 @@ to `emojify-user-emojis', and the emoji data is updated."
   (unless (file-exists-p (concat (expand-file-name
                                   emojify-emojis-dir)
                                  "/mastodon-custom-emojis/"))
-    (when (y-or-n-p "Looks like you haven't downloaded your instance's custom emoji yet. Download now? ")
+    (when (y-or-n-p "Looks like you haven't downloaded your
+    instance's custom emoji yet. Download now? ")
       (mastodon-toot--download-custom-emoji)))
   (setq emojify-user-emojis
         (append (mastodon-toot--collect-custom-emoji)
