@@ -240,26 +240,27 @@ TYPE is a symbol, either 'favourite or 'boost."
          (remove (if boost-p (when boosted t) (when faved t)))
          (toot-type (alist-get 'type (mastodon-tl--property 'toot-json))))
     (if byline-region
-        (cond ((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
-               (error "You can't %s your own toots." action-string))
-              ((equal "reblog" toot-type)
-               (error "You can't %s boosts." action-string))
-              ((equal "favourite" toot-type)
-               (error "Your can't %s favourites." action-string))
-              (t
-               (mastodon-toot--action
-                action
-                (lambda ()
-                  (let ((inhibit-read-only t))
-                    (add-text-properties (car byline-region)
-                                         (cdr byline-region)
-                                         (if boost-p
-                                             (list 'boosted-p (not boosted))
-                                           (list 'favourited-p (not faved))))
-                    (mastodon-toot--action-success
-                     (if boost-p "B" "F")
-                     byline-region remove))
-                  (message (format "%s #%s" (if boost-p msg action) id))))))
+        (cond ;; actually there's nothing wrong with faving/boosting own toots!
+         ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
+         ;;(error "You can't %s your own toots." action-string))
+         ((equal "reblog" toot-type)
+          (error "You can't %s boosts." action-string))
+         ((equal "favourite" toot-type)
+          (error "Your can't %s favourites." action-string))
+         (t
+          (mastodon-toot--action
+           action
+           (lambda ()
+             (let ((inhibit-read-only t))
+               (add-text-properties (car byline-region)
+                                    (cdr byline-region)
+                                    (if boost-p
+                                        (list 'boosted-p (not boosted))
+                                      (list 'favourited-p (not faved))))
+               (mastodon-toot--action-success
+                (if boost-p "B" "F")
+                byline-region remove))
+             (message (format "%s #%s" (if boost-p msg action) id))))))
       (message (format "Nothing to %s here?!?" action-string)))))
 
 (defun mastodon-toot--toggle-boost ()
