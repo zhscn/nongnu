@@ -1439,7 +1439,8 @@ by `mastodon-tl--follow-user' to enable or disable notifications."
                                    ((string-equal notify "false")
                                     (message "Not receiving notifications for user %s (@%s)!"
                                              name user-handle))
-                                   ((string-equal action "mute")
+                                   ((or (string-equal action "mute")
+                                        (string-equal action "unmute"))
                                     (message "User %s (@%s) %sd!" name user-handle action))
                                    ((eq notify nil)
                                     (message "User %s (@%s) %sed!" name user-handle action)))))))
