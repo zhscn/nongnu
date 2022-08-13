@@ -10,8 +10,8 @@ is difficult to spot, try changing its color, relying on
 
 * Installation
 
-IWindow isn't available on any ELPA right now.  So, you have to follow
-one of the following methods:
+Hl-Column isn't available on any ELPA right now.  So, you have to
+follow one of the following methods:
 
 ** Quelpa
 
