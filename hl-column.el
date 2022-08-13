@@ -71,7 +71,7 @@ window."
 The value of either nil or a list of form (WINDOW-START WINDOW-END
 POINT HIGHLIGHTED-COLUMN OVERLAYS).  When nil, nothing is highlighted.
 HIGHLIGHTED-COLUMN is the column currently highlighted, OVERLAYS is a
-list the overlays used to highlight current column and WINDOW-START
+list of the overlays used to highlight current column and WINDOW-START
 and WINDOW-END are markers to the points returned by `window-start'
 and `window-end' respectively while making the overlays.")
 
