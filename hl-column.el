@@ -122,7 +122,9 @@ and `window-end' respectively while making the overlays.")
                       (overlay-put
                        ov 'after-string
                        (concat
-                        (make-string (- column (current-column)) ? )
+                        (make-string (max (- column (current-column))
+                                          0)
+                                     ? )
                         (propertize " " 'face hl-column-face))))
                   (when (< column (current-column))
                     (backward-char))
