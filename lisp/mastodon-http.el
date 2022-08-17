@@ -98,7 +98,8 @@ Message status and JSON error from RESPONSE if unsuccessful."
     (string-to-unibyte (buffer-string))))
 
 (defmacro mastodon-http--authorized-request (method body &optional unauthenticated-p)
-  "Make a METHOD request with Mastodon authorization."
+  "Make a METHOD type request using BODY, with Mastodon authorization.
+Unless UNAUTHENTICATED-P is non-nil."
   `(let ((url-request-method ,method)
          (url-request-extra-headers
           (unless ,unauthenticated-p
@@ -133,7 +134,7 @@ Authorization header is included by default unless UNAUTHENTICATED-P is non-nil.
 (defun mastodon-http--get (url)
   "Make synchronous GET request to URL.
 
-Pass response buffer to CALLBACK function."  
+Pass response buffer to CALLBACK function."
   (mastodon-http--authorized-request
    "GET"
    (mastodon-http--url-retrieve-synchronously url)))
