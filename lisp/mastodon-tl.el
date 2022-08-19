@@ -1279,7 +1279,7 @@ RESPONSE is the JSON returned by the server."
   (mastodon-search--insert-users-propertized response :note)
   (goto-char (point-min)))
 
-(defmacro mastodon--do-if-toot (&rest body)
+(defmacro mastodon-tl--do-if-toot (&rest body)
   "Execute BODY if we have a toot or user at point."
   `(if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
             (not (mastodon-tl--property 'toot-json)))
@@ -1294,7 +1294,7 @@ Can be called to toggle NOTIFY on users already being followed."
   (interactive
    (list
     (mastodon-tl--interactive-user-handles-get "follow")))
-  (mastodon--do-if-toot
+  (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response user-handle "follow" nil notify)))
 
 (defun mastodon-tl--enable-notify-user-posts (user-handle)
@@ -1302,7 +1302,7 @@ Can be called to toggle NOTIFY on users already being followed."
   (interactive
    (list
     (mastodon-tl--interactive-user-handles-get "enable")))
-  (mastodon--do-if-toot
+  (mastodon-tl--do-if-toot
    (mastodon-tl--follow-user user-handle "true")))
 
 (defun mastodon-tl--disable-notify-user-posts (user-handle)
@@ -1317,7 +1317,7 @@ Can be called to toggle NOTIFY on users already being followed."
   (interactive
    (list
     (mastodon-tl--interactive-user-handles-get "unfollow")))
-  (mastodon--do-if-toot
+  (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response user-handle "unfollow" t)))
 
 (defun mastodon-tl--block-user (user-handle)
@@ -1325,7 +1325,7 @@ Can be called to toggle NOTIFY on users already being followed."
   (interactive
    (list
     (mastodon-tl--interactive-user-handles-get "block")))
-  (mastodon--do-if-toot
+  (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response user-handle "block")))
 
 (defun mastodon-tl--unblock-user (user-handle)
@@ -1342,7 +1342,7 @@ Can be called to toggle NOTIFY on users already being followed."
   (interactive
    (list
     (mastodon-tl--interactive-user-handles-get "mute")))
-  (mastodon--do-if-toot
+  (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response user-handle "mute")))
 
 (defun mastodon-tl--unmute-user (user-handle)
@@ -1356,7 +1356,7 @@ Can be called to toggle NOTIFY on users already being followed."
 
 (defun mastodon-tl--interactive-user-handles-get (action)
   "Get the list of user-handles for ACTION from the current toot."
-  (mastodon--do-if-toot
+  (mastodon-tl--do-if-toot
    (let ((user-handles
           (cond ((or (equal (buffer-name) "*mastodon-follow-suggestions*")
                      ;; follow suggests / search / foll requests compat:
