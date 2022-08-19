@@ -1683,14 +1683,13 @@ JSON is the data returned from the server."
                          #'mastodon-tl--update-timestamps-callback
                          (current-buffer)
                          nil)))
-    (unless
-        ;; for everything save profiles:
-        (string-prefix-p "accounts" endpoint))
-    ;;(or (equal endpoint "notifications")
-    ;; (string-prefix-p "timelines" endpoint)
-    ;; (string-prefix-p "favourites" endpoint)
-    ;; (string-prefix-p "statuses" endpoint))
-    (mastodon-tl--goto-first-item)))
+    (unless (string-prefix-p "accounts" endpoint)
+      ;; for everything save profiles
+      (mastodon-tl--goto-first-item))))
+;;(or (equal endpoint "notifications")
+;; (string-prefix-p "timelines" endpoint)
+;; (string-prefix-p "favourites" endpoint)
+;; (string-prefix-p "statuses" endpoint))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
