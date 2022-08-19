@@ -264,7 +264,7 @@ text, i.e. hidden spoiler text."
    "local" "timelines/public?local=true" 'mastodon-tl--timeline))
 
 (defun mastodon-tl--get-tag-timeline ()
-  "Prompts for tag and opens its timeline."
+  "Prompt for tag and opens its timeline."
   (interactive)
   (let* ((word (or (word-at-point) ""))
          (input (read-string (format "Load timeline for tag (%s): " word)))
