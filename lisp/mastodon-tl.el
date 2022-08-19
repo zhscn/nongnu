@@ -590,6 +590,7 @@ LETTER is a string, F for favourited, B for boosted, or K for bookmarked."
                             "bookmarked"))))
     (format "(%s) "
             (propertize letter 'face 'mastodon-boost-fave-face
+                        ;; emojify breaks this for 🔖:
                         'help-echo (format "You have %s this status."
                                            help-string)))))
 
