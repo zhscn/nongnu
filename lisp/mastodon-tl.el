@@ -547,7 +547,10 @@ By default it is `mastodon-tl--byline-boosted'"
              (when faved
                (mastodon-tl--format-faved-or-boosted-byline "F"))
              (when bookmarked
-               (mastodon-tl--format-faved-or-boosted-byline "K")))
+               (mastodon-tl--format-faved-or-boosted-byline
+                (if (fontp (char-displayable-p #10r128278))
+                    "🔖"
+                  "K"))))
      (propertize
       (concat
        ;; we propertize help-echo format faves for author name
@@ -583,10 +586,11 @@ LETTER is a string, F for favourited, B for boosted, or K for bookmarked."
                             "favourited")
                            ((equal letter "B")
                             "boosted")
-                           ((equal letter "K")
+                           ((equal letter (or "🔖" "K"))
                             "bookmarked"))))
     (format "(%s) "
             (propertize letter 'face 'mastodon-boost-fave-face
+                        ;; emojify breaks this for 🔖:
                         'help-echo (format "You have %s this status."
                                            help-string)))))
 
