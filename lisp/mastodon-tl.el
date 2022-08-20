@@ -898,7 +898,9 @@ PARENT-TOOT is the JSON of the toot responded to."
               (mastodon-tl--byline toot author-byline action-byline))
       'toot-id      (or id ; for notifications
                         (alist-get 'id toot))
-      'base-toot-id (mastodon-tl--toot-id toot)
+      'base-toot-id (mastodon-tl--toot-id
+                     ;; if a favourite/boost notif, get ID of toot responded to:
+                     (or parent-toot toot))
       'toot-json    toot
       'parent-toot parent-toot)
      "\n")
