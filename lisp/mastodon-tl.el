@@ -533,6 +533,9 @@ By default it is `mastodon-tl--byline-boosted'"
          (faved (equal 't (mastodon-tl--field 'favourited toot)))
          (boosted (equal 't (mastodon-tl--field 'reblogged toot)))
          (bookmarked (equal 't (mastodon-tl--field 'bookmarked toot)))
+         (bookmark-str (if (fontp (char-displayable-p #10r128278))
+                           "🔖"
+                         "K"))
          (visibility (mastodon-tl--field 'visibility toot)))
     (concat
      ;; Boosted/favourited markers are not technically part of the byline, so
@@ -547,10 +550,7 @@ By default it is `mastodon-tl--byline-boosted'"
              (when faved
                (mastodon-tl--format-faved-or-boosted-byline "F"))
              (when bookmarked
-               (mastodon-tl--format-faved-or-boosted-byline
-                (if (fontp (char-displayable-p #10r128278))
-                    "🔖"
-                  "K"))))
+               (mastodon-tl--format-faved-or-boosted-byline bookmark-str)))
      (propertize
       (concat
        ;; we propertize help-echo format faves for author name

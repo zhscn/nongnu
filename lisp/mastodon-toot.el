@@ -216,8 +216,6 @@ Makes a POST request to the server."
     (let ((response (mastodon-http--post url nil nil)))
       (mastodon-http--triage response callback))))
 
-
-
 (defun mastodon-toot--toggle-boost-or-favourite (type)
   "Toggle boost or favourite of toot at `point'.
 TYPE is a symbol, either 'favourite or 'boost."
@@ -272,6 +270,42 @@ TYPE is a symbol, either 'favourite or 'boost."
   "Favourite/unfavourite toot at `point'."
   (interactive)
   (mastodon-toot--toggle-boost-or-favourite 'favourite))
+
+;; TODO maybe refactor into boost/fave fun
+(defun mastodon-toot--bookmark-toot-toggle ()
+  "Bookmark or unbookmark toot at point."
+  (interactive)
+  (let* ((toot (mastodon-tl--property 'toot-json))
+         (id (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
+         (bookmarked-p (mastodon-tl--property 'bookmarked-p))
+         (prompt (if bookmarked-p
+                     (format "Toot already bookmarked. Remove? ")
+                   (format "Bookmark this toot? ")))
+         (byline-region
+          (when id
+            (mastodon-tl--find-property-range 'byline (point))))
+         (action (if bookmarked-p "unbookmark" "bookmark"))
+         (bookmark-str (if (fontp (char-displayable-p #10r128278))
+                           "🔖"
+                         "K"))
+         (message (if bookmarked-p
+                      "Bookmark removed!"
+                    "Toot bookmarked!"))
+         (remove (when bookmarked-p t)))
+    (if byline-region
+        (when (y-or-n-p prompt)
+          (mastodon-toot--action
+           action
+           (lambda ()
+             (let ((inhibit-read-only t))
+               (add-text-properties (car byline-region)
+                                    (cdr byline-region)
+                                    (list 'bookmarked-p (not bookmarked-p))))
+             (mastodon-toot--action-success
+              bookmark-str
+              byline-region remove)
+             (message (format "%s #%s" message id)))))
+      (message (format "Nothing to %s here?!?" action)))))
 
 (defun mastodon-toot--copy-toot-url ()
   "Copy URL of toot at point."
@@ -387,27 +421,6 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
       (setq mastodon-toot--visibility toot-visibility)
       (mastodon-toot-set-cw toot-cw)
       (mastodon-toot--update-status-fields))))
-
-(defun mastodon-toot--bookmark-toot-toggle ()
-  "Bookmark or unbookmark toot at point synchronously."
-  (interactive)
-  (let* ((toot (mastodon-tl--property 'toot-json))
-         (id (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
-         (bookmarked (alist-get 'bookmarked toot))
-         (url (mastodon-http--api (if (equal bookmarked t)
-                                      (format "statuses/%s/unbookmark" id)
-                                    (format "statuses/%s/bookmark" id))))
-         (prompt (if (equal bookmarked t)
-                     (format "Toot already bookmarked. Remove? ")
-                   (format "Bookmark this toot? ")))
-         (message (if (equal bookmarked t)
-                      "Bookmark removed!"
-                    "Toot bookmarked!")))
-    (when (y-or-n-p prompt)
-      (let ((response (mastodon-http--post url nil nil)))
-        (mastodon-http--triage response
-                               (lambda ()
-                                 (message message)))))))
 
 (defun mastodon-toot--kill ()
   "Kill `mastodon-toot-mode' buffer and window."
