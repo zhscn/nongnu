@@ -416,7 +416,10 @@ If toot is a boost, opens the profile of the booster."
                          user-handles
                          nil ; predicate
                          'confirm)))))
-  (if (not (get-text-property (point) 'toot-json))
+  (if (not (or
+            ;; own profile has no need for toot-json test:
+            (equal user-handle (mastodon-auth--get-account-name))
+            (get-text-property (point) 'toot-json)))
       (message "Looks like there's no toot or user at point?")
     (let ((account (mastodon-profile--lookup-account-in-status
                     user-handle (mastodon-profile--toot-json))))
