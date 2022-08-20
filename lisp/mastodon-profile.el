@@ -78,6 +78,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "s") #'mastodon-profile--open-followers)
     (define-key map (kbd "g") #'mastodon-profile--open-following)
+    (define-key map (kbd "C-c C-c") #'mastodon-profile--account-view-cycle)
     map)
   "Keymap for `mastodon-profile-mode'.")
 
@@ -88,7 +89,7 @@
     (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
     (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
     (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
-    (define-key map (kbd "g") 'mastodon-profile--view-follow-requests)
+    (define-key map (kbd "g") #'mastodon-profile--view-follow-requests)
     ;; (define-key map (kbd "t") #'mastodon-toot)
     ;; (define-key map (kbd "q") #'kill-current-buffer)
     ;; (define-key map (kbd "Q") #'kill-buffer-and-window)
@@ -129,6 +130,19 @@ extra keybindings."
   "Take an ACCOUNT json and insert a user account into a new buffer."
   (mastodon-profile--make-profile-buffer-for
    account "statuses" #'mastodon-tl--timeline))
+
+;; TODO: we shd just load all views' data then switch coz this is slow af:
+(defun mastodon-profile-account-view-cycle ()
+  "Cycle through profile view: toots, followers, and following."
+  (interactive)
+  (let ((endpoint (plist-get mastodon-tl--buffer-spec 'endpoint)))
+    (cond ((string-suffix-p "statuses" endpoint)
+           (mastodon-profile--open-followers))
+          ((string-suffix-p "followers" endpoint)
+           (mastodon-profile--open-following))
+          (t
+           (mastodon-profile--make-profile-buffer-for
+            mastodon-profile--account "statuses" #'mastodon-tl--timeline)))))
 
 (defun mastodon-profile--open-following ()
   "Open a profile buffer showing the accounts that current profile follows."
@@ -239,37 +253,25 @@ JSON is the data returned by the server."
 
 (defun mastodon-profile--fields-get (account)
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
-
 Returns a list of lists."
   (let ((fields (mastodon-profile--account-field account 'fields)))
     (when fields
-      (mapcar
-       (lambda (el)
-         (list
-          (alist-get 'name el)
-          (alist-get 'value el)))
-       fields))))
+      (mapcar (lambda (el)
+                (list (alist-get 'name el)
+                      (alist-get 'value el)))
+              fields))))
 
 (defun mastodon-profile--fields-insert (fields)
   "Format and insert field pairs (a.k.a profile metadata) in FIELDS."
   (let* ((car-fields (mapcar 'car fields))
-         ;; (cdr-fields (mapcar 'cadr fields))
-         ;; (cdr-fields-rendered
-         ;; (list
-         ;; (mapcar (lambda (x)
-         ;; (mastodon-tl--render-text x nil))
-         ;; cdr-fields)))
          (left-width (car (sort (mapcar 'length car-fields) '>))))
-    ;; (right-width (car (sort (mapcar 'length cdr-fields) '>))))
     (mapconcat (lambda (field)
                  (mastodon-tl--render-text
                   (concat
                    (format "_ %s " (car field))
                    (make-string (- (+ 1 left-width) (length (car field))) ?_)
                    (format " :: %s" (cadr field)))
-                  ;; (make-string (- (+ 1 right-width) (length (cdr field))) ?_)
-                  ;; " |")
-                  field)) ; nil)) ; hack to make links tabstops
+                  field)) ; hack to make links tabstops
                fields "")))
 
 (defun mastodon-profile--get-statuses-pinned (account)
@@ -421,7 +423,8 @@ If toot is a boost, opens the profile of the booster."
       (if account
           (progn
             (message "Loading profile of user %s..." user-handle)
-            (mastodon-profile--make-author-buffer account))
+            (mastodon-profile--make-author-buffer account)
+            (message "'C-c C-c' to cycle profile views: toots, followers, following"))
         (message "Cannot find a user with handle %S" user-handle)))))
 
 (defun mastodon-profile--my-profile ()

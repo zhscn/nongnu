@@ -90,8 +90,8 @@
                        ("u" "copy URL" 'shr-maybe-probe-and-copy-url))
                       ("Profile view"
                        ("g" "Show following" mastodon-profile--open-following)
-                       ("s" "Show followers" mastodon-profile--open-followers)
-                       
+                       ("s" "Show followers" mastodon-profile--open-followers)                       
+                       ("C-c C-c" "Cycle profile views" mastodon-profile-account-view-cycle)
                        ("R" "View follow requests" mastodon-profile--view-follow-requests)
                        ("a" "Accept follow request" mastodon-profile--follow-request-accept)
                        ("j" "Reject follow request" mastodon-profile--follow-request-reject)

@@ -264,7 +264,7 @@ text, i.e. hidden spoiler text."
    "local" "timelines/public?local=true" 'mastodon-tl--timeline))
 
 (defun mastodon-tl--get-tag-timeline ()
-  "Prompts for tag and opens its timeline."
+  "Prompt for tag and opens its timeline."
   (interactive)
   (let* ((word (or (word-at-point) ""))
          (input (read-string (format "Load timeline for tag (%s): " word)))
@@ -532,6 +532,7 @@ By default it is `mastodon-tl--byline-boosted'"
          (parsed-time (date-to-time created-time))
          (faved (equal 't (mastodon-tl--field 'favourited toot)))
          (boosted (equal 't (mastodon-tl--field 'reblogged toot)))
+         (bookmarked (equal 't (mastodon-tl--field 'bookmarked toot)))
          (visibility (mastodon-tl--field 'visibility toot)))
     (concat
      ;; Boosted/favourited markers are not technically part of the byline, so
@@ -544,18 +545,23 @@ By default it is `mastodon-tl--byline-boosted'"
      (concat (when boosted
                (mastodon-tl--format-faved-or-boosted-byline "B"))
              (when faved
-               (mastodon-tl--format-faved-or-boosted-byline "F")))
+               (mastodon-tl--format-faved-or-boosted-byline "F"))
+             (when bookmarked
+               (mastodon-tl--format-faved-or-boosted-byline
+                (if (fontp (char-displayable-p #10r128278))
+                    "🔖"
+                  "K"))))
      (propertize
       (concat
        ;; we propertize help-echo format faves for author name
        ;; in `mastodon-tl--byline-author'
        (funcall author-byline toot)
        (cond ((equal visibility "direct")
-              (if (fontp (char-displayable-p #10r128274))
+              (if (fontp (char-displayable-p #10r9993))
                   " ✉"
                 " [direct]"))
              ((equal visibility "private")
-              (if (fontp (char-displayable-p #10r9993))
+              (if (fontp (char-displayable-p #10r128274))
                   " 🔒"
                 " [followers]")))
        (funcall action-byline toot)
@@ -575,9 +581,18 @@ By default it is `mastodon-tl--byline-boosted'"
 
 (defun mastodon-tl--format-faved-or-boosted-byline (letter)
   "Format the byline marker for a boosted or favourited status.
-LETTER is a string, either F or B."
-  (format "(%s) "
-          (propertize letter 'face 'mastodon-boost-fave-face)))
+LETTER is a string, F for favourited, B for boosted, or K for bookmarked."
+  (let ((help-string (cond ((equal letter "F")
+                            "favourited")
+                           ((equal letter "B")
+                            "boosted")
+                           ((equal letter (or "🔖" "K"))
+                            "bookmarked"))))
+    (format "(%s) "
+            (propertize letter 'face 'mastodon-boost-fave-face
+                        ;; emojify breaks this for 🔖:
+                        'help-echo (format "You have %s this status."
+                                           help-string)))))
 
 (defun mastodon-tl--render-text (string toot)
   "Return a propertized text rendering the given HTML string STRING.

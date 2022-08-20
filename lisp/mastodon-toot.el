@@ -366,6 +366,12 @@ NO-REDRAFT means delete toot only."
                                          toot-visibility
                                          toot-cw)))))))))
 
+(defun mastodon-toot-set-cw (&optional cw)
+  "Set content warning to CW if it is non-nil"
+  (unless (equal cw "")
+    (setq mastodon-toot--content-warning t)
+    (setq mastodon-toot--content-warning-from-reply-or-redraft cw)))
+
 (defun mastodon-toot--redraft (response &optional reply-id toot-visibility toot-cw)
   "Opens a new toot compose buffer using values from RESPONSE buffer.
 REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
@@ -379,9 +385,7 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
       (when reply-id
         (setq mastodon-toot--reply-to-id reply-id))
       (setq mastodon-toot--visibility toot-visibility)
-      (when (not (equal toot-cw ""))
-        (setq mastodon-toot--content-warning t)
-        (setq mastodon-toot--content-warning-from-reply-or-redraft toot-cw))
+      (mastodon-toot-set-cw toot-cw)
       (mastodon-toot--update-status-fields))))
 
 (defun mastodon-toot--bookmark-toot-toggle ()
@@ -466,10 +470,10 @@ The list is formatted for `emojify-user-emojis', which see."
     (mapc (lambda (x)
             (push
              `(,(concat ":"
-                        (file-name-base x)
-                        ":") . (("name" . ,(file-name-base x))
-                        ("image" . ,(concat mastodon-custom-emojis-dir x))
-                        ("style" . "github")))
+                        (file-name-base x) ":")
+               . (("name" . ,(file-name-base x))
+                  ("image" . ,(concat mastodon-custom-emojis-dir x))
+                  ("style" . "github")))
              mastodon-emojify-user-emojis))
           custom-emoji-files)
     (reverse mastodon-emojify-user-emojis)))
@@ -483,7 +487,8 @@ to `emojify-user-emojis', and the emoji data is updated."
   (unless (file-exists-p (concat (expand-file-name
                                   emojify-emojis-dir)
                                  "/mastodon-custom-emojis/"))
-    (when (y-or-n-p "Looks like you haven't downloaded your instance's custom emoji yet. Download now? ")
+    (when (y-or-n-p "Looks like you haven't downloaded your
+    instance's custom emoji yet. Download now? ")
       (mastodon-toot--download-custom-emoji)))
   (setq emojify-user-emojis
         (append (mastodon-toot--collect-custom-emoji)
@@ -886,12 +891,10 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (when reply-to-user
       (insert (format "%s " reply-to-user))
       (setq mastodon-toot--reply-to-id reply-to-id)
-      (if (not (equal mastodon-toot--visibility
-                      reply-visibility))
-          (setq mastodon-toot--visibility reply-visibility))
-      (when (not (equal reply-cw ""))
-        (setq mastodon-toot--content-warning t)
-        (setq mastodon-toot--content-warning-from-reply-or-redraft reply-cw)))))
+      (unless (equal mastodon-toot--visibility
+                     reply-visibility)
+        (setq mastodon-toot--visibility reply-visibility))
+      (mastodon-toot-set-cw reply-cw))))
 
 (defun mastodon-toot--update-status-fields (&rest _args)
   "Update the status fields in the header based on the current state."
@@ -941,7 +944,7 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (switch-to-buffer-other-window buffer)
     (text-mode)
     (mastodon-toot-mode t)
-    (when (not buffer-exists)
+    (unless buffer-exists
       (mastodon-toot--display-docs-and-status-fields)
       (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json))
     (unless mastodon-toot--max-toot-chars
