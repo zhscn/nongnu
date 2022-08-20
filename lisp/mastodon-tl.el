@@ -519,7 +519,10 @@ AUTHOR-BYLINE is a function for adding the author portion of
 the byline that takes one variable.
 ACTION-BYLINE is a function for adding an action, such as boosting,
 favouriting and following to the byline. It also takes a single function.
-By default it is `mastodon-tl--byline-boosted'"
+By default it is `mastodon-tl--byline-boosted'.
+
+DETAILED-P means display more detailed info. For now
+this just means displaying toot client."
   (let* ((created-time
           ;; bosts and faves in notifs view
           ;; (makes timestamps be for the original toot
@@ -585,10 +588,10 @@ By default it is `mastodon-tl--byline-boosted'"
                           'face 'mastodon-display-name-face
                           'follow-link t
                           'mouse-face 'highlight
-		                  'mastodon-tab-stop 'shr-url
-		                  'shr-url app-url
+		          'mastodon-tab-stop 'shr-url
+		          'shr-url app-url
                           'help-echo app-url
-		                  'keymap mastodon-tl--shr-map-replacement)))))
+		          'keymap mastodon-tl--shr-map-replacement)))))
        (propertize "\n  ------------\n" 'face 'default))
       'favourited-p faved
       'boosted-p    boosted
@@ -890,7 +893,8 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
        (mastodon-tl--get-poll toot))
      (mastodon-tl--media toot))))
 
-(defun mastodon-tl--insert-status (toot body author-byline action-byline &optional id parent-toot detailed-p)
+(defun mastodon-tl--insert-status (toot body author-byline action-byline
+                                        &optional id parent-toot detailed-p)
   "Display the content and byline of timeline element TOOT.
 
 BODY will form the section of the toot above the byline.
@@ -904,7 +908,10 @@ takes a single function. By default it is
 
 ID is that of the toot, which is attached as a property if it is
 a notification. If the status is a favourite or a boost,
-PARENT-TOOT is the JSON of the toot responded to."
+PARENT-TOOT is the JSON of the toot responded to.
+
+DETAILED-P means display more detailed info. For now
+this just means displaying toot client."
   (let ((start-pos (point)))
     (insert
      (propertize
@@ -1043,7 +1050,10 @@ in which case play first video or gif from current toot."
       (message "no moving image here?"))))
 
 (defun mastodon-tl--toot (toot &optional detailed-p)
-  "Formats TOOT and insertes it into the buffer."
+  "Formats TOOT and insertes it into the buffer.
+
+DETAILED-P means display more detailed info. For now
+this just means displaying toot client."
   (mastodon-tl--insert-status
    toot
    (mastodon-tl--clean-tabs-and-nl

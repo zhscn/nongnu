@@ -207,7 +207,8 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
 
 (defun mastodon-toot--action (action callback)
   "Take ACTION on toot at point, then execute CALLBACK.
-Makes a POST request to the server."
+Makes a POST request to the server. Used for favouriting,
+boosting, or bookmarking toots."
   (let* ((id (mastodon-tl--property 'base-toot-id))
          (url (mastodon-http--api (concat "statuses/"
                                           (mastodon-tl--as-string id)
@@ -240,11 +241,11 @@ TYPE is a symbol, either 'favourite or 'boost."
     (if byline-region
         (cond ;; actually there's nothing wrong with faving/boosting own toots!
          ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
-         ;;(error "You can't %s your own toots." action-string))
+         ;;(error "You can't %s your own toots" action-string))
          ((equal "reblog" toot-type)
-          (error "You can't %s boosts." action-string))
+          (error "You can't %s boosts" action-string))
          ((equal "favourite" toot-type)
-          (error "Your can't %s favourites." action-string))
+          (error "Your can't %s favourites" action-string))
          (t
           (mastodon-toot--action
            action
@@ -402,7 +403,7 @@ NO-REDRAFT means delete toot only."
                                          toot-cw)))))))))
 
 (defun mastodon-toot-set-cw (&optional cw)
-  "Set content warning to CW if it is non-nil"
+  "Set content warning to CW if it is non-nil."
   (unless (equal cw "")
     (setq mastodon-toot--content-warning t)
     (setq mastodon-toot--content-warning-from-reply-or-redraft cw)))
