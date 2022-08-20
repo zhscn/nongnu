@@ -577,6 +577,7 @@ By default it is `mastodon-tl--byline-boosted'"
        (propertize "\n  ------------\n" 'face 'default))
       'favourited-p faved
       'boosted-p    boosted
+      'bookmarked-p bookmarked
       'byline       t))))
 
 (defun mastodon-tl--format-faved-or-boosted-byline (letter)
