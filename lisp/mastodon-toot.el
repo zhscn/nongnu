@@ -276,7 +276,8 @@ TYPE is a symbol, either 'favourite or 'boost."
   "Bookmark or unbookmark toot at point."
   (interactive)
   (let* ((toot (mastodon-tl--property 'toot-json))
-         (id (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
+         (id (mastodon-tl--property 'base-toot-id))
+         ;; (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
          (bookmarked-p (mastodon-tl--property 'bookmarked-p))
          (prompt (if bookmarked-p
                      (format "Toot already bookmarked. Remove? ")
