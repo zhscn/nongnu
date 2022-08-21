@@ -106,27 +106,27 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 |---------------+-----------------------------------------------------------------------|
 | Key           | Action                                                                |
 |---------------+-----------------------------------------------------------------------|
-|               | /Help/                                                                  |
+|               | *Help*                                                                  |
 | =?=             | Open context menu if =discover= is available                            |
 |---------------+-----------------------------------------------------------------------|
-|               | /Timeline actions/                                                      |
+|               | *Timeline actions*                                                      |
 | =n=             | Go to next item (toot, notification)                                  |
 | =p=             | Go to previous item (toot, notification)                              |
 | =M-n=/=<tab>=   | Go to the next interesting thing that has an action                   |
 | =M-p=/=<S-tab>= | Go to the previous interesting thing that has an action               |
-| =u=             | Update timeline                                                       |
-| =#=             | Prompt for tag and open its timeline                                  |
-| =A=             | Open author profile of toot under =point=                               |
 | =F=             | Open federated timeline                                               |
 | =H=             | Open home timeline                                                    |
 | =L=             | Open local timeline                                                   |
 | =N=             | Open notifications timeline                                           |
+| =u=             | Update current timeline                                               |
+| =T=             | Open thread for toot under =point=                                      |
+| =#=             | Prompt for tag and open its timeline                                  |
+| =A=             | Open author profile of toot under =point=                               |
 | =P=             | Open profile of user attached to toot under =point=                     |
 | =O=             | View own profile                                                      |
 | =U=             | update your profile bio note                                          |
-| =T=             | Open thread buffer for toot under =point=                               |
 |---------------+-----------------------------------------------------------------------|
-|               | Other views                                                           |
+|               | *Other views*                                                           |
 | =S=             | search (posts, users, tags) (NB: only posts you have interacted with) |
 | =I=, =c=, =d=       | view, create, and delete filters                                      |
 | =R=, =a=, =r=       | view/accept/reject follow requests                                    |
@@ -134,31 +134,30 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 | =V=             | view your favorited toots                                             |
 | =K=             | view bookmarked toots                                                 |
 |---------------+-----------------------------------------------------------------------|
-|               | /Toot actions/                                                          |
+|               | *Toot actions*                                                          |
+| =t=             | Compose a new toot                                                    |
 | =c=             | Toggle content warning content                                        |
 | =b=             | Boost toot under =point=                                                |
 | =f=             | Favourite toot under =point=                                            |
+| =k=             | toggle bookmark of toot at point                                      |
 | =r=             | Reply to toot under =point=                                             |
-| =t=             | Compose a new toot                                                    |
 | =v=             | Vote on poll at point                                                 |
 | =C=             | copy url of toot at point                                             |
 | =C-RET=         | play video/gif at point (requires =mpv=)                                |
-| =i=             | (un)pin toot at point                                                 |
+| =i=             | (un)pin your toot at point                                            |
 | =d=             | delete your toot at point, and reload current timeline                |
 | =D=             | delete and redraft toot at point, preserving reply/CW/visibility      |
-| =W=, =M=, =B=       | (un)follow, (un)mute, (un)block author of toot at point               |
-| =k=             | toggle bookmark of toot at point                                      |
+| (=S-C=) =W=, =M=, =B= | (un)follow, (un)mute, (un)block author of toot at point               |
 |---------------+-----------------------------------------------------------------------|
 |               | Notifications view                                                    |
 | =a=, =j=          | accept/reject follow request                                          |
 |---------------+-----------------------------------------------------------------------|
-|               | /Switching to other buffers/                                            |
-|               | /Quitting/                                                              |
+|               | *Quitting*                                                              |
 | =q=             | Quit mastodon buffer, leave window open                               |
 | =Q=             | Quit mastodon buffer and kill window                                  |
 |---------------+-----------------------------------------------------------------------|
 
-**** Legend
+**** Toot byline legend
 
 |----------------+------------------------|
 | Marker         | Meaning                |
@@ -208,13 +207,13 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Use proportional fonts
    - Timestamp format
    - Relative timestamps
-   - Display use avatars
+   - Display user avatars
    - Avatar image hight
    - Enable image caching
 
 - Compose options:
    - Default toot visibility, using  =mastodon-toot--default-visibility= variable. Valid values are ="public"=, ="unlisted"=, ="private"=, or =direct=.
-   - Completions for mentions
+   - Completions for user mentions
    - Enable custom emoji
 
 *** live-updating timelines: =mastodon-async-mode=
