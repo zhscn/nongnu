@@ -59,12 +59,22 @@
 Returns a nested list containing user handle, display name, and URL."
   (interactive "sSearch mastodon for: ")
   (let* ((url (mastodon-http--api "accounts/search"))
-         ;; (buffer (format "*mastodon-search-%s*" query))
          (response (if (equal mastodon-toot--enable-completion-for-mentions "following")
                        (mastodon-http--get-search-json url query "following=true")
                      (mastodon-http--get-search-json url query))))
-    (mapcar #'mastodon-search--get-user-info-@
-            response)))
+    (mapcar #'mastodon-search--get-user-info-@ response)))
+
+;; functions for tags completion:
+
+(defun mastodon-search--search-tags-query (query)
+  "Return an alist containing tag strings plus their URLs.
+QUERY is the string to search."
+  (interactive "sSearch for hashtag: ")
+  (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
+         (type-param (concat "type=hashtags"))
+         (response (mastodon-http--get-search-json url query type-param))
+         (tags (alist-get 'hashtags response)))
+    (mapcar #'mastodon-search--get-hashtag-info tags)))
 
 ;; functions for mastodon search
 

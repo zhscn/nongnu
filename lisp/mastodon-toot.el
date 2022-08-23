@@ -645,6 +645,43 @@ candidate ARG. IGNORED remains a mystery."
     (annotation (mastodon-toot--mentions-company-annotation arg))
     (meta (mastodon-toot--mentions-company-meta arg))))
 
+(defun mastodon-toot--tags-company-candidates (prefix)
+  "Given a company PREFIX query, build a list of candidates.
+The prefix can match against both user handles and display names."
+  (let ((prefix (substring prefix 1)) ;remove # for search
+        (res))
+    (dolist (item (mastodon-search--search-tags-query prefix))
+      (when (or (string-prefix-p prefix (substring (cadr item) 1) t)
+                (string-prefix-p prefix (car item) t))
+        (push (mastodon-toot--tags-company-make-candidate item) res)))
+    res))
+
+(defun mastodon-toot--tags-company-make-candidate (candidate)
+  "Construct a company completion CANDIDATE for display."
+  (let ((tag (concat "#" (car candidate)))
+        (url (cadr candidate)))
+    (propertize tag 'annot url 'meta url)))
+
+(defun mastodon-toot-tags (command &optional arg &rest ignored)
+  "A company completion backend for toot mentions.
+COMMAND is either prefix, to fetch a prefix query, candidates, to
+build a list of candidates with query ARG, annotation, to format
+an annotation for candidate ARG, or meta, to format meta info for
+candidate ARG. IGNORED remains a mystery."
+  (interactive (list 'interactive))
+  (cl-case command
+    (interactive (company-begin-backend 'mastodon-toot-tags))
+    (prefix (when (and (bound-and-true-p mastodon-toot-mode) ; if masto toot minor mode
+                       (save-excursion
+                         (forward-whitespace -1)
+                         (forward-whitespace 1)
+                         (looking-at "#")))
+              ;; # + thing before point
+              (concat "#" (company-grab-symbol))))
+    (candidates (mastodon-toot--tags-company-candidates arg))
+    (annotation (mastodon-toot--mentions-company-annotation arg))
+    (meta (mastodon-toot--mentions-company-meta arg))))
+
 (defun mastodon-toot--reply ()
   "Reply to toot at `point'."
   (interactive)
@@ -967,7 +1004,8 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (when (require 'company nil :noerror)
       (when mastodon-toot--enable-completion-for-mentions
         (set (make-local-variable 'company-backends)
-             (add-to-list 'company-backends 'mastodon-toot-mentions))
+             (add-to-list 'company-backends 'mastodon-toot-mentions)
+             (add-to-list 'company-backends 'mastodon-toot-tags))
         (company-mode-on)))
     (make-local-variable 'after-change-functions)
     (push #'mastodon-toot--update-status-fields after-change-functions)
