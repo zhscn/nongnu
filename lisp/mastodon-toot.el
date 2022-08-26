@@ -103,13 +103,19 @@ followers-only), or \"direct\"."
   :group 'mastodon-toot
   :type 'integer)
 
-(defcustom mastodon-toot--enable-completion-for-mentions
-  (if (require 'company nil :noerror) "following" "off")
-  "Whether to enable company completion for mentions.
+(defcustom mastodon-toot--enable-completion
+  (if (require 'company nil :noerror) t nil)
+  "Whether to enable completion of mentions and hashtags.
 
 Used for completion in toot compose buffer.
 
 This is only used if company mode is installed."
+  :group 'mastodon-toot
+  :type 'boolean)
+
+(defcustom mastodon-toot--completion-style-for-mentions
+  (if (require 'company nil :noerror) "following" "off")
+  "The company completion style to use for mentions."
   :group 'mastodon-toot
   :type '(choice
           (const :tag "off" nil)

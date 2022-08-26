@@ -59,7 +59,7 @@
 Returns a nested list containing user handle, display name, and URL."
   (interactive "sSearch mastodon for: ")
   (let* ((url (mastodon-http--api "accounts/search"))
-         (response (if (equal mastodon-toot--enable-completion-for-mentions "following")
+         (response (if (equal mastodon-toot--completion-style-for-mentions "following")
                        (mastodon-http--get-search-json url query "following=true")
                      (mastodon-http--get-search-json url query))))
     (mapcar #'mastodon-search--get-user-info-@ response)))
