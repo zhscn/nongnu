@@ -176,7 +176,9 @@ Pops a new buffer/window in =mastodon-toot= minor mode. Enter the
 contents of your toot here. =C-c C-c= sends the toot. =C-c C-k= cancels.
 Both actions kill the buffer and window.
 
-Autocompletion of mentions is provided by a mastodon company backend (requires =company-mode=).
+Autocompletion of mentions and tags is provided by mastodon company backends
+(requires =company-mode= and =mastodon-toot--enable-completion= must be set to =t=)
+. Type =@= or =#= followed by two or more characters for candidates to appear.
 
 Replies preserve visibility status/content warnings, and include boosters by default.
 
@@ -214,7 +216,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
 
 - Compose options:
    - Default toot visibility, using  =mastodon-toot--default-visibility= variable. Valid values are ="public"=, ="unlisted"=, ="private"=, or =direct=.
-   - Completions for mentions
+   - Completion for mentions and tags
    - Enable custom emoji
 
 *** live-updating timelines: =mastodon-async-mode=
@@ -259,7 +261,7 @@ This version depends on the library =request= (for uploading attachments). You
 can install it from MELPA, or https://github.com/tkf/emacs-request.
 
 Optional dependencies:
-- =company= for autocompletion of mentions when composing a toot
+- =company= for autocompletion of mentions and tags when composing a toot
 - =emojify= for inserting and viewing emojis
 - =mpv= and =mpv.el= for viewing videos and gifs
 - =lingva.el= for translating toots
