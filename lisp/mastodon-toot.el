@@ -613,17 +613,6 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
   "Format company completion CANDIDATE's annotation."
   (format " %s" (get-text-property 0 'annot candidate)))
 
-(defun mastodon-toot--mentions-company-candidates (prefix)
-  "Given a company PREFIX query, build a list of candidates.
-The prefix can match against both user handles and display names."
-  (let ((prefix (substring prefix 1)) ;remove @ for search
-        (res))
-    (dolist (item (mastodon-search--search-accounts-query prefix))
-      (when (or (string-prefix-p prefix (substring (cadr item) 1) t)
-                (string-prefix-p prefix (car item) t))
-        (push (mastodon-toot--mentions-company-make-candidate item) res)))
-    res))
-
 (defun mastodon-toot--mentions-company-make-candidate (candidate)
   "Construct a company completion CANDIDATE for display."
   (let ((display-name (car candidate))
@@ -631,62 +620,100 @@ The prefix can match against both user handles and display names."
         (url (caddr candidate)))
     (propertize handle 'annot display-name 'meta url)))
 
-(defun mastodon-toot-mentions (command &optional arg &rest ignored)
-  "A company completion backend for toot mentions.
-COMMAND is either prefix, to fetch a prefix query, candidates, to
-build a list of candidates with query ARG, annotation, to format
-an annotation for candidate ARG, or meta, to format meta info for
-candidate ARG. IGNORED remains a mystery."
-  (interactive (list 'interactive))
-  (cl-case command
-    (interactive (company-begin-backend 'mastodon-toot-mentions))
-    (prefix (when (and (bound-and-true-p mastodon-toot-mode) ; if masto toot minor mode
-                       (save-excursion
-                         (forward-whitespace -1)
-                         (forward-whitespace 1)
-                         (looking-at "@")))
-              ;; @ + thing before point
-              (concat "@" (company-grab-symbol))))
-    (candidates (mastodon-toot--mentions-company-candidates arg))
-    (annotation (mastodon-toot--mentions-company-annotation arg))
-    (meta (mastodon-toot--mentions-company-meta arg))))
-
-(defun mastodon-toot--tags-company-candidates (prefix)
-  "Given a company PREFIX query, build a list of candidates.
-The prefix can match against both user handles and display names."
-  (let ((prefix (substring prefix 1)) ;remove # for search
-        (res))
-    (dolist (item (mastodon-search--search-tags-query prefix))
-      (when (or (string-prefix-p prefix (substring (cadr item) 1) t)
-                (string-prefix-p prefix (car item) t))
-        (push (mastodon-toot--tags-company-make-candidate item) res)))
-    res))
-
 (defun mastodon-toot--tags-company-make-candidate (candidate)
   "Construct a company completion CANDIDATE for display."
   (let ((tag (concat "#" (car candidate)))
         (url (cadr candidate)))
     (propertize tag 'annot url 'meta url)))
 
-(defun mastodon-toot-tags (command &optional arg &rest ignored)
+(defun mastodon-toot--company-build-candidates (query list-fun make-fun)
+  "Build a list of completion candidates for a company backend.
+QUERY is the search prefix, LIST-FUN builds a list of items to
+match against, and MAKE-FUN builds the actual cadidate list item
+for display by company."
+  (let ((query (substring query 1)) ; remove @ or # for search
+        (res))
+    (dolist (item (funcall list-fun query))
+      (when (or (string-prefix-p query (substring (cadr item) 1) t)
+                (string-prefix-p query (car item) t))
+        (push (funcall make-fun item) res)))
+    res))
+
+(defun mastodon-toot--mentions-company-candidates (query)
+  "Given a company QUERY, build a list of candidates.
+The query can match both user handles and display names."
+  (mastodon-toot--company-build-candidates
+   query
+   'mastodon-search--search-accounts-query
+   'mastodon-toot--mentions-company-make-candidate))
+
+(defun mastodon-toot--tags-company-candidates (query)
+  "Given a company QUERY, build a list of candidates.
+The query is matched against a tag search on the server."
+  (mastodon-toot--company-build-candidates
+   query
+   'mastodon-search--search-tags-query
+   'mastodon-toot--tags-company-make-candidate))
+
+(defun mastodon-toot--make-company-backend
+    (command backend-name str-prefix candidates-fun annot-fun meta-fun
+             &optional arg
+             &rest ignored)
+  "Make a company backend for `mastodon-toot-mode'.
+COMMAND, ARG, IGNORED are all company backend args.
+COMMAND is either prefix, to fetch a prefix query, candidates, to
+build a list of candidates with query ARG, annotation, to format
+an annotation for candidate ARG, or meta, to format meta info for
+candidate ARG. IGNORED remains a mystery.
+
+BACKEND-NAME is the backend's name, STR-PREFIX is used to search
+for matches, CANDIDATES-FUN, ANNOT-FUN, and META-FUN are
+functions called on ARG to generate formatted candidates, annotation, and
+meta fields respectively."
+  (interactive (list 'interactive))
+  (cl-case command
+    (interactive (company-begin-backend (quote backend-name)))
+    (prefix (when (and (bound-and-true-p mastodon-toot-mode) ; if masto toot minor mode
+                       (save-excursion
+                         (forward-whitespace -1)
+                         (forward-whitespace 1)
+                         (looking-at str-prefix)))
+              (concat str-prefix (company-grab-symbol))))
+    (candidates (funcall candidates-fun arg))
+    (annotation (funcall annot-fun arg))
+    (meta (funcall meta-fun arg))))
+
+(defun mastodon-toot-mentions (command &optional arg &rest ignored)
   "A company completion backend for toot mentions.
 COMMAND is either prefix, to fetch a prefix query, candidates, to
 build a list of candidates with query ARG, annotation, to format
 an annotation for candidate ARG, or meta, to format meta info for
 candidate ARG. IGNORED remains a mystery."
-  (interactive (list 'interactive))
-  (cl-case command
-    (interactive (company-begin-backend 'mastodon-toot-tags))
-    (prefix (when (and (bound-and-true-p mastodon-toot-mode) ; if masto toot minor mode
-                       (save-excursion
-                         (forward-whitespace -1)
-                         (forward-whitespace 1)
-                         (looking-at "#")))
-              ;; # + thing before point
-              (concat "#" (company-grab-symbol))))
-    (candidates (mastodon-toot--tags-company-candidates arg))
-    (annotation (mastodon-toot--mentions-company-annotation arg))
-    (meta (mastodon-toot--mentions-company-meta arg))))
+  (mastodon-toot--make-company-backend
+   command
+   'mastodon-toot-mentions
+   "@"
+   'mastodon-toot--mentions-company-candidates
+   'mastodon-toot--mentions-company-annotation
+   'mastodon-toot--mentions-company-meta
+   arg
+   ignored))
+
+(defun mastodon-toot-tags (command &optional arg &rest ignored)
+  "A company completion backend for toot tags.
+COMMAND is either prefix, to fetch a prefix query, candidates, to
+build a list of candidates with query ARG, annotation, to format
+an annotation for candidate ARG, or meta, to format meta info for
+candidate ARG. IGNORED remains a mystery."
+  (mastodon-toot--make-company-backend
+   command
+   'mastodon-toot-tags
+   "#"
+   'mastodon-toot--tags-company-candidates
+   'mastodon-toot--mentions-company-annotation
+   'mastodon-toot--mentions-company-meta
+   arg
+   ignored))
 
 (defun mastodon-toot--reply ()
   "Reply to toot at `point'."
@@ -1008,11 +1035,11 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (unless mastodon-toot--max-toot-chars
       (mastodon-toot--get-max-toot-chars))
     (when (require 'company nil :noerror)
-      (when mastodon-toot--enable-completion-for-mentions
+      (when mastodon-toot--enable-completion
         (set (make-local-variable 'company-backends)
-             (add-to-list 'company-backends 'mastodon-toot-mentions)
-             (add-to-list 'company-backends 'mastodon-toot-tags))
-        (company-mode-on)))
+             (add-to-list 'company-backends 'mastodon-toot-mentions))
+        (add-to-list 'company-backends 'mastodon-toot-tags))
+      (company-mode-on))
     (make-local-variable 'after-change-functions)
     (push #'mastodon-toot--update-status-fields after-change-functions)
     (mastodon-toot--refresh-attachments-display)
