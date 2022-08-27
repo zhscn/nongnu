@@ -88,7 +88,8 @@
 (autoload 'mastodon-profile--view-bookmarks "mastodon-profile")
 (autoload 'mastoton-tl--view-filters "mastodon-tl")
 ;; (autoload 'mastodon-toot--bookmark-toot-toggle "mastodon-toot")
-
+(autoload 'mastodon-tl--view-filters "mastodon-tl")
+(autoload 'mastodon-tl--get-follow-suggestions "mastodon-tl")
 (when (require 'lingva nil :no-error)
   (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
 

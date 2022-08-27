@@ -65,7 +65,7 @@
 (autoload 'mastodon-tl--goto-first-item "mastodon-tl")
 (autoload 'mastodon-toot "mastodon")
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
-
+(autoload 'mastodon-tl--get-endpoint "mastodon-tl.el")
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--update-point)
@@ -78,7 +78,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "s") #'mastodon-profile--open-followers)
     (define-key map (kbd "g") #'mastodon-profile--open-following)
-    (define-key map (kbd "C-c C-c") #'mastodon-profile--account-view-cycle)
+    (define-key map (kbd "C-c C-c") #'mastodon-profile-account-view-cycle)
     map)
   "Keymap for `mastodon-profile-mode'.")
 

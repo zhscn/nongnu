@@ -40,7 +40,7 @@
 (autoload 'mastodon-auth--access-token "mastodon-auth")
 (autoload 'mastodon-http--get-search-json "mastodon-http")
 (autoload 'mastodon-http--api "mastodon-http")
-
+(defvar mastodon-toot--completion-style-for-mentions)
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--link-keymap)
 (defvar mastodon-http--timeout)
