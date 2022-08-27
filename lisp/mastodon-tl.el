@@ -512,14 +512,17 @@ E.g. this could return something like \"1 min ago\", \"yesterday\", etc.
 TIME-STAMP is assumed to be in the past."
   (car (mastodon-tl--relative-time-details timestamp current-time)))
 
-(defun mastodon-tl--byline (toot author-byline action-byline)
+(defun mastodon-tl--byline (toot author-byline action-byline &optional detailed-p)
   "Generate byline for TOOT.
 
 AUTHOR-BYLINE is a function for adding the author portion of
 the byline that takes one variable.
 ACTION-BYLINE is a function for adding an action, such as boosting,
 favouriting and following to the byline. It also takes a single function.
-By default it is `mastodon-tl--byline-boosted'"
+By default it is `mastodon-tl--byline-boosted'.
+
+DETAILED-P means display more detailed info. For now
+this just means displaying toot client."
   (let* ((created-time
           ;; bosts and faves in notifs view
           ;; (makes timestamps be for the original toot
@@ -574,6 +577,21 @@ By default it is `mastodon-tl--byline-boosted'"
         'display (if mastodon-tl--enable-relative-timestamps
                      (mastodon-tl--relative-time-description parsed-time)
                    parsed-time))
+       (when detailed-p
+         (let* ((app (alist-get 'application toot))
+                (app-name (alist-get 'name app))
+                (app-url (alist-get 'website app)))
+           (when app
+             (concat
+              (propertize " via " 'face 'default)
+              (propertize app-name
+                          'face 'mastodon-display-name-face
+                          'follow-link t
+                          'mouse-face 'highlight
+		          'mastodon-tab-stop 'shr-url
+		          'shr-url app-url
+                          'help-echo app-url
+		          'keymap mastodon-tl--shr-map-replacement)))))
        (propertize "\n  ------------\n" 'face 'default))
       'favourited-p faved
       'boosted-p    boosted
@@ -875,7 +893,8 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
        (mastodon-tl--get-poll toot))
      (mastodon-tl--media toot))))
 
-(defun mastodon-tl--insert-status (toot body author-byline action-byline &optional id parent-toot)
+(defun mastodon-tl--insert-status (toot body author-byline action-byline
+                                        &optional id parent-toot detailed-p)
   "Display the content and byline of timeline element TOOT.
 
 BODY will form the section of the toot above the byline.
@@ -889,14 +908,17 @@ takes a single function. By default it is
 
 ID is that of the toot, which is attached as a property if it is
 a notification. If the status is a favourite or a boost,
-PARENT-TOOT is the JSON of the toot responded to."
+PARENT-TOOT is the JSON of the toot responded to.
+
+DETAILED-P means display more detailed info. For now
+this just means displaying toot client."
   (let ((start-pos (point)))
     (insert
      (propertize
       (concat "\n"
               body
               " \n"
-              (mastodon-tl--byline toot author-byline action-byline))
+              (mastodon-tl--byline toot author-byline action-byline detailed-p))
       'toot-id      (or id ; for notifications
                         (alist-get 'id toot))
       'base-toot-id (mastodon-tl--toot-id
@@ -1027,8 +1049,11 @@ in which case play first video or gif from current toot."
           (message "no moving image here?"))
       (message "no moving image here?"))))
 
-(defun mastodon-tl--toot (toot)
-  "Formats TOOT and insertes it into the buffer."
+(defun mastodon-tl--toot (toot &optional detailed-p)
+  "Formats TOOT and insertes it into the buffer.
+
+DETAILED-P means display more detailed info. For now
+this just means displaying toot client."
   (mastodon-tl--insert-status
    toot
    (mastodon-tl--clean-tabs-and-nl
@@ -1036,7 +1061,10 @@ in which case play first video or gif from current toot."
         (mastodon-tl--spoiler toot)
       (mastodon-tl--content toot)))
    'mastodon-tl--byline-author
-   'mastodon-tl--byline-boosted))
+   'mastodon-tl--byline-boosted
+   nil
+   nil
+   detailed-p))
 
 (defun mastodon-tl--timeline (toots)
   "Display each toot in TOOTS."
@@ -1144,11 +1172,39 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
+(defun mastodon-tl--single-toot (&optional id)
+  "View toot at point in separate buffer.
+ID is that of the toot to view."
+  (interactive)
+  (let* ((id
+          (or id
+              (if (equal (mastodon-tl--get-endpoint) "notifications")
+                  ;; for boosts/faves:
+                  (if (mastodon-tl--property 'parent-toot)
+                      (mastodon-tl--as-string (mastodon-tl--toot-id
+                                               (mastodon-tl--property 'parent-toot)))
+                    (mastodon-tl--property 'base-toot-id))
+                (mastodon-tl--property 'base-toot-id))))
+         (buffer (format "*mastodon-toot-%s*" id))
+         (toot (mastodon-http--get-json
+                (mastodon-http--api (concat "statuses/" id)))))
+    (with-output-to-temp-buffer buffer
+      (switch-to-buffer buffer)
+      (mastodon-mode)
+      (setq mastodon-tl--buffer-spec
+            `(buffer-name ,buffer
+                          endpoint ,(format "statuses/%s" id)
+                          update-function
+                          (lambda (toot) (message "END of thread."))))
+      (let ((inhibit-read-only t))
+        (mastodon-tl--toot toot :detailed-p)))))
+
 (defun mastodon-tl--thread ()
   "Open thread buffer for toot under `point'."
   (interactive)
   (let* ((id
           (if (equal (mastodon-tl--get-endpoint) "notifications")
+              ;; for boosts/faves:
               (if (mastodon-tl--property 'parent-toot)
                   (mastodon-tl--as-string (mastodon-tl--toot-id
                                            (mastodon-tl--property 'parent-toot)))
@@ -1176,12 +1232,12 @@ webapp"
                                 update-function
                                 (lambda (toot) (message "END of thread."))))
             (let ((inhibit-read-only t))
-              (mastodon-tl--timeline (vconcat
-                                      (alist-get 'ancestors context)
-                                      `(,toot)
-                                      (alist-get 'descendants context)))))
+              (mastodon-tl--timeline (alist-get 'ancestors context))
+              (goto-char (point-max))
+              (mastodon-tl--toot toot :detailed-p)
+              (mastodon-tl--timeline (alist-get 'descendants context))))
           (mastodon-tl--goto-next-toot))
-      (message "No Thread!"))))
+      (mastodon-tl--single-toot id))))
 
 (defun mastodon-tl--create-filter ()
   "Create a filter for a word.

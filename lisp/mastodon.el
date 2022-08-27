@@ -5,7 +5,7 @@
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 1.0.0
-;; Package-Requires: ((emacs "27.1") (request "0.3.2") (seq "1.0"))
+;; Package-Requires: ((emacs "27.1") (request "0.3.0"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -88,7 +88,8 @@
 (autoload 'mastodon-profile--view-bookmarks "mastodon-profile")
 (autoload 'mastoton-tl--view-filters "mastodon-tl")
 ;; (autoload 'mastodon-toot--bookmark-toot-toggle "mastodon-toot")
-
+(autoload 'mastodon-tl--view-filters "mastodon-tl")
+(autoload 'mastodon-tl--get-follow-suggestions "mastodon-tl")
 (when (require 'lingva nil :no-error)
   (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
 

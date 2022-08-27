@@ -48,6 +48,7 @@
 (autoload 'mastodon-tl--spoiler "mastodon-tl.el")
 (autoload 'mastodon-tl--toot-id "mastodon-tl.el")
 (autoload 'mastodon-http--get-params-async-json "mastodon-http.el")
+(autoload 'mastodon-profile--view-follow-requests "mastodon-profile.el")
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
 (defvar mastodon-tl--buffer-spec)
@@ -219,7 +220,9 @@ Status notifications are given when
                (equal type 'boost))
        status))))
 
-(defun mastodon-notifications--insert-status (toot body author-byline action-byline id &optional parent-toot)
+(defun mastodon-notifications--insert-status (toot body
+                                                   author-byline action-byline id
+                                                   &optional parent-toot)
   "Display the content and byline of timeline element TOOT.
 
 BODY will form the section of the toot above the byline.
