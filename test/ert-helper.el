@@ -13,3 +13,11 @@
 (load-file "lisp/mastodon-search.el")
 (load-file "lisp/mastodon-tl.el")
 (load-file "lisp/mastodon-toot.el")
+
+;; load tests in bulk to avoid using deprecated `cask exec'
+(let ((tests (cl-remove-if-not (lambda (x)
+                                 (string-suffix-p "-tests.el" x))
+                               (directory-files "test/." t directory-files-no-dot-files-regexp))))
+  (mapc #'load-file tests))
+
+
