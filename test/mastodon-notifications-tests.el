@@ -1,4 +1,4 @@
-;;; mastodon-notifications-test.el --- Tests for mastodon-notifications.el  -*- lexical-binding: nil -*-
+;;; mastodon-notifications-tests.el --- Tests for mastodon-notifications.el  -*- lexical-binding: nil -*-
 
 (require 'cl-lib)
 (require 'cl-macs)
