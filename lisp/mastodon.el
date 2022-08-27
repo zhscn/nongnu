@@ -5,7 +5,7 @@
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 0.10.0
-;; Package-Requires: ((emacs "27.1") (request "0.3.2") (seq "1.0"))
+;; Package-Requires: ((emacs "27.1") (request "0.3.0"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
