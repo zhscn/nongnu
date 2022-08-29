@@ -436,6 +436,14 @@ If toot is a boost, opens the profile of the booster."
   (message "Loading your profile...")
   (mastodon-profile--show-user (mastodon-auth--get-account-name)))
 
+(defun mastodon-profile--view-author-profile ()
+  "View the profile of author of present toot."
+  (interactive)
+  (let* ((toot-json (mastodon-tl--property 'toot-json))
+         (acct (alist-get 'account toot-json))
+         (handle (alist-get 'acct acct)))
+    (mastodon-profile--show-user handle)))
+
 (defun mastodon-profile--account-field (account field)
   "Return FIELD from the ACCOUNT.
 
@@ -494,7 +502,7 @@ These include the author, author of reblogged entries and any user mentioned."
   (when status
     (let ((this-account
            (or (alist-get 'account status) ; status is a toot
-                            status)) ; status is a user listing
+               status)) ; status is a user listing
 	      (mentions (or (alist-get 'mentions (alist-get 'status status))
                         (alist-get 'mentions status)))
 	      (reblog (or (alist-get 'reblog (alist-get 'status status))

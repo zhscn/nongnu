@@ -65,6 +65,7 @@
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 (autoload 'mastodon-search--get-user-info "mastodon-search")
 (autoload 'mastodon-http--delete "mastodon-http")
+(autoload 'mastodon-profile--view-author-profile "mastodon-profile")
 
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
@@ -196,9 +197,10 @@ types of mastodon links and not just shr.el-generated ones.")
   (when (require 'mpv nil :no-error)
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-from-byline)
+      (define-key map (kbd "<return>") 'mastodon-profile--view-author-profile)
       (keymap-canonicalize map)))
   "The keymap to be set for the author byline.
-The idea is that you can play media without navigating to it.")
+It is active where point is placed by `mastodon-tl--goto-next-toot.'")
 
 (defun mastodon-tl--next-tab-item ()
   "Move to the next interesting item.
