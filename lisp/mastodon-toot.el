@@ -60,6 +60,7 @@
 (autoload 'mastodon-http--read-file-as-string "mastodon-http")
 (autoload 'mastodon-http--triage "mastodon-http")
 (autoload 'mastodon-search--search-accounts-query "mastodon-search")
+(autoload 'mastodon-search--search-tags-query "mastodon-search")
 (autoload 'mastodon-tl--as-string "mastodon-tl")
 (autoload 'mastodon-tl--clean-tabs-and-nl "mastodon-tl")
 (autoload 'mastodon-tl--field "mastodon-tl")
