@@ -49,6 +49,7 @@
 (autoload 'mastodon-tl--toot-id "mastodon-tl.el")
 (autoload 'mastodon-http--get-params-async-json "mastodon-http.el")
 (autoload 'mastodon-profile--view-follow-requests "mastodon-profile.el")
+(autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
 (defvar mastodon-tl--buffer-spec)
