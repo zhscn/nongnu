@@ -83,18 +83,6 @@
   :prefix "mastodon-toot-"
   :group 'mastodon)
 
-(defcustom mastodon-toot--default-visibility "public"
-  "The default visibility for new toots.
-
-Must be one of \"public\", \"unlisted\", \"private\" (for
-followers-only), or \"direct\"."
-  :group 'mastodon-toot
-  :type '(choice
-          (const :tag "public" "public")
-          (const :tag "unlisted" "unlisted")
-          (const :tag "followers only" "private")
-          (const :tag "direct" "direct")))
-
 (defcustom mastodon-toot--default-media-directory "~/"
   "The default directory when prompting for a media file to upload."
   :group 'mastodon-toot
