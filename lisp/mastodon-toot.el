@@ -126,6 +126,10 @@ This is only used if company mode is installed."
 (defvar-local mastodon-toot--content-nsfw nil
   "A flag indicating whether the toot should be marked as NSFW.")
 
+(defvar mastodon-toot-visibility-list
+  '(direct private unlisted public)
+  "A list of the available toot visibility settings.")
+
 (defvar-local mastodon-toot--visibility "public"
   "A string indicating the visibility of the toot being composed.
 

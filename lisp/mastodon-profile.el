@@ -70,6 +70,7 @@
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--update-point)
 (defvar mastodon-mode-map)
+(defvar mastodon-toot-visibility-list)
 
 (defvar-local mastodon-profile--account nil
   "The data for the account being described in the current profile buffer.")
@@ -262,6 +263,14 @@ SOURCE means that the preference is in the 'source' part of the account json."
     (mastodon-http--triage response
                            (lambda ()
                              (message "Account setting %s updated!" pref)))))
+
+(defun mastodon-profile-set-default-toot-visibility ()
+  "Set the default visibility for toots."
+  (interactive)
+  (let ((vis (completing-read "Set default visibility to:"
+                              mastodon-toot-visibility-list
+                              nil t)))
+    (mastodon-profile--update-preference "privacy" vis :source)))
 
 (defun mastodon-profile-view-preferences ()
   "View user preferences in another window."
