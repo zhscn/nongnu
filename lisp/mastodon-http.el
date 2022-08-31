@@ -168,7 +168,7 @@ Pass response buffer to CALLBACK function."
 (defun mastodon-http--append-query-string (url params)
   "Append PARAMS to URL as query strings and return it.
 
-PARAMS should be an alist as required `url-build-query-string'."
+PARAMS should be an alist as required by `url-build-query-string'."
   (let ((query-string (url-build-query-string params)))
     (concat url "?" query-string)))
 
@@ -204,21 +204,18 @@ PARAM is a formatted request parameter, eg 'following=true'."
 
 ;; profile update functions
 
-(defun mastodon-http--patch-json (url)
-  "Make synchronous PATCH request to URL. Return JSON response."
-  (with-current-buffer (mastodon-http--patch url)
+(defun mastodon-http--patch-json (url &optional params)
+  "Make synchronous PATCH request to URL. Return JSON response.
+Optionally specify the PARAMS to send."
+  (with-current-buffer (mastodon-http--patch url params)
     (mastodon-http--process-json)))
 
-;; hard coded just for bio note for now:
-(defun mastodon-http--patch (base-url &optional note)
+(defun mastodon-http--patch (base-url &optional params)
   "Make synchronous PATCH request to BASE-URL.
-Optionally specify the NOTE to edit.
-Pass response buffer to CALLBACK function."
+Optionally specify the PARAMS to send."
   (mastodon-http--authorized-request
    "PATCH"
-   (let ((url (if note
-                 (concat base-url "?note=" (url-hexify-string note))
-               base-url)))
+   (let ((url (mastodon-http--append-query-string base-url params)))
      (mastodon-http--url-retrieve-synchronously url))))
 
  ;; Asynchronous functions

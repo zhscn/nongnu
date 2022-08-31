@@ -237,7 +237,7 @@ JSON is the data returned by the server."
   (let* ((note (buffer-substring-no-properties (point-min) (point-max)))
          (url (mastodon-http--api "accounts/update_credentials")))
     (kill-buffer-and-window)
-    (let ((response (mastodon-http--patch url note)))
+    (let ((response (mastodon-http--patch url `((note ,note)))))
       (mastodon-http--triage response
                              (lambda () (message "Profile note updated!"))))))
 
