@@ -216,12 +216,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Enable image caching
 
 - Compose options:
-   - Default toot visibility, using  =mastodon-toot--default-visibility= variable. Valid values are ="public"=, ="unlisted"=, ="private"=, or =direct=.
-<<<<<<< HEAD
-   - Completions for user mentions
-=======
    - Completion for mentions and tags
->>>>>>> develop
    - Enable custom emoji
 
 *** live-updating timelines: =mastodon-async-mode=
