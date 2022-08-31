@@ -71,6 +71,7 @@
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (autoload 'mastodon-tl--toot-id "mastodon-tl")
 (autoload 'mastodon-toot "mastodon")
+(autoload 'mastodon-profile--get-source-pref "mastodon-profile")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -141,7 +142,9 @@ This is only used if company mode is installed."
   "A string indicating the visibility of the toot being composed.
 
 Valid values are \"direct\", \"private\" (followers-only),
-\"unlisted\", and \"public\".")
+\"unlisted\", and \"public\".
+
+This may be set by the account setting on the server.")
 
 (defvar-local mastodon-toot--media-attachments nil
   "A list of the media attachments of the toot being composed.")
@@ -1030,11 +1033,15 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (switch-to-buffer-other-window buffer)
     (text-mode)
     (mastodon-toot-mode t)
+    ;; use toot visibility setting from the server:
+    (setq mastodon-toot--visibility
+          (mastodon-profile--get-source-pref 'privacy))
     (unless buffer-exists
       (mastodon-toot--display-docs-and-status-fields)
       (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json))
     (unless mastodon-toot--max-toot-chars
       (mastodon-toot--get-max-toot-chars))
+    ;; set up company backends:
     (when (require 'company nil :noerror)
       (when mastodon-toot--enable-completion
         (set (make-local-variable 'company-backends)
