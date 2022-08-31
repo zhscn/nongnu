@@ -289,7 +289,7 @@ PRs, issues, and feature requests are very welcome!
 Some significant contributors are:
 
 - https://github.com/jdenen [original author]
-- https://github.com/ieure
+- http://atomized.org
 - https://alexjgriffith.itch.io
 - https://github.com/hdurer
 - https://codeberg.org/Red_Starfish
