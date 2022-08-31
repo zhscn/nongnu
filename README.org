@@ -219,7 +219,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Completion for mentions and tags
    - Enable custom emoji
 
-*** live-updating timelines: =mastodon-async-mode=
+*** Live-updating timelines: =mastodon-async-mode=
 
 (code taken from https://github.com/alexjgriffith/mastodon-future.el.)
 
@@ -232,7 +232,7 @@ To enable, it, add =(require 'mastodon-async)= to your =init.el=. Then you can
 view a timeline with one of the commands that begin with
 =mastodon-async--stream-=.
 
-*** translating toots
+*** Translating toots
 
 You can translate toots with =mastodon-toot--translate-toot-text=. At the moment
 this requires [[https://codeberg.org/martianh/lingva.el][lingva.el]], a little interface I wrote to https://lingva.ml, to
@@ -255,7 +255,7 @@ to your translator function as its text argument. Here's what
           (message "No toot to translate?"))))
 #+end_src
 
-** dependencies
+** Dependencies
 
 This version depends on the library =request= (for uploading attachments). You
 can install it from MELPA, or https://github.com/tkf/emacs-request.
@@ -281,3 +281,15 @@ PRs, issues, and feature requests are very welcome!
 1. In an [[https://github.com/jdenen/mastodon.el/issues][issue]], let me know that you're working to fix it.
 2. Fork the repository and create a branch off of =develop=.
 3. Create a pull request referencing the issue from step 1.
+
+** Contributors:
+
+=mastodon.el= is a the work of a number of people.
+
+Some significant contributors are:
+
+- https://github.com/jdenen [original author]
+- http://atomized.org
+- https://alexjgriffith.itch.io
+- https://github.com/hdurer
+- https://codeberg.org/Red_Starfish
