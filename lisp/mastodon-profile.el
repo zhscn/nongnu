@@ -212,11 +212,15 @@ JSON is the data returned by the server."
 
 ;;; account preferences
 
-(defun mastodon-profile--get-source-prefs ()
-  "Return the \"source\" preferences from the server."
+(defun mastodon-profile--get-json-value (val)
+  "Fetch current VAL ue from account."
   (let* ((url (mastodon-http--api "accounts/verify_credentials"))
          (response (mastodon-http--get-json url)))
-    (alist-get 'source response)))
+    (alist-get val response)))
+
+(defun mastodon-profile--get-source-prefs ()
+  "Return the \"source\" preferences from the server."
+  (mastodon-profile--get-json-value 'source))
 
 (defun mastodon-profile--get-source-pref (pref)
   "Return account PREF erence from the \"source\" section on the server."
