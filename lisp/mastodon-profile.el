@@ -212,8 +212,7 @@ JSON is the data returned by the server."
 (defun mastodon-profile--update-user-profile-note ()
   "Fetch user's profile note and display for editing."
   (interactive)
-  (let* ((url (concat mastodon-instance-url
-                      "/api/v1/accounts/update_credentials"))
+  (let* ((url (mastodon-http--api "accounts/update_credentials"))
          ;; (buffer (mastodon-http--patch url))
          (json (mastodon-http--patch-json url))
          (source (alist-get 'source json))
@@ -236,8 +235,7 @@ JSON is the data returned by the server."
   "Send PATCH request with the updated profile note."
   (interactive)
   (let* ((note (buffer-substring-no-properties (point-min) (point-max)))
-         (url (concat mastodon-instance-url
-                      "/api/v1/accounts/update_credentials")))
+         (url (mastodon-http--api "accounts/update_credentials")))
     (kill-buffer-and-window)
     (let ((response (mastodon-http--patch url note)))
       (mastodon-http--triage response
