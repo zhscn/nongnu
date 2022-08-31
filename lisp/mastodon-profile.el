@@ -260,6 +260,7 @@ JSON is the data returned by the server."
 
 (defun mastodon-profile--update-preference (pref val &optional source)
   "Update a single acount PREF erence to setting VAL.
+Both args are strings.
 SOURCE means that the preference is in the 'source' part of the account json."
   (let* ((url (mastodon-http--api "accounts/update_credentials"))
          (pref (if source (concat "source[" pref "]") pref))
@@ -267,6 +268,17 @@ SOURCE means that the preference is in the 'source' part of the account json."
     (mastodon-http--triage response
                            (lambda ()
                              (message "Account setting %s updated!" pref)))))
+
+(defun mastodon-profile-account-locked-toggle ()
+  "Toggle the locked status of the user's account.
+Locked accounts mean follow requests have to be manually approved."
+  (interactive)
+  (let ((locked-p (mastodon-profile--get-json-value 'locked)))
+    (if (not (equal locked-p :json-false))
+        (when (y-or-n-p "Account is locked to new followers. Unlock?")
+          (mastodon-profile--update-preference "locked" "false"))
+      (when (y-or-n-p "Account is not locked to new followers. Lock it?")
+        (mastodon-profile--update-preference "locked" "true")))))
 
 (defun mastodon-profile-set-default-toot-visibility ()
   "Set the default visibility for toots."
