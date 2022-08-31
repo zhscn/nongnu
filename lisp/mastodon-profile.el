@@ -207,13 +207,25 @@ JSON is the data returned by the server."
                'byline t
                'toot-id "0"))
     (mastodon-search--insert-users-propertized json :note)))
-    ;; (mastodon-profile--add-author-bylines json)))
+;; (mastodon-profile--add-author-bylines json)))
+
+;;; account preferences
+
+(defun mastodon-profile--get-source-prefs ()
+  "Return the \"source\" preferences from the server."
+  (let* ((url (mastodon-http--api "accounts/verify_credentials"))
+         (response (mastodon-http--get-json url)))
+    (alist-get 'source response)))
+
+(defun mastodon-profile--get-source-pref (pref)
+  "Return account PREF erence from the \"source\" section on the server."
+  (let ((source (mastodon-profile--get-source-prefs)))
+    (alist-get pref source)))
 
 (defun mastodon-profile--update-user-profile-note ()
   "Fetch user's profile note and display for editing."
   (interactive)
   (let* ((url (mastodon-http--api "accounts/update_credentials"))
-         ;; (buffer (mastodon-http--patch url))
          (json (mastodon-http--patch-json url))
          (source (alist-get 'source json))
          (note (alist-get 'note source))
@@ -240,6 +252,16 @@ JSON is the data returned by the server."
     (let ((response (mastodon-http--patch url `((note ,note)))))
       (mastodon-http--triage response
                              (lambda () (message "Profile note updated!"))))))
+
+(defun mastodon-profile--update-preference (pref val &optional source)
+  "Update a single acount PREF erence to setting VAL.
+SOURCE means that the preference is in the 'source' part of the account json."
+  (let* ((url (mastodon-http--api "accounts/update_credentials"))
+         (pref (if source (concat "source[" pref "]") pref))
+         (response (mastodon-http--patch url `((,pref ,val)))))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (message "Account setting %s updated!" pref)))))
 
 (defun mastodon-profile-view-preferences ()
   "View user preferences in another window."
