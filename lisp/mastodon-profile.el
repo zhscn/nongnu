@@ -273,12 +273,23 @@ SOURCE means that the preference is in the 'source' part of the account json."
   "Toggle the locked status of the user's account.
 Locked accounts mean follow requests have to be manually approved."
   (interactive)
-  (let ((locked-p (mastodon-profile--get-json-value 'locked)))
-    (if (not (equal locked-p :json-false))
-        (when (y-or-n-p "Account is locked to new followers. Unlock?")
-          (mastodon-profile--update-preference "locked" "false"))
-      (when (y-or-n-p "Account is not locked to new followers. Lock it?")
-        (mastodon-profile--update-preference "locked" "true")))))
+  (mastodon-profile--toggle-account-key 'locked))
+
+(defun mastodon-profile-account-discoverable-toggle ()
+  "Toggle the discoverable status of the user's account.
+Discoverable means the account is listed in the server directory."
+  (interactive)
+  (mastodon-profile--toggle-account-key 'discoverable))
+
+(defun mastodon-profile--toggle-account-key (key)
+  "Toggle the boolean account setting KEY."
+  (let* ((val (mastodon-profile--get-json-value key))
+         (prompt (format "Account setting %s is %s. Toggle?" key val)))
+    (if (not (equal val :json-false))
+        (when (y-or-n-p prompt)
+          (mastodon-profile--update-preference (symbol-name key) "false"))
+      (when (y-or-n-p prompt)
+        (mastodon-profile--update-preference (symbol-name key) "true")))))
 
 (defun mastodon-profile-set-default-toot-visibility ()
   "Set the default visibility for toots."
