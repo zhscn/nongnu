@@ -263,11 +263,11 @@ JSON is the data returned by the server."
 Both args are strings.
 SOURCE means that the preference is in the 'source' part of the account json."
   (let* ((url (mastodon-http--api "accounts/update_credentials"))
-         (pref (if source (concat "source[" pref "]") pref))
-         (response (mastodon-http--patch url `((,pref ,val)))))
+         (pref-formatted (if source (concat "source[" pref "]") pref))
+         (response (mastodon-http--patch url `((,pref-formatted ,val)))))
     (mastodon-http--triage response
                            (lambda ()
-                             (message "Account setting %s updated!" pref)))))
+                             (message "Account setting %s updated to %s!" pref val)))))
 
 (defun mastodon-profile-account-locked-toggle ()
   "Toggle the locked status of the user's account.
