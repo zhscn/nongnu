@@ -241,6 +241,26 @@ JSON is the data returned by the server."
       (mastodon-http--triage response
                              (lambda () (message "Profile note updated!"))))))
 
+(defun mastodon-profile-view-preferences ()
+  "View user preferences in another window."
+  (interactive)
+  (let* ((url (mastodon-http--api "preferences"))
+         (response (mastodon-http--get-json url))
+         (buf (get-buffer-create "*mastodon-preferences*")))
+    (with-current-buffer buf
+      (switch-to-buffer-other-window buf)
+      (erase-buffer)
+      (special-mode)
+      (let ((inhibit-read-only t))
+        (while response
+          (let ((el (pop response)))
+            (insert
+             (format "%-30s %s"
+                     (prin1-to-string (car el))
+                     (prin1-to-string (cdr el)))
+             "\n\n"))))
+      (goto-char (point-min)))))
+
 (defun mastodon-profile--relationships-get (id)
   "Fetch info about logged-in user's relationship to user with id ID."
   (let* ((their-id id)
