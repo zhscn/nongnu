@@ -72,6 +72,7 @@
 (autoload 'mastodon-tl--toot-id "mastodon-tl")
 (autoload 'mastodon-toot "mastodon")
 (autoload 'mastodon-profile--get-source-pref "mastodon-profile")
+(autoload 'mastodon-profile--update-preference "mastodon-profile")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -163,6 +164,14 @@ This may be set by the account setting on the server.")
     (define-key map (kbd "C-c !") #'mastodon-toot--clear-all-attachments)
     map)
   "Keymap for `mastodon-toot'.")
+
+(defun mastodon-toot-set-default-visibility ()
+  "Set the default visibility for toots on the server."
+  (interactive)
+  (let ((vis (completing-read "Set default visibility to:"
+                              mastodon-toot-visibility-list
+                              nil t)))
+    (mastodon-profile--update-preference "privacy" vis :source)))
 
 (defun mastodon-toot--get-max-toot-chars ()
   "Fetch max_toot_chars from `mastodon-instance-url' asynchronously."

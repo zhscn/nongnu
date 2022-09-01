@@ -70,7 +70,6 @@
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--update-point)
 (defvar mastodon-mode-map)
-(defvar mastodon-toot-visibility-list)
 
 (defvar-local mastodon-profile--account nil
   "The data for the account being described in the current profile buffer.")
@@ -303,14 +302,6 @@ Discoverable means the account is listed in the server directory."
   "Update display name for your account."
   (interactive)
   (mastodon-profile--edit-account-string 'display_name))
-
-(defun mastodon-profile-set-default-toot-visibility ()
-  "Set the default visibility for toots."
-  (interactive)
-  (let ((vis (completing-read "Set default visibility to:"
-                              mastodon-toot-visibility-list
-                              nil t)))
-    (mastodon-profile--update-preference "privacy" vis :source)))
 
 (defun mastodon-profile-view-preferences ()
   "View user preferences in another window."
