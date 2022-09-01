@@ -1,6 +1,7 @@
 #+OPTIONS: toc:nil
 
 [[https://ci.codeberg.org/api/badges/martianh/mastodon.el/status.svg]]
+https://melpa.org/packages/mastodon-badge.svg
 
 * README
 
