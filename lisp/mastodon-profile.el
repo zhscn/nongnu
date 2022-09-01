@@ -270,13 +270,13 @@ SOURCE means that the preference is in the 'source' part of the account json."
                              (message "Account setting %s updated to %s!" pref val)))))
 
 (defun mastodon-profile-account-locked-toggle ()
-  "Toggle the locked status of the user's account.
+  "Toggle the locked status of your account.
 Locked accounts mean follow requests have to be manually approved."
   (interactive)
   (mastodon-profile--toggle-account-key 'locked))
 
 (defun mastodon-profile-account-discoverable-toggle ()
-  "Toggle the discoverable status of the user's account.
+  "Toggle the discoverable status of your account.
 Discoverable means the account is listed in the server directory."
   (interactive)
   (mastodon-profile--toggle-account-key 'discoverable))
@@ -290,6 +290,19 @@ Discoverable means the account is listed in the server directory."
           (mastodon-profile--update-preference (symbol-name key) "false"))
       (when (y-or-n-p prompt)
         (mastodon-profile--update-preference (symbol-name key) "true")))))
+
+(defun mastodon-profile--edit-account-string (key)
+  "Edit the string for account setting KEY."
+  (let* ((val (mastodon-profile--get-json-value key))
+         (new-val
+          (read-string (format "Edit account setting %s: " key)
+                       val)))
+    (mastodon-profile--update-preference (symbol-name key) new-val)))
+
+(defun mastodon-profile-update-display-name ()
+  "Update display name for your account."
+  (interactive)
+  (mastodon-profile--edit-account-string 'display_name))
 
 (defun mastodon-profile-set-default-toot-visibility ()
   "Set the default visibility for toots."
