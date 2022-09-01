@@ -34,6 +34,7 @@
 
 ;;; Code:
 (require 'seq)
+(require 'cl-lib)
 
 (autoload 'mastodon-http--api "mastodon-http.el")
 (autoload 'mastodon-http--get-json "mastodon-http.el")
@@ -344,7 +345,8 @@ Returns a list of lists."
 (defun mastodon-profile--fields-insert (fields)
   "Format and insert field pairs (a.k.a profile metadata) in FIELDS."
   (let* ((car-fields (mapcar 'car fields))
-         (left-width (car (sort (mapcar 'length car-fields) '>))))
+         (left-width (cl-reduce
+                      #'max (mapcar 'length car-fields))))
     (mapconcat (lambda (field)
                  (mastodon-tl--render-text
                   (concat
