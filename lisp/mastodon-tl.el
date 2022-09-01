@@ -1357,10 +1357,62 @@ RESPONSE is the JSON returned by the server."
 
 (defmacro mastodon-tl--do-if-toot (&rest body)
   "Execute BODY if we have a toot or user at point."
+  (declare (debug (symbolp &rest body)))
   `(if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
             (not (mastodon-tl--property 'toot-json)))
        (message "Looks like there's no toot or user at point?")
      ,@body))
+
+(defun mastodon-tl-view-instance-description ()
+  "View the details of the instance the current post's author is on."
+  (interactive)
+  (mastodon-tl--do-if-toot
+   (let* ((toot (mastodon-tl--property 'toot-json))
+          (reblog (alist-get 'reblog toot))
+          (account (or (alist-get 'account reblog)
+                       (alist-get 'account toot)))
+          (acct (alist-get 'acct account))
+          (username (alist-get 'username account))
+          (instance
+           (concat "https://"
+                   (string-remove-prefix (concat username "@")
+                                         acct)))
+          (response (mastodon-http--get-json
+                     (concat instance
+                             "/api/v1/instance"))))
+     (when response
+       (let ((buf (get-buffer-create "*mastodon-preferences*")))
+         (with-current-buffer buf
+           ;; (setq masto-test-inst-json response)
+           (switch-to-buffer-other-window buf)
+           (let ((inhibit-read-only t))
+             (erase-buffer)
+             (special-mode)
+             (mastodon-tl--print-json-keys response)
+             (goto-char (point-min)))))))))
+
+(defun mastodon-tl--print-json-keys (response)
+  "Print the JSON keys and values in RESPONSE."
+  (while response
+    (let ((el (pop response)))
+      (if (equal (type-of (cdr el)) 'cons)
+          (progn
+            (setq-local left-margin 4)
+            (insert
+             (mastodon-tl--render-text
+              (format "%-20s: "
+                      (prin1-to-string (car el)))
+              nil)
+             "\n")
+            (indent-to-left-margin)
+            (mastodon-tl--print-json-keys (cdr el)))
+        (insert
+         (mastodon-tl--render-text
+          (format "%-20s: %s"
+                  (prin1-to-string (car el))
+                  (prin1-to-string (cdr el)))
+          nil)
+         "\n")))))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
   "Query for USER-HANDLE from current status and follow that user.
