@@ -661,7 +661,7 @@ The query is matched against a tag search on the server."
    'mastodon-toot--tags-company-make-candidate))
 
 (defun mastodon-toot--make-company-backend
-    (command backend-name str-prefix candidates-fun annot-fun meta-fun
+    (command _backend-name str-prefix candidates-fun annot-fun meta-fun
              &optional arg
              &rest ignored)
   "Make a company backend for `mastodon-toot-mode'.
