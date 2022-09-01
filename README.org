@@ -219,6 +219,13 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Completion for mentions and tags
    - Enable custom emoji
 
+*** Account settings:
+
+- =mastodon-profile-update-display-name=: Update the display name for your account.
+- =mastodon-profile-set-default-toot-visibility=: Set the default visibility for your toots.
+- =mastodon-profile-account-locked-toggle=: Toggle the locked status of your account. Locked accounts have to manually approve follow requests.
+- =mastodon-profile-account-discoverable-toggle=: Toggle the discoverable status of your account. Non-discoverable accounts are not listed in the profile directory.
+
 *** Live-updating timelines: =mastodon-async-mode=
 
 (code taken from https://github.com/alexjgriffith/mastodon-future.el.)
