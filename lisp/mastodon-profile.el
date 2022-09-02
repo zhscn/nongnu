@@ -344,9 +344,9 @@ Returns a list of lists."
 
 (defun mastodon-profile--fields-insert (fields)
   "Format and insert field pairs (a.k.a profile metadata) in FIELDS."
-  (let* ((car-fields (mapcar 'car fields))
+  (let* ((car-fields (mapcar #'car fields))
          (left-width (cl-reduce
-                      #'max (mapcar 'length car-fields))))
+                      #'max (mapcar #'length car-fields))))
     (mapconcat (lambda (field)
                  (mastodon-tl--render-text
                   (concat
