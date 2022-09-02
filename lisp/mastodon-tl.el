@@ -1197,16 +1197,18 @@ ID is that of the toot to view."
          (buffer (format "*mastodon-toot-%s*" id))
          (toot (mastodon-http--get-json
                 (mastodon-http--api (concat "statuses/" id)))))
-    (with-output-to-temp-buffer buffer
-      (switch-to-buffer buffer)
-      (mastodon-mode)
-      (setq mastodon-tl--buffer-spec
-            `(buffer-name ,buffer
-                          endpoint ,(format "statuses/%s" id)
-                          update-function
-                          (lambda (toot) (message "END of thread."))))
-      (let ((inhibit-read-only t))
-        (mastodon-tl--toot toot :detailed-p)))))
+    (if (equal (caar toot) 'error)
+        (message "Error: %s" (cdar toot))
+      (with-output-to-temp-buffer buffer
+        (switch-to-buffer buffer)
+        (mastodon-mode)
+        (setq mastodon-tl--buffer-spec
+              `(buffer-name ,buffer
+                            endpoint ,(format "statuses/%s" id)
+                            update-function
+                            (lambda (toot) (message "END of thread."))))
+        (let ((inhibit-read-only t))
+          (mastodon-tl--toot toot :detailed-p))))))
 
 (defun mastodon-tl--thread ()
   "Open thread buffer for toot under `point'."
@@ -1226,27 +1228,29 @@ ID is that of the toot to view."
           (mastodon-http--get-json
            (mastodon-http--api (concat "statuses/" id))))
          (context (mastodon-http--get-json url)))
-    (when (member (alist-get 'type toot) '("reblog" "favourite"))
-      (setq toot (alist-get 'status toot)))
-    (if (> (+ (length (alist-get 'ancestors context))
-              (length (alist-get 'descendants context)))
-           0)
-        (progn
-          (with-output-to-temp-buffer buffer
-            (switch-to-buffer buffer)
-            (mastodon-mode)
-            (setq mastodon-tl--buffer-spec
-                  `(buffer-name ,buffer
-                                endpoint ,(format "statuses/%s/context" id)
-                                update-function
-                                (lambda (toot) (message "END of thread."))))
-            (let ((inhibit-read-only t))
-              (mastodon-tl--timeline (alist-get 'ancestors context))
-              (goto-char (point-max))
-              (mastodon-tl--toot toot :detailed-p)
-              (mastodon-tl--timeline (alist-get 'descendants context))))
-          (mastodon-tl--goto-next-toot))
-      (mastodon-tl--single-toot id))))
+    (if (equal (caar toot) 'error)
+        (message "Error: %s" (cdar toot))
+      (when (member (alist-get 'type toot) '("reblog" "favourite"))
+        (setq toot (alist-get 'status toot)))
+      (if (> (+ (length (alist-get 'ancestors context))
+                (length (alist-get 'descendants context)))
+             0)
+          (progn
+            (with-output-to-temp-buffer buffer
+              (switch-to-buffer buffer)
+              (mastodon-mode)
+              (setq mastodon-tl--buffer-spec
+                    `(buffer-name ,buffer
+                                  endpoint ,(format "statuses/%s/context" id)
+                                  update-function
+                                  (lambda (toot) (message "END of thread."))))
+              (let ((inhibit-read-only t))
+                (mastodon-tl--timeline (alist-get 'ancestors context))
+                (goto-char (point-max))
+                (mastodon-tl--toot toot :detailed-p)
+                (mastodon-tl--timeline (alist-get 'descendants context))))
+            (mastodon-tl--goto-next-toot))
+        (mastodon-tl--single-toot id)))))
 
 (defun mastodon-tl--create-filter ()
   "Create a filter for a word.
