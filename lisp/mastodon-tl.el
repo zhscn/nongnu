@@ -615,7 +615,7 @@ LETTER is a string, F for favourited, B for boosted, or K for bookmarked."
                         'help-echo (format "You have %s this status."
                                            help-string)))))
 
-(defun mastodon-tl--render-text (string toot)
+(defun mastodon-tl--render-text (string &optional toot)
   "Return a propertized text rendering the given HTML string STRING.
 
 The contents comes from the given TOOT which is used in parsing
