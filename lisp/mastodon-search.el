@@ -45,6 +45,7 @@
 (defvar mastodon-tl--link-keymap)
 (defvar mastodon-http--timeout)
 (defvar mastodon-toot--enable-completion-for-mentions)
+(defvar mastodon-tl--buffer-spec)
 
 ;; functions for company completion of mentions in mastodon-toot
 
@@ -75,6 +76,35 @@ QUERY is the string to search."
          (response (mastodon-http--get-search-json url query type-param))
          (tags (alist-get 'hashtags response)))
     (mapcar #'mastodon-search--get-hashtag-info tags)))
+
+
+;; trending tags
+
+(defun mastodon-search-trending-tags ()
+  "Display a list of tags trending on your instance."
+  (interactive)
+  (let* ((url (mastodon-http--api "trends"))
+         (response (mastodon-http--get-json url))
+         (tags (mapcar #'mastodon-search--get-hashtag-info
+                       response))
+         (buffer (get-buffer-create "*mastodon-trending*")))
+    (with-current-buffer buffer
+      (switch-to-buffer (current-buffer))
+      (mastodon-mode)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (setq mastodon-tl--buffer-spec
+              `(buffer-name ,buffer
+                            endpoint ,(format "api/v1/trends")
+                            update-function
+                            (lambda (toot) (message "Trends."))))
+        ;; hashtag results:
+        (insert (mastodon-tl--set-face
+                 (concat "\n ------------\n"
+                         " TRENDING HASHTAGS\n"
+                         " ------------\n\n")
+                 'success))
+        (mastodon-search--print-tags-list tags)))))
 
 ;; functions for mastodon search
 
@@ -121,16 +151,7 @@ QUERY is the string to search."
                          " HASHTAGS\n"
                          " ------------\n\n")
                  'success))
-        (mapc (lambda (el)
-                (insert " : #"
-                        (propertize (car el)
-                                    'mouse-face 'highlight
-                                    'mastodon-tag (car el)
-                                    'mastodon-tab-stop 'hashtag
-                                    'help-echo (concat "Browse tag #" (car el))
-                                    'keymap mastodon-tl--link-keymap)
-                        " : \n\n"))
-              tags-list)
+        (mastodon-search--print-tags-list tags-list)
         ;; status results:
         (insert (mastodon-tl--set-face
                  (concat "\n ------------\n"
@@ -169,6 +190,22 @@ user's profile note. This is also called by
                       "\n")
               'toot-json acct)))) ; so named for compat w other processing functions
         json))
+
+(defun mastodon-search--print-tags-list (tags)
+  "Insert a propertized list of TAGS."
+  (mapc (lambda (el)
+          (insert
+           " : "
+           (propertize (concat "#"
+                               (car el))
+                       'face '(:box t)
+                       'mouse-face 'highlight
+                       'mastodon-tag (car el)
+                       'mastodon-tab-stop 'hashtag
+                       'help-echo (concat "Browse tag #" (car el))
+                       'keymap mastodon-tl--link-keymap)
+           " : \n\n"))
+        tags))
 
 (defun mastodon-search--get-user-info (account)
   "Get user handle, display name, account URL and profile note from ACCOUNT."
