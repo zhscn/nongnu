@@ -207,6 +207,8 @@ You can download and use your instance's custom emoji
 *** Other commands and account settings:
 
 - =mastodon-tl-view-instance-description=: View information about the instance that the author of the toot at point is on.
+- =mastodon-tl-view-own-instance=: View information about your own instance.
+- =mastodon-search-trending-tags=: View a list of trending hashtags on your instance.
 
 - =mastodon-profile-update-display-name=: Update the display name for your account.
 - =mastodon-profile-set-default-toot-visibility=: Set the default visibility for your toots.
