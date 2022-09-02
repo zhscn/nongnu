@@ -1174,6 +1174,13 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
+(defun mastodon-tl--single-toot-from-url (url)
+  "Open the toot at URL in `mastodon.el'."
+  ;; TODO: test if URL is masto
+  ;; FIXME: this only works 1/2 the time
+  (let ((id (url-file-nondirectory url)))
+    (mastodon-tl--single-toot id)))
+
 (defun mastodon-tl--single-toot (&optional id)
   "View toot at point in separate buffer.
 ID is that of the toot to view."
