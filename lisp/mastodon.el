@@ -92,6 +92,7 @@
 (autoload 'mastodon-tl--get-follow-suggestions "mastodon-tl")
 (when (require 'lingva nil :no-error)
   (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
+(autoload 'mastodon-search--trending-tags "mastodon-search")
 
 (defgroup mastodon nil
   "Interface with Mastodon."
