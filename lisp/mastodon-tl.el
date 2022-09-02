@@ -1427,7 +1427,9 @@ BRIEF means to show fewer details."
   (format (concat "%-"
                   (number-to-string pad)
                   "s: ")
-          (prin1-to-string (car el))))
+          (propertize
+           (prin1-to-string (car el))
+           'face '(:underline t))))
 
 (defun mastodon-tl--print-json-keys (response &optional ind)
   "Print the JSON keys and values in RESPONSE.
@@ -1440,19 +1442,19 @@ IND is the optional indentation level to print at."
       (let ((el (pop response)))
         (cond
          ;; vector of alists (fields, instance rules):
-         ((and (equal (type-of (cdr el)) 'vector)
+         ((and (vectorp (cdr el))
                (not (seq-empty-p (cdr el)))
-               (equal (type-of (seq-elt (cdr el) 0)) 'cons))
+               (consp (seq-elt (cdr el) 0)))
           (insert
            (mastodon-tl--format-key el pad)
            "\n\n")
           (seq-do #'mastodon-tl--print-instance-rules-or-fields (cdr el))
           (insert "\n"))
          ;; vector of strings (media types):
-         ((and (equal (type-of (cdr el)) 'vector)
+         ((and (vectorp (cdr el))
                (not (seq-empty-p (cdr el)))
                (< 1 (seq-length (cdr el)))
-               (equal (type-of (seq-elt (cdr el) 0)) 'string))
+               (stringp (seq-elt (cdr el) 0)))
           (when ind (indent-to ind))
           (insert
            (mastodon-tl--format-key el pad)
@@ -1462,7 +1464,7 @@ IND is the optional indentation level to print at."
             (cdr el) 'string)
            "\n\n"))
          ;; basic nesting:
-         ((equal (type-of (cdr el)) 'cons)
+         ((consp (cdr el))
           (when ind (indent-to ind))
           (insert
            (mastodon-tl--format-key el pad)
@@ -1474,8 +1476,12 @@ IND is the optional indentation level to print at."
           (insert (mastodon-tl--format-key el pad)
                   " "
                   (mastodon-tl--newline-if-long el)
-                  (mastodon-tl--render-text
-                   (prin1-to-string (cdr el)))
+                  ;; only send strings straight to --render-text
+                  ;; this makes hyperlinks work:
+                  (if (not (stringp (cdr el)))
+                      (mastodon-tl--render-text
+                       (prin1-to-string (cdr el)))
+                    (mastodon-tl--render-text (cdr el)))
                   "\n")))))))
 
 (defun mastodon-tl--print-instance-rules-or-fields (alist)
@@ -1483,8 +1489,10 @@ IND is the optional indentation level to print at."
   (let ((key   (if (alist-get 'id alist) 'id 'name))
         (value (if (alist-get 'id alist) 'text 'value)))
     (indent-to 4)
-    (insert (format "%-5s: "
-                    (alist-get key alist))
+    (insert
+     (format "%-5s: "
+             (propertize (alist-get key alist)
+                         'face '(:underline t)))
             (mastodon-tl--newline-if-long (assoc value alist))
             (format "%s" (mastodon-tl--render-text
                           (alist-get value alist)))
