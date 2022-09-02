@@ -1357,7 +1357,7 @@ RESPONSE is the JSON returned by the server."
 
 (defmacro mastodon-tl--do-if-toot (&rest body)
   "Execute BODY if we have a toot or user at point."
-  (declare (debug (symbolp &rest body)))
+  (declare (debug t))
   `(if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
             (not (mastodon-tl--property 'toot-json)))
        (message "Looks like there's no toot or user at point?")
