@@ -1379,10 +1379,11 @@ BRIEF means show fewer details."
   (interactive)
   (mastodon-tl-view-instance-description nil :brief))
 
-(defun mastodon-tl-view-instance-description (&optional user brief)
+(defun mastodon-tl-view-instance-description (&optional user brief instance)
   "View the details of the instance the current post's author is on.
 USER means to show the instance details for the logged in user.
-BRIEF means to show fewer details."
+BRIEF means to show fewer details.
+INSTANCE is an instance domain name."
   (interactive)
   (mastodon-tl--do-if-toot
    (let* ((toot (mastodon-tl--property 'toot-json))
@@ -1393,8 +1394,9 @@ BRIEF means to show fewer details."
           (username (alist-get 'username account))
           (instance
            (concat "https://"
-                   (string-remove-prefix (concat username "@")
-                                         acct)))
+                   (or instance
+                       (string-remove-prefix (concat username "@")
+                                             acct))))
           (response (mastodon-http--get-json
                      (if user
                          (mastodon-http--api "instance")
