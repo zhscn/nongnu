@@ -80,7 +80,7 @@ QUERY is the string to search."
 
 ;; trending tags
 
-(defun mastodon-search-trending-tags ()
+(defun mastodon-search--trending-tags ()
   "Display a list of tags trending on your instance."
   (interactive)
   (let* ((url (mastodon-http--api "trends"))
