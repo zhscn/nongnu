@@ -71,6 +71,8 @@
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (autoload 'mastodon-tl--toot-id "mastodon-tl")
 (autoload 'mastodon-toot "mastodon")
+(autoload 'mastodon-profile--get-source-pref "mastodon-profile")
+(autoload 'mastodon-profile--update-preference "mastodon-profile")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -81,18 +83,6 @@
   "Tooting in Mastodon."
   :prefix "mastodon-toot-"
   :group 'mastodon)
-
-(defcustom mastodon-toot--default-visibility "public"
-  "The default visibility for new toots.
-
-Must be one of \"public\", \"unlisted\", \"private\" (for
-followers-only), or \"direct\"."
-  :group 'mastodon-toot
-  :type '(choice
-          (const :tag "public" "public")
-          (const :tag "unlisted" "unlisted")
-          (const :tag "followers only" "private")
-          (const :tag "direct" "direct")))
 
 (defcustom mastodon-toot--default-media-directory "~/"
   "The default directory when prompting for a media file to upload."
@@ -137,11 +127,17 @@ This is only used if company mode is installed."
 (defvar-local mastodon-toot--content-nsfw nil
   "A flag indicating whether the toot should be marked as NSFW.")
 
+(defvar mastodon-toot-visibility-list
+  '(direct private unlisted public)
+  "A list of the available toot visibility settings.")
+
 (defvar-local mastodon-toot--visibility "public"
   "A string indicating the visibility of the toot being composed.
 
 Valid values are \"direct\", \"private\" (followers-only),
-\"unlisted\", and \"public\".")
+\"unlisted\", and \"public\".
+
+This may be set by the account setting on the server.")
 
 (defvar-local mastodon-toot--media-attachments nil
   "A list of the media attachments of the toot being composed.")
@@ -168,6 +164,14 @@ Valid values are \"direct\", \"private\" (followers-only),
     (define-key map (kbd "C-c !") #'mastodon-toot--clear-all-attachments)
     map)
   "Keymap for `mastodon-toot'.")
+
+(defun mastodon-toot-set-default-visibility ()
+  "Set the default visibility for toots on the server."
+  (interactive)
+  (let ((vis (completing-read "Set default visibility to:"
+                              mastodon-toot-visibility-list
+                              nil t)))
+    (mastodon-profile--update-preference "privacy" vis :source)))
 
 (defun mastodon-toot--get-max-toot-chars ()
   "Fetch max_toot_chars from `mastodon-instance-url' asynchronously."
@@ -657,7 +661,7 @@ The query is matched against a tag search on the server."
    'mastodon-toot--tags-company-make-candidate))
 
 (defun mastodon-toot--make-company-backend
-    (command backend-name str-prefix candidates-fun annot-fun meta-fun
+    (command _backend-name str-prefix candidates-fun annot-fun meta-fun
              &optional arg
              &rest ignored)
   "Make a company backend for `mastodon-toot-mode'.
@@ -1030,11 +1034,15 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (switch-to-buffer-other-window buffer)
     (text-mode)
     (mastodon-toot-mode t)
+    ;; use toot visibility setting from the server:
+    (setq mastodon-toot--visibility
+          (mastodon-profile--get-source-pref 'privacy))
     (unless buffer-exists
       (mastodon-toot--display-docs-and-status-fields)
       (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json))
     (unless mastodon-toot--max-toot-chars
       (mastodon-toot--get-max-toot-chars))
+    ;; set up company backends:
     (when (require 'company nil :noerror)
       (when mastodon-toot--enable-completion
         (set (make-local-variable 'company-backends)

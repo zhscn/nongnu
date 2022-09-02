@@ -34,6 +34,7 @@
 
 ;;; Code:
 (require 'seq)
+(require 'cl-lib)
 
 (autoload 'mastodon-http--api "mastodon-http.el")
 (autoload 'mastodon-http--get-json "mastodon-http.el")
@@ -207,14 +208,29 @@ JSON is the data returned by the server."
                'byline t
                'toot-id "0"))
     (mastodon-search--insert-users-propertized json :note)))
-    ;; (mastodon-profile--add-author-bylines json)))
+;; (mastodon-profile--add-author-bylines json)))
+
+;;; account preferences
+
+(defun mastodon-profile--get-json-value (val)
+  "Fetch current VAL ue from account."
+  (let* ((url (mastodon-http--api "accounts/verify_credentials"))
+         (response (mastodon-http--get-json url)))
+    (alist-get val response)))
+
+(defun mastodon-profile--get-source-prefs ()
+  "Return the \"source\" preferences from the server."
+  (mastodon-profile--get-json-value 'source))
+
+(defun mastodon-profile--get-source-pref (pref)
+  "Return account PREF erence from the \"source\" section on the server."
+  (let ((source (mastodon-profile--get-source-prefs)))
+    (alist-get pref source)))
 
 (defun mastodon-profile--update-user-profile-note ()
   "Fetch user's profile note and display for editing."
   (interactive)
-  (let* ((url (concat mastodon-instance-url
-                      "/api/v1/accounts/update_credentials"))
-         ;; (buffer (mastodon-http--patch url))
+  (let* ((url (mastodon-http--api "accounts/update_credentials"))
          (json (mastodon-http--patch-json url))
          (source (alist-get 'source json))
          (note (alist-get 'note source))
@@ -236,12 +252,77 @@ JSON is the data returned by the server."
   "Send PATCH request with the updated profile note."
   (interactive)
   (let* ((note (buffer-substring-no-properties (point-min) (point-max)))
-         (url (concat mastodon-instance-url
-                      "/api/v1/accounts/update_credentials")))
+         (url (mastodon-http--api "accounts/update_credentials")))
     (kill-buffer-and-window)
-    (let ((response (mastodon-http--patch url note)))
+    (let ((response (mastodon-http--patch url `((note ,note)))))
       (mastodon-http--triage response
                              (lambda () (message "Profile note updated!"))))))
+
+(defun mastodon-profile--update-preference (pref val &optional source)
+  "Update a single acount PREF erence to setting VAL.
+Both args are strings.
+SOURCE means that the preference is in the 'source' part of the account json."
+  (let* ((url (mastodon-http--api "accounts/update_credentials"))
+         (pref-formatted (if source (concat "source[" pref "]") pref))
+         (response (mastodon-http--patch url `((,pref-formatted ,val)))))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (message "Account setting %s updated to %s!" pref val)))))
+
+(defun mastodon-profile-account-locked-toggle ()
+  "Toggle the locked status of your account.
+Locked accounts mean follow requests have to be manually approved."
+  (interactive)
+  (mastodon-profile--toggle-account-key 'locked))
+
+(defun mastodon-profile-account-discoverable-toggle ()
+  "Toggle the discoverable status of your account.
+Discoverable means the account is listed in the server directory."
+  (interactive)
+  (mastodon-profile--toggle-account-key 'discoverable))
+
+(defun mastodon-profile--toggle-account-key (key)
+  "Toggle the boolean account setting KEY."
+  (let* ((val (mastodon-profile--get-json-value key))
+         (prompt (format "Account setting %s is %s. Toggle?" key val)))
+    (if (not (equal val :json-false))
+        (when (y-or-n-p prompt)
+          (mastodon-profile--update-preference (symbol-name key) "false"))
+      (when (y-or-n-p prompt)
+        (mastodon-profile--update-preference (symbol-name key) "true")))))
+
+(defun mastodon-profile--edit-account-string (key)
+  "Edit the string for account setting KEY."
+  (let* ((val (mastodon-profile--get-json-value key))
+         (new-val
+          (read-string (format "Edit account setting %s: " key)
+                       val)))
+    (mastodon-profile--update-preference (symbol-name key) new-val)))
+
+(defun mastodon-profile-update-display-name ()
+  "Update display name for your account."
+  (interactive)
+  (mastodon-profile--edit-account-string 'display_name))
+
+(defun mastodon-profile-view-preferences ()
+  "View user preferences in another window."
+  (interactive)
+  (let* ((url (mastodon-http--api "preferences"))
+         (response (mastodon-http--get-json url))
+         (buf (get-buffer-create "*mastodon-preferences*")))
+    (with-current-buffer buf
+      (switch-to-buffer-other-window buf)
+      (erase-buffer)
+      (special-mode)
+      (let ((inhibit-read-only t))
+        (while response
+          (let ((el (pop response)))
+            (insert
+             (format "%-30s %s"
+                     (prin1-to-string (car el))
+                     (prin1-to-string (cdr el)))
+             "\n\n"))))
+      (goto-char (point-min)))))
 
 (defun mastodon-profile--relationships-get (id)
   "Fetch info about logged-in user's relationship to user with id ID."
@@ -263,8 +344,9 @@ Returns a list of lists."
 
 (defun mastodon-profile--fields-insert (fields)
   "Format and insert field pairs (a.k.a profile metadata) in FIELDS."
-  (let* ((car-fields (mapcar 'car fields))
-         (left-width (car (sort (mapcar 'length car-fields) '>))))
+  (let* ((car-fields (mapcar #'car fields))
+         (left-width (cl-reduce
+                      #'max (mapcar #'length car-fields))))
     (mapconcat (lambda (field)
                  (mastodon-tl--render-text
                   (concat

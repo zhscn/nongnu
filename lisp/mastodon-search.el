@@ -103,6 +103,11 @@ QUERY is the string to search."
       (mastodon-mode)
       (let ((inhibit-read-only t))
         (erase-buffer)
+        (setq mastodon-tl--buffer-spec
+              `(buffer-name ,buffer
+                            endpoint ,(format "api/v2/search")
+                            update-function
+                            (lambda (toot) (message "Searched."))))
         ;; user results:
         (insert (mastodon-tl--set-face
                  (concat "\n ------------\n"

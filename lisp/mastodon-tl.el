@@ -34,7 +34,7 @@
 (require 'shr)
 (require 'thingatpt) ; for word-at-point
 (require 'time-date)
-(require 'cl-lib) ; for cl-mapcar
+(require 'cl-lib)
 
 (require 'mpv nil :no-error)
 
@@ -615,7 +615,7 @@ LETTER is a string, F for favourited, B for boosted, or K for bookmarked."
                         'help-echo (format "You have %s this status."
                                            help-string)))))
 
-(defun mastodon-tl--render-text (string toot)
+(defun mastodon-tl--render-text (string &optional toot)
   "Return a propertized text rendering the given HTML string STRING.
 
 The contents comes from the given TOOT which is used in parsing
@@ -1357,10 +1357,145 @@ RESPONSE is the JSON returned by the server."
 
 (defmacro mastodon-tl--do-if-toot (&rest body)
   "Execute BODY if we have a toot or user at point."
+  (declare (debug t))
   `(if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
             (not (mastodon-tl--property 'toot-json)))
        (message "Looks like there's no toot or user at point?")
      ,@body))
+
+(defun mastodon-tl-view-own-instance (&optional brief)
+  "View details of your own instance.
+BRIEF means show fewer details."
+  (interactive)
+  (mastodon-tl-view-instance-description :user brief))
+
+(defun mastodon-tl-view-own-instance-brief ()
+  "View brief details of your own instance."
+  (interactive)
+  (mastodon-tl-view-instance-description :user :brief))
+
+(defun mastodon-tl-view-instance-description-brief ()
+  "View brief details of the instance the current post's author is on."
+  (interactive)
+  (mastodon-tl-view-instance-description nil :brief))
+
+(defun mastodon-tl-view-instance-description (&optional user brief)
+  "View the details of the instance the current post's author is on.
+USER means to show the instance details for the logged in user.
+BRIEF means to show fewer details."
+  (interactive)
+  (mastodon-tl--do-if-toot
+   (let* ((toot (mastodon-tl--property 'toot-json))
+          (reblog (alist-get 'reblog toot))
+          (account (or (alist-get 'account reblog)
+                       (alist-get 'account toot)))
+          (acct (alist-get 'acct account))
+          (username (alist-get 'username account))
+          (instance
+           (concat "https://"
+                   (string-remove-prefix (concat username "@")
+                                         acct)))
+          (response (mastodon-http--get-json
+                     (if user
+                         (mastodon-http--api "instance")
+                       (concat instance
+                               "/api/v1/instance")))))
+     (when response
+       (let ((buf (get-buffer-create "*mastodon-instance*")))
+         (with-current-buffer buf
+           (switch-to-buffer-other-window buf)
+           (let ((inhibit-read-only t))
+             (erase-buffer)
+             (special-mode)
+             (when brief
+               (setq response
+                     (list (assoc 'uri response)
+                           (assoc 'title response)
+                           (assoc 'short_description response)
+                           (assoc 'email response)
+                           (cons 'contact_account
+                                 (list
+                                  (assoc 'username
+                                         (assoc 'contact_account response))))
+                           (assoc 'rules response)
+                           (assoc 'stats response))))
+             (mastodon-tl--print-json-keys response)
+             (goto-char (point-min)))))))))
+
+(defun mastodon-tl--format-key (el pad)
+  "Format a key of element EL, a cons, with PAD padding."
+  (format (concat "%-"
+                  (number-to-string pad)
+                  "s: ")
+          (prin1-to-string (car el))))
+
+(defun mastodon-tl--print-json-keys (response &optional ind)
+  "Print the JSON keys and values in RESPONSE.
+IND is the optional indentation level to print at."
+  (let* ((cars (mapcar
+                (lambda (x) (symbol-name (car x)))
+                response))
+         (pad (1+ (cl-reduce #'max (mapcar #'length cars)))))
+    (while response
+      (let ((el (pop response)))
+        (cond
+         ;; vector of alists (fields, instance rules):
+         ((and (equal (type-of (cdr el)) 'vector)
+               (not (seq-empty-p (cdr el)))
+               (equal (type-of (seq-elt (cdr el) 0)) 'cons))
+          (insert
+           (mastodon-tl--format-key el pad)
+           "\n\n")
+          (seq-do #'mastodon-tl--print-instance-rules-or-fields (cdr el))
+          (insert "\n"))
+         ;; vector of strings (media types):
+         ((and (equal (type-of (cdr el)) 'vector)
+               (not (seq-empty-p (cdr el)))
+               (< 1 (seq-length (cdr el)))
+               (equal (type-of (seq-elt (cdr el) 0)) 'string))
+          (when ind (indent-to ind))
+          (insert
+           (mastodon-tl--format-key el pad)
+           "\n"
+           (seq-mapcat
+            (lambda (x) (concat x ", "))
+            (cdr el) 'string)
+           "\n\n"))
+         ;; basic nesting:
+         ((equal (type-of (cdr el)) 'cons)
+          (when ind (indent-to ind))
+          (insert
+           (mastodon-tl--format-key el pad)
+           "\n\n")
+          (mastodon-tl--print-json-keys
+           (cdr el) (if ind (+ ind 4) 4)))
+         (t
+          (when ind (indent-to ind))
+          (insert (mastodon-tl--format-key el pad)
+                  " "
+                  (mastodon-tl--newline-if-long el)
+                  (mastodon-tl--render-text
+                   (prin1-to-string (cdr el)))
+                  "\n")))))))
+
+(defun mastodon-tl--print-instance-rules-or-fields (alist)
+  "Print ALIST of instance rules or contact account fields."
+  (let ((key   (if (alist-get 'id alist) 'id 'name))
+        (value (if (alist-get 'id alist) 'text 'value)))
+    (indent-to 4)
+    (insert (format "%-5s: "
+                    (alist-get key alist))
+            (mastodon-tl--newline-if-long (assoc value alist))
+            (format "%s" (mastodon-tl--render-text
+                          (alist-get value alist)))
+            "\n")))
+
+(defun mastodon-tl--newline-if-long (el)
+  "Return a newline string if the cdr of EL is over 50 characters long."
+  (if (and (sequencep (cdr el))
+           (< 50 (length (cdr el))))
+      "\n"
+    ""))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
   "Query for USER-HANDLE from current status and follow that user.
