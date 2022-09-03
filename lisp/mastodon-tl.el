@@ -1235,24 +1235,26 @@ ID is that of the toot to view."
         (let ((inhibit-read-only t))
           (mastodon-tl--toot toot :detailed-p))))))
 
-(defun mastodon-tl--thread ()
+(defun mastodon-tl--thread (&optional id)
   "Open thread buffer for toot under `point'."
   (interactive)
   (let* ((id
-          (if (equal (mastodon-tl--get-endpoint) "notifications")
-              ;; for boosts/faves:
-              (if (mastodon-tl--property 'parent-toot)
-                  (mastodon-tl--as-string (mastodon-tl--toot-id
-                                           (mastodon-tl--property 'parent-toot)))
-                (mastodon-tl--property 'base-toot-id))
-            (mastodon-tl--property 'base-toot-id)))
+          (or id
+              (if (equal (mastodon-tl--get-endpoint) "notifications")
+                  ;; for boosts/faves:
+                  (if (mastodon-tl--property 'parent-toot)
+                      (mastodon-tl--as-string (mastodon-tl--toot-id
+                                               (mastodon-tl--property 'parent-toot)))
+                    (mastodon-tl--property 'base-toot-id))
+                (mastodon-tl--property 'base-toot-id))))
          (url (mastodon-http--api (format "statuses/%s/context" id)))
          (buffer (format "*mastodon-thread-%s*" id))
          (toot
           ;; refetch current toot in case we just faved/boosted:
           (mastodon-http--get-json
            (mastodon-http--api (concat "statuses/" id))))
-         (context (mastodon-http--get-json url)))
+         (context (mastodon-http--get-json url))
+         (marker (make-marker)))
     (if (equal (caar toot) 'error)
         (message "Error: %s" (cdar toot))
       (when (member (alist-get 'type toot) '("reblog" "favourite"))
@@ -1260,6 +1262,7 @@ ID is that of the toot to view."
       (if (> (+ (length (alist-get 'ancestors context))
                 (length (alist-get 'descendants context)))
              0)
+          ;; if we have a thread:
           (progn
             (with-output-to-temp-buffer buffer
               (switch-to-buffer buffer)
@@ -1272,9 +1275,14 @@ ID is that of the toot to view."
               (let ((inhibit-read-only t))
                 (mastodon-tl--timeline (alist-get 'ancestors context))
                 (goto-char (point-max))
+                (move-marker marker (point))
+                ;; print re-fetched toot:
                 (mastodon-tl--toot toot :detailed-p)
                 (mastodon-tl--timeline (alist-get 'descendants context))))
+            ;; put point at the toot:
+            (goto-char (marker-position marker))
             (mastodon-tl--goto-next-toot))
+        ;; else just print the lone toot:
         (mastodon-tl--single-toot id)))))
 
 (defun mastodon-tl--create-filter ()
