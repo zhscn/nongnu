@@ -279,24 +279,43 @@ not, just browse the URL in the normal fashion."
                     (mastodon-tl--property 'shr-url)
                     (read-string "Lookup URL: "))))
     ;; TODO: test for a likely masto link and just browse-url if not
-    (message "Performing lookup...")
-    (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
-           (param (concat "resolve=t")) ; webfinger
-           (response (mastodon-http--get-search-json url query param :silent)))
-      (cond ((not (seq-empty-p
-                   (alist-get 'statuses response)))
-             (let* ((statuses (assoc 'statuses response))
-                    (status (seq-first (cdr statuses)))
-                    (status-id (alist-get 'id status)))
-               (mastodon-tl--thread status-id)))
-            ((not (seq-empty-p
-                   (alist-get 'accounts response)))
-             (let* ((accounts (assoc 'accounts response))
-                    (account (seq-first (cdr accounts)))
-                    (account-acct (alist-get 'acct account)))
-               (mastodon-profile--show-user account-acct)))
-            (t
-             (browse-url query))))))
+    (save-match-data
+      (if (not (mastodon--masto-url-p query))
+          (browse-url query)
+        (message "Performing lookup...")
+        (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
+               (param (concat "resolve=t")) ; webfinger
+               (response (mastodon-http--get-search-json url query param :silent)))
+          (cond ((not (seq-empty-p
+                       (alist-get 'statuses response)))
+                 (let* ((statuses (assoc 'statuses response))
+                        (status (seq-first (cdr statuses)))
+                        (status-id (alist-get 'id status)))
+                   (mastodon-tl--thread status-id)))
+                ((not (seq-empty-p
+                       (alist-get 'accounts response)))
+                 (let* ((accounts (assoc 'accounts response))
+                        (account (seq-first (cdr accounts)))
+                        (account-acct (alist-get 'acct account)))
+                   (mastodon-profile--show-user account-acct)))
+                (t
+                 (browse-url query))))))))
+
+(defun mastodon--masto-url-p (query)
+  "Check if QUERY resembles a fediverse URL."
+  ;; regex test the url:
+  ;; calqued off https://github.com/tuskyapp/Tusky/blob/c8fc2418b8f5458a817bba221d025b822225e130/app/src/main/java/com/keylesspalace/tusky/BottomSheetActivity.kt
+  ;; TODO: remove domain and add ^ to regex:
+  ;; (let ((query-path (url-file-nondirectory query)))
+  (or (string-match "/@" query)
+      (string-match "/users/[[:alnum:]]+$" query)
+      (string-match "/notice/[[:alnum:]]+$" query)
+      (string-match "/objects/[-a-f0-9]+$" query)
+      (string-match "/notes/[a-z0-9]+$" query)
+      (string-match "/display/[-a-f0-9]+$" query)
+      (string-match "/profile/[[:alpha:]]+$" query)
+      (string-match "/p/[[:alpha:]]+/[[:digit:]]+$" query)
+      (string-match "/[[:alpha:]]+$" query)))
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook (lambda ()
