@@ -206,6 +206,8 @@ You can download and use your instance's custom emoji
 
 *** Other commands and account settings:
 
+- =mastodon-url-lookup=: Attempt to load URL in =mastodon.el=. URL may be the one at point or provided in the minibuffer. Should also work if =mastodon.el= is not yet loaded.
+
 - =mastodon-tl-view-instance-description=: View information about the instance that the author of the toot at point is on.
 - =mastodon-tl-view-own-instance=: View information about your own instance.
 - =mastodon-search-trending-tags=: View a list of trending hashtags on your instance.
