@@ -143,6 +143,7 @@ etc.")
     (define-key map [remap shr-previous-link] 'mastodon-tl--previous-tab-item)
     ;; keep new my-profile binding; shr 'O' doesn't work here anyway
     (define-key map (kbd "O") 'mastodon-profile--my-profile)
+    (define-key map [remap shr-browse-url] 'mastodon-tl--url-lookup)
     (keymap-canonicalize map))
   "The keymap to be set for shr.el generated links that are not images.
 
@@ -688,15 +689,19 @@ START and END are the boundaries of the link in the toot."
                                 'help-echo help-echo)
                           extra-properties))))
 
+;; URL lookup: should be available even if `mastodon.el' not loaded:
+
+;;;###autoload
 (defun mastodon-tl--url-lookup (&optional query-url)
   "Do a WebFinger lookup for QUERY-URL, or the URL at point.
 If a status or account is found, load it in `mastodon.el', if
 not, just browse the URL in the normal fashion."
   (interactive)
+  (message "Performing lookup...")
   (let* ((query (or query-url (url-get-url-at-point)))
          (url (format "%s/api/v2/search" mastodon-instance-url))
          (param (concat "resolve=t")) ; webfinger
-         (response (mastodon-http--get-search-json url query param)))
+         (response (mastodon-http--get-search-json url query param :silent)))
     (if (equal response '((accounts . #1=[]) (statuses . #1#) (hashtags . #1#)))
         (shr-browse-url query-url)
       (cond ((not (equal '[]
@@ -1252,8 +1257,9 @@ ID is that of the toot to view."
          (toot
           ;; refetch current toot in case we just faved/boosted:
           (mastodon-http--get-json
-           (mastodon-http--api (concat "statuses/" id))))
-         (context (mastodon-http--get-json url))
+           (mastodon-http--api (concat "statuses/" id))
+           :silent))
+         (context (mastodon-http--get-json url :silent))
          (marker (make-marker)))
     (if (equal (caar toot) 'error)
         (message "Error: %s" (cdar toot))
