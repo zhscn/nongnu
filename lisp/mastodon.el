@@ -33,6 +33,7 @@
 
 ;;; Code:
 (require 'cl-lib) ; for `cl-some' call in mastodon
+(require 'mastodon-http)
 (require 'mastodon-toot)
 
 (declare-function discover-add-context-menu "discover")
