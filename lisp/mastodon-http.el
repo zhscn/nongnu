@@ -69,7 +69,7 @@
     (string-match "[0-9][0-9][0-9]" status-line)
     (match-string 0 status-line)))
 
-(defun mastodon-http--url-retrieve-synchronously (url)
+(defun mastodon-http--url-retrieve-synchronously (url &optional silent)
   "Retrieve URL asynchronously.
 
 This is a thin abstraction over the system
@@ -77,7 +77,7 @@ This is a thin abstraction over the system
 is available we will call it with or without a timeout."
   (if (< (cdr (func-arity 'url-retrieve-synchronously)) 4)
       (url-retrieve-synchronously url)
-    (url-retrieve-synchronously url nil nil mastodon-http--timeout)))
+    (url-retrieve-synchronously url (or silent nil) nil mastodon-http--timeout)))
 
 (defun mastodon-http--triage (response success)
   "Determine if RESPONSE was successful. Call SUCCESS if successful.
@@ -131,17 +131,17 @@ Authorization header is included by default unless UNAUTHENTICATED-P is non-nil.
        (mastodon-http--url-retrieve-synchronously url)))
    unauthenticated-p))
 
-(defun mastodon-http--get (url)
+(defun mastodon-http--get (url &optional silent)
   "Make synchronous GET request to URL.
 
 Pass response buffer to CALLBACK function."
   (mastodon-http--authorized-request
    "GET"
-   (mastodon-http--url-retrieve-synchronously url)))
+   (mastodon-http--url-retrieve-synchronously url silent)))
 
-(defun mastodon-http--get-json (url)
+(defun mastodon-http--get-json (url &optional silent)
   "Make synchronous GET request to URL. Return JSON response."
-  (with-current-buffer (mastodon-http--get url)
+  (with-current-buffer (mastodon-http--get url silent)
     (mastodon-http--process-json)))
 
 (defun mastodon-http--process-json ()
@@ -184,14 +184,14 @@ PARAMS should be an alist as required by `url-build-query-string'."
     (kill-buffer)
     (json-read-from-string json-string)))
 
-(defun mastodon-http--get-search-json (url query &optional param)
+(defun mastodon-http--get-search-json (url query &optional param silent)
   "Make GET request to URL, searching for QUERY and return JSON response.
 PARAM is any extra parameters to send with the request."
-  (let ((buffer (mastodon-http--get-search url query param)))
+  (let ((buffer (mastodon-http--get-search url query param silent)))
     (with-current-buffer buffer
       (mastodon-http--process-json-search))))
 
-(defun mastodon-http--get-search (base-url query &optional param)
+(defun mastodon-http--get-search (base-url query &optional param silent)
   "Make GET request to BASE-URL, searching for QUERY.
 Pass response buffer to CALLBACK function.
 PARAM is a formatted request parameter, eg 'following=true'."
@@ -200,7 +200,7 @@ PARAM is a formatted request parameter, eg 'following=true'."
    (let ((url (if param
                   (concat base-url "?" param "&q=" (url-hexify-string query))
                 (concat base-url "?q=" (url-hexify-string query)))))
-     (mastodon-http--url-retrieve-synchronously url))))
+     (mastodon-http--url-retrieve-synchronously url silent))))
 
 ;; profile update functions
 
