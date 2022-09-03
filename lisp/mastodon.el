@@ -269,12 +269,15 @@ If REPLY-JSON is the json of the toot being replied to."
 
 ;;;###autoload
 (defun mastodon-url-lookup (&optional query-url)
-  "Do a WebFinger lookup for QUERY-URL, or the URL at point.
+  "Do a WebFinger lookup for a URL.
+URL can be arg QUERY-URL, or URL at point, or provided by the user.
 If a status or account is found, load it in `mastodon.el', if
 not, just browse the URL in the normal fashion."
   (interactive)
   (message "Performing lookup...")
-  (let* ((query (or query-url (url-get-url-at-point)))
+  (let* ((query (or query-url
+                    (url-get-url-at-point)
+                    (read-string "Lookup URL: ")))
          (url (format "%s/api/v2/search" mastodon-instance-url))
          (param (concat "resolve=t")) ; webfinger
          (response (mastodon-http--get-search-json url query param :silent)))
