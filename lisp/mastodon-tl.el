@@ -143,6 +143,7 @@ etc.")
     (define-key map [remap shr-previous-link] 'mastodon-tl--previous-tab-item)
     ;; keep new my-profile binding; shr 'O' doesn't work here anyway
     (define-key map (kbd "O") 'mastodon-profile--my-profile)
+    (define-key map [remap shr-browse-url] 'mastodon-url-lookup)
     (keymap-canonicalize map))
   "The keymap to be set for shr.el generated links that are not images.
 
@@ -1174,6 +1175,13 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
+(defun mastodon-tl--single-toot-from-url (url)
+  "Open the toot at URL in `mastodon.el'."
+  ;; TODO: test if URL is masto
+  ;; FIXME: this only works 1/2 the time
+  (let ((id (url-file-nondirectory url)))
+    (mastodon-tl--single-toot id)))
+
 (defun mastodon-tl--single-toot (&optional id)
   "View toot at point in separate buffer.
 ID is that of the toot to view."
@@ -1190,56 +1198,69 @@ ID is that of the toot to view."
          (buffer (format "*mastodon-toot-%s*" id))
          (toot (mastodon-http--get-json
                 (mastodon-http--api (concat "statuses/" id)))))
-    (with-output-to-temp-buffer buffer
-      (switch-to-buffer buffer)
-      (mastodon-mode)
-      (setq mastodon-tl--buffer-spec
-            `(buffer-name ,buffer
-                          endpoint ,(format "statuses/%s" id)
-                          update-function
-                          (lambda (toot) (message "END of thread."))))
-      (let ((inhibit-read-only t))
-        (mastodon-tl--toot toot :detailed-p)))))
+    (if (equal (caar toot) 'error)
+        (message "Error: %s" (cdar toot))
+      (with-output-to-temp-buffer buffer
+        (switch-to-buffer buffer)
+        (mastodon-mode)
+        (setq mastodon-tl--buffer-spec
+              `(buffer-name ,buffer
+                            endpoint ,(format "statuses/%s" id)
+                            update-function
+                            (lambda (toot) (message "END of thread."))))
+        (let ((inhibit-read-only t))
+          (mastodon-tl--toot toot :detailed-p))))))
 
-(defun mastodon-tl--thread ()
-  "Open thread buffer for toot under `point'."
+(defun mastodon-tl--thread (&optional id)
+  "Open thread buffer for toot at point or with ID."
   (interactive)
   (let* ((id
-          (if (equal (mastodon-tl--get-endpoint) "notifications")
-              ;; for boosts/faves:
-              (if (mastodon-tl--property 'parent-toot)
-                  (mastodon-tl--as-string (mastodon-tl--toot-id
-                                           (mastodon-tl--property 'parent-toot)))
-                (mastodon-tl--property 'base-toot-id))
-            (mastodon-tl--property 'base-toot-id)))
+          (or id
+              (if (equal (mastodon-tl--get-endpoint) "notifications")
+                  ;; for boosts/faves:
+                  (if (mastodon-tl--property 'parent-toot)
+                      (mastodon-tl--as-string (mastodon-tl--toot-id
+                                               (mastodon-tl--property 'parent-toot)))
+                    (mastodon-tl--property 'base-toot-id))
+                (mastodon-tl--property 'base-toot-id))))
          (url (mastodon-http--api (format "statuses/%s/context" id)))
          (buffer (format "*mastodon-thread-%s*" id))
          (toot
           ;; refetch current toot in case we just faved/boosted:
           (mastodon-http--get-json
-           (mastodon-http--api (concat "statuses/" id))))
-         (context (mastodon-http--get-json url)))
-    (when (member (alist-get 'type toot) '("reblog" "favourite"))
-      (setq toot (alist-get 'status toot)))
-    (if (> (+ (length (alist-get 'ancestors context))
-              (length (alist-get 'descendants context)))
-           0)
-        (progn
-          (with-output-to-temp-buffer buffer
-            (switch-to-buffer buffer)
-            (mastodon-mode)
-            (setq mastodon-tl--buffer-spec
-                  `(buffer-name ,buffer
-                                endpoint ,(format "statuses/%s/context" id)
-                                update-function
-                                (lambda (toot) (message "END of thread."))))
-            (let ((inhibit-read-only t))
-              (mastodon-tl--timeline (alist-get 'ancestors context))
-              (goto-char (point-max))
-              (mastodon-tl--toot toot :detailed-p)
-              (mastodon-tl--timeline (alist-get 'descendants context))))
-          (mastodon-tl--goto-next-toot))
-      (mastodon-tl--single-toot id))))
+           (mastodon-http--api (concat "statuses/" id))
+           :silent))
+         (context (mastodon-http--get-json url :silent))
+         (marker (make-marker)))
+    (if (equal (caar toot) 'error)
+        (message "Error: %s" (cdar toot))
+      (when (member (alist-get 'type toot) '("reblog" "favourite"))
+        (setq toot (alist-get 'status toot)))
+      (if (> (+ (length (alist-get 'ancestors context))
+                (length (alist-get 'descendants context)))
+             0)
+          ;; if we have a thread:
+          (progn
+            (with-output-to-temp-buffer buffer
+              (switch-to-buffer buffer)
+              (mastodon-mode)
+              (setq mastodon-tl--buffer-spec
+                    `(buffer-name ,buffer
+                                  endpoint ,(format "statuses/%s/context" id)
+                                  update-function
+                                  (lambda (toot) (message "END of thread."))))
+              (let ((inhibit-read-only t))
+                (mastodon-tl--timeline (alist-get 'ancestors context))
+                (goto-char (point-max))
+                (move-marker marker (point))
+                ;; print re-fetched toot:
+                (mastodon-tl--toot toot :detailed-p)
+                (mastodon-tl--timeline (alist-get 'descendants context))))
+            ;; put point at the toot:
+            (goto-char (marker-position marker))
+            (mastodon-tl--goto-next-toot))
+        ;; else just print the lone toot:
+        (mastodon-tl--single-toot id)))))
 
 (defun mastodon-tl--create-filter ()
   "Create a filter for a word.

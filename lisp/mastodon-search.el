@@ -77,7 +77,6 @@ QUERY is the string to search."
          (tags (alist-get 'hashtags response)))
     (mapcar #'mastodon-search--get-hashtag-info tags)))
 
-
 ;; trending tags
 
 (defun mastodon-search--trending-tags ()

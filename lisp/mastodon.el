@@ -33,6 +33,7 @@
 
 ;;; Code:
 (require 'cl-lib) ; for `cl-some' call in mastodon
+(require 'mastodon-http)
 (require 'mastodon-toot)
 
 (declare-function discover-add-context-menu "discover")
@@ -263,6 +264,34 @@ If REPLY-TO-ID is non-nil, attach new toot to a conversation.
 If REPLY-JSON is the json of the toot being replied to."
   (interactive)
   (mastodon-toot--compose-buffer user reply-to-id reply-json))
+
+;; URL lookup: should be available even if `mastodon.el' not loaded:
+
+;;;###autoload
+(defun mastodon-url-lookup (&optional query-url)
+  "Do a WebFinger lookup for QUERY-URL, or the URL at point.
+If a status or account is found, load it in `mastodon.el', if
+not, just browse the URL in the normal fashion."
+  (interactive)
+  (message "Performing lookup...")
+  (let* ((query (or query-url (url-get-url-at-point)))
+         (url (format "%s/api/v2/search" mastodon-instance-url))
+         (param (concat "resolve=t")) ; webfinger
+         (response (mastodon-http--get-search-json url query param :silent)))
+    (if (equal response '((accounts . #1=[]) (statuses . #1#) (hashtags . #1#)))
+        (shr-browse-url query-url)
+      (cond ((not (seq-empty-p
+                   (alist-get 'statuses response)))
+             (let* ((statuses (assoc 'statuses response))
+                    (status (seq-first (cdr statuses)))
+                    (status-id (alist-get 'id status)))
+               (mastodon-tl--thread status-id)))
+            ((not (seq-empty-p
+                   (alist-get 'accounts response)))
+             (let* ((accounts (assoc 'accounts response))
+                    (account (seq-first (cdr accounts)))
+                    (account-id (alist-get 'id account)))
+               (mastodon-profile--account-from-id account-id)))))))
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook (lambda ()
