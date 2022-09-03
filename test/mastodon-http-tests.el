@@ -53,9 +53,9 @@ Strict-Transport-Security: max-age=31536000
 (ert-deftest mastodon-http--get-retrieves-endpoint ()
   "Should make a `url-retrieve' of the given URL."
   (with-mock
-    (mock (mastodon-http--url-retrieve-synchronously "https://foo.bar/baz"))
+    (mock (mastodon-http--url-retrieve-synchronously "https://foo.bar/baz" nil))
     (mock (mastodon-auth--access-token) => "test-token")
-    (mastodon-http--get "https://foo.bar/baz")))
+    (mastodon-http--get "https://foo.bar/baz" nil)))
 
 (ert-deftest mastodon-http--triage-success ()
   "Should run success function for 200 HTML response."
