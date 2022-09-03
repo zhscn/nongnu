@@ -274,15 +274,15 @@ URL can be arg QUERY-URL, or URL at point, or provided by the user.
 If a status or account is found, load it in `mastodon.el', if
 not, just browse the URL in the normal fashion."
   (interactive)
-  (message "Performing lookup...")
   (let* ((query (or query-url
                     (url-get-url-at-point)
-                    (read-string "Lookup URL: ")))
-         (url (format "%s/api/v2/search" mastodon-instance-url))
-         (param (concat "resolve=t")) ; webfinger
-         (response (mastodon-http--get-search-json url query param :silent)))
-    (if (equal response '((accounts . #1=[]) (statuses . #1#) (hashtags . #1#)))
-        (shr-browse-url query-url)
+                    (mastodon-tl--property 'shr-url)
+                    (read-string "Lookup URL: "))))
+    ;; TODO: test for a likely masto link and just browse-url if not
+    (message "Performing lookup...")
+    (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
+           (param (concat "resolve=t")) ; webfinger
+           (response (mastodon-http--get-search-json url query param :silent)))
       (cond ((not (seq-empty-p
                    (alist-get 'statuses response)))
              (let* ((statuses (assoc 'statuses response))
@@ -293,8 +293,10 @@ not, just browse the URL in the normal fashion."
                    (alist-get 'accounts response)))
              (let* ((accounts (assoc 'accounts response))
                     (account (seq-first (cdr accounts)))
-                    (account-id (alist-get 'id account)))
-               (mastodon-profile--account-from-id account-id)))))))
+                    (account-acct (alist-get 'acct account)))
+               (mastodon-profile--show-user account-acct)))
+            (t
+             (browse-url query))))))
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook (lambda ()
