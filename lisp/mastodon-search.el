@@ -77,6 +77,26 @@ QUERY is the string to search."
          (tags (alist-get 'hashtags response)))
     (mapcar #'mastodon-search--get-hashtag-info tags)))
 
+(defun mastodon-search--url-lookup (&optional query-url)
+  "Do a WebFinger lookup for QUERY-URL.
+If a status or account is found, load it in `mastodon.el', if not, just browse the URL in the normal fashion."
+  (interactive)
+  (let* ((query (or query-url (url-get-url-at-point)))
+         (url (format "%s/api/v2/search" mastodon-instance-url))
+         (param (concat "resolve=t")) ; webfinger
+         (response (mastodon-http--get-search-json url query param)))
+    (if (equal response '((accounts . #1=[]) (statuses . #1#) (hashtags . #1#)))
+        ;; no results
+        ;; browse URL here
+        ()
+      (let ((statuses (assoc 'statuses response))
+            (status-1 (seq-first (cdr statuses)))
+            (status-1-id (alist-get 'id status-1))
+            (accounts (assoc 'accounts response)))
+        ;; TODO: test for a masto URL first?
+        (when status-1
+          (mastodon-tl--single-toot status-1-id))))))
+
 
 ;; trending tags
 
