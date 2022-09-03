@@ -688,6 +688,31 @@ START and END are the boundaries of the link in the toot."
                                 'help-echo help-echo)
                           extra-properties))))
 
+(defun mastodon-tl--url-lookup (&optional query-url)
+  "Do a WebFinger lookup for QUERY-URL, or the URL at point.
+If a status or account is found, load it in `mastodon.el', if
+not, just browse the URL in the normal fashion."
+  (interactive)
+  (let* ((query (or query-url (url-get-url-at-point)))
+         (url (format "%s/api/v2/search" mastodon-instance-url))
+         (param (concat "resolve=t")) ; webfinger
+         (response (mastodon-http--get-search-json url query param)))
+    (if (equal response '((accounts . #1=[]) (statuses . #1#) (hashtags . #1#)))
+        (shr-browse-url query-url)
+      (cond ((not (equal '[]
+                         (alist-get 'statuses response)))
+             (let* ((statuses (assoc 'statuses response))
+                    (status (seq-first (cdr statuses)))
+                    (status-id (alist-get 'id status)))
+               (mastodon-tl--thread status-id)))
+            ((not (equal '[]
+                         (alist-get 'accounts response)))
+             (let* ((accounts (assoc 'accounts response))
+                    (account (seq-first (cdr accounts)))
+                    (account-id (alist-get 'id account)))
+               (mastodon-profile--account-from-id account-id)))))))
+
+
 (defun mastodon-tl--extract-userid-toot (toot acct)
   "Extract a user id for an ACCT from mentions in a TOOT."
   (let* ((mentions (append (alist-get 'mentions toot) nil))
