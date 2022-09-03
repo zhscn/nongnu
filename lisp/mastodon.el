@@ -296,8 +296,7 @@ not, just browse the URL in the normal fashion."
                        (alist-get 'accounts response)))
                  (let* ((accounts (assoc 'accounts response))
                         (account (seq-first (cdr accounts)))
-                        (account-acct (alist-get 'acct account)))
-                   (mastodon-profile--show-user account-acct)))
+                        (mastodon-profile--make-author-buffer account))))
                 (t
                  (browse-url query))))))))
 
