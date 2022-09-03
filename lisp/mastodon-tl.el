@@ -1241,7 +1241,7 @@ ID is that of the toot to view."
           (mastodon-tl--toot toot :detailed-p))))))
 
 (defun mastodon-tl--thread (&optional id)
-  "Open thread buffer for toot under `point'."
+  "Open thread buffer for toot at point or with ID."
   (interactive)
   (let* ((id
           (or id
