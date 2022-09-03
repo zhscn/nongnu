@@ -269,7 +269,8 @@ If REPLY-JSON is the json of the toot being replied to."
 
 ;;;###autoload
 (defun mastodon-url-lookup (&optional query-url)
-  "Do a WebFinger lookup for a URL.
+  "If QUERY-URL resembles a mastodon link, try to load in `mastodon.el'.
+Does a WebFinger lookup.
 URL can be arg QUERY-URL, or URL at point, or provided by the user.
 If a status or account is found, load it in `mastodon.el', if
 not, just browse the URL in the normal fashion."
