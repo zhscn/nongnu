@@ -276,7 +276,7 @@ not, just browse the URL in the normal fashion."
   (interactive)
   (let* ((query (or query-url
                     (url-get-url-at-point)
-                    (mastodon-tl--property 'shr-url)
+                    (get-text-property (point) 'shr-url)
                     (read-string "Lookup URL: "))))
     ;; TODO: test for a likely masto link and just browse-url if not
     (save-match-data
