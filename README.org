@@ -1,7 +1,8 @@
 #+OPTIONS: toc:nil
 
-[[https://ci.codeberg.org/api/badges/martianh/mastodon.el/status.svg]]
-https://melpa.org/packages/mastodon-badge.svg
+@@html: <a href="https://melpa.org/#/mastodon"><img alt="MELPA" src="https://melpa.org/packages/mastodon-badge.svg"/></a>@@
+
+@@html: <a href="https://ci.codeberg.org/martianh/mastodon.el"><img alt="Build Status" src="https://ci.codeberg.org/api/badges/martianh/mastodon.el/status.svg"></a>@@
 
 * README
 
