@@ -201,7 +201,7 @@ JSON is the data returned by the server."
           (mastodon-tl--set-face
            "[a/r - accept/reject request at point\n n/p - go to next/prev request]\n\n"
            'font-lock-comment-face))
-  (if (equal json '[])
+  (if (seq-empty-p json)
       (insert (propertize
                "Looks like you have no follow requests for now."
                'face font-lock-comment-face
@@ -538,7 +538,7 @@ Also insert their profile note.
 Used to view a user's followers and those they're following."
   ;;FIXME change the name of this fun now that we've edited what it does!
   (let ((inhibit-read-only t))
-    (when (not (equal tootv '[]))
+    (unless (seq-empty-p tootv)
       (mapc (lambda (toot)
               (let ((start-pos (point)))
                 (insert "\n"

@@ -415,7 +415,7 @@ NO-REDRAFT means delete toot only."
 
 (defun mastodon-toot-set-cw (&optional cw)
   "Set content warning to CW if it is non-nil."
-  (unless (equal cw "")
+  (unless (string-empty-p cw)
     (setq mastodon-toot--content-warning t)
     (setq mastodon-toot--content-warning-from-reply-or-redraft cw)))
 
@@ -444,7 +444,7 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
   (interactive)
   (let* ((toot (mastodon-toot--remove-docs))
          (empty-toot-p (and (not mastodon-toot--media-attachments)
-                            (string= "" (mastodon-tl--clean-tabs-and-nl toot)))))
+                            (string-empty-p (mastodon-tl--clean-tabs-and-nl toot)))))
     (if empty-toot-p
         (mastodon-toot--kill)
       (when (y-or-n-p "Discard draft toot? ")
@@ -547,7 +547,7 @@ If media items have been attached and uploaded with
   (interactive)
   (let* ((toot (mastodon-toot--remove-docs))
          (empty-toot-p (and (not mastodon-toot--media-attachments)
-                            (string= "" (mastodon-tl--clean-tabs-and-nl toot))))
+                            (string-empty-p (mastodon-tl--clean-tabs-and-nl toot))))
          (endpoint (mastodon-http--api "statuses"))
          (spoiler (when (and (not empty-toot-p)
                              mastodon-toot--content-warning)
