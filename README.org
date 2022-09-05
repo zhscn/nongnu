@@ -233,6 +233,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
 - Compose options:
    - Completion for mentions and tags
    - Enable custom emoji
+   - Display toot being replied to
 
 *** Live-updating timelines: =mastodon-async-mode=
 

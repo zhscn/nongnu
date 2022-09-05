@@ -30,7 +30,7 @@
 ;; mastodon-toot.el supports POSTing status data to Mastodon.
 
 ;;; Code:
-
+(eval-when-compile (require 'subr-x))
 
 (when (require 'emojify nil :noerror)
   (declare-function emojify-insert-emoji "emojify")
@@ -73,6 +73,7 @@
 (autoload 'mastodon-toot "mastodon")
 (autoload 'mastodon-profile--get-source-pref "mastodon-profile")
 (autoload 'mastodon-profile--update-preference "mastodon-profile")
+(autoload 'mastodon-tl--render-text "mastodon-tl")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -112,6 +113,16 @@ This is only used if company mode is installed."
           (const :tag "off" nil)
           (const :tag "following only" "following")
           (const :tag "all users" "all")))
+
+(defcustom mastodon-toot-display-orig-in-reply-buffer nil
+  "Display a copy of the toot replied to in the compose buffer."
+  :group 'mastodon-toot
+  :type 'boolean)
+
+(defcustom mastodon-toot-orig-in-reply-length 160
+  "Length to crop toot replied to in the compose buffer to."
+  :group 'mastodon-toot
+  :type 'integer)
 
 (defcustom mastodon-toot--enable-custom-instance-emoji nil
   "Whether to enable your instance's custom emoji by default."
@@ -721,7 +732,9 @@ candidate ARG. IGNORED remains a mystery."
    ignored))
 
 (defun mastodon-toot--reply ()
-  "Reply to toot at `point'."
+  "Reply to toot at `point'.
+Customize `mastodon-toot-display-orig-in-reply-buffer' to display
+text of the toot being replied to in the compose buffer."
   (interactive)
   (let* ((toot (mastodon-tl--property 'toot-json))
          (parent (mastodon-tl--property 'parent-toot)) ; for new notifs handling
@@ -736,9 +749,8 @@ candidate ARG. IGNORED remains a mystery."
                                (alist-get 'account toot)))))
     (mastodon-toot (when user
                      (if booster
-                         (if (and
-                              (not (equal user booster))
-                              (not (string-match booster mentions)))
+                         (if (and (not (equal user booster))
+                                  (not (string-match booster mentions)))
                              ;; different booster, user and mentions:
                              (concat (mastodon-toot--process-local user)
                                      ;; "@" booster " "
@@ -928,26 +940,23 @@ LONGEST is the length of the longest binding."
            (mastodon-toot--format-kbinds kbinds))))
     (concat
      " Compose a new toot here. The following keybindings are available:"
-     ;; (mastodon-toot--format-kbinds kbinds))))
      (mapconcat 'identity
                 (mastodon-toot--formatted-kbinds-pairs
                  (mastodon-toot--format-kbinds kbinds)
                  longest-kbind)
                 nil))))
 
-(defun mastodon-toot--display-docs-and-status-fields ()
+(defun mastodon-toot--display-docs-and-status-fields (&optional reply-text)
   "Insert propertized text with documentation about `mastodon-toot-mode'.
 Also includes and the status fields which will get updated based
-on the status of NSFW, content warning flags, media attachments, etc."
+on the status of NSFW, content warning flags, media attachments, etc.
+REPLY-TEXT is the text of the toot being replied to."
   (let ((divider
          "|=================================================================|"))
     (insert
      (propertize
       (concat
-       divider "\n"
        (mastodon-toot--make-mode-docs) "\n"
-       ;; divider "\n"
-       ;; "\n"
        divider "\n"
        " "
        (propertize "Count"
@@ -963,11 +972,21 @@ on the status of NSFW, content warning flags, media attachments, etc."
                    'toot-post-nsfw-flag t)
        "\n"
        " Attachments: "
-       (propertize "None                  " 'toot-attachments t)
-       "\n"
-       divider
-       (propertize "\n"
-                   'rear-nonsticky t))
+       (propertize "None                  "
+                   'toot-attachments t)
+       "\n")
+      'face 'font-lock-comment-face
+      'read-only "Edit your message below."
+      'toot-post-header t)
+     (if reply-text
+         (propertize (truncate-string-to-width
+                      (mastodon-tl--render-text reply-text)
+                      mastodon-toot-orig-in-reply-length)
+                     'face '(variable-pitch :foreground "#7c6f64"))
+       "")
+     (propertize
+      (concat divider "\n")
+      'rear-nonsticky t
       'face 'font-lock-comment-face
       'read-only "Edit your message below."
       'toot-post-header t))))
@@ -981,8 +1000,7 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (when reply-to-user
       (insert (format "%s " reply-to-user))
       (setq mastodon-toot--reply-to-id reply-to-id)
-      (unless (equal mastodon-toot--visibility
-                     reply-visibility)
+      (unless (equal mastodon-toot--visibility reply-visibility)
         (setq mastodon-toot--visibility reply-visibility))
       (mastodon-toot-set-cw reply-cw))))
 
@@ -1030,7 +1048,8 @@ If REPLY-TO-ID is provided, set the `mastodon-toot--reply-to-id' var.
 REPLY-JSON is the full JSON of the toot being replied to."
   (let* ((buffer-exists (get-buffer "*new toot*"))
          (buffer (or buffer-exists (get-buffer-create "*new toot*")))
-         (inhibit-read-only t))
+         (inhibit-read-only t)
+         (reply-text (alist-get 'content reply-json)))
     (switch-to-buffer-other-window buffer)
     (text-mode)
     (mastodon-toot-mode t)
@@ -1038,7 +1057,9 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (setq mastodon-toot--visibility
           (mastodon-profile--get-source-pref 'privacy))
     (unless buffer-exists
-      (mastodon-toot--display-docs-and-status-fields)
+      (mastodon-toot--display-docs-and-status-fields
+       (when mastodon-toot-display-orig-in-reply-buffer
+         reply-text))
       (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json))
     (unless mastodon-toot--max-toot-chars
       (mastodon-toot--get-max-toot-chars))

@@ -33,6 +33,7 @@
 
 ;;; Code:
 (require 'cl-lib) ; for `cl-some' call in mastodon
+(eval-when-compile (require 'subr-x))
 (require 'mastodon-http)
 (require 'mastodon-toot)
 
