@@ -162,6 +162,9 @@ This may be set by the account setting on the server.")
 (defvar mastodon-toot--max-toot-chars nil
   "The maximum allowed characters count for a single toot.")
 
+(defvar mastodon-toot-current-toot-text nil
+  "The text of the toot being composed.")
+
 (defvar mastodon-toot-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-toot--send)
@@ -448,7 +451,10 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
 
 (defun mastodon-toot--kill ()
   "Kill `mastodon-toot-mode' buffer and window."
-  (kill-buffer-and-window))
+  (with-current-buffer (get-buffer "*new toot*")
+    ;; prevent some weird bug when cancelling a non-empty toot:
+    (delete #'mastodon-toot-save-toot-text after-change-functions)
+    (kill-buffer-and-window)))
 
 (defun mastodon-toot--cancel ()
   "Kill new-toot buffer/window. Does not POST content to Mastodon."
@@ -533,7 +539,6 @@ to `emojify-user-emojis', and the emoji data is updated."
   ;; if already loaded, reload
   (when (featurep 'emojify)
     (emojify-set-emoji-data)))
-
 
 (defun mastodon-toot--remove-docs ()
   "Get the body of a toot from the current compose buffer."
@@ -1041,6 +1046,20 @@ REPLY-JSON is the full JSON of the toot being replied to."
                            (list 'invisible (not mastodon-toot--content-warning)
                                  'face 'mastodon-cw-face)))))
 
+(defun mastodon-toot-save-toot-text (&rest _args)
+  "Save the current toot text in `mastodon-toot-current-toot-text'.
+Added to `after-change-functions' in new toot buffers."
+  (interactive)
+  (let ((text  (mastodon-toot--remove-docs)))
+    (unless (string-empty-p text)
+      (setq mastodon-toot-current-toot-text text))))
+
+(defun mastodon-toot-insert-last-toot-text ()
+  "Insert the text of the last composed toot at point."
+  (interactive)
+  (mastodon-toot--compose-buffer nil nil)
+  (insert mastodon-toot-current-toot-text))
+
 (defun mastodon-toot--compose-buffer (reply-to-user reply-to-id &optional reply-json)
   "Create a new buffer to capture text for a new toot.
 If REPLY-TO-USER is provided, inject their handle into the message.
@@ -1073,7 +1092,8 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (make-local-variable 'after-change-functions)
     (push #'mastodon-toot--update-status-fields after-change-functions)
     (mastodon-toot--refresh-attachments-display)
-    (mastodon-toot--update-status-fields)))
+    (mastodon-toot--update-status-fields)
+    (push #'mastodon-toot-save-toot-text after-change-functions)))
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."
