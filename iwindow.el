@@ -96,14 +96,18 @@ CALLBACK and revert the changes it has done."
 (defface iwindow-highlight-fringe '((t :background "blue"))
   "`fringe' face for highlighted windows.")
 
-(defun iwindow--make-decision-tree (windows start end)
+(defun iwindow--make-decision-tree (windows start end predicate)
   "Make a decision tree from window in WINDOWS from START to END.
 
-Return an object OPTION, where OPTION is either a window, or a list of
-form (OPTION...), whose length of no more than the length of
+Don't include windows for which PREDICATE returns nil.
+
+Return an object OPTION, where OPTION is either a window, nil, or a
+list of form (OPTION...), whose length of no more than the length of
 `iwindow-selection-keys'."
-  (if (eql (- end start) 1)
-      (aref windows start)
+  (if (= (- end start) 1)
+      (let ((window (aref windows start)))
+        (when (funcall predicate window)
+          window))
     (let ((result nil)
           (option-count (length iwindow-selection-keys)))
       (dotimes (i option-count)
@@ -112,8 +116,9 @@ form (OPTION...), whose length of no more than the length of
                (s (min (+ start (* i max-descendent-option-count))
                        end))
                (e (min (+ s max-descendent-option-count) end)))
-          (unless (eql s e)
-            (push (iwindow--make-decision-tree windows s e) result))))
+          (unless (= s e)
+            (push (iwindow--make-decision-tree windows s e predicate)
+                  result))))
       (nreverse result))))
 
 (defun iwindow--decorate-windows (tree payload)
@@ -162,7 +167,7 @@ Return the window chosen."
          (redraw-display)
          (while (not option)
            (let ((key (read-key)))
-             (if (eql key ?\C-g)
+             (if (= key ?\C-g)
                  (keyboard-quit)
                (if-let ((choice (alist-get key choices)))
                    (setq option choice)
@@ -181,15 +186,16 @@ WINDOW and ignore WINDOW when PREDICATE returns nil."
     (user-error
      "Atleast two keys needed to select window, please customize `%S'"
      'iwindow-selection-characters))
-  (let ((windows (if predicate
-                     (seq-filter predicate (window-list))
-                   (window-list))))
-    (when windows
-      (if (cdr windows)                 ; (> (length windows) 1)
-          (let* ((tree (iwindow--make-decision-tree
-                        (vconcat windows) 0 (length windows))))
-            (iwindow--ask tree))
-        (car windows)))))
+  (let* ((windows (window-list nil nil (frame-first-window)))
+         (candidates (if predicate
+                         (seq-filter predicate windows)
+                       windows)))
+    (when candidates
+      (if (cdr candidates)                 ; (> (length candidates) 1)
+          (iwindow--ask (iwindow--make-decision-tree
+                         (vconcat windows) 0 (length windows)
+                         predicate))
+        (car candidates)))))
 
 (defun iwindow-show-keys-on-mode-line (windows callback)
   "Change mode line of windows to show the keys to choose the window.
