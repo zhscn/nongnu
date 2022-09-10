@@ -458,7 +458,9 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
 (defun mastodon-toot--kill ()
   "Kill `mastodon-toot-mode' buffer and window."
   (with-current-buffer (get-buffer "*new toot*")
-    (cl-pushnew mastodon-toot-current-toot-text mastodon-toot-draft-toots-list :test 'equal)
+    (unless (eq mastodon-toot-current-toot-text nil)
+      (cl-pushnew mastodon-toot-current-toot-text
+                  mastodon-toot-draft-toots-list :test 'equal))
     ;; prevent some weird bug when cancelling a non-empty toot:
     (delete #'mastodon-toot-save-toot-text after-change-functions)
     (kill-buffer-and-window)))
@@ -468,7 +470,7 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
   (interactive)
   (if (mastodon-toot-empty-p)
       (mastodon-toot--kill)
-    (when (y-or-n-p "Discard draft toot? ")
+    (when (y-or-n-p "Discard draft toot? (text will be saved)")
       (mastodon-toot--kill))))
 
 (defun mastodon-toot-empty-p (&optional text-only)
@@ -1061,7 +1063,7 @@ REPLY-JSON is the full JSON of the toot being replied to."
   "Save the current toot text in `mastodon-toot-current-toot-text'.
 Added to `after-change-functions' in new toot buffers."
   (interactive)
-  (let ((text  (mastodon-toot--remove-docs)))
+  (let ((text (mastodon-toot--remove-docs)))
     (unless (string-empty-p text)
       (setq mastodon-toot-current-toot-text text))))
 
@@ -1072,7 +1074,7 @@ Added to `after-change-functions' in new toot buffers."
       (let ((text (completing-read "Select draft toot: "
                                    mastodon-toot-draft-toots-list
                                    nil t)))
-        (if (equal (buffer-name (current-buffer)) "*new toot*")
+        (if (mastodon-toot-compose-buffer-p)
             (when (and (not (mastodon-toot-empty-p :text-only))
                        (y-or-n-p "Replace current text with draft?"))
               (cl-pushnew mastodon-toot-current-toot-text
@@ -1085,7 +1087,13 @@ Added to `after-change-functions' in new toot buffers."
               ;; (delete-region (point) (point-max))
               (insert text))
           (mastodon-toot--compose-buffer nil nil nil text)))
-    (mastodon-toot--compose-buffer)))
+    (unless (mastodon-toot-compose-buffer-p)
+      (mastodon-toot--compose-buffer))
+    (message "No drafts available")))
+
+(defun mastodon-toot-compose-buffer-p ()
+  "Return t if compose buffer is "
+  (equal (buffer-name (current-buffer)) "*new toot*"))
 
 (defun mastodon-toot--compose-buffer (&optional reply-to-user
                                                 reply-to-id reply-json initial-text)
@@ -1123,6 +1131,8 @@ a draft into the buffer."
     (push #'mastodon-toot--update-status-fields after-change-functions)
     (mastodon-toot--refresh-attachments-display)
     (mastodon-toot--update-status-fields)
+    ;; draft toot text saving:
+    (setq mastodon-toot-current-toot-text nil)
     (push #'mastodon-toot-save-toot-text after-change-functions)
     (when initial-text
       (insert initial-text))))
