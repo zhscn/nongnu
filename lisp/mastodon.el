@@ -36,6 +36,7 @@
 (eval-when-compile (require 'subr-x))
 (require 'mastodon-http)
 (require 'mastodon-toot)
+(require 'url)
 
 (declare-function discover-add-context-menu "discover")
 (declare-function emojify-mode "emojify")
@@ -95,6 +96,7 @@
 (when (require 'lingva nil :no-error)
   (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
 (autoload 'mastodon-search--trending-tags "mastodon-search")
+(autoload 'mastodon-profile-fetch-server-account-settings "mastodon-profile")
 
 (defgroup mastodon nil
   "Interface with Mastodon."
@@ -303,8 +305,6 @@ not, just browse the URL in the normal fashion."
 (defun mastodon--masto-url-p (query)
   "Check if QUERY resembles a fediverse URL."
   ;; calqued off https://github.com/tuskyapp/Tusky/blob/c8fc2418b8f5458a817bba221d025b822225e130/app/src/main/java/com/keylesspalace/tusky/BottomSheetActivity.kt
-  ;; TODO: remove domain and add ^ to regex:
-  ;; (let ((query-path (url-file-nondirectory query)))
   (let* ((uri-parsed (url-generic-parse-url query))
          (query (url-filename uri-parsed)))
     (save-match-data
@@ -324,6 +324,9 @@ not, just browse the URL in the normal fashion."
                                   (emojify-mode t)
                                   (when mastodon-toot--enable-custom-instance-emoji
                                     (mastodon-toot--enable-custom-emoji)))))
+
+;;;###autoload
+(add-hook 'mastodon-mode-hook #'mastodon-profile-fetch-server-account-settings)
 
 (define-derived-mode mastodon-mode special-mode "Mastodon"
   "Major mode for Mastodon, the federated microblogging network."
