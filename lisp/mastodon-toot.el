@@ -458,7 +458,7 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
 (defun mastodon-toot--kill ()
   "Kill `mastodon-toot-mode' buffer and window."
   (with-current-buffer (get-buffer "*new toot*")
-    (cl-pushnew mastodon-toot-current-toot-text mastodon-toot-draft-toots-list)
+    (cl-pushnew mastodon-toot-current-toot-text mastodon-toot-draft-toots-list :test 'equal)
     ;; prevent some weird bug when cancelling a non-empty toot:
     (delete #'mastodon-toot-save-toot-text after-change-functions)
     (kill-buffer-and-window)))
@@ -466,13 +466,19 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
 (defun mastodon-toot--cancel ()
   "Kill new-toot buffer/window. Does not POST content to Mastodon."
   (interactive)
-  (let* ((toot (mastodon-toot--remove-docs))
-         (empty-toot-p (and (not mastodon-toot--media-attachments)
-                            (string-empty-p (mastodon-tl--clean-tabs-and-nl toot)))))
-    (if empty-toot-p
-        (mastodon-toot--kill)
-      (when (y-or-n-p "Discard draft toot? ")
-        (mastodon-toot--kill)))))
+  (if (mastodon-toot-empty-p)
+      (mastodon-toot--kill)
+    (when (y-or-n-p "Discard draft toot? ")
+      (mastodon-toot--kill))))
+
+(defun mastodon-toot-empty-p (&optional text-only)
+  "Return t if no text or attachments have been added to the compose buffer.
+TEXT-ONLY means don't check for attachments."
+  (and (if text-only
+           t
+         (not mastodon-toot--media-attachments))
+       (string-empty-p (mastodon-tl--clean-tabs-and-nl
+                        (mastodon-toot--remove-docs)))))
 
 (defalias 'mastodon-toot--insert-emoji
   'emojify-insert-emoji
@@ -569,10 +575,8 @@ If media items have been attached and uploaded with
 `mastodon-toot--attach-media', they are attached to the toot."
   (interactive)
   (let* ((toot (mastodon-toot--remove-docs))
-         (empty-toot-p (and (not mastodon-toot--media-attachments)
-                            (string-empty-p (mastodon-tl--clean-tabs-and-nl toot))))
          (endpoint (mastodon-http--api "statuses"))
-         (spoiler (when (and (not empty-toot-p)
+         (spoiler (when (and (not (mastodon-toot-empty-p))
                              mastodon-toot--content-warning)
                     (read-string "Warning: " mastodon-toot--content-warning-from-reply-or-redraft)))
          (args-no-media `(("status" . ,toot)
@@ -596,7 +600,7 @@ If media items have been attached and uploaded with
           ((and mastodon-toot--max-toot-chars
                 (> (length toot) mastodon-toot--max-toot-chars))
            (message "Looks like your toot is longer than that maximum allowed length."))
-          (empty-toot-p
+          ((mastodon-toot-empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
           (t
            (let ((response (mastodon-http--post endpoint args nil)))
@@ -1068,7 +1072,19 @@ Added to `after-change-functions' in new toot buffers."
       (let ((text (completing-read "Select draft toot: "
                                    mastodon-toot-draft-toots-list
                                    nil t)))
-        (mastodon-toot--compose-buffer nil nil nil text))
+        (if (equal (buffer-name (current-buffer)) "*new toot*")
+            (when (and (not (mastodon-toot-empty-p :text-only))
+                       (y-or-n-p "Replace current text with draft?"))
+              (cl-pushnew mastodon-toot-current-toot-text
+                          mastodon-toot-draft-toots-list)
+              (goto-char
+               (cdr (mastodon-tl--find-property-range 'toot-post-header
+                                                      (point-min))))
+              (kill-region (point) (point-max))
+              ;; to not save to kill-ring:
+              ;; (delete-region (point) (point-max))
+              (insert text))
+          (mastodon-toot--compose-buffer nil nil nil text)))
     (mastodon-toot--compose-buffer)))
 
 (defun mastodon-toot--compose-buffer (&optional reply-to-user
