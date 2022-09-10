@@ -143,13 +143,15 @@ This is only used if company mode is installed."
   '(direct private unlisted public)
   "A list of the available toot visibility settings.")
 
-(defvar-local mastodon-toot--visibility "public"
+(defvar-local mastodon-toot--visibility nil
   "A string indicating the visibility of the toot being composed.
 
 Valid values are \"direct\", \"private\" (followers-only),
 \"unlisted\", and \"public\".
 
-This may be set by the account setting on the server.")
+This is determined by the account setting on the server. To
+change the setting on the server, see
+`mastodon-toot-set-default-visibility'.")
 
 (defvar-local mastodon-toot--media-attachments nil
   "A list of the media attachments of the toot being composed.")
@@ -194,12 +196,12 @@ send.")
                               nil t)))
     (mastodon-profile--update-preference "privacy" vis :source)))
 
-(defun mastodon-toot--get-max-toot-chars ()
+(defun mastodon-toot--get-max-toot-chars (&optional no-toot)
   "Fetch max_toot_chars from `mastodon-instance-url' asynchronously."
   (mastodon-http--get-json-async
-   (mastodon-http--api "instance") 'mastodon-toot--get-max-toot-chars-callback))
+   (mastodon-http--api "instance") 'mastodon-toot--get-max-toot-chars-callback 'no-toot))
 
-(defun mastodon-toot--get-max-toot-chars-callback (json-response)
+(defun mastodon-toot--get-max-toot-chars-callback (json-response &optional no-toot)
   "Set max_toot_chars returned in JSON-RESPONSE and display in new toot buffer."
   (let ((max-chars
          (or
@@ -210,8 +212,9 @@ send.")
                                 (alist-get 'configuration
                                            json-response))))))
     (setq mastodon-toot--max-toot-chars max-chars)
-    (with-current-buffer "*new toot*"
-      (mastodon-toot--update-status-fields))))
+    (unless no-toot
+      (with-current-buffer "*new toot*"
+        (mastodon-toot--update-status-fields)))))
 
 (defun mastodon-toot--action-success (marker byline-region remove)
   "Insert/remove the text MARKER with 'success face in byline.
@@ -1118,6 +1121,8 @@ Added to `after-change-functions' in new toot buffers."
   "Return t if compose buffer is current."
   (equal (buffer-name (current-buffer)) "*new toot*"))
 
+;; NB: now that we have toot drafts, to ensure offline composing remains
+;; possible, avoid any direct requests here:
 (defun mastodon-toot--compose-buffer (&optional reply-to-user
                                                 reply-to-id reply-json initial-text)
   "Create a new buffer to capture text for a new toot.
@@ -1133,15 +1138,19 @@ a draft into the buffer."
     (switch-to-buffer-other-window buffer)
     (text-mode)
     (mastodon-toot-mode t)
-    ;; use toot visibility setting from the server:
     (setq mastodon-toot--visibility
-          (mastodon-profile--get-source-pref 'privacy))
+          (or (plist-get mastodon-profile-account-settings 'privacy)
+              ;; use toot visibility setting from the server:
+              (mastodon-profile--get-source-pref 'privacy)
+              "public")) ; fallback
     (unless buffer-exists
       (mastodon-toot--display-docs-and-status-fields
        (when mastodon-toot-display-orig-in-reply-buffer
          reply-text))
       (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json))
     (unless mastodon-toot--max-toot-chars
+      ;; no need to fetch from `mastodon-profile-account-settings' as
+      ;; `mastodon-toot--max-toot-chars' is set when we set it
       (mastodon-toot--get-max-toot-chars))
     ;; set up company backends:
     (when (require 'company nil :noerror)

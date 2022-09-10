@@ -35,6 +35,7 @@
 ;;; Code:
 (require 'seq)
 (require 'cl-lib)
+(require 'persist)
 
 (autoload 'mastodon-http--api "mastodon-http.el")
 (autoload 'mastodon-http--get-json "mastodon-http.el")
@@ -67,10 +68,12 @@
 (autoload 'mastodon-toot "mastodon")
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl.el")
+(autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--update-point)
 (defvar mastodon-mode-map)
+(defvar mastodon-toot--max-toot-chars)
 
 (defvar-local mastodon-profile--account nil
   "The data for the account being described in the current profile buffer.")
@@ -115,6 +118,9 @@ extra keybindings."
     (define-key map (kbd "C-c C-k") #'kill-buffer-and-window)
     map)
   "Keymap for `mastodon-profile-update-mode'.")
+
+(persist-defvar mastodon-profile-account-settings nil
+                "An alist of account settings saved from the server.")
 
 (define-minor-mode mastodon-profile-update-mode
   "Minor mode to update Mastodon user profile."
@@ -267,7 +273,37 @@ SOURCE means that the preference is in the 'source' part of the account json."
          (response (mastodon-http--patch url `((,pref-formatted ,val)))))
     (mastodon-http--triage response
                            (lambda ()
+                             (mastodon-profile-update-preference-alist pref val)
                              (message "Account setting %s updated to %s!" pref val)))))
+
+(defun mastodon-profile-update-preference-alist (pref val)
+  "Set local account preference plist preference PREF to VAL.
+This is done after changing the setting on the server."
+  (setf (plist-get mastodon-profile-account-settings pref) val))
+
+(defun mastodon-profile-fetch-server-account-settings ()
+  "Fetch basic account settings from the server.
+Store the values in `mastodon-profile-account-settings'.
+Run in `mastodon-mode-hook'."
+  ;; TODO: add some server settings like max_chars
+  (let ((keys '(locked discoverable display_name))
+        (source-keys '(privacy)))
+    ;; (instance-keys '(max_toot_chars)))
+    (mapc (lambda (k)
+            (mastodon-profile-update-preference-alist
+             k
+             (mastodon-profile--get-json-value k)))
+          keys)
+    (mapc (lambda (sk)
+            (mastodon-profile-update-preference-alist
+             sk
+             (mastodon-profile--get-source-pref sk)))
+          source-keys)
+    ;; hack for max toot chars:
+    (mastodon-toot--get-max-toot-chars :no-toot)
+    (mastodon-profile-update-preference-alist 'max_toot_chars
+                                              mastodon-toot--max-toot-chars)
+    mastodon-profile-account-settings))
 
 (defun mastodon-profile-account-locked-toggle ()
   "Toggle the locked status of your account.
