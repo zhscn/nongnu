@@ -1093,23 +1093,26 @@ Added to `after-change-functions' in new toot buffers."
           (mastodon-toot--compose-buffer nil nil nil text)))
     (unless (mastodon-toot-compose-buffer-p)
       (mastodon-toot--compose-buffer))
-    (message "No drafts available")))
+    (message "No drafts available.")))
 
 (defun mastodon-toot-delete-draft-toot ()
   "Prompt for a draft toot and delete it."
   (interactive)
-  (let ((draft (completing-read "Select draft to delete: "
-                                mastodon-toot-draft-toots-list
-                                nil t)))
-    (setq mastodon-toot-draft-toots-list
-          (cl-delete draft mastodon-toot-draft-toots-list
-                     :test 'equal))
-    (message "Draft deleted!")))
+  (if mastodon-toot-draft-toots-list
+      (let ((draft (completing-read "Select draft to delete: "
+                                    mastodon-toot-draft-toots-list
+                                    nil t)))
+        (setq mastodon-toot-draft-toots-list
+              (cl-delete draft mastodon-toot-draft-toots-list
+                         :test 'equal))
+        (message "Draft deleted!"))
+    (message "No drafts to delete.")))
 
 (defun mastodon-toot-delete-all-drafts ()
   "Delete all drafts."
   (interactive)
-  (setq mastodon-toot-draft-toots-list nil))
+  (setq mastodon-toot-draft-toots-list nil)
+  (message "All drafts deleted!"))
 
 (defun mastodon-toot-compose-buffer-p ()
   "Return t if compose buffer is current."
