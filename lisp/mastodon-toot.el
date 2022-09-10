@@ -165,6 +165,12 @@ This may be set by the account setting on the server.")
 (defvar mastodon-toot-current-toot-text nil
   "The text of the toot being composed.")
 
+(defvar mastodon-toot-draft-toots-list nil
+  "A list of toots that have been saved as drafts.
+For the moment we just put all composed toots in here, as we want
+to also capture toots that are 'sent' but that don't successfully
+send.")
+
 (defvar mastodon-toot-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-toot--send)
@@ -439,7 +445,7 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
   (with-current-buffer response
     (let* ((json-response (mastodon-http--process-json))
            (content (alist-get 'text json-response)))
-      (mastodon-toot--compose-buffer nil nil)
+      (mastodon-toot--compose-buffer)
       (goto-char (point-max))
       (insert content)
       ;; adopt reply-to-id, visibility and CW from deleted toot:
@@ -452,6 +458,7 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
 (defun mastodon-toot--kill ()
   "Kill `mastodon-toot-mode' buffer and window."
   (with-current-buffer (get-buffer "*new toot*")
+    (cl-pushnew mastodon-toot-current-toot-text mastodon-toot-draft-toots-list)
     ;; prevent some weird bug when cancelling a non-empty toot:
     (delete #'mastodon-toot-save-toot-text after-change-functions)
     (kill-buffer-and-window)))
@@ -1054,17 +1061,24 @@ Added to `after-change-functions' in new toot buffers."
     (unless (string-empty-p text)
       (setq mastodon-toot-current-toot-text text))))
 
-(defun mastodon-toot-insert-last-toot-text ()
-  "Insert the text of the last composed toot at point."
+(defun mastodon-toot-open-draft-toot ()
+  "Prompt for a draft toot and open a new compose buffer containing the draft."
   (interactive)
-  (mastodon-toot--compose-buffer nil nil)
-  (insert mastodon-toot-current-toot-text))
+  (if mastodon-toot-draft-toots-list
+      (let ((text (completing-read "Select draft toot: "
+                                   mastodon-toot-draft-toots-list
+                                   nil t)))
+        (mastodon-toot--compose-buffer nil nil nil text))
+    (mastodon-toot--compose-buffer)))
 
-(defun mastodon-toot--compose-buffer (reply-to-user reply-to-id &optional reply-json)
+(defun mastodon-toot--compose-buffer (&optional reply-to-user
+                                                reply-to-id reply-json initial-text)
   "Create a new buffer to capture text for a new toot.
 If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set the `mastodon-toot--reply-to-id' var.
-REPLY-JSON is the full JSON of the toot being replied to."
+REPLY-JSON is the full JSON of the toot being replied to.
+INITIAL-TEXT is used by `mastodon-toot-insert-draft-toot' to add
+a draft into the buffer."
   (let* ((buffer-exists (get-buffer "*new toot*"))
          (buffer (or buffer-exists (get-buffer-create "*new toot*")))
          (inhibit-read-only t)
@@ -1093,7 +1107,9 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (push #'mastodon-toot--update-status-fields after-change-functions)
     (mastodon-toot--refresh-attachments-display)
     (mastodon-toot--update-status-fields)
-    (push #'mastodon-toot-save-toot-text after-change-functions)))
+    (push #'mastodon-toot-save-toot-text after-change-functions)
+    (when initial-text
+      (insert initial-text))))
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."
