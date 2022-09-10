@@ -5,7 +5,7 @@
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 1.0.0
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "27.1") (persist "0.4"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -39,6 +39,7 @@
   (defvar emojify-user-emojis))
 
 (require 'cl-lib)
+(require 'persist)
 
 (when (require 'company nil :noerror)
   (declare-function company-mode-on "company")
@@ -165,8 +166,8 @@ This may be set by the account setting on the server.")
 (defvar mastodon-toot-current-toot-text nil
   "The text of the toot being composed.")
 
-(defvar mastodon-toot-draft-toots-list nil
-  "A list of toots that have been saved as drafts.
+(persist-defvar mastodon-toot-draft-toots-list nil
+                "A list of toots that have been saved as drafts.
 For the moment we just put all composed toots in here, as we want
 to also capture toots that are 'sent' but that don't successfully
 send.")
@@ -455,23 +456,26 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
       (mastodon-toot-set-cw toot-cw)
       (mastodon-toot--update-status-fields))))
 
-(defun mastodon-toot--kill ()
-  "Kill `mastodon-toot-mode' buffer and window."
+(defun mastodon-toot--kill (&optional cancel)
+  "Kill `mastodon-toot-mode' buffer and window.
+CANCEL means the toot was not sent, so we save the toot text as a draft."
   (with-current-buffer (get-buffer "*new toot*")
     (unless (eq mastodon-toot-current-toot-text nil)
-      (cl-pushnew mastodon-toot-current-toot-text
-                  mastodon-toot-draft-toots-list :test 'equal))
+      (when cancel
+        (cl-pushnew mastodon-toot-current-toot-text
+                    mastodon-toot-draft-toots-list :test 'equal)))
     ;; prevent some weird bug when cancelling a non-empty toot:
     (delete #'mastodon-toot-save-toot-text after-change-functions)
     (kill-buffer-and-window)))
 
 (defun mastodon-toot--cancel ()
-  "Kill new-toot buffer/window. Does not POST content to Mastodon."
+  "Kill new-toot buffer/window. Does not POST content to Mastodon.
+Toot text is saved as a draft."
   (interactive)
   (if (mastodon-toot-empty-p)
-      (mastodon-toot--kill)
+      (mastodon-toot--kill :cancel)
     (when (y-or-n-p "Discard draft toot? (text will be saved)")
-      (mastodon-toot--kill))))
+      (mastodon-toot--kill :cancel))))
 
 (defun mastodon-toot-empty-p (&optional text-only)
   "Return t if no text or attachments have been added to the compose buffer.
@@ -1104,10 +1108,11 @@ Added to `after-change-functions' in new toot buffers."
 
 (defun mastodon-toot-delete-all-drafts ()
   "Delete all drafts."
+  (interactive)
   (setq mastodon-toot-draft-toots-list nil))
 
 (defun mastodon-toot-compose-buffer-p ()
-  "Return t if compose buffer is "
+  "Return t if compose buffer is current."
   (equal (buffer-name (current-buffer)) "*new toot*"))
 
 (defun mastodon-toot--compose-buffer (&optional reply-to-user
