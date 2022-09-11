@@ -465,26 +465,32 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
       (mastodon-toot-set-cw toot-cw)
       (mastodon-toot--update-status-fields))))
 
-(defun mastodon-toot--kill (&optional cancel)
-  "Kill `mastodon-toot-mode' buffer and window.
-CANCEL means the toot was not sent, so we save the toot text as a draft."
+(defun mastodon-toot--kill ()
+  "Kill `mastodon-toot-mode' buffer and window."
   (with-current-buffer (get-buffer "*new toot*")
-    (unless (eq mastodon-toot-current-toot-text nil)
-      (when cancel
-        (cl-pushnew mastodon-toot-current-toot-text
-                    mastodon-toot-draft-toots-list :test 'equal)))
-    ;; prevent some weird bug when cancelling a non-empty toot:
-    (delete #'mastodon-toot-save-toot-text after-change-functions)
+    ;; FIXME: prevent some weird bug when cancelling a non-empty toot:
+    (delete #'mastodon-toot--save-toot-text after-change-functions)
     (kill-buffer-and-window)))
 
 (defun mastodon-toot--cancel ()
   "Kill new-toot buffer/window. Does not POST content to Mastodon.
-Toot text is saved as a draft."
+If toot is not empty, prompt to save text as a draft."
   (interactive)
   (if (mastodon-toot-empty-p)
-      (mastodon-toot--kill :cancel)
-    (when (y-or-n-p "Discard draft toot? (text will be saved)")
-      (mastodon-toot--kill :cancel))))
+      (mastodon-toot--kill)
+    (when (y-or-n-p "Save draft toot?")
+      (mastodon-toot-save-draft))
+    (mastodon-toot--kill)))
+
+(defun mastodon-toot-save-draft ()
+  "Save the current compose toot text as a draft.
+Pushes `mastodon-toot-current-toot-text' to
+`mastodon-toot-draft-toots-list'."
+  (interactive)
+  (unless (eq mastodon-toot-current-toot-text nil)
+    (cl-pushnew mastodon-toot-current-toot-text
+                mastodon-toot-draft-toots-list :test 'equal)
+    (message "Draft saved!")))
 
 (defun mastodon-toot-empty-p (&optional text-only)
   "Return t if no text or attachments have been added to the compose buffer.
