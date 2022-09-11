@@ -332,7 +332,7 @@ Discoverable means the account is listed in the server directory."
   "Toggle the sensitive status of your account.
 When enabled, statuses are marked as sensitive by default."
   (interactive)
-  (mastodon-profile--toggle-account-key 'sensitive))
+  (mastodon-profile--toggle-account-key 'sensitive :source))
 
 (defun mastodon-profile--toggle-account-key (key &optional source)
   "Toggle the boolean account setting KEY.
@@ -343,9 +343,9 @@ SOURCE means the setting is located under \"source\" in the account JSON."
          (prompt (format "Account setting %s is %s. Toggle?" key val)))
     (if (not (equal val :json-false))
         (when (y-or-n-p prompt)
-          (mastodon-profile--update-preference (symbol-name key) "false"))
+          (mastodon-profile--update-preference (symbol-name key) "false" source))
       (when (y-or-n-p prompt)
-        (mastodon-profile--update-preference (symbol-name key) "true")))))
+        (mastodon-profile--update-preference (symbol-name key) "true" source)))))
 
 (defun mastodon-profile--edit-account-string (key)
   "Edit the string for account setting KEY."
