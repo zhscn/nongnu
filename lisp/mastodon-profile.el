@@ -216,7 +216,7 @@ JSON is the data returned by the server."
     (mastodon-search--insert-users-propertized json :note)))
 ;; (mastodon-profile--add-author-bylines json)))
 
-;;; account preferences
+;;; ACCOUNT PREFERENCES
 
 (defun mastodon-profile--get-json-value (val)
   "Fetch current VAL ue from account."
@@ -285,10 +285,8 @@ This is done after changing the setting on the server."
   "Fetch basic account settings from the server.
 Store the values in `mastodon-profile-account-settings'.
 Run in `mastodon-mode-hook'."
-  ;; TODO: add some server settings like max_chars
-  (let ((keys '(locked discoverable display_name))
-        (source-keys '(privacy)))
-    ;; (instance-keys '(max_toot_chars)))
+  (let ((keys '(locked discoverable display_name bot))
+        (source-keys '(privacy sensitive language)))
     (mapc (lambda (k)
             (mastodon-profile-update-preference-alist
              k
@@ -307,7 +305,7 @@ Run in `mastodon-mode-hook'."
 
 (defun mastodon-profile-account-locked-toggle ()
   "Toggle the locked status of your account.
-Locked accounts mean follow requests have to be manually approved."
+Locked means follow requests have to be approved."
   (interactive)
   (mastodon-profile--toggle-account-key 'locked))
 
@@ -317,9 +315,24 @@ Discoverable means the account is listed in the server directory."
   (interactive)
   (mastodon-profile--toggle-account-key 'discoverable))
 
-(defun mastodon-profile--toggle-account-key (key)
-  "Toggle the boolean account setting KEY."
-  (let* ((val (mastodon-profile--get-json-value key))
+(defun mastodon-profile-account-bot-toggle ()
+  "Toggle the bot status of your account."
+  (interactive)
+  (mastodon-profile--toggle-account-key 'bot))
+
+;; TODO: actually respect "sensitive" account setting
+(defun mastodon-profile-account-sensitive-toggle ()
+  "Toggle the sensitive status of your account.
+When enabled, statuses are marked as sensitive by default."
+  (interactive)
+  (mastodon-profile--toggle-account-key 'sensitive))
+
+(defun mastodon-profile--toggle-account-key (key &optional source)
+  "Toggle the boolean account setting KEY.
+SOURCE means the setting is located under \"source\" in the account JSON."
+  (let* ((val (if source
+                  (mastodon-profile--get-source-pref key)
+                (mastodon-profile--get-json-value key)))
          (prompt (format "Account setting %s is %s. Toggle?" key val)))
     (if (not (equal val :json-false))
         (when (y-or-n-p prompt)
@@ -359,6 +372,8 @@ Discoverable means the account is listed in the server directory."
                      (prin1-to-string (cdr el)))
              "\n\n"))))
       (goto-char (point-min)))))
+
+;; PROFILE VIEW DETAILS
 
 (defun mastodon-profile--relationships-get (id)
   "Fetch info about logged-in user's relationship to user with id ID."
