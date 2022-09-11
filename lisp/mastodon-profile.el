@@ -283,7 +283,6 @@ SOURCE means that the preference is in the 'source' part of the account json."
 (defun mastodon-profile-update-preference-plist (pref val)
   "Set local account preference plist preference PREF to VAL.
 This is done after changing the setting on the server."
-  ;; TODO: convert all :json-false to nil and back again on sending
   (setq mastodon-profile-account-settings
         (plist-put mastodon-profile-account-settings pref val)))
 
@@ -329,7 +328,6 @@ Discoverable means the account is listed in the server directory."
   (interactive)
   (mastodon-profile--toggle-account-key 'bot))
 
-;; TODO: actually respect "sensitive" account setting
 (defun mastodon-profile-account-sensitive-toggle ()
   "Toggle the sensitive status of your account.
 When enabled, statuses are marked as sensitive by default."
