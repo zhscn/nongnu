@@ -273,12 +273,18 @@ SOURCE means that the preference is in the 'source' part of the account json."
          (response (mastodon-http--patch url `((,pref-formatted ,val)))))
     (mastodon-http--triage response
                            (lambda ()
-                             (mastodon-profile-update-preference-alist pref val)
+                             (mastodon-profile-update-preference-plist pref val)
                              (message "Account setting %s updated to %s!" pref val)))))
 
-(defun mastodon-profile-update-preference-alist (pref val)
+(defun mastodon-profile--get-pref (pref)
+  "Return PREF from `mastodon-profile-account-settings'."
+  (plist-get mastodon-profile-account-settings pref))
+
+(defun mastodon-profile-update-preference-plist (pref val)
   "Set local account preference plist preference PREF to VAL.
 This is done after changing the setting on the server."
+  ;; TODO: convert all :json-false to nil and back again on sending
+  ;; (let ((val (if (eql :json-false val) nil val)))
   (setf (plist-get mastodon-profile-account-settings pref) val))
 
 (defun mastodon-profile-fetch-server-account-settings ()
@@ -288,19 +294,22 @@ Run in `mastodon-mode-hook'."
   (let ((keys '(locked discoverable display_name bot))
         (source-keys '(privacy sensitive language)))
     (mapc (lambda (k)
-            (mastodon-profile-update-preference-alist
+            (mastodon-profile-update-preference-plist
              k
              (mastodon-profile--get-json-value k)))
           keys)
     (mapc (lambda (sk)
-            (mastodon-profile-update-preference-alist
+            (mastodon-profile-update-preference-plist
              sk
              (mastodon-profile--get-source-pref sk)))
           source-keys)
     ;; hack for max toot chars:
     (mastodon-toot--get-max-toot-chars :no-toot)
-    (mastodon-profile-update-preference-alist 'max_toot_chars
+    (mastodon-profile-update-preference-plist 'max_toot_chars
                                               mastodon-toot--max-toot-chars)
+    ;; TODO: remove now redundant vars, replace with fetchers from the plist
+    (setq mastodon-toot--visibility (mastodon-profile--get-pref 'privacy)
+          mastodon-toot--content-nsfw (mastodon-profile--get-pref 'sensitive))
     mastodon-profile-account-settings))
 
 (defun mastodon-profile-account-locked-toggle ()
