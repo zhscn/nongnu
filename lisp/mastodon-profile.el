@@ -273,7 +273,7 @@ SOURCE means that the preference is in the 'source' part of the account json."
          (response (mastodon-http--patch url `((,pref-formatted ,val)))))
     (mastodon-http--triage response
                            (lambda ()
-                             (mastodon-profile-update-preference-plist pref val)
+                             (mastodon-profile-fetch-server-account-settings)
                              (message "Account setting %s updated to %s!" pref val)))))
 
 (defun mastodon-profile--get-pref (pref)
@@ -284,8 +284,8 @@ SOURCE means that the preference is in the 'source' part of the account json."
   "Set local account preference plist preference PREF to VAL.
 This is done after changing the setting on the server."
   ;; TODO: convert all :json-false to nil and back again on sending
-  ;; (let ((val (if (eql :json-false val) nil val)))
-  (setf (plist-get mastodon-profile-account-settings pref) val))
+  (setq mastodon-profile-account-settings
+        (plist-put mastodon-profile-account-settings pref val)))
 
 (defun mastodon-profile-fetch-server-account-settings ()
   "Fetch basic account settings from the server.
