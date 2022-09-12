@@ -66,6 +66,7 @@
 (autoload 'mastodon-search--get-user-info "mastodon-search")
 (autoload 'mastodon-http--delete "mastodon-http")
 (autoload 'mastodon-profile--view-author-profile "mastodon-profile")
+(autoload 'mastodon-profile--get-preferences-pref "mastodon-profile")
 
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
@@ -271,7 +272,7 @@ text, i.e. hidden spoiler text."
   (interactive)
   (let* ((word (or (word-at-point) ""))
          (input (read-string (format "Load timeline for tag (%s): " word)))
-         (tag (if (equal input "") word input)))
+         (tag (if (string-empty-p input) word input)))
     (message "Loading timeline for #%s..." tag)
     (mastodon-tl--show-tag-timeline tag)))
 
@@ -338,7 +339,7 @@ Used on initializing a timeline or thread."
   "Propertize author of TOOT."
   (let* ((account (alist-get 'account toot))
          (handle (alist-get 'acct account))
-         (name (if (not (string= "" (alist-get 'display_name account)))
+         (name (if (not (string-empty-p (alist-get 'display_name account)))
                    (alist-get 'display_name account)
                  (alist-get 'username account)))
          (profile-url (alist-get 'url account))
@@ -370,12 +371,12 @@ Used on initializing a timeline or thread."
      (propertize (concat "@" handle)
                  'face 'mastodon-handle-face
                  'mouse-face 'highlight
-		         'mastodon-tab-stop 'user-handle
+		 'mastodon-tab-stop 'user-handle
                  'account account
-		         'shr-url profile-url
-		         'keymap mastodon-tl--link-keymap
+		 'shr-url profile-url
+		 'keymap mastodon-tl--link-keymap
                  'mastodon-handle (concat "@" handle)
-		         'help-echo (concat "Browse user profile of @" handle))
+		 'help-echo (concat "Browse user profile of @" handle))
      ")")))
 
 (defun mastodon-tl--format-faves-count (toot)
@@ -856,7 +857,12 @@ message is a link which unhides/hides the main body."
     (concat
      cw
      (propertize (mastodon-tl--content toot)
-                 'invisible t
+                 'invisible
+                 ;; check server setting to expand all spoilers:
+                 (unless (eq t
+                             (mastodon-profile--get-preferences-pref
+                              'reading:expand:spoilers))
+                   t)
                  'mastodon-content-warning-body t))))
 
 (defun mastodon-tl--media (toot)
@@ -878,7 +884,7 @@ message is a link which unhides/hides the main body."
                               (concat "Media::" preview-url "\n"))))
                         media-attachements "")))
     (if (not (and mastodon-tl--display-media-p
-                  (equal media-string "")))
+                  (string-empty-p media-string)))
         (concat "\n" media-string)
       "")))
 
@@ -1175,13 +1181,6 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
-(defun mastodon-tl--single-toot-from-url (url)
-  "Open the toot at URL in `mastodon.el'."
-  ;; TODO: test if URL is masto
-  ;; FIXME: this only works 1/2 the time
-  (let ((id (url-file-nondirectory url)))
-    (mastodon-tl--single-toot id)))
-
 (defun mastodon-tl--single-toot (&optional id)
   "View toot at point in separate buffer.
 ID is that of the toot to view."
@@ -1272,7 +1271,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
                 (format "Word(s) to filter (%s): " (or (current-word) ""))
                 nil nil (or (current-word) "")))
          (contexts
-          (if (equal "" word)
+          (if (string-empty-p word)
               (error "You must select at least one word for a filter")
             (completing-read-multiple
              "Contexts to filter [TAB for options]:"
@@ -1316,7 +1315,7 @@ JSON is what is returned by by the server."
           (mastodon-tl--set-face
            "[c - create filter\n d - delete filter at point\n n/p - go to next/prev filter]\n\n"
            'font-lock-comment-face))
-  (if (equal json '[])
+  (if (seq-empty-p json)
       (insert (propertize
                "Looks like you have no filters for now."
                'face font-lock-comment-face
@@ -1654,7 +1653,7 @@ NOTIFY is only non-nil when called by `mastodon-tl--follow-user'."
                     (mastodon-profile--lookup-account-in-status
                      user-handle (mastodon-profile--toot-json))))
          (user-id (mastodon-profile--account-field account 'id))
-         (name (if (not (equal "" (mastodon-profile--account-field account 'display_name)))
+         (name (if (not (string-empty-p (mastodon-profile--account-field account 'display_name)))
                    (mastodon-profile--account-field account 'display_name)
                  (mastodon-profile--account-field account 'username)))
          (url (mastodon-http--api

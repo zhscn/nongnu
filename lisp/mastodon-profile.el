@@ -35,6 +35,7 @@
 ;;; Code:
 (require 'seq)
 (require 'cl-lib)
+(require 'persist)
 
 (autoload 'mastodon-http--api "mastodon-http.el")
 (autoload 'mastodon-http--get-json "mastodon-http.el")
@@ -67,10 +68,12 @@
 (autoload 'mastodon-toot "mastodon")
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl.el")
+(autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--update-point)
 (defvar mastodon-mode-map)
+(defvar mastodon-toot--max-toot-chars)
 
 (defvar-local mastodon-profile--account nil
   "The data for the account being described in the current profile buffer.")
@@ -115,6 +118,13 @@ extra keybindings."
     (define-key map (kbd "C-c C-k") #'kill-buffer-and-window)
     map)
   "Keymap for `mastodon-profile-update-mode'.")
+
+(persist-defvar mastodon-profile-account-settings nil
+                "An alist of account settings saved from the server.
+Other clients can change these settings on the server at any
+time, so this list is not the canonical source for settings. It
+is updated on entering mastodon mode and on toggle any setting it
+contains")
 
 (define-minor-mode mastodon-profile-update-mode
   "Minor mode to update Mastodon user profile."
@@ -201,7 +211,7 @@ JSON is the data returned by the server."
           (mastodon-tl--set-face
            "[a/r - accept/reject request at point\n n/p - go to next/prev request]\n\n"
            'font-lock-comment-face))
-  (if (equal json '[])
+  (if (seq-empty-p json)
       (insert (propertize
                "Looks like you have no follow requests for now."
                'face font-lock-comment-face
@@ -210,7 +220,7 @@ JSON is the data returned by the server."
     (mastodon-search--insert-users-propertized json :note)))
 ;; (mastodon-profile--add-author-bylines json)))
 
-;;; account preferences
+;;; ACCOUNT PREFERENCES
 
 (defun mastodon-profile--get-json-value (val)
   "Fetch current VAL ue from account."
@@ -218,13 +228,13 @@ JSON is the data returned by the server."
          (response (mastodon-http--get-json url)))
     (alist-get val response)))
 
-(defun mastodon-profile--get-source-prefs ()
+(defun mastodon-profile--get-source-values ()
   "Return the \"source\" preferences from the server."
   (mastodon-profile--get-json-value 'source))
 
-(defun mastodon-profile--get-source-pref (pref)
+(defun mastodon-profile--get-source-value (pref)
   "Return account PREF erence from the \"source\" section on the server."
-  (let ((source (mastodon-profile--get-source-prefs)))
+  (let ((source (mastodon-profile--get-source-values)))
     (alist-get pref source)))
 
 (defun mastodon-profile--update-user-profile-note ()
@@ -259,19 +269,55 @@ JSON is the data returned by the server."
                              (lambda () (message "Profile note updated!"))))))
 
 (defun mastodon-profile--update-preference (pref val &optional source)
-  "Update a single acount PREF erence to setting VAL.
+  "Update account PREF erence to setting VAL.
 Both args are strings.
-SOURCE means that the preference is in the 'source' part of the account json."
+SOURCE means that the preference is in the 'source' part of the account JSON."
   (let* ((url (mastodon-http--api "accounts/update_credentials"))
          (pref-formatted (if source (concat "source[" pref "]") pref))
          (response (mastodon-http--patch url `((,pref-formatted ,val)))))
     (mastodon-http--triage response
                            (lambda ()
+                             (mastodon-profile-fetch-server-account-settings)
                              (message "Account setting %s updated to %s!" pref val)))))
+
+(defun mastodon-profile--get-pref (pref)
+  "Return PREF from `mastodon-profile-account-settings'."
+  (plist-get mastodon-profile-account-settings pref))
+
+(defun mastodon-profile-update-preference-plist (pref val)
+  "Set local account preference plist preference PREF to VAL.
+This is done after changing the setting on the server."
+  (setq mastodon-profile-account-settings
+        (plist-put mastodon-profile-account-settings pref val)))
+
+(defun mastodon-profile-fetch-server-account-settings ()
+  "Fetch basic account settings from the server.
+Store the values in `mastodon-profile-account-settings'.
+Run in `mastodon-mode-hook'."
+  (let ((keys '(locked discoverable display_name bot))
+        (source-keys '(privacy sensitive language)))
+    (mapc (lambda (k)
+            (mastodon-profile-update-preference-plist
+             k
+             (mastodon-profile--get-json-value k)))
+          keys)
+    (mapc (lambda (sk)
+            (mastodon-profile-update-preference-plist
+             sk
+             (mastodon-profile--get-source-value sk)))
+          source-keys)
+    ;; hack for max toot chars:
+    (mastodon-toot--get-max-toot-chars :no-toot)
+    (mastodon-profile-update-preference-plist 'max_toot_chars
+                                              mastodon-toot--max-toot-chars)
+    ;; TODO: remove now redundant vars, replace with fetchers from the plist
+    (setq mastodon-toot--visibility (mastodon-profile--get-pref 'privacy)
+          mastodon-toot--content-nsfw (mastodon-profile--get-pref 'sensitive))
+    mastodon-profile-account-settings))
 
 (defun mastodon-profile-account-locked-toggle ()
   "Toggle the locked status of your account.
-Locked accounts mean follow requests have to be manually approved."
+Locked means follow requests have to be approved."
   (interactive)
   (mastodon-profile--toggle-account-key 'locked))
 
@@ -281,18 +327,33 @@ Discoverable means the account is listed in the server directory."
   (interactive)
   (mastodon-profile--toggle-account-key 'discoverable))
 
-(defun mastodon-profile--toggle-account-key (key)
-  "Toggle the boolean account setting KEY."
-  (let* ((val (mastodon-profile--get-json-value key))
+(defun mastodon-profile-account-bot-toggle ()
+  "Toggle the bot status of your account."
+  (interactive)
+  (mastodon-profile--toggle-account-key 'bot))
+
+(defun mastodon-profile-account-sensitive-toggle ()
+  "Toggle the sensitive status of your account.
+When enabled, statuses are marked as sensitive by default."
+  (interactive)
+  (mastodon-profile--toggle-account-key 'sensitive :source))
+
+(defun mastodon-profile--toggle-account-key (key &optional source)
+  "Toggle the boolean account setting KEY.
+SOURCE means the setting is located under \"source\" in the account JSON.
+Current settings are fetched from the server."
+  (let* ((val (if source
+                  (mastodon-profile--get-source-value key)
+                (mastodon-profile--get-json-value key)))
          (prompt (format "Account setting %s is %s. Toggle?" key val)))
     (if (not (equal val :json-false))
         (when (y-or-n-p prompt)
-          (mastodon-profile--update-preference (symbol-name key) "false"))
+          (mastodon-profile--update-preference (symbol-name key) "false" source))
       (when (y-or-n-p prompt)
-        (mastodon-profile--update-preference (symbol-name key) "true")))))
+        (mastodon-profile--update-preference (symbol-name key) "true" source)))))
 
-(defun mastodon-profile--edit-account-string (key)
-  "Edit the string for account setting KEY."
+(defun mastodon-profile--edit-string-value (key)
+  "Edit the string for account preference KEY."
   (let* ((val (mastodon-profile--get-json-value key))
          (new-val
           (read-string (format "Edit account setting %s: " key)
@@ -302,7 +363,16 @@ Discoverable means the account is listed in the server directory."
 (defun mastodon-profile-update-display-name ()
   "Update display name for your account."
   (interactive)
-  (mastodon-profile--edit-account-string 'display_name))
+  (mastodon-profile--edit-string-value 'display_name))
+
+(defun mastodon-profile--get-preferences-pref (pref)
+  "Fetch PREF from the endpoint \"/preferences\".
+This endpoint only holds a few preferences. For others, see
+`mastodon-profile--update-preference' and its endpoint,
+\"/accounts/update_credentials.\""
+  (alist-get pref
+             (mastodon-http--get-json
+              (mastodon-http--api "preferences"))))
 
 (defun mastodon-profile-view-preferences ()
   "View user preferences in another window."
@@ -323,6 +393,8 @@ Discoverable means the account is listed in the server directory."
                      (prin1-to-string (cdr el)))
              "\n\n"))))
       (goto-char (point-min)))))
+
+;; PROFILE VIEW DETAILS
 
 (defun mastodon-profile--relationships-get (id)
   "Fetch info about logged-in user's relationship to user with id ID."
@@ -414,30 +486,33 @@ Returns a list of lists."
                              (is-followers "  FOLLOWERS  ")
                              (is-following "  FOLLOWING  "))))
         (insert
-         "\n"
-         (mastodon-profile--image-from-account account)
-         "\n"
-         (propertize (mastodon-profile--account-field
-                      account 'display_name)
-                     'face 'mastodon-display-name-face)
-         "\n"
-         (propertize (concat "@" acct)
-                     'face 'default)
-         (if (equal locked t)
-             (if (fontp (char-displayable-p #10r9993))
-                 " 🔒"
-               " [locked]")
-           "")
-         "\n ------------\n"
-         (mastodon-tl--render-text note account)
-         ;; account here to enable tab-stops in profile note
-         (if fields
-             (concat "\n"
-                     (mastodon-tl--set-face
-                      (mastodon-profile--fields-insert fields)
-                      'success)
-                     "\n")
-           "")
+         (propertize
+          (concat
+           "\n"
+           (mastodon-profile--image-from-account account)
+           "\n"
+           (propertize (mastodon-profile--account-field
+                        account 'display_name)
+                       'face 'mastodon-display-name-face)
+           "\n"
+           (propertize (concat "@" acct)
+                       'face 'default)
+           (if (equal locked t)
+               (if (fontp (char-displayable-p #10r9993))
+                   " 🔒"
+                 " [locked]")
+             "")
+           "\n ------------\n"
+           (mastodon-tl--render-text note account)
+           ;; account here to enable tab-stops in profile note
+           (if fields
+               (concat "\n"
+                       (mastodon-tl--set-face
+                        (mastodon-profile--fields-insert fields)
+                        'success)
+                       "\n")
+             ""))
+          'profile-json account)
          ;; insert counts
          (mastodon-tl--set-face
           (concat " ------------\n"
@@ -538,7 +613,7 @@ Also insert their profile note.
 Used to view a user's followers and those they're following."
   ;;FIXME change the name of this fun now that we've edited what it does!
   (let ((inhibit-read-only t))
-    (when (not (equal tootv '[]))
+    (unless (seq-empty-p tootv)
       (mapc (lambda (toot)
               (let ((start-pos (point)))
                 (insert "\n"

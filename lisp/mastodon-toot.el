@@ -5,7 +5,7 @@
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 1.0.0
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "27.1") (persist "0.4"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -30,7 +30,7 @@
 ;; mastodon-toot.el supports POSTing status data to Mastodon.
 
 ;;; Code:
-
+(eval-when-compile (require 'subr-x))
 
 (when (require 'emojify nil :noerror)
   (declare-function emojify-insert-emoji "emojify")
@@ -39,6 +39,7 @@
   (defvar emojify-user-emojis))
 
 (require 'cl-lib)
+(require 'persist)
 
 (when (require 'company nil :noerror)
   (declare-function company-mode-on "company")
@@ -73,6 +74,7 @@
 (autoload 'mastodon-toot "mastodon")
 (autoload 'mastodon-profile--get-source-pref "mastodon-profile")
 (autoload 'mastodon-profile--update-preference "mastodon-profile")
+(autoload 'mastodon-tl--render-text "mastodon-tl")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -113,6 +115,16 @@ This is only used if company mode is installed."
           (const :tag "following only" "following")
           (const :tag "all users" "all")))
 
+(defcustom mastodon-toot-display-orig-in-reply-buffer nil
+  "Display a copy of the toot replied to in the compose buffer."
+  :group 'mastodon-toot
+  :type 'boolean)
+
+(defcustom mastodon-toot-orig-in-reply-length 160
+  "Length to crop toot replied to in the compose buffer to."
+  :group 'mastodon-toot
+  :type 'integer)
+
 (defcustom mastodon-toot--enable-custom-instance-emoji nil
   "Whether to enable your instance's custom emoji by default."
   :group 'mastodon-toot
@@ -131,13 +143,15 @@ This is only used if company mode is installed."
   '(direct private unlisted public)
   "A list of the available toot visibility settings.")
 
-(defvar-local mastodon-toot--visibility "public"
+(defvar-local mastodon-toot--visibility nil
   "A string indicating the visibility of the toot being composed.
 
 Valid values are \"direct\", \"private\" (followers-only),
 \"unlisted\", and \"public\".
 
-This may be set by the account setting on the server.")
+This is determined by the account setting on the server. To
+change the setting on the server, see
+`mastodon-toot-set-default-visibility'.")
 
 (defvar-local mastodon-toot--media-attachments nil
   "A list of the media attachments of the toot being composed.")
@@ -150,6 +164,15 @@ This may be set by the account setting on the server.")
 
 (defvar mastodon-toot--max-toot-chars nil
   "The maximum allowed characters count for a single toot.")
+
+(defvar mastodon-toot-current-toot-text nil
+  "The text of the toot being composed.")
+
+(persist-defvar mastodon-toot-draft-toots-list nil
+                "A list of toots that have been saved as drafts.
+For the moment we just put all composed toots in here, as we want
+to also capture toots that are 'sent' but that don't successfully
+send.")
 
 (defvar mastodon-toot-mode-map
   (let ((map (make-sparse-keymap)))
@@ -173,12 +196,12 @@ This may be set by the account setting on the server.")
                               nil t)))
     (mastodon-profile--update-preference "privacy" vis :source)))
 
-(defun mastodon-toot--get-max-toot-chars ()
+(defun mastodon-toot--get-max-toot-chars (&optional no-toot)
   "Fetch max_toot_chars from `mastodon-instance-url' asynchronously."
   (mastodon-http--get-json-async
-   (mastodon-http--api "instance") 'mastodon-toot--get-max-toot-chars-callback))
+   (mastodon-http--api "instance") 'mastodon-toot--get-max-toot-chars-callback 'no-toot))
 
-(defun mastodon-toot--get-max-toot-chars-callback (json-response)
+(defun mastodon-toot--get-max-toot-chars-callback (json-response &optional no-toot)
   "Set max_toot_chars returned in JSON-RESPONSE and display in new toot buffer."
   (let ((max-chars
          (or
@@ -189,8 +212,9 @@ This may be set by the account setting on the server.")
                                 (alist-get 'configuration
                                            json-response))))))
     (setq mastodon-toot--max-toot-chars max-chars)
-    (with-current-buffer "*new toot*"
-      (mastodon-toot--update-status-fields))))
+    (unless no-toot
+      (with-current-buffer "*new toot*"
+        (mastodon-toot--update-status-fields)))))
 
 (defun mastodon-toot--action-success (marker byline-region remove)
   "Insert/remove the text MARKER with 'success face in byline.
@@ -415,7 +439,7 @@ NO-REDRAFT means delete toot only."
 
 (defun mastodon-toot-set-cw (&optional cw)
   "Set content warning to CW if it is non-nil."
-  (unless (equal cw "")
+  (unless (string-empty-p cw)
     (setq mastodon-toot--content-warning t)
     (setq mastodon-toot--content-warning-from-reply-or-redraft cw)))
 
@@ -425,7 +449,7 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
   (with-current-buffer response
     (let* ((json-response (mastodon-http--process-json))
            (content (alist-get 'text json-response)))
-      (mastodon-toot--compose-buffer nil nil)
+      (mastodon-toot--compose-buffer)
       (goto-char (point-max))
       (insert content)
       ;; adopt reply-to-id, visibility and CW from deleted toot:
@@ -435,20 +459,35 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
       (mastodon-toot-set-cw toot-cw)
       (mastodon-toot--update-status-fields))))
 
-(defun mastodon-toot--kill ()
-  "Kill `mastodon-toot-mode' buffer and window."
-  (kill-buffer-and-window))
+(defun mastodon-toot--kill (&optional cancel)
+  "Kill `mastodon-toot-mode' buffer and window.
+CANCEL means the toot was not sent, so we save the toot text as a draft."
+  (with-current-buffer (get-buffer "*new toot*")
+    (unless (eq mastodon-toot-current-toot-text nil)
+      (when cancel
+        (cl-pushnew mastodon-toot-current-toot-text
+                    mastodon-toot-draft-toots-list :test 'equal)))
+    ;; prevent some weird bug when cancelling a non-empty toot:
+    (delete #'mastodon-toot-save-toot-text after-change-functions)
+    (kill-buffer-and-window)))
 
 (defun mastodon-toot--cancel ()
-  "Kill new-toot buffer/window. Does not POST content to Mastodon."
+  "Kill new-toot buffer/window. Does not POST content to Mastodon.
+Toot text is saved as a draft."
   (interactive)
-  (let* ((toot (mastodon-toot--remove-docs))
-         (empty-toot-p (and (not mastodon-toot--media-attachments)
-                            (string= "" (mastodon-tl--clean-tabs-and-nl toot)))))
-    (if empty-toot-p
-        (mastodon-toot--kill)
-      (when (y-or-n-p "Discard draft toot? ")
-        (mastodon-toot--kill)))))
+  (if (mastodon-toot-empty-p)
+      (mastodon-toot--kill :cancel)
+    (when (y-or-n-p "Discard draft toot? (text will be saved)")
+      (mastodon-toot--kill :cancel))))
+
+(defun mastodon-toot-empty-p (&optional text-only)
+  "Return t if no text or attachments have been added to the compose buffer.
+TEXT-ONLY means don't check for attachments."
+  (and (if text-only
+           t
+         (not mastodon-toot--media-attachments))
+       (string-empty-p (mastodon-tl--clean-tabs-and-nl
+                        (mastodon-toot--remove-docs)))))
 
 (defalias 'mastodon-toot--insert-emoji
   'emojify-insert-emoji
@@ -523,7 +562,6 @@ to `emojify-user-emojis', and the emoji data is updated."
   (when (featurep 'emojify)
     (emojify-set-emoji-data)))
 
-
 (defun mastodon-toot--remove-docs ()
   "Get the body of a toot from the current compose buffer."
   (let ((header-region (mastodon-tl--find-property-range 'toot-post-header
@@ -546,10 +584,8 @@ If media items have been attached and uploaded with
 `mastodon-toot--attach-media', they are attached to the toot."
   (interactive)
   (let* ((toot (mastodon-toot--remove-docs))
-         (empty-toot-p (and (not mastodon-toot--media-attachments)
-                            (string= "" (mastodon-tl--clean-tabs-and-nl toot))))
          (endpoint (mastodon-http--api "statuses"))
-         (spoiler (when (and (not empty-toot-p)
+         (spoiler (when (and (not (mastodon-toot-empty-p))
                              mastodon-toot--content-warning)
                     (read-string "Warning: " mastodon-toot--content-warning-from-reply-or-redraft)))
          (args-no-media `(("status" . ,toot)
@@ -573,7 +609,7 @@ If media items have been attached and uploaded with
           ((and mastodon-toot--max-toot-chars
                 (> (length toot) mastodon-toot--max-toot-chars))
            (message "Looks like your toot is longer than that maximum allowed length."))
-          (empty-toot-p
+          ((mastodon-toot-empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
           (t
            (let ((response (mastodon-http--post endpoint args nil)))
@@ -721,7 +757,9 @@ candidate ARG. IGNORED remains a mystery."
    ignored))
 
 (defun mastodon-toot--reply ()
-  "Reply to toot at `point'."
+  "Reply to toot at `point'.
+Customize `mastodon-toot-display-orig-in-reply-buffer' to display
+text of the toot being replied to in the compose buffer."
   (interactive)
   (let* ((toot (mastodon-tl--property 'toot-json))
          (parent (mastodon-tl--property 'parent-toot)) ; for new notifs handling
@@ -736,9 +774,8 @@ candidate ARG. IGNORED remains a mystery."
                                (alist-get 'account toot)))))
     (mastodon-toot (when user
                      (if booster
-                         (if (and
-                              (not (equal user booster))
-                              (not (string-match booster mentions)))
+                         (if (and (not (equal user booster))
+                                  (not (string-match booster mentions)))
                              ;; different booster, user and mentions:
                              (concat (mastodon-toot--process-local user)
                                      ;; "@" booster " "
@@ -928,26 +965,23 @@ LONGEST is the length of the longest binding."
            (mastodon-toot--format-kbinds kbinds))))
     (concat
      " Compose a new toot here. The following keybindings are available:"
-     ;; (mastodon-toot--format-kbinds kbinds))))
      (mapconcat 'identity
                 (mastodon-toot--formatted-kbinds-pairs
                  (mastodon-toot--format-kbinds kbinds)
                  longest-kbind)
                 nil))))
 
-(defun mastodon-toot--display-docs-and-status-fields ()
+(defun mastodon-toot--display-docs-and-status-fields (&optional reply-text)
   "Insert propertized text with documentation about `mastodon-toot-mode'.
 Also includes and the status fields which will get updated based
-on the status of NSFW, content warning flags, media attachments, etc."
+on the status of NSFW, content warning flags, media attachments, etc.
+REPLY-TEXT is the text of the toot being replied to."
   (let ((divider
          "|=================================================================|"))
     (insert
      (propertize
       (concat
-       divider "\n"
        (mastodon-toot--make-mode-docs) "\n"
-       ;; divider "\n"
-       ;; "\n"
        divider "\n"
        " "
        (propertize "Count"
@@ -963,11 +997,21 @@ on the status of NSFW, content warning flags, media attachments, etc."
                    'toot-post-nsfw-flag t)
        "\n"
        " Attachments: "
-       (propertize "None                  " 'toot-attachments t)
-       "\n"
-       divider
-       (propertize "\n"
-                   'rear-nonsticky t))
+       (propertize "None                  "
+                   'toot-attachments t)
+       "\n")
+      'face 'font-lock-comment-face
+      'read-only "Edit your message below."
+      'toot-post-header t)
+     (if reply-text
+         (propertize (truncate-string-to-width
+                      (mastodon-tl--render-text reply-text)
+                      mastodon-toot-orig-in-reply-length)
+                     'face '(variable-pitch :foreground "#7c6f64"))
+       "")
+     (propertize
+      (concat divider "\n")
+      'rear-nonsticky t
       'face 'font-lock-comment-face
       'read-only "Edit your message below."
       'toot-post-header t))))
@@ -981,8 +1025,7 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (when reply-to-user
       (insert (format "%s " reply-to-user))
       (setq mastodon-toot--reply-to-id reply-to-id)
-      (unless (equal mastodon-toot--visibility
-                     reply-visibility)
+      (unless (equal mastodon-toot--visibility reply-visibility)
         (setq mastodon-toot--visibility reply-visibility))
       (mastodon-toot-set-cw reply-cw))))
 
@@ -1023,24 +1066,91 @@ REPLY-JSON is the full JSON of the toot being replied to."
                            (list 'invisible (not mastodon-toot--content-warning)
                                  'face 'mastodon-cw-face)))))
 
-(defun mastodon-toot--compose-buffer (reply-to-user reply-to-id &optional reply-json)
+(defun mastodon-toot-save-toot-text (&rest _args)
+  "Save the current toot text in `mastodon-toot-current-toot-text'.
+Added to `after-change-functions' in new toot buffers."
+  (interactive)
+  (let ((text (mastodon-toot--remove-docs)))
+    (unless (string-empty-p text)
+      (setq mastodon-toot-current-toot-text text))))
+
+(defun mastodon-toot-open-draft-toot ()
+  "Prompt for a draft toot and open a new compose buffer containing the draft."
+  (interactive)
+  (if mastodon-toot-draft-toots-list
+      (let ((text (completing-read "Select draft toot: "
+                                   mastodon-toot-draft-toots-list
+                                   nil t)))
+        (if (mastodon-toot-compose-buffer-p)
+            (when (and (not (mastodon-toot-empty-p :text-only))
+                       (y-or-n-p "Replace current text with draft?"))
+              (cl-pushnew mastodon-toot-current-toot-text
+                          mastodon-toot-draft-toots-list)
+              (goto-char
+               (cdr (mastodon-tl--find-property-range 'toot-post-header
+                                                      (point-min))))
+              (kill-region (point) (point-max))
+              ;; to not save to kill-ring:
+              ;; (delete-region (point) (point-max))
+              (insert text))
+          (mastodon-toot--compose-buffer nil nil nil text)))
+    (unless (mastodon-toot-compose-buffer-p)
+      (mastodon-toot--compose-buffer))
+    (message "No drafts available.")))
+
+(defun mastodon-toot-delete-draft-toot ()
+  "Prompt for a draft toot and delete it."
+  (interactive)
+  (if mastodon-toot-draft-toots-list
+      (let ((draft (completing-read "Select draft to delete: "
+                                    mastodon-toot-draft-toots-list
+                                    nil t)))
+        (setq mastodon-toot-draft-toots-list
+              (cl-delete draft mastodon-toot-draft-toots-list
+                         :test 'equal))
+        (message "Draft deleted!"))
+    (message "No drafts to delete.")))
+
+(defun mastodon-toot-delete-all-drafts ()
+  "Delete all drafts."
+  (interactive)
+  (setq mastodon-toot-draft-toots-list nil)
+  (message "All drafts deleted!"))
+
+(defun mastodon-toot-compose-buffer-p ()
+  "Return t if compose buffer is current."
+  (equal (buffer-name (current-buffer)) "*new toot*"))
+
+;; NB: now that we have toot drafts, to ensure offline composing remains
+;; possible, avoid any direct requests here:
+(defun mastodon-toot--compose-buffer (&optional reply-to-user
+                                                reply-to-id reply-json initial-text)
   "Create a new buffer to capture text for a new toot.
 If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set the `mastodon-toot--reply-to-id' var.
-REPLY-JSON is the full JSON of the toot being replied to."
+REPLY-JSON is the full JSON of the toot being replied to.
+INITIAL-TEXT is used by `mastodon-toot-insert-draft-toot' to add
+a draft into the buffer."
   (let* ((buffer-exists (get-buffer "*new toot*"))
          (buffer (or buffer-exists (get-buffer-create "*new toot*")))
-         (inhibit-read-only t))
+         (inhibit-read-only t)
+         (reply-text (alist-get 'content reply-json)))
     (switch-to-buffer-other-window buffer)
     (text-mode)
     (mastodon-toot-mode t)
-    ;; use toot visibility setting from the server:
     (setq mastodon-toot--visibility
-          (mastodon-profile--get-source-pref 'privacy))
+          (or (plist-get mastodon-profile-account-settings 'privacy)
+              ;; use toot visibility setting from the server:
+              (mastodon-profile--get-source-pref 'privacy)
+              "public")) ; fallback
     (unless buffer-exists
-      (mastodon-toot--display-docs-and-status-fields)
+      (mastodon-toot--display-docs-and-status-fields
+       (when mastodon-toot-display-orig-in-reply-buffer
+         reply-text))
       (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json))
     (unless mastodon-toot--max-toot-chars
+      ;; no need to fetch from `mastodon-profile-account-settings' as
+      ;; `mastodon-toot--max-toot-chars' is set when we set it
       (mastodon-toot--get-max-toot-chars))
     ;; set up company backends:
     (when (require 'company nil :noerror)
@@ -1052,7 +1162,12 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (make-local-variable 'after-change-functions)
     (push #'mastodon-toot--update-status-fields after-change-functions)
     (mastodon-toot--refresh-attachments-display)
-    (mastodon-toot--update-status-fields)))
+    (mastodon-toot--update-status-fields)
+    ;; draft toot text saving:
+    (setq mastodon-toot-current-toot-text nil)
+    (push #'mastodon-toot-save-toot-text after-change-functions)
+    (when initial-text
+      (insert initial-text))))
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."

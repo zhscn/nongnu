@@ -33,8 +33,10 @@
 
 ;;; Code:
 (require 'cl-lib) ; for `cl-some' call in mastodon
+(eval-when-compile (require 'subr-x))
 (require 'mastodon-http)
 (require 'mastodon-toot)
+(require 'url)
 
 (declare-function discover-add-context-menu "discover")
 (declare-function emojify-mode "emojify")
@@ -94,6 +96,7 @@
 (when (require 'lingva nil :no-error)
   (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
 (autoload 'mastodon-search--trending-tags "mastodon-search")
+(autoload 'mastodon-profile-fetch-server-account-settings "mastodon-profile")
 
 (defgroup mastodon nil
   "Interface with Mastodon."
@@ -325,6 +328,9 @@ not, just browse the URL in the normal fashion."
                                   (emojify-mode t)
                                   (when mastodon-toot--enable-custom-instance-emoji
                                     (mastodon-toot--enable-custom-emoji)))))
+
+;;;###autoload
+(add-hook 'mastodon-mode-hook #'mastodon-profile-fetch-server-account-settings)
 
 (define-derived-mode mastodon-mode special-mode "Mastodon"
   "Major mode for Mastodon, the federated microblogging network."

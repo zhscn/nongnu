@@ -255,7 +255,7 @@ of the toot responded to."
 
 (defun mastodon-notifications--timeline (json)
   "Format JSON in Emacs buffer."
-  (if (equal json '[])
+  (if (seq-empty-p json)
       (message "Looks like you have no (more) notifications for the moment.")
     (mapc #'mastodon-notifications--by-type json)
     (goto-char (point-min))))
