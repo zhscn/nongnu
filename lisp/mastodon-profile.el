@@ -406,11 +406,11 @@ This endpoint only holds a few preferences. For others, see
 
 (defun mastodon-profile--fields-get (account)
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
-Returns a list of lists."
+Returns an alist."
   (let ((fields (mastodon-profile--account-field account 'fields)))
     (when fields
       (mapcar (lambda (el)
-                (list (alist-get 'name el)
+                (cons (alist-get 'name el)
                       (alist-get 'value el)))
               fields))))
 
@@ -424,7 +424,7 @@ Returns a list of lists."
                   (concat
                    (format "_ %s " (car field))
                    (make-string (- (+ 1 left-width) (length (car field))) ?_)
-                   (format " :: %s" (cadr field)))
+                   (format " :: %s" (cdr field)))
                   field)) ; hack to make links tabstops
                fields "")))
 
