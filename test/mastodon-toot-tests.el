@@ -89,7 +89,7 @@ mention string."
         (mastodon-instance-url "https://local.social"))
     (should (string= (mastodon-toot--mentions mastodon-toot-no-mention) ""))))
 
-;; TODO: test y-or-no-p with matodon-toot--cancel
+;; TODO: test y-or-no-p with mastodon-toot--cancel
 (ert-deftest mastodon-toot--kill ()
   "Should kill the buffer when cancelling the toot."
   (with-mock
