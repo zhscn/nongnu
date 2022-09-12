@@ -404,10 +404,40 @@ This endpoint only holds a few preferences. For others, see
                                    their-id))))
     (mastodon-http--get-json url)))
 
-(defun mastodon-profile--fields-get (account)
+(defun mastodon-profile-update-meta-fields ()
+  ""
+  (interactive)
+  (let* ((fields-updated (mastodon-profile--update-meta-fields-alist))
+         (fields-json (json-encode
+                       (mapcar (lambda (x)
+                                 (list (cons 'name (car x))
+                                       (cons 'value (cdr x))
+                                       (cons 'verified_at nil)))
+                               fields-updated))))
+    (mastodon-profile--update-preference 'fields_attributes fields-json)))
+
+(defun mastodon-profile--update-meta-fields-alist ()
+  ""
+  (let ((fields-old
+         (mastodon-profile--fields-get
+          nil
+          ;; we must fetch the plaintext version:
+          (mastodon-profile--get-source-pref 'fields)))
+        fields-new)
+    (dolist (f fields-old (reverse fields-new))
+      (push
+       (cons (read-string "Edit account metadata key: "
+                          (car f))
+             (read-string "Edit account metadata value: "
+                          (cdr f)))
+       fields-new))))
+
+(defun mastodon-profile--fields-get (&optional account fields)
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
-Returns an alist."
-  (let ((fields (mastodon-profile--account-field account 'fields)))
+Returns an alist.
+FIELDS means provide a fields vector fetched by other means."
+  (let ((fields (or fields
+                    (mastodon-profile--account-field account 'fields))))
     (when fields
       (mapcar (lambda (el)
                 (cons (alist-get 'name el)
