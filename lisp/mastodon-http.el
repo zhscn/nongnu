@@ -100,6 +100,7 @@ Message status and JSON error from RESPONSE if unsuccessful."
 (defmacro mastodon-http--authorized-request (method body &optional unauthenticated-p)
   "Make a METHOD type request using BODY, with Mastodon authorization.
 Unless UNAUTHENTICATED-P is non-nil."
+  (declare (debug 'body))
   `(let ((url-request-method ,method)
          (url-request-extra-headers
           (unless ,unauthenticated-p
