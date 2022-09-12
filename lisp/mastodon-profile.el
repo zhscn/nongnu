@@ -477,30 +477,33 @@ Returns a list of lists."
                              (is-followers "  FOLLOWERS  ")
                              (is-following "  FOLLOWING  "))))
         (insert
-         "\n"
-         (mastodon-profile--image-from-account account)
-         "\n"
-         (propertize (mastodon-profile--account-field
-                      account 'display_name)
-                     'face 'mastodon-display-name-face)
-         "\n"
-         (propertize (concat "@" acct)
-                     'face 'default)
-         (if (equal locked t)
-             (if (fontp (char-displayable-p #10r9993))
-                 " 🔒"
-               " [locked]")
-           "")
-         "\n ------------\n"
-         (mastodon-tl--render-text note account)
-         ;; account here to enable tab-stops in profile note
-         (if fields
-             (concat "\n"
-                     (mastodon-tl--set-face
-                      (mastodon-profile--fields-insert fields)
-                      'success)
-                     "\n")
-           "")
+         (propertize
+          (concat
+           "\n"
+           (mastodon-profile--image-from-account account)
+           "\n"
+           (propertize (mastodon-profile--account-field
+                        account 'display_name)
+                       'face 'mastodon-display-name-face)
+           "\n"
+           (propertize (concat "@" acct)
+                       'face 'default)
+           (if (equal locked t)
+               (if (fontp (char-displayable-p #10r9993))
+                   " 🔒"
+                 " [locked]")
+             "")
+           "\n ------------\n"
+           (mastodon-tl--render-text note account)
+           ;; account here to enable tab-stops in profile note
+           (if fields
+               (concat "\n"
+                       (mastodon-tl--set-face
+                        (mastodon-profile--fields-insert fields)
+                        'success)
+                       "\n")
+             ""))
+          'profile-json account)
          ;; insert counts
          (mastodon-tl--set-face
           (concat " ------------\n"
