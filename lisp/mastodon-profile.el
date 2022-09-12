@@ -269,9 +269,9 @@ JSON is the data returned by the server."
                              (lambda () (message "Profile note updated!"))))))
 
 (defun mastodon-profile--update-preference (pref val &optional source)
-  "Update a single acount PREF erence to setting VAL.
+  "Update account PREF erence to setting VAL.
 Both args are strings.
-SOURCE means that the preference is in the 'source' part of the account json."
+SOURCE means that the preference is in the 'source' part of the account JSON."
   (let* ((url (mastodon-http--api "accounts/update_credentials"))
          (pref-formatted (if source (concat "source[" pref "]") pref))
          (response (mastodon-http--patch url `((,pref-formatted ,val)))))
@@ -340,7 +340,8 @@ When enabled, statuses are marked as sensitive by default."
 
 (defun mastodon-profile--toggle-account-key (key &optional source)
   "Toggle the boolean account setting KEY.
-SOURCE means the setting is located under \"source\" in the account JSON."
+SOURCE means the setting is located under \"source\" in the account JSON.
+Current settings are fetched from the server."
   (let* ((val (if source
                   (mastodon-profile--get-source-value key)
                 (mastodon-profile--get-json-value key)))
@@ -351,8 +352,8 @@ SOURCE means the setting is located under \"source\" in the account JSON."
       (when (y-or-n-p prompt)
         (mastodon-profile--update-preference (symbol-name key) "true" source)))))
 
-(defun mastodon-profile--edit-account-string (key)
-  "Edit the string for account setting KEY."
+(defun mastodon-profile--edit-string-value (key)
+  "Edit the string for account preference KEY."
   (let* ((val (mastodon-profile--get-json-value key))
          (new-val
           (read-string (format "Edit account setting %s: " key)
@@ -362,7 +363,7 @@ SOURCE means the setting is located under \"source\" in the account JSON."
 (defun mastodon-profile-update-display-name ()
   "Update display name for your account."
   (interactive)
-  (mastodon-profile--edit-account-string 'display_name))
+  (mastodon-profile--edit-string-value 'display_name))
 
 (defun mastodon-profile-view-preferences ()
   "View user preferences in another window."
