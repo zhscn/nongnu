@@ -365,6 +365,15 @@ Current settings are fetched from the server."
   (interactive)
   (mastodon-profile--edit-string-value 'display_name))
 
+(defun mastodon-profile--get-preferences-pref (pref)
+  "Fetch PREF from the endpoint \"/preferences\".
+This endpoint only holds a few preferences. For others, see
+`mastodon-profile--update-preference' and its endpoint,
+\"/accounts/update_credentials.\""
+  (alist-get pref
+             (mastodon-http--get-json
+              (mastodon-http--api "preferences"))))
+
 (defun mastodon-profile-view-preferences ()
   "View user preferences in another window."
   (interactive)

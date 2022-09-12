@@ -66,6 +66,7 @@
 (autoload 'mastodon-search--get-user-info "mastodon-search")
 (autoload 'mastodon-http--delete "mastodon-http")
 (autoload 'mastodon-profile--view-author-profile "mastodon-profile")
+(autoload 'mastodon-profile--get-preferences-pref "mastodon-profile")
 
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
@@ -856,7 +857,12 @@ message is a link which unhides/hides the main body."
     (concat
      cw
      (propertize (mastodon-tl--content toot)
-                 'invisible t
+                 'invisible
+                 ;; check server setting to expand all spoilers:
+                 (unless (eq t
+                             (mastodon-profile--get-preferences-pref
+                              'reading:expand:spoilers))
+                   t)
                  'mastodon-content-warning-body t))))
 
 (defun mastodon-tl--media (toot)
