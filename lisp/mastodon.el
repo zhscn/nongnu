@@ -283,7 +283,9 @@ not, just browse the URL in the normal fashion."
                     (get-text-property (point) 'shr-url)
                     (read-string "Lookup URL: "))))
     (if (not (mastodon--masto-url-p query))
-        (browse-url query)
+        (if (equal major-mode 'mastodon-mode)
+            (shr-browse-url query) ;; keep our shr keymap
+          (browse-url query))
       (message "Performing lookup...")
       (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
              (param (concat "resolve=t")) ; webfinger
