@@ -73,7 +73,7 @@
   "Retrieve URL asynchronously.
 
 This is a thin abstraction over the system
-`url-retrieve-synchronously`.  Depending on which version of this
+`url-retrieve-synchronously'.  Depending on which version of this
 is available we will call it with or without a timeout."
   (if (< (cdr (func-arity 'url-retrieve-synchronously)) 4)
       (url-retrieve-synchronously url)
@@ -108,6 +108,18 @@ Unless UNAUTHENTICATED-P is non-nil."
                         (concat "Bearer " (mastodon-auth--access-token)))))))
      ,body))
 
+(defun mastodon-http--build-query-string (args)
+  "Build a request query string from ARGS."
+  ;; (url-build-query-string args nil))
+  ;; url-build-query-string adds 'nil' to empty params so lets stay with our
+  ;; own:
+  (mapconcat (lambda (arg)
+               (concat (url-hexify-string (car arg))
+                       "="
+                       (url-hexify-string (cdr arg))))
+             args
+             "&"))
+
 (defun mastodon-http--post (url args headers &optional unauthenticated-p)
   "POST synchronously to URL with ARGS and HEADERS.
 
@@ -116,12 +128,7 @@ Authorization header is included by default unless UNAUTHENTICATED-P is non-nil.
    "POST"
    (let ((url-request-data
           (when args
-            (mapconcat (lambda (arg)
-                         (concat (url-hexify-string (car arg))
-                                 "="
-                                 (url-hexify-string (cdr arg))))
-                       args
-                       "&")))
+            (mastodon-http--build-query-string args)))
          (url-request-extra-headers
           (append url-request-extra-headers ; auth set in macro
                   ;; pleroma compat:
@@ -216,7 +223,9 @@ Optionally specify the PARAMS to send."
 Optionally specify the PARAMS to send."
   (mastodon-http--authorized-request
    "PATCH"
-   (let ((url (mastodon-http--append-query-string base-url params)))
+   (let ((url
+          (concat base-url "?"
+                  (mastodon-http--build-query-string params))))
      (mastodon-http--url-retrieve-synchronously url))))
 
  ;; Asynchronous functions
@@ -245,12 +254,7 @@ Authorization header is included by default unless UNAUTHENTICED-P is non-nil."
    (let ((request-timeout 5)
          (url-request-data
           (when args
-            (mapconcat (lambda (arg)
-                         (concat (url-hexify-string (car arg))
-                                 "="
-                                 (url-hexify-string (cdr arg))))
-                       args
-                       "&"))))
+            (mastodon-http--build-query-string args))))
      (with-temp-buffer
        (url-retrieve url callback cbargs)))))
 
