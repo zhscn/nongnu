@@ -305,10 +305,12 @@ not, just browse the URL in the normal fashion."
 (defun mastodon--masto-url-p (query)
   "Check if QUERY resembles a fediverse URL."
   ;; calqued off https://github.com/tuskyapp/Tusky/blob/c8fc2418b8f5458a817bba221d025b822225e130/app/src/main/java/com/keylesspalace/tusky/BottomSheetActivity.kt
+  ;; thx to Conny Duck!
   (let* ((uri-parsed (url-generic-parse-url query))
          (query (url-filename uri-parsed)))
     (save-match-data
-      (or (string-match "^/@[[:alnum:]]+/[[:digit:]]+$" query)
+      (or (string-match "^/@[^/]+$" query)
+          (string-match "^/@[^/]+/[[:digit:]]+$" query)
           (string-match "^/users/[[:alnum:]]+$" query)
           (string-match "^/notice/[[:alnum:]]+$" query)
           (string-match "^/objects/[-a-f0-9]+$" query)
