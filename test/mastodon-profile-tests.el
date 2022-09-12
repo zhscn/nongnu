@@ -246,6 +246,8 @@ content generation in the function under test."
     (mock (shr-render-region * *) => nil)
     ;; Don't perform the actual update call at the end.
     ;;(mock (mastodon-tl--timeline *))
+    (mock (mastodon-profile-fetch-server-account-settings)
+          => '(max_toot_chars 1312 privacy "public" display_name "Eugen" discoverable t locked :json-false bot :json-false sensitive :json-false language ""))
 
     (let ((mastodon-tl--show-avatars t)
           (mastodon-tl--display-media-p t)
