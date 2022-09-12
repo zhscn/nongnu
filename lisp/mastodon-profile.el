@@ -274,7 +274,7 @@ Both args are strings.
 SOURCE means that the preference is in the 'source' part of the account JSON."
   (let* ((url (mastodon-http--api "accounts/update_credentials"))
          (pref-formatted (if source (concat "source[" pref "]") pref))
-         (response (mastodon-http--patch url `((,pref-formatted ,val)))))
+         (response (mastodon-http--patch url `((,pref-formatted . ,val)))))
     (mastodon-http--triage response
                            (lambda ()
                              (mastodon-profile-fetch-server-account-settings)
