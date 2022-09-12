@@ -228,13 +228,13 @@ JSON is the data returned by the server."
          (response (mastodon-http--get-json url)))
     (alist-get val response)))
 
-(defun mastodon-profile--get-source-prefs ()
+(defun mastodon-profile--get-source-values ()
   "Return the \"source\" preferences from the server."
   (mastodon-profile--get-json-value 'source))
 
-(defun mastodon-profile--get-source-pref (pref)
+(defun mastodon-profile--get-source-value (pref)
   "Return account PREF erence from the \"source\" section on the server."
-  (let ((source (mastodon-profile--get-source-prefs)))
+  (let ((source (mastodon-profile--get-source-values)))
     (alist-get pref source)))
 
 (defun mastodon-profile--update-user-profile-note ()
@@ -304,7 +304,7 @@ Run in `mastodon-mode-hook'."
     (mapc (lambda (sk)
             (mastodon-profile-update-preference-plist
              sk
-             (mastodon-profile--get-source-pref sk)))
+             (mastodon-profile--get-source-value sk)))
           source-keys)
     ;; hack for max toot chars:
     (mastodon-toot--get-max-toot-chars :no-toot)
@@ -342,7 +342,7 @@ When enabled, statuses are marked as sensitive by default."
   "Toggle the boolean account setting KEY.
 SOURCE means the setting is located under \"source\" in the account JSON."
   (let* ((val (if source
-                  (mastodon-profile--get-source-pref key)
+                  (mastodon-profile--get-source-value key)
                 (mastodon-profile--get-json-value key)))
          (prompt (format "Account setting %s is %s. Toggle?" key val)))
     (if (not (equal val :json-false))
