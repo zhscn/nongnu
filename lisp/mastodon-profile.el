@@ -120,7 +120,11 @@ extra keybindings."
   "Keymap for `mastodon-profile-update-mode'.")
 
 (persist-defvar mastodon-profile-account-settings nil
-                "An alist of account settings saved from the server.")
+                "An alist of account settings saved from the server.
+Other clients can change these settings on the server at any
+time, so this list is not the canonical source for settings. It
+is updated on entering mastodon mode and on toggle any setting it
+contains")
 
 (define-minor-mode mastodon-profile-update-mode
   "Minor mode to update Mastodon user profile."
@@ -224,13 +228,13 @@ JSON is the data returned by the server."
          (response (mastodon-http--get-json url)))
     (alist-get val response)))
 
-(defun mastodon-profile--get-source-prefs ()
+(defun mastodon-profile--get-source-values ()
   "Return the \"source\" preferences from the server."
   (mastodon-profile--get-json-value 'source))
 
-(defun mastodon-profile--get-source-pref (pref)
+(defun mastodon-profile--get-source-value (pref)
   "Return account PREF erence from the \"source\" section on the server."
-  (let ((source (mastodon-profile--get-source-prefs)))
+  (let ((source (mastodon-profile--get-source-values)))
     (alist-get pref source)))
 
 (defun mastodon-profile--update-user-profile-note ()
@@ -265,9 +269,9 @@ JSON is the data returned by the server."
                              (lambda () (message "Profile note updated!"))))))
 
 (defun mastodon-profile--update-preference (pref val &optional source)
-  "Update a single acount PREF erence to setting VAL.
+  "Update account PREF erence to setting VAL.
 Both args are strings.
-SOURCE means that the preference is in the 'source' part of the account json."
+SOURCE means that the preference is in the 'source' part of the account JSON."
   (let* ((url (mastodon-http--api "accounts/update_credentials"))
          (pref-formatted (if source (concat "source[" pref "]") pref))
          (response (mastodon-http--patch url `((,pref-formatted ,val)))))
@@ -283,7 +287,6 @@ SOURCE means that the preference is in the 'source' part of the account json."
 (defun mastodon-profile-update-preference-plist (pref val)
   "Set local account preference plist preference PREF to VAL.
 This is done after changing the setting on the server."
-  ;; TODO: convert all :json-false to nil and back again on sending
   (setq mastodon-profile-account-settings
         (plist-put mastodon-profile-account-settings pref val)))
 
@@ -301,7 +304,7 @@ Run in `mastodon-mode-hook'."
     (mapc (lambda (sk)
             (mastodon-profile-update-preference-plist
              sk
-             (mastodon-profile--get-source-pref sk)))
+             (mastodon-profile--get-source-value sk)))
           source-keys)
     ;; hack for max toot chars:
     (mastodon-toot--get-max-toot-chars :no-toot)
@@ -329,28 +332,28 @@ Discoverable means the account is listed in the server directory."
   (interactive)
   (mastodon-profile--toggle-account-key 'bot))
 
-;; TODO: actually respect "sensitive" account setting
 (defun mastodon-profile-account-sensitive-toggle ()
   "Toggle the sensitive status of your account.
 When enabled, statuses are marked as sensitive by default."
   (interactive)
-  (mastodon-profile--toggle-account-key 'sensitive))
+  (mastodon-profile--toggle-account-key 'sensitive :source))
 
 (defun mastodon-profile--toggle-account-key (key &optional source)
   "Toggle the boolean account setting KEY.
-SOURCE means the setting is located under \"source\" in the account JSON."
+SOURCE means the setting is located under \"source\" in the account JSON.
+Current settings are fetched from the server."
   (let* ((val (if source
-                  (mastodon-profile--get-source-pref key)
+                  (mastodon-profile--get-source-value key)
                 (mastodon-profile--get-json-value key)))
          (prompt (format "Account setting %s is %s. Toggle?" key val)))
     (if (not (equal val :json-false))
         (when (y-or-n-p prompt)
-          (mastodon-profile--update-preference (symbol-name key) "false"))
+          (mastodon-profile--update-preference (symbol-name key) "false" source))
       (when (y-or-n-p prompt)
-        (mastodon-profile--update-preference (symbol-name key) "true")))))
+        (mastodon-profile--update-preference (symbol-name key) "true" source)))))
 
-(defun mastodon-profile--edit-account-string (key)
-  "Edit the string for account setting KEY."
+(defun mastodon-profile--edit-string-value (key)
+  "Edit the string for account preference KEY."
   (let* ((val (mastodon-profile--get-json-value key))
          (new-val
           (read-string (format "Edit account setting %s: " key)
@@ -360,7 +363,7 @@ SOURCE means the setting is located under \"source\" in the account JSON."
 (defun mastodon-profile-update-display-name ()
   "Update display name for your account."
   (interactive)
-  (mastodon-profile--edit-account-string 'display_name))
+  (mastodon-profile--edit-string-value 'display_name))
 
 (defun mastodon-profile-view-preferences ()
   "View user preferences in another window."

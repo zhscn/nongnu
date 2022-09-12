@@ -225,6 +225,8 @@ You can download and use your instance's custom emoji
 - =mastodon-profile-set-default-toot-visibility=: Set the default visibility for your toots.
 - =mastodon-profile-account-locked-toggle=: Toggle the locked status of your account. Locked accounts have to manually approve follow requests.
 - =mastodon-profile-account-discoverable-toggle=: Toggle the discoverable status of your account. Non-discoverable accounts are not listed in the profile directory.
+- =mastodon-profile-account-bot-toggle=: Toggle whether your account is flagged as a bot.
+- =mastodon-profile-account-sensitive-toggle=: Toggle whether your posts are marked as sensitive (nsfw) by default.
 
 *** Customization
 
