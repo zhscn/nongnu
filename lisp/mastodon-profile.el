@@ -120,7 +120,11 @@ extra keybindings."
   "Keymap for `mastodon-profile-update-mode'.")
 
 (persist-defvar mastodon-profile-account-settings nil
-                "An alist of account settings saved from the server.")
+                "An alist of account settings saved from the server.
+Other clients can change these settings on the server at any
+time, so this list is not the canonical source for settings. It
+is updated on entering mastodon mode and on toggle any setting it
+contains")
 
 (define-minor-mode mastodon-profile-update-mode
   "Minor mode to update Mastodon user profile."
