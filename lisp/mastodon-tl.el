@@ -647,7 +647,9 @@ START and END are the boundaries of the link in the toot."
          keymap
          (help-echo (get-text-property start 'help-echo))
          extra-properties
-         (toot-url (mastodon-tl--field 'url toot))
+         ;; handle calling this on non-toots, e.g. for profiles:
+         (toot-url (when (proper-list-p toot)
+                     (mastodon-tl--field 'url toot)))
          (toot-url (when toot-url (url-generic-parse-url toot-url)))
          (toot-instance-url (if toot-url
                                 (concat (url-type toot-url) "://"
