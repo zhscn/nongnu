@@ -668,8 +668,10 @@ START and END are the boundaries of the link in the toot."
           (;; User handles:
            maybe-userhandle
            ;; this fails on mentions in profile notes:
-           (let ((maybe-userid (mastodon-tl--extract-userid-toot
-                                toot maybe-userhandle)))
+           (let ((maybe-userid
+                  (when (proper-list-p toot)
+                    (mastodon-tl--extract-userid-toot
+                     toot maybe-userhandle))))
              (setq mastodon-tab-stop-type 'user-handle
                    keymap mastodon-tl--link-keymap
                    help-echo (concat "Browse user profile of " maybe-userhandle)
