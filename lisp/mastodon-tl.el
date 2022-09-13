@@ -1702,7 +1702,13 @@ For use after e.g. deleting a toot."
          (mastodon-notifications--get))
         ((equal (mastodon-tl--buffer-name)
                 (concat "*mastodon-" (mastodon-auth--get-account-name) "-statuses*"))
-         (mastodon-profile--my-profile))))
+         (mastodon-profile--my-profile))
+        ((save-match-data
+           (string-match
+            "statuses/\\(?2:[[:digit:]]+\\)/context"
+            (mastodon-tl--get-endpoint))
+           (mastodon-tl--thread
+            (match-string 2 (mastodon-tl--get-endpoint)))))))
 
 (defun mastodon-tl--more ()
   "Append older toots to timeline, asynchronously."
