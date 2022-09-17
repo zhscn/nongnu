@@ -41,7 +41,7 @@ When swsw-mode is active:
 - A window ID is displayed using a mode line lighter or a display
   function (see ‘swsw-display-lighter’).
 - Window IDs are assigned to all windows on all frames except for
-  the minibuffer(by default, see ‘swsw-scope’).
+  the minibuffer (by default, see ‘swsw-scope’).
 
 C-x o ID switches focus to the window which corresponds to ID.
 
@@ -51,13 +51,13 @@ C-x o 0 ID deletes the window which corresponds to ID.
 
 More commands can be added through ‘swsw-command-map’:
 
-(define-key swsw-command-map (kbd "a") #'my-command)
+(define-key swsw-command-map (kbd "z") #'my-command)
 
 You can customize ‘swsw-mode’ using the customize interface:
 
 M-x customize-group RET swsw RET
 
-For more information see the (swsw) info node.
+For more information see the info node (swsw).
 
 Copyright:
 
