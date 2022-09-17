@@ -76,14 +76,14 @@
 
 (defgroup swsw nil
   "Simple window switching."
-  :link '(custom-manual "(swsw)Top")
+  :link '(custom-manual "(swsw) Top")
   :group 'convenience
   :prefix "swsw-")
 
 (defcustom swsw-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed.
 This list should contain at least two characters."
-  :link '(info-link "(swsw)Customization")
+  :link '(info-link "(swsw) Customization")
   :type '(repeat character)
   :initialize #'custom-initialize-changed
   :set (lambda (sym chars)
@@ -102,7 +102,7 @@ This list should contain at least two characters."
   iconified frames.
 - `visible' means consider all windows on all visible frames.
 - `current' means consider only the currently selected frame."
-  :link '(info-link "(swsw)Customization")
+  :link '(info-link "(swsw) Customization")
   :type '(radio (const :tag "All windows on all frames" t)
                 (const
                  :tag "All windows on all visible and iconified frames" 0)
@@ -131,7 +131,7 @@ disabling it.")
 
 This variable can also accept a \"display function\" for backwards
 compatibility (see `swsw-display-function')."
-  :link '(info-link "(swsw)Display functions")
+  :link '(info-link "(swsw) Display functions")
   :type '(radio (const :tag "Show mode line lighter" t)
                 (const :tag "Don't show mode line lighter" nil))
   :set (lambda (sym fun)
@@ -144,7 +144,7 @@ compatibility (see `swsw-display-function')."
 
 (defcustom swsw-mode-hook nil
   "Hook run when enabling or disabling simple window switching."
-  :link '(info-link "(swsw)Display functions")
+  :link '(info-link "(swsw) Display functions")
   :type 'hook
   :options '(swsw-mode-line-display-function
              swsw-mode-line-conditional-display-function)
@@ -159,7 +159,7 @@ compatibility (see `swsw-display-function')."
 (defcustom swsw-id-format " <%s>"
   "Format string for the window ID.
 %s is replaced with a representation of the window's ID."
-  :link '(info-link "(swsw)Customization")
+  :link '(info-link "(swsw) Customization")
   :type 'string
   :package-version '(swsw . 1.0))
 
