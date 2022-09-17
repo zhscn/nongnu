@@ -142,28 +142,53 @@ lighters of the form @code{<ID>} (by default, @xref{ID display}), and
 
 @table @asis
 @kindex C-x o
+@kindex C-x o o
 @cindex swsw-select
-@item @kbd{C-x o}
-Start window selection (@code{swsw-select}).
-This command sets a transient key map in which several window
-commands are defined, and window IDs can be selected.
-Selecting a window ID (by pressing @kbd{ID}) will switch to the window
-corresponding to it.
+@item @kbd{C-x o ID}, @kbd{C-x o o ID}
+Select the window corresponding to ID in the current scope
+(@xref{Customization}) (@code{swsw-select}).
+
+@kindex C-x o 0
+@cindex swsw-delete
+@item @kbd{C-x o 0 ID}
+Delete the window corresponding to ID in the current scope (@code{swsw-delete}).
+
+@kindex C-x o 1
+@cindex swsw-delete-other
+@item @kbd{C-x o 1 ID}
+Make the window corresponding to ID the in the current scope the sole
+window of its frame (@code{swsw-delete-other}).
+
+@kindex C-x o 2
+@cindex swsw-split-window-below
+@item @kbd{C-x o 2 ID}
+Split the window corresponding to ID in the current scope from below
+(@code{swsw-split-window-below}).  This window command accepts a
+prefix argument (with the same semantics as @code{split-window-below}).
+
+@kindex C-x o 3
+@cindex swsw-split-window-right
+@item @kbd{C-x o 3 ID}
+Split the window corresponding to ID in the current scope from the right
+(@code{swsw-split-window-right}).  This window command accepts a
+prefix argument (with the same semantics as @code{split-window-right}).
+
+@kindex C-x o 4
+@cindex swsw-selected-window-prefix
+@item @kbd{C-x o 4 ID}
+Display the buffer of the next command in the window corresponding to
+ID in the current scope (@code{swsw-delete}).
+
+@kindex C-x o t
+@cindex swsw-swap
+@item @kbd{C-x o t ID}
+Swap the states of the current window and the window corresponding to
+ID in the current scope (@code{swsw-delete}).
 
 @kindex C-x o m
 @cindex swsw-select-minibuffer
 @item @kbd{C-x o m}
-Switch focus the minibuffer if it's active
-(@code{swsw-select-minibuffer}).
-
-@kindex C-x o 0
-@cindex swsw-delete
-@item @kbd{C-x o 0}
-Start window deletion (@code{swsw-delete}).
-This command sets a transient key map in which several window
-commands are defined, and window IDs can be selected.
-Selecting a window ID (by pressing @kbd{ID}) will delete the window
-corresponding to it.
+Switch to the minibuffer if it's active (@code{swsw-select-minibuffer}).
 @end table
 
 @xref{Window commands} for information regarding defining new commands.
@@ -262,18 +287,24 @@ display function respects @code{swsw-id-format}.
 @node Window commands
 @section Window commands
 
-Window commands are used to perform operations on specific
-windows. They are normal commands (interactive functions) which are
-bound to a key sequence in @code{swsw-command-map}. @code{swsw-select},
-@code{swsw-select-minibuffer} and @code{swsw-delete} are implemented
-as window commands (@xref{Usage}).
+Window commands are used to perform operations on specific windows,
+chosen by their ID (or the next window, if less than
+@code{swsw-minimum} (3 by default) windows are currently in scope).
+Alternatively, other commands available in @code{swsw-command-map} can
+be chosen. Not all commands in @code{swsw-command-map} are window
+commands (by default).  For more information about included window
+commands, @xref{Usage}.
 
-@code{swsw-run-window-command} should be used to define window
-commands which require window selection. Alternatively, ensure
-@code{swsw-before-command-hook} runs before window selection, and
-@code{swsw-after-command-hook} runs after window selection. Window
-selection can be started by setting @code{swsw--id-map} as a transient
-map.
+Window commands can easily be defined using
+@code{swsw-define-window-command}.  For more complex use cases,
+the lower level @code{swsw-run-window-command} can be used.
+
+@defopt swsw-minimum
+Minimum number of tracked windows for which interactive selection
+occurs when using window commands.  In practice, only window commands
+defined using @code{swsw-define-window-command} automatically adhere
+to this rule.
+@end defopt
 
 @defvar swsw--id-map
 Key map which is populated automatically with elements corresponding
@@ -296,14 +327,28 @@ active). It can be used to change the behavior of window commands (or
 display functions, @xref{ID display}).
 @end defvar
 
+@defmac swsw-define-window-command name (window [prefix] [minibuffer]) docstring body...
+Define NAME as a window command with DOCSTRING as its documentation
+string.  PREFIX (a symbol) is passed as an argument to the command
+(when not omitted or nil), with it's value being the raw prefix
+argument.
+
+BODY is used as the body of an anonymous function which receives
+WINDOW (a symbol) as an argument, with its value being a selected
+window.  If there are less than @code{swsw-minimum} (3 by default)
+windows in the current scope (@xref{Customization}), the function is
+called with the window returned by @code{next-window}.  In this case,
+if MINIBUFFER is non-nil, it can be selected if it's active.
+Otherwise, the function is run using @code{swsw-run-window-command}.
+@end defmac
+
 @defun swsw-run-window-command fun
 Run FUN as a window command. Run @code{swsw-before-command-hook}, set
 @code{this-command} to FUN, and set @code{swsw--id-map} as a transient
-map which runs @code{swsw-after-command-hook} on exit. This function
-can be used to easily define new window commands. The hooks ran by
-this function are expected by swsw to run for any window command which
-requires ID selection; they should be manually added even if this
-function isn't used when defining a new window command.
+map which runs @code{swsw-after-command-hook} on exit.  The hooks run
+by this function are expected by swsw to run for any window command
+which requires ID selection; they should be manually added even if
+this function isn't used when defining a new window command.
 @end defun
 
 @node Keystroke Index

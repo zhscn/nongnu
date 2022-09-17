@@ -48,11 +48,24 @@
 ;;   the minibuffer (by default, see `swsw-scope').
 ;; - `other-window' (C-x o by default) is remapped to `swsw-select'.
 ;;
-;; C-x o ID switches focus to the window which corresponds to ID.
-;;
-;; C-x o m switches focus to the minibuffer if it's active.
+;; C-x o ID   switches focus to the window which corresponds to ID.
 ;;
 ;; C-x o 0 ID deletes the window which corresponds to ID.
+;;
+;; C-x o 1 ID makes the window which corresponds to ID the sole window of
+;;            its frame.
+;;
+;; C-x o 2 ID splits the window which corresponds to ID from below.
+;;
+;; C-x o 3 ID splits the window which corresponds to ID from the right.
+;;
+;; C-x 0 4 ID displays the buffer of the next command in the window which
+;;            corresponds to ID.
+;;
+;; C-x 0 t ID swaps the states of the current window and the window which
+;;            corresponds to ID.
+;;
+;; C-x o m    switches focus to the minibuffer if it's active.
 ;;
 ;; More commands can be added through `swsw-command-map':
 ;;
@@ -116,6 +129,13 @@ This list should contain at least two characters."
          (swsw--update))
   :risky t
   :package-version '(swsw . 1.1))
+
+(defcustom swsw-minimum 3
+  "Minimum number of tracked windows for which interactive selection occurs."
+  :link '(info-link "(swsw) Window Commands")
+  :type 'integer
+  :risky t
+  :package-version '(swsw . 2.3))
 
 (define-obsolete-variable-alias 'swsw-display-function
   'swsw-display-lighter "version 2.2 of the swsw package"
@@ -327,52 +347,128 @@ exit."
                      (lambda ()
                        (run-hooks 'swsw-after-command-hook))))
 
-(defun swsw-select ()
-  "Start window selection.
-If less than three windows have been assigned an ID, switch to the
-window returned by `next-window'.
-Otherwise, window selection allows either choosing a window by its ID
-\(switching to it), or using a window manipulation command.
-This command is intended to be used only when swsw mode is enabled."
-  (declare (modes swsw-mode)
-           (interactive-only t))
-  (interactive)
-  (if (< swsw-window-count 3)
-      (select-window (next-window nil nil (swsw--get-scope)))
-    (swsw-run-window-command #'select-window)))
+(defmacro swsw-define-window-command (name args &rest body)
+  "Define NAME as a window command with DOCSTRING as its documentation string.
+
+Inside BODY, WINDOW and PREFIX (symbols) are bound to the selected
+window and the raw prefix argument, respectively.
+If PREFIX is omitted or nil, the resulting command will not accept a
+prefix argument.
+
+If MINIBUFFER is non-nil, allow the minibuffer to be selected by
+`next-window' (when there are less than `swsw-minimum' tracked windows).
+
+For more information, see info node `(swsw) Window Commands'.
+
+\(fn NAME (WINDOW [PREFIX] [MINIBUFFER]) [DOCSTRING] BODY...)"
+  (declare (debug (&define [&name symbolp] listp [&optional stringp] def-body))
+           (doc-string 3) (indent defun))
+  (let* ((docstring (car body)) (window (car args))
+         (prefix (cadr args)) (minibuffer (caddr args)))
+    `(defun ,name ,(and prefix `(,prefix))
+       ,(when (stringp docstring) (format "%s
+
+If less than `swsw-minimum' windows have been assigned an ID,
+use the window returned by `next-window' (according to the
+value of `swsw-scope'%s).
+Otherwise, either a window is selected using its ID or a separate
+window command is chosen.
+
+  This is a window command, intended to be used only when simple
+  window switching is enabled; for more information, see info node
+  `(swsw) Window Commands'.
+" docstring (if minibuffer "" ", excluding the minibuffer")))
+       (declare (modes swsw-mode)
+                (interactive-only t))
+       (interactive ,(and prefix "P"))
+       (if-let ((f (lambda (,window)
+                     ,@body))
+                ((>= swsw-window-count swsw-minimum)))
+           (swsw-run-window-command f)
+         (funcall f (next-window nil (unless ,minibuffer 'exclude)
+                                 (swsw--get-scope)))))))
+
+(swsw-define-window-command swsw-select (window nil t)
+  "Select a window."
+  (select-window window))
+
+(swsw-define-window-command swsw-delete (window)
+  "Delete a window."
+  (delete-window window))
+
+(swsw-define-window-command swsw-delete-other (window)
+  "Make a window the sole window of its frame."
+  (delete-other-windows window))
+
+(swsw-define-window-command swsw-split-window-below (window size)
+  "Split a window from below.
+If optional argument SIZE is omitted or nil, both windows get the same
+height, or close to it.  If SIZE is positive, the upper window gets
+SIZE lines.  If SIZE is negative, the lower window gets -SIZE lines."
+  (split-window-below (and size (prefix-numeric-value size)) window))
+
+(swsw-define-window-command swsw-split-window-right (window size)
+  "Split a window from the right.
+If optional argument SIZE is omitted or nil, both windows get the same
+width, or close to it.  If SIZE is positive, the left-hand window gets
+SIZE columns.  If SIZE is negative, the right-hand window gets -SIZE
+columns.  Here, SIZE includes the width of the window’s scroll bar; if
+there are no scroll bars, it includes the width of the divider column
+to the window’s right, if any."
+  (split-window-right (and size (prefix-numeric-value size)) window))
+
+(defun swsw-display-buffer-selected-window (buffer alist)
+  "Display BUFFER in the selected (through swsw) window.
+ALIST is an association list of action symbols and values.  See
+Info node `(elisp) Buffer Display Action Alists' for details of
+such alists.
+
+The function fails if ALIST has no `window' element or its value isn't a
+live window, or if it is a minibuffer window or is dedicated to another
+buffer; in that case return nil.
+Otherwise, return the value of the `window' element.
+
+This is an action function for buffer display, see Info
+node ‘(elisp) Buffer Display Action Functions’.  It should be
+called only by ‘display-buffer’ or a function directly or
+indirectly called by the latter."
+  (let ((window (cdr (assq 'window alist))))
+    (unless (or (not (windowp window))
+                (window-minibuffer-p window)
+                (window-dedicated-p window))
+      (window--display-buffer buffer window 'reuse alist))))
+
+(swsw-define-window-command swsw-selected-window-prefix (window)
+  "Display the buffer of the next command in a window."
+  (display-buffer-override-next-command
+   (lambda (buffer alist)
+     (setq alist (append `((window . ,window)) alist))
+     (cons (swsw-display-buffer-selected-window buffer alist) 'reuse))
+   nil (format "[swsw-window-%s]" (window-parameter window 'swsw-id)))
+  (message "Display next command buffer in the selected window..."))
+
+(swsw-define-window-command swsw-swap (window)
+  "Swap the states of a window and the currently selected window."
+  (window-swap-states nil window)
+  (and (eq (current-buffer) (window-buffer window)) (swsw--update)))
 
 (defun swsw-select-minibuffer ()
-  "Select the active minibuffer window (if it exists).
-This command is intended to be used only when swsw mode is enabled."
-  (declare (modes swsw-mode)
-           (interactive-only t))
+  "Select the active minibuffer window (if it exists)."
+  (declare (modes swsw-mode))
   (interactive)
-  (if-let ((window (active-minibuffer-window)))
-      (select-window window)
-    (user-error "There is no active minibuffer window")))
-
-(defun swsw-delete ()
-  "Start window deletion.
-If less than three windows have been assigned an ID, delete the window
-returned by `next-window'.
-Otherwise, window deletion allows either choosing a window by its ID
-\(deleting it), or using a window manipulation command.
-This command is intended to be used only when swsw mode is enabled."
-  (declare (modes swsw-mode)
-           (interactive-only t))
-  (interactive)
-  (if-let (((< swsw-window-count 3))
-           (window (next-window nil nil (swsw--get-scope))))
-      (unless (or (minibufferp (window-buffer window))
-                  (minibufferp)) ; Selected window.
-        (delete-window window))
-    (swsw-run-window-command #'delete-window)))
+  (select-window (or (active-minibuffer-window)
+                     (user-error "There is no active minibuffer window"))))
 
 (defvar swsw-command-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?o] #'swsw-select)
-    (define-key map [?m] #'swsw-select-minibuffer)
     (define-key map [?0] #'swsw-delete)
+    (define-key map [?1] #'swsw-delete-other)
+    (define-key map [?2] #'swsw-split-window-below)
+    (define-key map [?3] #'swsw-split-window-right)
+    (define-key map [?4] #'swsw-selected-window-prefix)
+    (define-key map [?t] #'swsw-swap)
+    (define-key map [?m] #'swsw-select-minibuffer)
     map)
   "Key map for window commands.
 This key map is set as the parent of `swsw--id-map' during ID

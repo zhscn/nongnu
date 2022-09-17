@@ -1,6 +1,18 @@
 swsw NEWS -- history of user-visible changes. -*- mode: outline -*-
 See the end of the file for an explanation of the versioning scheme.
 
+* 2.3
+
+** Rework window commands
+A new macro has been added ('swsw-define-window-command') which
+greatly simplifies the creation of window commands; existing commands
+now use it and 5 new window commands have been added:
+'swsw-delete-other', 'swsw-split-window-below' and
+'swsw-split-window-right', which correspond to the built-in commands,
+'swsw-selected-window-prefix', which displays the buffer of the next
+command in the selected window, and 'swsw-swap' which swaps the state
+of the current window and the selected window.
+
 * 2.2
 
 ** Rework display functions
