@@ -205,6 +205,14 @@ You can download and use your instance's custom emoji
 | =C-c C-e= | add emoji (if =emojify= installed) |
 |---------+----------------------------------|
 
+**** draft toots
+
+- Compose buffer text is saved as you type, kept in =mastodon-toot-current-toot-text=.
+- =mastodon-toot-save-draft=: save the current toot as a draft.
+- =mastodon-toot-open-draft-toot=: Open a compose buffer and insert one of your draft toots.
+- =mastodon-toot-delete-draft-toot=: Delete a draft toot.
+- =mastodon-toot-delete-all-drafts=: Delete all your drafts.
+
 *** Other commands and account settings:
 
 - =mastodon-url-lookup=: Attempt to load URL in =mastodon.el=. URL may be the one at point or provided in the minibuffer. Should also work if =mastodon.el= is not yet loaded.
