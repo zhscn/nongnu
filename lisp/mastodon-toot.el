@@ -774,9 +774,7 @@ Customize `mastodon-toot-display-orig-in-reply-buffer' to display
 text of the toot being replied to in the compose buffer."
   (interactive)
   (let* ((toot (mastodon-tl--property 'toot-json))
-         ;; NB: we cannot use mastodon-tl--property for 'parent-toot
-         ;; because if it doesn't have one, it is fetched from next toot!
-         (parent (get-text-property (point) 'parent-toot)) ; for new notifs handling
+         (parent (mastodon-tl--field 'parent-toot toot)) ; for new notifs handling
          (id (mastodon-tl--as-string
               (mastodon-tl--field 'id (or parent toot))))
          (account (mastodon-tl--field 'account toot))
