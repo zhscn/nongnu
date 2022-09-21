@@ -461,10 +461,12 @@ Returns an alist."
                        (mastodon-profile--account-field
                         account 'statuses_count)))
          (relationships (mastodon-profile--relationships-get id))
-         (followed-by-you (alist-get 'following
-                                     (aref relationships 0)))
-         (follows-you (alist-get 'followed_by
-                                 (aref relationships 0)))
+         (followed-by-you (when (not (seq-empty-p relationships))
+                            (alist-get 'following
+                                       (aref relationships 0))))
+         (follows-you (when (not (seq-empty-p relationships))
+                        (alist-get 'followed_by
+                                   (aref relationships 0))))
          (followsp (or (equal follows-you 't) (equal followed-by-you 't)))
          (fields (mastodon-profile--fields-get account))
          (pinned (mastodon-profile--get-statuses-pinned account)))
