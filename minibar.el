@@ -93,35 +93,30 @@ string to display, or nil in case there is to show."
 
 (defun minibar-update ()
   "Update Minibar."
-  (let ((bar "")
-        (width (frame-width (window-frame (minibuffer-window))))
-        (left (minibar--render-group
-               minibar-group-left))
-        (middle (minibar--render-group
-                 minibar-group-middle))
-        (right (minibar--render-group
-                minibar-group-right)))
+  (let* ((width (window-max-chars-per-line (minibuffer-window)))
+         (left (minibar--render-group
+                minibar-group-left))
+         (middle (minibar--render-group
+                  minibar-group-middle))
+         (right (minibar--render-group
+                 minibar-group-right))
+         (middle-offset (/ (- width (length middle)) 2))
+         (left (if (string-empty-p left)
+                   left
+                 (concat left minibar-group-separator)))
+         (middle (if (string-empty-p middle)
+                     middle
+                   (concat middle minibar-group-separator)))
+         (empty (- width (length left) (length middle)
+                   (length right)))
+         (left-empty (max (min empty (- middle-offset (length left)))
+                          0))
+         (right-empty (max (- empty left-empty) 0)))
     (with-temp-buffer
-
-      ;; HACK: Emacs doesn't show the last character on terminal, so
-      ;; decrease the width by one in that case.
-      (unless (display-graphic-p)
-        (setq width (1- width)))
-      (unless (zerop (length left))
-        (setq bar (concat left minibar-group-separator)))
-      (unless (zerop (length middle))
-        (setq bar (concat bar (make-list
-                               (max 0 (- (/ (- width (length middle)) 2)
-                                         (length bar)))
-                               ? )
-                          middle minibar-group-separator)))
-      (unless (zerop (length right))
-        (setq bar (concat bar (make-list
-                               (max 0 (- width (length right)
-                                         (length bar)))
-                               ? )
-                          right)))
-      (let ((text (format (format "%%-%i.%is" width width) bar)))
+      (let ((text (format (format "%%-%i.%is" width width)
+                          (concat left (make-string left-empty ? )
+                                  middle (make-string right-empty ? )
+                                  right))))
         (add-face-text-property 0 width 'minibar-face t text)
         (with-current-buffer (get-buffer-create " *Minibuf-0*")
           (erase-buffer)
