@@ -25,18 +25,18 @@
 
 ;;; Commentary:
 
-;; The echo area is unused most of the time.  Sometimes this empty area so
-;; annoying that some people want to get rid of it.  This package makes it
-;; useful by showing a status bar in it when it's unused.  This is
-;; especially helpful when you use Emacs as your X window manager using
-;; EXWM.
+;; The echo area is unused most of the time.  Sometimes this empty
+;; area so annoying that some people want to get rid of it.  This
+;; package makes it useful by showing a status bar in it when it's
+;; unused.  This is especially helpful when you use Emacs as your X
+;; window manager using EXWM.
 ;;
 ;; Usage:
 ;;
 ;; Enable `minibar-mode' to display minibar.  You may want to put
-;; (minibar-mode +1) in your init file.  There are several user options
-;; you can customize, use `customize-group' to see and possibly customize
-;; them.
+;; (minibar-mode +1) in your init file.  There are several user
+;; options you can customize, use `customize-group' to discover and
+;; possibly customize them.
 
 ;;; Code:
 
@@ -57,22 +57,22 @@
 (defcustom minibar-group-left nil
   "Modules to be placed on the left of Minibar.
 
-The value should be a list of functions.  Each function should return a
-string to display, or nil in case there is to show."
+The value should be a list of functions.  Each function should return
+a string to display, or nil in case there is to show."
   :type '(repeat function))
 
 (defcustom minibar-group-middle '(minibar-module-time)
   "Modules to be placed on the middle of Minibar.
 
-The value should be a list of functions.  Each function should return a
-string to display, or nil in case there is to show."
+The value should be a list of functions.  Each function should return
+a string to display, or nil in case there is to show."
   :type '(repeat function))
 
 (defcustom minibar-group-right nil
   "Modules to be placed on the right of Minibar.
 
-The value should be a list of functions.  Each function should return a
-string to display, or nil in case there is to show."
+The value should be a list of functions.  Each function should return
+a string to display, or nil in case there is to show."
   :type '(repeat function))
 
 (defcustom minibar-update-interval 1
@@ -176,8 +176,8 @@ string to display, or nil in case there is to show."
 (defvar minibar--module-battery-cache nil
   "Cached battery status.
 
-The value is a cons cell whose car is the status and cdr is the time when
-it was recorded.")
+The value is a cons cell whose car is the status and cdr is the time
+when it was recorded.")
 
 (defun minibar-module-battery ()
   "Module for showing battery status."
@@ -196,9 +196,11 @@ it was recorded.")
                    (assq ?B status)
                    (assq ?h status)
                    (assq ?m status))
-          (let ((load (floor (string-to-number (alist-get ?p status))))
+          (let ((load (floor (string-to-number
+                              (alist-get ?p status))))
                 (state (alist-get ?b status))
-                (remaining-hours (string-to-number (alist-get ?h status)))
+                (remaining-hours (string-to-number
+                                  (alist-get ?h status)))
                 (remaining-minutes (mod (string-to-number
                                          (alist-get ?m status))
                                         60)))
@@ -245,8 +247,8 @@ The value should be more than
 (defvar minibar--module-temperature-cache nil
   "Cached CPU temperature.
 
-The value is a cons cell whose car is the temperature and cdr is the time
-when it was recorded.")
+The value is a cons cell whose car is the temperature and cdr is the
+time when it was recorded.")
 
 (defun minibar-module-temperature ()
   "Module for showing CPU temperature."
@@ -266,18 +268,21 @@ when it was recorded.")
                               (if (char-displayable-p ?°) "°" " ")
                               "C")))
             (if (>= temp minibar-module-temperature-high-threshold)
-                (if (>= temp
-                        minibar-module-temperature-very-high-threshold)
-                    (propertize str 'face
-                                'minibar-module-temperature-high-face)
-                  (propertize str 'face
-                              'minibar-module-temperature-very-high-face))
+                (propertize
+                 str 'face
+                 (if (>=
+                      temp
+                      minibar-module-temperature-very-high-threshold)
+                     'minibar-module-temperature-high-face
+                   'minibar-module-temperature-very-high-face))
               str))))
       (current-time))))
   (car minibar--module-temperature-cache))
 
 (defcustom minibar-module-network-speeds-cache-for 1
-  "Cache network speed values for this many seconds.  Set to zero disable."
+  "Cache network speed values for this many seconds.
+
+Set to zero disable."
   :type 'number)
 
 (defvar minibar--module-network-speeds-last-byte-counts nil
@@ -286,14 +291,15 @@ when it was recorded.")
 (defvar minibar--module-network-speeds-cache nil
   "Cached network speeds.
 
-The value is a cons cell whose car is the speeds and cdr is the time when
-it was recorded.")
+The value is a cons cell whose car is the speeds and cdr is the time
+when it was recorded.")
 
 (defun minibar-module-network-speeds ()
   "Module for showing network speeds."
   (when (or (not minibar--module-network-speeds-cache)
             (>= (float-time
-                 (time-since (cdr minibar--module-network-speeds-cache)))
+                 (time-since
+                  (cdr minibar--module-network-speeds-cache)))
                 minibar-module-network-speeds-cache-for))
     (setq
      minibar--module-network-speeds-cache
@@ -354,7 +360,8 @@ it was recorded.")
                               (format "%%%ii %%s/s"
                                       (if (string= unit "B") 4 3)))
                             rate unit)))))
-          (setq minibar--module-network-speeds-last-byte-counts current)
+          (setq minibar--module-network-speeds-last-byte-counts
+                current)
           (format "↑ %s ↓ %s"
                   (funcall formatter (car speeds))
                   (funcall formatter (cdr speeds)))))
@@ -368,8 +375,8 @@ it was recorded.")
 (defvar minibar--module-cpu-cache nil
   "Cached CPU load.
 
-The value is a cons cell whose car is the CPU load and cdr is the time when
-it was recorded.")
+The value is a cons cell whose car is the CPU load and cdr is the time
+when it was recorded.")
 
 (defvar minibar--module-cpu-last-times nil
   "Last CPU idle and total calculated.")
@@ -380,12 +387,14 @@ it was recorded.")
 (defun minibar--module-cpu-calculate-load (cpu)
   "Calculate CPU load."
   (let* ((last-cell
-          (let ((cell (assoc-string cpu minibar--module-cpu-last-times)))
+          (let ((cell (assoc-string
+                       cpu minibar--module-cpu-last-times)))
             (unless cell
               (setq minibar--module-cpu-last-times
-                    (cons (cons cpu nil) minibar--module-cpu-last-times))
-              (setq cell (assoc-string cpu
-                                       minibar--module-cpu-last-times)))
+                    (cons (cons cpu nil)
+                          minibar--module-cpu-last-times))
+              (setq cell (assoc-string
+                          cpu minibar--module-cpu-last-times)))
             cell))
          (last (cdr last-cell))
          (now
@@ -433,7 +442,8 @@ it was recorded.")
                  (char-displayable-p ?▅)  ; #x2585
                  (char-displayable-p ?▄)  ; #x2584
                  (char-displayable-p ?▃)  ; #x2583
-                 (char-displayable-p ?▂)) ; #x2582
+                 (char-displayable-p ?▂)  ; #x2582
+                 (char-displayable-p ?▁)) ; #x2581
              (concat
               " "
               (mapconcat
@@ -462,13 +472,14 @@ it was recorded.")
                     ((and (char-displayable-p ?▂)  ; #x2582
                           (>= load 12.5))
                      (propertize "▂" 'face 'bold))
-                    (t ; (char-displayable-p ? ) => t
+                    (t ; (char-displayable-p ?▁) => t
                      (propertize
                       (if (char-displayable-p ?▁)  ;  #x2581
                           "▁"
                         " ")
                       'face
-                      '(:weight bold :inherit font-lock-comment-face))))))
+                      '( :weight bold
+                         :inherit font-lock-comment-face))))))
                (number-sequence 0 (1- minibar--module-cpu-count)) ""))
            "")))
       (current-time))))

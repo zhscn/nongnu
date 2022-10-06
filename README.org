@@ -1,9 +1,10 @@
 #+title: Minibar - Modular status bar in minibuffer
 
-The echo area is unused most of the time.  Sometimes this empty area so
-annoying that some people want to get rid of it.  This package makes it
-useful by showing a status bar in it when it's unused.  This is especially
-helpful when you use Emacs as your X window manager using EXWM.
+The echo area is unused most of the time.  Sometimes this empty area
+so annoying that some people want to get rid of it.  This package
+makes it useful by showing a status bar in it when it's unused.  This
+is especially helpful when you use Emacs as your X window manager
+using EXWM.
 
 * Installation
 
@@ -29,5 +30,6 @@ Download =minibar.el= and put it in your ~load-path~.
 * Usage
 
 Enable ~minibar-mode~ to display Minibar.  You may want to put
-~(minibar-mode +1)~ in your init file.  There are several user options you
-can customize, use ~customize-group~ to see and possibly customize them.
+~(minibar-mode +1)~ in your init file.  There are several user options
+you can customize, use ~customize-group~ to discover and possibly
+customize them.
