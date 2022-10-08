@@ -25,10 +25,10 @@
 
 ;;; Commentary:
 
-;; why-this shows when and why the current line was last changed.  Enable
-;; with M-x why-this-mode.  Or see why a line was change without enabling
-;; with M-x why-this.  See editing history of whole file with heat map with
-;; M-x why-this-annotate.
+;; why-this shows when and why the current line was last changed.
+;; Enable with M-x why-this-mode.  Or see why a line was change
+;; without enabling with M-x why-this.  See editing history of whole
+;; file with heat map with M-x why-this-annotate.
 
 ;;; Code:
 
@@ -46,18 +46,19 @@
                                why-this-hg)
   "List of enabled backends.
 
-Each backend is a function taking variable number of arguments, where the
-first argument is the command (which is a symbol):
+Each backend is a function taking variable number of arguments, where
+the first argument is the command (which is a symbol):
 
 `supported-p'
-  The backend should return whether the current buffer is supported by it.
+  The backend should return whether the current buffer is supported by
+  it.
 
 `line-data'
-  The backend should return a list of plist containing data about lines
-  from BEGIN to END (exclusive), where BEGIN is the second argument and END
-  is the third argument.  Each plist should describe BEGIN+Nth line, where
-  N is the index of the plist in list.  Plist should contain the following
-  properties:
+  The backend should return a list of plist containing data about
+  lines from BEGIN to END (exclusive), where BEGIN is the second
+  argument and END is the third argument.  Each plist should describe
+  BEGIN+Nth line, where N is the index of the plist in list.  Plist
+  should contain the following properties:
 
     `:id'       Unique ID for each change (or commit).
     `:author'   Name of the author.
@@ -71,8 +72,8 @@ first argument is the command (which is a symbol):
 
 See `format-time-string' for the syntax of format string.
 
-When the value is a function it should take the time as the first argument
-and return a string."
+When the value is a function it should take the time as the first
+argument and return a string."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
   :package-version '(why-this "1.0"))
@@ -89,11 +90,12 @@ substituted by text describing the author, time or message:
         `why-this-message-time-format'.
   %i    Description.
 
-The value can also be a function to do the formatting itself.  The function
-should take a plist as the first and only argument.  The plist is same as
-the plists returned by backends when `line-data' command is given (see
-`why-this-backends'), with an additional property `:backend' whose value is
-is the backend which generated the plist."
+The value can also be a function to do the formatting itself.  The
+function should take a plist as the first and only argument.  The
+plist is same as the plists returned by backends when `line-data'
+command is given (see `why-this-backends'), with an additional
+property `:backend' whose value is is the backend which generated the
+plist."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
   :package-version '(why-this "1.0"))
@@ -110,8 +112,8 @@ Messages are never shown before this column.  Set to 0 to disable."
 
 See `format-time-string' for the syntax of format string.
 
-When the value is a function it should take the time as the first argument
-and return a string."
+When the value is a function it should take the time as the first
+argument and return a string."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
   :package-version '(why-this "1.0"))
@@ -133,9 +135,9 @@ See `why-this-message-format' for possible values.
 (defcustom why-this-nick-name-alist nil
   "Alist of nick name of authors.
 
-Each element is of the following form: (NICK . AUTHORS), where NICK is the
-nick name and AUTHORS is list of the name of authors corresponding to
-NICK."
+Each element is of the following form: (NICK . AUTHORS), where NICK is
+the nick name and AUTHORS is list of the name of authors corresponding
+to NICK."
   :type '(repeat (cons (string :tag "Nick")
                        (repeat (string :tag "Author"))))
   :package-version '(why-this "1.0"))
@@ -155,8 +157,8 @@ NICK."
 
 See `format' for the syntax of format string.
 
-When the value is a function it should take the author name as the first
-argument and return a string to show."
+When the value is a function it should take the author name as the
+first argument and return a string to show."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
   :package-version '(why-this "1.0"))
@@ -166,8 +168,8 @@ argument and return a string to show."
 
 See `format' for the syntax of format string.
 
-When the value is a function it should take the description of change as
-the first argument and return a string to show."
+When the value is a function it should take the description of change
+as the first argument and return a string to show."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
   :package-version '(why-this "1.0"))
@@ -177,8 +179,8 @@ the first argument and return a string to show."
 
 See `format-time-string' for the syntax of format string.
 
-When the value is a function it should take the time as the first argument
-and return a string."
+When the value is a function it should take the time as the first
+argument and return a string."
   :type '(choice (string :tag "Format string")
                  (function :tag "Formatter function"))
   :package-version '(why-this "1.0"))
@@ -272,17 +274,18 @@ When EXACT is non-nil, be as exact as possible."
          (calc-time
           (lambda (type length)
             (let ((count (/ elapsed length)))
-              (setq str (concat str
-                                (unless (zerop count)
-                                  (if (and (not exact)
-                                           (eq count 1))
-                                      (if (string= type "day")
-                                          "Yesterday"
-                                        (format "A%s %s "
-                                                (if (string= type "hour")
-                                                    "n" "")
-                                                type))
-                                    (format "%i %ss " count type))))
+              (setq str (concat
+                         str
+                         (unless (zerop count)
+                           (if (and (not exact)
+                                    (eq count 1))
+                               (if (string= type "day")
+                                   "Yesterday"
+                                 (format "A%s %s "
+                                         (if (string= type "hour")
+                                             "n" "")
+                                         type))
+                             (format "%i %ss " count type))))
                     elapsed (% elapsed length))))))
     (if (zerop elapsed)
         "Now"
@@ -315,11 +318,12 @@ When EXACT is non-nil, be as exact as possible."
 TIME-FORMAT is used to format data."
   (if (functionp format)
       (funcall format data)
-    (let ((alist `((?a . (plist-get data :author))
-                   (?A . (why-this-nick-name (plist-get data :author)))
-                   (?t . (why-this-format-time time-format
-                                               (plist-get data :time)))
-                   (?i . (plist-get data :desc)))))
+    (let ((alist
+           `((?a . (plist-get data :author))
+             (?A . (why-this-nick-name (plist-get data :author)))
+             (?t . (why-this-format-time
+                    time-format (plist-get data :time)))
+             (?i . (plist-get data :desc)))))
       (replace-regexp-in-string
        "%."
        (lambda (str)
@@ -395,11 +399,12 @@ TIME-FORMAT is used to format data."
                 (type (why-this--overlay-bg-type line-end))
                 (column (string-width (buffer-substring
                                        line-begin line-end))))
-            (overlay-put ov 'why-this-message (why-this-format-data
-                                               why-this-message-format
-                                               why-this-message-time-format
-                                               (append `(:backend ,backend)
-                                                       (nth i data))))
+            (overlay-put ov 'why-this-message
+                         (why-this-format-data
+                          why-this-message-format
+                          why-this-message-time-format
+                          (append `(:backend ,backend)
+                                  (nth i data))))
             (overlay-put ov 'why-this-props
                          (list 'cursor t
                                'face (why-this--get-face type)
@@ -414,10 +419,9 @@ TIME-FORMAT is used to format data."
                          (apply
                           #'propertize
                           (concat
-                           (make-string (max (- why-this-minimum-column
-                                                column)
-                                             0)
-                                        ? )
+                           (make-string
+                            (max (- why-this-minimum-column column) 0)
+                            ? )
                            (overlay-get ov 'why-this-message))
                           (overlay-get ov 'why-this-props)))
             (overlay-put ov 'why-this-column column)
@@ -464,16 +468,16 @@ TIME-FORMAT is used to format data."
                    (move-overlay ov line-end line-end))
                  (unless (eq (overlay-get ov 'why-this-column)
                              column)
-                   (overlay-put ov 'after-string
-                                (apply
-                                 #'propertize
-                                 (concat
-                                  (make-string
-                                   (max (- why-this-minimum-column column)
-                                        0)
-                                   ? )
-                                  (overlay-get ov 'why-this-message))
-                                 (overlay-get ov 'why-this-props)))
+                   (overlay-put
+                    ov 'after-string
+                    (apply
+                     #'propertize
+                     (concat
+                      (make-string
+                       (max (- why-this-minimum-column column) 0)
+                       ? )
+                      (overlay-get ov 'why-this-message))
+                     (overlay-get ov 'why-this-props)))
                    (overlay-put ov 'why-this-column column)))
                (when why-this-calculate-background
                  (let ((type (why-this--overlay-bg-type
@@ -481,10 +485,9 @@ TIME-FORMAT is used to format data."
                    (unless (eq (overlay-get ov 'why-this-bg-type)
                                type)
                      (overlay-put ov 'why-this-props
-                                  (plist-put (overlay-get ov
-                                                          'why-this-props)
-                                             'face (why-this--get-face
-                                                    type)))
+                                  (plist-put
+                                   (overlay-get ov 'why-this-props)
+                                   'face (why-this--get-face type)))
                      (overlay-put ov 'after-string
                                   (propertize
                                    (overlay-get ov 'after-string)
@@ -580,10 +583,10 @@ Actually the supported backend is returned."
                  last-change-begin (point)
                  `(:background
                    ,(why-this--mix-colors
-                     (face-background 'why-this-annotate-heat-map-cold nil
-                                      t)
-                     (face-background 'why-this-annotate-heat-map-warm nil
-                                      t)
+                     (face-background
+                      'why-this-annotate-heat-map-cold nil t)
+                     (face-background
+                      'why-this-annotate-heat-map-warm nil t)
                      (if (equal newest-change
                                 oldest-change)
                          0.5
@@ -633,8 +636,9 @@ Actually the supported backend is returned."
                                      (length time) 4))
                      (desc (format
                             (format "%%-%is" desc-length)
-                            (format why-this-annotate-description-format
-                                    (plist-get line :desc)))))
+                            (format
+                             why-this-annotate-description-format
+                             (plist-get line :desc)))))
                 (why-this--insert-and-truncate
                  author why-this-annotate-author-length)
                 (insert "  ")
@@ -665,7 +669,8 @@ Actually the supported backend is returned."
       (setq why-this-mode nil)
     (if why-this-mode
         (progn
-          (add-hook 'post-command-hook #'why-this--update-overlays nil t)
+          (add-hook 'post-command-hook #'why-this--update-overlays
+                    nil t)
           (when why-this--idle-timer
             (cancel-timer why-this--idle-timer)
             (setq why-this--idle-timer nil))
@@ -699,10 +704,11 @@ Do CMD with ARGS."
     ('supported-p
      (and (buffer-file-name)
           (file-exists-p (file-name-directory (buffer-file-name)))
-          (string= "true\n" (shell-command-to-string
-                             (format "%s rev-parse --is-inside-work-tree"
-                                     (shell-quote-argument
-                                      why-this-git-program))))))
+          (string= "true\n"
+                   (shell-command-to-string
+                    (format "%s rev-parse --is-inside-work-tree"
+                            (shell-quote-argument
+                             why-this-git-program))))))
     ('line-data
      (unless why-this--git-author-name
        (setq why-this--git-author-name
@@ -711,25 +717,26 @@ Do CMD with ARGS."
                                    (shell-quote-argument
                                     why-this-git-program))))))
      (when (> (- (nth 1 args) (nth 0 args)) 0)
-       (let* ((blame (let ((temp-file (make-temp-file "why-this-git-")))
-                       (let ((text (buffer-substring-no-properties
-                                    (point-min) (point-max))))
-                         (with-temp-file temp-file
-                           (insert text)))
-                       (unwind-protect
-                           (butlast
-                            (split-string
-                             (shell-command-to-string
-                              (format (concat
-                                       "%s blame -L %i,%i \"%s\""
-                                       " --porcelain --contents \"%s\""
-                                       " ; echo $?")
-                                      (shell-quote-argument
-                                       why-this-git-program)
-                                      (nth 0 args) (1- (nth 1 args))
-                                      (buffer-file-name) temp-file))
-                             "\n"))
-                         (delete-file temp-file))))
+       (let* ((blame
+               (let ((temp-file (make-temp-file "why-this-git-")))
+                 (let ((text (buffer-substring-no-properties
+                              (point-min) (point-max))))
+                   (with-temp-file temp-file
+                     (insert text)))
+                 (unwind-protect
+                     (butlast
+                      (split-string
+                       (shell-command-to-string
+                        (format (concat
+                                 "%s blame -L %i,%i \"%s\""
+                                 " --porcelain --contents \"%s\""
+                                 " ; echo $?")
+                                (shell-quote-argument
+                                 why-this-git-program)
+                                (nth 0 args) (1- (nth 1 args))
+                                (buffer-file-name) temp-file))
+                       "\n"))
+                   (delete-file temp-file))))
               (status (string-to-number (car (last blame))))
               line-data
               (i 0)
@@ -758,9 +765,10 @@ Do CMD with ARGS."
                        (let ((line (nth i blame)))
                          (string-match split-string-default-separators
                                        line)
-                         (push (cons (substring line 0 (match-beginning 0))
-                                     (substring line (match-end 0)))
-                               data)))
+                         (push
+                          (cons (substring line 0 (match-beginning 0))
+                                (substring line (match-end 0)))
+                          data)))
                      (setq i (1+ i)))
                    (push (cons commit data) commit-alist))
                  (while (not (eq (aref (nth i blame) 0) ?\t))
@@ -771,14 +779,15 @@ Do CMD with ARGS."
                     line-data
                     (append
                      line-data
-                     (list
-                      (list
-                       :id commit
-                       :author (cdr (assoc-string "author" data))
-                       :time (time-convert
-                              (string-to-number
-                               (cdr (assoc-string "author-time" data))))
-                       :desc (cdr (assoc-string "summary" data)))))))
+                     `(( :id ,commit
+                         :author ,(cdr (assoc-string "author" data))
+                         :time ,(time-convert
+                                 (string-to-number
+                                  (cdr (assoc-string "author-time"
+                                                     data)))
+                                 nil)
+                         :desc ,(cdr (assoc-string "summary"
+                                                   data)))))))
                  (setq i (1+ i))))))
          (while (< (length line-data) (- (nth 1 args) (nth 0 args)))
            (funcall add-uncommitted))
@@ -794,40 +803,41 @@ Do CMD with ARGS."
           (file-exists-p (file-name-directory (buffer-file-name)))
           (string= "t" (shell-command-to-string
                         (format "%s annotate \"%s\" --template \"t\""
-                                (shell-quote-argument why-this-hg-program)
+                                (shell-quote-argument
+                                 why-this-hg-program)
                                 (buffer-file-name))))))
     ('line-data
      (when (> (- (nth 1 args) (nth 0 args)) 0)
-       (let ((output
-              (car
-               (read-from-string
-                (shell-command-to-string
-                 (format
-                  (concat
-                   "%s annotate \"%s\" --template \"({lines %% '(:id"
-                   " {rev} :author \\\"{person(user)}\\\" :time"
-                   " ({hgdate(date)}) :desc \\\"{sub(\\\"\\\\\\\"\\\","
-                   " \\\"\\\\\\\\\\\\\\\"\\\", sub(\\\"\\n.*\\\","
-                   " \\\"\\\", desc))}\\\") '})\"")
-                  (shell-quote-argument why-this-hg-program)
-                  (buffer-file-name))))))
-             data)
-         (dolist (i (number-sequence (1- (nth 1 args)) (nth 0 args) -1))
+       (let
+           ((output
+             (car
+              (read-from-string
+               (shell-command-to-string
+                (format
+                 (concat
+                  "%s annotate \"%s\" --template \"({lines %% '(:id"
+                  " {rev} :author \\\"{person(user)}\\\" :time"
+                  " ({hgdate(date)}) :desc \\\"{sub(\\\"\\\\\\\"\\\","
+                  " \\\"\\\\\\\\\\\\\\\"\\\", sub(\\\"\\n.*\\\","
+                  " \\\"\\\", desc))}\\\") '})\"")
+                 (shell-quote-argument why-this-hg-program)
+                 (buffer-file-name))))))
+            data)
+         (dolist (i (number-sequence (1- (nth 1 args)) (nth 0 args)
+                                     -1))
            (if (<= i (length output))
                (let ((plist (nth (1- i) output)))
                  (setq plist
-                       (plist-put plist :time
-                                  (time-convert
-                                   (car (plist-get plist :time)))))
+                       (plist-put
+                        plist :time
+                        (time-convert (car (plist-get plist :time))
+                                      nil)))
                  (push plist data))
              (setq data
-                   (append data
-                           (list
-                            (list
-                             :id nil
-                             :author user-full-name
-                             :time (current-time)
-                             :desc "Uncommitted changes"))))))
+                   (append data `(( :id nil
+                                    :author ,user-full-name
+                                    :time ,(current-time)
+                                    :desc ,"Uncommitted changes"))))))
          data)))))
 
 (provide 'why-this)
