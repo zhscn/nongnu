@@ -111,8 +111,8 @@ Example:
                             (buffer-substring (point) (point-max))))
               (setf (cadr (nth (+ y i) framebuffer)) t)
               (when (< end (point-max))
-                (setf (cadr (cdr (nth (+ y i) framebuffer))) t))))))
-      framebuffer)))
+                (setf (cadr (cdr (nth (+ y i) framebuffer))) t))))))))
+  framebuffer)
 
 ;;;###autoload
 (defun poponp (object)
@@ -354,6 +354,23 @@ order."
                                          (concat "\\(?:\n\\)\\'")
                                          str)))
                                  (if i (substring str 0 i) str)))))
+              (unless (string-empty-p disp-str)
+                (let ((prefix
+                       (if (and (> mark (point-min))
+                                (= (char-before mark) ?\n))
+                           (or (get-text-property 0 'line-prefix
+                                                  disp-str)
+                               line-prefix)
+                         (or (get-text-property 0 'wrap-prefix
+                                                disp-str)
+                             wrap-prefix))))
+                  (setq disp-str
+                        (propertize (concat prefix disp-str)
+                                    ;; Set these to empty strings to
+                                    ;; avoid using the buffer-local
+                                    ;; variables.
+                                    'line-prefix ""
+                                    'wrap-prefix ""))))
               (push (list disp-str nil nil line mark
                           (if (equal str disp-str)
                               (point)
@@ -384,10 +401,19 @@ order."
           (when (nth 1 line)
             (when (and (< (point-min) (nth 4 line) (point-max))
                        (not (eq (char-before (nth 4 line)) ?\n)))
-              (let ((ov (make-overlay (nth 4 line) (nth 4 line))))
+              ;; Let's assume that the last glyph of a wrapped
+              ;; line is a invisible space.  Then we can replace
+              ;; it with a newline, instead of inserting.
+              (let ((ov (make-overlay (1- (nth 4 line))
+                                      (nth 4 line))))
                 (push ov (window-parameter nil 'popon-overlays))
                 (overlay-put ov 'window (selected-window))
-                (overlay-put ov 'after-string "\n")))
+                (overlay-put ov 'display (copy-sequence
+                                          '(space :width (0))))
+                (overlay-put ov 'after-string
+                             (propertize "\n"
+                                         'line-prefix ""
+                                         'wrap-prefix ""))))
             (let* ((key (cons (nth 4 line) (nth 5 line)))
                    (pair (assoc key line-map)))
               (unless pair
@@ -401,6 +427,8 @@ order."
       (let ((ov (make-overlay (caar block) (cdar block))))
         (push ov (window-parameter nil 'popon-overlays))
         (overlay-put ov 'window (selected-window))
+        (overlay-put ov 'line-prefix "")
+        (overlay-put ov 'wrap-prefix "")
         (overlay-put ov 'display (copy-sequence '(space :width (0))))
         (overlay-put
          ov 'before-string
