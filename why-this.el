@@ -42,8 +42,8 @@
   :link '(url-link "https://codeberg.org/akib/emacs-why-this")
   :prefix "why-this-")
 
-(defcustom why-this-backends '(why-this-git
-                               why-this-hg)
+(defcustom why-this-backends (list #'why-this-git
+                                   #'why-this-hg)
   "List of enabled backends.
 
 Each backend is a function taking variable number of arguments, where
@@ -64,7 +64,9 @@ the first argument is the command (which is a symbol):
     `:author'   Name of the author.
     `:time'     Time of change (local).
     `:desc'     Single line description of change."
-  :type '(repeat (function :tag "Backend"))
+  :type 'hook
+  :options (list #'why-this-git
+                 #'why-this-hg)
   :package-version '(why-this "1.0"))
 
 (defcustom why-this-message-time-format #'why-this-relative-time
@@ -427,6 +429,7 @@ TIME-FORMAT is used to format data."
             (overlay-put ov 'why-this-column column)
             (overlay-put ov 'why-this-line (+ begin i))
             (overlay-put ov 'why-this-bg-type type)
+            (overlay-put ov 'window (selected-window))
             (push ov why-this--overlays)))))))
 
 (defun why-this--render-non-blocking ()
