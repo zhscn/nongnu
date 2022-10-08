@@ -364,13 +364,14 @@ order."
                          (or (get-text-property 0 'wrap-prefix
                                                 disp-str)
                              wrap-prefix))))
-                  (setq disp-str
-                        (propertize (concat prefix disp-str)
-                                    ;; Set these to empty strings to
-                                    ;; avoid using the buffer-local
-                                    ;; variables.
-                                    'line-prefix ""
-                                    'wrap-prefix ""))))
+                  (when (stringp prefix)
+                    (setq disp-str
+                          (propertize (concat prefix disp-str)
+                                      ;; Set these to empty strings to
+                                      ;; avoid using the buffer-local
+                                      ;; variables.
+                                      'line-prefix ""
+                                      'wrap-prefix "")))))
               (push (list disp-str nil nil line mark
                           (if (equal str disp-str)
                               (point)
