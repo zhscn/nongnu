@@ -1,0 +1,35 @@
+#+title: ~testcover-mark-line~ - Mark whole line with Testcover
+
+Testcover is a visual code-coverage tool, that marks the form not
+completed tested.  It only highlights the last character of a form,
+which sometimes don't attract attention and is hard to see, especially
+when your code is heavy highlighted.  This package highlights the
+whole line, which can easily get your attention.
+
+* Installation
+
+~testcover-mark-line~ isn't available on any ELPA right now.  So, you
+have to follow one of the following methods:
+
+** Quelpa
+
+#+begin_src emacs-lisp
+(quelpa
+ '(testcover-mark-line
+   :fetcher git
+   :url "https://codeberg.org/akib/emacs-testcover-mark-line.git"))
+#+end_src
+
+** Straight.el
+
+#+begin_src emacs-lisp
+(straight-use-package
+ '(testcover-mark-line
+   :type git
+   :repo "https://codeberg.org/akib/emacs-testcover-mark-line.git"))
+#+end_src
+
+** Manual
+
+Download the ~testcover-mark-line.el~ file and put it in your
+~load-path~.
