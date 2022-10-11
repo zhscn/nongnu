@@ -1,11 +1,11 @@
 #+title: Blow - Blow away mode lighters
 
-Mode lighters are indicator that make us aware that a mode is enable.
-This helpful, but when there are too many of them, it becomes a problem,
-because often lighters with the important information gets truncate due
-to the non-important lighters.  So we blow them, and they are usually
-the lighters of the important, perhaps indispensible, modes for you, so
-that you can see and focus on what matters.
+Mode lighters are indicator that make us aware that a mode is enabled.
+This is helpful, but when there are too many of them, it becomes a
+problem, because often lighters with the important information gets
+truncated due to the non-important lighters.  So we blow them, and
+they are usually the lighters of the important, perhaps indispensible,
+modes for you, so that you can see and focus on what matters.
 
 * Usage
 
@@ -31,8 +31,8 @@ Using this package is simple:
 (blow-revert 'eldoc-mode)
 #+end_src
 
-Or, if you prefer customizing variable, set ~blow-mode-list~ from custom,
-or customize it from your init file like the following:
+Or, if you prefer customizing variable, set ~blow-mode-list~ from
+custom, or customize it from your init file like the following:
 
 #+begin_src emacs-lisp
 ;; You can also use `setq', but you would need to reenable `blow-mode'
@@ -58,8 +58,8 @@ or customize it from your init file like the following:
 
 * Installation
 
-~blow~ isn't available on any ELPA right now.  So, you have to follow one
-of the following methods:
+~blow~ isn't available on any ELPA right now.  So, you have to follow
+one of the following methods:
 
 ** Quelpa
 
