@@ -723,7 +723,9 @@ Do CMD with ARGS."
        (let* ((blame
                (let ((temp-file (make-temp-file "why-this-git-")))
                  (let ((text (buffer-substring-no-properties
-                              (point-min) (point-max))))
+                              (point-min) (point-max)))
+                       (coding-system-for-write
+                        buffer-file-coding-system))
                    (with-temp-file temp-file
                      (insert text)))
                  (unwind-protect
