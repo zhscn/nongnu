@@ -97,6 +97,7 @@
   (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
 (autoload 'mastodon-search--trending-tags "mastodon-search")
 (autoload 'mastodon-profile-fetch-server-account-settings "mastodon-profile")
+(autoload 'mastodon-profile-account-settings "mastodon-profile")
 
 (defgroup mastodon nil
   "Interface with Mastodon."
