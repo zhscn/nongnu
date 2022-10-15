@@ -5,9 +5,9 @@
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Created: 2022-10-11
 ;; Version: 0.1
-;; Package-Requires: ((emacs "28.1"))
+;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: lisp utility
-;; Homepage: https://codeberg.org/akib/emacs-eat
+;; Homepage: https://codeberg.org/akib/emacs-testcover-mark-line
 
 ;; This file is not part of GNU Emacs.
 
