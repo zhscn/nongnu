@@ -38,7 +38,7 @@
 (require 'testcover)
 
 (defgroup testcover-mark-line nil
-  "Emulate A Terminal."
+  "Mark whole line with Testcover."
   :group 'testcover
   :link '(url-link
           "https://codeberg.org/akib/emacs-testcover-mark-line")
