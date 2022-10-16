@@ -402,31 +402,39 @@ step onto the next item)."
             (undo-data (cdr buffer-undo-list))
             (undo-data-init (cdr buffer-undo-list-init)))
 
-          ;; Since setting undo-data could corrupt the buffer if there is an unexpected state,
-          ;; ensure we have exactly one undo step added, so calling undo returns to a known state.
-          ;;
-          ;; While this should never happen, prefer an error message over a corrupt buffer.
-          (unless (eq undo-data-init (recomplete--undo-next undo-data))
-            (user-error "(re)complete: unexpected undo-state before undo, abort!"))
 
-          (let
-            ( ;; Roll back the edit, override `this-command' so we have predictable undo behavior.
-              ;; Also so setting it doesn't overwrite the current `this-command'
-              ;; which is checked above as `last-command'.
-              (this-command nil)
-              ;; We never want to undo in region (unlikely, set just to be safe).
-              (undo-in-region nil)
-              ;; The "Undo" message is just noise, don't log it or display it.
-              (inhibit-message t)
-              (message-log-max nil))
+          ;; It's possible the last action did not add an undo step.
+          ;; This can happen when `recomplete' cycles back to the initial state.
+          ;; While not common it can happen if the complete action compares the state
+          ;; of the current buffer with the contents that replaces it, where no change
+          ;; if found and no undo step is added. In this case, the last undo will be skipped.
+          (unless (eq undo-data-init undo-data)
+            ;; Since setting undo-data could corrupt the buffer if there is an unexpected state,
+            ;; ensure we have exactly one undo step added,
+            ;; so calling undo returns to a known state.
+            ;;
+            ;; While this should never happen, prefer an error message over a corrupt buffer.
+            (unless (eq undo-data-init (recomplete--undo-next undo-data))
+              (user-error "(re)complete: unexpected undo-state before undo, abort!"))
 
-            (undo-only)
+            (let
+              ( ;; Roll back the edit, override `this-command' so we have predictable undo behavior.
+                ;; Also so setting it doesn't overwrite the current `this-command'
+                ;; which is checked above as `last-command'.
+                (this-command nil)
+                ;; We never want to undo in region (unlikely, set just to be safe).
+                (undo-in-region nil)
+                ;; The "Undo" message is just noise, don't log it or display it.
+                (inhibit-message t)
+                (message-log-max nil))
 
-            ;; Ensure a single undo step was rolled back, if not,
-            ;; early exit as we must _never_ set undo data for an unexpected state.
-            (setq undo-data (cdr buffer-undo-list))
-            (unless (eq undo-data-init (recomplete--undo-next (recomplete--undo-next undo-data)))
-              (user-error "(re)complete: unexpected undo-state after undo, abort!"))))
+              (undo-only)
+
+              ;; Ensure a single undo step was rolled back, if not,
+              ;; early exit as we must _never_ set undo data for an unexpected state.
+              (setq undo-data (cdr buffer-undo-list))
+              (unless (eq undo-data-init (recomplete--undo-next (recomplete--undo-next undo-data)))
+                (user-error "(re)complete: unexpected undo-state after undo, abort!")))))
 
         ;; Roll back the buffer state, checks above assure us this won't cause any problems.
         (setq buffer-undo-list buffer-undo-list-init)
