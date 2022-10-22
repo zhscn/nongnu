@@ -270,7 +270,7 @@ With prefix argument N, move N items (negative N means move forward)."
                #'vcomplete--disable-completion-in-region t)
   ;; This has the nice side effect of also checking whether
   ;; `completion-in-region-mode' is active.
-  (when-let ((map (assq #'completion-in-region-mode
+  (when-let ((map (assq 'completion-in-region-mode
                         minor-mode-overriding-map-alist)))
     (setq vcomplete--last-completion-overlay nil)
     (when vcomplete-auto-update
