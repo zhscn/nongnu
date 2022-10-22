@@ -129,19 +129,15 @@ Otherwise, operate according to `completion-auto-help'."
 ;;;; Completion commands:
 
 (defun vcomplete--get-completions-window ()
-  "Return the window associated with the `*Completions*' buffer).
+  "Return the window associated with the `*Completions*' buffer.
 This function only searches the frames specified in `vcomplete-search-range'."
   (get-buffer-window "*Completions*" vcomplete-search-range))
 
-(defmacro vcomplete-with-completions-buffer (&rest body)
-  "Evaluate BODY with the `*Completions*' buffer temporarily current.
-While evaluating BODY, BUFFER and WINDOW are locally bound to the
-`*Completions*' buffer and window respectively."
+(defmacro vcomplete-with-completions-window (&rest body)
+  "Evaluate BODY with the `*Completions*' window temporarily selected."
   (declare (debug (&rest form)))
-  `(when-let ((buffer (get-buffer "*Completions*"))
-              (window (vcomplete--get-completions-window)))
-     (save-current-buffer
-       (set-buffer buffer)
+  `(when-let ((window (vcomplete--get-completions-window)))
+     (with-selected-window window
        (unless (derived-mode-p 'completion-list-mode)
          (user-error
           "The `*Completions*' buffer is set to an incorrect mode"))
@@ -188,9 +184,8 @@ isn't a completion list buffer."
 
 (defun vcomplete--move-n-completions (n)
   "Move N completions in the `*Completions*' buffer."
-  (vcomplete-with-completions-buffer
+  (vcomplete-with-completions-window
    (next-completion n)
-   (set-window-point window (point))
    (vcomplete--highlight-completion-at-point)))
 
 (defun vcomplete-next-completion (&optional n)
@@ -208,9 +203,8 @@ With prefix argument N, move N items (negative N means move forward)."
 (defun vcomplete-choose-completion ()
   "Choose the completion at point in the `*Completions*' buffer."
   (interactive)
-  (when-let ((buf (get-buffer "*Completions*")))
-    (switch-to-completions)
-    (choose-completion)))
+  (vcomplete-with-completions-window
+   (choose-completion)))
 
 (defvar vcomplete-command-map
   (let ((map (make-sparse-keymap)))
