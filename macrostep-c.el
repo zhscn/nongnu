@@ -130,7 +130,6 @@
     (condition-case nil
         (cl-destructuring-bind (expansion warnings)
             (macrostep-c-expand-region start end)
-          (declare (ignore warnings))
           (and (cl-plusp (length expansion))
                (not (string= expansion (buffer-substring start end)))))
       (macrostep-c-expansion-failed nil))))
