@@ -204,7 +204,7 @@ With prefix argument N, move N items (negative N means move forward)."
   "Choose the completion at point in the `*Completions*' buffer."
   (interactive)
   (vcomplete-with-completions-window
-   (choose-completion)))
+   (let ((completion-use-base-affixes t)) (choose-completion))))
 
 (defvar vcomplete-command-map
   (let ((map (make-sparse-keymap)))
