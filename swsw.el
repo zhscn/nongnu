@@ -83,7 +83,8 @@
   (require 'subr-x)
   ;; Avoid byte-compilation warnings.
   (defvar swsw-mode)
-  (defvar swsw-command-map))
+  (defvar swsw-command-map)
+  (declare-function swsw-selected-window-prefix nil))
 
 ;;;; Customization:
 
@@ -438,14 +439,15 @@ indirectly called by the latter."
                 (window-dedicated-p window))
       (window--display-buffer buffer window 'reuse alist))))
 
-(swsw-define-window-command swsw-selected-window-prefix (window)
-  "Display the buffer of the next command in a window."
-  (display-buffer-override-next-command
-   (lambda (buffer alist)
-     (setq alist (append `((window . ,window)) alist))
-     (cons (swsw-display-buffer-selected-window buffer alist) 'reuse))
-   nil (format "[swsw-window-%s]" (window-parameter window 'swsw-id)))
-  (message "Display next command buffer in the selected window..."))
+(when (fboundp 'display-buffer-override-next-command)
+  (swsw-define-window-command swsw-selected-window-prefix (window)
+    "Display the buffer of the next command in a window."
+    (display-buffer-override-next-command
+     (lambda (buffer alist)
+       (setq alist (append `((window . ,window)) alist))
+       (cons (swsw-display-buffer-selected-window buffer alist) 'reuse))
+     nil (format "[swsw-window-%s]" (window-parameter window 'swsw-id)))
+    (message "Display next command buffer in the selected window...")))
 
 (swsw-define-window-command swsw-swap (window)
   "Swap the states of a window and the currently selected window."
@@ -466,7 +468,8 @@ indirectly called by the latter."
     (define-key map [?1] #'swsw-delete-other)
     (define-key map [?2] #'swsw-split-window-below)
     (define-key map [?3] #'swsw-split-window-right)
-    (define-key map [?4] #'swsw-selected-window-prefix)
+    (when (fboundp 'display-buffer-override-next-command)
+      (define-key map [?4] #'swsw-selected-window-prefix))
     (define-key map [?t] #'swsw-swap)
     (define-key map [?m] #'swsw-select-minibuffer)
     map)

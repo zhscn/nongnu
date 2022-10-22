@@ -10,8 +10,8 @@ now use it and 5 new window commands have been added:
 'swsw-delete-other', 'swsw-split-window-below' and
 'swsw-split-window-right', which correspond to the built-in commands,
 'swsw-selected-window-prefix', which displays the buffer of the next
-command in the selected window, and 'swsw-swap' which swaps the state
-of the current window and the selected window.
+command in the selected window (Emacs 28+), and 'swsw-swap' which
+swaps the state of the current window and the selected window.
 
 * 2.2
 
