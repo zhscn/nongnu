@@ -289,7 +289,7 @@
 (make-variable-buffer-local 'macrostep-expansion-buffer)
 
 (defvar macrostep-outer-environment nil
-  "Outermost macro-expansion environment to use in a dedicated macro-expansion buffers.
+  "Outermost macro-expansion environment to use in a macro-expansion buffers.
 
 This variable is used to save information about any enclosing
 `cl-macrolet' context when a macro form is expanded in a separate
@@ -365,7 +365,7 @@ buffer.")
   :type 'boolean)
 
 (defcustom macrostep-expand-compiler-macros t
-  "When non-nil, expand compiler macros as well as `defmacro' and `macrolet' macros."
+  "When non-nil, also expand compiler macros."
   :group 'macrostep
   :type 'boolean)
 
