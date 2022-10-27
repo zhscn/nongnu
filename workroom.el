@@ -672,7 +672,8 @@ workroom."
               (workroom-current-room))))
        (when (and (stringp room) (string-empty-p room))
          (setq room workroom-default-room-name))
-       (setq room (workroom-get-create room))
+       (when (stringp room)
+         (setq room (workroom-get-create room)))
        (let ((view
               (workroom--read-view-to-switch
                room "Switch to view"
@@ -710,15 +711,15 @@ workroom."
 
 (defun workroom-kill (room)
   "Kill workroom ROOM."
-  (interactive (workroom--require-mode-enable
-                 (list (workroom--read
-                        "Kill workroom" (workroom-name
-                                         (workroom-current-room))
-                        t (lambda (cand)
-                            (not (workroom-default-p
-                                  (workroom-get (if (consp cand)
-                                                    (car cand)
-                                                  cand)))))))))
+  (interactive
+   (workroom--require-mode-enable
+     (list
+      (workroom--read
+       "Kill workroom" (workroom-name (workroom-current-room))
+       t (lambda (cand)
+           (not
+            (workroom-default-p
+             (workroom-get (if (consp cand) (car cand) cand)))))))))
   (when (stringp room)
     (setq room (workroom-get room)))
   (when room
@@ -743,10 +744,11 @@ workroom."
               (workroom-current-room))))
        (when (eq (length (workroom-views room)) 1)
          (user-error "Cannot kill the last view of a workroom"))
-       (list room (workroom--read-view
-                   room "Kill view"
-                   (when (eq room (workroom-current-room))
-                     (workroom-view-name (workroom-current-view))))))))
+       (list room
+             (workroom--read-view
+              room "Kill view"
+              (when (eq room (workroom-current-room))
+                (workroom-view-name (workroom-current-view))))))))
   (when (stringp room)
     (setq room (workroom-get room)))
   (when (stringp view)
@@ -764,14 +766,14 @@ workroom."
   "Rename workroom ROOM to NEW-NAME."
   (interactive
    (workroom--require-mode-enable
-     (let ((room (workroom--read
-                  "Rename workroom" (workroom-name
-                                     (workroom-current-room))
-                  t (lambda (cand)
-                      (not (workroom-default-p
-                            (workroom-get (if (consp cand)
-                                              (car cand)
-                                            cand))))))))
+     (let ((room
+            (workroom--read
+             "Rename workroom" (workroom-name (workroom-current-room))
+             t (lambda (cand)
+                 (not (workroom-default-p
+                       (workroom-get (if (consp cand)
+                                         (car cand)
+                                       cand))))))))
        (list room (read-string (format-message
                                 "Rename workroom `%s' to: " room))))))
   (when (stringp room)
