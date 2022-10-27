@@ -376,8 +376,9 @@ be a string.  DEF, REQUIRE-MATCH and PREDICATE is same as in
                                           require-match predicate)
   "Read the name of a buffer which isn't a member of ROOM.
 
-ROOM should be a `workroom'.  Prompt with PROMPT, where PROMPT should be a
-string.  DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
+ROOM should be a `workroom'.  Prompt with PROMPT, where PROMPT should
+be a string.  DEF, REQUIRE-MATCH and PREDICATE is same as in
+`read-buffer'."
   (let ((read-buffer-function nil))
     (read-buffer
      prompt def require-match
@@ -405,19 +406,29 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
       (cl-labels
           ((sanitize (entry)
              (cond
+              ;; Do nothing.
               ((or (not (consp entry))
                    (atom (cdr entry)))
                entry)
+              ;; A leaf window, modify this.
               ((eq (car entry) 'leaf)
                (let ((writable nil))
                  (let ((buffer (car (alist-get 'buffer (cdr entry)))))
+                   ;; Buffer name is a string, the state was obtained
+                   ;; with non-nil WRITABLE argument to
+                   ;; `window-state-get'.
                    (when (stringp buffer)
                      (setq writable t))
+                   ;; If the buffer shown in the window is dead,
+                   ;; replace it with the `*scratch*' buffer, with the
+                   ;; point at the very beginning.
                    (unless (buffer-live-p (get-buffer buffer))
                      (let ((scratch (get-buffer-create "*scratch*")))
                        (with-current-buffer scratch
+                         ;; Change buffer.
                          (setf (car (alist-get 'buffer (cdr entry)))
                                (if writable "*scratch*" scratch))
+                         ;; Set point.
                          (setf (alist-get
                                 'point
                                 (cdr (alist-get 'buffer (cdr entry))))
@@ -426,12 +437,15 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
                                  (copy-marker
                                   (point-min)
                                   window-point-insertion-type)))
+                         ;; Set `window-start'.
                          (setf (alist-get
                                 'start
                                 (cdr (alist-get 'buffer (cdr entry))))
                                (if writable
                                    (point-min)
                                  (copy-marker (point-min))))))))
+                 ;; Remove references to dead buffers with
+                 ;; `*scratch*'.
                  (let ((prev (alist-get 'prev-buffers (cdr entry))))
                    (setf
                     (alist-get 'prev-buffers (cdr entry))
@@ -463,9 +477,9 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
                                 (if writable "*scratch*" buffer))))
                           next))))
                entry)
+              ;; Recurse.
               (t
                (mapcar #'sanitize entry)))))
-
         ;; Sanitize window state (remove references to non-existant
         ;; buffers) before loading it.
         (window-state-put (cons (car state) (sanitize (cdr state)))
@@ -483,9 +497,9 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
 (defun workroom--decode-buffer-bookmark (object)
   "Decode OBJECT using `bookmark-jump'."
   (save-window-excursion
-
-    ;; Make sure `display-buffer' only changes the window configuration of
-    ;; the selected frame, so that `save-window-excursion' can revert it.
+    ;; Make sure `display-buffer' only changes the window
+    ;; configuration of the selected frame, so that
+    ;; `save-window-excursion' can revert it.
     (let* ((buffers nil)
            (display-buffer-overriding-action
             `(,(lambda (buffer _)
@@ -497,43 +511,49 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
 
 (defun workroom--encode (room)
   "Encode workroom ROOM to a printable object."
-  (cons
-   0                                    ; Format.
-   (list (workroom-name room)
-         (mapcar (lambda (view)
-                   (cons (workroom-view-name view)
-                         (save-window-excursion
-                           (workroom--load-window-config
-                            (workroom-view-window-config view))
-                           (window-state-get (frame-root-window) t))))
-                 (workroom-views room))
-         (cl-remove-if
-          #'null
-          (mapcar
-           (lambda (buffer)
-             (catch 'done
-               (dolist (entry workroom-buffer-handler-alist nil)
-                 (when-let ((object (funcall (plist-get (cdr entry)
-                                                        :encoder)
-                                             buffer)))
-                   (throw 'done (cons (car entry) object))))))
-           (workroom-buffer-list room)))
-         (when (functionp (workroom-buffers room))
-           (workroom-buffers room)))))
+  `(;; Format.
+    0
+    ;; Workroom name.
+    ,(workroom-name room)
+    ;; Views (window configurations).
+    ,(mapcar
+      (lambda (view)
+        (cons (workroom-view-name view)
+              (save-window-excursion
+                (workroom--load-window-config
+                 (workroom-view-window-config view))
+                (window-state-get (frame-root-window) 'writable))))
+      (workroom-views room))
+    ;; Buffers.
+    ,(cl-remove-if
+      #'null
+      (mapcar
+       (lambda (buffer)
+         (catch 'done
+           (dolist (entry workroom-buffer-handler-alist nil)
+             (when-let
+                 ((object (funcall (plist-get (cdr entry) :encoder)
+                                   buffer)))
+               (throw 'done (cons (car entry) object))))))
+       (workroom-buffer-list room)))
+    ;; The function returning the list of buffer, if any.
+    ,(when (functionp (workroom-buffers room))
+       (workroom-buffers room))))
 
 (defun workroom--decode (object)
   "Decode OBJECT to a workroom."
   (pcase (car object)
     (0
-     (let ((buffers (mapcar
-                     (lambda (entry)
-                       (funcall
-                        (plist-get
-                         (alist-get (car entry)
-                                    workroom-buffer-handler-alist)
-                         :decoder)
-                        (cdr entry)))
-                     (nth 2 (cdr object)))))
+     (let ((buffers
+            ;; Restore buffers.
+            (mapcar
+             (lambda (entry)
+               (funcall
+                (plist-get
+                 (alist-get (car entry) workroom-buffer-handler-alist)
+                 :decoder)
+                (cdr entry)))
+             (nth 2 (cdr object)))))
        (make-workroom
         :name (nth 0 (cdr object))
         :views (mapcar (lambda (view-obj)
@@ -551,6 +571,7 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
   "Restore workrooms in DATA."
   (pcase (car data)
     ('workroom
+     ;; Restore a single workroom.
      (let ((room (workroom--decode (cdr data))))
        (when-let ((existing (workroom-get (workroom-name room))))
          (unless (y-or-n-p (format-message "Workroom `%s' already \
@@ -559,9 +580,7 @@ exists, overwrite? " (workroom-name room)))
          (workroom-kill existing))
        (push room workroom--rooms)))
     ('workroom-set
-     (unless (y-or-n-p
-              "All your workrooms will be overwritten, proceed? ")
-       (user-error "Cancelled"))
+     ;; Restore all workrooms.
      (let ((rooms nil)
            (rooms-to-kill nil))
        (dolist (object (cdr data))
