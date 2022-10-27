@@ -25,23 +25,25 @@
 
 ;;; Commentary:
 
-;; Workroom provides named "workrooms" (or workspaces), somewhat similar to
-;; multiple desktops in GNOME.
+;; Workroom provides named "workrooms" (or workspaces), somewhat
+;; similar to multiple desktops in GNOME.
 
-;; Each workroom has own set of buffers, allowing you to work on multiple
-;; projects without getting lost in all buffers.
+;; Each workroom has own set of buffers, allowing you to work on
+;; multiple projects without getting lost in all buffers.
 
 ;; Each workroom also has its own set of views.  Views are just named
 ;; window configurations.  They allow you to switch to another window
-;; configuration without losing your well-planned current window setup.
+;; configuration without losing your well-planned current window
+;; setup.
 
-;; You can also bookmark a workroom or all your workrooms to restore them
-;; at a later time, possibly in another Emacs session.
+;; You can also bookmark a workroom or all your workrooms to restore
+;; them at a later time, possibly in another Emacs session.
 
 ;; There is always a workroom named "master", which contains all live
-;; buffers.  Removing any buffer from this workroom kills that buffer.  You
-;; can't kill, rename or bookmark this workroom, but you can customize the
-;; variable `workroom-default-room-name' to change its name.
+;; buffers.  Removing any buffer from this workroom kills that buffer.
+;; You can't kill, rename or bookmark this workroom, but you can
+;; customize the variable `workroom-default-room-name' to change its
+;; name.
 
 ;; All the useful commands can be called with following key sequences:
 
@@ -64,12 +66,12 @@
 ;; Here the prefix key sequence is "C-x x", but you can customize
 ;; `workroom-command-map-prefix' to change it.
 
-;; Adding and removing buffers to/from workrooms can become a burden.  You
-;; can automate this process by setting `buffers' slot of `workroom' to a
-;; function without arguments returning a list of live buffers.  That list
-;; of buffer will be used as the list of buffers of that workroom.  The
-;; default workroom is an example of this type of workroom, which uses
-;; `buffer-list' for the list of buffers.
+;; Adding and removing buffers to/from workrooms can become a burden.
+;; You can automate this process by setting `buffers' slot of
+;; `workroom' to a function without arguments returning a list of live
+;; buffers.  That list of buffer will be used as the list of buffers
+;; of that workroom.  The default workroom is an example of this type
+;; of workroom, which uses `buffer-list' for the list of buffers.
 
 ;;; Code:
 
@@ -103,23 +105,24 @@ Workroom-Mode must be reenabled for changes to take effect."
 (defcustom workroom-buffer-handler-alist
   '((bookmark :encoder workroom--encode-buffer-bookmark
               :decoder workroom--decode-buffer-bookmark))
-  "Alist of functions to encoding/decoding buffer to/from writable object.
+  "Alist of functions to encode/decode buffer to/from readable object.
 
-Each element of the list is of the form (IDENTIFIER . (:encoder ENCODER
-:decoder DECODER)), where ENCODE is a function to encode buffer to writable
-object and DECODER is a function to decode a writable object returned by
-ENCODER and create the corresponding buffer.  ENCODER is called with a
-single argument BUFFER, where BUFFER is the buffer to encode.  It should
-return nil if it can't encode BUFFER.  DECODER is called with a single
-argument OBJECT, where OBJECT is the object to decode.  It should not
-modify window configuration.  IDENTIFIER is used to get the appropiate
-decoder function for a object.
+Each element of the list is of the form (IDENTIFIER . (:encoder
+ENCODER :decoder DECODER)), where ENCODE is a function to encode
+buffer to writable object and DECODER is a function to decode a
+writable object returned by ENCODER and create the corresponding
+buffer.  ENCODER is called with a single argument BUFFER, where BUFFER
+is the buffer to encode.  It should return nil if it can't encode
+BUFFER.  DECODER is called with a single argument OBJECT, where OBJECT
+is the object to decode.  It should not modify window configuration.
+IDENTIFIER is used to get the appropiate decoder function for a
+object.
 
 Each element of the list tried to encode a buffer.  When no encoder
 function can encode the buffer, the buffer is not saved.
 
-NOTE: If you change IDENTIFIER, all buffers encoded with the previous value
-can't restored."
+NOTE: If you change IDENTIFIER, all buffers encoded with the previous
+value can't restored."
   :type '(alist
           :key-type (symbol :tag "Identifier")
           :value-type (list (const :encoder)
@@ -136,12 +139,12 @@ can't restored."
                            'compilation-info
                          'warning)))
     "]["
-    (:eval (propertize (workroom-view-name (workroom-current-view)) 'face
-                       (if (member (current-buffer)
-                                   (workroom-buffer-list
-                                    (workroom-current-room)))
-                           'compilation-info
-                         'warning)))
+    (:eval (propertize (workroom-view-name (workroom-current-view))
+                       'face (if (member (current-buffer)
+                                         (workroom-buffer-list
+                                          (workroom-current-room)))
+                                 'compilation-info
+                               'warning)))
     "]")
   "Format of Workroom mode lighter.
 
@@ -168,28 +171,25 @@ The value is a mode line terminal like `mode-line-format'."
 
 (cl-defstruct workroom
   "Structure for workroom."
-  (name nil
-        :documentation "Name of the workroom."
-        :type string)
-  (views nil
-         :documentation "Views of the workroom."
-         :type list)
-  (buffers nil
-           :documentation "Buffers of the workroom.")
-  (default-p nil
-    :documentation "Whether the workroom is the default one.")
-  (previous-view-list nil
-                      :documentation "List of previously selected views.")
-  (view-history nil
-                :documentation "`completing-read' history of view names."))
+  (name nil :documentation "Name of the workroom." :type string)
+  (views nil :documentation "Views of the workroom." :type list)
+  (buffers nil :documentation "Buffers of the workroom.")
+  (default-p
+   nil
+   :documentation "Whether the workroom is the default one.")
+  (previous-view-list
+   nil
+   :documentation "List of previously selected views.")
+  (view-history
+   nil
+   :documentation "`completing-read' history of view names."))
 
 (cl-defstruct workroom-view
   "Structure for view of workroom."
-  (name nil
-        :documentation "Name of the view."
-        :type string)
-  (window-config nil
-                 :documentation "Window configuration of the view."))
+  (name nil :documentation "Name of the view." :type string)
+  (window-config
+   nil
+   :documentation "Window configuration of the view."))
 
 (defalias 'workroomp #'workroom-p)
 
@@ -212,7 +212,7 @@ The value is a mode line terminal like `mode-line-format'."
 
 (defvar workroom-command-map
   (let ((keymap (make-sparse-keymap)))
-    ;; NOTE:  Be sure to update commentary and README when you modify this.
+    ;; NOTE: Be sure to keep commentary and README up to date.
     (define-key keymap "s" #'workroom-switch)
     (define-key keymap "d" #'workroom-kill-view)
     (define-key keymap "D" #'workroom-kill)
@@ -230,7 +230,7 @@ The value is a mode line terminal like `mode-line-format'."
   "Keymap containing all useful commands of Workroom.")
 
 (define-key workroom-mode-map workroom-command-map-prefix
-  workroom-command-map)
+            workroom-command-map)
 
 (defun workroom-get (name)
   "Return the workroom named NAME.
@@ -244,7 +244,8 @@ If no such workroom exists, return nil."
 (defun workroom-get-create (name)
   "Return the workroom named NAME.
 
-If no such workroom exists, create a new one named NAME and return that."
+If no such workroom exists, create a new one named NAME and return
+that."
   (let ((room (workroom-get name)))
     (unless room
       (setq room (make-workroom
@@ -301,110 +302,94 @@ If no such view exists, create a new one named NAME and return that."
 (defun workroom--read (prompt &optional def require-match predicate)
   "Read the name of a workroom and return it as a string.
 
-Prompt with PROMPT, where PROMPT should be a string without trailing colon
-and/or space.
+Prompt with PROMPT, where PROMPT should be a string without trailing
+colon and/or space.
 
 Return DEF when input is empty, where DEF is either a string or nil.
 
 REQUIRE-MATCH and PREDICATE is same as in `completing-read'."
-  (completing-read (concat prompt
-                           (when def
-                             (format " (default %s)" def))
-                           ": ")
-                   (mapcar #'workroom-name workroom--rooms)
-                   predicate require-match nil 'workroom--room-history
-                   def))
+  (completing-read
+   (concat prompt (when def (format " (default %s)" def)) ": ")
+   (mapcar #'workroom-name workroom--rooms) predicate require-match
+   nil 'workroom--room-history def))
 
-(defun workroom--read-to-switch (prompt &optional def require-match
-                                        predicate)
+(defun workroom--read-to-switch ( prompt &optional def require-match
+                                  predicate)
   "Read the name of a workroom other than current one and return it.
 
 See `workroom--read' for PROMPT, DEF, REQUIRE-MATCH and PREDICATE."
-  (workroom--read prompt def require-match
-                  (lambda (cand)
-                    (and (not (equal
-                               (workroom-name (workroom-current-room))
-                               (if (consp cand) (car cand) cand)))
-                         (if predicate
-                             (funcall predicate cand)
-                           t)))))
+  (workroom--read
+   prompt def require-match
+   (lambda (cand)
+     (and (not (equal (workroom-name (workroom-current-room))
+                      (if (consp cand) (car cand) cand)))
+          (or (not predicate) (funcall predicate cand))))))
 
-(defun workroom--read-view (room prompt &optional def require-match
-                                 predicate)
+(defun workroom--read-view ( room prompt &optional def require-match
+                             predicate)
   "Read the name of a view of ROOM and return it as a string.
 
-Prompt with PROMPT, where PROMPT should be a string without trailing colon
-and/or space.
+Prompt with PROMPT, where PROMPT should be a string without trailing
+colon and/or space.
 
 Return DEF when input is empty, where DEF is either a string or nil.
 
 REQUIRE-MATCH and PREDICATE is same as in `completing-read'."
   (let ((workroom--view-history (workroom-view-history room)))
     (prog1
-        (completing-read (concat prompt
-                                 (when def
-                                   (format " (default %s)" def))
-                                 ": ")
-                         (mapcar #'workroom-view-name
-                                 (workroom-views room))
-                         predicate require-match nil
-                         'workroom--room-history def)
+        (completing-read
+         (concat prompt (when def (format " (default %s)" def)) ": ")
+         (mapcar #'workroom-view-name (workroom-views room))
+         predicate require-match nil 'workroom--room-history def)
       (setf (workroom-view-history room) workroom--view-history))))
 
-(defun workroom--read-view-to-switch (room prompt &optional def
-                                           require-match predicate)
-  "Read the name of a view of ROOM other than current one and return it.
+(defun workroom--read-view-to-switch ( room prompt &optional def
+                                       require-match predicate)
+  "Read the name of a non-current view of ROOM and return it.
 
 See `workroom--read' for PROMPT, DEF, REQUIRE-MATCH and PREDICATE."
-  (workroom--read-view room prompt def require-match
-                       (if (eq room (workroom-current-room))
-                           (lambda (cand)
-                             (and (not (equal
-                                        (workroom-view-name
-                                         (workroom-current-view))
-                                        (if (consp cand) (car cand) cand)))
-                                  (if predicate
-                                      (funcall predicate cand)
-                                    t)))
-                         predicate)))
+  (workroom--read-view
+   room prompt def require-match
+   (if (eq room (workroom-current-room))
+       (lambda (cand)
+         (and (not (equal (workroom-view-name (workroom-current-view))
+                          (if (consp cand) (car cand) cand)))
+              (or (not predicate) (funcall predicate cand))))
+     predicate)))
 
-(defun workroom--read-member-buffer (room prompt &optional def
-                                          require-match predicate)
+(defun workroom--read-member-buffer ( room prompt &optional def
+                                      require-match predicate)
   "Read the name of a member buffer of ROOM.
 
-ROOM should be a `workroom'.  Prompt with PROMPT, where PROMPT should be a
-string.  DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
+ROOM should be a `workroom'.  Prompt with PROMPT, where PROMPT should
+be a string.  DEF, REQUIRE-MATCH and PREDICATE is same as in
+`read-buffer'."
   (let ((read-buffer-function nil))
-    (read-buffer prompt def require-match
-                 (lambda (cand)
-                   (and (member
-                         (get-buffer (if (consp cand) (car cand) cand))
-                         (workroom-buffer-list room))
-                        (if predicate
-                            (funcall predicate cand)
-                          t))))))
+    (read-buffer
+     prompt def require-match
+     (lambda (cand)
+       (and (member (get-buffer (if (consp cand) (car cand) cand))
+                    (workroom-buffer-list room))
+            (or (not predicate) (funcall predicate cand)))))))
 
-(defun workroom--read-non-member-buffer (room prompt &optional def
-                                              require-match predicate)
+(defun workroom--read-non-member-buffer ( room prompt &optional def
+                                          require-match predicate)
   "Read the name of a buffer which isn't a member of ROOM.
 
 ROOM should be a `workroom'.  Prompt with PROMPT, where PROMPT should be a
 string.  DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
   (let ((read-buffer-function nil))
-    (read-buffer prompt def require-match
-                 (lambda (cand)
-                   (and (not (member
-                              (get-buffer (if (consp cand)
-                                              (car cand)
-                                            cand))
-                              (workroom-buffer-list room)))
-                        (if predicate
-                            (funcall predicate cand)
-                          t))))))
+    (read-buffer
+     prompt def require-match
+     (lambda (cand)
+       (and (not
+             (member (get-buffer (if (consp cand) (car cand) cand))
+                     (workroom-buffer-list room)))
+            (or (not predicate) (funcall predicate cand)))))))
 
-(defun workroom-read-buffer-function (prompt &optional def
-                                             require-match predicate)
-  "Read buffer function restricted to buffers of the current workspace.
+(defun workroom-read-buffer-function ( prompt &optional def
+                                       require-match predicate)
+  "Read buffer function restricted to buffers of the current workroom.
 
 PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
   (workroom--read-member-buffer (workroom-current-room) prompt def
@@ -417,73 +402,69 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
 (defun workroom--load-window-config (state)
   "Load window configuration STATE."
   (if state
-      (cl-labels ((sanitize
-                   (entry)
-                   (cond
-                    ((or (not (consp entry))
-                         (atom (cdr entry)))
-                     entry)
-                    ((eq (car entry) 'leaf)
-                     (let ((writable nil))
-                       (let ((buffer (car (alist-get 'buffer
-                                                     (cdr entry)))))
-                         (when (stringp buffer)
-                           (setq writable t))
-                         (unless (buffer-live-p (get-buffer buffer))
-                           (let ((scratch (get-buffer-create "*scratch*")))
-                             (with-current-buffer scratch
-                               (setf (car (alist-get 'buffer (cdr entry)))
-                                     (if writable "*scratch*" scratch))
-                               (setf (alist-get 'point
-                                                (cdr (alist-get
-                                                      'buffer
-                                                      (cdr entry))))
-                                     (if writable
-                                         (point-min)
-                                       (copy-marker
-                                        (point-min)
-                                        window-point-insertion-type)))
-                               (setf (alist-get 'start
-                                                (cdr (alist-get
-                                                      'buffer
-                                                      (cdr entry))))
-                                     (if writable
-                                         (point-min)
-                                       (copy-marker (point-min))))))))
-                       (let ((prev (alist-get 'prev-buffers (cdr entry))))
-                         (setf
-                          (alist-get 'prev-buffers (cdr entry))
-                          (mapcar
-                           (lambda (entry)
-                             (if (buffer-live-p (get-buffer (car entry)))
-                                 entry
-                               (let ((scratch (get-buffer-create
-                                               "*scratch*")))
-                                 (with-current-buffer scratch
-                                   (if writable
-                                       (list "*scratch*"
-                                             (point-min)
-                                             (point-min))
-                                     (list
-                                      scratch
-                                      (copy-marker (point-min))
-                                      (copy-marker
-                                       (point-min)
-                                       window-point-insertion-type)))))))
-                           prev)))
-                       (let ((next (alist-get 'next-buffers (cdr entry))))
-                         (setf (alist-get 'next-buffers (cdr entry))
-                               (mapcar
-                                (lambda (buffer)
-                                  (if (buffer-live-p (get-buffer buffer))
-                                      buffer
-                                    (let ((buffer (get-buffer-create
-                                                   "*scratch*")))
-                                      (if writable "*scratch*" buffer))))
-                                next))))
-                     entry)
-                    (t
-                     (mapcar #'sanitize entry)))))
+      (cl-labels
+          ((sanitize (entry)
+             (cond
+              ((or (not (consp entry))
+                   (atom (cdr entry)))
+               entry)
+              ((eq (car entry) 'leaf)
+               (let ((writable nil))
+                 (let ((buffer (car (alist-get 'buffer (cdr entry)))))
+                   (when (stringp buffer)
+                     (setq writable t))
+                   (unless (buffer-live-p (get-buffer buffer))
+                     (let ((scratch (get-buffer-create "*scratch*")))
+                       (with-current-buffer scratch
+                         (setf (car (alist-get 'buffer (cdr entry)))
+                               (if writable "*scratch*" scratch))
+                         (setf (alist-get
+                                'point
+                                (cdr (alist-get 'buffer (cdr entry))))
+                               (if writable
+                                   (point-min)
+                                 (copy-marker
+                                  (point-min)
+                                  window-point-insertion-type)))
+                         (setf (alist-get
+                                'start
+                                (cdr (alist-get 'buffer (cdr entry))))
+                               (if writable
+                                   (point-min)
+                                 (copy-marker (point-min))))))))
+                 (let ((prev (alist-get 'prev-buffers (cdr entry))))
+                   (setf
+                    (alist-get 'prev-buffers (cdr entry))
+                    (mapcar
+                     (lambda (entry)
+                       (if (buffer-live-p (get-buffer (car entry)))
+                           entry
+                         (let ((scratch (get-buffer-create
+                                         "*scratch*")))
+                           (with-current-buffer scratch
+                             (if writable
+                                 (list "*scratch*" (point-min)
+                                       (point-min))
+                               (list
+                                scratch
+                                (copy-marker (point-min))
+                                (copy-marker
+                                 (point-min)
+                                 window-point-insertion-type)))))))
+                     prev)))
+                 (let ((next (alist-get 'next-buffers (cdr entry))))
+                   (setf (alist-get 'next-buffers (cdr entry))
+                         (mapcar
+                          (lambda (buffer)
+                            (if (buffer-live-p (get-buffer buffer))
+                                buffer
+                              (let ((buffer (get-buffer-create
+                                             "*scratch*")))
+                                (if writable "*scratch*" buffer))))
+                          next))))
+               entry)
+              (t
+               (mapcar #'sanitize entry)))))
 
         ;; Sanitize window state (remove references to non-existant
         ;; buffers) before loading it.
@@ -528,14 +509,15 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
                  (workroom-views room))
          (cl-remove-if
           #'null
-          (mapcar (lambda (buffer)
-                    (catch 'done
-                      (dolist (entry workroom-buffer-handler-alist nil)
-                        (when-let ((object (funcall (plist-get (cdr entry)
-                                                               :encoder)
-                                                    buffer)))
-                          (throw 'done (cons (car entry) object))))))
-                  (workroom-buffer-list room)))
+          (mapcar
+           (lambda (buffer)
+             (catch 'done
+               (dolist (entry workroom-buffer-handler-alist nil)
+                 (when-let ((object (funcall (plist-get (cdr entry)
+                                                        :encoder)
+                                             buffer)))
+                   (throw 'done (cons (car entry) object))))))
+           (workroom-buffer-list room)))
          (when (functionp (workroom-buffers room))
            (workroom-buffers room)))))
 
@@ -543,14 +525,15 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
   "Decode OBJECT to a workroom."
   (pcase (car object)
     (0
-     (let ((buffers (mapcar (lambda (entry)
-                              (funcall
-                               (plist-get
-                                (alist-get (car entry)
-                                           workroom-buffer-handler-alist)
-                                :decoder)
-                               (cdr entry)))
-                            (nth 2 (cdr object)))))
+     (let ((buffers (mapcar
+                     (lambda (entry)
+                       (funcall
+                        (plist-get
+                         (alist-get (car entry)
+                                    workroom-buffer-handler-alist)
+                         :decoder)
+                        (cdr entry)))
+                     (nth 2 (cdr object)))))
        (make-workroom
         :name (nth 0 (cdr object))
         :views (mapcar (lambda (view-obj)
@@ -570,43 +553,48 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
     ('workroom
      (let ((room (workroom--decode (cdr data))))
        (when-let ((existing (workroom-get (workroom-name room))))
-         (unless (y-or-n-p (format-message "Workroom `%s' already\
- exists, overwrite? " (workroom-name room)))
+         (unless (y-or-n-p (format-message "Workroom `%s' already \
+exists, overwrite? " (workroom-name room)))
            (user-error "Workroom `%s' exists" (workroom-name room)))
          (workroom-kill existing))
        (push room workroom--rooms)))
     ('workroom-set
-     (unless (y-or-n-p "All your workrooms will be overwritten, proceed? ")
+     (unless (y-or-n-p
+              "All your workrooms will be overwritten, proceed? ")
        (user-error "Cancelled"))
      (let ((rooms nil)
            (rooms-to-kill nil))
        (dolist (object (cdr data))
          (let ((room (workroom--decode object)))
            (when-let ((existing (workroom-get (workroom-name room))))
-             (unless (y-or-n-p (format-message "Workroom `%s' already\
- exists, overwrite? " (workroom-name room)))
-               (user-error "Workroom `%s' exists" (workroom-name room)))
+             (unless (y-or-n-p
+                      (format-message
+                       "Workroom `%s' already exists, overwrite? "
+                       (workroom-name room)))
+               (user-error "Workroom `%s' exists"
+                           (workroom-name room)))
              (push existing rooms-to-kill))
            (push room rooms)))
        (mapc #'workroom-kill rooms-to-kill)
        (setq workroom--rooms (nconc rooms workroom--rooms))))))
 
 (defun workroom--read-bookmark (prompt)
-  "Read a bookmark name, prompting with PROMPT, without requiring match."
+  "Prompt with PROMPT, read a bookmark name, don't require match."
   (bookmark-maybe-load-default-file)
-  (completing-read prompt (lambda (string predicate action)
-                            (if (eq action 'metadata)
-                                '(metadata (category . bookmark))
-                              (complete-with-action action bookmark-alist
-                                                    string predicate)))
-                   nil nil nil 'bookmark-history))
+  (completing-read
+   prompt (lambda (string predicate action)
+            (if (eq action 'metadata)
+                '(metadata (category . bookmark))
+              (complete-with-action action bookmark-alist string
+                                    predicate)))
+   nil nil nil 'bookmark-history))
 
 (defun workroom--remove-buffer-refs ()
   "Remove references of current buffer from all workrooms."
   (dolist (room workroom--rooms)
-    ;; When buffers is a list, its our responsibility to keep it clean, and
-    ;; when its is function, its their responsibility to not return killed
-    ;; buffers.
+    ;; When buffers is a list, its our responsibility to keep it
+    ;; clean, and when its is function, its their responsibility to
+    ;; not return killed buffers.
     (unless (functionp (workroom-buffers room))
       (workroom-remove-buffer (current-buffer) room))))
 
@@ -621,7 +609,8 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
 (defun workroom-bookmark-jump (bookmark)
   "Handle BOOKMARK."
   (workroom--require-mode-enable
-    (let ((data (alist-get 'data (bookmark-get-bookmark-record bookmark))))
+    (let ((data (alist-get 'data (bookmark-get-bookmark-record
+                                  bookmark))))
       (workroom--restore-rooms data))))
 
 (defun workroom--init-frame (frame)
@@ -637,14 +626,15 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
                              nil 'workroom-previous-room-list))))))
 
 (defun workroom-switch (room view)
-  "Switch to workroom ROOM if not already and switch to view VIEW of ROOM.
+  "Switch to view VIEW of workroom ROOM.
 
-If called interactively, prompt for view to switch.  If prefix argument is
-given, ask for workroom to switch before.
+If called interactively, prompt for view to switch.  If prefix
+argument is given, ask for workroom to switch before.
 
-ROOM may be a `workroom' object or string.  If ROOM is a `workroom' object,
-switch to that workroom.  If ROOM is a string, create a workroom with that
-name if it doesn't exist, then switch to the workroom."
+ROOM may be a `workroom' object or string.  If ROOM is a `workroom'
+object, switch to that workroom.  If ROOM is a string, create a
+workroom with that name if it doesn't exist, then switch to the
+workroom."
   (interactive
    (workroom--require-mode-enable
      (let ((room
@@ -655,9 +645,11 @@ name if it doesn't exist, then switch to the workroom."
                   ((and (eq (car (workroom-previous-room-list))
                             (workroom-current-room))
                         (< 1 (length (workroom-previous-room-list))))
-                   (workroom-name (cadr (workroom-previous-room-list))))
+                   (workroom-name
+                    (cadr (workroom-previous-room-list))))
                   ((car (workroom-previous-room-list))
-                   (workroom-name (car (workroom-previous-room-list))))))
+                   (workroom-name
+                    (car (workroom-previous-room-list))))))
               (workroom-current-room))))
        (when (and (stringp room) (string-empty-p room))
          (setq room workroom-default-room-name))
@@ -666,10 +658,12 @@ name if it doesn't exist, then switch to the workroom."
               (workroom--read-view-to-switch
                room "Switch to view"
                (cond
-                ((and (eq (car (workroom-previous-view-list room))
-                          (workroom-current-view))
-                      (< 1 (length (workroom-previous-view-list room))))
-                 (workroom-name (cadr (workroom-previous-view-list room))))
+                ((and
+                  (eq (car (workroom-previous-view-list room))
+                      (workroom-current-view))
+                  (< 1 (length (workroom-previous-view-list room))))
+                 (workroom-name
+                  (cadr (workroom-previous-view-list room))))
                 ((car (workroom-previous-view-list room))
                  (workroom-name
                   (car (workroom-previous-view-list room))))))))
@@ -725,8 +719,8 @@ name if it doesn't exist, then switch to the workroom."
             (if current-prefix-arg
                 (workroom-get
                  (workroom--read
-                  "Parent workroom" (workroom-name (workroom-current-room))
-                  t))
+                  "Kill view of workroom"
+                  (workroom-name (workroom-current-room)) t))
               (workroom-current-room))))
        (when (eq (length (workroom-views room)) 1)
          (user-error "Cannot kill the last view of a workroom"))
@@ -796,7 +790,7 @@ name if it doesn't exist, then switch to the workroom."
   (run-hooks 'workroom-rename-view-hook))
 
 (defun workroom-clone (room name)
-  "Create a new workroom named NAME which is a clone of workroom ROOM."
+  "Create a clone of workroom ROOM named NAME."
   (interactive
    (workroom--require-mode-enable
      (let ((room (workroom--read
@@ -818,7 +812,7 @@ name if it doesn't exist, then switch to the workroom."
     clone))
 
 (defun workroom-clone-view (room view name)
-  "Create a view of workroom ROOM named NAME which is clone of view VIEW."
+  "Create a clone of view VIEW named NAME in workroom ROOM."
   (interactive
    (workroom--require-mode-enable
      (let* ((room
@@ -849,19 +843,18 @@ name if it doesn't exist, then switch to the workroom."
 (defun workroom-bookmark (room name no-overwrite)
   "Save workroom ROOM to a bookmark named NAME.
 
-If NO-OVERWRITE is nil or prefix arg is given, don't overwrite any previous
-bookmark with the same name.
+If NO-OVERWRITE is nil or prefix arg is given, don't overwrite any
+previous bookmark with the same name.
 
 The default workroom cannot be saved."
-  (interactive (list (workroom--read "Workroom" nil t
-                                     (lambda (cand)
-                                       (not (equal (workroom-name
-                                                    (workroom-get-default))
-                                                   (if (consp cand)
-                                                       (car cand)
-                                                     cand)))))
-                     (workroom--read-bookmark "Save to bookmark: ")
-                     current-prefix-arg))
+  (interactive
+   (list (workroom--read
+          "Workroom" nil t
+          (lambda (cand)
+            (not (equal (workroom-name (workroom-get-default))
+                        (if (consp cand) (car cand) cand)))))
+         (workroom--read-bookmark "Save to bookmark: ")
+         current-prefix-arg))
   (when (stringp room)
     (setq room (workroom-get room)))
   (dolist (frame (frame-list))
@@ -869,15 +862,16 @@ The default workroom cannot be saved."
       (with-selected-frame frame
         (setf (workroom-view-window-config (workroom-current-view))
               (workroom--save-window-config)))))
-  (bookmark-store name `((data . (workroom . ,(workroom--encode room)))
-                         (handler . workroom-bookmark-jump))
-                  no-overwrite))
+  (bookmark-store
+   name `((data . (workroom . ,(workroom--encode room)))
+          (handler . workroom-bookmark-jump))
+   no-overwrite))
 
 (defun workroom-bookmark-all (name no-overwrite)
   "Save all workrooms except the default one to a bookmark named NAME.
 
-If NO-OVERWRITE is nil or prefix arg is given, don't overwrite any previous
-bookmark with the same name."
+If NO-OVERWRITE is nil or prefix arg is given, don't overwrite any
+previous bookmark with the same name."
   (interactive (list (workroom--read-bookmark "Save to bookmark: ")
                      current-prefix-arg))
   (dolist (frame (frame-list))
@@ -897,23 +891,25 @@ bookmark with the same name."
 (defun workroom-add-buffer (buffer &optional room)
   "Add BUFFER to workroom ROOM.
 
-ROOM should be a `workroom'.  When ROOM is a `workroom' object, add BUFFER
-to it.  If ROOM is nil, add BUFFER to the room of the selected frame.
+ROOM should be a `workroom'.  When ROOM is a `workroom' object, add
+BUFFER to it.  If ROOM is nil, add BUFFER to the room of the selected
+frame.
 
 If ROOM is the default workroom, do nothing."
-  (interactive (workroom--require-mode-enable
-                 (when (functionp (workroom-buffers
-                                   (workroom-current-room)))
-                   (user-error (concat "Cannot add buffer to workroom with"
-                                       " dynamic buffer list")))
-                 (list (get-buffer-create
-                        (workroom--read-non-member-buffer
-                         (workroom-current-room) "Add buffer: "
-                         (when (not (member (current-buffer)
-                                            (workroom-buffer-list
-                                             (workroom-current-room))))
-                           (current-buffer))))
-                       nil)))
+  (interactive
+   (workroom--require-mode-enable
+     (when (functionp (workroom-buffers
+                       (workroom-current-room)))
+       (user-error
+        "Cannot add buffer to workroom with dynamic buffer list"))
+     (list (get-buffer-create
+            (workroom--read-non-member-buffer
+             (workroom-current-room) "Add buffer: "
+             (when (not (member (current-buffer)
+                                (workroom-buffer-list
+                                 (workroom-current-room))))
+               (current-buffer))))
+           nil)))
   (unless room
     (setq room (workroom-current-room)))
   (if (functionp (workroom-buffers room))
@@ -926,28 +922,29 @@ If ROOM is the default workroom, do nothing."
   "Remove BUFFER from workroom ROOM.
 
 ROOM should be a `workroom'.  When ROOM is a `workroom' object, remove
-BUFFER from it.  If ROOM is nil, remove BUFFER to the room of the selected
-frame.
+BUFFER from it.  If ROOM is nil, remove BUFFER to the room of the
+selected frame.
 
 If ROOM is the default workroom, kill buffer."
-  (interactive (workroom--require-mode-enable
-                 (when (and (functionp (workroom-buffers
-                                        (workroom-current-room)))
-                            (not (workroom-default-p
-                                  (workroom-current-room))))
-                   (user-error (concat "Cannot remove buffer from"
-                                       " non-default workroom with dynamic"
-                                       " buffer list")))
-                 (list (get-buffer
-                        (workroom--read-member-buffer
-                         (workroom-current-room)
-                         "Remove buffer: "
-                         (when (member (current-buffer)
-                                       (workroom-buffer-list
-                                        (workroom-current-room)))
-                           (current-buffer))
-                         t))
-                       nil)))
+  (interactive
+   (workroom--require-mode-enable
+     (when (and (functionp (workroom-buffers
+                            (workroom-current-room)))
+                (not (workroom-default-p
+                      (workroom-current-room))))
+       (user-error
+        "Cannot remove buffer from non-default workroom with dynamic \
+buffer list"))
+     (list (get-buffer
+            (workroom--read-member-buffer
+             (workroom-current-room)
+             "Remove buffer: "
+             (when (member (current-buffer)
+                           (workroom-buffer-list
+                            (workroom-current-room)))
+               (current-buffer))
+             t))
+           nil)))
   (unless room
     (setq room (workroom-current-room)))
   (if (not (functionp (workroom-buffers room)))
@@ -956,15 +953,16 @@ If ROOM is the default workroom, kill buffer."
               (delete buffer (workroom-buffers room)))
         (run-hooks 'workroom-buffer-list-change-hook))
     (unless (workroom-default-p room)
-      (error (concat "Cannot remove buffer from non-default workroom with"
-                     " dynamic buffer list")))
+      (error
+       "Cannot remove buffer from non-default workroom with dynamic \
+buffer list"))
     (kill-buffer buffer)))
 
 (defmacro workroom-define-replacement (fn)
   "Define `workroom-FN' as replacement for FN.
 
-The defined function is restricts user to the buffers of current workroom
-while selecting buffer by setting `read-buffer' function to
+The defined function is restricts user to the buffers of current
+workroom while selecting buffer by setting `read-buffer' function to
 `workroom-read-buffer-function', unless prefix arg is given."
   `(defun ,(intern (format "workroom-%S" fn)) ()
      ,(format "Like `%S' but restricted to current workroom.
@@ -983,11 +981,12 @@ When prefix arg is given, don't restrict." fn)
 ;;;###autoload
 (define-minor-mode workroom-mode
   "Toggle workroom mode."
-  :lighter (:eval workroom-mode-lighter) ; TODO: Why the `:eval' is needed?
+  :lighter (:eval workroom-mode-lighter)
   :global t
-  (substitute-key-definition 'workroom-command-map nil workroom-mode-map)
+  (substitute-key-definition 'workroom-command-map nil
+                             workroom-mode-map)
   (define-key workroom-mode-map workroom-command-map-prefix
-    workroom-command-map)
+              workroom-command-map)
   (if workroom-mode
       (progn
         (let ((default-room (workroom-get-default)))
@@ -1017,7 +1016,8 @@ When prefix arg is given, don't restrict." fn)
                 (workroom--save-window-config))
           (set-frame-parameter nil 'workroom-current-room nil)
           (set-frame-parameter nil 'workroom-current-view nil)
-          (set-frame-parameter nil 'workroom-previous-room-list nil))))
+          (set-frame-parameter nil 'workroom-previous-room-list
+                               nil))))
     (remove-hook 'after-make-frame-functions #'workroom--init-frame)
     (remove-hook 'kill-buffer-hook #'workroom--remove-buffer-refs)))
 
