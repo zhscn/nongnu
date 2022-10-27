@@ -1040,5 +1040,43 @@ When prefix arg is given, don't restrict." fn)
     (remove-hook 'after-make-frame-functions #'workroom--init-frame)
     (remove-hook 'kill-buffer-hook #'workroom--remove-buffer-refs)))
 
+(defun workroom--desktop-inject-restore-code ()
+  "Inject workroom restore code in desktop file."
+  ;; Save window configuration on all frames.
+  (dolist (frame (frame-list))
+    (when (frame-parameter frame 'workroom-current-room)
+      (with-selected-frame frame
+        (setf (workroom-view-window-config (workroom-current-view))
+              (workroom--save-window-config)))))
+  ;; Inject restoring code.
+  (let ((time (format-time-string "%s%N")))
+    (insert (format "
+;; Workroom section:
+(defun workroom--desktop-restore-%s ()
+  \"Restore workrooms.\"
+  (remove-hook 'desktop-after-read-hook
+               #'workroom--desktop-restore-%s)
+  (when (require 'workroom nil t)
+    (workroom-mode +1)
+    (workroom--restore-rooms '%S)))
+(add-hook 'desktop-after-read-hook #'workroom--desktop-restore-%s)
+"
+                    time time
+                    `(workroom-set
+                      . ,(mapcar #'workroom--encode
+                                 (remove (workroom-get-default)
+                                         workroom--rooms)))
+                    time))))
+
+;;;###autoload
+(define-minor-mode workroom-desktop-save-mode
+  "Toggle saving workrooms with desktop mode."
+  :global t
+  (if workroom-desktop-save-mode
+      (add-hook 'desktop-save-hook
+                #'workroom--desktop-inject-restore-code)
+    (remove-hook 'desktop-save-hook
+                 #'workroom--desktop-inject-restore-code)))
+
 (provide 'workroom)
 ;;; workroom.el ends here
