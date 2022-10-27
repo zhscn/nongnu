@@ -33,8 +33,7 @@
 
 ;; Each workroom also has its own set of views.  Views are just named
 ;; window configurations.  They allow you to switch to another window
-;; configuration without losing your well-planned current window
-;; setup.
+;; configuration without losing your well-planned window setup.
 
 ;; You can also bookmark a workroom or all your workrooms to restore
 ;; them at a later time, possibly in another Emacs session.
@@ -238,7 +237,7 @@ The value is a mode line terminal like `mode-line-format'."
 If no such workroom exists, return nil."
   (catch 'found
     (dolist (room workroom--rooms nil)
-      (when (equal name (workroom-name room))
+      (when (string= name (workroom-name room))
         (throw 'found room)))))
 
 (defun workroom-get-create (name)
@@ -267,7 +266,7 @@ that."
 If no such view exists, return nil."
   (catch 'found
     (dolist (view (workroom-views room) nil)
-      (when (equal name (workroom-view-name view))
+      (when (string= name (workroom-view-name view))
         (throw 'found view)))))
 
 (defun workroom-view-get-create (room name)
@@ -574,8 +573,10 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
      ;; Restore a single workroom.
      (let ((room (workroom--decode (cdr data))))
        (when-let ((existing (workroom-get (workroom-name room))))
-         (unless (y-or-n-p (format-message "Workroom `%s' already \
-exists, overwrite? " (workroom-name room)))
+         (unless (y-or-n-p
+                  (format-message
+                   "Workroom `%s' already exists, overwrite? "
+                   (workroom-name room)))
            (user-error "Workroom `%s' exists" (workroom-name room)))
          (workroom-kill existing))
        (push room workroom--rooms)))
