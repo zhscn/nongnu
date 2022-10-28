@@ -48,13 +48,14 @@
 
 ;;   Key        Command
 ;;   --------------------------------------
-;;   C-x x s    `workroom-switch'
-;;   C-x x d    `workroom-kill-view'
-;;   C-x x D    `workroom-kill'
-;;   C-x x r    `workroom-rename-view'
-;;   C-x x R    `workroom-rename'
-;;   C-x x c    `workroom-clone-view'
-;;   C-x x C    `workroom-clone'
+;;   C-x x s    `workroom-switch-room'
+;;   C-x x S    `workroom-switch-view'
+;;   C-x x d    `workroom-kill'
+;;   C-x x D    `workroom-kill-view'
+;;   C-x x r    `workroom-rename'
+;;   C-x x R    `workroom-rename-view'
+;;   C-x x c    `workroom-clone'
+;;   C-x x C    `workroom-clone-view'
 ;;   C-x x m    `workroom-bookmark'
 ;;   C-x x M    `workroom-bookmark-all'
 ;;   C-x x b    `workroom-switch-to-buffer'
@@ -150,29 +151,36 @@ value can't restored."
 The value is a mode line terminal like `mode-line-format'."
   :type 'sexp)
 
-(defvar workroom-switch-hook nil
-  "Normal hook run after switching room or view.")
+(defcustom workroom-switch-hook nil
+  "Normal hook run after switching room or view."
+  :type 'hook)
 
-(defvar workroom-kill-room-hook nil
-  "Normal hook run after killing a room.")
+(defcustom workroom-kill-room-hook nil
+  "Normal hook run after killing a room."
+  :type 'hook)
 
-(defvar workroom-kill-view-hook nil
-  "Normal hook run after killing a view.")
+(defcustom workroom-kill-view-hook nil
+  "Normal hook run after killing a view."
+  :type 'hook)
 
-(defvar workroom-rename-room-hook nil
-  "Normal hook run after renaming a room.")
+(defcustom workroom-rename-room-hook nil
+  "Normal hook run after renaming a room."
+  :type 'hook)
 
-(defvar workroom-rename-view-hook nil
-  "Normal hook run after renaming a view.")
+(defcustom workroom-rename-view-hook nil
+  "Normal hook run after renaming a view."
+  :type 'hook)
 
-(defvar workroom-buffer-list-change-hook nil
-  "Normal hook run after changing the buffer list of a workroom.")
+(defcustom workroom-buffer-list-change-hook nil
+  "Normal hook run after changing the buffer list of a workroom."
+  :type 'hook)
 
 (cl-defstruct workroom
   "Structure for workroom."
   (name nil :documentation "Name of the workroom." :type string)
   (views nil :documentation "Views of the workroom." :type list)
   (buffers nil :documentation "Buffers of the workroom.")
+  (selected-view nil :documentation "The last selected view.")
   (default-p
    nil
    :documentation "Whether the workroom is the default one.")
@@ -192,9 +200,6 @@ The value is a mode line terminal like `mode-line-format'."
 
 (defalias 'workroomp #'workroom-p)
 
-(defvar workroom--default-view-of-default-room "main"
-  "Name of default view of default workroom.")
-
 (defvar workroom--rooms nil
   "List of currently live workrooms.")
 
@@ -212,13 +217,14 @@ The value is a mode line terminal like `mode-line-format'."
 (defvar workroom-command-map
   (let ((keymap (make-sparse-keymap)))
     ;; NOTE: Be sure to keep commentary and README up to date.
-    (define-key keymap "s" #'workroom-switch)
-    (define-key keymap "d" #'workroom-kill-view)
-    (define-key keymap "D" #'workroom-kill)
-    (define-key keymap "r" #'workroom-rename-view)
-    (define-key keymap "R" #'workroom-rename)
-    (define-key keymap "c" #'workroom-clone-view)
-    (define-key keymap "C" #'workroom-clone)
+    (define-key keymap "s" #'workroom-switch-room)
+    (define-key keymap "S" #'workroom-switch-view)
+    (define-key keymap "d" #'workroom-kill)
+    (define-key keymap "D" #'workroom-kill-view)
+    (define-key keymap "r" #'workroom-rename)
+    (define-key keymap "R" #'workroom-rename-view)
+    (define-key keymap "c" #'workroom-clone)
+    (define-key keymap "C" #'workroom-clone-view)
     (define-key keymap "m" #'workroom-bookmark)
     (define-key keymap "M" #'workroom-bookmark-all)
     (define-key keymap "b" #'workroom-switch-to-buffer)
@@ -618,43 +624,53 @@ PROMPT, DEF, REQUIRE-MATCH and PREDICATE is same as in `read-buffer'."
     (unless (functionp (workroom-buffers room))
       (workroom-remove-buffer (current-buffer) room))))
 
+(defun workroom--barf-unless-enabled ()
+  "Signal `user-error' unless Workroom-Mode is enabled."
+  (unless workroom-mode
+    (user-error "Workroom mode is not enabled")))
+
 (defmacro workroom--require-mode-enable (&rest body)
   "Execute BODY if Workroom-Mode is enabled, otherwise signal error."
   (declare (indent 0))
-  `(if (not workroom-mode)
-       (user-error "Workroom mode is not enabled")
+  `(progn
+     (workroom--barf-unless-enabled)
      ,@body))
 
 ;;;###autoload
 (defun workroom-bookmark-jump (bookmark)
   "Handle BOOKMARK."
-  (workroom--require-mode-enable
-    (let ((data (alist-get 'data (bookmark-get-bookmark-record
-                                  bookmark))))
-      (workroom--restore-rooms data))))
+  (workroom--barf-unless-enabled)
+  (let ((data (alist-get 'data (bookmark-get-bookmark-record
+                                bookmark))))
+    (workroom--restore-rooms data)))
 
 (defun workroom--init-frame (frame)
   "Initialize frame FRAME."
   (when (and (not (frame-parameter frame 'parent-frame))
              (eq (frame-parameter frame 'minibuffer) t))
     (with-selected-frame frame
-      (workroom-switch (workroom-get-default)
-                       workroom--default-view-of-default-room)
-      (set-frame-parameter nil 'workroom-previous-room-list
-                           (cdr
-                            (frame-parameter
-                             nil 'workroom-previous-room-list))))))
+      (workroom-switch
+       (workroom-get-default) workroom-default-view-name
+       ;; TODO: Do we really need `no-record'?
+       ;; (workroom-current-room) should be nil, so nothing should be
+       ;; in the history even if we don't pass this argument.
+       'no-record))))
 
-(defun workroom-switch (room view)
-  "Switch to view VIEW of workroom ROOM.
+(defun workroom-switch (room view &optional no-record)
+  "Switch to view VIEW in workroom ROOM.
 
 If called interactively, prompt for view to switch.  If prefix
 argument is given, ask for workroom to switch before.
 
-ROOM may be a `workroom' object or string.  If ROOM is a `workroom'
-object, switch to that workroom.  If ROOM is a string, create a
-workroom with that name if it doesn't exist, then switch to the
-workroom."
+ROOM is should be workroom object, or a name of a workroom object.
+VIEW is should be a view object, or a name of a view object.  VIEW
+should be in the workroom ROOM.
+
+ROOM defaults to the current workroom, and VIEW defaults to the last
+selected view of ROOM.
+
+When the optional argument NO-RECORD is non-nil, don't record the
+switch."
   (interactive
    (workroom--require-mode-enable
      (let ((room
@@ -664,17 +680,17 @@ workroom."
                  (cond
                   ((and (eq (car (workroom-previous-room-list))
                             (workroom-current-room))
-                        (< 1 (length (workroom-previous-room-list))))
+                        (> (length (workroom-previous-room-list)) 1))
                    (workroom-name
                     (cadr (workroom-previous-room-list))))
                   ((car (workroom-previous-room-list))
                    (workroom-name
                     (car (workroom-previous-room-list))))))
               (workroom-current-room))))
-       (when (and (stringp room) (string-empty-p room))
-         (setq room workroom-default-room-name))
        (when (stringp room)
-         (setq room (workroom-get-create room)))
+         (setq room (if (string-empty-p room)
+                        (workroom-get-default)
+                      (workroom-get-create room))))
        (let ((view
               (workroom--read-view-to-switch
                room "Switch to view"
@@ -682,89 +698,134 @@ workroom."
                 ((and
                   (eq (car (workroom-previous-view-list room))
                       (workroom-current-view))
-                  (< 1 (length (workroom-previous-view-list room))))
-                 (workroom-name
+                  (> (length (workroom-previous-view-list room)) 1))
+                 (workroom-view-name
                   (cadr (workroom-previous-view-list room))))
                 ((car (workroom-previous-view-list room))
-                 (workroom-name
+                 (workroom-view-name
                   (car (workroom-previous-view-list room))))))))
          (when (and (stringp view) (string-empty-p view))
            (setq view workroom-default-view-name))
          (list room view)))))
-  (when (stringp room)
-    (setq room (workroom-get-create room)))
-  (when (stringp view)
-    (setq view (workroom-view-get-create room view)))
+  (workroom--barf-unless-enabled)
+  (setq room (if (stringp room)
+                 (workroom-get-create room)
+               (or room (workroom-current-room))))
+  (setq view (if (stringp view)
+                 (workroom-view-get-create room view)
+               (or view (workroom-selected-view room)
+                   (workroom-view-get-create
+                    room workroom-default-view-name))))
   (unless (eq room (workroom-current-room))
-    (when (workroom-current-room)
-      (set-frame-parameter
-       nil 'workroom-previous-room-list
-       (cons (workroom-current-room)
-             (frame-parameter nil 'workroom-previous-room-list))))
+    (when (and (not no-record) (workroom-current-room))
+      (push (workroom-current-room)
+            (frame-parameter nil 'workroom-previous-room-list)))
     (set-frame-parameter nil 'workroom-current-room room))
   (unless (eq view (workroom-current-view))
     (when (workroom-current-view)
       (setf (workroom-view-window-config (workroom-current-view))
-            (workroom--save-window-config)))
+            (workroom--save-window-config))
+      (unless no-record
+        (push (workroom-current-view)
+              (workroom-previous-view-list room))))
+    (setf (workroom-selected-view room) view)
     (set-frame-parameter nil 'workroom-current-view view)
     (workroom--load-window-config (workroom-view-window-config view))
     (run-hooks 'workroom-switch-hook)))
 
+(defalias 'workroom-switch-view #'workroom-switch)
+
+(defun workroom-switch-room (room)
+  "Switch to workroom ROOM.
+
+ROOM is should be workroom object, or a name of a workroom object."
+  (interactive
+   (workroom--require-mode-enable
+     `(,(workroom--read-to-switch
+         "Switch to workroom"
+         (cond
+          ((and (eq (car (workroom-previous-room-list))
+                    (workroom-current-room))
+                (> (length (workroom-previous-room-list)) 1))
+           (workroom-name (cadr (workroom-previous-room-list))))
+          ((car (workroom-previous-room-list))
+           (workroom-name (car (workroom-previous-room-list)))))))))
+  (workroom-switch room nil))
+
 (defun workroom-kill (room)
-  "Kill workroom ROOM."
+  "Kill workroom ROOM.
+
+ROOM is should be workroom object, or a name of a workroom object."
   (interactive
    (workroom--require-mode-enable
      (list
-      (workroom--read
-       "Kill workroom" (workroom-name (workroom-current-room))
-       t (lambda (cand)
-           (not
-            (workroom-default-p
-             (workroom-get (if (consp cand) (car cand) cand)))))))))
-  (when (stringp room)
-    (setq room (workroom-get room)))
-  (when room
-    (when (workroom-default-p room)
-      (error "Cannot kill default workroom"))
-    (when (eq room (workroom-current-room))
-      (workroom-switch (workroom-get-default)
-                       workroom--default-view-of-default-room))
-    (setq workroom--rooms (delete room workroom--rooms))
-    (run-hooks 'workroom-kill-room-hook)))
+      (workroom-get
+       (workroom--read
+        "Kill workroom" (workroom-name (workroom-current-room))
+        t (lambda (cand)
+            (not
+             (workroom-default-p
+              (workroom-get (if (consp cand) (car cand) cand))))))))))
+  (workroom--barf-unless-enabled)
+  (when (workroom-default-p room)
+    (error "Cannot kill default workroom"))
+  (when (eq room (workroom-current-room))
+    (workroom-switch (workroom-get-default)
+                     (workroom-view-get-create
+                      (workroom-get-default)
+                      workroom-default-view-name)))
+  (setq workroom--rooms (delete room workroom--rooms))
+  (dolist (frame (frame-list))
+    (setf (frame-parameter frame 'workroom-previous-room-list)
+          (delete room (frame-parameter
+                        frame 'workroom-previous-room-list))))
+  (run-hooks 'workroom-kill-room-hook))
 
 (defun workroom-kill-view (room view)
-  "Kill view VIEW of workroom ROOM."
+  "Kill view VIEW of workroom ROOM.
+
+VIEW is should be a view object, or a name of a view object.  VIEW
+should be in the workroom ROOM."
   (interactive
    (workroom--require-mode-enable
-     (let ((room
-            (if current-prefix-arg
-                (workroom-get
-                 (workroom--read
-                  "Kill view of workroom"
-                  (workroom-name (workroom-current-room)) t))
-              (workroom-current-room))))
-       (when (eq (length (workroom-views room)) 1)
-         (user-error "Cannot kill the last view of a workroom"))
+     (let ((room (if current-prefix-arg
+                     (workroom-get
+                      (workroom--read
+                       "Kill view of workroom"
+                       (workroom-name (workroom-current-room)) t))
+                   (workroom-current-room))))
        (list room
-             (workroom--read-view
-              room "Kill view"
-              (when (eq room (workroom-current-room))
-                (workroom-view-name (workroom-current-view))))))))
+             (workroom-view-get-create
+              room
+              (workroom--read-view
+               room "Kill view"
+               (when (eq room (workroom-current-room))
+                 (workroom-view-name (workroom-current-view)))))))))
+  (workroom--barf-unless-enabled)
   (when (stringp room)
     (setq room (workroom-get room)))
   (when (stringp view)
     (setq view (workroom-view-get room view)))
   (when (and room view)
-    (when (eq (length (workroom-views room)) 1)
-      (error "Cannot kill the last view of a workroom"))
     (when (eq view (workroom-current-view))
-      (workroom-switch room (car (workroom-views room)))
+      (workroom-switch
+       room
+       (let ((views (workroom-views room))
+             (vi nil))
+         (while (and (not vi) views)
+           (let ((v (pop views)))
+             (unless (eq v view)
+               (setq vi (car views)))))
+         (or vi (workroom-view-get-create
+                 room workroom-default-view-name))))
       (pop (workroom-previous-view-list room)))
     (setf (workroom-views room) (delete view (workroom-views room)))
     (run-hooks 'workroom-kill-view-hook)))
 
 (defun workroom-rename (room new-name)
-  "Rename workroom ROOM to NEW-NAME."
+  "Rename workroom ROOM to NEW-NAME.
+
+ROOM is should be workroom object, or a name of a workroom object."
   (interactive
    (workroom--require-mode-enable
      (let ((room
@@ -777,6 +838,7 @@ workroom."
                                        cand))))))))
        (list room (read-string (format-message
                                 "Rename workroom `%s' to: " room))))))
+  (workroom--barf-unless-enabled)
   (when (stringp room)
     (setq room (workroom-get room)))
   (setf (workroom-name room) new-name)
@@ -804,6 +866,7 @@ workroom."
              (read-string (format-message
                            "Rename view `%s' of workroom `%s' to: "
                            view (workroom-name room)))))))
+  (workroom--barf-unless-enabled)
   (when (stringp room)
     (setq room (workroom-get room)))
   (when (stringp view)
@@ -824,6 +887,7 @@ workroom."
                                                          (car cand)
                                                        cand)))))))))
        (list room (read-string "Name of cloned workroom: ")))))
+  (workroom--barf-unless-enabled)
   (when (stringp room)
     (setq room (workroom-get room)))
   (let ((clone (make-workroom :name name
@@ -852,6 +916,7 @@ workroom."
                      (workroom-view-name (workroom-current-view)))
                    t)))
        (list room view (read-string "Name of cloned view: ")))))
+  (workroom--barf-unless-enabled)
   (when (stringp room)
     (setq room (workroom-get room)))
   (when (stringp view)
@@ -902,11 +967,11 @@ previous bookmark with the same name."
         (setf (workroom-view-window-config (workroom-current-view))
               (workroom--save-window-config)))))
   (bookmark-store name
-                  `((data . (workroom-set . ,(mapcar
-                                              #'workroom--encode
-                                              (remove
-                                               (workroom-get-default)
-                                               workroom--rooms))))
+                  `((data . (workroom-set
+                             ,@(mapcar #'workroom--encode
+                                       (remove
+                                        (workroom-get-default)
+                                        workroom--rooms))))
                     (handler . workroom-bookmark-jump))
                   no-overwrite))
 
@@ -989,10 +1054,11 @@ workroom while selecting buffer by setting `read-buffer' function to
   `(defun ,(intern (format "workroom-%S" fn)) ()
      ,(format "Like `%S' but restricted to current workroom.
 
-When prefix arg is given, don't restrict." fn)
+When prefix arg is given or Workroom-Mode is disabled, don't
+restrict." fn)
      (declare (interactive-only ,(format "Use `%S' instead." fn)))
      (interactive)
-     (if current-prefix-arg
+     (if (or current-prefix-arg (not workroom-mode))
          (call-interactively #',fn)
        (let ((read-buffer-function #'workroom-read-buffer-function))
          (call-interactively #',fn)))))
@@ -1059,8 +1125,7 @@ When prefix arg is given, don't restrict." fn)
   \"Restore workrooms.\"
   (remove-hook 'desktop-after-read-hook
                #'workroom--desktop-restore-%s)
-  (when (require 'workroom nil t)
-    (workroom-mode +1)
+  (when (bound-and-true-p workroom-mode)
     (workroom--restore-rooms '%S)))
 (add-hook 'desktop-after-read-hook #'workroom--desktop-restore-%s)
 "
