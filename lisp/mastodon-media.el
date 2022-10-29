@@ -186,7 +186,6 @@ with the image."
 MEDIA-TYPE is a symbol and either 'avatar or 'media-link.
 START is the position where we start loading the image.
 REGION-LENGTH is the range from start to propertize."
-  ;; TODO: Cache the avatars
   (let ((image-options (when (or (image-type-available-p 'imagemagick)
                                  (image-transforms-p)) ; inbuilt scaling in 27.1
                          (cond
@@ -196,8 +195,8 @@ REGION-LENGTH is the range from start to propertize."
                            `(:max-height ,mastodon-media--preview-max-height))))))
     (let ((buffer (current-buffer))
           (marker (copy-marker start))
-	  ;; Keep url.el from spamming us with messages about connecting to hosts:
-	  (url-show-status nil))
+	      ;; Keep url.el from spamming us with messages about connecting to hosts:
+	      (url-show-status nil))
       (condition-case nil
           ;; catch any errors in url-retrieve so as to not abort
           ;; whatever called us
