@@ -465,12 +465,16 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
       (mastodon-toot-set-cw toot-cw)
       (mastodon-toot--update-status-fields))))
 
-(defun mastodon-toot--kill ()
-  "Kill `mastodon-toot-mode' buffer and window."
-  (with-current-buffer (get-buffer "*new toot*")
-    ;; FIXME: prevent some weird bug when cancelling a non-empty toot:
-    (delete #'mastodon-toot--save-toot-text after-change-functions)
-    (kill-buffer-and-window)))
+(defun mastodon-toot--kill (&optional cancel)
+  "Kill `mastodon-toot-mode' buffer and window.
+CANCEL means the toot was not sent, so we save the toot text as a draft."
+  (unless (eq mastodon-toot-current-toot-text nil)
+    (when cancel
+      (cl-pushnew mastodon-toot-current-toot-text
+                  mastodon-toot-draft-toots-list :test 'equal)))
+  ;; prevent some weird bug when cancelling a non-empty toot:
+  (delete #'mastodon-toot-save-toot-text after-change-functions)
+  (kill-buffer-and-window))
 
 (defun mastodon-toot--cancel ()
   "Kill new-toot buffer/window. Does not POST content to Mastodon.
