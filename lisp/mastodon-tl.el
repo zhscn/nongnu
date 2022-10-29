@@ -1498,17 +1498,24 @@ IND is the optional indentation level to print at."
           (mastodon-tl--print-json-keys
            (cdr el) (if ind (+ ind 4) 4)))
          (t
-          (when ind (indent-to ind))
-          (insert (mastodon-tl--format-key el pad)
-                  " "
-                  (mastodon-tl--newline-if-long el)
-                  ;; only send strings straight to --render-text
-                  ;; this makes hyperlinks work:
-                  (if (not (stringp (cdr el)))
-                      (mastodon-tl--render-text
-                       (prin1-to-string (cdr el)))
-                    (mastodon-tl--render-text (cdr el)))
-                  "\n")))))))
+          ;; basic handling of raw booleans:
+          (let ((val (cond ((equal (cdr el) ':json-false)
+                            "no")
+                           ((equal (cdr el) 't)
+                            "yes")
+                           (t
+                            (cdr el)))))
+            (when ind (indent-to ind))
+            (insert (mastodon-tl--format-key el pad)
+                    " "
+                    (mastodon-tl--newline-if-long el)
+                    ;; only send strings straight to --render-text
+                    ;; this makes hyperlinks work:
+                    (if (not (stringp val))
+                        (mastodon-tl--render-text
+                         (prin1-to-string val))
+                      (mastodon-tl--render-text val))
+                    "\n"))))))))
 
 (defun mastodon-tl--print-instance-rules-or-fields (alist)
   "Print ALIST of instance rules or contact account fields."
