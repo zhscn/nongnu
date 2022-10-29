@@ -73,12 +73,17 @@ Customization
 
 While the defaults seem to work well, these values can be customized.
 
+``scroll-on-drag-style``: ``'line-by-pixel``
+  The the method scrolling is calculated.
+
+  - ``'line-by-pixel`` Scrolling is calculated at a pixel level.
+  - ``'line`` Scrolling is calculated at line-level.
 ``scroll-on-drag-smooth``: t
    Smooth (pixel) scroll *(snapped to line on completion).*
 ``scroll-on-drag-clamp``: nil
    Prevent scrolling past the end of the buffer.
 ``scroll-on-drag-delay``: 0.01, typically in range [0.005 .. 0.1]
-   Time between scroll updates.
+   Time between scroll updates (in seconds).
 ``scroll-on-drag-motion-scale``: 0.25, typically in range [0.01 .. 1.0]
    Scale cursor motion, to make scrolling easier to control.
 ``scroll-on-drag-motion-accelerate``: 0.3, typically in range [0.0 .. 1.0]
