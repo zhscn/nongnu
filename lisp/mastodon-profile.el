@@ -365,6 +365,55 @@ Current settings are fetched from the server."
   (interactive)
   (mastodon-profile--edit-string-value 'display_name))
 
+;; TODO: ideally this would return an alist to use like normal params
+(defun mastodon-profile--make-meta-fields-params (fields)
+  "Construct a parameter query string from metadata alist FIELDS."
+  (let ((count 0)
+        (loop-list (cl-loop for x in fields
+                            for count from 0 to 4
+                            collect (concat
+                                     (format "fields_attributes[%s][name]" count)
+                                     "="
+                                     (url-hexify-string (car x))
+                                     "&"
+                                     (format "fields_attributes[%s][value]" count)
+                                     "="
+                                     (url-hexify-string (cdr x))))))
+    (mapconcat #'identity loop-list "&")))
+
+(defun mastodon-profile-update-meta-fields ()
+  "Prompt for new metadata fields information and PATCH the server."
+  (interactive)
+  (let* ((url (mastodon-http--api "accounts/update_credentials"))
+         (fields-updated (or data (mastodon-profile--update-meta-fields-alist)))
+         (param-str (mastodon-profile--make-meta-fields-params fields-updated))
+         (response (mastodon-http--patch url param-str :no-build)))
+    (setq test-fields-str param-str)
+    (mastodon-http--triage response
+                           (lambda ()
+                             (mastodon-profile-fetch-server-account-settings)
+                             (message "Account setting %s updated to %s!"
+                                      "metadata fields" params)))))
+
+(defun mastodon-profile--update-meta-fields-alist ()
+  "Prompt for new metadata fields information."
+  (let ((fields-old (mastodon-profile--fields-get
+                     nil
+                     ;; we must fetch the plaintext version:
+                     (mastodon-profile--get-source-value 'fields)))
+        fields-new)
+    ;; offer empty fields if user currently has less than four filled:
+    (while (< (length fields-old) 4)
+      (setq fields-old
+            (append fields-old '(("" . "")))))
+    (cl-loop for f in fields-old
+             for x from 1 to 5
+             collect
+             (cons (read-string (format "Edit account metadata key [%s/4]: " x)
+                                (car f))
+                   (read-string (format "Edit account metadata value [%s/4]: " x)
+                                (cdr f))))))
+
 (defun mastodon-profile--get-preferences-pref (pref)
   "Fetch PREF from the endpoint \"/preferences\".
 This endpoint only holds a few preferences. For others, see
@@ -403,52 +452,6 @@ This endpoint only holds a few preferences. For others, see
                                    "accounts/relationships?id[]=%s"
                                    their-id))))
     (mastodon-http--get-json url)))
-
-;; TODO: ideally we wd make a nice alist of all these params
-(defun mastodon-profile--make-meta-fields-params (fields)
-  ""
-  (let ((count 0)
-        list)
-    (cl-loop for x in fields
-             for count from 0 to 4
-             collect (concat
-                      (format "fields_attributes[%s][name]" count)
-                      "="
-                      (url-hexify-string (car x))
-                      "&"
-                      (format "fields_attributes[%s][value]" count)
-                      "="
-                      (url-hexify-string (cdr x))))))
-
-(defun mastodon-profile-update-meta-fields (&optional data)
-  ""
-  (interactive)
-  (let* ((url (mastodon-http--api "accounts/update_credentials"))
-         (fields-updated (or data(mastodon-profile--update-meta-fields-alist)))
-         (params (mastodon-profile--make-meta-fields-params fields-updated))
-         (param-str (mapconcat #'identity params "&"))
-         (response (mastodon-http--patch url param-str :no-build)))
-    (setq test-fields-str param-str)
-    (mastodon-http--triage response
-                           (lambda ()
-                             (mastodon-profile-fetch-server-account-settings)
-                             (message "Account setting %s updated to %s!"
-                                      "metadata fields" params)))))
-
-(defun mastodon-profile--update-meta-fields-alist ()
-  ""
-  (let ((fields-old (mastodon-profile--fields-get
-                     nil
-                     ;; we must fetch the plaintext version:
-                     (mastodon-profile--get-source-value 'fields)))
-        fields-new)
-    (dolist (f fields-old (reverse fields-new))
-      (push
-       (cons (read-string "Edit account metadata key: "
-                          (car f))
-             (read-string "Edit account metadata value: "
-                          (cdr f)))
-       fields-new))))
 
 (defun mastodon-profile--fields-get (&optional account fields)
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
