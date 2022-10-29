@@ -404,25 +404,43 @@ This endpoint only holds a few preferences. For others, see
                                    their-id))))
     (mastodon-http--get-json url)))
 
-(defun mastodon-profile-update-meta-fields ()
+;; TODO: ideally we wd make a nice alist of all these params
+(defun mastodon-profile--make-meta-fields-params (fields)
+  ""
+  (let ((count 0)
+        list)
+    (cl-loop for x in fields
+             for count from 0 to 4
+             collect (concat
+                      (format "fields_attributes[%s][name]" count)
+                      "="
+                      (url-hexify-string (car x))
+                      "&"
+                      (format "fields_attributes[%s][value]" count)
+                      "="
+                      (url-hexify-string (cdr x))))))
+
+(defun mastodon-profile-update-meta-fields (&optional data)
   ""
   (interactive)
-  (let* ((fields-updated (mastodon-profile--update-meta-fields-alist))
-         (fields-json (json-encode
-                       (mapcar (lambda (x)
-                                 (list (cons 'name (car x))
-                                       (cons 'value (cdr x))
-                                       (cons 'verified_at nil)))
-                               fields-updated))))
-    (mastodon-profile--update-preference 'fields_attributes fields-json)))
+  (let* ((url (mastodon-http--api "accounts/update_credentials"))
+         (fields-updated (or data(mastodon-profile--update-meta-fields-alist)))
+         (params (mastodon-profile--make-meta-fields-params fields-updated))
+         (param-str (mapconcat #'identity params "&"))
+         (response (mastodon-http--patch url param-str :no-build)))
+    (setq test-fields-str param-str)
+    (mastodon-http--triage response
+                           (lambda ()
+                             (mastodon-profile-fetch-server-account-settings)
+                             (message "Account setting %s updated to %s!"
+                                      "metadata fields" params)))))
 
 (defun mastodon-profile--update-meta-fields-alist ()
   ""
-  (let ((fields-old
-         (mastodon-profile--fields-get
-          nil
-          ;; we must fetch the plaintext version:
-          (mastodon-profile--get-source-pref 'fields)))
+  (let ((fields-old (mastodon-profile--fields-get
+                     nil
+                     ;; we must fetch the plaintext version:
+                     (mastodon-profile--get-source-value 'fields)))
         fields-new)
     (dolist (f fields-old (reverse fields-new))
       (push

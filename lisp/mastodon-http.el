@@ -211,14 +211,16 @@ Optionally specify the PARAMS to send."
   (with-current-buffer (mastodon-http--patch url params)
     (mastodon-http--process-json)))
 
-(defun mastodon-http--patch (base-url &optional params)
+(defun mastodon-http--patch (base-url &optional params no-build)
   "Make synchronous PATCH request to BASE-URL.
 Optionally specify the PARAMS to send."
   (mastodon-http--authorized-request
    "PATCH"
    (let ((url
           (concat base-url "?"
-                  (mastodon-http--build-query-string params))))
+                  (if no-build
+                       params
+                    (mastodon-http--build-query-string params)))))
      (mastodon-http--url-retrieve-synchronously url))))
 
  ;; Asynchronous functions
