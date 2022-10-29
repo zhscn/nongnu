@@ -143,6 +143,29 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
     (run-hooks 'scroll-on-drag-redisplay-hook)
     (redisplay)))
 
+(defun scroll-on-drag--evil-visual-mode-workaround (state)
+  "Workaround for evil-visual line mode, STATE must be \\'pre or \\'post."
+  (when
+    (and
+      (fboundp 'evil-visual-state-p)
+      (funcall 'evil-visual-state-p)
+      (fboundp 'evil-visual-type)
+      (eq (funcall 'evil-visual-type) 'line)
+      (boundp 'evil-visual-point))
+    (let ((mark (symbol-value 'evil-visual-point)))
+      (when (markerp mark)
+        (cond
+          ;; Without this, `point' will be at the beginning of the line
+          ;; (from the pre command hook).
+          ((eq state 'pre)
+            (goto-char (marker-position mark)))
+          ;; Without this, the `point' wont move.
+          ;; See: https://github.com/emacs-evil/evil/issues/1708
+          ((eq state 'post)
+            (set-marker mark (point)))
+          (t
+            (error "Invalid input, internal error")))))))
+
 
 ;; ---------------------------------------------------------------------------
 ;; Public Functions
@@ -428,7 +451,9 @@ Returns true when scrolling took place, otherwise nil."
     (when has-scrolled-real
       (let ((inhibit-redisplay nil))
         (run-hooks 'scroll-on-drag-post-hook)
-        (run-window-scroll-functions this-window)))
+        (run-window-scroll-functions this-window))
+
+      (scroll-on-drag--evil-visual-mode-workaround 'post))
 
     ;; Result so we know if any scrolling occurred,
     ;; allowing a fallback action on 'click'.
@@ -444,6 +469,9 @@ when `scroll-on-drag-follow-mouse' is non-nil."
     (when scroll-on-drag-follow-mouse
       (setq scroll-win (posn-window (or (event-start event) last-input-event))))
 
+    ;; Typically moving the point is _not_ ok, however we know the post hook will handle this.
+    ;; in the case of evil visual line mode.
+    (scroll-on-drag--evil-visual-mode-workaround 'pre)
     (cond
       (scroll-win
         (with-selected-window scroll-win (scroll-on-drag-impl)))
