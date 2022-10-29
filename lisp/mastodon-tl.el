@@ -1414,13 +1414,12 @@ INSTANCE is an instance domain name."
           (reblog (alist-get 'reblog toot))
           (account (or (alist-get 'account reblog)
                        (alist-get 'account toot)))
-          (acct (alist-get 'acct account))
+          (url (alist-get 'url account))
           (username (alist-get 'username account))
-          (instance
-           (concat "https://"
-                   (or instance
-                       (string-remove-prefix (concat username "@")
-                                             acct))))
+          (instance (if instance
+                        (concat "https://" instance)
+                      (string-remove-suffix (concat "/@" username)
+                                            url)))
           (response (mastodon-http--get-json
                      (if user
                          (mastodon-http--api "instance")
