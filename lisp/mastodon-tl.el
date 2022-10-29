@@ -668,8 +668,10 @@ START and END are the boundaries of the link in the toot."
           (;; User handles:
            maybe-userhandle
            ;; this fails on mentions in profile notes:
-           (let ((maybe-userid (mastodon-tl--extract-userid-toot
-                                toot maybe-userhandle)))
+           (let ((maybe-userid
+                  (when (proper-list-p toot)
+                    (mastodon-tl--extract-userid-toot
+                     toot maybe-userhandle))))
              (setq mastodon-tab-stop-type 'user-handle
                    keymap mastodon-tl--link-keymap
                    help-echo (concat "Browse user profile of " maybe-userhandle)
@@ -1412,13 +1414,12 @@ INSTANCE is an instance domain name."
           (reblog (alist-get 'reblog toot))
           (account (or (alist-get 'account reblog)
                        (alist-get 'account toot)))
-          (acct (alist-get 'acct account))
+          (url (alist-get 'url account))
           (username (alist-get 'username account))
-          (instance
-           (concat "https://"
-                   (or instance
-                       (string-remove-prefix (concat username "@")
-                                             acct))))
+          (instance (if instance
+                        (concat "https://" instance)
+                      (string-remove-suffix (concat "/@" username)
+                                            url)))
           (response (mastodon-http--get-json
                      (if user
                          (mastodon-http--api "instance")
@@ -1496,17 +1497,24 @@ IND is the optional indentation level to print at."
           (mastodon-tl--print-json-keys
            (cdr el) (if ind (+ ind 4) 4)))
          (t
-          (when ind (indent-to ind))
-          (insert (mastodon-tl--format-key el pad)
-                  " "
-                  (mastodon-tl--newline-if-long el)
-                  ;; only send strings straight to --render-text
-                  ;; this makes hyperlinks work:
-                  (if (not (stringp (cdr el)))
-                      (mastodon-tl--render-text
-                       (prin1-to-string (cdr el)))
-                    (mastodon-tl--render-text (cdr el)))
-                  "\n")))))))
+          ;; basic handling of raw booleans:
+          (let ((val (cond ((equal (cdr el) ':json-false)
+                            "no")
+                           ((equal (cdr el) 't)
+                            "yes")
+                           (t
+                            (cdr el)))))
+            (when ind (indent-to ind))
+            (insert (mastodon-tl--format-key el pad)
+                    " "
+                    (mastodon-tl--newline-if-long el)
+                    ;; only send strings straight to --render-text
+                    ;; this makes hyperlinks work:
+                    (if (not (stringp val))
+                        (mastodon-tl--render-text
+                         (prin1-to-string val))
+                      (mastodon-tl--render-text val))
+                    "\n"))))))))
 
 (defun mastodon-tl--print-instance-rules-or-fields (alist)
   "Print ALIST of instance rules or contact account fields."

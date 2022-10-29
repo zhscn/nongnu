@@ -50,6 +50,8 @@
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--enable-proportional-fonts)
+(defvar mastodon-profile-account-settings)
+
 (autoload 'mastodon-auth--user-acct "mastodon-auth")
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--delete "mastodon-http")
@@ -196,13 +198,17 @@ send.")
                               nil t)))
     (mastodon-profile--update-preference "privacy" vis :source)))
 
-(defun mastodon-toot--get-max-toot-chars (&optional no-toot)
-  "Fetch max_toot_chars from `mastodon-instance-url' asynchronously."
+(defun mastodon-toot--get-max-toot-chars (&optional _no-toot)
+  "Fetch max_toot_chars from `mastodon-instance-url' asynchronously.
+NO-TOOT means we are not calling from a toot buffer."
   (mastodon-http--get-json-async
-   (mastodon-http--api "instance") 'mastodon-toot--get-max-toot-chars-callback 'no-toot))
+   (mastodon-http--api "instance")
+   'mastodon-toot--get-max-toot-chars-callback 'no-toot))
 
-(defun mastodon-toot--get-max-toot-chars-callback (json-response &optional no-toot)
-  "Set max_toot_chars returned in JSON-RESPONSE and display in new toot buffer."
+(defun mastodon-toot--get-max-toot-chars-callback (json-response
+                                                   &optional no-toot)
+  "Set max_toot_chars returned in JSON-RESPONSE and display in new toot buffer.
+NO-TOOT means we are not calling from a toot buffer."
   (let ((max-chars
          (or
           (alist-get 'max_toot_chars json-response)
@@ -472,12 +478,23 @@ CANCEL means the toot was not sent, so we save the toot text as a draft."
 
 (defun mastodon-toot--cancel ()
   "Kill new-toot buffer/window. Does not POST content to Mastodon.
-Toot text is saved as a draft."
+If toot is not empty, prompt to save text as a draft."
   (interactive)
   (if (mastodon-toot-empty-p)
-      (mastodon-toot--kill :cancel)
-    (when (y-or-n-p "Discard draft toot? (text will be saved)")
-      (mastodon-toot--kill :cancel))))
+      (mastodon-toot--kill)
+    (when (y-or-n-p "Save draft toot?")
+      (mastodon-toot-save-draft))
+    (mastodon-toot--kill)))
+
+(defun mastodon-toot-save-draft ()
+  "Save the current compose toot text as a draft.
+Pushes `mastodon-toot-current-toot-text' to
+`mastodon-toot-draft-toots-list'."
+  (interactive)
+  (unless (eq mastodon-toot-current-toot-text nil)
+    (cl-pushnew mastodon-toot-current-toot-text
+                mastodon-toot-draft-toots-list :test 'equal)
+    (message "Draft saved!")))
 
 (defun mastodon-toot-empty-p (&optional text-only)
   "Return t if no text or attachments have been added to the compose buffer.
@@ -761,7 +778,10 @@ Customize `mastodon-toot-display-orig-in-reply-buffer' to display
 text of the toot being replied to in the compose buffer."
   (interactive)
   (let* ((toot (mastodon-tl--property 'toot-json))
-         (parent (mastodon-tl--property 'parent-toot)) ; for new notifs handling
+         ;; NB: we cannot use mastodon-tl--property for 'parent-toot
+         ;; because if it doesn't have one, it is fetched from next toot!
+         ;; we also cannot use --field because we need to get a different property first
+         (parent (get-text-property (point) 'parent-toot)) ; for new notifs handling
          (id (mastodon-tl--as-string
               (mastodon-tl--field 'id (or parent toot))))
          (account (mastodon-tl--field 'account toot))
@@ -1065,16 +1085,15 @@ REPLY-JSON is the full JSON of the toot being replied to."
                            (list 'invisible (not mastodon-toot--content-warning)
                                  'face 'mastodon-cw-face)))))
 
-(defun mastodon-toot-save-toot-text (&rest _args)
+(defun mastodon-toot--save-toot-text (&rest _args)
   "Save the current toot text in `mastodon-toot-current-toot-text'.
 Added to `after-change-functions' in new toot buffers."
-  (interactive)
   (let ((text (mastodon-toot--remove-docs)))
     (unless (string-empty-p text)
       (setq mastodon-toot-current-toot-text text))))
 
 (defun mastodon-toot-open-draft-toot ()
-  "Prompt for a draft toot and open a new compose buffer containing the draft."
+  "Prompt for a draft and compose a toot with it."
   (interactive)
   (if mastodon-toot-draft-toots-list
       (let ((text (completing-read "Select draft toot: "
@@ -1164,7 +1183,7 @@ a draft into the buffer."
     (mastodon-toot--update-status-fields)
     ;; draft toot text saving:
     (setq mastodon-toot-current-toot-text nil)
-    (push #'mastodon-toot-save-toot-text after-change-functions)
+    (push #'mastodon-toot--save-toot-text after-change-functions)
     (when initial-text
       (insert initial-text))))
 
