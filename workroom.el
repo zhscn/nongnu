@@ -4,7 +4,7 @@
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Version: 1.0
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "25.1") (project "0.3.0"))
 ;; Keywords: tools, convenience
 ;; URL: https://codeberg.org/akib/emacs-workroom
 
@@ -39,6 +39,9 @@
 ;; possibly in another Emacs session.  You can also save your
 ;; workrooms in your desktop.
 
+;; Usage
+;; ═════
+
 ;; There is always a workroom named "master", which contains all live
 ;; buffers.  Removing any buffer from this workroom kills that buffer.
 ;; You can't kill this workroom, but you can customize the variable
@@ -46,29 +49,54 @@
 
 ;; All the useful commands can be called with following key sequences:
 
-;;   Key        Command
-;;   --------------------------------------
-;;   C-x x s    `workroom-switch-room'
-;;   C-x x S    `workroom-switch-view'
-;;   C-x x d    `workroom-kill'
-;;   C-x x D    `workroom-kill-view'
-;;   C-x x r    `workroom-rename'
-;;   C-x x R    `workroom-rename-view'
-;;   C-x x c    `workroom-clone'
-;;   C-x x C    `workroom-clone-view'
-;;   C-x x m    `workroom-bookmark'
-;;   C-x x b    `workroom-switch-to-buffer'
-;;   C-x x a    `workroom-add-buffer'
-;;   C-x x k    `workroom-kill-buffer'
-;;   C-x x K    `workroom-remove-buffer'
+;; ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+;;  Key        Command
+;; ────────────────────────────────────────
+;;  `C-x x s'  `workroom-switch-room'
+;;  `C-x x S'  `workroom-switch-view'
+;;  `C-x x d'  `workroom-kill'
+;;  `C-x x D'  `workroom-kill-view'
+;;  `C-x x r'  `workroom-rename'
+;;  `C-x x R'  `workroom-rename-view'
+;;  `C-x x c'  `workroom-clone'
+;;  `C-x x C'  `workroom-clone-view'
+;;  `C-x x m'  `workroom-bookmark'
+;;  `C-x x b'  `workroom-switch-to-buffer'
+;;  `C-x x a'  `workroom-add-buffer'
+;;  `C-x x k'  `workroom-kill-buffer'
+;;  `C-x x K'  `workroom-remove-buffer'
+;; ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-;; Here the prefix key sequence is "C-x x", but you can customize
+;; Here the prefix key sequence is `C-x x', but you can customize
 ;; `workroom-command-map-prefix' to change it.
+
+;; You might want to remap `switch-to-buffer' and `kill-buffer' by
+;; adding the following to your init file:
+
+;; ┌────
+;; │ (global-set-key [remap switch-to-buffer]
+;; │                 #'workroom-switch-to-buffer)
+;; │ (global-set-key [remap kill-buffer] #'workroom-kill-buffer)
+;; └────
+
+;; You can save all your workroom in your desktop by enabling
+;; `workroom-desktop-save-mode' mode.
+
+;; You can create a workroom containing only your project buffer with
+;; `workroom-switch-to-project-workroom'.  You can also enable
+;; `workroom-auto-project-workroom-mode', it'll switch to (creating if
+;; needed) the project's workroom when you open a file.
+
+;; If you want to completely automate managing workroom buffer list,
+;; check out the docstrings of `workroom-buffer-manager-function',
+;; `workroom-set-buffer-manager-function' and
+;; `workroom-buffer-manager-data'.
 
 ;;; Code:
 
 (require 'cl-lib)
 (require 'bookmark)
+(require 'project)
 
 
 ;;;; User Options.
@@ -99,8 +127,8 @@ name can be manually changed with `workroom-rename'."
   :type 'string)
 
 (defcustom workroom-buffer-handler-alist
-  '((bookmark :encoder workroom--encode-buffer-bookmark
-              :decoder workroom--decode-buffer-bookmark))
+  '((bookmark :encoder workroom-encode-buffer-bookmark
+              :decoder workroom-decode-buffer-bookmark))
   "Alist of functions to encode/decode buffer to/from readable object.
 
 Each element of the list is of the form (IDENTIFIER . (:encoder
@@ -128,9 +156,8 @@ value can't restored."
 
 (defcustom workroom-mode-lighter
   '(:eval
-    (let ((face (if (member (current-buffer)
-                            (workroom-buffer-list
-                             (workroom-current-room)))
+    (let ((face (if (memq (current-buffer) (workroom-buffer-list
+                                            (workroom-current-room)))
                     'compilation-info
                   'warning)))
       `(" WR["
@@ -147,22 +174,6 @@ The value is a mode line terminal like `mode-line-format'."
 
 (defcustom workroom-switch-hook nil
   "Normal hook run after switching room or view."
-  :type 'hook)
-
-(defcustom workroom-kill-room-hook nil
-  "Normal hook run after killing a room."
-  :type 'hook)
-
-(defcustom workroom-kill-view-hook nil
-  "Normal hook run after killing a view."
-  :type 'hook)
-
-(defcustom workroom-rename-room-hook nil
-  "Normal hook run after renaming a room."
-  :type 'hook)
-
-(defcustom workroom-rename-view-hook nil
-  "Normal hook run after renaming a view."
   :type 'hook)
 
 (defvar workroom-command-map
@@ -225,13 +236,13 @@ The value is a mode line terminal like `mode-line-format'."
    :documentation "Writable window configuration of the view.")
   (frame nil :documentation "The frame showing the view, or nil."))
 
-(defvar workroom--initializing nil
-  "Non-nil mean Workroom-Mode is initializing.")
+(defvar workroom--dont-clear-new-view nil
+  "Non-nil mean don't clear empty new views.")
 
 (defvar workroom--rooms nil
   "List of currently live workrooms.")
 
-(defvar workroom--room-history nil
+(defvar workroom-room-history nil
   "`completing-read' history list of workroom names.")
 
 (defvar workroom--view-history nil
@@ -256,26 +267,36 @@ that.")
   (not (not (workroom-name room))))
 
 (defun workroom-buffer-manager-function (room)
-  "Return the function to manage the member buffers of workroom ROOM.
+  "Return the function to manage the member buffers of workroom ROOM."
+  (workroom--room-buffer-manager room))
 
-The buffer manager is a function taking two or more arguments.  The
-function shouldn't be an uninterned symbol or lambda/closure.  The
-first argument is ROOM, the workroom.  The second one is ACTION, it
-specify what to do.  ACTION can any of:
+(defun workroom-set-buffer-manager-function
+    (room function &optional do-not-initialize &rest args)
+  "Set the buffer manager function of workroom ROOM.
+
+FUNCTION is the buffer manager function and ARGS is the arguments to
+it initialization procedure.  Call FUNCTION with ROOM, `:initialize',
+followed by ARGS, unless DO-NOT-INITIALIZE is non-nil.
+
+FUNCTION is a function taking two or more arguments.  The function
+shouldn't be an uninterned symbol or lambda/closure.  The first
+argument is ROOM, the workroom.  The second one is ACTION, it specify
+what to do.  ACTION can any of:
 
 `:initialize'
-  Do initialization for workroom ROOM.  No extra arguments.
+  Do initialization for workroom ROOM.  Element of ARGS is passed as
+  extra arguments in proper order.
 
 `:list-buffers'
   List of member buffers of workroom ROOM.  No extra arguments.
 
 `:add-buffer'
   Add BUFFER as a member of workroom ROOM.  BUFFER is the third
-  argument and is a buffer.
+  argument and is a non-member buffer.
 
 `:remove-buffer'
   Remove BUFFER from the member list of workroom ROOM.  BUFFER is the
-  third argument and is a buffer.
+  third argument and is a member buffer.
 
 `:clone'
   Clone buffer list from workroom SOURCE to workroom ROOM.  SOURCE is
@@ -298,13 +319,11 @@ specify what to do.  ACTION can any of:
 
 To set it, use (`setf' (`workroom-buffer-manager-function' ROOM)
 FUNCTION), where FUNCTION is the buffer manager function."
-  (workroom--room-buffer-manager room))
-
-(gv-define-setter workroom-buffer-manager-function (function room)
-  `(let ((wr ,room))
-     (when (workroom-default-p wr)
-       (error "Cannot change buffer manager of the default workroom"))
-     (setf (workroom--room-buffer-manager wr) ,function)))
+  (when (workroom-default-p room)
+    (error "Cannot change buffer manager of the default workroom"))
+  (setf (workroom--room-buffer-manager room) function)
+  (unless do-not-initialize
+    (apply function room :initialize args)))
 
 (defun workroom-buffer-manager-data (room)
   "Return the data stored by the buffer manager of workroom ROOM.
@@ -397,8 +416,8 @@ that."
     (unless room
       (setq room (workroom--make-room
                   :name name
-                  :buffer-manager #'workroom-default-buffer-manager))
-      (workroom-default-buffer-manager room :initialize)
+                  :buffer-manager #'workroom--default-buffer-manager))
+      (workroom--default-buffer-manager room :initialize)
       (push room workroom--rooms))
     room))
 
@@ -503,7 +522,7 @@ REQUIRE-MATCH and PREDICATE is same as in `completing-read'."
   (completing-read
    (concat prompt (when def (format " (default %s)" def)) ": ")
    (mapcar #'workroom-name workroom--rooms) predicate require-match
-   nil 'workroom--room-history def))
+   nil 'workroom-room-history def))
 
 (defun workroom--read-to-switch ( prompt &optional def require-match
                                   predicate)
@@ -532,7 +551,7 @@ REQUIRE-MATCH and PREDICATE is same as in `completing-read'."
         (completing-read
          (concat prompt (when def (format " (default %s)" def)) ": ")
          (mapcar #'workroom-view-name (workroom-view-list room))
-         predicate require-match nil 'workroom--room-history def)
+         predicate require-match nil 'workroom-room-history def)
       (setf (workroom--room-view-history room)
             workroom--view-history))))
 
@@ -561,8 +580,8 @@ be a string.  DEF, REQUIRE-MATCH and PREDICATE is same as in
     (read-buffer
      prompt def require-match
      (lambda (cand)
-       (and (member (get-buffer (if (consp cand) (car cand) cand))
-                    (workroom-buffer-list room))
+       (and (memq (get-buffer (if (consp cand) (car cand) cand))
+                  (workroom-buffer-list room))
             (or (not predicate) (funcall predicate cand)))))))
 
 (defun workroom--read-non-member-buffer ( room prompt &optional def
@@ -577,8 +596,8 @@ be a string.  DEF, REQUIRE-MATCH and PREDICATE is same as in
      prompt def require-match
      (lambda (cand)
        (and (not
-             (member (get-buffer (if (consp cand) (car cand) cand))
-                     (workroom-buffer-list room)))
+             (memq (get-buffer (if (consp cand) (car cand) cand))
+                   (workroom-buffer-list room)))
             (or (not predicate) (funcall predicate cand)))))))
 
 (defun workroom-read-buffer-function ( prompt &optional def
@@ -679,7 +698,7 @@ If WRITABLE, return a writable object."
         ;; buffers) before loading it.
         (window-state-put (cons (car state) (sanitize (cdr state)))
                           (frame-root-window) 'safe))
-    (unless workroom--initializing
+    (unless workroom--dont-clear-new-view
       (delete-other-windows)
       (set-window-dedicated-p (selected-window) nil)
       (switch-to-buffer "*scratch*"))))
@@ -814,6 +833,13 @@ ROOM is should be workroom object, or a name of a workroom object."
            (workroom-name (cadr (workroom-previous-room-list))))
           ((car (workroom-previous-room-list))
            (workroom-name (car (workroom-previous-room-list)))))))))
+  (setq room
+        (if (stringp room)
+            (if (string-empty-p room)
+                (error
+                 "Empty string for workroom name is not allowed")
+              (workroom-get-create room))
+          room))
   (workroom-switch-view room nil))
 
 (defun workroom-kill (room)
@@ -850,8 +876,7 @@ ROOM is should be workroom object, or a name of a workroom object."
     (set-frame-parameter
      frame 'workroom-previous-room-list
      (delete room
-             (frame-parameter frame 'workroom-previous-room-list))))
-  (run-hooks 'workroom-kill-room-hook))
+             (frame-parameter frame 'workroom-previous-room-list)))))
 
 (defun workroom-kill-view (room view)
   "Kill view VIEW of workroom ROOM.
@@ -897,8 +922,7 @@ should be in the workroom ROOM."
                  room workroom-default-view-name))))
     (setf (workroom--view-name view) nil)
     (setf (workroom--room-view-list room)
-          (delete view (workroom--room-view-list room)))
-    (run-hooks 'workroom-kill-view-hook)))
+          (delete view (workroom--room-view-list room)))))
 
 (defun workroom-rename (room new-name)
   "Rename workroom ROOM to NEW-NAME.
@@ -920,8 +944,7 @@ ROOM is should be workroom object, or a name of a workroom object."
                room))
   (unless (workroom-live-p room)
     (signal 'wrong-type-argument `(workroom-live-p . ,room)))
-  (setf (workroom--room-name room) new-name)
-  (run-hooks 'workroom-rename-room-hook))
+  (setf (workroom--room-name room) new-name))
 
 (defun workroom-rename-view (room view new-name)
   "Rename view VIEW of workroom ROOM to NEW-NAME."
@@ -960,8 +983,7 @@ ROOM is should be workroom object, or a name of a workroom object."
     (signal 'wrong-type-argument `(workroom-live-p . ,room)))
   (unless (workroom-view-live-p view)
     (signal 'wrong-type-argument `(workroom-view-live-p . ,view)))
-  (setf (workroom--view-name view) new-name)
-  (run-hooks 'workroom-rename-view-hook))
+  (setf (workroom--view-name view) new-name))
 
 (defun workroom-clone (room name)
   "Create a clone of workroom ROOM named NAME."
@@ -1045,9 +1067,8 @@ If ROOM is the default workroom, do nothing."
      (list (get-buffer-create
             (workroom--read-non-member-buffer
              (workroom-current-room) "Add buffer: "
-             (when (not (member (current-buffer)
-                                (workroom-buffer-list
-                                 (workroom-current-room))))
+             (unless (memq (current-buffer) (workroom-buffer-list
+                                             (workroom-current-room)))
                (current-buffer))))
            nil)))
   (setq room (if (stringp room)
@@ -1057,8 +1078,9 @@ If ROOM is the default workroom, do nothing."
                (or room (workroom-current-room))))
   (unless (workroom-live-p room)
     (signal 'wrong-type-argument `(workroom-live-p . ,room)))
-  (funcall (workroom--room-buffer-manager room)
-           room :add-buffer buffer))
+  (unless (memq buffer (workroom-buffer-list (workroom-current-room)))
+    (funcall (workroom--room-buffer-manager room)
+             room :add-buffer buffer)))
 
 (defun workroom-remove-buffer (buffer &optional room)
   "Remove BUFFER from workroom ROOM.
@@ -1074,9 +1096,8 @@ If ROOM is the default workroom, kill buffer."
             (workroom--read-member-buffer
              (workroom-current-room)
              "Remove buffer: "
-             (when (member (current-buffer)
-                           (workroom-buffer-list
-                            (workroom-current-room)))
+             (when (memq (current-buffer) (workroom-buffer-list
+                                           (workroom-current-room)))
                (current-buffer))
              t))
            nil)))
@@ -1087,15 +1108,16 @@ If ROOM is the default workroom, kill buffer."
                (or room (workroom-current-room))))
   (unless (workroom-live-p room)
     (signal 'wrong-type-argument `(workroom-live-p . ,room)))
-  (funcall (workroom--room-buffer-manager room)
-           room :remove-buffer buffer))
+  (when (memq buffer (workroom-buffer-list (workroom-current-room)))
+    (funcall (workroom--room-buffer-manager room)
+             room :remove-buffer buffer)))
 
 (defmacro workroom-define-replacement (fn)
   "Define `workroom-FN' as replacement for FN.
 
 The defined function is restricts user to the buffers of current
 workroom while selecting buffer by setting `read-buffer' function to
-`workroom-read-buffer-function', unless prefix arg is given."
+`workroom-read-buffer-function', unless prefix argument is given."
   `(defun ,(intern (format "workroom-%S" fn)) ()
      ,(format "Like `%S' but restricted to current workroom.
 
@@ -1111,11 +1133,12 @@ restrict." fn)
 (workroom-define-replacement switch-to-buffer)
 (workroom-define-replacement kill-buffer)
 
-(defun workroom-default-buffer-manager (room action &rest args)
+(defun workroom--default-buffer-manager (room action &rest args)
   "The default buffer manager of workrooms.
 
-Set as the `workroom-buffer-manager-function' of ROOM, which see.  The
-value of ACTION and ARGS are also described there."
+Set as the buffer manager function of ROOM with
+`workroom-set-buffer-manager-function', which see.  The value of
+ACTION and ARGS are also described there."
   (setf (workroom-buffer-manager-data room)
         (cl-delete-if-not #'buffer-live-p
                           (workroom-buffer-manager-data room)))
@@ -1148,11 +1171,12 @@ value of ACTION and ARGS are also described there."
        (setf (workroom-buffer-manager-data room)
              (copy-sequence buffers))))))
 
-(defun workroom-default-room-buffer-manager (room action &rest args)
+(defun workroom--default-room-buffer-manager (room action &rest args)
   "The buffer manager of the default workroom.
 
-Set as the `workroom-buffer-manager-function' of ROOM, which see.  The
-value of ACTION and ARGS are also described there."
+Set as the buffer manager function of ROOM with
+`workroom-set-buffer-manager-function', which see.  The value of
+ACTION and ARGS are also described there."
   (pcase action
     (:initialize
      (cl-destructuring-bind () args
@@ -1175,9 +1199,9 @@ value of ACTION and ARGS are also described there."
        ;; There can't be two default workrooms, so this function can't
        ;; manage two workrooms.  We'll hand over responsibilities to
        ;; the default buffer manager.
-       (setf (workroom-buffer-manager-function room)
-             #'workroom-default-buffer-manager)
-       (workroom-default-buffer-manager room :clone (buffer-list))))
+       (workroom-set-buffer-manager-function
+        room #'workroom--default-buffer-manager 'do-not-initialize)
+       (workroom--default-buffer-manager room :clone (buffer-list))))
     (:encode
      (cl-destructuring-bind () args
        ;; Nothing, the default workroom can't be encoding (but can
@@ -1188,9 +1212,9 @@ value of ACTION and ARGS are also described there."
        ;; There can't be two default workrooms, so this function can't
        ;; manage two workrooms.  We'll hand over responsibilities to
        ;; the default buffer manager.
-       (setf (workroom-buffer-manager-function room)
-             #'workroom-default-buffer-manager)
-       (workroom-default-buffer-manager room :load data buffers)))))
+       (workroom-set-buffer-manager-function
+        room #'workroom--default-buffer-manager 'do-not-initialize)
+       (workroom--default-buffer-manager room :load data buffers)))))
 
 (defun workroom--frame-manage-p (frame)
   "Return non-nil if workroom should manage FRAME."
@@ -1219,16 +1243,16 @@ value of ACTION and ARGS are also described there."
       (progn
         (workroom-mode -1)
         (setq workroom-mode t)
-        (let ((workroom--initializing t)
+        (let ((workroom--dont-clear-new-view t)
               (default-room (workroom-get-default)))
           (unless default-room
             (setq
              default-room
              (workroom--make-room
               :name workroom-default-room-name
-              :buffer-manager #'workroom-default-room-buffer-manager
+              :buffer-manager #'workroom--default-room-buffer-manager
               :default-p t))
-            (workroom-default-room-buffer-manager
+            (workroom--default-room-buffer-manager
              default-room :initialize)
             (push default-room workroom--rooms))
           (unless (equal (workroom-name default-room)
@@ -1325,13 +1349,13 @@ when ROOM was encoded."
         (setq tail (cdr tail))))
     (cdr buffers)))
 
-(defun workroom--encode-buffer-bookmark (buffer)
+(defun workroom-encode-buffer-bookmark (buffer)
   "Encode BUFFER using `bookmark-make-record'."
   (with-current-buffer buffer
     (ignore-errors
       (bookmark-make-record))))
 
-(defun workroom--decode-buffer-bookmark (object)
+(defun workroom-decode-buffer-bookmark (object)
   "Decode OBJECT using `bookmark-jump'."
   (let* ((buffer nil))
     (bookmark-jump object (lambda (buf) (setq buffer buf)))
@@ -1379,7 +1403,7 @@ If NO-OVERWRITE is nil or prefix argument is given, don't overwrite
 any previous bookmark with the same name."
   (interactive
    (list (workroom--read
-          "Workroom" nil t
+          "Bookmark workroom" nil t
           (lambda (cand)
             (not (equal (workroom-name (workroom-get-default))
                         (if (consp cand) (car cand) cand)))))
@@ -1502,15 +1526,169 @@ any previous bookmark with the same name."
                                (frame-list))))
         time)))))
 
-;;;###autoload
 (define-minor-mode workroom-desktop-save-mode
   "Toggle saving workrooms with desktop mode."
   :global t
+  :require 'workroom
   (if workroom-desktop-save-mode
       (add-hook 'desktop-save-hook
                 #'workroom--desktop-inject-restore-code)
     (remove-hook 'desktop-save-hook
                  #'workroom--desktop-inject-restore-code)))
+
+
+;;;; Project Integration.
+
+(defun workroom--project-buffer-manager (room action &rest args)
+  "The buffer manager for a project.
+
+Set as the buffer manager function of ROOM with
+`workroom-set-buffer-manager-function', which see.  The value of
+ACTION and ARGS are also described there.  This function take an
+argument while setting as the buffer manager, PROJECT, the project."
+  (setf (plist-get (workroom-buffer-manager-data room)
+                   :whitelist)
+        (cl-delete-if-not
+         #'buffer-live-p
+         (plist-get (workroom-buffer-manager-data room)
+                    :whitelist)))
+  (setf (plist-get (workroom-buffer-manager-data room)
+                   :blacklist)
+        (cl-delete-if-not
+         #'buffer-live-p
+         (plist-get (workroom-buffer-manager-data room)
+                    :blacklist)))
+  (pcase action
+    (:initialize
+     (cl-destructuring-bind (project) args
+       (setf (workroom-buffer-manager-data room)
+             `(:project ,project))))
+    (:list-buffers
+     (cl-destructuring-bind () args
+       (cl-remove-if
+        (let ((blacklist
+               (plist-get (workroom-buffer-manager-data room)
+                          :blacklist)))
+          (lambda (buffer) (memq buffer blacklist)))
+        (append (plist-get (workroom-buffer-manager-data room)
+                           :whitelist)
+                (project-buffers
+                 (plist-get (workroom-buffer-manager-data room)
+                            :project))))))
+    (:add-buffer
+     (cl-destructuring-bind (buffer) args
+       ;; Remove from blacklist.
+       (setf (plist-get (workroom-buffer-manager-data room)
+                        :blacklist)
+             (delete buffer
+                     (plist-get (workroom-buffer-manager-data room)
+                                :blacklist)))
+       ;; If not still in the list, whitelist it.
+       (unless (memq buffer (workroom--project-buffer-manager
+                             room :list-buffers))
+         (push buffer (plist-get (workroom-buffer-manager-data room)
+                                 :whitelist)))))
+    (:remove-buffer
+     (cl-destructuring-bind (buffer) args
+       ;; Remove from whitelist.
+       (setf (plist-get (workroom-buffer-manager-data room)
+                        :whitelist)
+             (delete buffer
+                     (plist-get (workroom-buffer-manager-data room)
+                                :whitelist)))
+       ;; If still in the list, blacklist it.
+       (when (memq buffer (workroom--project-buffer-manager
+                           room :list-buffers))
+         (push buffer (plist-get (workroom-buffer-manager-data room)
+                                 :blacklist)))))
+    (:clone
+     (cl-destructuring-bind (source) args
+       (cl-destructuring-bind (&key project whitelist blacklist)
+           (workroom-buffer-manager-data source)
+         (setf (workroom-buffer-manager-data room)
+               `( :project ,project
+                  :whitelist ,(copy-sequence whitelist)
+                  :blacklist ,(copy-sequence blacklist))))))
+    (:encode
+     (cl-destructuring-bind () args
+       (cl-destructuring-bind (&key project _whitelist blacklist)
+           (workroom-buffer-manager-data room)
+         `( :project-root ,(project-root project)
+            :blacklist ,(mapcar #'buffer-name blacklist)))))
+    (:load
+     (cl-destructuring-bind (data buffers) args
+       (let ((project (project-current
+                       nil (plist-get data :project-root))))
+         (setf (workroom-buffer-manager-data room)
+               `( :project ,project
+                  :whitelist ,(cl-set-difference
+                               buffers (project-buffers project))
+                  :blacklist ,(cl-delete-if
+                               #'null
+                               (mapcar
+                                #'get-buffer
+                                (plist-get data :blacklist))))))))))
+
+(defun workroom--project-name (project)
+  "Return a name for project PROJECT."
+  (let ((root (project-root project)))
+    (if (string-match "/\\([^/]+\\)/\\'" root)
+        (match-string 1 root)
+      root)))
+
+(defun workroom-switch-to-project-workroom (name project-root)
+  "Switch to a workroom NAME with all buffers in the current project.
+
+Prompt for PROJECT-ROOT if the project root can't be found, or if the
+prefix argument is given."
+  (interactive
+   (let* ((project
+           (if current-prefix-arg
+               (project-current nil (project-prompt-project-dir))
+             (project-current 'maybe-prompt)))
+          (root (project-root project))
+          (name (workroom--project-name project)))
+     (list
+      (read-string
+       (format-message "Workname name for project `%s': " name)
+       name 'workroom-room-history name)
+      root)))
+  (workroom-switch name)
+  (workroom-set-buffer-manager-function
+   (workroom-current-room) #'workroom--project-buffer-manager nil
+   (project-current nil project-root)))
+
+(defun workroom--project-switch-to-appropiate-room ()
+  "Switch the appropiate workroom for current buffer."
+  (let ((project (project-current))
+        (room nil))
+    (when project
+      (cl-block nil
+        (dolist (wr (workroom-list))
+          (when (and (eq (workroom-buffer-manager-function wr)
+                         #'workroom--project-buffer-manager)
+                     (equal (plist-get
+                             (workroom-buffer-manager-data wr)
+                             :project)
+                            project))
+            (setq room wr)
+            (cl-return))))
+      (if room
+          (workroom-switch room)
+        (let ((workroom--dont-clear-new-view t))
+          (workroom-switch-to-project-workroom
+           (workroom--project-name project)
+           (project-root project)))))))
+
+(define-minor-mode workroom-auto-project-workroom-mode
+  "Toggle automatically creating project workrooms."
+  :global t
+  :require 'workroom
+  (if workroom-auto-project-workroom-mode
+      (add-hook 'find-file-hook
+                #'workroom--project-switch-to-appropiate-room)
+    (remove-hook 'find-file-hook
+                 #'workroom--project-switch-to-appropiate-room)))
 
 (provide 'workroom)
 ;;; workroom.el ends here

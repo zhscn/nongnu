@@ -57,3 +57,24 @@ All the useful commands can be called with following key sequences:
 
 Here the prefix key sequence is ~C-x x~, but you can customize
 ~workroom-command-map-prefix~ to change it.
+
+You might want to remap ~switch-to-buffer~ and ~kill-buffer~ by adding
+the following to your init file:
+
+#+begin_src emacs-lisp
+(global-set-key [remap switch-to-buffer] #'workroom-switch-to-buffer)
+(global-set-key [remap kill-buffer] #'workroom-kill-buffer)
+#+end_src
+
+You can save all your workroom in your desktop by enabling
+~workroom-desktop-save-mode~ mode.
+
+You can create a workroom containing only your project buffer with
+~workroom-switch-to-project-workroom~.  You can also enable
+~workroom-auto-project-workroom-mode~, it'll switch to (creating if
+needed) the project's workroom when you open a file.
+
+If you want to completely automate managing workroom buffer list,
+check out the docstrings of ~workroom-buffer-manager-function~,
+~workroom-set-buffer-manager-function~ and
+~workroom-buffer-manager-data~.
