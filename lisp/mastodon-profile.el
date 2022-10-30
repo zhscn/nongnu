@@ -74,6 +74,8 @@
 (defvar mastodon-tl--update-point)
 (defvar mastodon-mode-map)
 (defvar mastodon-toot--max-toot-chars)
+(defvar mastodon-toot--visibility)
+(defvar mastodon-toot--content-nsfw)
 
 (defvar-local mastodon-profile--account nil
   "The data for the account being described in the current profile buffer.")
