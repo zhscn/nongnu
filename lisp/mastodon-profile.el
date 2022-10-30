@@ -385,7 +385,6 @@ Returns an alist."
          (fields-updated (mastodon-profile--update-meta-fields-alist))
          (params (mastodon-profile--make-meta-fields-params fields-updated))
          (response (mastodon-http--patch url params)))
-    (setq test-fields-str params)
     (mastodon-http--triage response
                            (lambda ()
                              (mastodon-profile-fetch-server-account-settings)
@@ -398,19 +397,30 @@ Returns the results as an alist."
   (let ((fields-old (mastodon-profile--fields-get
                      nil
                      ;; we must fetch the plaintext version:
-                     (mastodon-profile--get-source-value 'fields)))
-        fields-new)
+                     (mastodon-profile--get-source-value 'fields))))
     ;; offer empty fields if user currently has less than four filled:
     (while (< (length fields-old) 4)
       (setq fields-old
             (append fields-old '(("" . "")))))
-    (cl-loop for f in fields-old
-             for x from 1 to 5
-             collect
-             (cons (read-string (format "Edit account metadata key [%s/4]: " x)
-                                (car f))
-                   (read-string (format "Edit account metadata value [%s/4]: " x)
-                                (cdr f))))))
+    (let ((alist
+           (cl-loop for f in fields-old
+                    for x from 1 to 5
+                    collect
+                    (cons (read-string
+                           (format "Metadata key [%s/4] (max. 255 chars): " x)
+                           (car f))
+                          (read-string
+                           (format "Metadata value [%s/4] (max. 255 chars): " x)
+                           (cdr f))))))
+      ;; hack to avoiding using `string-limit', which req. 28.1:
+      (mapcar (lambda (x)
+                (cons (mastodon-profile--limit-to-255 (car x))
+                      (mastodon-profile--limit-to-255 (cdr x))))
+              alist))))
+
+(defun mastodon-profile--limit-to-255 (x)
+  "Limit string X to 255 chars max."
+  (if (> (length x) 255) (substring x 0 255) x))
 
 (defun mastodon-profile--get-preferences-pref (pref)
   "Fetch PREF from the endpoint \"/preferences\".
