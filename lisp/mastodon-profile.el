@@ -365,35 +365,31 @@ Current settings are fetched from the server."
   (interactive)
   (mastodon-profile--edit-string-value 'display_name))
 
-;; TODO: ideally this would return an alist to use like normal params
 (defun mastodon-profile--make-meta-fields-params (fields)
   "Construct a parameter query string from metadata alist FIELDS."
-  (let ((count 0)
-        (loop-list (cl-loop for x in fields
-                            for count from 0 to 4
-                            collect (concat
-                                     (format "fields_attributes[%s][name]" count)
-                                     "="
-                                     (url-hexify-string (car x))
-                                     "&"
-                                     (format "fields_attributes[%s][value]" count)
-                                     "="
-                                     (url-hexify-string (cdr x))))))
-    (mapconcat #'identity loop-list "&")))
+  (let ((keys (cl-loop for count from 1 to 5
+                      collect (cons (format "fields_attributes[%s][name]" count)
+                                    (format "fields_attributes[%s][value]" count)))))
+    (cl-loop for a-pair in keys
+             for b-pair in fields
+             append (list (cons (car a-pair)
+                                (car b-pair))
+                          (cons (cdr a-pair)
+                                (cdr b-pair))))))
 
 (defun mastodon-profile-update-meta-fields ()
   "Prompt for new metadata fields information and PATCH the server."
   (interactive)
   (let* ((url (mastodon-http--api "accounts/update_credentials"))
-         (fields-updated (or data (mastodon-profile--update-meta-fields-alist)))
-         (param-str (mastodon-profile--make-meta-fields-params fields-updated))
-         (response (mastodon-http--patch url param-str :no-build)))
-    (setq test-fields-str param-str)
+         (fields-updated (mastodon-profile--update-meta-fields-alist))
+         (params (mastodon-profile--make-meta-fields-params fields-updated))
+         (response (mastodon-http--patch url params)))
+    (setq test-fields-str params)
     (mastodon-http--triage response
                            (lambda ()
                              (mastodon-profile-fetch-server-account-settings)
                              (message "Account setting %s updated to %s!"
-                                      "metadata fields" params)))))
+                                      "metadata fields" fields-updated)))))
 
 (defun mastodon-profile--update-meta-fields-alist ()
   "Prompt for new metadata fields information."
