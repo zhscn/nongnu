@@ -70,8 +70,9 @@
 ;; Here the prefix key sequence is `C-x x', but you can customize
 ;; `workroom-command-map-prefix' to change it.
 
-;; You might want to remap `switch-to-buffer' and `kill-buffer' by
-;; adding the following to your init file:
+;; You might want to remap ~switch-to-buffer~, ~kill-buffer~ and other
+;; commands with Workroom-aware commands by adding something like the
+;; following to your init file:
 
 ;; ┌────
 ;; │ (global-set-key [remap switch-to-buffer]
@@ -1112,26 +1113,29 @@ If ROOM is the default workroom, kill buffer."
     (funcall (workroom--room-buffer-manager room)
              room :remove-buffer buffer)))
 
-(defmacro workroom-define-replacement (fn)
-  "Define `workroom-FN' as replacement for FN.
-
-The defined function is restricts user to the buffers of current
-workroom while selecting buffer by setting `read-buffer' function to
-`workroom-read-buffer-function', unless prefix argument is given."
-  `(defun ,(intern (format "workroom-%S" fn)) ()
-     ,(format "Like `%S' but restricted to current workroom.
+(defun workroom-switch-to-buffer ()
+  "Like `switch-to-buffer' but restricted to current workroom.
 
 When prefix arg is given or Workroom-Mode is disabled, don't
-restrict." fn)
-     (declare (interactive-only ,(format "Use `%S' instead." fn)))
-     (interactive)
-     (if (or current-prefix-arg (not workroom-mode))
-         (call-interactively #',fn)
-       (let ((read-buffer-function #'workroom-read-buffer-function))
-         (call-interactively #',fn)))))
+restrict."
+  (declare (interactive-only "Use `switch-to-buffer' instead."))
+  (interactive)
+  (if (or current-prefix-arg (not workroom-mode))
+      (call-interactively #'switch-to-buffer)
+    (let ((read-buffer-function #'workroom-read-buffer-function))
+      (call-interactively #'switch-to-buffer))))
 
-(workroom-define-replacement switch-to-buffer)
-(workroom-define-replacement kill-buffer)
+(defun workroom-kill-buffer ()
+  "Like `kill-buffer' but restricted to current workroom.
+
+When prefix arg is given or Workroom-Mode is disabled, don't
+restrict."
+  (declare (interactive-only "Use `kill-buffer' instead."))
+  (interactive)
+  (if (or current-prefix-arg (not workroom-mode))
+      (call-interactively #'kill-buffer)
+    (let ((read-buffer-function #'workroom-read-buffer-function))
+      (call-interactively #'kill-buffer))))
 
 (defun workroom--default-buffer-manager (room action &rest args)
   "The default buffer manager of workrooms.
@@ -1269,6 +1273,92 @@ ACTION and ARGS are also described there."
         (set-frame-parameter frame 'workroom-previous-room-list nil)))
     (setq workroom--rooms nil)
     (remove-hook 'after-make-frame-functions #'workroom--init-frame)))
+
+
+;;;; Buffer Menu Integration.
+
+(defun workroom--list-buffers-noselect ()
+  "Setup buffer menu to not include any non-member buffer."
+  (let* ((room (workroom-current-room))
+         (buffer (list-buffers-noselect
+                  nil (workroom-buffer-list room))))
+    (with-current-buffer buffer
+      (remove-hook 'tabulated-list-revert-hook
+                   #'list-buffers--refresh t)
+      (add-hook 'tabulated-list-revert-hook
+                (lambda ()
+                  (list-buffers--refresh
+                   (workroom-buffer-list (workroom-current-room))))
+                nil t))
+    buffer))
+
+(defun workroom-buffer-menu ()
+  "Like `buffer-menu' but restricted to current workroom.
+
+When prefix arg is given or Workroom-Mode is disabled, don't
+restrict."
+  (interactive)
+  (if (or current-prefix-arg (not workroom-mode))
+      (call-interactively #'buffer-menu)
+    (switch-to-buffer (workroom--list-buffers-noselect))))
+
+(defun workroom-list-buffers ()
+  "Like `list-buffers' but restricted to current workroom.
+
+When prefix arg is given or Workroom-Mode is disabled, don't
+restrict."
+  (interactive)
+  (if (or current-prefix-arg (not workroom-mode))
+      (call-interactively #'list-buffers)
+    (display-buffer (workroom--list-buffers-noselect))))
+
+
+;;;; Electric Buffer List Integration.
+
+(defun workroom-electric-buffer-list ()
+  "Like `electric-buffer-list' but restricted to current workroom.
+
+When prefix arg is given or Workroom-Mode is disabled, don't
+restrict."
+  (interactive)
+  (if (or current-prefix-arg (not workroom-mode))
+      (call-interactively #'electric-buffer-list)
+    (cl-letf* ((list-buffers-noselect
+                (symbol-function #'list-buffers-noselect))
+               ((symbol-function #'list-buffers-noselect)
+                (lambda (&optional arg buffers)
+                  (funcall
+                   list-buffers-noselect arg
+                   (cl-union buffers (workroom-buffer-list
+                                      (workroom-current-room)))))))
+      (call-interactively #'electric-buffer-list))))
+
+
+;;;; IBuffer Integration.
+
+(defvar ibuffer-never-show-predicates)
+
+(defun workroom-ibuffer ()
+  "Like `ibuffer' but restricted to current workroom.
+
+When prefix arg is given or Workroom-Mode is disabled, don't
+restrict."
+  (interactive)
+  (if (or current-prefix-arg (not workroom-mode))
+      (call-interactively #'ibuffer)
+    (let* ((room (workroom-current-room))
+           (orig-pred ibuffer-never-show-predicates)
+           (pred (lambda (buffer)
+                   (not (memq buffer (workroom-buffer-list room)))))
+           (ibuffer-never-show-predicates (cons pred orig-pred)))
+      (call-interactively #'ibuffer)
+      ;; The following restricts buffer list even after an
+      ;; `ibuffer-update', but calling `ibuffer' doesn't remove that
+      ;; restriction.  So we don't do this.
+      ;; (setf (buffer-local-value 'ibuffer-never-show-predicates
+      ;;                           (get-buffer "*Ibuffer*"))
+      ;;       (cons pred orig-pred))
+      )))
 
 
 ;;;; Workroom Encoding/Decoding.

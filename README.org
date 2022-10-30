@@ -58,8 +58,9 @@ All the useful commands can be called with following key sequences:
 Here the prefix key sequence is ~C-x x~, but you can customize
 ~workroom-command-map-prefix~ to change it.
 
-You might want to remap ~switch-to-buffer~ and ~kill-buffer~ by adding
-the following to your init file:
+You might want to remap ~switch-to-buffer~, ~kill-buffer~ and other
+commands with Workroom-aware commands by adding something like the
+following to your init file:
 
 #+begin_src emacs-lisp
 (global-set-key [remap switch-to-buffer] #'workroom-switch-to-buffer)
