@@ -143,8 +143,9 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
     (run-hooks 'scroll-on-drag-redisplay-hook)
     (redisplay)))
 
-(defun scroll-on-drag--evil-visual-mode-workaround (state)
-  "Workaround for evil-visual line mode, STATE must be \\'pre or \\'post."
+(defun scroll-on-drag--evil-visual-line-data ()
+  "Return data associated with visual line mode or nil when none is found."
+  ;; The checks are written so as not to require evil mode as a dependency.
   (when
     (and
       (fboundp 'evil-visual-state-p)
@@ -154,23 +155,24 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
       (boundp 'evil-visual-point))
     (let ((mark (symbol-value 'evil-visual-point)))
       (when (markerp mark)
-        (cond
-          ;; Without this, `point' will be at the beginning of the line
-          ;; (from the pre command hook).
-          ((eq state 'pre)
-            (goto-char (marker-position mark)))
-          ;; Without this, the `point' wont move.
-          ;; See: https://github.com/emacs-evil/evil/issues/1708
-          ((eq state 'post)
-            (set-marker mark (point)))
-          (t
-            (error "Invalid input, internal error")))))))
+        mark))))
+
+(defmacro scroll-on-drag--with-evil-visual-mode-hack (visual-line-data &rest body)
+  "Execute BODY without evil-visual-mode line constraints.
+Run when MARK is non-nil.
+VISUAL-LINE-DATA is the result of `scroll-on-drag--evil-visual-line-data'."
+  `
+  (unwind-protect
+    (progn
+      (goto-char (marker-position ,visual-line-data))
+      ,@body)
+    (set-marker ,visual-line-data (point))))
 
 
 ;; ---------------------------------------------------------------------------
 ;; Public Functions
 
-(defun scroll-on-drag-impl ()
+(defun scroll-on-drag--impl ()
   "Interactively scroll (typically on click event).
 Returns true when scrolling took place, otherwise nil."
   (let*
@@ -451,13 +453,37 @@ Returns true when scrolling took place, otherwise nil."
     (when has-scrolled-real
       (let ((inhibit-redisplay nil))
         (run-hooks 'scroll-on-drag-post-hook)
-        (run-window-scroll-functions this-window))
+        (run-window-scroll-functions this-window)))
 
-      (scroll-on-drag--evil-visual-mode-workaround 'post))
-
-    ;; Result so we know if any scrolling occurred,
-    ;; allowing a fallback action on 'click'.
     has-scrolled-real))
+
+(defun scroll-on-drag--impl-with-evil-mode-workaround ()
+  "Workaround for evil mode visual line selection.
+This requires a separate code path to run pre/post logic."
+  (let ((visual-line-data (scroll-on-drag--evil-visual-line-data)))
+    (cond
+      (visual-line-data
+        (let
+          (
+            (result nil)
+            (result-point nil))
+          (save-excursion
+            (scroll-on-drag--with-evil-visual-mode-hack visual-line-data
+              (when (setq result (scroll-on-drag--impl))
+                (setq result-point (point)))))
+          (when result
+            (goto-char result-point))
+          result))
+      (t
+        (scroll-on-drag--impl)))))
+
+(defun scroll-on-drag--impl-with-window (scroll-win)
+  "Scroll on drag function that takes an optional SCROLL-WIN."
+  (cond
+    (scroll-win
+      (with-selected-window scroll-win (scroll-on-drag--impl-with-evil-mode-workaround)))
+    (t
+      (scroll-on-drag--impl-with-evil-mode-workaround))))
 
 (defun scroll-on-drag (&optional event)
   "Main scroll on drag function.
@@ -469,14 +495,8 @@ when `scroll-on-drag-follow-mouse' is non-nil."
     (when scroll-on-drag-follow-mouse
       (setq scroll-win (posn-window (or (event-start event) last-input-event))))
 
-    ;; Typically moving the point is _not_ ok, however we know the post hook will handle this.
-    ;; in the case of evil visual line mode.
-    (scroll-on-drag--evil-visual-mode-workaround 'pre)
-    (cond
-      (scroll-win
-        (with-selected-window scroll-win (scroll-on-drag-impl)))
-      (t
-        (scroll-on-drag-impl)))))
+    (scroll-on-drag--impl-with-window scroll-win)))
+
 
 ;;;###autoload
 (defmacro scroll-on-drag-with-fallback (&rest body)
