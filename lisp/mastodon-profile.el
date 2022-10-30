@@ -366,7 +366,8 @@ Current settings are fetched from the server."
   (mastodon-profile--edit-string-value 'display_name))
 
 (defun mastodon-profile--make-meta-fields-params (fields)
-  "Construct a parameter query string from metadata alist FIELDS."
+  "Construct a parameter query string from metadata alist FIELDS.
+Returns an alist."
   (let ((keys (cl-loop for count from 1 to 5
                       collect (cons (format "fields_attributes[%s][name]" count)
                                     (format "fields_attributes[%s][value]" count)))))
@@ -392,7 +393,8 @@ Current settings are fetched from the server."
                                       "metadata fields" fields-updated)))))
 
 (defun mastodon-profile--update-meta-fields-alist ()
-  "Prompt for new metadata fields information."
+  "Prompt for new metadata fields information.
+Returns the results as an alist."
   (let ((fields-old (mastodon-profile--fields-get
                      nil
                      ;; we must fetch the plaintext version:
