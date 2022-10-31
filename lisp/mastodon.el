@@ -37,6 +37,8 @@
 (require 'mastodon-http)
 (require 'mastodon-toot)
 (require 'url)
+(require 'thingatpt)
+(require 'shr)
 
 (declare-function discover-add-context-menu "discover")
 (declare-function emojify-mode "emojify")
@@ -279,7 +281,7 @@ If a status or account is found, load it in `mastodon.el', if
 not, just browse the URL in the normal fashion."
   (interactive)
   (let* ((query (or query-url
-                    (url-get-url-at-point)
+                    (thing-at-point-url-at-point)
                     (get-text-property (point) 'shr-url)
                     (read-string "Lookup URL: "))))
     (if (not (mastodon--masto-url-p query))
