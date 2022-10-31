@@ -474,7 +474,7 @@ CANCEL means the toot was not sent, so we save the toot text as a draft."
       (cl-pushnew mastodon-toot-current-toot-text
                   mastodon-toot-draft-toots-list :test 'equal)))
   ;; prevent some weird bug when cancelling a non-empty toot:
-  (delete #'mastodon-toot-save-toot-text after-change-functions)
+  (delete #'mastodon-toot--save-toot-text after-change-functions)
   (kill-buffer-and-window))
 
 (defun mastodon-toot--cancel ()
