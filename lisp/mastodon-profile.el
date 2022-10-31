@@ -228,7 +228,9 @@ JSON is the data returned by the server."
   "Fetch current VAL ue from account."
   (let* ((url (mastodon-http--api "accounts/verify_credentials"))
          (response (mastodon-http--get-json url)))
-    (alist-get val response)))
+    (if (eq (alist-get val response) ':json-false)
+        nil
+      (alist-get val response))))
 
 (defun mastodon-profile--get-source-values ()
   "Return the \"source\" preferences from the server."
@@ -237,7 +239,9 @@ JSON is the data returned by the server."
 (defun mastodon-profile--get-source-value (pref)
   "Return account PREF erence from the \"source\" section on the server."
   (let ((source (mastodon-profile--get-source-values)))
-    (alist-get pref source)))
+    (if (eq (alist-get pref source) ':json-false)
+        nil
+      (alist-get pref source))))
 
 (defun mastodon-profile--update-user-profile-note ()
   "Fetch user's profile note and display for editing."
@@ -348,7 +352,7 @@ Current settings are fetched from the server."
                   (mastodon-profile--get-source-value key)
                 (mastodon-profile--get-json-value key)))
          (prompt (format "Account setting %s is %s. Toggle?" key val)))
-    (if (not (equal val :json-false))
+    (if val
         (when (y-or-n-p prompt)
           (mastodon-profile--update-preference (symbol-name key) "false" source))
       (when (y-or-n-p prompt)
