@@ -846,16 +846,16 @@ ROOM is should be workroom object, or a name of a workroom object."
 (defun workroom-kill (room)
   "Kill workroom ROOM.
 
-ROOM is should be workroom object, or a name of a workroom object."
+ROOM is should be a workroom, or a name of a workroom."
   (interactive
    (workroom--require-mode-enable
      (list
       (workroom--read
-       "Kill workroom" (workroom-name (workroom-current-room))
-       t (lambda (cand)
-           (not
-            (workroom-default-p
-             (workroom-get (if (consp cand) (car cand) cand)))))))))
+       "Kill workroom" (workroom-name (workroom-current-room)) t
+       (lambda (cand)
+         (not
+          (workroom-default-p
+           (workroom-get (if (consp cand) (car cand) cand)))))))))
   (workroom--barf-unless-enabled)
   (setq room (if (stringp room)
                  (or (workroom-get room)
@@ -878,6 +878,42 @@ ROOM is should be workroom object, or a name of a workroom object."
      frame 'workroom-previous-room-list
      (delete room
              (frame-parameter frame 'workroom-previous-room-list)))))
+
+(defun workroom-kill-with-buffers (room &optional kill-all)
+  "Kill workroom ROOM with all its buffers.
+
+A buffer is killed only if it doesn't belong to any other non-default
+workroom.  However, interactively, when the prefix argument KILL-ALL
+is given, kill all buffer regardless of other workrooms.
+
+ROOM is should be a workroom, or a name of a workroom."
+  (interactive
+   (workroom--require-mode-enable
+     (list
+      (workroom--read
+       "Kill workroom (with its buffers)"
+       (workroom-name (workroom-current-room)) t
+       (lambda (cand)
+         (not
+          (workroom-default-p
+           (workroom-get (if (consp cand) (car cand) cand)))))))))
+  (workroom--barf-unless-enabled)
+  (setq room (if (stringp room)
+                 (or (workroom-get room)
+                     (signal 'wrong-type-argument
+                             `(workroom-live-p . ,room)))
+               room))
+  (unless (workroomp room)
+    (signal 'wrong-type-argument `(workroomp . ,room)))
+  (let ((buffers (workroom-buffer-list room)))
+    (workroom-kill room)
+    (dolist (buffer buffers)
+      (and (or kill-all
+               (cl-every
+                (lambda (room)
+                  (not (memq buffer (workroom-buffer-list room))))
+                workroom--rooms))
+           (kill-buffer buffer)))))
 
 (defun workroom-kill-view (room view)
   "Kill view VIEW of workroom ROOM.
@@ -1020,9 +1056,8 @@ ROOM is should be workroom object, or a name of a workroom object."
              (if current-prefix-arg
                  (workroom-get
                   (workroom--read
-                   "Parent workroom" (workroom-name
-                                      (workroom-current-room))
-                   t))
+                   "Parent workroom"
+                   (workroom-name (workroom-current-room)) t))
                (workroom-current-room)))
             (view (workroom--read-view
                    room (format-message "Clone view of workroom `%s'"
