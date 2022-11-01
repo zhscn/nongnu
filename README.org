@@ -10,9 +10,13 @@ Each workroom also has its own set of views.  Views are just named
 window configurations.  They allow you to switch to another window
 configuration without losing your well-planned window setup.
 
-You can also bookmark a workroom to restore them at a later time,
-possibly in another Emacs session.  You can also save your workrooms
-in your desktop.
+Workroom integrates with:
+
++ Buffer Menu
++ IBuffer
++ Winner
++ Bookmark
++ Desktop
 
 * Install
 
