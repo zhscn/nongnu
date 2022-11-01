@@ -201,7 +201,7 @@ The value is a mode line terminal like `mode-line-format'."
     (define-key keymap (kbd "S") #'workroom-switch-view)
     (define-key keymap (kbd "d") #'workroom-kill)
     (define-key keymap (kbd "D") #'workroom-kill-view)
-    (define-key keymap (kbd "C-d") #'workroom-kill)
+    (define-key keymap (kbd "C-d") #'workroom-kill-with-buffers)
     (define-key keymap (kbd "r") #'workroom-rename)
     (define-key keymap (kbd "R") #'workroom-rename-view)
     (define-key keymap (kbd "c") #'workroom-clone)
