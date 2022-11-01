@@ -52,22 +52,22 @@
 ;; ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ;;  Key        Command
 ;; ────────────────────────────────────────
-;;  `C-x x s'  `workroom-switch-room'
-;;  `C-x x S'  `workroom-switch-view'
-;;  `C-x x d'  `workroom-kill'
-;;  `C-x x D'  `workroom-kill-view'
-;;  `C-x x r'  `workroom-rename'
-;;  `C-x x R'  `workroom-rename-view'
-;;  `C-x x c'  `workroom-clone'
-;;  `C-x x C'  `workroom-clone-view'
-;;  `C-x x m'  `workroom-bookmark'
-;;  `C-x x b'  `workroom-switch-to-buffer'
-;;  `C-x x a'  `workroom-add-buffer'
-;;  `C-x x k'  `workroom-kill-buffer'
-;;  `C-x x K'  `workroom-remove-buffer'
+;;  `C-x c s'  `workroom-switch-room'
+;;  `C-x c S'  `workroom-switch-view'
+;;  `C-x c d'  `workroom-kill'
+;;  `C-x c D'  `workroom-kill-view'
+;;  `C-x c r'  `workroom-rename'
+;;  `C-x c R'  `workroom-rename-view'
+;;  `C-x c c'  `workroom-clone'
+;;  `C-x c C'  `workroom-clone-view'
+;;  `C-x c m'  `workroom-bookmark'
+;;  `C-x c b'  `workroom-switch-to-buffer'
+;;  `C-x c a'  `workroom-add-buffer'
+;;  `C-x c k'  `workroom-kill-buffer'
+;;  `C-x c K'  `workroom-remove-buffer'
 ;; ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-;; Here the prefix key sequence is `C-x x', but you can customize
+;; Here the prefix key sequence is `C-x c', but you can customize
 ;; `workroom-command-map-prefix' to change it.
 
 ;; You might want to remap ~switch-to-buffer~, ~kill-buffer~ and other
@@ -108,11 +108,19 @@
   :prefix "workroom-"
   :link '(url-link "https://codeberg.org/akib/emacs-workroom"))
 
-(defcustom workroom-command-map-prefix (kbd "C-x x")
+(defcustom workroom-command-map-prefix (kbd "C-x c")
   "Prefix key of Workroom commands.
 
-Workroom-Mode must be reenabled for changes to take effect."
-  :type 'key-sequence)
+Customizing this variable automatically takes effects.  However, after
+changing from Lisp program doesn't immediately take effect.  Call
+`workroom-rebind-command-map-prefix' for changes to take effect.
+Alternatively you can reenable Workroom-Mode which will do that for
+you."
+  :type 'key-sequence
+  :set (lambda (sym val)
+         (set-default sym val)
+         (when (fboundp 'workroom-rebind-command-map-prefix)
+           (workroom-rebind-command-map-prefix))))
 
 (defcustom workroom-default-room-name "master"
   "Name of the default workroom.
@@ -201,6 +209,13 @@ The value is a mode line terminal like `mode-line-format'."
 
 (define-key workroom-mode-map workroom-command-map-prefix
             workroom-command-map)
+
+(defun workroom-rebind-command-map-prefix ()
+  "Rebind command prefix key sequence `workroom-command-map-prefix'."
+  (substitute-key-definition
+   workroom-command-map nil workroom-mode-map)
+  (define-key workroom-mode-map workroom-command-map-prefix
+              workroom-command-map))
 
 
 ;;;; Workroom and View Manipulation.
@@ -1384,14 +1399,11 @@ restrict."
   "Toggle workroom mode."
   :lighter (:eval workroom-mode-lighter)
   :global t
-  (substitute-key-definition 'workroom-command-map nil
-                             workroom-mode-map)
-  (define-key workroom-mode-map workroom-command-map-prefix
-              workroom-command-map)
   (if workroom-mode
       (progn
         (workroom-mode -1)
         (setq workroom-mode t)
+        (workroom-rebind-command-map-prefix)
         (let ((workroom--dont-clear-new-view t)
               (default-room (workroom-get-default)))
           (unless default-room
