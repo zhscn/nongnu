@@ -115,7 +115,7 @@
 Customizing this variable automatically takes effects.  However, after
 changing from Lisp program doesn't immediately take effect.  Call
 `workroom-rebind-command-map-prefix' for changes to take effect.
-Alternatively you can reenable Workroom-Mode which will do that for
+Alternatively you can reenable Workroom mode which will do that for
 you."
   :type 'key-sequence
   :set (lambda (sym val)
@@ -128,7 +128,7 @@ you."
 
 This workroom contains all live buffers of the current Emacs session.
 
-Workroom-Mode must be reenabled for changes to take effect, or the
+Workroom mode must be reenabled for changes to take effect, or the
 name can be manually changed with `workroom-rename'."
   :type 'string)
 
@@ -182,8 +182,16 @@ value can't restored."
 The value is a mode line terminal like `mode-line-format'."
   :type 'sexp)
 
+(defcustom workroom-mode-hook nil
+  "Normal hook run when toggling Workroom mode."
+  :type 'hook)
+
+(defcustom workroom-before-switch-hook nil
+  "Normal hook run before switching workroom or view."
+  :type 'hook)
+
 (defcustom workroom-switch-hook nil
-  "Normal hook run after switching room or view."
+  "Normal hook run after switching workroom or view."
   :type 'hook)
 
 (defvar workroom-command-map
@@ -207,7 +215,7 @@ The value is a mode line terminal like `mode-line-format'."
   "Keymap containing all useful commands of Workroom.")
 
 (defvar workroom-mode-map (make-sparse-keymap)
-  "Keymap for Workroom-Mode.")
+  "Keymap for Workroom mode.")
 
 (define-key workroom-mode-map workroom-command-map-prefix
             workroom-command-map)
@@ -722,12 +730,12 @@ If WRITABLE, return a writable object."
       (switch-to-buffer "*scratch*"))))
 
 (defun workroom--barf-unless-enabled ()
-  "Signal `user-error' unless Workroom-Mode is enabled."
+  "Signal `user-error' unless Workroom mode is enabled."
   (unless workroom-mode
     (user-error "Workroom mode is not enabled")))
 
 (defmacro workroom--require-mode-enable (&rest body)
-  "Execute BODY if Workroom-Mode is enabled, otherwise signal error."
+  "Execute BODY if Workroom mode is enabled, otherwise signal error."
   (declare (indent 0))
   `(progn
      (workroom--barf-unless-enabled)
@@ -816,12 +824,13 @@ switch."
   (when (and (not (eq view (workroom-current-view)))
              (workroom-view-frame view))
     (error "Cannot switch to a view already in use in another frame"))
-  (unless (eq room (workroom-current-room))
-    (when (and (not no-record) (workroom-current-room))
-      (push (workroom-current-room)
-            (frame-parameter nil 'workroom-previous-room-list)))
-    (set-frame-parameter nil 'workroom-current-room room))
   (unless (eq view (workroom-current-view))
+    (run-hooks 'workroom-before-switch-hook)
+    (unless (eq room (workroom-current-room))
+      (when (and (not no-record) (workroom-current-room))
+        (push (workroom-current-room)
+              (frame-parameter nil 'workroom-previous-room-list)))
+      (set-frame-parameter nil 'workroom-current-room room))
     (when (workroom-current-view)
       (setf (workroom--view-window-config (workroom-current-view))
             (workroom--frame-window-config))
@@ -1169,7 +1178,7 @@ If ROOM is the default workroom, kill buffer."
 (defun workroom-switch-to-buffer ()
   "Like `switch-to-buffer' but restricted to current workroom.
 
-When prefix arg is given or Workroom-Mode is disabled, don't
+When prefix arg is given or Workroom mode is disabled, don't
 restrict."
   (declare (interactive-only "Use `switch-to-buffer' instead."))
   (interactive)
@@ -1181,7 +1190,7 @@ restrict."
 (defun workroom-kill-buffer ()
   "Like `kill-buffer' but restricted to current workroom.
 
-When prefix arg is given or Workroom-Mode is disabled, don't
+When prefix arg is given or Workroom mode is disabled, don't
 restrict."
   (declare (interactive-only "Use `kill-buffer' instead."))
   (interactive)
@@ -1294,7 +1303,7 @@ ACTION and ARGS are also described there."
 (defun workroom-buffer-menu ()
   "Like `buffer-menu' but restricted to current workroom.
 
-When prefix arg is given or Workroom-Mode is disabled, don't
+When prefix arg is given or Workroom mode is disabled, don't
 restrict."
   (interactive)
   (if (or current-prefix-arg (not workroom-mode))
@@ -1304,7 +1313,7 @@ restrict."
 (defun workroom-list-buffers ()
   "Like `list-buffers' but restricted to current workroom.
 
-When prefix arg is given or Workroom-Mode is disabled, don't
+When prefix arg is given or Workroom mode is disabled, don't
 restrict."
   (interactive)
   (if (or current-prefix-arg (not workroom-mode))
@@ -1317,7 +1326,7 @@ restrict."
 (defun workroom-electric-buffer-list ()
   "Like `electric-buffer-list' but restricted to current workroom.
 
-When prefix arg is given or Workroom-Mode is disabled, don't
+When prefix arg is given or Workroom mode is disabled, don't
 restrict."
   (interactive)
   (if (or current-prefix-arg (not workroom-mode))
@@ -1372,7 +1381,7 @@ restrict."
 (defun workroom-ibuffer ()
   "Like `ibuffer' but restricted to current workroom.
 
-When prefix arg is given or Workroom-Mode is disabled, don't
+When prefix arg is given or Workroom mode is disabled, don't
 restrict."
   (interactive)
   (let ((workroom--in-workroom-ibuffer
@@ -1853,6 +1862,7 @@ prefix argument is given."
 
 (define-minor-mode workroom-auto-project-workroom-mode
   "Toggle automatically creating project workrooms."
+  :lighter " WR-Project"
   :global t
   :require 'workroom
   (if workroom-auto-project-workroom-mode
@@ -1860,6 +1870,49 @@ prefix argument is given."
                 #'workroom--project-switch-to-appropiate-room)
     (remove-hook 'find-file-hook
                  #'workroom--project-switch-to-appropiate-room)))
+
+
+;;;; Winner Integration.
+
+(defvar winner-ring-alist)
+(defvar winner-ring-size)
+
+(defvar workroom--winner-alist nil
+  "Alist of views and window configuration rings.")
+
+(defun workroom--winner-before-switch ()
+  "Save winner undo list."
+  (let ((entry (assq (selected-frame) winner-ring-alist)))
+    (when entry
+      (setf (alist-get (workroom-current-view) workroom--winner-alist)
+            (cdr entry))
+      ;; A window configuration change is going to happen shortly due
+      ;; to changing view.  We don't wanna record that.
+      (setf (cdr entry) (make-ring 1)))))
+
+(defun workroom--winner-after-switch ()
+  "Restore save winner undo list."
+  (let ((entry (assq (selected-frame) winner-ring-alist)))
+    (when entry
+      (setf (cdr entry) (or (alist-get (workroom-current-view)
+                                       workroom--winner-alist)
+                            (make-ring winner-ring-size))))))
+
+(define-minor-mode workroom-winner-mode
+  "Toggle Workroom Winner integration."
+  :lighter " WR-Winner"
+  :global t
+  :require 'workroom
+  (if workroom-winner-mode
+      (progn
+        (add-hook 'workroom-before-switch-hook
+                  #'workroom--winner-before-switch)
+        (add-hook 'workroom-switch-hook
+                  #'workroom--winner-after-switch))
+    (remove-hook 'workroom-before-switch-hook
+                 #'workroom--winner-before-switch)
+    (remove-hook 'workroom-switch-hook
+                 #'workroom--winner-after-switch)))
 
 (provide 'workroom)
 ;;; workroom.el ends here
