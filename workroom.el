@@ -1865,6 +1865,7 @@ prefix argument is given."
   :lighter " WR-Project"
   :global t
   :require 'workroom
+  :group 'project
   (if workroom-auto-project-workroom-mode
       (add-hook 'find-file-hook
                 #'workroom--project-switch-to-appropiate-room)
@@ -1899,10 +1900,11 @@ prefix argument is given."
                             (make-ring winner-ring-size))))))
 
 (define-minor-mode workroom-winner-mode
-  "Toggle Workroom Winner integration."
+  "Toggle Workroom integration with Winner."
   :lighter " WR-Winner"
   :global t
   :require 'workroom
+  :group 'winner
   (if workroom-winner-mode
       (progn
         (add-hook 'workroom-before-switch-hook
