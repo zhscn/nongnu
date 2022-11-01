@@ -1255,60 +1255,6 @@ ACTION and ARGS are also described there."
         room #'workroom--default-buffer-manager 'do-not-initialize)
        (workroom--default-buffer-manager room :load data buffers)))))
 
-(defun workroom--frame-manage-p (frame)
-  "Return non-nil if workroom should manage FRAME."
-  (and (not (frame-parameter frame 'parent-frame))
-       (eq (frame-parameter frame 'minibuffer) t)))
-
-(defun workroom--init-frame (frame)
-  "Initialize frame FRAME."
-  (when (workroom--frame-manage-p frame)
-    (let ((default (workroom-get-default)))
-      (with-selected-frame frame
-        (workroom-switch-view
-         default (workroom-generate-new-view
-                  default workroom-default-view-name))))))
-
-;;;###autoload
-(define-minor-mode workroom-mode
-  "Toggle workroom mode."
-  :lighter (:eval workroom-mode-lighter)
-  :global t
-  (substitute-key-definition 'workroom-command-map nil
-                             workroom-mode-map)
-  (define-key workroom-mode-map workroom-command-map-prefix
-              workroom-command-map)
-  (if workroom-mode
-      (progn
-        (workroom-mode -1)
-        (setq workroom-mode t)
-        (let ((workroom--dont-clear-new-view t)
-              (default-room (workroom-get-default)))
-          (unless default-room
-            (setq
-             default-room
-             (workroom--make-room
-              :name workroom-default-room-name
-              :buffer-manager #'workroom--default-room-buffer-manager
-              :default-p t))
-            (workroom--default-room-buffer-manager
-             default-room :initialize)
-            (push default-room workroom--rooms))
-          (unless (equal (workroom-name default-room)
-                         workroom-default-room-name)
-            (setf (workroom--room-name default-room)
-                  workroom-default-room-name))
-          (mapc #'workroom--init-frame (frame-list))
-          (add-hook 'after-make-frame-functions
-                    #'workroom--init-frame)))
-    (dolist (frame (frame-list))
-      (when (frame-parameter frame 'workroom-current-room)
-        (set-frame-parameter frame 'workroom-current-room nil)
-        (set-frame-parameter frame 'workroom-current-view nil)
-        (set-frame-parameter frame 'workroom-previous-room-list nil)))
-    (setq workroom--rooms nil)
-    (remove-hook 'after-make-frame-functions #'workroom--init-frame)))
-
 
 ;;;; Buffer Menu Integration.
 
@@ -1371,7 +1317,39 @@ restrict."
 
 ;;;; IBuffer Integration.
 
-(defvar ibuffer-never-show-predicates)
+(defvar workroom--ibuffer-room nil
+  "Buffer-local variable containing the workroom IBuffer is showing.")
+
+(defvar workroom--in-workroom-ibuffer nil
+  "Non-nil means inside `workroom-ibuffer'.")
+
+(declare-function ibuffer-filter-buffers "ibuffer"
+                  (ibuffer-buf last bmarklist all))
+
+(defun workroom--ibuffer-filter-buffers-advice (buffers)
+  "Filter workroom member buffers from BUFFERS."
+  (when workroom--in-workroom-ibuffer
+    (setq-local workroom--ibuffer-room workroom--in-workroom-ibuffer))
+  (if workroom--ibuffer-room
+      (let ((buffer-list (workroom-buffer-list
+                          workroom--ibuffer-room)))
+        (cl-remove-if-not (lambda (entry)
+                            (memq (car entry) buffer-list))
+                          buffers))
+    buffers))
+
+(defun workroom--ibuffer-forget-workroom (&optional _ buffer &rest _)
+  "Unbind `workroom--ibuffer-room' in IBuffer buffer BUFFER."
+  (unless workroom--in-workroom-ibuffer
+    (setq buffer (or buffer "*Ibuffer*"))
+    (when (and (if (buffer-live-p buffer)
+                   (string= (buffer-name buffer) "*Ibuffer*")
+                 (and (string= buffer "*Ibuffer*")
+                      (get-buffer buffer)))
+               (buffer-local-value 'workroom--ibuffer-room
+                                   (get-buffer buffer)))
+      (with-current-buffer "*Ibuffer*"
+        (kill-local-variable 'workroom--ibuffer-room)))))
 
 (defun workroom-ibuffer ()
   "Like `ibuffer' but restricted to current workroom.
@@ -1379,21 +1357,74 @@ restrict."
 When prefix arg is given or Workroom-Mode is disabled, don't
 restrict."
   (interactive)
-  (if (or current-prefix-arg (not workroom-mode))
-      (call-interactively #'ibuffer)
-    (let* ((room (workroom-current-room))
-           (orig-pred ibuffer-never-show-predicates)
-           (pred (lambda (buffer)
-                   (not (memq buffer (workroom-buffer-list room)))))
-           (ibuffer-never-show-predicates (cons pred orig-pred)))
-      (call-interactively #'ibuffer)
-      ;; The following restricts buffer list even after an
-      ;; `ibuffer-update', but calling `ibuffer' doesn't remove that
-      ;; restriction.  So we don't do this.
-      ;; (setf (buffer-local-value 'ibuffer-never-show-predicates
-      ;;                           (get-buffer "*Ibuffer*"))
-      ;;       (cons pred orig-pred))
-      )))
+  (let ((workroom--in-workroom-ibuffer
+         (and (not (or current-prefix-arg (not workroom-mode)))
+              (workroom-current-room))))
+    (call-interactively #'ibuffer)))
+
+
+;;;; Mode.
+
+(defun workroom--frame-manage-p (frame)
+  "Return non-nil if workroom should manage FRAME."
+  (and (not (frame-parameter frame 'parent-frame))
+       (eq (frame-parameter frame 'minibuffer) t)))
+
+(defun workroom--init-frame (frame)
+  "Initialize frame FRAME."
+  (when (workroom--frame-manage-p frame)
+    (let ((default (workroom-get-default)))
+      (with-selected-frame frame
+        (workroom-switch-view
+         default (workroom-generate-new-view
+                  default workroom-default-view-name))))))
+
+;;;###autoload
+(define-minor-mode workroom-mode
+  "Toggle workroom mode."
+  :lighter (:eval workroom-mode-lighter)
+  :global t
+  (substitute-key-definition 'workroom-command-map nil
+                             workroom-mode-map)
+  (define-key workroom-mode-map workroom-command-map-prefix
+              workroom-command-map)
+  (if workroom-mode
+      (progn
+        (workroom-mode -1)
+        (setq workroom-mode t)
+        (let ((workroom--dont-clear-new-view t)
+              (default-room (workroom-get-default)))
+          (unless default-room
+            (setq
+             default-room
+             (workroom--make-room
+              :name workroom-default-room-name
+              :buffer-manager #'workroom--default-room-buffer-manager
+              :default-p t))
+            (workroom--default-room-buffer-manager
+             default-room :initialize)
+            (push default-room workroom--rooms))
+          (unless (equal (workroom-name default-room)
+                         workroom-default-room-name)
+            (setf (workroom--room-name default-room)
+                  workroom-default-room-name))
+          (mapc #'workroom--init-frame (frame-list))
+          (add-hook 'after-make-frame-functions
+                    #'workroom--init-frame))
+        (advice-add #'ibuffer :before
+                    #'workroom--ibuffer-forget-workroom)
+        (advice-add #'ibuffer-filter-buffers :filter-return
+                    #'workroom--ibuffer-filter-buffers-advice))
+    (advice-remove #'ibuffer #'workroom--ibuffer-forget-workroom)
+    (advice-remove #'ibuffer-filter-buffers
+                   #'workroom--ibuffer-filter-buffers-advice)
+    (dolist (frame (frame-list))
+      (when (frame-parameter frame 'workroom-current-room)
+        (set-frame-parameter frame 'workroom-current-room nil)
+        (set-frame-parameter frame 'workroom-current-view nil)
+        (set-frame-parameter frame 'workroom-previous-room-list nil)))
+    (setq workroom--rooms nil)
+    (remove-hook 'after-make-frame-functions #'workroom--init-frame)))
 
 
 ;;;; Workroom Encoding/Decoding.
