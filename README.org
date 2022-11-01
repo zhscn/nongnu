@@ -39,21 +39,22 @@ You can't kill this workroom, but you can customize the variable
 
 All the useful commands can be called with following key sequences:
 
-| Key       | Command                     |
-|-----------+-----------------------------|
-| ~C-x c s~ | ~workroom-switch-room~      |
-| ~C-x c S~ | ~workroom-switch-view~      |
-| ~C-x c d~ | ~workroom-kill~             |
-| ~C-x c D~ | ~workroom-kill-view~        |
-| ~C-x c r~ | ~workroom-rename~           |
-| ~C-x c R~ | ~workroom-rename-view~      |
-| ~C-x c c~ | ~workroom-clone~            |
-| ~C-x c C~ | ~workroom-clone-view~       |
-| ~C-x c m~ | ~workroom-bookmark~         |
-| ~C-x c b~ | ~workroom-switch-to-buffer~ |
-| ~C-x c a~ | ~workroom-add-buffer~       |
-| ~C-x c k~ | ~workroom-kill-buffer~      |
-| ~C-x c K~ | ~workroom-remove-buffer~    |
+| Key         | Command                      |
+|-------------+------------------------------|
+| ~C-x c s~   | ~workroom-switch-room~       |
+| ~C-x c S~   | ~workroom-switch-view~       |
+| ~C-x c d~   | ~workroom-kill~              |
+| ~C-x c D~   | ~workroom-kill-view~         |
+| ~C-x c C-d~ | ~workroom-kill-with-buffers~ |
+| ~C-x c r~   | ~workroom-rename~            |
+| ~C-x c R~   | ~workroom-rename-view~       |
+| ~C-x c c~   | ~workroom-clone~             |
+| ~C-x c C~   | ~workroom-clone-view~        |
+| ~C-x c m~   | ~workroom-bookmark~          |
+| ~C-x c b~   | ~workroom-switch-to-buffer~  |
+| ~C-x c a~   | ~workroom-add-buffer~        |
+| ~C-x c k~   | ~workroom-kill-buffer~       |
+| ~C-x c K~   | ~workroom-remove-buffer~     |
 
 Here the prefix key sequence is ~C-x c~, but you can customize
 ~workroom-command-map-prefix~ to change it.

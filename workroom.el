@@ -49,23 +49,24 @@
 
 ;; All the useful commands can be called with following key sequences:
 
-;; ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-;;  Key        Command
-;; ────────────────────────────────────────
-;;  `C-x c s'  `workroom-switch-room'
-;;  `C-x c S'  `workroom-switch-view'
-;;  `C-x c d'  `workroom-kill'
-;;  `C-x c D'  `workroom-kill-view'
-;;  `C-x c r'  `workroom-rename'
-;;  `C-x c R'  `workroom-rename-view'
-;;  `C-x c c'  `workroom-clone'
-;;  `C-x c C'  `workroom-clone-view'
-;;  `C-x c m'  `workroom-bookmark'
-;;  `C-x c b'  `workroom-switch-to-buffer'
-;;  `C-x c a'  `workroom-add-buffer'
-;;  `C-x c k'  `workroom-kill-buffer'
-;;  `C-x c K'  `workroom-remove-buffer'
-;; ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+;; ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+;;  Key          Command
+;; ───────────────────────────────────────────
+;;  `C-x c s'    `workroom-switch-room'
+;;  `C-x c S'    `workroom-switch-view'
+;;  `C-x c d'    `workroom-kill'
+;;  `C-x c D'    `workroom-kill-view'
+;;  `C-x c C-d'  `workroom-kill-with-buffers'
+;;  `C-x c r'    `workroom-rename'
+;;  `C-x c R'    `workroom-rename-view'
+;;  `C-x c c'    `workroom-clone'
+;;  `C-x c C'    `workroom-clone-view'
+;;  `C-x c m'    `workroom-bookmark'
+;;  `C-x c b'    `workroom-switch-to-buffer'
+;;  `C-x c a'    `workroom-add-buffer'
+;;  `C-x c k'    `workroom-kill-buffer'
+;;  `C-x c K'    `workroom-remove-buffer'
+;; ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ;; Here the prefix key sequence is `C-x c', but you can customize
 ;; `workroom-command-map-prefix' to change it.
@@ -188,19 +189,20 @@ The value is a mode line terminal like `mode-line-format'."
 (defvar workroom-command-map
   (let ((keymap (make-sparse-keymap)))
     ;; NOTE: Be sure to keep commentary and README up to date.
-    (define-key keymap "s" #'workroom-switch)
-    (define-key keymap "S" #'workroom-switch-view)
-    (define-key keymap "d" #'workroom-kill)
-    (define-key keymap "D" #'workroom-kill-view)
-    (define-key keymap "r" #'workroom-rename)
-    (define-key keymap "R" #'workroom-rename-view)
-    (define-key keymap "c" #'workroom-clone)
-    (define-key keymap "C" #'workroom-clone-view)
-    (define-key keymap "m" #'workroom-bookmark)
-    (define-key keymap "b" #'workroom-switch-to-buffer)
-    (define-key keymap "a" #'workroom-add-buffer)
-    (define-key keymap "k" #'workroom-kill-buffer)
-    (define-key keymap "K" #'workroom-remove-buffer)
+    (define-key keymap (kbd "s") #'workroom-switch)
+    (define-key keymap (kbd "S") #'workroom-switch-view)
+    (define-key keymap (kbd "d") #'workroom-kill)
+    (define-key keymap (kbd "D") #'workroom-kill-view)
+    (define-key keymap (kbd "C-d") #'workroom-kill)
+    (define-key keymap (kbd "r") #'workroom-rename)
+    (define-key keymap (kbd "R") #'workroom-rename-view)
+    (define-key keymap (kbd "c") #'workroom-clone)
+    (define-key keymap (kbd "C") #'workroom-clone-view)
+    (define-key keymap (kbd "m") #'workroom-bookmark)
+    (define-key keymap (kbd "b") #'workroom-switch-to-buffer)
+    (define-key keymap (kbd "a") #'workroom-add-buffer)
+    (define-key keymap (kbd "k") #'workroom-kill-buffer)
+    (define-key keymap (kbd "K") #'workroom-remove-buffer)
     keymap)
   "Keymap containing all useful commands of Workroom.")
 
@@ -927,7 +929,8 @@ ROOM is should be a workroom, or a name of a workroom."
                (cl-every
                 (lambda (room)
                   (not (memq buffer (workroom-buffer-list room))))
-                workroom--rooms))
+                (remove (workroom-get-default)
+                        workroom--rooms)))
            (kill-buffer buffer)))))
 
 (defun workroom-kill-view (room view)
