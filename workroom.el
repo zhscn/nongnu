@@ -922,7 +922,8 @@ ROOM is should be a workroom, or a name of a workroom."
        (lambda (cand)
          (not
           (workroom-default-p
-           (workroom-get (if (consp cand) (car cand) cand)))))))))
+           (workroom-get (if (consp cand) (car cand) cand))))))
+      current-prefix-arg)))
   (workroom--barf-unless-enabled)
   (setq room (if (stringp room)
                  (or (workroom-get room)
