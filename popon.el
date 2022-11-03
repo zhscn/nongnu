@@ -600,8 +600,13 @@ Return nil if POINT is not in visible text area.
 NOTE: This uses `posn-at-point', which is slow.  So try to minimize
 calls to this function."
   (let ((window-start-x-y
-         (posn-col-row (posn-at-point (window-start))))
-        (point-x-y (posn-col-row (posn-at-point point) 'use-window)))
+         (if (>= emacs-major-version 29)
+             (posn-col-row (posn-at-point (window-start)) 'use-window)
+           (posn-col-row (posn-at-point (window-start)))))
+        (point-x-y
+         (if (>= emacs-major-version 29)
+             (posn-col-row (posn-at-point point) 'use-window)
+           (posn-col-row (posn-at-point point)))))
     (cons (if (and (or (not truncate-lines) word-wrap)
                    (if truncate-partial-width-windows
                        (>= (window-total-width)
