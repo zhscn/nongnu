@@ -175,6 +175,13 @@ SILENT means don't message."
    (with-temp-buffer
      (mastodon-http--url-retrieve-synchronously url))))
 
+(defun mastodon-http--append-query-string (url params)
+  "Append PARAMS to URL as query strings and return it.
+
+PARAMS should be an alist as required by `url-build-query-string'."
+  (let ((query-string (url-build-query-string params)))
+    (concat url "?" query-string)))
+
 ;; search functions:
 (defun mastodon-http--process-json-search ()
   "Process JSON returned by a search query to the server."
