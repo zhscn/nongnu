@@ -162,6 +162,9 @@ change the setting on the server, see
 (defvar-local mastodon-toot--media-attachment-ids nil
   "A list of any media attachment ids of the toot being composed.")
 
+(defvar-local mastodon-toot-poll-options nil
+  "A list of poll options for the toot being composed.")
+
 (defvar-local mastodon-toot--reply-to-id nil
   "Buffer-local variable to hold the id of the toot being replied to.")
 
@@ -188,6 +191,7 @@ send.")
       (define-key map (kbd "C-c C-e") #'mastodon-toot--insert-emoji))
     (define-key map (kbd "C-c C-a") #'mastodon-toot--attach-media)
     (define-key map (kbd "C-c !") #'mastodon-toot--clear-all-attachments)
+    (define-key map (kbd "C-c C-p") #'mastodon-toot--create-poll)
     map)
   "Keymap for `mastodon-toot'.")
 
@@ -615,7 +619,17 @@ If media items have been attached and uploaded with
                        (mapcar (lambda (id)
                                  (cons "media_ids[]" id))
                                mastodon-toot--media-attachment-ids)))
-         (args (append args-media args-no-media)))
+         (args-poll (when mastodon-toot-poll-options
+                      (append
+                       (mastodon-toot--make-poll-params
+                        mastodon-toot-poll-options)
+                       `(("poll[expires_in]" . ,mastodon-toot-poll-expiry)))))
+         ;; media || polls:
+         (args (if mastodon-toot--media-attachments
+                   (append args-media args-no-media)
+                 (if mastodon-toot-poll-options
+                     (append args-no-media args-poll)
+                   args-no-media))))
     (cond ((and mastodon-toot--media-attachments
                 ;; make sure we have media args
                 ;; and the same num of ids as attachments
@@ -919,6 +933,27 @@ which is used to attach it to a toot when posting."
                           (format " \"%s\" (%s)" description type))))
                 mastodon-toot--media-attachments))
       (list "None")))
+
+(defun mastodon-toot--make-poll-params (options)
+  "Returns an parameter query alist from poll OPTIONS."
+  (let ((key "poll[options][]"))
+    (cl-loop for o in options
+             collect `(,key . ,o))))
+
+(defun mastodon-toot--create-poll ()
+  "Prompt for new poll options and return as a list."
+  (interactive)
+  (let ((length (read-number "Number of poll options [2-4]: " 2)))
+    (setq mastodon-toot-poll-options
+          (cl-loop for x from 1 to length
+                   collect (read-string (format "Poll option [%s/%s]: " x length))))
+    (mastodon-toot--get-poll-expiry)))
+
+(defun mastodon-toot--get-poll-expiry ()
+  "Prompt for a poll expiry time."
+  ;; API requires this in seconds
+  (setq mastodon-toot-poll-expiry
+        (read-string "poll ends in [seconds, min 5 mins]: ")))
 
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
