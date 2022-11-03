@@ -112,10 +112,10 @@
 (defcustom workroom-command-map-prefix (kbd "C-x c")
   "Prefix key of Workroom commands.
 
-Customizing this variable automatically takes effects.  However, after
+Customizing this variable automatically takes effects.  However,
 changing from Lisp program doesn't immediately take effect.  Call
 `workroom-rebind-command-map-prefix' for changes to take effect.
-Alternatively you can reenable Workroom mode which will do that for
+Alternatively you can re-enable Workroom mode which will do that for
 you."
   :type 'key-sequence
   :set (lambda (sym val)
