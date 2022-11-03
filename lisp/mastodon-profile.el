@@ -556,7 +556,8 @@ FIELDS means provide a fields vector fetched by other means."
          (propertize
           (concat
            "\n"
-           (mastodon-profile--image-from-account account)
+           (mastodon-profile--image-from-account account 'avatar_static)
+           (mastodon-profile--image-from-account account 'header_static)
            "\n"
            (propertize (mastodon-profile--account-field
                         account 'display_name)
@@ -621,11 +622,12 @@ If toot is a boost, opens the profile of the booster."
   (mastodon-profile--make-author-buffer
    (alist-get 'account (mastodon-profile--toot-json))))
 
-(defun mastodon-profile--image-from-account (status)
-  "Generate an image from a STATUS."
-  (let ((url (alist-get 'avatar_static status)))
-    (unless (equal url "/avatars/original/missing.png")
-      (mastodon-media--get-media-link-rendering url))))
+(defun mastodon-profile--image-from-account (account img_type)
+  "Return a avatar image from ACCOUNT.
+IMG_TYPE is the JSON key from the account data."
+  (let ((img (alist-get img_type account)))
+    (unless (equal img "/avatars/original/missing.png")
+      (mastodon-media--get-media-link-rendering img))))
 
 (defun mastodon-profile--show-user (user-handle)
   "Query for USER-HANDLE from current status and show that user's profile."
