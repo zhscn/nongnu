@@ -162,7 +162,7 @@ change the setting on the server, see
 (defvar-local mastodon-toot--media-attachment-ids nil
   "A list of any media attachment ids of the toot being composed.")
 
-(defvar-local mastodon-toot-poll-options nil
+(defvar-local mastodon-toot-poll nil
   "A list of poll options for the toot being composed.")
 
 (defvar-local mastodon-toot--reply-to-id nil
@@ -599,6 +599,15 @@ to `emojify-user-emojis', and the emoji data is updated."
   (setq mastodon-toot--visibility visibility)
   (message "Visibility set to %s" visibility))
 
+(defun mastodon-toot--build-poll-params ()
+  "Return an alist of parameters for POSTing a poll status."
+  (append
+   (mastodon-toot--make-poll-params
+    (plist-get mastodon-toot-poll :options))
+   `(("poll[expires_in]" .  ,(plist-get mastodon-toot-poll :expiry)))
+   `(("poll[multiple]" . ,(symbol-name (plist-get mastodon-toot-poll :multi))))
+   `(("poll[hide_totals]" . ,(symbol-name (plist-get mastodon-toot-poll :hide))))))
+
 (defun mastodon-toot--send ()
   "POST contents of new-toot buffer to Mastodon instance and kill buffer.
 If media items have been attached and uploaded with
@@ -619,15 +628,12 @@ If media items have been attached and uploaded with
                        (mapcar (lambda (id)
                                  (cons "media_ids[]" id))
                                mastodon-toot--media-attachment-ids)))
-         (args-poll (when mastodon-toot-poll-options
-                      (append
-                       (mastodon-toot--make-poll-params
-                        mastodon-toot-poll-options)
-                       `(("poll[expires_in]" . ,mastodon-toot-poll-expiry)))))
+         (args-poll (when mastodon-toot-poll
+                      (mastodon-toot--build-poll-params)))
          ;; media || polls:
          (args (if mastodon-toot--media-attachments
                    (append args-media args-no-media)
-                 (if mastodon-toot-poll-options
+                 (if mastodon-toot-poll
                      (append args-no-media args-poll)
                    args-no-media))))
     (cond ((and mastodon-toot--media-attachments
@@ -935,7 +941,7 @@ which is used to attach it to a toot when posting."
       (list "None")))
 
 (defun mastodon-toot--make-poll-params (options)
-  "Returns an parameter query alist from poll OPTIONS."
+  "Return an parameter query alist from poll OPTIONS."
   (let ((key "poll[options][]"))
     (cl-loop for o in options
              collect `(,key . ,o))))
@@ -943,17 +949,26 @@ which is used to attach it to a toot when posting."
 (defun mastodon-toot--create-poll ()
   "Prompt for new poll options and return as a list."
   (interactive)
-  (let ((length (read-number "Number of poll options [2-4]: " 2)))
-    (setq mastodon-toot-poll-options
-          (cl-loop for x from 1 to length
-                   collect (read-string (format "Poll option [%s/%s]: " x length))))
-    (mastodon-toot--get-poll-expiry)))
+  ;; re length, API docs show a poll 9 options.
+  (let* ((length (read-number "Number of poll options [2-9]: " 2))
+         (multiple-p (y-or-n-p "Multiple choice poll? "))
+         (options (mastodon-toot--read-poll-options length))
+         (hide-totals (y-or-n-p "Hide votes until poll ends? "))
+         (expiry (mastodon-toot--get-poll-expiry)))
+    (setq mastodon-toot-poll
+          `(:options ,options :length ,length :multi ,multiple-p :hide ,hide-totals :expiry ,expiry))
+    (message "poll created!")))
+
+(defun mastodon-toot--read-poll-options (length)
+  "Read a list of options for poll of LENGTH options."
+  (cl-loop for x from 1 to length
+           collect (read-string (format "Poll option [%s/%s]: " x length))))
 
 (defun mastodon-toot--get-poll-expiry ()
   "Prompt for a poll expiry time."
   ;; API requires this in seconds
-  (setq mastodon-toot-poll-expiry
-        (read-string "poll ends in [seconds, min 5 mins]: ")))
+  ;; TODO: offer sane poll expiry options
+  (read-string "poll ends in [seconds, min 5 mins]: "))
 
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
