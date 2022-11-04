@@ -71,6 +71,7 @@ Documentation License''.
 * Winner Integration::  Window configuration undo history for views.
 * Desktop Integration::  Save your workrooms in your desktop file.
 * Bookmarking Workroom::  Another way to save your workroom.
+* Project Integration::  Automated buffer list for your project.
 
 Appendices
 * GNU General Public License::  Copying condition for Workroom.
@@ -87,9 +88,9 @@ simultaneously.  As Emacs uptime increases, the number of buffers
 increase too, since you do different sort of a thing in Emacs.
 
 For example, you're working on program A to implement a feature.  You
-have ten buffers open.  Then you discover that someone that reported a
-bug of your program B, and it should be fixed as soon as possible.  So
-you open the six source files and start fixing the bug.  But while
+have some buffers open.  Then you discover that someone that reported
+a bug of your program B, and it should be fixed as soon as possible.
+So you open the some source files and start fixing the bug.  But while
 switching buffers, you have to find your target buffer within the
 (now) irrelevant buffers of program A.  In the meanwhile, someone
 report a security vulnerability in your program C.  You open the
@@ -543,6 +544,29 @@ workroom.  It is bound to @kbd{C-x c m} by default.  It'll ask for the
 workroom to bookmark, then you'll prompted for the name of the
 bookmark.  Then you can just use the standard bookmark commands to
 with the bookmark to restore the bookmark.
+
+@node Project Integration
+@cindex project integration
+@cindex integration, project
+@chapter Project Integration
+
+Adding and removing buffer can become a hassle, especially for
+workrooms with many buffers.  You can automate this by creating a
+project workroom, using the command
+@command{workroom-switch-to-project-workroom}.  This will ask for the
+project, then the name of workroom, and finally create and switch to
+the workroom.  All project buffers will be automatically in the
+workroom.  And you can add non-project buffers, and even remove some
+project buffers.
+
+There is a global minor mode
+@command{workroom-auto-project-workroom-mode}, which creates and
+switches to project workroom as soon as you open a file in a project.
+
+As @command{workroom-auto-project-workroom-mode} creates workroom
+whenever a project file is opened, you'll get duplicate workrooms if
+you enable it before the desktop is loaded.  So you are advised to
+enable the mode after the desktop file (if any) is loaded.
 
 @node GNU General Public License
 @appendix GNU General Public License
