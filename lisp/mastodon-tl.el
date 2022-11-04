@@ -946,6 +946,9 @@ this just means displaying toot client."
 (defun mastodon-tl--get-poll (toot)
   "If TOOT includes a poll, return it as a formatted string."
   (let* ((poll (mastodon-tl--field 'poll toot))
+         (expiry (mastodon-tl--field 'expires_at poll))
+         (expired-p (if (eq (mastodon-tl--field 'expired poll) :json-false) nil t))
+         (multi (mastodon-tl--field 'multiple poll))
          (options (mastodon-tl--field 'options poll))
          (option-titles (mapcar (lambda (x)
                                   (alist-get 'title x))
@@ -958,18 +961,27 @@ this just means displaying toot client."
     (concat "\nPoll: \n\n"
             (mapconcat (lambda (option)
                          (progn
-                           (format "Option %s: %s%s [%s votes].\n"
+                           (format "%s: %s%s%s\n"
                                    (setq option-counter (1+ option-counter))
-                                   (alist-get 'title option)
+                                   (propertize (alist-get 'title option)
+                                               'face 'success)
                                    (make-string
                                     (1+
                                      (- (length longest-option)
                                         (length (alist-get 'title
                                                            option))))
                                     ?\ )
-                                   (alist-get 'votes_count option))))
+                                   (if (eq (alist-get 'votes_count option) nil)
+                                       ""
+                                     (format "[%s votes]" (alist-get 'votes_count option))))))
                        options
                        "\n")
+            (unless expired-p
+              (propertize (format "Expires: %s" expiry)
+                          'face 'font-lock-comment-face))
+            (when expired-p
+              (propertize "Poll expired."
+                          'face 'font-lock-comment-face))
             "\n")))
 
 (defun mastodon-tl--poll-vote (option)
