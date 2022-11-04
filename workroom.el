@@ -62,6 +62,7 @@
 ;;  `C-x c c'    `workroom-clone'
 ;;  `C-x c C'    `workroom-clone-view'
 ;;  `C-x c m'    `workroom-bookmark'
+;;  `C-x c M'    `workroom-bookmark-multiple'
 ;;  `C-x c b'    `workroom-switch-to-buffer'
 ;;  `C-x c a'    `workroom-add-buffer'
 ;;  `C-x c k'    `workroom-kill-buffer'
@@ -196,7 +197,7 @@ The value is a mode line terminal like `mode-line-format'."
 
 (defvar workroom-command-map
   (let ((keymap (make-sparse-keymap)))
-    ;; NOTE: Be sure to keep commentary and README up to date.
+    ;; NOTE: Be sure to keep the commentary and README up to date.
     (define-key keymap (kbd "s") #'workroom-switch)
     (define-key keymap (kbd "S") #'workroom-switch-view)
     (define-key keymap (kbd "d") #'workroom-kill)
@@ -207,6 +208,7 @@ The value is a mode line terminal like `mode-line-format'."
     (define-key keymap (kbd "c") #'workroom-clone)
     (define-key keymap (kbd "C") #'workroom-clone-view)
     (define-key keymap (kbd "m") #'workroom-bookmark)
+    (define-key keymap (kbd "M") #'workroom-bookmark-multiple)
     (define-key keymap (kbd "b") #'workroom-switch-to-buffer)
     (define-key keymap (kbd "a") #'workroom-add-buffer)
     (define-key keymap (kbd "k") #'workroom-kill-buffer)
@@ -561,6 +563,21 @@ See `workroom--read' for PROMPT, DEF, REQUIRE-MATCH and PREDICATE."
      (and (not (equal (workroom-name (workroom-current-room))
                       (if (consp cand) (car cand) cand)))
           (or (not predicate) (funcall predicate cand))))))
+
+(defun workroom--read-multiple ( prompt &optional def require-match
+                                 predicate)
+  "Read the name of some workrooms and return it as a list of strings.
+
+Prompt with PROMPT, where PROMPT should be a string without trailing
+colon and/or space.
+
+Return DEF when input is empty, where DEF is either a string or nil.
+
+REQUIRE-MATCH and PREDICATE is same as in `completing-read-multiple'."
+  (completing-read-multiple
+   (concat prompt (when def (format " (default %s)" def)) ": ")
+   (mapcar #'workroom-name workroom--rooms) predicate require-match
+   nil 'workroom-room-history def))
 
 (defun workroom--read-view ( room prompt &optional def require-match
                              predicate)
@@ -1580,14 +1597,12 @@ when ROOM was encoded."
 (defun workroom-bookmark (room name no-overwrite)
   "Save workroom ROOM to a bookmark named NAME.
 
+ROOM can be a workroom, or a name of a workroom.
+
 If NO-OVERWRITE is nil or prefix argument is given, don't overwrite
 any previous bookmark with the same name."
   (interactive
-   (list (workroom--read
-          "Bookmark workroom" nil t
-          (lambda (cand)
-            (not (equal (workroom-name (workroom-get-default))
-                        (if (consp cand) (car cand) cand)))))
+   (list (workroom--read "Bookmark workroom" nil t)
          (workroom--read-bookmark "Save to bookmark: ")
          current-prefix-arg))
   (workroom--barf-unless-enabled)
@@ -1605,6 +1620,71 @@ any previous bookmark with the same name."
                    :buffers ,(workroom--encode-buffers
                               (workroom-buffer-list room))))
           (handler . workroom-bookmark-jump-to-room))
+   no-overwrite))
+
+;;;###autoload
+(defun workroom-bookmark-jump-to-room-set (bookmark)
+  "Restore the workroom set in bookmark BOOKMARK."
+  (workroom--barf-unless-enabled)
+  (let ((data (cdr (alist-get 'data (bookmark-get-bookmark-record
+                                     bookmark)))))
+    (pcase (plist-get data :version)
+      (1
+       (let* ((buffers (cl-delete-if
+                        #'null
+                        (workroom--decode-buffers
+                         (plist-get data :buffers)))))
+         (dolist (wr (plist-get data :rooms))
+           (let ((buffer-list (cl-delete-if
+                               #'null
+                               (mapcar (lambda (name)
+                                         (alist-get name buffers))
+                                       (plist-get wr :buffers)))))
+             (push (workroom--decode-room-1 (plist-get wr :room)
+                                            buffer-list)
+                   workroom--rooms)))))
+      (version
+       (error "Unsuppported bookmark version %i" version))))
+  (set-buffer (window-buffer)))
+
+(defun workroom-bookmark-multiple (rooms name no-overwrite)
+  "Save the workrooms ROOMS to a bookmark named NAME.
+
+If NO-OVERWRITE is nil or prefix argument is given, don't overwrite
+any previous bookmark with the same name."
+  (interactive
+   (list (workroom--read-multiple "Bookmark workrooms" nil t)
+         (workroom--read-bookmark "Save to bookmark: ")
+         current-prefix-arg))
+  (workroom--barf-unless-enabled)
+  (let ((wrs rooms))
+    (while wrs
+      (setf (car wrs)
+            (if (stringp (car wrs))
+                (or (workroom-get (car wrs))
+                    (signal 'wrong-type-argument
+                            `(workroom-live-p . ,(car wrs))))
+              (car wrs)))
+      (unless (workroom-live-p (car wrs))
+        (signal 'wrong-type-argument `(workroom-live-p . ,(car wrs))))
+      (pop wrs)))
+  (bookmark-store
+   name
+   `((data . (workroom-set
+              :version 1
+              :rooms ,(mapcar
+                       (lambda (wr)
+                         `( :room ,(workroom--encode-room-1 wr)
+                            :buffers ,(mapcar
+                                       #'buffer-name
+                                       (workroom-buffer-list wr))))
+                       rooms)
+              :buffers ,(workroom--encode-buffers
+                         (cl-remove-duplicates
+                          (apply #'append
+                                 (mapcar #'workroom-buffer-list
+                                         rooms))))))
+     (handler . workroom-bookmark-jump-to-room-set))
    no-overwrite))
 
 

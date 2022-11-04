@@ -55,6 +55,7 @@ All the useful commands can be called with following key sequences:
 | ~C-x c c~   | ~workroom-clone~             |
 | ~C-x c C~   | ~workroom-clone-view~        |
 | ~C-x c m~   | ~workroom-bookmark~          |
+| ~C-x c M~   | ~workroom-bookmark-multiple~ |
 | ~C-x c b~   | ~workroom-switch-to-buffer~  |
 | ~C-x c a~   | ~workroom-add-buffer~        |
 | ~C-x c k~   | ~workroom-kill-buffer~       |

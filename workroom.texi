@@ -545,6 +545,16 @@ workroom to bookmark, then you'll prompted for the name of the
 bookmark.  Then you can just use the standard bookmark commands to
 with the bookmark to restore the bookmark.
 
+@findex workroom-bookmark-multiple
+@kindex C-x c m
+@kindex m (command map)
+@kindex command map, m
+You can also bookmark multiple workroom together in a single bookmark.
+You can use the command @command{workroom-bookmark-multiple} to
+bookmark several workrooms.  It is bound to @kbd{C-x c M} by default.
+It is similar to @command{workroom-bookmark}, but it'll ask you for a
+comma separated workroom list instead.
+
 @node Project Integration
 @cindex project integration
 @cindex integration, project
