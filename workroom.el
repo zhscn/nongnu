@@ -52,7 +52,7 @@
 ;; ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ;;  Key          Command
 ;; ───────────────────────────────────────────
-;;  `C-x c s'    `workroom-switch-room'
+;;  `C-x c s'    `workroom-switch'
 ;;  `C-x c S'    `workroom-switch-view'
 ;;  `C-x c d'    `workroom-kill'
 ;;  `C-x c D'    `workroom-kill-view'
