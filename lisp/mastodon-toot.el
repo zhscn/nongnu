@@ -602,7 +602,7 @@ to `emojify-user-emojis', and the emoji data is updated."
 (defun mastodon-toot--build-poll-params ()
   "Return an alist of parameters for POSTing a poll status."
   (append
-   (mastodon-toot--make-poll-params
+   (mastodon-toot--make-poll-options-params
     (plist-get mastodon-toot-poll :options))
    `(("poll[expires_in]" .  ,(plist-get mastodon-toot-poll :expiry)))
    `(("poll[multiple]" . ,(symbol-name (plist-get mastodon-toot-poll :multi))))
@@ -940,7 +940,7 @@ which is used to attach it to a toot when posting."
                 mastodon-toot--media-attachments))
       (list "None")))
 
-(defun mastodon-toot--make-poll-params (options)
+(defun mastodon-toot--make-poll-options-params (options)
   "Return an parameter query alist from poll OPTIONS."
   (let ((key "poll[options][]"))
     (cl-loop for o in options
