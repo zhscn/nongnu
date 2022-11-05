@@ -950,8 +950,8 @@ which is used to attach it to a toot when posting."
   "Prompt for new poll options and return as a list."
   (interactive)
   ;; re length, API docs show a poll 9 options.
-  (let* ((length (read-number "Number of poll options [2-9]: " 2))
-         (multiple-p (y-or-n-p "Multiple choice poll? "))
+  (let* ((length (read-number "Number of options [2-4]: " 2))
+         (multiple-p (y-or-n-p "Multiple choice? "))
          (options (mastodon-toot--read-poll-options length))
          (hide-totals (y-or-n-p "Hide votes until poll ends? "))
          (expiry (mastodon-toot--get-poll-expiry)))
@@ -967,8 +967,25 @@ which is used to attach it to a toot when posting."
 (defun mastodon-toot--get-poll-expiry ()
   "Prompt for a poll expiry time."
   ;; API requires this in seconds
-  ;; TODO: offer sane poll expiry options
-  (read-string "poll ends in [seconds, min 5 mins]: "))
+  (let* ((options (mastodon-toot--poll-expiry-options-alist))
+         (response (completing-read "poll ends in [or enter seconds]: "
+                                    options nil 'confirm)))
+    (or (alist-get response options nil nil #'equal)
+        (if (< (string-to-number response) 600)
+            "600" ;; min 5 mins
+          response))))
+
+(defun mastodon-toot--poll-expiry-options-alist ()
+  "Return an alist of seconds options."
+  `(("5 minutes" . ,(number-to-string (* 60 5)))
+    ("30 minutes" . ,(number-to-string (* 60 30)))
+    ("1 hour" . ,(number-to-string (* 60 60)))
+    ("6 hours" . ,(number-to-string (* 60 60 6)))
+    ("1 day" . ,(number-to-string (* 60 60 24)))
+    ("3 days" . ,(number-to-string (* 60 60 24 3)))
+    ("7 days" . ,(number-to-string (* 60 60 24 7)))
+    ("14 days" . ,(number-to-string (* 60 60 24 14)))
+    ("30 days" . ,(number-to-string (* 60 60 24 30)))))
 
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
