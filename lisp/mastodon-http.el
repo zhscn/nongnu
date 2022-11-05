@@ -154,10 +154,19 @@ SILENT means don't message."
   (with-current-buffer (mastodon-http--get url silent)
     (mastodon-http--process-json)))
 
-(defun mastodon-http--process-json ()
+(defun mastodon-http--process-json (&optional headers)
   "Process JSON response."
   ;; view raw response:
-  ;; (switch-to-buffer (current-buffer))
+  (switch-to-buffer (current-buffer))
+  (when headers
+    (let* ((head-str (buffer-substring-no-properties
+                      (point-min)
+                      (re-search-forward "^$" nil 'move)))
+           (head-list (split-string head-str "\n"))
+           (head-alist (mapcar (lambda (x)
+                                 (split-string x ": "))
+                               head-list)))
+      (setq mastodon-http-headers-alist head-alist)))
   (goto-char (point-min))
   (re-search-forward "^$" nil 'move)
   (let ((json-string
@@ -241,13 +250,13 @@ Pass response buffer to CALLBACK function with args CBARGS."
    "GET"
    (url-retrieve url callback cbargs)))
 
-(defun mastodon-http--get-json-async (url &optional callback &rest args)
+(defun mastodon-http--get-json-async (url &optional headers callback &rest args)
   "Make GET request to URL. Call CALLBACK with json-vector and ARGS."
   (mastodon-http--get-async
    url
    (lambda (status)
      (when status ;; only when we actually get sth?
-       (apply callback (mastodon-http--process-json) args)))))
+       (apply callback (mastodon-http--process-json headers) args)))))
 
 (defun mastodon-http--post-async (url args headers &optional callback &rest cbargs)
   "POST asynchronously to URL with ARGS and HEADERS.

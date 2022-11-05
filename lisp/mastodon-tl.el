@@ -1139,7 +1139,7 @@ Then run CALLBACK with arguments CBARGS."
                                      "?")
                                    "max_id="
                                    (mastodon-tl--as-string id)))))
-    (apply 'mastodon-http--get-json-async url callback cbargs)))
+    (apply 'mastodon-http--get-json-async url nil callback cbargs)))
 
 ;; TODO
 ;; Look into the JSON returned here by Local
@@ -1907,14 +1907,15 @@ from the start if it is nil."
         (goto-char (or mastodon-tl--update-point (point-min)))
         (funcall update-function json)))))
 
-(defun mastodon-tl--init (buffer-name endpoint update-function)
+(defun mastodon-tl--init (buffer-name endpoint update-function &optional headers)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT asynchronously.
-
-UPDATE-FUNCTION is used to recieve more toots."
+UPDATE-FUNCTION is used to recieve more toots.
+HEADERS means to also collect the response headers. Used for paginating
+favourites."
   (let ((url (mastodon-http--api endpoint))
         (buffer (concat "*mastodon-" buffer-name "*")))
     (mastodon-http--get-json-async
-     url 'mastodon-tl--init* buffer endpoint update-function)))
+     url headers 'mastodon-tl--init* buffer endpoint update-function)))
 
 (defun mastodon-tl--init* (json buffer endpoint update-function)
   "Initialize BUFFER with timeline targeted by ENDPOINT.

@@ -183,7 +183,8 @@ contains")
   (message "Loading your favourited toots...")
   (mastodon-tl--init "favourites"
                      "favourites"
-                     'mastodon-tl--timeline))
+                     'mastodon-tl--timeline
+                     :headers))
 
 (defun mastodon-profile--view-bookmarks ()
   "Open a new buffer displaying the user's bookmarks."

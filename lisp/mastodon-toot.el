@@ -203,12 +203,13 @@ send.")
                               nil t)))
     (mastodon-profile--update-preference "privacy" vis :source)))
 
-(defun mastodon-toot--get-max-toot-chars (&optional _no-toot)
+(defun mastodon-toot--get-max-toot-chars (&optional no-toot)
   "Fetch max_toot_chars from `mastodon-instance-url' asynchronously.
 NO-TOOT means we are not calling from a toot buffer."
   (mastodon-http--get-json-async
    (mastodon-http--api "instance")
-   'mastodon-toot--get-max-toot-chars-callback 'no-toot))
+   nil
+   'mastodon-toot--get-max-toot-chars-callback no-toot))
 
 (defun mastodon-toot--get-max-toot-chars-callback (json-response
                                                    &optional no-toot)
