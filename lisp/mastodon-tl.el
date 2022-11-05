@@ -5,7 +5,7 @@
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 1.0.0
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "27.1") (ts "0.3"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'shr)
+(require 'ts)
 (require 'thingatpt) ; for word-at-point
 (require 'time-date)
 (require 'cl-lib)
@@ -982,19 +983,20 @@ this just means displaying toot client."
                         'face 'font-lock-comment-face)
             (let ((str (if expired-p
                            "Poll expired."
-                         (matodon-tl--format-poll-expiry expiry))))
+                         (mastodon-tl--format-poll-expiry expiry))))
               (propertize str 'face 'font-lock-comment-face))
             "\n")))
 
-(defun matodon-tl--format-poll-expiry (timestamp)
+(defun mastodon-tl--format-poll-expiry (timestamp)
   "Convert poll expiry TIMESTAMP into a descriptive string."
-  (let ((parsed (iso8601-parse timestamp)))
-    (cond ((> (decoded-time-day parsed) 0)
-           (format "%s days left" (decoded-time-day parsed)))
-          ((> (decoded-time-hour parsed) 0)
-           (format "%s hours left" (decoded-time-hour parsed)))
-          ((> (decoded-time-minute parsed) 0)
-           (format "%s minutes left" (decoded-time-minute parsed))))))
+  (let ((parsed (ts-human-duration
+                 (ts-diff (ts-parse timestamp) (ts-now)))))
+    (cond ((> (plist-get parsed :days) 0)
+           (format "%s days, %s hours left" (plist-get parsed :days) (plist-get parsed :hours)))
+          ((> (plist-get parsed :hours) 0)
+           (format "%s hours, %s minutes left" (plist-get parsed :hours) (plist-get parsed :minutes)))
+          ((> (plist-get parsed :minutes) 0)
+           (format "%s minutes left" (plist-get parsed :minutes))))))
 
 (defun mastodon-tl--poll-vote (option)
   "If there is a poll at point, prompt user for OPTION to vote on it."
