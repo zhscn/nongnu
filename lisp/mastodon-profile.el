@@ -74,6 +74,8 @@
 (defvar mastodon-tl--update-point)
 (defvar mastodon-mode-map)
 (defvar mastodon-toot--max-toot-chars)
+(defvar mastodon-toot--visibility)
+(defvar mastodon-toot--content-nsfw)
 
 (defvar-local mastodon-profile--account nil
   "The data for the account being described in the current profile buffer.")
@@ -226,7 +228,9 @@ JSON is the data returned by the server."
   "Fetch current VAL ue from account."
   (let* ((url (mastodon-http--api "accounts/verify_credentials"))
          (response (mastodon-http--get-json url)))
-    (alist-get val response)))
+    (if (eq (alist-get val response) ':json-false)
+        nil
+      (alist-get val response))))
 
 (defun mastodon-profile--get-source-values ()
   "Return the \"source\" preferences from the server."
@@ -235,7 +239,9 @@ JSON is the data returned by the server."
 (defun mastodon-profile--get-source-value (pref)
   "Return account PREF erence from the \"source\" section on the server."
   (let ((source (mastodon-profile--get-source-values)))
-    (alist-get pref source)))
+    (if (eq (alist-get pref source) ':json-false)
+        nil
+      (alist-get pref source))))
 
 (defun mastodon-profile--update-user-profile-note ()
   "Fetch user's profile note and display for editing."
@@ -346,7 +352,7 @@ Current settings are fetched from the server."
                   (mastodon-profile--get-source-value key)
                 (mastodon-profile--get-json-value key)))
          (prompt (format "Account setting %s is %s. Toggle?" key val)))
-    (if (not (equal val :json-false))
+    (if val
         (when (y-or-n-p prompt)
           (mastodon-profile--update-preference (symbol-name key) "false" source))
       (when (y-or-n-p prompt)
@@ -364,6 +370,63 @@ Current settings are fetched from the server."
   "Update display name for your account."
   (interactive)
   (mastodon-profile--edit-string-value 'display_name))
+
+(defun mastodon-profile--make-meta-fields-params (fields)
+  "Construct a parameter query string from metadata alist FIELDS.
+Returns an alist."
+  (let ((keys (cl-loop for count from 1 to 5
+                      collect (cons (format "fields_attributes[%s][name]" count)
+                                    (format "fields_attributes[%s][value]" count)))))
+    (cl-loop for a-pair in keys
+             for b-pair in fields
+             append (list (cons (car a-pair)
+                                (car b-pair))
+                          (cons (cdr a-pair)
+                                (cdr b-pair))))))
+
+(defun mastodon-profile-update-meta-fields ()
+  "Prompt for new metadata fields information and PATCH the server."
+  (interactive)
+  (let* ((url (mastodon-http--api "accounts/update_credentials"))
+         (fields-updated (mastodon-profile--update-meta-fields-alist))
+         (params (mastodon-profile--make-meta-fields-params fields-updated))
+         (response (mastodon-http--patch url params)))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (mastodon-profile-fetch-server-account-settings)
+                             (message "Account setting %s updated to %s!"
+                                      "metadata fields" fields-updated)))))
+
+(defun mastodon-profile--update-meta-fields-alist ()
+  "Prompt for new metadata fields information.
+Returns the results as an alist."
+  (let ((fields-old (mastodon-profile--fields-get
+                     nil
+                     ;; we must fetch the plaintext version:
+                     (mastodon-profile--get-source-value 'fields))))
+    ;; offer empty fields if user currently has less than four filled:
+    (while (< (length fields-old) 4)
+      (setq fields-old
+            (append fields-old '(("" . "")))))
+    (let ((alist
+           (cl-loop for f in fields-old
+                    for x from 1 to 5
+                    collect
+                    (cons (read-string
+                           (format "Metadata key [%s/4] (max. 255 chars): " x)
+                           (car f))
+                          (read-string
+                           (format "Metadata value [%s/4] (max. 255 chars): " x)
+                           (cdr f))))))
+      ;; hack to avoiding using `string-limit', which req. 28.1:
+      (mapcar (lambda (x)
+                (cons (mastodon-profile--limit-to-255 (car x))
+                      (mastodon-profile--limit-to-255 (cdr x))))
+              alist))))
+
+(defun mastodon-profile--limit-to-255 (x)
+  "Limit string X to 255 chars max."
+  (if (> (length x) 255) (substring x 0 255) x))
 
 (defun mastodon-profile--get-preferences-pref (pref)
   "Fetch PREF from the endpoint \"/preferences\".
@@ -404,10 +467,12 @@ This endpoint only holds a few preferences. For others, see
                                    their-id))))
     (mastodon-http--get-json url)))
 
-(defun mastodon-profile--fields-get (account)
+(defun mastodon-profile--fields-get (&optional account fields)
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
-Returns an alist."
-  (let ((fields (mastodon-profile--account-field account 'fields)))
+Returns an alist.
+FIELDS means provide a fields vector fetched by other means."
+  (let ((fields (or fields
+                    (mastodon-profile--account-field account 'fields))))
     (when fields
       (mapcar (lambda (el)
                 (cons (alist-get 'name el)

@@ -202,7 +202,8 @@ You can download and use your instance's custom emoji
 | =C-c C-n= | Add sensitive media/nsfw flag    |
 | =C-c C-a= | Upload attachment(s)             |
 | =C-c !=   | Remove all attachments           |
-| =C-c C-e= | add emoji (if =emojify= installed) |
+| =C-c C-e= | Add emoji (if =emojify= installed) |
+| =C-c C-p= | Create a poll                    |
 |---------+----------------------------------|
 
 **** draft toots
@@ -222,6 +223,8 @@ You can download and use your instance's custom emoji
 - =mastodon-search-trending-tags=: View a list of trending hashtags on your instance.
 
 - =mastodon-profile-update-display-name=: Update the display name for your account.
+- =mastodon-profile-update-user-profile-note=: Update your bio note.
+- =mastodon-profile-update-meta-fields=: Update your metadata fields.
 - =mastodon-profile-set-default-toot-visibility=: Set the default visibility for your toots.
 - =mastodon-profile-account-locked-toggle=: Toggle the locked status of your account. Locked accounts have to manually approve follow requests.
 - =mastodon-profile-account-discoverable-toggle=: Toggle the discoverable status of your account. Non-discoverable accounts are not listed in the profile directory.
@@ -283,8 +286,10 @@ to your translator function as its text argument. Here's what
 
 ** Dependencies
 
-This version depends on the library =request= (for uploading attachments). You
-can install it from MELPA, or https://github.com/tkf/emacs-request.
+Hard dependencies (should all install with =mastodon.el=):
+- =request= (for uploading attachments), https://github.com/tkf/emacs-request
+- =persist= for storing some settings across sessions
+- =ts= for poll relative expiry times
 
 Optional dependencies:
 - =company= for autocompletion of mentions and tags when composing a toot
@@ -294,7 +299,7 @@ Optional dependencies:
 
 ** Contributing
 
-PRs, issues, and feature requests are very welcome!
+PRs, issues, feature requests, and general feedback are very welcome!
 
 *** Features
 

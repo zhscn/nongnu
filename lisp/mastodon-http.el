@@ -74,7 +74,8 @@
 
 This is a thin abstraction over the system
 `url-retrieve-synchronously'.  Depending on which version of this
-is available we will call it with or without a timeout."
+is available we will call it with or without a timeout.
+SILENT means don't message."
   (if (< (cdr (func-arity 'url-retrieve-synchronously)) 4)
       (url-retrieve-synchronously url)
     (url-retrieve-synchronously url (or silent nil) nil mastodon-http--timeout)))
@@ -141,14 +142,15 @@ Authorization header is included by default unless UNAUTHENTICATED-P is non-nil.
 
 (defun mastodon-http--get (url &optional silent)
   "Make synchronous GET request to URL.
-
-Pass response buffer to CALLBACK function."
+Pass response buffer to CALLBACK function.
+SILENT means don't message."
   (mastodon-http--authorized-request
    "GET"
    (mastodon-http--url-retrieve-synchronously url silent)))
 
 (defun mastodon-http--get-json (url &optional silent)
-  "Make synchronous GET request to URL. Return JSON response."
+  "Make synchronous GET request to URL. Return JSON response.
+SILENT means don't message."
   (with-current-buffer (mastodon-http--get url silent)
     (mastodon-http--process-json)))
 
@@ -194,7 +196,8 @@ PARAMS should be an alist as required by `url-build-query-string'."
 
 (defun mastodon-http--get-search-json (url query &optional param silent)
   "Make GET request to URL, searching for QUERY and return JSON response.
-PARAM is any extra parameters to send with the request."
+PARAM is any extra parameters to send with the request.
+SILENT means don't message."
   (let ((buffer (mastodon-http--get-search url query param silent)))
     (with-current-buffer buffer
       (mastodon-http--process-json-search))))
@@ -202,7 +205,8 @@ PARAM is any extra parameters to send with the request."
 (defun mastodon-http--get-search (base-url query &optional param silent)
   "Make GET request to BASE-URL, searching for QUERY.
 Pass response buffer to CALLBACK function.
-PARAM is a formatted request parameter, eg 'following=true'."
+PARAM is a formatted request parameter, eg 'following=true'.
+SILENT means don't message."
   (mastodon-http--authorized-request
    "GET"
    (let ((url (if param

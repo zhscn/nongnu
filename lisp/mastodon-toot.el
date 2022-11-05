@@ -76,6 +76,7 @@
 (autoload 'mastodon-toot "mastodon")
 (autoload 'mastodon-profile--get-source-pref "mastodon-profile")
 (autoload 'mastodon-profile--update-preference "mastodon-profile")
+(autoload 'mastodon-profile-fetch-server-account-settings "mastodon-profile")
 (autoload 'mastodon-tl--render-text "mastodon-tl")
 
 ;; for mastodon-toot--translate-toot-text
@@ -161,6 +162,9 @@ change the setting on the server, see
 (defvar-local mastodon-toot--media-attachment-ids nil
   "A list of any media attachment ids of the toot being composed.")
 
+(defvar-local mastodon-toot-poll nil
+  "A list of poll options for the toot being composed.")
+
 (defvar-local mastodon-toot--reply-to-id nil
   "Buffer-local variable to hold the id of the toot being replied to.")
 
@@ -187,6 +191,7 @@ send.")
       (define-key map (kbd "C-c C-e") #'mastodon-toot--insert-emoji))
     (define-key map (kbd "C-c C-a") #'mastodon-toot--attach-media)
     (define-key map (kbd "C-c !") #'mastodon-toot--clear-all-attachments)
+    (define-key map (kbd "C-c C-p") #'mastodon-toot--create-poll)
     map)
   "Keymap for `mastodon-toot'.")
 
@@ -473,7 +478,7 @@ CANCEL means the toot was not sent, so we save the toot text as a draft."
       (cl-pushnew mastodon-toot-current-toot-text
                   mastodon-toot-draft-toots-list :test 'equal)))
   ;; prevent some weird bug when cancelling a non-empty toot:
-  (delete #'mastodon-toot-save-toot-text after-change-functions)
+  (delete #'mastodon-toot--save-toot-text after-change-functions)
   (kill-buffer-and-window))
 
 (defun mastodon-toot--cancel ()
@@ -594,6 +599,15 @@ to `emojify-user-emojis', and the emoji data is updated."
   (setq mastodon-toot--visibility visibility)
   (message "Visibility set to %s" visibility))
 
+(defun mastodon-toot--build-poll-params ()
+  "Return an alist of parameters for POSTing a poll status."
+  (append
+   (mastodon-toot--make-poll-options-params
+    (plist-get mastodon-toot-poll :options))
+   `(("poll[expires_in]" .  ,(plist-get mastodon-toot-poll :expiry)))
+   `(("poll[multiple]" . ,(symbol-name (plist-get mastodon-toot-poll :multi))))
+   `(("poll[hide_totals]" . ,(symbol-name (plist-get mastodon-toot-poll :hide))))))
+
 (defun mastodon-toot--send ()
   "POST contents of new-toot buffer to Mastodon instance and kill buffer.
 If media items have been attached and uploaded with
@@ -614,7 +628,14 @@ If media items have been attached and uploaded with
                        (mapcar (lambda (id)
                                  (cons "media_ids[]" id))
                                mastodon-toot--media-attachment-ids)))
-         (args (append args-media args-no-media)))
+         (args-poll (when mastodon-toot-poll
+                      (mastodon-toot--build-poll-params)))
+         ;; media || polls:
+         (args (if mastodon-toot--media-attachments
+                   (append args-media args-no-media)
+                 (if mastodon-toot-poll
+                     (append args-no-media args-poll)
+                   args-no-media))))
     (cond ((and mastodon-toot--media-attachments
                 ;; make sure we have media args
                 ;; and the same num of ids as attachments
@@ -919,6 +940,53 @@ which is used to attach it to a toot when posting."
                 mastodon-toot--media-attachments))
       (list "None")))
 
+(defun mastodon-toot--make-poll-options-params (options)
+  "Return an parameter query alist from poll OPTIONS."
+  (let ((key "poll[options][]"))
+    (cl-loop for o in options
+             collect `(,key . ,o))))
+
+(defun mastodon-toot--create-poll ()
+  "Prompt for new poll options and return as a list."
+  (interactive)
+  ;; re length, API docs show a poll 9 options.
+  (let* ((length (read-number "Number of options [2-4]: " 2))
+         (multiple-p (y-or-n-p "Multiple choice? "))
+         (options (mastodon-toot--read-poll-options length))
+         (hide-totals (y-or-n-p "Hide votes until poll ends? "))
+         (expiry (mastodon-toot--get-poll-expiry)))
+    (setq mastodon-toot-poll
+          `(:options ,options :length ,length :multi ,multiple-p :hide ,hide-totals :expiry ,expiry))
+    (message "poll created!")))
+
+(defun mastodon-toot--read-poll-options (length)
+  "Read a list of options for poll of LENGTH options."
+  (cl-loop for x from 1 to length
+           collect (read-string (format "Poll option [%s/%s]: " x length))))
+
+(defun mastodon-toot--get-poll-expiry ()
+  "Prompt for a poll expiry time."
+  ;; API requires this in seconds
+  (let* ((options (mastodon-toot--poll-expiry-options-alist))
+         (response (completing-read "poll ends in [or enter seconds]: "
+                                    options nil 'confirm)))
+    (or (alist-get response options nil nil #'equal)
+        (if (< (string-to-number response) 600)
+            "600" ;; min 5 mins
+          response))))
+
+(defun mastodon-toot--poll-expiry-options-alist ()
+  "Return an alist of seconds options."
+  `(("5 minutes" . ,(number-to-string (* 60 5)))
+    ("30 minutes" . ,(number-to-string (* 60 30)))
+    ("1 hour" . ,(number-to-string (* 60 60)))
+    ("6 hours" . ,(number-to-string (* 60 60 6)))
+    ("1 day" . ,(number-to-string (* 60 60 24)))
+    ("3 days" . ,(number-to-string (* 60 60 24 3)))
+    ("7 days" . ,(number-to-string (* 60 60 24 7)))
+    ("14 days" . ,(number-to-string (* 60 60 24 14)))
+    ("30 days" . ,(number-to-string (* 60 60 24 30)))))
+
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
 (defun mastodon-toot--get-mode-kbinds ()
@@ -1186,6 +1254,9 @@ a draft into the buffer."
     (push #'mastodon-toot--save-toot-text after-change-functions)
     (when initial-text
       (insert initial-text))))
+
+;;;###autoload
+(add-hook 'mastodon-toot-mode-hook #'mastodon-profile-fetch-server-account-settings)
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."
