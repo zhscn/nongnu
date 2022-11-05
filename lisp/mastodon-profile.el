@@ -296,26 +296,27 @@ This is done after changing the setting on the server."
   "Fetch basic account settings from the server.
 Store the values in `mastodon-profile-account-settings'.
 Run in `mastodon-mode-hook'."
-  (let ((keys '(locked discoverable display_name bot))
-        (source-keys '(privacy sensitive language)))
-    (mapc (lambda (k)
-            (mastodon-profile-update-preference-plist
-             k
-             (mastodon-profile--get-json-value k)))
-          keys)
-    (mapc (lambda (sk)
-            (mastodon-profile-update-preference-plist
-             sk
-             (mastodon-profile--get-source-value sk)))
-          source-keys)
-    ;; hack for max toot chars:
-    (mastodon-toot--get-max-toot-chars :no-toot)
-    (mastodon-profile-update-preference-plist 'max_toot_chars
-                                              mastodon-toot--max-toot-chars)
-    ;; TODO: remove now redundant vars, replace with fetchers from the plist
-    (setq mastodon-toot--visibility (mastodon-profile--get-pref 'privacy)
-          mastodon-toot--content-nsfw (mastodon-profile--get-pref 'sensitive))
-    mastodon-profile-account-settings))
+  (unless mastodon-profile-account-settings
+    (let ((keys '(locked discoverable display_name bot))
+          (source-keys '(privacy sensitive language)))
+      (mapc (lambda (k)
+              (mastodon-profile-update-preference-plist
+               k
+               (mastodon-profile--get-json-value k)))
+            keys)
+      (mapc (lambda (sk)
+              (mastodon-profile-update-preference-plist
+               sk
+               (mastodon-profile--get-source-value sk)))
+            source-keys)
+      ;; hack for max toot chars:
+      (mastodon-toot--get-max-toot-chars :no-toot)
+      (mastodon-profile-update-preference-plist 'max_toot_chars
+                                                mastodon-toot--max-toot-chars)
+      ;; TODO: remove now redundant vars, replace with fetchers from the plist
+      (setq mastodon-toot--visibility (mastodon-profile--get-pref 'privacy)
+            mastodon-toot--content-nsfw (mastodon-profile--get-pref 'sensitive))
+      mastodon-profile-account-settings)))
 
 (defun mastodon-profile-account-locked-toggle ()
   "Toggle the locked status of your account.
