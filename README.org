@@ -202,7 +202,8 @@ You can download and use your instance's custom emoji
 | =C-c C-n= | Add sensitive media/nsfw flag    |
 | =C-c C-a= | Upload attachment(s)             |
 | =C-c !=   | Remove all attachments           |
-| =C-c C-e= | add emoji (if =emojify= installed) |
+| =C-c C-e= | Add emoji (if =emojify= installed) |
+| =C-c C-p= | Create a poll                    |
 |---------+----------------------------------|
 
 **** draft toots
