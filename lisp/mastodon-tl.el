@@ -949,6 +949,7 @@ this just means displaying toot client."
          (expiry (mastodon-tl--field 'expires_at poll))
          (expired-p (if (eq (mastodon-tl--field 'expired poll) :json-false) nil t))
          (multi (mastodon-tl--field 'multiple poll))
+         (vote-count (mastodon-tl--field 'voters_count poll))
          (options (mastodon-tl--field 'options poll))
          (option-titles (mapcar (lambda (x)
                                   (alist-get 'title x))
@@ -976,13 +977,24 @@ this just means displaying toot client."
                                                             "0")))))
                        options
                        "\n")
-            (unless expired-p
-              (propertize (format "Expires: %s" expiry)
-                          'face 'font-lock-comment-face))
-            (when expired-p
-              (propertize "Poll expired."
-                          'face 'font-lock-comment-face))
+            "\n"
+            (propertize (format "%s people | " vote-count)
+                        'face 'font-lock-comment-face)
+            (let ((str (if expired-p
+                           "Poll expired."
+                         (matodon-tl--format-poll-expiry expiry))))
+              (propertize str 'face 'font-lock-comment-face))
             "\n")))
+
+(defun matodon-tl--format-poll-expiry (timestamp)
+  "Convert poll expiry TIMESTAMP into a descriptive string."
+  (let ((parsed (iso8601-parse timestamp)))
+    (cond ((> (decoded-time-day parsed) 0)
+           (format "%s days left" (decoded-time-day parsed)))
+          ((> (decoded-time-hour parsed) 0)
+           (format "%s hours left" (decoded-time-hour parsed)))
+          ((> (decoded-time-minute parsed) 0)
+           (format "%s minutes left" (decoded-time-minute parsed))))))
 
 (defun mastodon-tl--poll-vote (option)
   "If there is a poll at point, prompt user for OPTION to vote on it."
