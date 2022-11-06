@@ -1893,7 +1893,7 @@ argument while setting as the buffer manager, PROJECT, the project."
 (defun workroom--project-name (project)
   "Return a name for project PROJECT."
   (let ((root (project-root project)))
-    (if (string-match "/\\([^/]+\\)/\\'" root)
+    (if (string-match "/\\([^/]+\\)/?\\'" root)
         (match-string 1 root)
       root)))
 
