@@ -1203,6 +1203,33 @@ Added to `after-change-functions' in new toot buffers."
   (setq mastodon-toot-draft-toots-list nil)
   (message "All drafts deleted!"))
 
+(defun mastodon-toot--propertize-tags-and-handles (&rest _args)
+  "Propertize tags and handles in toot compose buffer.
+Added to `after-change-functions'."
+  (when (mastodon-toot-compose-buffer-p)
+    (let ((header-region
+           (mastodon-tl--find-property-range 'toot-post-header
+                                             (point-min))))
+      ;; cull any prev props:
+      ;; stops all text after a handle or mention being propertized:
+      (set-text-properties (cdr header-region) (point-max) nil)
+      ;; TODO: confirm allowed hashtag/handle characters:
+      (mastodon-toot--propertize-item "#[1-9a-zA-Z_]+"
+                                      'success
+                                      (cdr header-region))
+      (mastodon-toot--propertize-item "@[1-9a-zA-Z._]+"
+                                      'mastodon-display-name-face
+                                      (cdr header-region)))))
+
+(defun mastodon-toot--propertize-item (regex face start)
+  "Propertize item matching REGEX with FACE starting from START."
+  (save-excursion
+    (goto-char start)
+    (cl-loop while (search-forward-regexp regex nil :noerror)
+             do (add-text-properties (match-beginning 0)
+                                     (match-end 0)
+                                     `(face ,face)))))
+
 (defun mastodon-toot-compose-buffer-p ()
   "Return t if compose buffer is current."
   (equal (buffer-name (current-buffer)) "*new toot*"))
@@ -1252,6 +1279,7 @@ a draft into the buffer."
     ;; draft toot text saving:
     (setq mastodon-toot-current-toot-text nil)
     (push #'mastodon-toot--save-toot-text after-change-functions)
+    (push #'mastodon-toot--propertize-tags-and-handles after-change-functions)
     (when initial-text
       (insert initial-text))))
 
