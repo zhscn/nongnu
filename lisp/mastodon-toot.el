@@ -1217,7 +1217,7 @@ Added to `after-change-functions'."
       (mastodon-toot--propertize-item "#[1-9a-zA-Z_]+"
                                       'success
                                       (cdr header-region))
-      (mastodon-toot--propertize-item "@[1-9a-zA-Z._]+"
+      (mastodon-toot--propertize-item "@[1-9a-zA-Z._-]+"
                                       'mastodon-display-name-face
                                       (cdr header-region)))))
 
