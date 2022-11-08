@@ -884,7 +884,8 @@ ROOM is should be workroom object, or a name of a workroom object."
                  "Empty string for workroom name is not allowed")
               (workroom-get-create room))
           room))
-  (workroom-switch-view room nil))
+  (unless (eq room (workroom-current-room))
+    (workroom-switch-view room nil)))
 
 (defun workroom-kill (room)
   "Kill workroom ROOM.
