@@ -372,12 +372,12 @@ Used on initializing a timeline or thread."
      (propertize (concat "@" handle)
                  'face 'mastodon-handle-face
                  'mouse-face 'highlight
-		 'mastodon-tab-stop 'user-handle
+		         'mastodon-tab-stop 'user-handle
                  'account account
-		 'shr-url profile-url
-		 'keymap mastodon-tl--link-keymap
+		         'shr-url profile-url
+		         'keymap mastodon-tl--link-keymap
                  'mastodon-handle (concat "@" handle)
-		 'help-echo (concat "Browse user profile of @" handle))
+		         'help-echo (concat "Browse user profile of @" handle))
      ")")))
 
 (defun mastodon-tl--format-faves-count (toot)
@@ -593,10 +593,10 @@ this just means displaying toot client."
                           'face 'mastodon-display-name-face
                           'follow-link t
                           'mouse-face 'highlight
-		          'mastodon-tab-stop 'shr-url
-		          'shr-url app-url
+		                  'mastodon-tab-stop 'shr-url
+		                  'shr-url app-url
                           'help-echo app-url
-		          'keymap mastodon-tl--shr-map-replacement)))))
+		                  'keymap mastodon-tl--shr-map-replacement)))))
        (propertize "\n  ------------\n" 'face 'default))
       'favourited-p faved
       'boosted-p    boosted
@@ -1561,10 +1561,10 @@ IND is the optional indentation level to print at."
      (format "%-5s: "
              (propertize (alist-get key alist)
                          'face '(:underline t)))
-            (mastodon-tl--newline-if-long (alist-get value alist))
-            (format "%s" (mastodon-tl--render-text
-                          (alist-get value alist)))
-            "\n")))
+     (mastodon-tl--newline-if-long (alist-get value alist))
+     (format "%s" (mastodon-tl--render-text
+                   (alist-get value alist)))
+     "\n")))
 
 (defun mastodon-tl--newline-if-long (el)
   "Return a newline string if the cdr of EL is over 50 characters long."
