@@ -1533,7 +1533,7 @@ IND is the optional indentation level to print at."
             (when ind (indent-to ind))
             (insert (mastodon-tl--format-key el pad)
                     " "
-                    (mastodon-tl--newline-if-long el)
+                    (mastodon-tl--newline-if-long (cdr el))
                     ;; only send strings straight to --render-text
                     ;; this makes hyperlinks work:
                     (if (not (stringp val))
@@ -1551,17 +1551,18 @@ IND is the optional indentation level to print at."
      (format "%-5s: "
              (propertize (alist-get key alist)
                          'face '(:underline t)))
-            (mastodon-tl--newline-if-long (assoc value alist))
+            (mastodon-tl--newline-if-long (alist-get value alist))
             (format "%s" (mastodon-tl--render-text
                           (alist-get value alist)))
             "\n")))
 
 (defun mastodon-tl--newline-if-long (el)
   "Return a newline string if the cdr of EL is over 50 characters long."
-  (if (and (sequencep (cdr el))
-           (< 50 (length (cdr el))))
-      "\n"
-    ""))
+  (let ((rend (if (stringp el) (mastodon-tl--render-text el) el)))
+    (if (and (sequencep rend)
+             (< 50 (length rend)))
+        "\n"
+      "")))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
   "Query for USER-HANDLE from current status and follow that user.
