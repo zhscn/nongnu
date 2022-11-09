@@ -1939,15 +1939,10 @@ favourites."
     (mastodon-http--get-json-async
      url 'mastodon-tl--init* buffer endpoint update-function)))
 
-(defun mastodon-tl--init* (response buffer endpoint update-function)
+(defun mastodon-tl--init* (json buffer endpoint update-function)
   "Initialize BUFFER with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to recieve more toots.
 RESPONSE is the data returned from the server by `mastodon-http--process-json', a cons cell of JSON and http headers."
-  (let* ((json response))
-         ;; (link-header (when headers
-                        ;; (split-string
-                         ;; (car (alist-get "Link" headers nil nil 'equal))
-                         ;; ","))))
   (with-output-to-temp-buffer buffer
     (switch-to-buffer buffer)
     ;; mastodon-mode wipes buffer-spec, so order must unforch be:
@@ -1982,10 +1977,6 @@ RESPONSE is the data returned from the server by `mastodon-http--process-json', 
     (unless (string-prefix-p "accounts" endpoint)
       ;; for everything save profiles
       (mastodon-tl--goto-first-item))))
-;;(or (equal endpoint "notifications")
-;; (string-prefix-p "timelines" endpoint)
-;; (string-prefix-p "favourites" endpoint)
-;; (string-prefix-p "statuses" endpoint))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
