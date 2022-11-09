@@ -168,6 +168,11 @@ change the setting on the server, see
 (defvar-local mastodon-toot--reply-to-id nil
   "Buffer-local variable to hold the id of the toot being replied to.")
 
+
+(defvar-local mastodon-toot-previous-window-config nil
+  "A list of window configuration prior to composing a toot.
+Takes its form from `window-configuration-to-register'.")
+
 (defvar mastodon-toot--max-toot-chars nil
   "The maximum allowed characters count for a single toot.")
 
@@ -473,13 +478,15 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
 (defun mastodon-toot--kill (&optional cancel)
   "Kill `mastodon-toot-mode' buffer and window.
 CANCEL means the toot was not sent, so we save the toot text as a draft."
-  (unless (eq mastodon-toot-current-toot-text nil)
-    (when cancel
-      (cl-pushnew mastodon-toot-current-toot-text
-                  mastodon-toot-draft-toots-list :test 'equal)))
-  ;; prevent some weird bug when cancelling a non-empty toot:
-  (delete #'mastodon-toot--save-toot-text after-change-functions)
-  (kill-buffer-and-window))
+  (let ((prev-window-config mastodon-toot-previous-window-config))
+    (unless (eq mastodon-toot-current-toot-text nil)
+      (when cancel
+        (cl-pushnew mastodon-toot-current-toot-text
+                    mastodon-toot-draft-toots-list :test 'equal)))
+    ;; prevent some weird bug when cancelling a non-empty toot:
+    (delete #'mastodon-toot--save-toot-text after-change-functions)
+    (kill-buffer-and-window)
+    (mastodon-toot--restore-previous-window-config prev-window-config)))
 
 (defun mastodon-toot--cancel ()
   "Kill new-toot buffer/window. Does not POST content to Mastodon.
@@ -635,7 +642,8 @@ If media items have been attached and uploaded with
                    (append args-media args-no-media)
                  (if mastodon-toot-poll
                      (append args-no-media args-poll)
-                   args-no-media))))
+                   args-no-media)))
+         (prev-window-config mastodon-toot-previous-window-config))
     (cond ((and mastodon-toot--media-attachments
                 ;; make sure we have media args
                 ;; and the same num of ids as attachments
@@ -653,7 +661,14 @@ If media items have been attached and uploaded with
              (mastodon-http--triage response
                                     (lambda ()
                                       (mastodon-toot--kill)
-                                      (message "Toot toot!"))))))))
+                                      (message "Toot toot!")
+                                      (mastodon-toot--restore-previous-window-config prev-window-config))))))))
+
+(defun mastodon-toot--restore-previous-window-config (config)
+  "Restore the window CONFIG after killing the toot compose buffer.
+Buffer-local variable `mastodon-toot-previous-window-config' holds the config."
+  (set-window-configuration (car config))
+  (goto-char (cadr config)))
 
 (defun mastodon-toot--process-local (acct)
   "Add domain to local ACCT and replace the curent user name with \"\".
@@ -1247,7 +1262,9 @@ a draft into the buffer."
   (let* ((buffer-exists (get-buffer "*new toot*"))
          (buffer (or buffer-exists (get-buffer-create "*new toot*")))
          (inhibit-read-only t)
-         (reply-text (alist-get 'content reply-json)))
+         (reply-text (alist-get 'content reply-json))
+         (previous-window-config (list (current-window-configuration)
+                                       (point-marker))))
     (switch-to-buffer-other-window buffer)
     (text-mode)
     (mastodon-toot-mode t)
@@ -1280,6 +1297,8 @@ a draft into the buffer."
     (setq mastodon-toot-current-toot-text nil)
     (push #'mastodon-toot--save-toot-text after-change-functions)
     (push #'mastodon-toot--propertize-tags-and-handles after-change-functions)
+    ;; if we set this before changing modes, it gets nuked:
+    (setq mastodon-toot-previous-window-config previous-window-config)
     (when initial-text
       (insert initial-text))))
 
