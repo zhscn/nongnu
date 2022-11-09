@@ -466,7 +466,8 @@ This endpoint only holds a few preferences. For others, see
          (url (mastodon-http--api (format
                                    "accounts/relationships?id[]=%s"
                                    their-id))))
-    (mastodon-http--get-json url)))
+    ;; FIXME: not sure why we need to do this for relationships only!
+    (car (mastodon-http--get-json url))))
 
 (defun mastodon-profile--fields-get (&optional account fields)
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
@@ -528,11 +529,9 @@ FIELDS means provide a fields vector fetched by other means."
                         account 'statuses_count)))
          (relationships (mastodon-profile--relationships-get id))
          (followed-by-you (when (not (seq-empty-p relationships))
-                            (alist-get 'following
-                                       (aref relationships 0))))
+                            (alist-get 'following relationships)))
          (follows-you (when (not (seq-empty-p relationships))
-                        (alist-get 'followed_by
-                                   (aref relationships 0))))
+                        (alist-get 'followed_by relationships)))
          (followsp (or (equal follows-you 't) (equal followed-by-you 't)))
          (fields (mastodon-profile--fields-get account))
          (pinned (mastodon-profile--get-statuses-pinned account)))
