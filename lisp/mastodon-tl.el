@@ -1949,10 +1949,7 @@ RESPONSE is the data returned from the server by `mastodon-http--process-json', 
   (let* ((json (if headers (car response) response))
          (headers (if headers (cdr response) nil))
          (link-header (when headers
-                        (split-string
-                         (car
-                          (alist-get "Link" headers nil nil 'equal))
-                                      ", "))))
+                        (split-string (alist-get "Link" headers nil nil 'equal) ", "))))
   (with-output-to-temp-buffer buffer
     (switch-to-buffer buffer)
     ;; mastodon-mode wipes buffer-spec, so order must unforch be:
