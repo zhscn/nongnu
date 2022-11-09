@@ -1232,11 +1232,9 @@ ID is that of the toot to view."
       (with-output-to-temp-buffer buffer
         (switch-to-buffer buffer)
         (mastodon-mode)
-        (setq mastodon-tl--buffer-spec
-              `(buffer-name ,buffer
-                            endpoint ,(format "statuses/%s" id)
-                            update-function
-                            (lambda (toot) (message "END of thread."))))
+        (mastodon-tl--set-buffer-spec buffer
+                                      (format "statuses/%s" id)
+                                      (lambda (toot) (message "END of thread.")))
         (let ((inhibit-read-only t))
           (mastodon-tl--toot toot :detailed-p))))))
 
@@ -1273,11 +1271,10 @@ ID is that of the toot to view."
             (with-output-to-temp-buffer buffer
               (switch-to-buffer buffer)
               (mastodon-mode)
-              (setq mastodon-tl--buffer-spec
-                    `(buffer-name ,buffer
-                                  endpoint ,(format "statuses/%s/context" id)
-                                  update-function
-                                  (lambda (toot) (message "END of thread."))))
+              (mastodon-tl--set-buffer-spec
+               buffer
+               (format "statuses/%s/context" id)
+               (lambda (toot) (message "END of thread.")))
               (let ((inhibit-read-only t))
                 (mastodon-tl--timeline (alist-get 'ancestors context))
                 (goto-char (point-max))
@@ -1942,21 +1939,26 @@ favourites."
     (mastodon-http--get-json-async
      url headers 'mastodon-tl--init* buffer endpoint update-function)))
 
-(defun mastodon-tl--init* (json buffer endpoint update-function)
+(defun mastodon-tl--init* (response buffer endpoint update-function)
   "Initialize BUFFER with timeline targeted by ENDPOINT.
-
 UPDATE-FUNCTION is used to recieve more toots.
-JSON is the data returned from the server."
+RESPONSE is the data returned from the server by `mastodon-http--process-json', a cons cell of JSON and http headers."
+  (let* ((json (car response))
+         (headers (cdr response))
+         (link-header (when headers
+                        (split-string
+                         (car (alist-get "Link" headers nil nil 'equal))
+                         ","))))
   (with-output-to-temp-buffer buffer
     (switch-to-buffer buffer)
     ;; mastodon-mode wipes buffer-spec, so order must unforch be:
     ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
     ;; which means we cannot use buffer-spec for update-function
     ;; unless we set it both before and after the others
-    (setq mastodon-tl--buffer-spec
-          `(buffer-name ,buffer
-                        endpoint ,endpoint
-                        update-function ,update-function))
+    (mastodon-tl--set-buffer-spec buffer
+                                  endpoint
+                                  update-function
+                                  link-header)
     (setq
      ;; Initialize with a minimal interval; we re-scan at least once
      ;; every 5 minutes to catch any timestamps we may have missed
@@ -1965,11 +1967,11 @@ JSON is the data returned from the server."
     (funcall update-function json))
   (mastodon-mode)
   (with-current-buffer buffer
-    (setq mastodon-tl--buffer-spec
-          `(buffer-name ,buffer
-                        endpoint ,endpoint
-                        update-function ,update-function)
-          mastodon-tl--timestamp-update-timer
+    (mastodon-tl--set-buffer-spec buffer
+                                  endpoint
+                                  update-function
+                                  link-header)
+    (setq mastodon-tl--timestamp-update-timer
           (when mastodon-tl--enable-relative-timestamps
             (run-at-time (time-to-seconds
                           (time-subtract mastodon-tl--timestamp-next-update
@@ -2000,10 +2002,7 @@ Runs synchronously."
       ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
       ;; which means we cannot use buffer-spec for update-function
       ;; unless we set it both before and after the others
-      (setq mastodon-tl--buffer-spec
-            `(buffer-name ,buffer
-                          endpoint ,endpoint
-                          update-function ,update-function))
+      (mastodon-tl--set-buffer-spec buffer endpoint update-function)
       (setq
        ;; Initialize with a minimal interval; we re-scan at least once
        ;; every 5 minutes to catch any timestamps we may have missed
@@ -2012,11 +2011,8 @@ Runs synchronously."
       (funcall update-function json))
     (mastodon-mode)
     (with-current-buffer buffer
-      (setq mastodon-tl--buffer-spec
-            `(buffer-name ,buffer-name
-                          endpoint ,endpoint update-function
-                          ,update-function)
-            mastodon-tl--timestamp-update-timer
+      (mastodon-tl--set-buffer-spec buffer endpoint update-function)
+      (setq mastodon-tl--timestamp-update-timer
             (when mastodon-tl--enable-relative-timestamps
               (run-at-time (time-to-seconds
                             (time-subtract mastodon-tl--timestamp-next-update
@@ -2030,6 +2026,15 @@ Runs synchronously."
           (not (string-prefix-p "accounts" endpoint))
         (mastodon-tl--goto-first-item)))
     buffer))
+
+(defun mastodon-tl--set-buffer-spec (buffer endpoint update-function
+                                            &optional link-header)
+  "Set `mastodon-tl--buffer-spec' for the current buffer."
+  (setq mastodon-tl--buffer-spec
+        `(buffer-name ,buffer
+                      endpoint ,endpoint
+                      update-function ,update-function
+                      link-header ,link-header)))
 
 (provide 'mastodon-tl)
 ;;; mastodon-tl.el ends here
