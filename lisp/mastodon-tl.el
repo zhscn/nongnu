@@ -5,7 +5,7 @@
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 1.0.0
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "27.1") (ts "0.3"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'shr)
+(require 'ts)
 (require 'thingatpt) ; for word-at-point
 (require 'time-date)
 (require 'cl-lib)
@@ -371,12 +372,12 @@ Used on initializing a timeline or thread."
      (propertize (concat "@" handle)
                  'face 'mastodon-handle-face
                  'mouse-face 'highlight
-		 'mastodon-tab-stop 'user-handle
+		         'mastodon-tab-stop 'user-handle
                  'account account
-		 'shr-url profile-url
-		 'keymap mastodon-tl--link-keymap
+		         'shr-url profile-url
+		         'keymap mastodon-tl--link-keymap
                  'mastodon-handle (concat "@" handle)
-		 'help-echo (concat "Browse user profile of @" handle))
+		         'help-echo (concat "Browse user profile of @" handle))
      ")")))
 
 (defun mastodon-tl--format-faves-count (toot)
@@ -592,10 +593,10 @@ this just means displaying toot client."
                           'face 'mastodon-display-name-face
                           'follow-link t
                           'mouse-face 'highlight
-		          'mastodon-tab-stop 'shr-url
-		          'shr-url app-url
+		                  'mastodon-tab-stop 'shr-url
+		                  'shr-url app-url
                           'help-echo app-url
-		          'keymap mastodon-tl--shr-map-replacement)))))
+		                  'keymap mastodon-tl--shr-map-replacement)))))
        (propertize "\n  ------------\n" 'face 'default))
       'favourited-p faved
       'boosted-p    boosted
@@ -949,6 +950,7 @@ this just means displaying toot client."
          (expiry (mastodon-tl--field 'expires_at poll))
          (expired-p (if (eq (mastodon-tl--field 'expired poll) :json-false) nil t))
          (multi (mastodon-tl--field 'multiple poll))
+         (vote-count (mastodon-tl--field 'voters_count poll))
          (options (mastodon-tl--field 'options poll))
          (option-titles (mapcar (lambda (x)
                                   (alist-get 'title x))
@@ -971,18 +973,30 @@ this just means displaying toot client."
                                         (length (alist-get 'title
                                                            option))))
                                     ?\ )
-                                   (if (eq (alist-get 'votes_count option) nil)
-                                       ""
-                                     (format "[%s votes]" (alist-get 'votes_count option))))))
+                                   ;; TODO: disambiguate no votes from hidden votes
+                                   (format "[%s votes]" (or (alist-get 'votes_count option)
+                                                            "0")))))
                        options
                        "\n")
-            (unless expired-p
-              (propertize (format "Expires: %s" expiry)
-                          'face 'font-lock-comment-face))
-            (when expired-p
-              (propertize "Poll expired."
-                          'face 'font-lock-comment-face))
+            "\n"
+            (propertize (format "%s people | " vote-count)
+                        'face 'font-lock-comment-face)
+            (let ((str (if expired-p
+                           "Poll expired."
+                         (mastodon-tl--format-poll-expiry expiry))))
+              (propertize str 'face 'font-lock-comment-face))
             "\n")))
+
+(defun mastodon-tl--format-poll-expiry (timestamp)
+  "Convert poll expiry TIMESTAMP into a descriptive string."
+  (let ((parsed (ts-human-duration
+                 (ts-diff (ts-parse timestamp) (ts-now)))))
+    (cond ((> (plist-get parsed :days) 0)
+           (format "%s days, %s hours left" (plist-get parsed :days) (plist-get parsed :hours)))
+          ((> (plist-get parsed :hours) 0)
+           (format "%s hours, %s minutes left" (plist-get parsed :hours) (plist-get parsed :minutes)))
+          ((> (plist-get parsed :minutes) 0)
+           (format "%s minutes left" (plist-get parsed :minutes))))))
 
 (defun mastodon-tl--poll-vote (option)
   "If there is a poll at point, prompt user for OPTION to vote on it."
@@ -1519,7 +1533,7 @@ IND is the optional indentation level to print at."
             (when ind (indent-to ind))
             (insert (mastodon-tl--format-key el pad)
                     " "
-                    (mastodon-tl--newline-if-long el)
+                    (mastodon-tl--newline-if-long (cdr el))
                     ;; only send strings straight to --render-text
                     ;; this makes hyperlinks work:
                     (if (not (stringp val))
@@ -1529,25 +1543,36 @@ IND is the optional indentation level to print at."
                     "\n"))))))))
 
 (defun mastodon-tl--print-instance-rules-or-fields (alist)
-  "Print ALIST of instance rules or contact account fields."
-  (let ((key   (if (alist-get 'id alist) 'id 'name))
-        (value (if (alist-get 'id alist) 'text 'value)))
+  "Print ALIST of instance rules or contact account or emoji fields."
+  (let ((key   (cond ((alist-get 'id alist)
+                      'id)
+                     ((alist-get 'name alist)
+                      'name)
+                     ((alist-get 'shortcode alist)
+                      'shortcode)))
+        (value (cond ((alist-get 'id alist)
+                      'text)
+                     ((alist-get 'value alist)
+                      'value)
+                     ((alist-get 'url alist)
+                      'url))))
     (indent-to 4)
     (insert
      (format "%-5s: "
              (propertize (alist-get key alist)
                          'face '(:underline t)))
-            (mastodon-tl--newline-if-long (assoc value alist))
-            (format "%s" (mastodon-tl--render-text
-                          (alist-get value alist)))
-            "\n")))
+     (mastodon-tl--newline-if-long (alist-get value alist))
+     (format "%s" (mastodon-tl--render-text
+                   (alist-get value alist)))
+     "\n")))
 
 (defun mastodon-tl--newline-if-long (el)
   "Return a newline string if the cdr of EL is over 50 characters long."
-  (if (and (sequencep (cdr el))
-           (< 50 (length (cdr el))))
-      "\n"
-    ""))
+  (let ((rend (if (stringp el) (mastodon-tl--render-text el) el)))
+    (if (and (sequencep rend)
+             (< 50 (length rend)))
+        "\n"
+      "")))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
   "Query for USER-HANDLE from current status and follow that user.

@@ -603,7 +603,7 @@ to `emojify-user-emojis', and the emoji data is updated."
 (defun mastodon-toot--build-poll-params ()
   "Return an alist of parameters for POSTing a poll status."
   (append
-   (mastodon-toot--make-poll-params
+   (mastodon-toot--make-poll-options-params
     (plist-get mastodon-toot-poll :options))
    `(("poll[expires_in]" .  ,(plist-get mastodon-toot-poll :expiry)))
    `(("poll[multiple]" . ,(symbol-name (plist-get mastodon-toot-poll :multi))))
@@ -941,7 +941,7 @@ which is used to attach it to a toot when posting."
                 mastodon-toot--media-attachments))
       (list "None")))
 
-(defun mastodon-toot--make-poll-params (options)
+(defun mastodon-toot--make-poll-options-params (options)
   "Return an parameter query alist from poll OPTIONS."
   (let ((key "poll[options][]"))
     (cl-loop for o in options
@@ -951,8 +951,8 @@ which is used to attach it to a toot when posting."
   "Prompt for new poll options and return as a list."
   (interactive)
   ;; re length, API docs show a poll 9 options.
-  (let* ((length (read-number "Number of poll options [2-9]: " 2))
-         (multiple-p (y-or-n-p "Multiple choice poll? "))
+  (let* ((length (read-number "Number of options [2-4]: " 2))
+         (multiple-p (y-or-n-p "Multiple choice? "))
          (options (mastodon-toot--read-poll-options length))
          (hide-totals (y-or-n-p "Hide votes until poll ends? "))
          (expiry (mastodon-toot--get-poll-expiry)))
@@ -968,8 +968,25 @@ which is used to attach it to a toot when posting."
 (defun mastodon-toot--get-poll-expiry ()
   "Prompt for a poll expiry time."
   ;; API requires this in seconds
-  ;; TODO: offer sane poll expiry options
-  (read-string "poll ends in [seconds, min 5 mins]: "))
+  (let* ((options (mastodon-toot--poll-expiry-options-alist))
+         (response (completing-read "poll ends in [or enter seconds]: "
+                                    options nil 'confirm)))
+    (or (alist-get response options nil nil #'equal)
+        (if (< (string-to-number response) 600)
+            "600" ;; min 5 mins
+          response))))
+
+(defun mastodon-toot--poll-expiry-options-alist ()
+  "Return an alist of seconds options."
+  `(("5 minutes" . ,(number-to-string (* 60 5)))
+    ("30 minutes" . ,(number-to-string (* 60 30)))
+    ("1 hour" . ,(number-to-string (* 60 60)))
+    ("6 hours" . ,(number-to-string (* 60 60 6)))
+    ("1 day" . ,(number-to-string (* 60 60 24)))
+    ("3 days" . ,(number-to-string (* 60 60 24 3)))
+    ("7 days" . ,(number-to-string (* 60 60 24 7)))
+    ("14 days" . ,(number-to-string (* 60 60 24 14)))
+    ("30 days" . ,(number-to-string (* 60 60 24 30)))))
 
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
@@ -1187,6 +1204,33 @@ Added to `after-change-functions' in new toot buffers."
   (setq mastodon-toot-draft-toots-list nil)
   (message "All drafts deleted!"))
 
+(defun mastodon-toot--propertize-tags-and-handles (&rest _args)
+  "Propertize tags and handles in toot compose buffer.
+Added to `after-change-functions'."
+  (when (mastodon-toot-compose-buffer-p)
+    (let ((header-region
+           (mastodon-tl--find-property-range 'toot-post-header
+                                             (point-min))))
+      ;; cull any prev props:
+      ;; stops all text after a handle or mention being propertized:
+      (set-text-properties (cdr header-region) (point-max) nil)
+      ;; TODO: confirm allowed hashtag/handle characters:
+      (mastodon-toot--propertize-item "#[1-9a-zA-Z_]+"
+                                      'success
+                                      (cdr header-region))
+      (mastodon-toot--propertize-item "@[1-9a-zA-Z._-]+"
+                                      'mastodon-display-name-face
+                                      (cdr header-region)))))
+
+(defun mastodon-toot--propertize-item (regex face start)
+  "Propertize item matching REGEX with FACE starting from START."
+  (save-excursion
+    (goto-char start)
+    (cl-loop while (search-forward-regexp regex nil :noerror)
+             do (add-text-properties (match-beginning 0)
+                                     (match-end 0)
+                                     `(face ,face)))))
+
 (defun mastodon-toot-compose-buffer-p ()
   "Return t if compose buffer is current."
   (equal (buffer-name (current-buffer)) "*new toot*"))
@@ -1236,6 +1280,7 @@ a draft into the buffer."
     ;; draft toot text saving:
     (setq mastodon-toot-current-toot-text nil)
     (push #'mastodon-toot--save-toot-text after-change-functions)
+    (push #'mastodon-toot--propertize-tags-and-handles after-change-functions)
     (when initial-text
       (insert initial-text))))
 
