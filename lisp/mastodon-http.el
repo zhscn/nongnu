@@ -191,6 +191,7 @@ Return a cons of JSON list and http response headers."
                     (re-search-forward "^$" nil 'move)))
          (head-list (split-string head-str "\n")))
     (mapcar (lambda (x)
+              ;; FIXME: use dotted notation so alist-get doesn't return a list
               (split-string x ": "))
             head-list)))
 

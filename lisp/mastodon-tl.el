@@ -1936,13 +1936,23 @@ HEADERS means to also collect the response headers. Used for paginating
 favourites."
   (let ((url (mastodon-http--api endpoint))
         (buffer (concat "*mastodon-" buffer-name "*")))
-    (mastodon-http--get-json-async
-     url 'mastodon-tl--init* buffer endpoint update-function)))
+    (if headers
+        (mastodon-http--get-response-async
+         url 'mastodon-tl--init* buffer endpoint update-function headers)
+      (mastodon-http--get-json-async
+       url 'mastodon-tl--init* buffer endpoint update-function))))
 
-(defun mastodon-tl--init* (json buffer endpoint update-function)
+(defun mastodon-tl--init* (response buffer endpoint update-function &optional headers)
   "Initialize BUFFER with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to recieve more toots.
 RESPONSE is the data returned from the server by `mastodon-http--process-json', a cons cell of JSON and http headers."
+  (let* ((json (if headers (car response) response))
+         (headers (if headers (cdr response) nil))
+         (link-header (when headers
+                        (split-string
+                         (car
+                          (alist-get "Link" headers nil nil 'equal))
+                                      ", "))))
   (with-output-to-temp-buffer buffer
     (switch-to-buffer buffer)
     ;; mastodon-mode wipes buffer-spec, so order must unforch be:
@@ -1951,8 +1961,8 @@ RESPONSE is the data returned from the server by `mastodon-http--process-json', 
     ;; unless we set it both before and after the others
     (mastodon-tl--set-buffer-spec buffer
                                   endpoint
-                                  update-function)
-                                  ;; link-header)
+                                  update-function
+                                  link-header)
     (setq
      ;; Initialize with a minimal interval; we re-scan at least once
      ;; every 5 minutes to catch any timestamps we may have missed
@@ -1963,8 +1973,8 @@ RESPONSE is the data returned from the server by `mastodon-http--process-json', 
   (with-current-buffer buffer
     (mastodon-tl--set-buffer-spec buffer
                                   endpoint
-                                  update-function)
-                                  ;; link-header)
+                                  update-function
+                                  link-header)
     (setq mastodon-tl--timestamp-update-timer
           (when mastodon-tl--enable-relative-timestamps
             (run-at-time (time-to-seconds
@@ -1976,7 +1986,7 @@ RESPONSE is the data returned from the server by `mastodon-http--process-json', 
                          nil)))
     (unless (string-prefix-p "accounts" endpoint)
       ;; for everything save profiles
-      (mastodon-tl--goto-first-item))))
+      (mastodon-tl--goto-first-item)))))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
