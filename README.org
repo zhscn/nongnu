@@ -315,7 +315,7 @@ PRs, issues, feature requests, and general feedback are very welcome!
 
 ** Contributors:
 
-=mastodon.el= is a the work of a number of people.
+=mastodon.el= is the work of a number of people.
 
 Some significant contributors are:
 
