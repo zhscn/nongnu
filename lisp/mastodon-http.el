@@ -148,34 +148,51 @@ SILENT means don't message."
    "GET"
    (mastodon-http--url-retrieve-synchronously url silent)))
 
-(defun mastodon-http--get-json (url &optional silent)
-  "Make synchronous GET request to URL. Return JSON response.
-SILENT means don't message."
+(defun mastodon-http--get-response (url &optional silent)
+  "Make synchronous GET request to URL. Return JSON and response headers.
+SILENT means don't message.
+HEADERS means also return http response headers."
   (with-current-buffer (mastodon-http--get url silent)
-    (mastodon-http--process-json)))
+    (mastodon-http--process-response)))
 
-(defun mastodon-http--process-json (&optional headers)
-  "Process JSON response."
+(defun mastodon-http--get-json (url &optional silent)
+  "Return only JSON data from URL request.
+SILENT means don't message."
+  (car (mastodon-http--get-response url silent)))
+
+(defun mastodon-http--process-json ()
+  "Return only JSON data from async URL request.
+Callback for `mastodon-http--get-json-async'."
+  (car (mastodon-http--process-response)))
+
+(defun mastodon-http--process-response ()
+  "Process http response.
+Return a cons of JSON list and http response headers."
   ;; view raw response:
+  ;; (switch-to-buffer (current-buffer))
+  (let ((headers (mastodon-http--process-headers)))
+    (goto-char (point-min))
+    (re-search-forward "^$" nil 'move)
+    (let ((json-array-type 'list)
+          (json-string
+           (decode-coding-string
+            (buffer-substring-no-properties (point) (point-max))
+            'utf-8)))
+      (kill-buffer)
+      (unless (or (string-empty-p json-string) (null json-string))
+        `(,(json-read-from-string json-string) . ,headers)))))
+
+(defun mastodon-http--process-headers ()
+  "Return an alist of http response headers."
   (switch-to-buffer (current-buffer))
-  (when headers
-    (let* ((head-str (buffer-substring-no-properties
-                      (point-min)
-                      (re-search-forward "^$" nil 'move)))
-           (head-list (split-string head-str "\n"))
-           (head-alist (mapcar (lambda (x)
-                                 (split-string x ": "))
-                               head-list)))
-      (setq mastodon-http-headers-alist head-alist)))
   (goto-char (point-min))
-  (re-search-forward "^$" nil 'move)
-  (let ((json-string
-         (decode-coding-string
-          (buffer-substring-no-properties (point) (point-max))
-          'utf-8)))
-    (kill-buffer)
-    (unless (or (string-empty-p json-string) (null json-string))
-      (json-read-from-string json-string))))
+  (let* ((head-str (buffer-substring-no-properties
+                    (point-min)
+                    (re-search-forward "^$" nil 'move)))
+         (head-list (split-string head-str "\n")))
+    (mapcar (lambda (x)
+              (split-string x ": "))
+            head-list)))
 
 (defun mastodon-http--delete (url)
   "Make DELETE request to URL."
@@ -250,13 +267,21 @@ Pass response buffer to CALLBACK function with args CBARGS."
    "GET"
    (url-retrieve url callback cbargs)))
 
-(defun mastodon-http--get-json-async (url &optional headers callback &rest args)
-  "Make GET request to URL. Call CALLBACK with json-vector and ARGS."
+(defun mastodon-http--get-response-async (url callback &rest args)
+  "Make GET request to URL. Call CALLBACK with http response and ARGS."
   (mastodon-http--get-async
    url
    (lambda (status)
      (when status ;; only when we actually get sth?
-       (apply callback (mastodon-http--process-json headers) args)))))
+       (apply callback (mastodon-http--process-response) args)))))
+
+(defun mastodon-http--get-json-async (url callback &rest args)
+  "Make GET request to URL. Call CALLBACK with json-list and ARGS."
+  (mastodon-http--get-async
+   url
+   (lambda (status)
+     (when status ;; only when we actually get sth?
+       (apply callback (mastodon-http--process-json) args)))))
 
 (defun mastodon-http--post-async (url args headers &optional callback &rest cbargs)
   "POST asynchronously to URL with ARGS and HEADERS.
