@@ -303,13 +303,13 @@ PRs, issues, feature requests, and general feedback are very welcome!
 
 *** Features
 
-1. Create an [[https://github.com/jdenen/mastodon.el/issues][issue]] detailing the feature you'd like to add.
+1. Create an [[https://codeberg.org/martianh/mastodon.el/issues][issue]] detailing the feature you'd like to add.
 2. Fork the repository and create a branch off of =develop=.
 3. Create a pull request referencing the issue created in step 1.
 
 *** Fixes
 
-1. In an [[https://github.com/jdenen/mastodon.el/issues][issue]], let me know that you're working to fix it.
+1. In an [[https://codeberg.org/martianh/mastodon.el/issues][issue]], let me know that you're working to fix it.
 2. Fork the repository and create a branch off of =develop=.
 3. Create a pull request referencing the issue from step 1.
 
