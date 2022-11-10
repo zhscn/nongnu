@@ -996,7 +996,12 @@ this just means displaying toot client."
           ((> (plist-get parsed :hours) 0)
            (format "%s hours, %s minutes left" (plist-get parsed :hours) (plist-get parsed :minutes)))
           ((> (plist-get parsed :minutes) 0)
-           (format "%s minutes left" (plist-get parsed :minutes))))))
+           (format "%s minutes left" (plist-get parsed :minutes)))
+          (t ;; we failed to guess:
+           (format "%s days, %s hours, %s minutes left"
+                   (plist-get parsed :days)
+                   (plist-get parsed :hours)
+                   (plist-get parsed :minutes))))))
 
 (defun mastodon-tl--poll-vote (option)
   "If there is a poll at point, prompt user for OPTION to vote on it."
