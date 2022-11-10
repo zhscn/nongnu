@@ -297,6 +297,14 @@ Optional dependencies:
 - =mpv= and =mpv.el= for viewing videos and gifs
 - =lingva.el= for translating toots
 
+** Nota Bene regarding work on this library
+
+I resurrected this library a few years ago, and have added stacks of features and fixes over time. But I was also only scratching my own itch, in my spare time, implementing features that I wanted to use and learning Elisp. I am not a professional programmer. I never aimed to make a full-featured client, nor do I aim to provide a professional service to anyone. I have implemented some things I don't use, such as filters, but mostly I can only fix bugs with things that I regularly rely on. My main thought was that if it was at least functioning and someone was picking some low hanging fruit, and making it look less moribund, then some more capable programmer(s) might come along and dive in also.
+
+Please keep this in mind when requesting features that are not implemented. Feel free to open an issue and to discuss it. But please do not feel free to order things from me as though I was a service provider, unless you are willing to consider also paying me as though I were a service provider.
+
+The better option is most likely going to be looking at the code a little bit and seeing how you can implement the feature yourself, especially as a lot of the functionality you're likely to need is already implemented for other features.
+
 ** Contributing
 
 PRs, issues, feature requests, and general feedback are very welcome!
