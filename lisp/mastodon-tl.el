@@ -1172,7 +1172,7 @@ Then run CALLBACK with arguments CBARGS."
                                      "?")
                                    "max_id="
                                    (mastodon-tl--as-string id)))))
-    (apply 'mastodon-http--get-json-async url nil callback cbargs)))
+    (apply 'mastodon-http--get-json-async url callback cbargs)))
 
 ;; TODO
 ;; Look into the JSON returned here by Local
