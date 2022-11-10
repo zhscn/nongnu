@@ -78,6 +78,7 @@
 (autoload 'mastodon-profile--update-preference "mastodon-profile")
 (autoload 'mastodon-profile-fetch-server-account-settings "mastodon-profile")
 (autoload 'mastodon-tl--render-text "mastodon-tl")
+(autoload 'mastodon-profile-fetch-server-account-settings-maybe "mastodon-profile")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -1284,7 +1285,7 @@ a draft into the buffer."
       (insert initial-text))))
 
 ;;;###autoload
-(add-hook 'mastodon-toot-mode-hook #'mastodon-profile-fetch-server-account-settings)
+(add-hook 'mastodon-toot-mode-hook #'mastodon-profile-fetch-server-account-settings-maybe)
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."
