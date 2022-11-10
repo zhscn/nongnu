@@ -167,8 +167,8 @@ value can't restored."
 
 (defcustom workroom-mode-lighter
   '(:eval
-    (let ((face (if (memq (current-buffer) (workroom-buffer-list
-                                            (workroom-current-room)))
+    (let ((face (if (workroom-member-buffer-p
+                     (workroom-current-room) (current-buffer))
                     'compilation-info
                   'warning)))
       `(" WR["
@@ -320,11 +320,15 @@ what to do.  ACTION can any of:
 
 `:add-buffer'
   Add BUFFER as a member of workroom ROOM.  BUFFER is the third
-  argument and is a non-member buffer.
+  argument.
 
 `:remove-buffer'
   Remove BUFFER from the member list of workroom ROOM.  BUFFER is the
-  third argument and is a member buffer.
+  third argument.
+
+`:member-buffer-p'
+  Return non-nil if BUFFER is a member buffer of workroom ROOM.
+  BUFFER is the third argument.
 
 `:clone'
   Clone buffer list from workroom SOURCE to workroom ROOM.  SOURCE is
@@ -526,6 +530,11 @@ Choose the view's name using `workroom-generate-new-view-name'."
   "Return the buffer list of workroom ROOM."
   (funcall (workroom--room-buffer-manager room) room :list-buffers))
 
+(defun workroom-member-buffer-p (room buffer)
+  "Return non-nil if BUFFER is a member buffer of ROOM."
+  (funcall (workroom--room-buffer-manager room)
+           room :member-buffer-p buffer))
+
 (defun workroom-current-room (&optional frame)
   "Return the current workroom of FRAME."
   (frame-parameter frame 'workroom-current-room))
@@ -623,8 +632,8 @@ be a string.  DEF, REQUIRE-MATCH and PREDICATE is same as in
     (read-buffer
      prompt def require-match
      (lambda (cand)
-       (and (memq (get-buffer (if (consp cand) (car cand) cand))
-                  (workroom-buffer-list room))
+       (and (workroom-member-buffer-p
+             room (get-buffer (if (consp cand) (car cand) cand)))
             (or (not predicate) (funcall predicate cand)))))))
 
 (defun workroom--read-non-member-buffer ( room prompt &optional def
@@ -638,9 +647,9 @@ be a string.  DEF, REQUIRE-MATCH and PREDICATE is same as in
     (read-buffer
      prompt def require-match
      (lambda (cand)
-       (and (not
-             (memq (get-buffer (if (consp cand) (car cand) cand))
-                   (workroom-buffer-list room)))
+       (and (not (workroom-member-buffer-p
+                  room (get-buffer
+                        (if (consp cand) (car cand) cand))))
             (or (not predicate) (funcall predicate cand)))))))
 
 (defun workroom-read-buffer-function ( prompt &optional def
@@ -952,14 +961,14 @@ ROOM is should be a workroom, or a name of a workroom."
     (signal 'wrong-type-argument `(workroomp . ,room)))
   (let ((buffers (workroom-buffer-list room)))
     (workroom-kill room)
-    (dolist (buffer buffers)
-      (and (or kill-all
-               (cl-every
-                (lambda (room)
-                  (not (memq buffer (workroom-buffer-list room))))
-                (remove (workroom-get-default)
-                        workroom--rooms)))
-           (kill-buffer buffer)))))
+    (let ((rooms (remove (workroom-get-default) workroom--rooms)))
+      (dolist (buffer buffers)
+        (and (or kill-all
+                 (cl-every
+                  (lambda (room)
+                    (not (workroom-member-buffer-p buffer room)))
+                  rooms))
+             (kill-buffer buffer))))))
 
 (defun workroom-kill-view (room view)
   "Kill view VIEW of workroom ROOM.
@@ -1149,8 +1158,8 @@ If ROOM is the default workroom, do nothing."
      (list (get-buffer-create
             (workroom--read-non-member-buffer
              (workroom-current-room) "Add buffer: "
-             (unless (memq (current-buffer) (workroom-buffer-list
-                                             (workroom-current-room)))
+             (unless (workroom-member-buffer-p
+                      (workroom-current-room) (current-buffer))
                (current-buffer))))
            nil)))
   (setq room (if (stringp room)
@@ -1160,7 +1169,7 @@ If ROOM is the default workroom, do nothing."
                (or room (workroom-current-room))))
   (unless (workroom-live-p room)
     (signal 'wrong-type-argument `(workroom-live-p . ,room)))
-  (unless (memq buffer (workroom-buffer-list (workroom-current-room)))
+  (unless (workroom-member-buffer-p (workroom-current-room) buffer)
     (funcall (workroom--room-buffer-manager room)
              room :add-buffer buffer)))
 
@@ -1178,8 +1187,8 @@ If ROOM is the default workroom, kill buffer."
             (workroom--read-member-buffer
              (workroom-current-room)
              "Remove buffer: "
-             (when (memq (current-buffer) (workroom-buffer-list
-                                           (workroom-current-room)))
+             (when (workroom-member-buffer-p
+                    (workroom-current-room) (current-buffer))
                (current-buffer))
              t))
            nil)))
@@ -1190,7 +1199,7 @@ If ROOM is the default workroom, kill buffer."
                (or room (workroom-current-room))))
   (unless (workroom-live-p room)
     (signal 'wrong-type-argument `(workroom-live-p . ,room)))
-  (when (memq buffer (workroom-buffer-list (workroom-current-room)))
+  (when (workroom-member-buffer-p (workroom-current-room) buffer)
     (funcall (workroom--room-buffer-manager room)
              room :remove-buffer buffer)))
 
@@ -1242,6 +1251,9 @@ ACTION and ARGS are also described there."
      (cl-destructuring-bind (buffer) args
        (setf (workroom-buffer-manager-data room)
              (delq buffer (workroom-buffer-manager-data room)))))
+    (:member-buffer-p
+     (cl-destructuring-bind (buffer) args
+       (memq buffer (workroom-buffer-manager-data room))))
     (:clone
      (cl-destructuring-bind (source) args
        (setf (workroom-buffer-manager-data room)
@@ -1287,6 +1299,10 @@ ACTION and ARGS are also described there."
        (workroom-set-buffer-manager-function
         room #'workroom--default-buffer-manager 'do-not-initialize)
        (workroom--default-buffer-manager room :clone (buffer-list))))
+    (:member-buffer-p
+     (cl-destructuring-bind (buffer) args
+       ;; All live buffer are members.
+       (buffer-live-p buffer)))
     (:encode
      (cl-destructuring-bind () args
        ;; Nothing, the default workroom can't be encoding (but can
@@ -1377,11 +1393,10 @@ restrict."
   (when workroom--in-workroom-ibuffer
     (setq-local workroom--ibuffer-room workroom--in-workroom-ibuffer))
   (if workroom--ibuffer-room
-      (let ((buffer-list (workroom-buffer-list
-                          workroom--ibuffer-room)))
-        (cl-remove-if-not (lambda (entry)
-                            (memq (car entry) buffer-list))
-                          buffers))
+      (cl-remove-if-not (lambda (entry)
+                          (workroom-member-buffer-p
+                           workroom--ibuffer-room (car entry)))
+                        buffers)
     buffers))
 
 (defun workroom--ibuffer-forget-workroom (&optional _ buffer &rest _)
@@ -1863,6 +1878,22 @@ argument while setting as the buffer manager, PROJECT, the project."
                            room :list-buffers))
          (push buffer (plist-get (workroom-buffer-manager-data room)
                                  :blacklist)))))
+    (:member-buffer-p
+     (cl-destructuring-bind (buffer) args
+       (and (not (memq buffer
+                       (plist-get (workroom-buffer-manager-data room)
+                                  :blacklist)))
+            (or (memq buffer
+                      (plist-get (workroom-buffer-manager-data room)
+                                 :whitelist))
+                (string-prefix-p
+                 (expand-file-name
+                  (file-name-as-directory
+                   (project-root
+                    (plist-get (workroom-buffer-manager-data room)
+                               :project))))
+                 (expand-file-name
+                  (buffer-local-value 'default-directory buffer)))))))
     (:clone
      (cl-destructuring-bind (source) args
        (cl-destructuring-bind (&key project whitelist blacklist)
