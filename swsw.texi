@@ -156,7 +156,7 @@ Delete the window corresponding to ID in the current scope (@code{swsw-delete}).
 @kindex C-x o 1
 @cindex swsw-delete-other
 @item @kbd{C-x o 1 ID}
-Make the window corresponding to ID the in the current scope the sole
+Make the window corresponding to ID in the current scope the sole
 window of its frame (@code{swsw-delete-other}).
 
 @kindex C-x o 2
@@ -177,13 +177,15 @@ prefix argument (with the same semantics as @code{split-window-right}).
 @cindex swsw-selected-window-prefix
 @item @kbd{C-x o 4 ID}
 Display the buffer of the next command in the window corresponding to
-ID in the current scope (@code{swsw-delete}).
+ID in the current scope (@code{swsw-selected-window-prefix}).  This
+window command is only available when
+@code{display-buffer-override-next-command} is available (Emacs 28+).
 
 @kindex C-x o t
 @cindex swsw-swap
 @item @kbd{C-x o t ID}
 Swap the states of the current window and the window corresponding to
-ID in the current scope (@code{swsw-delete}).
+ID in the current scope (@code{swsw-swap}).
 
 @kindex C-x o m
 @cindex swsw-select-minibuffer
@@ -234,7 +236,7 @@ Additionally, (custom) display functions could be added to
 @code{swsw-mode} is enabled, and disable ID display when
 @code{swsw-mode} is disabled. They can also make use of
 @code{swsw-before-command-hook} and @code{swsw-after-command-hook}
-(see @xref{Window commands}) to display IDs only during window
+(@xref{Window commands}) to display IDs only during window
 selection. See the description and implementation of
 @code{swsw-mode-line-display-function} and
 @code{swsw-mode-line-conditional-display-function} below for more
@@ -330,7 +332,7 @@ display functions, @xref{ID display}).
 @defmac swsw-define-window-command name (window [prefix] [minibuffer]) docstring body...
 Define NAME as a window command with DOCSTRING as its documentation
 string.  PREFIX (a symbol) is passed as an argument to the command
-(when not omitted or nil), with it's value being the raw prefix
+(when not omitted or nil), with its value being the raw prefix
 argument.
 
 BODY is used as the body of an anonymous function which receives
@@ -347,7 +349,7 @@ Run FUN as a window command. Run @code{swsw-before-command-hook}, set
 @code{this-command} to FUN, and set @code{swsw--id-map} as a transient
 map which runs @code{swsw-after-command-hook} on exit.  The hooks run
 by this function are expected by swsw to run for any window command
-which requires ID selection; they should be manually added even if
+which requires ID selection; they should be run even if
 this function isn't used when defining a new window command.
 @end defun
 
