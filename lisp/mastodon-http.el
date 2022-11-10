@@ -151,13 +151,15 @@ SILENT means don't message."
 (defun mastodon-http--get-response (url &optional no-headers silent vector)
   "Make synchronous GET request to URL. Return JSON and response headers.
 SILENT means don't message.
-NO-HEADERS means don't collect http response headers."
+NO-HEADERS means don't collect http response headers.
+VECTOR means return json arrays as vectors."
   (with-current-buffer (mastodon-http--get url silent)
     (mastodon-http--process-response no-headers vector)))
 
 (defun mastodon-http--get-json (url &optional silent vector)
   "Return only JSON data from URL request.
-SILENT means don't message."
+SILENT means don't message.
+VECTOR means return json arrays as vectors."
   (car (mastodon-http--get-response url :no-headers silent vector)))
 
 (defun mastodon-http--process-json ()
@@ -170,6 +172,7 @@ Callback to `mastodon-http--get-json-async', usually
   "Process http response.
 Return a cons of JSON list and http response headers.
 If NO-HEADERS is non-nil, just return the JSON.
+VECTOR means return json arrays as vectors.
 Callback to `mastodon-http--get-response-async', usually
 `mastodon-tl--init*', is run on the result."
   ;; view raw response:
