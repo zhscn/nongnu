@@ -183,7 +183,8 @@ contains")
   (message "Loading your favourited toots...")
   (mastodon-tl--init "favourites"
                      "favourites"
-                     'mastodon-tl--timeline))
+                     'mastodon-tl--timeline
+                     :headers))
 
 (defun mastodon-profile--view-bookmarks ()
   "Open a new buffer displaying the user's bookmarks."
@@ -473,7 +474,8 @@ This endpoint only holds a few preferences. For others, see
          (url (mastodon-http--api (format
                                    "accounts/relationships?id[]=%s"
                                    their-id))))
-    (mastodon-http--get-json url)))
+    ;; FIXME: not sure why we need to do this for relationships only!
+    (car (mastodon-http--get-json url))))
 
 (defun mastodon-profile--fields-get (&optional account fields)
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
@@ -535,11 +537,9 @@ FIELDS means provide a fields vector fetched by other means."
                         account 'statuses_count)))
          (relationships (mastodon-profile--relationships-get id))
          (followed-by-you (when (not (seq-empty-p relationships))
-                            (alist-get 'following
-                                       (aref relationships 0))))
+                            (alist-get 'following relationships)))
          (follows-you (when (not (seq-empty-p relationships))
-                        (alist-get 'followed_by
-                                   (aref relationships 0))))
+                        (alist-get 'followed_by relationships)))
          (followsp (or (equal follows-you 't) (equal followed-by-you 't)))
          (fields (mastodon-profile--fields-get account))
          (pinned (mastodon-profile--get-statuses-pinned account)))
@@ -564,7 +564,8 @@ FIELDS means provide a fields vector fetched by other means."
          (propertize
           (concat
            "\n"
-           (mastodon-profile--image-from-account account)
+           (mastodon-profile--image-from-account account 'avatar_static)
+           (mastodon-profile--image-from-account account 'header_static)
            "\n"
            (propertize (mastodon-profile--account-field
                         account 'display_name)
@@ -629,11 +630,12 @@ If toot is a boost, opens the profile of the booster."
   (mastodon-profile--make-author-buffer
    (alist-get 'account (mastodon-profile--toot-json))))
 
-(defun mastodon-profile--image-from-account (status)
-  "Generate an image from a STATUS."
-  (let ((url (alist-get 'avatar_static status)))
-    (unless (equal url "/avatars/original/missing.png")
-      (mastodon-media--get-media-link-rendering url))))
+(defun mastodon-profile--image-from-account (account img_type)
+  "Return a avatar image from ACCOUNT.
+IMG_TYPE is the JSON key from the account data."
+  (let ((img (alist-get img_type account)))
+    (unless (equal img "/avatars/original/missing.png")
+      (mastodon-media--get-media-link-rendering img))))
 
 (defun mastodon-profile--show-user (user-handle)
   "Query for USER-HANDLE from current status and show that user's profile."
