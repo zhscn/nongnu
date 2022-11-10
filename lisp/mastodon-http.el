@@ -151,7 +151,7 @@ SILENT means don't message."
 (defun mastodon-http--get-response (url &optional no-headers silent)
   "Make synchronous GET request to URL. Return JSON and response headers.
 SILENT means don't message.
-HEADERS means also return http response headers."
+NO-HEADERS means don't collect http response headers."
   (with-current-buffer (mastodon-http--get url silent)
     (mastodon-http--process-response no-headers)))
 
@@ -162,13 +162,16 @@ SILENT means don't message."
 
 (defun mastodon-http--process-json ()
   "Return only JSON data from async URL request.
-Callback to `mastodon-http--get-json-async', usually `mastodon-tl--init*',  is run on the result."
+Callback to `mastodon-http--get-json-async', usually
+`mastodon-tl--init*', is run on the result."
   (car (mastodon-http--process-response :no-headers)))
 
 (defun mastodon-http--process-response (&optional no-headers)
   "Process http response.
 Return a cons of JSON list and http response headers.
-Callback to `mastodon-http--get-response-async', usually `mastodon-tl--init*', is run on the result."
+If NO-HEADERS is non-nil, just return the JSON.
+Callback to `mastodon-http--get-response-async', usually
+`mastodon-tl--init*', is run on the result."
   ;; view raw response:
   ;; (switch-to-buffer (current-buffer))
   (let ((headers (unless no-headers
