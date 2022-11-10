@@ -135,7 +135,7 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 | =I=, =c=, =d=       | view, create, and delete filters                                      |
 | =R=, =a=, =r=       | view/accept/reject follow requests                                    |
 | =G=             | view follow suggestions                                               |
-| =V=             | view your favorited toots                                             |
+| =V=             | view your favourited toots                                            |
 | =K=             | view bookmarked toots                                                 |
 |---------------+-----------------------------------------------------------------------|
 |               | *Toot actions*                                                          |
@@ -240,7 +240,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Timestamp format
    - Relative timestamps
    - Display user avatars
-   - Avatar image hight
+   - Avatar image height
    - Enable image caching
 
 - Compose options:
@@ -267,7 +267,7 @@ You can translate toots with =mastodon-toot--translate-toot-text=. At the moment
 this requires [[https://codeberg.org/martianh/lingva.el][lingva.el]], a little interface I wrote to https://lingva.ml, to
 be installed to work.
 
-You could easily modify the simple function to use your emacs translator of
+You could easily modify the simple function to use your Emacs translator of
 choice (=libretrans.el= , =google-translate=, =babel=, =go-translate=, etc.), you just
 need to fetch the toot's content with =(mastodon-tl--content toot)= and pass it
 to your translator function as its text argument. Here's what
