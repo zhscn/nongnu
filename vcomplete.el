@@ -4,7 +4,7 @@
 
 ;; Author: Daniel Semyonov <daniel@dsemy.com>
 ;; Maintainer: Vcomplete Mailing List <~dsemy/vcomplete-devel@lists.sr.ht>
-;; Version: 1.2.1
+;; Version: 2.0
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: convenience, matching
 ;; URL: https://dsemy.com/projects/vcomplete
