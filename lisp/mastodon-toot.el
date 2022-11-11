@@ -503,11 +503,12 @@ Pushes `mastodon-toot-current-toot-text' to
     (message "Draft saved!")))
 
 (defun mastodon-toot-empty-p (&optional text-only)
-  "Return t if no text or attachments have been added to the compose buffer.
+  "Return t if no text, attachments, or polls have been added to the compose buffer.
 TEXT-ONLY means don't check for attachments."
   (and (if text-only
            t
-         (not mastodon-toot--media-attachments))
+         (not mastodon-toot--media-attachments)
+         (not mastodon-toot-poll))
        (string-empty-p (mastodon-tl--clean-tabs-and-nl
                         (mastodon-toot--remove-docs)))))
 
