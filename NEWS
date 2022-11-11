@@ -1,6 +1,20 @@
 Vcomplete NEWS -- history of user-visible changes. -*- mode: outline -*-
 See the end of the file for an explanation of the versioning scheme.
 
+* 2.0
+
+** Support built-in completion enhancements introduced in Emacs 29.
+Built-in commands are now used when available.  Completions are
+highlighted using built-in facilities when available.
+
+** Breaking changes
+
+*** 'vcomplete-with-completions-buffer' has been replaced with
+'vcomplete-with-completions-window'.  This breaks the previously
+available Embark integration.
+
+*** 'vcomplete-search-range' is no longer used in Emacs 29+.
+
 * 1.2.1
 
 ** Remove Embark integration.

@@ -26,8 +26,9 @@
 
 ;;; Commentary:
 
-;; Vcomplete provides a minor mode enhancing the default completion
-;; list buffer, providing visual aids for selecting completions.
+;; Vcomplete provides a minor mode which highlights the completion at
+;; point the completion list buffer and (optionally) automatically
+;; updates it.
 ;;
 ;; Usage:
 ;;
@@ -68,7 +69,22 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'subr-x))
+(eval-when-compile
+  (require 'subr-x)
+  
+  ;; Avoid byte-compilation warnings.
+  (declare-function vcomplete--disable-completion-in-region nil)
+  (declare-function vcomplete--get-completions-window nil)
+  (declare-function vcomplete--highlight-completion-at-point nil)
+  (declare-function vcomplete--move-n-completions nil)
+  (declare-function vcomplete--setup-completions nil)
+  (declare-function vcomplete-choose-completion nil)
+  (declare-function vcomplete-next-completion nil)
+  (declare-function vcomplete-prev-completion nil)
+  (declare-function vcomplete-with-completions-window nil)
+  (defvar vcomplete--last-completion-overlay)
+  (defvar vcomplete-command-map)
+  (defvar vcomplete-search-range))
 
 ;;;; Customization:
 
@@ -95,53 +111,62 @@ Otherwise, operate according to `completion-auto-help'."
     vcomplete-choose-completion
     minibuffer-complete-and-exit
     minibuffer-force-complete-and-exit
+    minibuffer-next-completion
+    minibuffer-previous-completion
+    minibuffer-choose-completion
     completion-at-point
     choose-completion)
   "List of commands which shouldn't cause the `*Completions*' buffer to update."
   :link '(info-link "(Vcomplete)Completion commands")
   :type '(hook :tag "Commands")
   :risky t
-  :package-version '(vcomplete . 1.1))
+  :package-version '(vcomplete . 2.0))
 
-(defcustom vcomplete-search-range 'visible
-  "Range of search for a `*Completions*' window during completion.
+(defface vcomplete-highlight (if (and (boundp 'completions-highlight-face)
+                                      (facep completions-highlight-face))
+                                 `((t :inherit ,completions-highlight-face))
+                               '((t :inherit highlight)))
+  "Face for highlighting completions."
+  :package-version '(vcomplete . 2.0))
+
+(if (fboundp 'with-minibuffer-completions-window)
+    (defalias 'vcomplete-with-completions-window
+      #'with-minibuffer-completions-window)
+  (defcustom vcomplete-search-range 0
+    "Range of search for a `*Completions*' window during completion.
 - t means consider all windows on all frames.
 - `visible' means consider all windows on all visible frames.
 - 0 (the number zero) means consider all windows on all visible and
   iconified frames.
 - Any other value means consider all windows on the selected frame and
   no others."
-  :link '(info-link "(Vcomplete)Customization")
-  :type '(radio (const :tag "All windows on all frames" t)
-                (const :tag "All windows on all visible frames" visible)
-                (const
-                 :tag "All windows on all visible and iconified frames" 0)
-                (const
-                 :tag "All windows on the currently selected frame"
-                 nil))
-  :risky t
-  :package-version '(vcomplete . 1.2))
-
-(defface vcomplete-highlight '((t :inherit highlight))
-  "Face for highlighting completions."
-  :package-version '(vcomplete . 1.1))
+    :link '(info-link "(Vcomplete)Customization")
+    :type '(radio (const :tag "All windows on all frames" t)
+                  (const :tag "All windows on all visible frames" visible)
+                  (const
+                   :tag "All windows on all visible and iconified frames" 0)
+                  (const
+                   :tag "All windows on the currently selected frame"
+                   nil))
+    :risky t
+    :package-version '(vcomplete . 2.0))
 
 ;;;; Completion commands:
 
-(defun vcomplete--get-completions-window ()
-  "Return the window associated with the `*Completions*' buffer.
+  (defun vcomplete--get-completions-window ()
+    "Return the window associated with the `*Completions*' buffer.
 This function only searches the frames specified in `vcomplete-search-range'."
-  (get-buffer-window "*Completions*" vcomplete-search-range))
+    (get-buffer-window "*Completions*" vcomplete-search-range))
 
-(defmacro vcomplete-with-completions-window (&rest body)
-  "Evaluate BODY with the `*Completions*' window temporarily selected."
-  (declare (debug (&rest form)))
-  `(when-let ((window (vcomplete--get-completions-window)))
-     (with-selected-window window
-       (unless (derived-mode-p 'completion-list-mode)
-         (user-error
-          "The `*Completions*' buffer is set to an incorrect mode"))
-       ,@body)))
+  (defmacro vcomplete-with-completions-window (&rest body)
+    "Evaluate BODY with the `*Completions*' window temporarily selected."
+    (declare (debug (&rest form)))
+    `(when-let ((window (vcomplete--get-completions-window)))
+       (with-selected-window window
+         (unless (derived-mode-p 'completion-list-mode)
+           (user-error
+            "The `*Completions*' buffer is set to an incorrect mode"))
+         ,@body))))
 
 (defun vcomplete-current-completion (pos)
   "Get the completion candidate at POS.
@@ -167,52 +192,63 @@ isn't a completion list buffer."
                     (point-max)))
       `(,(buffer-substring-no-properties beg end) . (,beg . ,end)))))
 
-(defvar vcomplete--last-completion-overlay nil
-  "Last overlay created in the `*Completions*' buffer.")
-(put 'vcomplete--last-completion-overlay 'risky-local-variable t)
+(if (boundp 'completions-highlight-face)
+    (defun vcomplete--move-n-completions (n)
+      "Move N completions in the `*Completions*' buffer."
+      (with-minibuffer-completions-window
+       (next-completion n)))
+  (defvar vcomplete--last-completion-overlay nil
+    "Last overlay created in the `*Completions*' buffer.")
+  (put 'vcomplete--last-completion-overlay 'risky-local-variable t)
 
-(defun vcomplete--highlight-completion-at-point ()
-  "Highlight the completion at point in the `*Completions*' buffer."
-  (let ((cur (vcomplete-current-completion (point))))
-    (when vcomplete--last-completion-overlay
-      (delete-overlay vcomplete--last-completion-overlay))
-    (when-let ((pos (cdr cur)))
-      (overlay-put
-       (setq vcomplete--last-completion-overlay
-             (make-overlay (car pos) (cdr pos)))
-       'face 'vcomplete-highlight))))
+  (defun vcomplete--highlight-completion-at-point ()
+    "Highlight the completion at point in the `*Completions*' buffer."
+    (let ((cur (vcomplete-current-completion (point))))
+      (when vcomplete--last-completion-overlay
+        (delete-overlay vcomplete--last-completion-overlay))
+      (when-let ((pos (cdr cur)))
+        (overlay-put
+         (setq vcomplete--last-completion-overlay
+               (make-overlay (car pos) (cdr pos)))
+         'face 'vcomplete-highlight))))
+  
+  (defun vcomplete--move-n-completions (n)
+    "Move N completions in the `*Completions*' buffer."
+    (vcomplete-with-completions-window
+     (next-completion n)
+     (vcomplete--highlight-completion-at-point)))
 
-(defun vcomplete--move-n-completions (n)
-  "Move N completions in the `*Completions*' buffer."
-  (vcomplete-with-completions-window
-   (next-completion n)
-   (vcomplete--highlight-completion-at-point)))
-
-(defun vcomplete-next-completion (&optional n)
-  "Move to the next item in the `*Completions*' buffer.
+  (defun vcomplete-next-completion (&optional n)
+    "Move to the next item in the `*Completions*' buffer.
 With prefix argument N, move N items (negative N means move backward)."
-  (interactive "p")
-  (vcomplete--move-n-completions (or n 1)))
+    (interactive "p")
+    (vcomplete--move-n-completions (or n 1)))
 
-(defun vcomplete-prev-completion (&optional n)
-  "Move to the previous item in the `*Completions*' buffer.
+  (defun vcomplete-prev-completion (&optional n)
+    "Move to the previous item in the `*Completions*' buffer.
 With prefix argument N, move N items (negative N means move forward)."
-  (interactive "p")
-  (vcomplete--move-n-completions (- (or n 1))))
+    (interactive "p")
+    (vcomplete--move-n-completions (- (or n 1))))
 
-(defun vcomplete-choose-completion ()
-  "Choose the completion at point in the `*Completions*' buffer."
-  (interactive)
-  (vcomplete-with-completions-window
-   (let ((completion-use-base-affixes t)) (choose-completion))))
+  (defun vcomplete-choose-completion ()
+    "Choose the completion at point in the `*Completions*' buffer."
+    (interactive)
+    (vcomplete-with-completions-window
+     (let ((completion-use-base-affixes t)) (choose-completion)))))
 
-(defvar vcomplete-command-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?\C-n] #'vcomplete-next-completion)
-    (define-key map [?\C-p] #'vcomplete-prev-completion)
-    (define-key map [?\C-\M-m] #'vcomplete-choose-completion)
-    map)
-  "Key map for completion commands.")
+(if (fboundp 'minibuffer-next-completion)
+    (defvar-keymap vcomplete-command-map
+      :doc "Key map for completion commands."
+      "C-n" #'minibuffer-next-completion
+      "C-p" #'minibuffer-previous-completion
+      "C-M-m" #'minibuffer-choose-completion)
+  (defvar vcomplete-command-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map [?\C-n] #'vcomplete-next-completion)
+      (define-key map [?\C-p] #'vcomplete-prev-completion)
+      (define-key map [?\C-\M-m] #'vcomplete-choose-completion)
+      map)
+    "Key map for completion commands."))
 
 ;;;; Vcomplete mode:
 
@@ -234,22 +270,34 @@ With prefix argument N, move N items (negative N means move forward)."
 ;; since `after-change-functions' runs before the `*Completions*'
 ;; buffer is closed, so `completion-in-region-mode' can't be
 ;; immediately disabled through `vcomplete--update-in-region'.
-(defun vcomplete--disable-completion-in-region ()
-  "Stop completion in region when there is no visible `*Completions*' buffer."
-  (unless (vcomplete--get-completions-window)
-    (completion-in-region-mode -1)))
+(if (fboundp 'with-minibuffer-completions-window)
+    (defun vcomplete--disable-completion-in-region ()
+      "Stop completion in region when there is no `*Completions*' window."
+      (unless (get-buffer-window "*Completions*" 0) ; Match `w-m-c-w'.
+        (completion-in-region-mode -1)))
+  (defun vcomplete--disable-completion-in-region ()
+    "Stop completion in region when there is no `*Completions*' window."
+    (unless (vcomplete--get-completions-window)
+      (completion-in-region-mode -1))))
 
-(defun vcomplete--setup-completions ()
-  "Setup the `*Completions*' buffer for highlighting the completion at point."
-  (add-hook 'post-command-hook
-            #'vcomplete--highlight-completion-at-point nil t))
+(if (boundp 'completions-highlight-face)
+    (defun vcomplete--setup-completions ()
+      "Force enable built-in highlighting in the `*Completions*' buffer."
+      (setq-local completions-highlight-face 'vcomplete-highlight
+                  cursor-face-highlight-nonselected-window t))
+  (defun vcomplete--setup-completions ()
+    "Setup the `*Completions*' buffer for highlighting the completion at point."
+    (add-hook 'post-command-hook
+              #'vcomplete--highlight-completion-at-point nil t)))
 
-(defun vcomplete--reset-completions ()
-  "Stop highlighting the completion at point in the `*Completions*' buffer."
-  (when-let ((buf (get-buffer "*Completions*")))
-    (with-current-buffer buf
-      (remove-hook 'post-command-hook
-                   #'vcomplete--highlight-completion-at-point t))))
+(defun vcomplete--kill-completions ()
+  "Kill the `*Completions*' buffer and delete its window."
+  (when-let ((buf (get-buffer "*Completions*"))
+             ((with-current-buffer buf
+                (derived-mode-p 'completion-list-mode))))
+    (vcomplete-with-completions-window
+     (delete-window))
+    (kill-buffer buf)))
 
 (defun vcomplete--setup-minibuffer ()
   "Setup visual completions for the minibuffer."
@@ -298,7 +346,7 @@ The following bindings are available during completion:
         (add-hook 'minibuffer-setup-hook #'vcomplete--setup-minibuffer)
         (add-hook 'completion-in-region-mode-hook #'vcomplete--setup-in-region))
     (remove-hook 'completion-list-mode-hook #'vcomplete--setup-completions)
-    (vcomplete--reset-completions)
+    (vcomplete--kill-completions)
     (remove-hook 'minibuffer-setup-hook #'vcomplete--setup-minibuffer)
     (remove-hook 'completion-in-region-mode-hook #'vcomplete--setup-in-region)))
 

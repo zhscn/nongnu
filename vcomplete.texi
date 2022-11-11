@@ -41,8 +41,9 @@ General Public License for more details.
 @node Top
 @top Vcomplete User Manual
 
-Vcomplete provides a minor mode enhancing the default completion list
-buffer, providing visual aids for selecting completions.
+Vcomplete provides a minor mode which highlights the completion at
+point the completion list buffer and (optionally) automatically
+updates it.
 
 @noindent
 This manual is for Vcomplete version 1.2.1.
@@ -78,11 +79,11 @@ Customization
 @node Introduction
 @chapter Introduction
 
-Vcomplete provides a minor mode enhancing the default completion list
-buffer, providing visual aids for selecting completions. It's designed
-to build upon the default completion system, instead of replacing
-it. As such, it works both when completing in a minibuffer and in
-normal buffers.
+Vcomplete provides a minor mode which highlights the completion at
+point the completion list buffer and (optionally) automatically
+updates it. It builds upon the default completion system, instead of
+replacing it. As such, it works both when completing in a minibuffer
+and in normal buffers.
 
 @node Installation
 @chapter Installation
@@ -125,6 +126,9 @@ Install the package:
 @item @kbd{M-x package-install-file RET /path/to/clone/vcomplete-VERSION.tar RET}
 @end table
 
+An installable (with @code{package-install-file}) archive is built for
+every commit, available through <https://builds.sr.ht/~dsemy/vcomplete>.
+
 @node Usage
 @chapter Usage
 
@@ -133,36 +137,36 @@ It is recommended for @code{vcomplete-mode} to be enabled:
 @cindex vcomplete-mode
 @table @asis
 @item @kbd{M-x vcomplete-mode RET}
-You can also add @code{(vcomplete-mode)} to your init file, instead.
+You can also add @code{(vcomplete-mode)} to your init file, or enable
+it through the customize interface.
 @end table
 
 When @code{vcomplete-mode} is enabled, the @code{*Completions*} buffer
 appears and updates automatically (by default), and the completion at
-point in the @code{*Completions*} buffer is highlighted automatically.
+point in the @code{*Completions*} buffer is highlighted, even if
+@code{completions-highlight-face} (Emacs 29+) is nil.
 
-The following commands are also made available when completion is in
-progress:
+The following key bindings are also made available when completion is
+in progress:
 
 @kindex C-n
 @cindex vcomplete-next-completion
 @table @asis
 @item @kbd{C-n}
-Select the next displayed completion
-(@code{vcomplete-next-completion}).  This command moves point in the
-@code{*Completions*} buffer to the next available completion, and
-highlights it. This command may be used to advance multiple
-completions at a time with a prefix argument.
+Move point to the next displayed completion in the
+@code{*Completions*} window (@code{vcomplete-next-completion} or
+@code{minibuffer-next-completion} on Emacs 29+). This command may be
+used to move multiple completions at a time with a prefix argument.
 @end table
 
 @kindex C-p
 @cindex vcomplete-prev-completion
 @table @asis
 @item @kbd{C-p}
-Select the previous displayed completion
-(@code{vcomplete-prev-completion}).  This command moves point in the
-@code{*Completions*} buffer to the previous available completion, and
-highlights it. This command may be used to advance multiple
-completions at a time with a prefix argument.
+Move point to the next displayed completion in the
+@code{*Completions*} window (@code{vcomplete-prev-completion} or
+@code{minibuffer-previous-completion} on Emacs 29+). This command may
+be used to move multiple completions at a time with a prefix argument.
 @end table
 
 @kindex M-RET
@@ -170,13 +174,13 @@ completions at a time with a prefix argument.
 @table @asis
 @item @kbd{M-RET}
 Choose the currently highlighted completion in the
-@code{*Completions*} buffer (@code{vcomplete-choose-completion}).
+@code{*Completions*} window (@code{vcomplete-choose-completion}
+or @code{minibuffer-choose-completion} on Emacs 29+).
 @end table
 
 You may use these commands without enabling @code{vcomplete-mode}
-(although they won't be bound by default).
-@xref{Completion commands} for information regarding defining new
-commands.
+(although they won't be bound by default). @xref{Completion commands}
+for information regarding defining new commands.
 
 @node Customization
 @chapter Customization
@@ -190,13 +194,13 @@ be done through the customize interface:
 
 @defopt vcomplete-auto-update
 Whether the @code{*Completions*} buffer should open and update
-automatically. Non-nil means automatically open and
-update. Otherwise, operate according to
-@code{completion-auto-help}. By default, @code{t} is used. Note that
-with @code{completions-detailed} (introduced in Emacs 28) enabled, the
-@code{*Completions*} buffer takes much more time to display. This is
-also true for other ``annotation providers'' such as the Marginalia
-package. Consider disabling them or this option on slow computers.
+automatically. Non-nil means automatically open and update. Otherwise,
+operate according to @code{completion-auto-help}. By default, @code{t}
+is used. Note that with @code{completions-detailed} (introduced in
+Emacs 28) enabled, the @code{*Completions*} buffer takes much more
+time to display. This is also true for other ``annotation providers''
+such as the Marginalia package. Consider disabling them or this option
+on slow computers.
 @end defopt
 
 @defopt vcomplete-search-range
@@ -205,7 +209,10 @@ A value of @code{t} means consider all windows on all frames,
 @code{visible} means consider all windows on all visible frames,
 @code{0} (the number zero) means consider all windows on all visible
 and iconified frames and any other value means consider only the
-currently selected frame. By default, @code{visible} is used.
+currently selected frame. By default, @code{0} is used. In Emacs 29+
+this option is unavailable since built-in functions and macros are
+used, which don't respect its value. The built-in functions use the
+equivalent of setting this option to @code{0}.
 @end defopt
 
 @menu
@@ -226,27 +233,26 @@ to update.
 
 @defvar vcomplete-command-map
 Key map which holds key bindings to completion commands. This key map
-should be available whenever completion is initiated.
+should be available whenever completion is initiated when
+@code{vcomplete-mode} is enabled.
 @end defvar
 
 @defun vcomplete-current-completion pos
-Get the completion candidate at POS.
+Get the completion candidate at POS in the *Completions* buffer.
 The completion candidate is returned as a list of the form:
 @example
 (COMPLETION-STRING . (BEGINNING . END))
 @end example
-If no completion is found, this function returns nil. Note that this
-function throws an error when the major mode of the buffer from which
-it is called isn't derived from @code{completion-list-mode}.
+If no completion is found, this function returns nil.
 @end defun
 
-@defmac vcomplete-with-completions-buffer body...
-Evaluate BODY with the @code{*Completions*} buffer temporarily
-current.  While evaluating BODY, BUFFER and WINDOW are locally bound
-to the @code{*Completions*} buffer and window respectively. This macro
-can be used to easily manipulate or access the contents of the
-@code{*Completions*} buffer. If there is no @code{*Completions*}
-buffer or no window displaying it BODY isn't executed.
+@defmac vcomplete-with-completions-window body...
+Evaluate BODY with the @code{*Completions*} window temporarily
+selected. This macro can be used to easily manipulate or access the
+contents of the @code{*Completions*} buffer. If there is no
+@code{*Completions*} buffer or no window displaying it BODY isn't
+executed. On Emacs 29+, this macro is an alias to the built-in
+@code{with-minibuffer-completions-window} macro.
 @end defmac
 
 @node Keystroke Index

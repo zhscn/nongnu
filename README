@@ -1,7 +1,8 @@
 Vcomplete - Visual completions
 
-Vcomplete provides a minor mode enhancing the default completion
-list buffer, providing visual aids for selecting completions.
+Vcomplete provides a minor mode which highlights the completion at
+point the completion list buffer and (optionally) automatically
+updates it.
 
 Installation:
 
