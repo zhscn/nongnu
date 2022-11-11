@@ -659,8 +659,15 @@ START and END are the boundaries of the link in the toot."
                               mastodon-instance-url))
          (maybe-hashtag (mastodon-tl--extract-hashtag-from-url
                          url toot-instance-url))
-         (maybe-userhandle (mastodon-tl--extract-userhandle-from-url
-                            url (buffer-substring-no-properties start end))))
+         (maybe-userhandle
+          (if (not (listp toot)) ; fails for profile buffers
+              (or (mastodon-tl--userhandle-from-mentions toot
+                                                         (buffer-substring-no-properties start end))
+                  ;; FIXME: if prev always works, cut this:
+                  (mastodon-tl--extract-userhandle-from-url
+                   url (buffer-substring-no-properties start end)))
+            (mastodon-tl--extract-userhandle-from-url
+             url (buffer-substring-no-properties start end)))))
     (cond (;; Hashtags:
            maybe-hashtag
            (setq mastodon-tab-stop-type 'hashtag
@@ -695,6 +702,23 @@ START and END are the boundaries of the link in the toot."
                                 'keymap keymap
                                 'help-echo help-echo)
                           extra-properties))))
+
+;; TODO: refactor --userhandle-from-mentions and --extract-userid-toot
+(defun mastodon-tl--userhandle-from-mentions (toot link)
+  "Extract a user handle from mentions in json TOOT.
+LINK is the '@handle' to search for."
+  ;; TODO: ensure this doesn't error and returns nil if it doesn't work
+  ;; so that the 'or' that it is called in uses the following fallback
+  (let* ((mentions (append (alist-get 'mentions toot) nil)) ; alist
+         (mention (pop mentions))
+         (name (substring-no-properties link 1)) ; cull @
+         handle)
+    (while mention
+      (when (string= (alist-get 'username mention)
+                     name)
+        (setq handle (alist-get 'acct mention)))
+      (setq mention (pop mentions)))
+    handle))
 
 (defun mastodon-tl--extract-userid-toot (toot acct)
   "Extract a user id for an ACCT from mentions in a TOOT."
