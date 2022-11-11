@@ -41,8 +41,8 @@ General Public License for more details.
 @node Top
 @top swsw User Manual
 
-swsw provides a minor mode for switching to windows using IDs assigned
-to them automatically.
+swsw provides a minor mode for switching to windows or performing
+actions on them using IDs assigned to them automatically.
 
 @noindent
 This manual is for swsw version 2.3.
@@ -79,9 +79,10 @@ Customization
 @node Introduction
 @chapter Introduction
 
-swsw provides a minor mode for switching to windows using IDs assigned to them
-automatically. It's implementation is simple and extensible, providing various
-advanced customization features for users, while keeping the code base small
+swsw provides a minor mode for switching to windows or performing
+actions on them using IDs assigned to them automatically. The
+implementation is simple and extensible, providing various advanced
+customization features for users, while keeping the code base small
 and easy to hack on.
 
 @node Installation
@@ -133,7 +134,8 @@ In order to use any feature of the package, @code{swsw-mode} must be enabled:
 @table @asis
 @cindex swsw-mode
 @item @kbd{M-x swsw-mode RET}
-You can also add @code{(swsw-mode)} to your init file, instead.
+You can also add @code{(swsw-mode)} to your init file, or enable it
+through the customize interface.
 @end table
 
 When @code{swsw-mode} is enabled, window IDs are shown as mode line

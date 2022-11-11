@@ -26,8 +26,8 @@
 
 ;;; Commentary:
 
-;; swsw (simple window switching) provides a minor mode for switching
-;; to windows using IDs assigned to them automatically.
+;; swsw provides a minor mode for switching to windows or performing
+;; actions on them using IDs assigned to them automatically.
 ;;
 ;; Usage:
 ;;
