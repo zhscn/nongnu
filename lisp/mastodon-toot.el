@@ -948,11 +948,29 @@ which is used to attach it to a toot when posting."
     (cl-loop for o in options
              collect `(,key . ,o))))
 
+(defun mastodon-toot--fetch-max-poll-options ()
+  "Return the maximum number of poll options from the user's instance. "
+  (let* ((instance (mastodon-http--get-json (mastodon-http--api "instance"))))
+    (alist-get 'max_options
+               (alist-get 'polls
+                          (alist-get 'configuration instance)
+                          instance))))
+
+(defun mastodon-toot--read-poll-options-count (max)
+  "Read the user's choice of the number of options the poll should have.
+MAX is the maximum number set by their instance."
+  (let ((number (read-number
+                 (format "Number of options [2-%s]: " max) 2)))
+    (if (> number max)
+        (error "You need to choose a number between 2 and %s" max)
+      number)))
+
 (defun mastodon-toot--create-poll ()
   "Prompt for new poll options and return as a list."
   (interactive)
   ;; re length, API docs show a poll 9 options.
-  (let* ((length (read-number "Number of options [2-4]: " 2))
+  (let* ((max-options (mastodon-toot--fetch-max-poll-options))
+         (length (mastodon-toot--read-poll-options-count max-options))
          (multiple-p (y-or-n-p "Multiple choice? "))
          (options (mastodon-toot--read-poll-options length))
          (hide-totals (y-or-n-p "Hide votes until poll ends? "))
