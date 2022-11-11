@@ -7,6 +7,9 @@ See the end of the file for an explanation of the versioning scheme.
 Built-in commands are now used when available.  Completions are
 highlighted using built-in facilities when available.
 
+** 'vcomplete-current-completion' can now be called from anywhere and
+without any arguments (in which case point is used).
+
 ** Breaking changes
 
 *** 'vcomplete-with-completions-buffer' has been replaced with
@@ -14,6 +17,8 @@ highlighted using built-in facilities when available.
 available Embark integration.
 
 *** 'vcomplete-search-range' is no longer used in Emacs 29+.
+
+*** 'vcomplete-current-completion' never throws a user error anymore.
 
 * 1.2.1
 
