@@ -324,7 +324,8 @@ not, just browse the URL in the normal fashion."
           (string-match "^/display/[-a-f0-9]+$" query)
           (string-match "^/profile/[[:alpha:]]+$" query)
           (string-match "^/p/[[:alpha:]]+/[[:digit:]]+$" query)
-          (string-match "^/[[:alpha:]]+$" query)))))
+          (string-match "^/[[:alpha:]]+$" query)
+          (string-match "^/u/[[:alpha:]]+$" query)))))
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook (lambda ()
