@@ -657,17 +657,18 @@ START and END are the boundaries of the link in the toot."
                                 (concat (url-type toot-url) "://"
                                         (url-host toot-url))
                               mastodon-instance-url))
+         (link-str (buffer-substring-no-properties start end))
          (maybe-hashtag (mastodon-tl--extract-hashtag-from-url
                          url toot-instance-url))
          (maybe-userhandle
-          (if (not (listp toot)) ; fails for profile buffers
+          (if (proper-list-p toot) ; fails for profile buffers?
               (or (mastodon-tl--userhandle-from-mentions toot
-                                                         (buffer-substring-no-properties start end))
+                                                         link-str)
                   ;; FIXME: if prev always works, cut this:
                   (mastodon-tl--extract-userhandle-from-url
-                   url (buffer-substring-no-properties start end)))
+                   url link-str))
             (mastodon-tl--extract-userhandle-from-url
-             url (buffer-substring-no-properties start end)))))
+             url link-str))))
     (cond (;; Hashtags:
            maybe-hashtag
            (setq mastodon-tab-stop-type 'hashtag
@@ -677,10 +678,9 @@ START and END are the boundaries of the link in the toot."
           (;; User handles:
            maybe-userhandle
            ;; this fails on mentions in profile notes:
-           (let ((maybe-userid
-                  (when (proper-list-p toot)
-                    (mastodon-tl--extract-userid-toot
-                     toot maybe-userhandle))))
+           (let ((maybe-userid (when (proper-list-p toot)
+                                 (mastodon-tl--extract-userid-toot
+                                  toot link-str))))
              (setq mastodon-tab-stop-type 'user-handle
                    keymap mastodon-tl--link-keymap
                    help-echo (concat "Browse user profile of " maybe-userhandle)
@@ -703,35 +703,32 @@ START and END are the boundaries of the link in the toot."
                                 'help-echo help-echo)
                           extra-properties))))
 
-;; TODO: refactor --userhandle-from-mentions and --extract-userid-toot
 (defun mastodon-tl--userhandle-from-mentions (toot link)
   "Extract a user handle from mentions in json TOOT.
-LINK is the '@handle' to search for."
-  ;; TODO: ensure this doesn't error and returns nil if it doesn't work
-  ;; so that the 'or' that it is called in uses the following fallback
-  (let* ((mentions (append (alist-get 'mentions toot) nil)) ; alist
-         (mention (pop mentions))
-         (name (substring-no-properties link 1)) ; cull @
-         handle)
-    (while mention
-      (when (string= (alist-get 'username mention)
-                     name)
-        (setq handle (alist-get 'acct mention)))
-      (setq mention (pop mentions)))
-    handle))
+LINK is maybe the '@handle' to search for."
+  (mastodon-tl--extract-el-from-mentions 'acct toot link))
 
-(defun mastodon-tl--extract-userid-toot (toot acct)
+(defun mastodon-tl--extract-userid-toot (toot link)
   "Extract a user id for an ACCT from mentions in a TOOT."
-  (let* ((mentions (append (alist-get 'mentions toot) nil))
-         (mention (pop mentions))
-         (short-acct (substring acct 1 (length acct)))
-         return)
-    (while mention
-      (when (string= (alist-get 'acct mention)
-                     short-acct)
-        (setq return (alist-get 'id  mention)))
-      (setq mention (pop mentions)))
-    return))
+  (mastodon-tl--extract-el-from-mentions 'id toot link))
+
+(defun mastodon-tl--extract-el-from-mentions (el toot link)
+  "Extract element EL from TOOT mentions that matches LINK.
+LINK should be a simple handle string with no domain, i.e. @user.
+Return nil if no matching element"
+  ;; Must return nil if nothing found!
+  ;; TODO: we should break the while loop as soon as we get sth
+  (let ((mentions (append (alist-get 'mentions toot) nil)))
+    (when mentions
+      (let* ((mention (pop mentions))
+             (name (substring-no-properties link 1 (length link))) ; cull @
+             return)
+        (while mention
+          (when (string= (alist-get 'username mention)
+                         name)
+            (setq return (alist-get el mention)))
+          (setq mention (pop mentions)))
+        return))))
 
 (defun mastodon-tl--extract-userhandle-from-url (url buffer-text)
   "Return the user hande the URL points to or nil if it is not a profile link.
