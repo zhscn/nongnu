@@ -309,6 +309,14 @@ The better option is most likely going to be looking at the code and seeing how 
 
 PRs, issues, feature requests, and general feedback are very welcome!
 
+*** Bugs
+
+1. =mastodon.el= has bugs, as well as lots of room for improvement.
+2. I receive very little feedback, so if I don't run into the bug it often doesn't get fixed.
+3. If you run into something that seems broken, first try running =mastodon.el= in emacs with no init file (i.e. =emacs -q= (instructions and code for doing this are [[https://codeberg.org/martianh/mastodon.el/issues/300][here]]) to see if it also happens independently of your own config (it probably does).
+4. Enable debug on error (=toggle-debug-on-error=), make the bug happen again, and copy the backtrace that appears.
+5. Open an issue here and explain what is going on.
+
 *** Features
 
 1. Create an [[https://github.com/jdenen/mastodon.el/issues][issue]] detailing the feature you'd like to add.
@@ -323,7 +331,7 @@ PRs, issues, feature requests, and general feedback are very welcome!
 
 ** Contributors:
 
-=mastodon.el= is a the work of a number of people.
+=mastodon.el= is the work of a number of people.
 
 Some significant contributors are:
 
