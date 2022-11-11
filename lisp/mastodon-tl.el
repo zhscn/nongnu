@@ -801,8 +801,7 @@ Used for hitting <return> on a given link."
            (mastodon-tl--toggle-spoiler-text position))
           ((eq link-type 'hashtag)
            (mastodon-tl--show-tag-timeline (get-text-property position 'mastodon-tag)))
-          ;; FIXME: 'account / 'account-id is not set for mentions
-          ;; only works for bylines, not mentions
+          ;; 'account / 'account-id is not set for mentions, only bylines
           ((eq link-type 'user-handle)
            (let ((account-json (get-text-property position 'account))
                  (account-id (get-text-property position 'account-id)))
@@ -814,9 +813,17 @@ Used for hitting <return> on a given link."
                (mastodon-profile--make-author-buffer
                 (mastodon-profile--account-from-id account-id)))
               (t
-               (mastodon-profile--make-author-buffer
-                (mastodon-profile--search-account-by-handle
-                 (get-text-property position 'mastodon-handle)))))))
+               (let ((account
+                      (mastodon-profile--search-account-by-handle
+                       (get-text-property position 'mastodon-handle))))
+                 ;; never call make-author-buffer on nil account:
+                 (if account
+                     (mastodon-profile--make-author-buffer account)
+                   ;; optional webfinger lookup:
+                   (if (y-or-n-p
+                        "Search for account returned nothing. Perform URL lookup?")
+                       (mastodon-url-lookup (get-text-property position 'shr-url))
+                     (message "Unable to find account."))))))))
           (t
            (error "Unknown link type %s" link-type)))))
 
