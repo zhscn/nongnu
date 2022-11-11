@@ -168,29 +168,29 @@ This function only searches the frames specified in `vcomplete-search-range'."
             "The `*Completions*' buffer is set to an incorrect mode"))
          ,@body))))
 
-(defun vcomplete-current-completion (pos)
-  "Get the completion candidate at POS.
+(defun vcomplete-current-completion (&optional pos)
+  "Get the completion candidate at point in the `*Completions*' window.
+When POS is non-nil, use it instead of point.
 The completion candidate is returned as a list of the form:
- (COMPLETION-STRING . (BEGINNING . END))
-If no completion is found, return nil.
-An error is thrown when the current buffer
-isn't a completion list buffer."
-  (unless (derived-mode-p 'completion-list-mode)
-    (error "Not in a valid completion list buffer"))
-  ;; Modified from code in `choose-completion'.
-  (let (beg end noop)
-    (cond
-     ((and (not (eobp)) (get-text-property pos 'mouse-face))
-      (setq end pos beg (1+ pos)))
-     ((and (not (bobp))
-           (get-text-property (1- pos) 'mouse-face))
-      (setq end (1- pos) beg pos))
-     (t (setq noop t)))
-    (unless noop
-      (setq beg (previous-single-property-change beg 'mouse-face))
-      (setq end (or (next-single-property-change end 'mouse-face)
-                    (point-max)))
-      `(,(buffer-substring-no-properties beg end) . (,beg . ,end)))))
+ (COMPLETION-STRING . (BEG . END))
+Where BEG and END are the beginning and end positions of the
+completion string in the `*Completions*' buffer.
+If no completion is found, return nil."
+  (vcomplete-with-completions-window
+    ;; Modified from code in `choose-completion'.
+    (let ((pos (or pos (point))) beg end noop)
+      (cond
+       ((and (not (eobp)) (get-text-property pos 'mouse-face))
+        (setq end pos beg (1+ pos)))
+       ((and (not (bobp))
+             (get-text-property (1- pos) 'mouse-face))
+        (setq end (1- pos) beg pos))
+       (t (setq noop t)))
+      (unless noop
+        (setq beg (previous-single-property-change beg 'mouse-face))
+        (setq end (or (next-single-property-change end 'mouse-face)
+                      (point-max)))
+        `(,(buffer-substring-no-properties beg end) . (,beg . ,end))))))
 
 (if (boundp 'completions-highlight-face)
     (defun vcomplete--move-n-completions (n)
@@ -203,7 +203,7 @@ isn't a completion list buffer."
 
   (defun vcomplete--highlight-completion-at-point ()
     "Highlight the completion at point in the `*Completions*' buffer."
-    (let ((cur (vcomplete-current-completion (point))))
+    (let ((cur (vcomplete-current-completion)))
       (when vcomplete--last-completion-overlay
         (delete-overlay vcomplete--last-completion-overlay))
       (when-let ((pos (cdr cur)))

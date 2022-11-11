@@ -237,13 +237,16 @@ should be available whenever completion is initiated when
 @code{vcomplete-mode} is enabled.
 @end defvar
 
-@defun vcomplete-current-completion pos
-Get the completion candidate at POS in the *Completions* buffer.
-The completion candidate is returned as a list of the form:
+@defun vcomplete-current-completion &optional pos
+Get the completion candidate at point in the `*Completions*'
+window. When POS is non-nil, use it instead of point. The completion
+candidate is returned as a list of the form:
 @example
-(COMPLETION-STRING . (BEGINNING . END))
+(COMPLETION-STRING . (BEG . END))
 @end example
-If no completion is found, this function returns nil.
+Where BEG and END are the beginning and end positions of the
+completion string in the `*Completions*' buffer. If no completion is
+found, return nil.
 @end defun
 
 @defmac vcomplete-with-completions-window body...
