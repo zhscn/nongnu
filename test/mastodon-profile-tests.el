@@ -240,7 +240,7 @@ content generation in the function under test."
           [])
     (mock (mastodon-profile--relationships-get "1")
           =>
-          [((id . "1") (following . :json-false) (showing_reblogs . :json-false) (notifying . :json-false) (followed_by . :json-false) (blocking . :json-false) (blocked_by . :json-false) (muting . :json-false) (muting_notifications . :json-false) (requested . :json-false) (domain_blocking . :json-false) (endorsed . :json-false) (note . ""))])
+          '(((id . "1") (following . :json-false) (showing_reblogs . :json-false) (notifying . :json-false) (followed_by . :json-false) (blocking . :json-false) (blocked_by . :json-false) (muting . :json-false) (muting_notifications . :json-false) (requested . :json-false) (domain_blocking . :json-false) (endorsed . :json-false) (note . ""))))
     ;; Let's not do formatting as that makes it hard to not rely on
     ;; window width and reflowing the text.
     (mock (shr-render-region * *) => nil)
