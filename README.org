@@ -299,11 +299,11 @@ Optional dependencies:
 
 ** Nota Bene regarding work on this library
 
-I resurrected this library a few years ago, and have added stacks of features and fixes over time. But I only do it in my spare time, and I tend to implement features I want to use. I am not a professional programmer. I never aimed to implement all Mastodon features, nor do I aim to provide a professional service of any kind. I have implemented some things I don't use, such as filters, but mostly I can only fix bugs with things that I regularly rely on.
+I resurrected this library a few years ago, and have added stacks of features and fixes over time. I do it in my spare time and tend to implement features I want to use. I am not a professional programmer. I never aimed to implement all Mastodon features, nor to provide a professional service to others. I have implemented some things I don't use, such as filters, but mostly I can only fix bugs with things that I regularly rely on.
 
-Please keep this in mind when requesting features that are not implemented. Feel free to open an issue and start a discussion. But please do not feel free to order things from me as though I was a service provider, unless you are willing to consider also paying me as though I were a service provider.
+Please keep this in mind when requesting features that are not implemented. Feel free to open an issue and start a discussion, but don't try to order things from me.
 
-The better option is most likely going to be looking at the code and seeing how you can implement the feature yourself, especially as a lot of the functionality you're likely to need is already implemented. I'm happy to give pointers on what you might use. If that's not an option, then finding other contributors in order to cover more ground is what is needed.
+The better option is to look at the code and seeing how you can implement the feature yourself. A lot of the functionality you'll need is already implemented. I'm happy to give pointers on what you might use.
 
 ** Contributing
 
