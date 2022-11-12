@@ -259,7 +259,7 @@ content generation in the function under test."
         (buffer-substring-no-properties (point-min) (point-max))
         (concat
          "\n"
-         "[img] \n"
+         "[img] [img] \n"
          "Eugen\n"
          "@Gargron\n"
          " ------------\n"
