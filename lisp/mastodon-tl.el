@@ -1009,7 +1009,9 @@ this just means displaying toot client."
                        options
                        "\n")
             "\n"
-            (propertize (format "%s people | " vote-count)
+            (propertize (if (= vote-count 1)
+                            (format "%s person | " vote-count)
+                          (format "%s people | " vote-count))
                         'face 'font-lock-comment-face)
             (let ((str (if expired-p
                            "Poll expired."
