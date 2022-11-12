@@ -1706,11 +1706,17 @@ Can be called to toggle NOTIFY on users already being followed."
                      (equal (buffer-name) "*mastodon-follow-requests*")
                      ;; profile view follows/followers compat:
                      ;; but not for profile statuses:
+                     ;; fetch 'toot-json:
                      (and (string-prefix-p "accounts" (mastodon-tl--get-endpoint))
                           (not (string-suffix-p "statuses" (mastodon-tl--get-endpoint)))))
-                 ;; avoid tl--property here because it calls next-toot
-                 ;; which breaks non-toot buffers like foll reqs etc.:
                  (list (alist-get 'acct (get-text-property (point) 'toot-json))))
+                ;; profile view, no toots, point on profile note, ie. 'profile-json:
+                ;; needed for e.g. gup.pe groups which show no toots publically:
+                ((and (string-prefix-p "accounts" (mastodon-tl--get-endpoint))
+                      (get-text-property (point) 'profile-json))
+                 (list (alist-get 'acct (get-text-property (point) 'profile-json))))
+                ;; avoid tl--property here because it calls next-toot
+                ;; which breaks non-toot buffers like foll reqs etc.:
                 (t
                  (mastodon-profile--extract-users-handles
                   (mastodon-profile--toot-json))))))
@@ -1750,9 +1756,13 @@ NOTIFY is only non-nil when called by `mastodon-tl--follow-user'."
                       ;; if unmuting/unblocking, we got handle from mute/block list
                       (mastodon-profile--search-account-by-handle
                        user-handle)
-                    ;; if muting/blocking, we select from handles in current status
-                    (mastodon-profile--lookup-account-in-status
-                     user-handle (mastodon-profile--toot-json))))
+                    ;; if profile view, use 'profile-json as status:
+                    (if (string-prefix-p "accounts" (mastodon-tl--get-endpoint))
+                        (mastodon-profile--lookup-account-in-status
+                         user-handle (get-text-property (point) 'profile-json))
+                      ;; if muting/blocking, we select from handles in current status
+                      (mastodon-profile--lookup-account-in-status
+                       user-handle (mastodon-profile--toot-json)))))
          (user-id (mastodon-profile--account-field account 'id))
          (name (if (not (string-empty-p (mastodon-profile--account-field account 'display_name)))
                    (mastodon-profile--account-field account 'display_name)
