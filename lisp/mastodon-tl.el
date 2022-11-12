@@ -69,7 +69,7 @@
 (autoload 'mastodon-profile--view-author-profile "mastodon-profile")
 (autoload 'mastodon-profile--get-preferences-pref "mastodon-profile")
 (autoload 'mastodon-http--get-response-async "mastodon-http")
-
+(autoload 'mastodon-url-lookup "mastodon")
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
 (defvar mastodon-instance-url)
@@ -709,7 +709,8 @@ LINK is maybe the '@handle' to search for."
   (mastodon-tl--extract-el-from-mentions 'acct toot link))
 
 (defun mastodon-tl--extract-userid-toot (toot link)
-  "Extract a user id for an ACCT from mentions in a TOOT."
+  "Extract a user id for an ACCT from mentions in a TOOT.
+LINK is maybe the '@handle' to search for."
   (mastodon-tl--extract-el-from-mentions 'id toot link))
 
 (defun mastodon-tl--extract-el-from-mentions (el toot link)
@@ -1286,7 +1287,7 @@ ID is that of the toot to view."
         (mastodon-mode)
         (mastodon-tl--set-buffer-spec buffer
                                       (format "statuses/%s" id)
-                                      (lambda (toot) (message "END of thread.")))
+                                      (lambda (_toot) (message "END of thread.")))
         (let ((inhibit-read-only t))
           (mastodon-tl--toot toot :detailed-p))))))
 
@@ -1326,7 +1327,7 @@ ID is that of the toot to view."
               (mastodon-tl--set-buffer-spec
                buffer
                (format "statuses/%s/context" id)
-               (lambda (toot) (message "END of thread.")))
+               (lambda (_toot) (message "END of thread.")))
               (let ((inhibit-read-only t))
                 (mastodon-tl--timeline (alist-get 'ancestors context))
                 (goto-char (point-max))
