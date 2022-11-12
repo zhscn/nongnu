@@ -137,6 +137,11 @@ contains")
 (defun mastodon-profile--toot-json ()
   "Get the next toot-json."
   (interactive)
+  ;; NB: we cannot add
+  ;; (or (mastodon-tl--property 'profile-json)
+  ;; here because it searches forward endlessly
+  ;; TODO: it would be nice to be able to do so tho
+  ;; or handle --property failing
   (mastodon-tl--property 'toot-json))
 
 (defun mastodon-profile--make-author-buffer (account)
@@ -298,14 +303,15 @@ This is done after changing the setting on the server."
         (plist-put mastodon-profile-account-settings pref val)))
 
 (defun mastodon-profile-fetch-server-account-settings-maybe ()
-  "Fetch account settings from the server if `mastodon-profile-account-settings' is nil."
+  "Fetch account settings from the server.
+Only do so if `mastodon-profile-account-settings' is nil."
   (mastodon-profile-fetch-server-account-settings :no-force))
 
 (defun mastodon-profile-fetch-server-account-settings (&optional no-force)
   "Fetch basic account settings from the server.
 Store the values in `mastodon-profile-account-settings'.
 Run in `mastodon-mode-hook'.
-If NO-FORCE is non-nil, only fetch if `mastodon-profile-account-settings' is nil."
+If NO-FORCE, only fetch if `mastodon-profile-account-settings' is nil."
   (unless
       (and no-force
            mastodon-profile-account-settings)
