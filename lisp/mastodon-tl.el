@@ -1021,6 +1021,8 @@ this just means displaying toot client."
 
 (defun mastodon-tl--format-poll-expiry (timestamp)
   "Convert poll expiry TIMESTAMP into a descriptive string."
+  ;; TODO: this bugged when a timestamp was in the past
+  ;; despite the poll not being listed as expired
   (let ((parsed (ts-human-duration
                  (ts-diff (ts-parse timestamp) (ts-now)))))
     (cond ((> (plist-get parsed :days) 0)
