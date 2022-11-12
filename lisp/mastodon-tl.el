@@ -1297,45 +1297,47 @@ ID is that of the toot to view."
           (or id
               ;; avoid -tl--property here, we don't want to try next toot:
               ;; this requires that 'base-toot-id always be set:
-              (get-text-property (point) 'base-toot-id)
-              ))
-         (url (mastodon-http--api (format "statuses/%s/context" id)))
-         (buffer (format "*mastodon-thread-%s*" id))
-         (toot
-          ;; refetch current toot in case we just faved/boosted:
-          (mastodon-http--get-json
-           (mastodon-http--api (concat "statuses/" id))
-           :silent))
-         (context (mastodon-http--get-json url :silent))
-         (marker (make-marker)))
-    (if (equal (caar toot) 'error)
-        (message "Error: %s" (cdar toot))
-      (when (member (alist-get 'type toot) '("reblog" "favourite"))
-        (setq toot (alist-get 'status toot)))
-      (if (> (+ (length (alist-get 'ancestors context))
-                (length (alist-get 'descendants context)))
-             0)
-          ;; if we have a thread:
-          (progn
-            (with-output-to-temp-buffer buffer
-              (switch-to-buffer buffer)
-              (mastodon-mode)
-              (mastodon-tl--set-buffer-spec
-               buffer
-               (format "statuses/%s/context" id)
-               (lambda (_toot) (message "END of thread.")))
-              (let ((inhibit-read-only t))
-                (mastodon-tl--timeline (alist-get 'ancestors context))
-                (goto-char (point-max))
-                (move-marker marker (point))
-                ;; print re-fetched toot:
-                (mastodon-tl--toot toot :detailed-p)
-                (mastodon-tl--timeline (alist-get 'descendants context))))
-            ;; put point at the toot:
-            (goto-char (marker-position marker))
-            (mastodon-tl--goto-next-toot))
-        ;; else just print the lone toot:
-        (mastodon-tl--single-toot id)))))
+              (get-text-property (point) 'base-toot-id)))
+         (type (mastodon-tl--field 'type (mastodon-tl--property 'toot-json))))
+    (if (string= type "follow_request") ; no can thread this
+        (error "No thread")
+      (let* ((url (mastodon-http--api (format "statuses/%s/context" id)))
+             (buffer (format "*mastodon-thread-%s*" id))
+             (toot
+              ;; refetch current toot in case we just faved/boosted:
+              (mastodon-http--get-json
+               (mastodon-http--api (concat "statuses/" id))
+               :silent))
+             (context (mastodon-http--get-json url :silent))
+             (marker (make-marker)))
+        (if (equal (caar toot) 'error)
+            (message "Error: %s" (cdar toot))
+          (when (member (alist-get 'type toot) '("reblog" "favourite"))
+            (setq toot (alist-get 'status toot)))
+          (if (> (+ (length (alist-get 'ancestors context))
+                    (length (alist-get 'descendants context)))
+                 0)
+              ;; if we have a thread:
+              (progn
+                (with-output-to-temp-buffer buffer
+                  (switch-to-buffer buffer)
+                  (mastodon-mode)
+                  (mastodon-tl--set-buffer-spec
+                   buffer
+                   (format "statuses/%s/context" id)
+                   (lambda (_toot) (message "END of thread.")))
+                  (let ((inhibit-read-only t))
+                    (mastodon-tl--timeline (alist-get 'ancestors context))
+                    (goto-char (point-max))
+                    (move-marker marker (point))
+                    ;; print re-fetched toot:
+                    (mastodon-tl--toot toot :detailed-p)
+                    (mastodon-tl--timeline (alist-get 'descendants context))))
+                ;; put point at the toot:
+                (goto-char (marker-position marker))
+                (mastodon-tl--goto-next-toot))
+            ;; else just print the lone toot:
+            (mastodon-tl--single-toot id)))))))
 
 (defun mastodon-tl--create-filter ()
   "Create a filter for a word.
