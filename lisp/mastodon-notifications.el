@@ -223,7 +223,7 @@ Status notifications are given when
 
 (defun mastodon-notifications--insert-status (toot body
                                                    author-byline action-byline id
-                                                   &optional parent-toot)
+                                                   &optional base-toot)
   "Display the content and byline of timeline element TOOT.
 
 BODY will form the section of the toot above the byline.
@@ -238,10 +238,10 @@ takes a single function. By default it is
 `mastodon-tl--byline-boosted'.
 
 ID is the notification's own id, which is attached as a property.
-If the status is a favourite or a boost, PARENT-TOOT is the JSON
+If the status is a favourite or a boost, BASE-TOOT is the JSON
 of the toot responded to."
   (when toot ; handle rare blank notif server bug
-    (mastodon-tl--insert-status toot body author-byline action-byline id parent-toot)))
+    (mastodon-tl--insert-status toot body author-byline action-byline id base-toot)))
 
 (defun mastodon-notifications--by-type (note)
   "Filters NOTE for those listed in `mastodon-notifications--types-alist'."
