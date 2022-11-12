@@ -294,9 +294,13 @@ TYPE is a symbol, either 'favourite or 'boost."
         (cond ;; actually there's nothing wrong with faving/boosting own toots!
          ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
          ;;(error "You can't %s your own toots" action-string))
-         ((equal "reblog" toot-type)
+         ;; & nothing wrong with faving/boosting own toots from notifs:
+         ;; this boosts/faves the base toot, not the notif status
+         ((and (equal "reblog" toot-type)
+               (not (string= (mastodon-tl--get-endpoint) "notifications")))
           (error "You can't %s boosts" action-string))
-         ((equal "favourite" toot-type)
+         ((and (equal "favourite" toot-type)
+               (not (string= (mastodon-tl--get-endpoint) "notifications")))
           (error "Your can't %s favourites" action-string))
          (t
           (mastodon-toot--action
