@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022 Akib Azmain Turja.
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
-;; Version: 1.0
+;; Version: 2.0
 ;; Package-Requires: ((emacs "25.1") (project "0.3.0"))
 ;; Keywords: tools, convenience
 ;; URL: https://codeberg.org/akib/emacs-workroom
