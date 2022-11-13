@@ -94,7 +94,10 @@
 (defvar mastodon-profile--view-follow-requests-keymap
   (let ((map ;(make-sparse-keymap)))
          (copy-keymap mastodon-mode-map)))
-    (define-key map (kbd "r") #'mastodon-notifications--follow-request-reject)
+    ;; make reject binding match the binding in notifs view
+    ;; 'r' is then reserved for replying, even tho it is not avail
+    ;; in foll-reqs view
+    (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
     (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
     (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
     (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
