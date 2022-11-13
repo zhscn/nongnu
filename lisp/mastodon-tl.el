@@ -412,22 +412,23 @@ image media from the byline."
              toot)
            (alist-get 'reblog toot) ; boosts
            toot)) ; everything else
-         (fol-req-p (equal (alist-get 'type toot-to-count) "follow"))
-         (media-types (mastodon-tl--get-media-types toot))
-         (format-faves (format "%s faves | %s boosts | %s replies"
-                               (alist-get 'favourites_count toot-to-count)
-                               (alist-get 'reblogs_count toot-to-count)
-                               (alist-get 'replies_count toot-to-count)))
-         (format-media (when media-types
-                         (format " | media: %s"
-                                 (mapconcat #'identity media-types " "))))
-         (format-media-binding (when (and (or
-                                           (member "video" media-types)
-                                           (member "gifv" media-types))
-                                          (require 'mpv nil :no-error))
-                                 (format " | C-RET to view with mpv"))))
+         (fol-req-p (or (string= (alist-get 'type toot-to-count) "follow")
+                        (string= (alist-get 'type toot-to-count) "follow_request"))))
     (unless fol-req-p
-      (format "%s" (concat format-faves format-media format-media-binding)))))
+      (let* ((media-types (mastodon-tl--get-media-types toot))
+             (format-faves (format "%s faves | %s boosts | %s replies"
+                                   (alist-get 'favourites_count toot-to-count)
+                                   (alist-get 'reblogs_count toot-to-count)
+                                   (alist-get 'replies_count toot-to-count)))
+             (format-media (when media-types
+                             (format " | media: %s"
+                                     (mapconcat #'identity media-types " "))))
+             (format-media-binding (when (and (or
+                                               (member "video" media-types)
+                                               (member "gifv" media-types))
+                                              (require 'mpv nil :no-error))
+                                     (format " | C-RET to view with mpv"))))
+        (format "%s" (concat format-faves format-media format-media-binding))))))
 
 (defun mastodon-tl--get-media-types (toot)
   "Return a list of the media attachment types of the TOOT at point."
