@@ -953,7 +953,7 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
      (mastodon-tl--media toot))))
 
 (defun mastodon-tl--insert-status (toot body author-byline action-byline
-                                        &optional id parent-toot detailed-p)
+                                        &optional id base-toot detailed-p)
   "Display the content and byline of timeline element TOOT.
 
 BODY will form the section of the toot above the byline.
@@ -965,9 +965,10 @@ such as boosting favouriting and following to the byline. It also
 takes a single function. By default it is
 `mastodon-tl--byline-boosted'.
 
-ID is that of the toot, which is attached as a property if it is
-a notification. If the status is a favourite or a boost,
-PARENT-TOOT is the JSON of the toot responded to.
+ID is that of the status if it is a notification, which is
+attached as a `toot-id' property if provided. If the
+status is a favourite or boost notification, BASE-TOOT is the
+JSON of the toot responded to.
 
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
@@ -978,13 +979,16 @@ this just means displaying toot client."
               body
               " \n"
               (mastodon-tl--byline toot author-byline action-byline detailed-p))
-      'toot-id      (or id ; for notifications
-                        (alist-get 'id toot))
+      'toot-id      (or id ; notification's own id
+                        (alist-get 'id toot)) ; toot id
       'base-toot-id (mastodon-tl--toot-id
-                     ;; if a favourite/boost notif, get ID of toot responded to:
-                     (or parent-toot toot))
+                     ;; if status is a notif, get id from base-toot
+                     ;; (-tl--toot-id toot) will not work here:
+                     (or base-toot
+                         ;; else normal toot with reblog check:
+                         toot))
       'toot-json    toot
-      'parent-toot parent-toot)
+      'base-toot    base-toot)
      "\n")
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
@@ -1283,20 +1287,11 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
-(defun mastodon-tl--single-toot (&optional id)
+(defun mastodon-tl--single-toot (id)
   "View toot at point in separate buffer.
 ID is that of the toot to view."
   (interactive)
-  (let* ((id
-          (or id
-              (if (equal (mastodon-tl--get-endpoint) "notifications")
-                  ;; for boosts/faves:
-                  (if (mastodon-tl--property 'parent-toot)
-                      (mastodon-tl--as-string (mastodon-tl--toot-id
-                                               (mastodon-tl--property 'parent-toot)))
-                    (mastodon-tl--property 'base-toot-id))
-                (mastodon-tl--property 'base-toot-id))))
-         (buffer (format "*mastodon-toot-%s*" id))
+  (let* ((buffer (format "*mastodon-toot-%s*" id))
          (toot (mastodon-http--get-json
                 (mastodon-http--api (concat "statuses/" id)))))
     (if (equal (caar toot) 'error)
@@ -1315,13 +1310,9 @@ ID is that of the toot to view."
   (interactive)
   (let* ((id
           (or id
-              (if (equal (mastodon-tl--get-endpoint) "notifications")
-                  ;; for boosts/faves:
-                  (if (mastodon-tl--property 'parent-toot)
-                      (mastodon-tl--as-string (mastodon-tl--toot-id
-                                               (mastodon-tl--property 'parent-toot)))
-                    (mastodon-tl--property 'base-toot-id))
-                (mastodon-tl--property 'base-toot-id))))
+              ;; avoid -tl--property here, we don't want to try next toot:
+              ;; this requires that 'base-toot-id always be set:
+              (get-text-property (point) 'base-toot-id)))
          (type (mastodon-tl--field 'type (mastodon-tl--property 'toot-json))))
     (if (or (string= type "follow_request")
             (string= type "follow")) ; no can thread these

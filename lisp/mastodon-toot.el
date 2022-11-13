@@ -820,16 +820,15 @@ Customize `mastodon-toot-display-orig-in-reply-buffer' to display
 text of the toot being replied to in the compose buffer."
   (interactive)
   (let* ((toot (mastodon-tl--property 'toot-json))
-         ;; NB: we cannot use mastodon-tl--property for 'parent-toot
+         ;; NB: we cannot use mastodon-tl--property for 'base-toot
          ;; because if it doesn't have one, it is fetched from next toot!
          ;; we also cannot use --field because we need to get a different property first
-         (parent (get-text-property (point) 'parent-toot)) ; for new notifs handling
-         (id (mastodon-tl--as-string
-              (mastodon-tl--field 'id (or parent toot))))
+         (base-toot (get-text-property (point) 'base-toot)) ; for new notifs handling
+         (id (mastodon-tl--as-string (mastodon-tl--field 'id (or base-toot toot))))
          (account (mastodon-tl--field 'account toot))
          (user (alist-get 'acct account))
-         (mentions (mastodon-toot--mentions (or parent toot)))
-         (boosted (mastodon-tl--field 'reblog (or parent toot)))
+         (mentions (mastodon-toot--mentions (or base-toot toot)))
+         (boosted (mastodon-tl--field 'reblog (or base-toot toot)))
          (booster (when boosted
                     (alist-get 'acct
                                (alist-get 'account toot)))))
@@ -857,7 +856,7 @@ text of the toot being replied to in the compose buffer."
                          ;; user in mentions already:
                          mentions)))
                    id
-                   (or parent toot))))
+                   (or base-toot toot))))
 
 (defun mastodon-toot--toggle-warning ()
   "Toggle `mastodon-toot--content-warning'."
