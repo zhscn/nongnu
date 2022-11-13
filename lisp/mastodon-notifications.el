@@ -52,7 +52,6 @@
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
-(defvar mastodon-tl--buffer-spec)
 
 (defvar mastodon-notifications--types-alist
   '(("mention" . mastodon-notifications--mention)
