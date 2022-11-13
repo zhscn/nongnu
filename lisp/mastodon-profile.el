@@ -82,8 +82,11 @@
 
 (defvar mastodon-profile-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "s") #'mastodon-profile--open-followers)
-    (define-key map (kbd "g") #'mastodon-profile--open-following)
+    ;; conflicts with `s' keybinding to translate toot at point
+    ;; seeing as we now have the C-c C-c cycle functionality,
+    ;; maybe we can retire both of these awful bindings
+    ;; (define-key map (kbd "s") #'mastodon-profile--open-followers)
+    ;; (define-key map (kbd "g") #'mastodon-profile--open-following)
     (define-key map (kbd "C-c C-c") #'mastodon-profile-account-view-cycle)
     map)
   "Keymap for `mastodon-profile-mode'.")
