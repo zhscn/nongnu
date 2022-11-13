@@ -78,6 +78,7 @@
 (autoload 'mastodon-profile--update-preference "mastodon-profile")
 (autoload 'mastodon-profile-fetch-server-account-settings "mastodon-profile")
 (autoload 'mastodon-tl--render-text "mastodon-tl")
+(autoload 'mastodon-profile-fetch-server-account-settings-maybe "mastodon-profile")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -168,6 +169,11 @@ change the setting on the server, see
 (defvar-local mastodon-toot--reply-to-id nil
   "Buffer-local variable to hold the id of the toot being replied to.")
 
+
+(defvar-local mastodon-toot-previous-window-config nil
+  "A list of window configuration prior to composing a toot.
+Takes its form from `window-configuration-to-register'.")
+
 (defvar mastodon-toot--max-toot-chars nil
   "The maximum allowed characters count for a single toot.")
 
@@ -203,12 +209,12 @@ send.")
                               nil t)))
     (mastodon-profile--update-preference "privacy" vis :source)))
 
-(defun mastodon-toot--get-max-toot-chars (&optional _no-toot)
+(defun mastodon-toot--get-max-toot-chars (&optional no-toot)
   "Fetch max_toot_chars from `mastodon-instance-url' asynchronously.
 NO-TOOT means we are not calling from a toot buffer."
   (mastodon-http--get-json-async
    (mastodon-http--api "instance")
-   'mastodon-toot--get-max-toot-chars-callback 'no-toot))
+   'mastodon-toot--get-max-toot-chars-callback no-toot))
 
 (defun mastodon-toot--get-max-toot-chars-callback (json-response
                                                    &optional no-toot)
@@ -288,9 +294,13 @@ TYPE is a symbol, either 'favourite or 'boost."
         (cond ;; actually there's nothing wrong with faving/boosting own toots!
          ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
          ;;(error "You can't %s your own toots" action-string))
-         ((equal "reblog" toot-type)
+         ;; & nothing wrong with faving/boosting own toots from notifs:
+         ;; this boosts/faves the base toot, not the notif status
+         ((and (equal "reblog" toot-type)
+               (not (string= (mastodon-tl--get-endpoint) "notifications")))
           (error "You can't %s boosts" action-string))
-         ((equal "favourite" toot-type)
+         ((and (equal "favourite" toot-type)
+               (not (string= (mastodon-tl--get-endpoint) "notifications")))
           (error "Your can't %s favourites" action-string))
          (t
           (mastodon-toot--action
@@ -473,13 +483,15 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
 (defun mastodon-toot--kill (&optional cancel)
   "Kill `mastodon-toot-mode' buffer and window.
 CANCEL means the toot was not sent, so we save the toot text as a draft."
-  (unless (eq mastodon-toot-current-toot-text nil)
-    (when cancel
-      (cl-pushnew mastodon-toot-current-toot-text
-                  mastodon-toot-draft-toots-list :test 'equal)))
-  ;; prevent some weird bug when cancelling a non-empty toot:
-  (delete #'mastodon-toot--save-toot-text after-change-functions)
-  (kill-buffer-and-window))
+  (let ((prev-window-config mastodon-toot-previous-window-config))
+    (unless (eq mastodon-toot-current-toot-text nil)
+      (when cancel
+        (cl-pushnew mastodon-toot-current-toot-text
+                    mastodon-toot-draft-toots-list :test 'equal)))
+    ;; prevent some weird bug when cancelling a non-empty toot:
+    (delete #'mastodon-toot--save-toot-text after-change-functions)
+    (kill-buffer-and-window)
+    (mastodon-toot--restore-previous-window-config prev-window-config)))
 
 (defun mastodon-toot--cancel ()
   "Kill new-toot buffer/window. Does not POST content to Mastodon.
@@ -502,11 +514,12 @@ Pushes `mastodon-toot-current-toot-text' to
     (message "Draft saved!")))
 
 (defun mastodon-toot-empty-p (&optional text-only)
-  "Return t if no text or attachments have been added to the compose buffer.
+  "Return t if no text, attachments, or polls have been added to the compose buffer.
 TEXT-ONLY means don't check for attachments."
   (and (if text-only
            t
-         (not mastodon-toot--media-attachments))
+         (not mastodon-toot--media-attachments)
+         (not mastodon-toot-poll))
        (string-empty-p (mastodon-tl--clean-tabs-and-nl
                         (mastodon-toot--remove-docs)))))
 
@@ -635,7 +648,8 @@ If media items have been attached and uploaded with
                    (append args-media args-no-media)
                  (if mastodon-toot-poll
                      (append args-no-media args-poll)
-                   args-no-media))))
+                   args-no-media)))
+         (prev-window-config mastodon-toot-previous-window-config))
     (cond ((and mastodon-toot--media-attachments
                 ;; make sure we have media args
                 ;; and the same num of ids as attachments
@@ -653,7 +667,14 @@ If media items have been attached and uploaded with
              (mastodon-http--triage response
                                     (lambda ()
                                       (mastodon-toot--kill)
-                                      (message "Toot toot!"))))))))
+                                      (message "Toot toot!")
+                                      (mastodon-toot--restore-previous-window-config prev-window-config))))))))
+
+(defun mastodon-toot--restore-previous-window-config (config)
+  "Restore the window CONFIG after killing the toot compose buffer.
+Buffer-local variable `mastodon-toot-previous-window-config' holds the config."
+  (set-window-configuration (car config))
+  (goto-char (cadr config)))
 
 (defun mastodon-toot--process-local (acct)
   "Add domain to local ACCT and replace the curent user name with \"\".
@@ -946,11 +967,29 @@ which is used to attach it to a toot when posting."
     (cl-loop for o in options
              collect `(,key . ,o))))
 
+(defun mastodon-toot--fetch-max-poll-options ()
+  "Return the maximum number of poll options from the user's instance. "
+  (let* ((instance (mastodon-http--get-json (mastodon-http--api "instance"))))
+    (alist-get 'max_options
+               (alist-get 'polls
+                          (alist-get 'configuration instance)
+                          instance))))
+
+(defun mastodon-toot--read-poll-options-count (max)
+  "Read the user's choice of the number of options the poll should have.
+MAX is the maximum number set by their instance."
+  (let ((number (read-number
+                 (format "Number of options [2-%s]: " max) 2)))
+    (if (> number max)
+        (error "You need to choose a number between 2 and %s" max)
+      number)))
+
 (defun mastodon-toot--create-poll ()
   "Prompt for new poll options and return as a list."
   (interactive)
   ;; re length, API docs show a poll 9 options.
-  (let* ((length (read-number "Number of options [2-4]: " 2))
+  (let* ((max-options (mastodon-toot--fetch-max-poll-options))
+         (length (mastodon-toot--read-poll-options-count max-options))
          (multiple-p (y-or-n-p "Multiple choice? "))
          (options (mastodon-toot--read-poll-options length))
          (hide-totals (y-or-n-p "Hide votes until poll ends? "))
@@ -1247,7 +1286,9 @@ a draft into the buffer."
   (let* ((buffer-exists (get-buffer "*new toot*"))
          (buffer (or buffer-exists (get-buffer-create "*new toot*")))
          (inhibit-read-only t)
-         (reply-text (alist-get 'content reply-json)))
+         (reply-text (alist-get 'content reply-json))
+         (previous-window-config (list (current-window-configuration)
+                                       (point-marker))))
     (switch-to-buffer-other-window buffer)
     (text-mode)
     (mastodon-toot-mode t)
@@ -1280,11 +1321,13 @@ a draft into the buffer."
     (setq mastodon-toot-current-toot-text nil)
     (push #'mastodon-toot--save-toot-text after-change-functions)
     (push #'mastodon-toot--propertize-tags-and-handles after-change-functions)
+    ;; if we set this before changing modes, it gets nuked:
+    (setq mastodon-toot-previous-window-config previous-window-config)
     (when initial-text
       (insert initial-text))))
 
 ;;;###autoload
-(add-hook 'mastodon-toot-mode-hook #'mastodon-profile-fetch-server-account-settings)
+(add-hook 'mastodon-toot-mode-hook #'mastodon-profile-fetch-server-account-settings-maybe)
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."

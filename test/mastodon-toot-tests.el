@@ -92,10 +92,13 @@ mention string."
 ;; TODO: test y-or-no-p with mastodon-toot--cancel
 (ert-deftest mastodon-toot--kill ()
   "Should kill the buffer when cancelling the toot."
-  (with-mock
-    (mock (kill-buffer-and-window))
-    (mastodon-toot--kill)
-    (mock-verify)))
+  (let ((mastodon-toot-previous-window-config
+         (list (current-window-configuration)
+               (point-marker))))
+    (with-mock
+      (mock (kill-buffer-and-window))
+      (mastodon-toot--kill)
+      (mock-verify))))
 
 (ert-deftest mastodon-toot--own-toot-p-fail ()
   "Should not return t if not own toot."

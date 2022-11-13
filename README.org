@@ -133,7 +133,7 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 |               | *Other views*                                                           |
 | =S=             | search (posts, users, tags) (NB: only posts you have interacted with) |
 | =I=, =c=, =d=       | view, create, and delete filters                                      |
-| =R=, =a=, =r=       | view/accept/reject follow requests                                    |
+| =R=, =a=, =j=       | view/accept/reject follow requests                                    |
 | =G=             | view follow suggestions                                               |
 | =V=             | view your favourited toots                                            |
 | =K=             | view bookmarked toots                                                 |

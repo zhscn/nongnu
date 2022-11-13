@@ -82,8 +82,11 @@
 
 (defvar mastodon-profile-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "s") #'mastodon-profile--open-followers)
-    (define-key map (kbd "g") #'mastodon-profile--open-following)
+    ;; conflicts with `s' keybinding to translate toot at point
+    ;; seeing as we now have the C-c C-c cycle functionality,
+    ;; maybe we can retire both of these awful bindings
+    ;; (define-key map (kbd "s") #'mastodon-profile--open-followers)
+    ;; (define-key map (kbd "g") #'mastodon-profile--open-following)
     (define-key map (kbd "C-c C-c") #'mastodon-profile-account-view-cycle)
     map)
   "Keymap for `mastodon-profile-mode'.")
@@ -91,7 +94,10 @@
 (defvar mastodon-profile--view-follow-requests-keymap
   (let ((map ;(make-sparse-keymap)))
          (copy-keymap mastodon-mode-map)))
-    (define-key map (kbd "r") #'mastodon-notifications--follow-request-reject)
+    ;; make reject binding match the binding in notifs view
+    ;; 'r' is then reserved for replying, even tho it is not avail
+    ;; in foll-reqs view
+    (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
     (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
     (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
     (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
@@ -137,6 +143,11 @@ contains")
 (defun mastodon-profile--toot-json ()
   "Get the next toot-json."
   (interactive)
+  ;; NB: we cannot add
+  ;; (or (mastodon-tl--property 'profile-json)
+  ;; here because it searches forward endlessly
+  ;; TODO: it would be nice to be able to do so tho
+  ;; or handle --property failing
   (mastodon-tl--property 'toot-json))
 
 (defun mastodon-profile--make-author-buffer (account)
@@ -183,7 +194,8 @@ contains")
   (message "Loading your favourited toots...")
   (mastodon-tl--init "favourites"
                      "favourites"
-                     'mastodon-tl--timeline))
+                     'mastodon-tl--timeline
+                     :headers))
 
 (defun mastodon-profile--view-bookmarks ()
   "Open a new buffer displaying the user's bookmarks."
@@ -296,30 +308,39 @@ This is done after changing the setting on the server."
   (setq mastodon-profile-account-settings
         (plist-put mastodon-profile-account-settings pref val)))
 
-(defun mastodon-profile-fetch-server-account-settings ()
+(defun mastodon-profile-fetch-server-account-settings-maybe ()
+  "Fetch account settings from the server.
+Only do so if `mastodon-profile-account-settings' is nil."
+  (mastodon-profile-fetch-server-account-settings :no-force))
+
+(defun mastodon-profile-fetch-server-account-settings (&optional no-force)
   "Fetch basic account settings from the server.
 Store the values in `mastodon-profile-account-settings'.
-Run in `mastodon-mode-hook'."
-  (let ((keys '(locked discoverable display_name bot))
-        (source-keys '(privacy sensitive language)))
-    (mapc (lambda (k)
-            (mastodon-profile-update-preference-plist
-             k
-             (mastodon-profile--get-json-value k)))
-          keys)
-    (mapc (lambda (sk)
-            (mastodon-profile-update-preference-plist
-             sk
-             (mastodon-profile--get-source-value sk)))
-          source-keys)
-    ;; hack for max toot chars:
-    (mastodon-toot--get-max-toot-chars :no-toot)
-    (mastodon-profile-update-preference-plist 'max_toot_chars
-                                              mastodon-toot--max-toot-chars)
-    ;; TODO: remove now redundant vars, replace with fetchers from the plist
-    (setq mastodon-toot--visibility (mastodon-profile--get-pref 'privacy)
-          mastodon-toot--content-nsfw (mastodon-profile--get-pref 'sensitive))
-    mastodon-profile-account-settings))
+Run in `mastodon-mode-hook'.
+If NO-FORCE, only fetch if `mastodon-profile-account-settings' is nil."
+  (unless
+      (and no-force
+           mastodon-profile-account-settings)
+    (let ((keys '(locked discoverable display_name bot))
+          (source-keys '(privacy sensitive language)))
+      (mapc (lambda (k)
+              (mastodon-profile-update-preference-plist
+               k
+               (mastodon-profile--get-json-value k)))
+            keys)
+      (mapc (lambda (sk)
+              (mastodon-profile-update-preference-plist
+               sk
+               (mastodon-profile--get-source-value sk)))
+            source-keys)
+      ;; hack for max toot chars:
+      (mastodon-toot--get-max-toot-chars :no-toot)
+      (mastodon-profile-update-preference-plist 'max_toot_chars
+                                                mastodon-toot--max-toot-chars)
+      ;; TODO: remove now redundant vars, replace with fetchers from the plist
+      (setq mastodon-toot--visibility (mastodon-profile--get-pref 'privacy)
+            mastodon-toot--content-nsfw (mastodon-profile--get-pref 'sensitive))
+      mastodon-profile-account-settings)))
 
 (defun mastodon-profile-account-locked-toggle ()
   "Toggle the locked status of your account.
@@ -465,7 +486,8 @@ This endpoint only holds a few preferences. For others, see
          (url (mastodon-http--api (format
                                    "accounts/relationships?id[]=%s"
                                    their-id))))
-    (mastodon-http--get-json url)))
+    ;; FIXME: not sure why we need to do this for relationships only!
+    (car (mastodon-http--get-json url))))
 
 (defun mastodon-profile--fields-get (&optional account fields)
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
@@ -527,11 +549,9 @@ FIELDS means provide a fields vector fetched by other means."
                         account 'statuses_count)))
          (relationships (mastodon-profile--relationships-get id))
          (followed-by-you (when (not (seq-empty-p relationships))
-                            (alist-get 'following
-                                       (aref relationships 0))))
+                            (alist-get 'following relationships)))
          (follows-you (when (not (seq-empty-p relationships))
-                        (alist-get 'followed_by
-                                   (aref relationships 0))))
+                        (alist-get 'followed_by relationships)))
          (followsp (or (equal follows-you 't) (equal followed-by-you 't)))
          (fields (mastodon-profile--fields-get account))
          (pinned (mastodon-profile--get-statuses-pinned account)))
@@ -556,7 +576,8 @@ FIELDS means provide a fields vector fetched by other means."
          (propertize
           (concat
            "\n"
-           (mastodon-profile--image-from-account account)
+           (mastodon-profile--image-from-account account 'avatar_static)
+           (mastodon-profile--image-from-account account 'header_static)
            "\n"
            (propertize (mastodon-profile--account-field
                         account 'display_name)
@@ -621,11 +642,12 @@ If toot is a boost, opens the profile of the booster."
   (mastodon-profile--make-author-buffer
    (alist-get 'account (mastodon-profile--toot-json))))
 
-(defun mastodon-profile--image-from-account (status)
-  "Generate an image from a STATUS."
-  (let ((url (alist-get 'avatar_static status)))
-    (unless (equal url "/avatars/original/missing.png")
-      (mastodon-media--get-media-link-rendering url))))
+(defun mastodon-profile--image-from-account (account img_type)
+  "Return a avatar image from ACCOUNT.
+IMG_TYPE is the JSON key from the account data."
+  (let ((img (alist-get img_type account)))
+    (unless (equal img "/avatars/original/missing.png")
+      (mastodon-media--get-media-link-rendering img))))
 
 (defun mastodon-profile--show-user (user-handle)
   "Query for USER-HANDLE from current status and show that user's profile."

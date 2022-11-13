@@ -52,7 +52,6 @@
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
-(defvar mastodon-tl--buffer-spec)
 
 (defvar mastodon-notifications--types-alist
   '(("mention" . mastodon-notifications--mention)
@@ -87,7 +86,6 @@
 With no argument, the request is accepted. Argument REJECT means
 reject the request. Can be called in notifications view or in
 follow-requests view."
-  (interactive)
   (if (not (mastodon-tl--find-property-range 'toot-json (point)))
       (message "No follow request at point?")
     (let* ((toot-json (mastodon-tl--property 'toot-json))
@@ -269,19 +267,20 @@ of the toot responded to."
    "notifications"
    'mastodon-notifications--timeline))
 
-(defun mastodon-notifications-clear ()
+(defun mastodon-notifications--clear-all ()
   "Clear all notifications."
   (interactive)
-  (let ((response
-         (mastodon-http--post (mastodon-http--api "notifications/clear")
-                              nil nil)))
-    (mastodon-http--triage
-     response (lambda ()
-                (when mastodon-tl--buffer-spec
-                  (mastodon-tl--reload-timeline-or-profile))
-                (message "All notifications cleared!")))))
+  (when (y-or-n-p "Clear all notifications?")
+    (let ((response
+           (mastodon-http--post (mastodon-http--api "notifications/clear")
+                                nil nil)))
+      (mastodon-http--triage
+       response (lambda ()
+                  (when mastodon-tl--buffer-spec
+                    (mastodon-tl--reload-timeline-or-profile))
+                  (message "All notifications cleared!"))))))
 
-(defun mastodon-notifications-clear-current-notif ()
+(defun mastodon-notifications--clear-current ()
   "Dismiss the notification at point."
   (interactive)
   (let* ((id (or (mastodon-tl--property 'toot-id)
