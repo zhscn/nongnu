@@ -267,19 +267,20 @@ of the toot responded to."
    "notifications"
    'mastodon-notifications--timeline))
 
-(defun mastodon-notifications-clear ()
+(defun mastodon-notifications--clear-all ()
   "Clear all notifications."
   (interactive)
-  (let ((response
-         (mastodon-http--post (mastodon-http--api "notifications/clear")
-                              nil nil)))
-    (mastodon-http--triage
-     response (lambda ()
-                (when mastodon-tl--buffer-spec
-                  (mastodon-tl--reload-timeline-or-profile))
-                (message "All notifications cleared!")))))
+  (when (y-or-n-p "Clear all notifications?")
+    (let ((response
+           (mastodon-http--post (mastodon-http--api "notifications/clear")
+                                nil nil)))
+      (mastodon-http--triage
+       response (lambda ()
+                  (when mastodon-tl--buffer-spec
+                    (mastodon-tl--reload-timeline-or-profile))
+                  (message "All notifications cleared!"))))))
 
-(defun mastodon-notifications-clear-current-notif ()
+(defun mastodon-notifications--clear-current ()
   "Dismiss the notification at point."
   (interactive)
   (let* ((id (or (mastodon-tl--property 'toot-id)
