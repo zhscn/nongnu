@@ -283,6 +283,18 @@ text, i.e. hidden spoiler text."
   (mastodon-tl--init
    (concat "tag-" tag) (concat "timelines/tag/" tag) 'mastodon-tl--timeline))
 
+(defun mastodon-tl--message-help-echo ()
+  "Call message on 'help-echo property at point.
+Do so if type of status at poins is not follow_request/follow."
+  (let ((type (alist-get
+               'type
+               (get-text-property (point) 'toot-json)))
+        (echo (get-text-property (point) 'help-echo)))
+    (when echo ; not for followers/following in profile
+      (unless (or (string= type "follow_request")
+                  (string= type "follow")) ; no counts for these
+        (message "%s" (get-text-property (point) 'help-echo))))))
+
 (defun mastodon-tl--goto-toot-pos (find-pos refresh &optional pos)
   "Search for toot with FIND-POS.
 If search returns nil, execute REFRESH function.
@@ -295,7 +307,9 @@ Optionally start from POS."
     (if npos
         (if (not (get-text-property npos 'toot-id))
             (mastodon-tl--goto-toot-pos find-pos refresh npos)
-          (goto-char npos))
+          (goto-char npos)
+          ;; force display of help-echo on moving to a toot byline:
+          (mastodon-tl--message-help-echo))
       (funcall refresh))))
 
 (defun mastodon-tl--goto-next-toot ()
