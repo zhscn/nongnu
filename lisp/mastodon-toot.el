@@ -967,9 +967,18 @@ which is used to attach it to a toot when posting."
              collect `(,key . ,o))))
 
 (defun mastodon-toot--fetch-max-poll-options ()
-  "Return the maximum number of poll options from the user's instance. "
+  "Return the maximum number of poll options."
+  (mastodon-toot--fetch-poll-field 'max_options))
+
+(defun mastodon-toot--fetch-max-poll-option-chars ()
+  "Return the maximum number of characters a poll option may have."
+  (or (mastodon-toot--fetch-poll-field 'max_characters_per_option)
+      50)) ; masto default
+
+(defun mastodon-toot--fetch-poll-field (field)
+  "Return FIELD from the poll settings from the user's instance. "
   (let* ((instance (mastodon-http--get-json (mastodon-http--api "instance"))))
-    (alist-get 'max_options
+    (alist-get field
                (alist-get 'polls
                           (alist-get 'configuration instance)
                           instance))))
@@ -988,19 +997,20 @@ MAX is the maximum number set by their instance."
   (interactive)
   ;; re length, API docs show a poll 9 options.
   (let* ((max-options (mastodon-toot--fetch-max-poll-options))
-         (length (mastodon-toot--read-poll-options-count max-options))
+         (count (mastodon-toot--read-poll-options-count max-options))
+         (length (mastodon-toot--fetch-max-poll-option-chars))
          (multiple-p (y-or-n-p "Multiple choice? "))
-         (options (mastodon-toot--read-poll-options length))
+         (options (mastodon-toot--read-poll-options count length))
          (hide-totals (y-or-n-p "Hide votes until poll ends? "))
          (expiry (mastodon-toot--get-poll-expiry)))
     (setq mastodon-toot-poll
           `(:options ,options :length ,length :multi ,multiple-p :hide ,hide-totals :expiry ,expiry))
     (message "poll created!")))
 
-(defun mastodon-toot--read-poll-options (length)
+(defun mastodon-toot--read-poll-options (count length)
   "Read a list of options for poll of LENGTH options."
-  (cl-loop for x from 1 to length
-           collect (read-string (format "Poll option [%s/%s]: " x length))))
+  (cl-loop for x from 1 to count
+           collect (read-string (format "Poll option [%s/%s] [max %s chars]: " x count length))))
 
 (defun mastodon-toot--get-poll-expiry ()
   "Prompt for a poll expiry time."
