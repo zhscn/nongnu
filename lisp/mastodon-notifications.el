@@ -86,7 +86,6 @@
 With no argument, the request is accepted. Argument REJECT means
 reject the request. Can be called in notifications view or in
 follow-requests view."
-  (interactive)
   (if (not (mastodon-tl--find-property-range 'toot-json (point)))
       (message "No follow request at point?")
     (let* ((toot-json (mastodon-tl--property 'toot-json))
