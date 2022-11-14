@@ -1494,12 +1494,19 @@ BRIEF means to show fewer details.
 INSTANCE is an instance domain name."
   (interactive)
   (mastodon-tl--do-if-toot
-   (let* ((toot (mastodon-tl--property 'toot-json))
+   (let* ((profile-p (get-text-property (point) 'profile-json))
+          (toot (if profile-p
+                    (mastodon-tl--property 'profile-json) ; profile may have 0 toots
+                  (mastodon-tl--property 'toot-json)))
           (reblog (alist-get 'reblog toot))
           (account (or (alist-get 'account reblog)
                        (alist-get 'account toot)))
-          (url (alist-get 'url account))
-          (username (alist-get 'username account))
+          (url (if profile-p
+                   (alist-get 'url toot) ; profile
+                 (alist-get 'url account)))
+          (username (if profile-p
+                        (alist-get 'username toot) ;; profile
+                      (alist-get 'username account)))
           (instance (if instance
                         (concat "https://" instance)
                       ;; pleroma URL is https://instance.com/users/username
