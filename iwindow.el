@@ -99,14 +99,15 @@ CALLBACK and revert the changes it has done."
 (defun iwindow--make-decision-tree (windows start end predicate)
   "Make a decision tree from window in WINDOWS from START to END.
 
-Don't include windows for which PREDICATE returns nil.
+Don't include windows for which PREDICATE returns nil, if PREDICATE is
+non-nil.
 
 Return an object OPTION, where OPTION is either a window, nil, or a
 list of form (OPTION...), whose length of no more than the length of
 `iwindow-selection-keys'."
   (if (= (- end start) 1)
       (let ((window (aref windows start)))
-        (when (funcall predicate window)
+        (when (or (not predicate) (funcall predicate window))
           window))
     (let ((result nil)
           (option-count (length iwindow-selection-keys)))
