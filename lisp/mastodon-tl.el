@@ -70,6 +70,7 @@
 (autoload 'mastodon-profile--get-preferences-pref "mastodon-profile")
 (autoload 'mastodon-http--get-response-async "mastodon-http")
 (autoload 'mastodon-url-lookup "mastodon")
+(autoload 'mastodon-auth--get-account-id "mastodon-auth")
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
 (defvar mastodon-instance-url)
@@ -1349,6 +1350,124 @@ ID is that of the toot to view."
             ;; else just print the lone toot:
             (mastodon-tl--single-toot id)))))))
 
+(defun mastodon-tl--get-users-lists ()
+  "Get the list of the user's lists from the server."
+  (let ((url (mastodon-http--api "lists")))
+    (mastodon-http--get-json url)))
+
+(defun mastodon-tl--get-lists-names ()
+  "Return a list of the user's lists' names."
+  (let ((lists (mastodon-tl--get-users-lists)))
+    (mapcar (lambda (x)
+              (alist-get 'title x))
+            lists)))
+
+(defun mastodon-tl--get-list-by-name (name)
+  "Return the list data for list with NAME."
+  (let* ((lists (mastodon-tl--get-users-lists)))
+    (cl-loop for list in lists
+             if (string= (alist-get 'title list) name)
+             return list)))
+
+(defun mastodon-tl--get-list-id (name)
+  "Return id for list with NAME."
+  (let ((list (mastodon-tl--get-list-by-name name)))
+    (alist-get 'id list)))
+
+(defun mastodon-tl--get-list-name (id)
+  "Return name of list with ID."
+  (let* ((url (mastodon-http--api (format "lists/%s" id)))
+         (response (mastodon-http--get-json url)))
+    (alist-get 'title response)))
+
+(defun mastodon-tl--view-list-timeline ()
+  "Prompt for a list and view its timeline."
+  (interactive)
+  (let* ((list-names (mastodon-tl--get-lists-names))
+         (list-name (completing-read "View list: "
+                                     list-names))
+         (id (mastodon-tl--get-list-id list-name))
+         (endpoint (format "timelines/list/%s" id))
+         (name (mastodon-tl--get-list-name id))
+         (buffer-name (format "list-%s" name)))
+    (mastodon-tl--init buffer-name endpoint 'mastodon-tl--timeline)))
+
+(defun mastodon-tl--create-list ()
+  "Create a new list.
+Prompt for name and replies policy."
+  (interactive)
+  (let* ((title (read-string "List name: "))
+         (replies-policy (completing-read "Replies policy: " ; give this a proper name
+                                          '("followed" "list" "none")
+                                          nil t nil nil "list")) ; default
+         (response (mastodon-http--post (mastodon-http--api "lists")
+                                        `(("title" . ,title)
+                                          ("replies_policy" . ,replies-policy))
+                                        nil)))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (message "list %s created!" title)))))
+
+(defun mastodon-tl--get-users-followings ()
+  "Return the list of followers of the logged in account."
+  (let* ((id (mastodon-auth--get-account-id))
+         (url (mastodon-http--api (format "accounts/%s/following" id))))
+    (mastodon-http--get-json url)))
+
+(defun mastodon-tl--add-account-to-list ()
+  "Prompt for a list and for an account, add account to list."
+  (interactive)
+  (let* ((list-name (completing-read "Add account to list: "
+                                     (mastodon-tl--get-lists-names) nil t))
+         (list-id (mastodon-tl--get-list-id list-name))
+         (followings (mastodon-tl--get-users-followings))
+         (handles (mapcar (lambda (x)
+                            (cons (alist-get 'acct x)
+                                  (alist-get 'id x)))
+                          followings))
+         (account (completing-read "Account to add: "
+                                   handles nil t))
+         (account-id (alist-get account handles nil nil 'equal))
+         (url (mastodon-http--api (format "lists/%s/accounts" list-id)))
+         (response (mastodon-http--post url
+                                        `(("account_ids[]" . ,account-id))
+                                        nil)))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (message "%s added to list %s!" account list-name)))))
+
+(defun mastodon-tl--remove-account-from-list ()
+  "Promppt for a list, select an account and remove from list."
+  (interactive)
+  (let* ((list-name (completing-read "Remove account from list: "
+                                     (mastodon-tl--get-lists-names) nil t))
+         (list-id (mastodon-tl--get-list-id list-name))
+         (accounts (mastodon-tl--accounts-in-list list-id))
+         (handles (mapcar (lambda (x)
+                            (cons (alist-get 'acct x)
+                                  (alist-get 'id x)))
+                          accounts))
+         (account (completing-read "Account: "
+                                   handles nil t))
+         (account-id (alist-get account handles nil nil 'equal))
+         (url (mastodon-http--api (format "lists/%s/accounts" list-id)))
+         (response (mastodon-http--delete url
+                                          `(("account_ids[]" . ,account-id)))))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (message "%s removed from list %s!" account list-name)))))
+
+(defun mastodon-tl--accounts-in-list (&optional list-id)
+  "Prompt for a list and return the JSON of the accounts in it.
+Use LIST-ID rather than prompting if given."
+  (interactive)
+  (let* ((list-name (unless list-id
+                      (completing-read "View accounts in list: "
+                                       (mastodon-tl--get-lists-names) nil t)))
+         (list-id (or list-id (mastodon-tl--get-list-id list-name)))
+         (url (mastodon-http--api (format "lists/%s/accounts" list-id))))
+    (mastodon-http--get-json url)))
+
 (defun mastodon-tl--create-filter ()
   "Create a filter for a word.
 Prompt for a context, must be a list containting at least one of \"home\",
@@ -1748,7 +1867,7 @@ Can be called to toggle NOTIFY on users already being followed."
 
 (defun mastodon-tl--interactive-blocks-or-mutes-list-get (action)
   "Fetch the list of accounts for ACTION from the server.
-Action must be either \"unblock\" or \"mute\"."
+Action must be either \"unblock\" or \"unmute\"."
   (let* ((endpoint (cond ((equal action "unblock")
                           "blocks")
                          ((equal action "unmute")

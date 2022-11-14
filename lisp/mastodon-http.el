@@ -203,12 +203,15 @@ Callback to `mastodon-http--get-response-async', usually
                 (cons (car list) (cadr list))))
             head-list)))
 
-(defun mastodon-http--delete (url)
+(defun mastodon-http--delete (url &optional args)
   "Make DELETE request to URL."
-  (mastodon-http--authorized-request
-   "DELETE"
-   (with-temp-buffer
-     (mastodon-http--url-retrieve-synchronously url))))
+  (let ((url-request-data
+         (when args
+           (mastodon-http--build-query-string args))))
+    (mastodon-http--authorized-request
+     "DELETE"
+     (with-temp-buffer
+       (mastodon-http--url-retrieve-synchronously url)))))
 
 (defun mastodon-http--append-query-string (url params)
   "Append PARAMS to URL as query strings and return it.
