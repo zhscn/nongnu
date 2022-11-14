@@ -966,7 +966,7 @@ ROOM is should be a workroom, or a name of a workroom."
         (and (or kill-all
                  (cl-every
                   (lambda (room)
-                    (not (workroom-member-buffer-p buffer room)))
+                    (not (workroom-member-buffer-p room buffer)))
                   rooms))
              (kill-buffer buffer))))))
 
