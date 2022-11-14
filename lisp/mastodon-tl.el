@@ -106,12 +106,6 @@ width fonts when rendering HTML text"))
   :group 'mastodon-tl
   :type '(boolean :tag "Whether to display user avatars in timelines"))
 
-;; (defvar mastodon-tl--show-avatars nil
-;; (if (version< emacs-version "27.1")
-;; (image-type-available-p 'imagemagick)
-;; (image-transforms-p))
-;; "A boolean value stating whether to show avatars in timelines.")
-
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
 
