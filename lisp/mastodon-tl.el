@@ -1508,8 +1508,13 @@ INSTANCE is an instance domain name."
           (username (alist-get 'username account))
           (instance (if instance
                         (concat "https://" instance)
-                      (string-remove-suffix (concat "/@" username)
-                                            url)))
+                      ;; pleroma URL is https://instance.com/users/username
+                      (if (string-suffix-p "users/" (url-basepath url))
+                          (string-remove-suffix "/users/"
+                                                (url-basepath url))
+                        ;; mastodon:
+                        (string-remove-suffix (concat "/@" username)
+                                              url))))
           (response (mastodon-http--get-json
                      (if user
                          (mastodon-http--api "instance")
