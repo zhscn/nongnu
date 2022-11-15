@@ -1169,7 +1169,7 @@ If ROOM is the default workroom, do nothing."
                (or room (workroom-current-room))))
   (unless (workroom-live-p room)
     (signal 'wrong-type-argument `(workroom-live-p . ,room)))
-  (unless (workroom-member-buffer-p (workroom-current-room) buffer)
+  (unless (workroom-member-buffer-p room buffer)
     (funcall (workroom--room-buffer-manager room)
              room :add-buffer buffer)))
 
@@ -1199,7 +1199,7 @@ If ROOM is the default workroom, kill buffer."
                (or room (workroom-current-room))))
   (unless (workroom-live-p room)
     (signal 'wrong-type-argument `(workroom-live-p . ,room)))
-  (when (workroom-member-buffer-p (workroom-current-room) buffer)
+  (when (workroom-member-buffer-p room buffer)
     (funcall (workroom--room-buffer-manager room)
              room :remove-buffer buffer)))
 
