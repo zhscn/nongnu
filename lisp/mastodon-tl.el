@@ -1301,13 +1301,12 @@ ID is that of the toot to view."
 
 (defun mastodon-tl--thread (&optional id)
   "Open thread buffer for toot at point or with ID."
+  ;; NB: this is called by `mastodon-url-lookup', which means it must work
+  ;; without `mastodon-tl--buffer-spec' being set!
+  ;; so avoid calls to `mastodon-tl--property' and friends
   (interactive)
-  (let* ((id
-          (or id
-              ;; avoid -tl--property here, we don't want to try next toot:
-              ;; this requires that 'base-toot-id always be set:
-              (get-text-property (point) 'base-toot-id)))
-         (type (mastodon-tl--field 'type (mastodon-tl--property 'toot-json))))
+  (let* ((id (or id (get-text-property (point) 'base-toot-id)))
+         (type (mastodon-tl--field 'type (get-text-property (point) 'toot-json))))
     (if (or (string= type "follow_request")
             (string= type "follow")) ; no can thread these
         (error "No thread")
