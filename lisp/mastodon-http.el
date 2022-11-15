@@ -89,8 +89,11 @@ Message status and JSON error from RESPONSE if unsuccessful."
     (if (string-prefix-p "2" status)
         (funcall success)
       (switch-to-buffer response)
-      (let ((json-response (mastodon-http--process-json)))
-        (message "Error %s: %s" status (alist-get 'error json-response))))))
+      ;; 404 returns http response not JSON:
+      (if (string-prefix-p "404" status)
+          (message "Error %s: page not found" status)
+        (let ((json-response (mastodon-http--process-json)))
+          (message "Error %s: %s" status (alist-get 'error json-response)))))))
 
 (defun mastodon-http--read-file-as-string (filename)
   "Read a file FILENAME as a string. Used to generate image preview."
