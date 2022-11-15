@@ -1262,10 +1262,10 @@ Added to `after-change-functions'."
       ;; stops all text after a handle or mention being propertized:
       (set-text-properties (cdr header-region) (point-max) nil)
       ;; TODO: confirm allowed hashtag/handle characters:
-      (mastodon-toot--propertize-item "#[1-9a-zA-Z_]+"
+      (mastodon-toot--propertize-item "[\n\t ]\\(?2:#[1-9a-zA-Z_]+\\)[\n\t ]"
                                       'success
                                       (cdr header-region))
-      (mastodon-toot--propertize-item "@[1-9a-zA-Z._-]+"
+      (mastodon-toot--propertize-item "[\n\t ]\\(?2:@[1-9a-zA-Z._-]+\\)[\n\t ]"
                                       'mastodon-display-name-face
                                       (cdr header-region)))))
 
@@ -1274,8 +1274,8 @@ Added to `after-change-functions'."
   (save-excursion
     (goto-char start)
     (cl-loop while (search-forward-regexp regex nil :noerror)
-             do (add-text-properties (match-beginning 0)
-                                     (match-end 0)
+             do (add-text-properties (match-beginning 2)
+                                     (match-end 2)
                                      `(face ,face)))))
 
 (defun mastodon-toot-compose-buffer-p ()
