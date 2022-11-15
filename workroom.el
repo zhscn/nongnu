@@ -1860,9 +1860,9 @@ argument while setting as the buffer manager, PROJECT, the project."
              (delete buffer
                      (plist-get (workroom-buffer-manager-data room)
                                 :blacklist)))
-       ;; If not still in the list, whitelist it.
-       (unless (memq buffer (workroom--project-buffer-manager
-                             room :list-buffers))
+       ;; If it's still not in the list, whitelist it.
+       (unless (workroom--project-buffer-manager
+                room :member-buffer-p buffer)
          (push buffer (plist-get (workroom-buffer-manager-data room)
                                  :whitelist)))))
     (:remove-buffer
@@ -1873,9 +1873,9 @@ argument while setting as the buffer manager, PROJECT, the project."
              (delete buffer
                      (plist-get (workroom-buffer-manager-data room)
                                 :whitelist)))
-       ;; If still in the list, blacklist it.
-       (when (memq buffer (workroom--project-buffer-manager
-                           room :list-buffers))
+       ;; If it's still in the list, blacklist it.
+       (when (workroom--project-buffer-manager
+              room :member-buffer-p buffer)
          (push buffer (plist-get (workroom-buffer-manager-data room)
                                  :blacklist)))))
     (:member-buffer-p
