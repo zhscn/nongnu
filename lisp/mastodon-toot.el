@@ -820,16 +820,15 @@ Customize `mastodon-toot-display-orig-in-reply-buffer' to display
 text of the toot being replied to in the compose buffer."
   (interactive)
   (let* ((toot (mastodon-tl--property 'toot-json))
-         ;; NB: we cannot use mastodon-tl--property for 'parent-toot
+         ;; NB: we cannot use mastodon-tl--property for 'base-toot
          ;; because if it doesn't have one, it is fetched from next toot!
          ;; we also cannot use --field because we need to get a different property first
-         (parent (get-text-property (point) 'parent-toot)) ; for new notifs handling
-         (id (mastodon-tl--as-string
-              (mastodon-tl--field 'id (or parent toot))))
+         (base-toot (get-text-property (point) 'base-toot)) ; for new notifs handling
+         (id (mastodon-tl--as-string (mastodon-tl--field 'id (or base-toot toot))))
          (account (mastodon-tl--field 'account toot))
          (user (alist-get 'acct account))
-         (mentions (mastodon-toot--mentions (or parent toot)))
-         (boosted (mastodon-tl--field 'reblog (or parent toot)))
+         (mentions (mastodon-toot--mentions (or base-toot toot)))
+         (boosted (mastodon-tl--field 'reblog (or base-toot toot)))
          (booster (when boosted
                     (alist-get 'acct
                                (alist-get 'account toot)))))
@@ -857,7 +856,7 @@ text of the toot being replied to in the compose buffer."
                          ;; user in mentions already:
                          mentions)))
                    id
-                   (or parent toot))))
+                   (or base-toot toot))))
 
 (defun mastodon-toot--toggle-warning ()
   "Toggle `mastodon-toot--content-warning'."
@@ -968,9 +967,18 @@ which is used to attach it to a toot when posting."
              collect `(,key . ,o))))
 
 (defun mastodon-toot--fetch-max-poll-options ()
-  "Return the maximum number of poll options from the user's instance. "
+  "Return the maximum number of poll options."
+  (mastodon-toot--fetch-poll-field 'max_options))
+
+(defun mastodon-toot--fetch-max-poll-option-chars ()
+  "Return the maximum number of characters a poll option may have."
+  (or (mastodon-toot--fetch-poll-field 'max_characters_per_option)
+      50)) ; masto default
+
+(defun mastodon-toot--fetch-poll-field (field)
+  "Return FIELD from the poll settings from the user's instance. "
   (let* ((instance (mastodon-http--get-json (mastodon-http--api "instance"))))
-    (alist-get 'max_options
+    (alist-get field
                (alist-get 'polls
                           (alist-get 'configuration instance)
                           instance))))
@@ -989,19 +997,20 @@ MAX is the maximum number set by their instance."
   (interactive)
   ;; re length, API docs show a poll 9 options.
   (let* ((max-options (mastodon-toot--fetch-max-poll-options))
-         (length (mastodon-toot--read-poll-options-count max-options))
+         (count (mastodon-toot--read-poll-options-count max-options))
+         (length (mastodon-toot--fetch-max-poll-option-chars))
          (multiple-p (y-or-n-p "Multiple choice? "))
-         (options (mastodon-toot--read-poll-options length))
+         (options (mastodon-toot--read-poll-options count length))
          (hide-totals (y-or-n-p "Hide votes until poll ends? "))
          (expiry (mastodon-toot--get-poll-expiry)))
     (setq mastodon-toot-poll
           `(:options ,options :length ,length :multi ,multiple-p :hide ,hide-totals :expiry ,expiry))
     (message "poll created!")))
 
-(defun mastodon-toot--read-poll-options (length)
+(defun mastodon-toot--read-poll-options (count length)
   "Read a list of options for poll of LENGTH options."
-  (cl-loop for x from 1 to length
-           collect (read-string (format "Poll option [%s/%s]: " x length))))
+  (cl-loop for x from 1 to count
+           collect (read-string (format "Poll option [%s/%s] [max %s chars]: " x count length))))
 
 (defun mastodon-toot--get-poll-expiry ()
   "Prompt for a poll expiry time."
@@ -1253,10 +1262,10 @@ Added to `after-change-functions'."
       ;; stops all text after a handle or mention being propertized:
       (set-text-properties (cdr header-region) (point-max) nil)
       ;; TODO: confirm allowed hashtag/handle characters:
-      (mastodon-toot--propertize-item "#[1-9a-zA-Z_]+"
+      (mastodon-toot--propertize-item "[\n\t ]\\(?2:#[1-9a-zA-Z_]+\\)[\n\t ]"
                                       'success
                                       (cdr header-region))
-      (mastodon-toot--propertize-item "@[1-9a-zA-Z._-]+"
+      (mastodon-toot--propertize-item "[\n\t ]\\(?2:@[1-9a-zA-Z._-]+\\)[\n\t ]"
                                       'mastodon-display-name-face
                                       (cdr header-region)))))
 
@@ -1265,8 +1274,8 @@ Added to `after-change-functions'."
   (save-excursion
     (goto-char start)
     (cl-loop while (search-forward-regexp regex nil :noerror)
-             do (add-text-properties (match-beginning 0)
-                                     (match-end 0)
+             do (add-text-properties (match-beginning 2)
+                                     (match-end 2)
                                      `(face ,face)))))
 
 (defun mastodon-toot-compose-buffer-p ()

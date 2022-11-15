@@ -106,12 +106,6 @@ width fonts when rendering HTML text"))
   :group 'mastodon-tl
   :type '(boolean :tag "Whether to display user avatars in timelines"))
 
-;; (defvar mastodon-tl--show-avatars nil
-;; (if (version< emacs-version "27.1")
-;; (image-type-available-p 'imagemagick)
-;; (image-transforms-p))
-;; "A boolean value stating whether to show avatars in timelines.")
-
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
 
@@ -953,7 +947,7 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
      (mastodon-tl--media toot))))
 
 (defun mastodon-tl--insert-status (toot body author-byline action-byline
-                                        &optional id parent-toot detailed-p)
+                                        &optional id base-toot detailed-p)
   "Display the content and byline of timeline element TOOT.
 
 BODY will form the section of the toot above the byline.
@@ -965,9 +959,10 @@ such as boosting favouriting and following to the byline. It also
 takes a single function. By default it is
 `mastodon-tl--byline-boosted'.
 
-ID is that of the toot, which is attached as a property if it is
-a notification. If the status is a favourite or a boost,
-PARENT-TOOT is the JSON of the toot responded to.
+ID is that of the status if it is a notification, which is
+attached as a `toot-id' property if provided. If the
+status is a favourite or boost notification, BASE-TOOT is the
+JSON of the toot responded to.
 
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
@@ -978,13 +973,16 @@ this just means displaying toot client."
               body
               " \n"
               (mastodon-tl--byline toot author-byline action-byline detailed-p))
-      'toot-id      (or id ; for notifications
-                        (alist-get 'id toot))
+      'toot-id      (or id ; notification's own id
+                        (alist-get 'id toot)) ; toot id
       'base-toot-id (mastodon-tl--toot-id
-                     ;; if a favourite/boost notif, get ID of toot responded to:
-                     (or parent-toot toot))
+                     ;; if status is a notif, get id from base-toot
+                     ;; (-tl--toot-id toot) will not work here:
+                     (or base-toot
+                         ;; else normal toot with reblog check:
+                         toot))
       'toot-json    toot
-      'parent-toot parent-toot)
+      'base-toot    base-toot)
      "\n")
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
@@ -1283,20 +1281,11 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
-(defun mastodon-tl--single-toot (&optional id)
+(defun mastodon-tl--single-toot (id)
   "View toot at point in separate buffer.
 ID is that of the toot to view."
   (interactive)
-  (let* ((id
-          (or id
-              (if (equal (mastodon-tl--get-endpoint) "notifications")
-                  ;; for boosts/faves:
-                  (if (mastodon-tl--property 'parent-toot)
-                      (mastodon-tl--as-string (mastodon-tl--toot-id
-                                               (mastodon-tl--property 'parent-toot)))
-                    (mastodon-tl--property 'base-toot-id))
-                (mastodon-tl--property 'base-toot-id))))
-         (buffer (format "*mastodon-toot-%s*" id))
+  (let* ((buffer (format "*mastodon-toot-%s*" id))
          (toot (mastodon-http--get-json
                 (mastodon-http--api (concat "statuses/" id)))))
     (if (equal (caar toot) 'error)
@@ -1312,17 +1301,12 @@ ID is that of the toot to view."
 
 (defun mastodon-tl--thread (&optional id)
   "Open thread buffer for toot at point or with ID."
+  ;; NB: this is called by `mastodon-url-lookup', which means it must work
+  ;; without `mastodon-tl--buffer-spec' being set!
+  ;; so avoid calls to `mastodon-tl--property' and friends
   (interactive)
-  (let* ((id
-          (or id
-              (if (equal (mastodon-tl--get-endpoint) "notifications")
-                  ;; for boosts/faves:
-                  (if (mastodon-tl--property 'parent-toot)
-                      (mastodon-tl--as-string (mastodon-tl--toot-id
-                                               (mastodon-tl--property 'parent-toot)))
-                    (mastodon-tl--property 'base-toot-id))
-                (mastodon-tl--property 'base-toot-id))))
-         (type (mastodon-tl--field 'type (mastodon-tl--property 'toot-json))))
+  (let* ((id (or id (get-text-property (point) 'base-toot-id)))
+         (type (mastodon-tl--field 'type (get-text-property (point) 'toot-json))))
     (if (or (string= type "follow_request")
             (string= type "follow")) ; no can thread these
         (error "No thread")
@@ -1509,16 +1493,28 @@ BRIEF means to show fewer details.
 INSTANCE is an instance domain name."
   (interactive)
   (mastodon-tl--do-if-toot
-   (let* ((toot (mastodon-tl--property 'toot-json))
+   (let* ((profile-p (get-text-property (point) 'profile-json))
+          (toot (if profile-p
+                    (mastodon-tl--property 'profile-json) ; profile may have 0 toots
+                  (mastodon-tl--property 'toot-json)))
           (reblog (alist-get 'reblog toot))
           (account (or (alist-get 'account reblog)
                        (alist-get 'account toot)))
-          (url (alist-get 'url account))
-          (username (alist-get 'username account))
+          (url (if profile-p
+                   (alist-get 'url toot) ; profile
+                 (alist-get 'url account)))
+          (username (if profile-p
+                        (alist-get 'username toot) ;; profile
+                      (alist-get 'username account)))
           (instance (if instance
                         (concat "https://" instance)
-                      (string-remove-suffix (concat "/@" username)
-                                            url)))
+                      ;; pleroma URL is https://instance.com/users/username
+                      (if (string-suffix-p "users/" (url-basepath url))
+                          (string-remove-suffix "/users/"
+                                                (url-basepath url))
+                        ;; mastodon:
+                        (string-remove-suffix (concat "/@" username)
+                                              url))))
           (response (mastodon-http--get-json
                      (if user
                          (mastodon-http--api "instance")
