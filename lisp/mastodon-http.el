@@ -216,6 +216,22 @@ Callback to `mastodon-http--get-response-async', usually
      (with-temp-buffer
        (mastodon-http--url-retrieve-synchronously url)))))
 
+(defun mastodon-http--put (url &optional args headers)
+  "Make PUT request to URL."
+  (mastodon-http--authorized-request
+   "PUT"
+   (let ((url-request-data
+          (when args
+            (mastodon-http--build-query-string args)))
+         (url-request-extra-headers
+          (append url-request-extra-headers ; auth set in macro
+                  ;; pleroma compat:
+                  (unless (assoc "Content-Type" headers)
+                    '(("Content-Type" . "application/x-www-form-urlencoded")))
+                  headers)))
+     (with-temp-buffer
+       (mastodon-http--url-retrieve-synchronously url)))))
+
 (defun mastodon-http--append-query-string (url params)
   "Append PARAMS to URL as query strings and return it.
 

@@ -71,6 +71,8 @@
 (autoload 'mastodon-http--get-response-async "mastodon-http")
 (autoload 'mastodon-url-lookup "mastodon")
 (autoload 'mastodon-auth--get-account-id "mastodon-auth")
+(autoload 'mastodon-http--put "mastodon-http")
+(autoload 'mastodon-http--process-json "mastodon-http")
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
 (defvar mastodon-instance-url)
@@ -1380,6 +1382,28 @@ ID is that of the toot to view."
          (response (mastodon-http--get-json url)))
     (alist-get 'title response)))
 
+(defun mastodon-tl--edit-list ()
+  "Prompt for a list and edit the name and replies policy."
+  (interactive)
+  (let* ((list-names (mastodon-tl--get-lists-names))
+         (name-old (completing-read "Edit list: "
+                                    list-names))
+         (id (mastodon-tl--get-list-id name-old))
+         (name-choice (read-string "List name: " name-old))
+         (replies-policy (completing-read "Replies policy: " ; give this a proper name
+                                          '("followed" "list" "none")
+                                          nil t nil nil "list"))
+         (url (mastodon-http--api (format "lists/%s" id)))
+         (response (mastodon-http--put url
+                                       `(("title" . ,name-choice)
+                                         ("replies_policy" . ,replies-policy)))))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (with-current-buffer response
+                               (let* ((json (mastodon-http--process-json))
+                                      (name-new (alist-get 'title json)))
+                                 (message "list %s edited to %s!" name-old name-new)))))))
+
 (defun mastodon-tl--view-list-timeline ()
   "Prompt for a list and view its timeline."
   (interactive)
@@ -1407,6 +1431,19 @@ Prompt for name and replies policy."
     (mastodon-http--triage response
                            (lambda ()
                              (message "list %s created!" title)))))
+
+(defun mastodon-tl--delete-list ()
+  "Prompt for a list and delete it."
+  (interactive)
+  (let* ((list-names (mastodon-tl--get-lists-names))
+         (name (completing-read "Delete list: "
+                                list-names))
+         (id (mastodon-tl--get-list-id name))
+         (url (mastodon-http--api (format "lists/%s" id)))
+         (response (mastodon-http--delete url)))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (message "list %s deleted!" name)))))
 
 (defun mastodon-tl--get-users-followings ()
   "Return the list of followers of the logged in account."
