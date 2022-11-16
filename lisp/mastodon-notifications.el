@@ -73,6 +73,15 @@
     ("Posted a poll" . "that has now ended"))
   "Alist of subjects for notification types.")
 
+(defvar mastodon-notifications--map
+  (let ((map
+         (copy-keymap mastodon-mode-map)))
+    (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
+    (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
+    (define-key map (kbd "g") #'mastodon-notifications--get)
+    (keymap-canonicalize map))
+  "Keymap for viewing notifications.")
+
 (defun mastodon-notifications--byline-concat (message)
   "Add byline for TOOT with MESSAGE."
   (concat
@@ -265,7 +274,8 @@ of the toot responded to."
   (mastodon-tl--init-sync
    "notifications"
    "notifications"
-   'mastodon-notifications--timeline))
+   'mastodon-notifications--timeline)
+  (use-local-map mastodon-notifications--map))
 
 (defun mastodon-notifications--clear-all ()
   "Clear all notifications."
