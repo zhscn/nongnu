@@ -352,17 +352,10 @@ Used on initializing a timeline or thread."
          (name (if (not (string-empty-p (alist-get 'display_name account)))
                    (alist-get 'display_name account)
                  (alist-get 'username account)))
-         (profile-url (alist-get 'url account))
-         (avatar-url (alist-get 'avatar account)))
-    ;; TODO: Once we have a view for a user (e.g. their posts
-    ;; timeline) make this a tab-stop and attach an action
+         (profile-url (alist-get 'url account)))
     (concat
-     (when (and mastodon-tl--show-avatars
-                mastodon-tl--display-media-p
-                (if (version< emacs-version "27.1")
-                    (image-type-available-p 'imagemagick)
-                  (image-transforms-p)))
-       (mastodon-media--get-avatar-rendering avatar-url))
+     ;; avatar insertion moved up to `mastodon-tl--byline' in order to be
+     ;; outside of text prop 'byline t.
      (propertize name
                  'face 'mastodon-display-name-face
                  ;; enable playing of videos when point is on byline:
@@ -554,7 +547,9 @@ this just means displaying toot client."
          (bookmark-str (if (fontp (char-displayable-p #10r128278))
                            "🔖"
                          "K"))
-         (visibility (mastodon-tl--field 'visibility toot)))
+         (visibility (mastodon-tl--field 'visibility toot))
+         (account (alist-get 'account toot))
+         (avatar-url (alist-get 'avatar account)))
     (concat
      ;; Boosted/favourited markers are not technically part of the byline, so
      ;; we don't propertize them with 'byline t', as per the rest. This
@@ -569,6 +564,14 @@ this just means displaying toot client."
                (mastodon-tl--format-faved-or-boosted-byline "F"))
              (when bookmarked
                (mastodon-tl--format-faved-or-boosted-byline bookmark-str)))
+     ;; we remove avatars from the byline also, so that they also do not mess
+     ;; with `mastodon-tl--goto-next-toot':
+     (when (and mastodon-tl--show-avatars
+                mastodon-tl--display-media-p
+                (if (version< emacs-version "27.1")
+                    (image-type-available-p 'imagemagick)
+                  (image-transforms-p)))
+       (mastodon-media--get-avatar-rendering avatar-url))
      (propertize
       (concat
        ;; we propertize help-echo format faves for author name
