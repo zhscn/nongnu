@@ -213,7 +213,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
 
 (defface mastodon-handle-face
   '((t :inherit default))
-  "Face used for user display names.")
+  "Face used for user handles in bylines.")
 
 (defface mastodon-display-name-face
   '((t :inherit warning))

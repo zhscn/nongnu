@@ -1505,6 +1505,8 @@ Use LIST-ID rather than prompting if given."
          (url (mastodon-http--api (format "lists/%s/accounts" list-id))))
     (mastodon-http--get-json url)))
 
+;;; FILTERS
+
 (defun mastodon-tl--create-filter ()
   "Create a filter for a word.
 Prompt for a context, must be a list containting at least one of \"home\",
@@ -1600,6 +1602,8 @@ JSON is what is returned by by the server."
                                           (mastodon-tl--view-filters)
                                           (message "Filter for \"%s\" deleted!" phrase)))))))
 
+;;; FOLLOW SUGGESTIONS
+
 (defun mastodon-tl--get-follow-suggestions ()
   "Display a buffer of suggested accounts to follow."
   (interactive)
@@ -1626,6 +1630,8 @@ RESPONSE is the JSON returned by the server."
             (not (mastodon-tl--property 'toot-json)))
        (message "Looks like there's no toot or user at point?")
      ,@body))
+
+;;;; INSTANCES
 
 (defun mastodon-tl-view-own-instance (&optional brief)
   "View details of your own instance.
@@ -1801,6 +1807,8 @@ IND is the optional indentation level to print at."
              (< 50 (length rend)))
         "\n"
       "")))
+
+;;; FOLLOW/BLOCK/MUTE, ETC
 
 (defun mastodon-tl--follow-user (user-handle &optional notify)
   "Query for USER-HANDLE from current status and follow that user.
