@@ -174,7 +174,7 @@ We need to override the keymap so tabbing will navigate to all
 types of mastodon links and not just shr.el-generated ones.")
 
 (defvar mastodon-tl--view-filters-keymap
-  (let ((map ;(make-sparse-keymap)))
+  (let ((map
          (copy-keymap mastodon-mode-map)))
     (define-key map (kbd "d") 'mastodon-tl--delete-filter)
     (define-key map (kbd "c") 'mastodon-tl--create-filter)
@@ -186,13 +186,37 @@ types of mastodon links and not just shr.el-generated ones.")
   "Keymap for viewing filters.")
 
 (defvar mastodon-tl--follow-suggestions-map
-  (let ((map ;(make-sparse-keymap)))
+  (let ((map
          (copy-keymap mastodon-mode-map)))
     (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
     (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
     (define-key map (kbd "g") 'mastodon-tl--get-follow-suggestions)
     (keymap-canonicalize map))
   "Keymap for viewing follow suggestions.")
+
+(defvar mastodon-tl--view-lists-keymap
+  (let ((map ;(make-sparse-keymap)))
+         (copy-keymap mastodon-mode-map)))
+    (define-key map (kbd "D") 'mastodon-tl--delete-list)
+    (define-key map (kbd "C") 'mastodon-tl--create-list)
+    (define-key map (kbd "A") 'mastodon-tl--add-account-to-list)
+    (define-key map (kbd "R") 'mastodon-tl--remove-account-from-list)
+    (define-key map (kbd "E") 'mastodon-tl--edit-list)
+    (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
+    (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
+    (define-key map (kbd "g") 'mastodon-tl--view-lists)
+    (keymap-canonicalize map))
+  "Keymap for viewing lists.")
+
+(defvar mastodon-tl--list-name-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<return>") 'mastodon-tl--view-timeline-list-at-point)
+    (define-key map (kbd "d") 'mastodon-tl--delete-list-at-point)
+    (define-key map (kbd "a") 'mastodon-tl--add-account-to-list-at-point)
+    (define-key map (kbd "r") 'mastodon-tl--remove-account-from-list-at-point)
+    (define-key map (kbd "e") 'mastodon-tl--edit-list-at-point)
+    (keymap-canonicalize map))
+  "Keymap for when point is on list name.")
 
 (defvar mastodon-tl--byline-link-keymap
   (when (require 'mpv nil :no-error)
@@ -1352,6 +1376,8 @@ ID is that of the toot to view."
             ;; else just print the lone toot:
             (mastodon-tl--single-toot id)))))))
 
+;;; LISTS
+
 (defun mastodon-tl--get-users-lists ()
   "Get the list of the user's lists from the server."
   (let ((url (mastodon-http--api "lists")))
@@ -1382,13 +1408,20 @@ ID is that of the toot to view."
          (response (mastodon-http--get-json url)))
     (alist-get 'title response)))
 
-(defun mastodon-tl--edit-list ()
-  "Prompt for a list and edit the name and replies policy."
+(defun mastodon-tl--edit-list-at-point ()
+  "Edit list at point."
   (interactive)
-  (let* ((list-names (mastodon-tl--get-lists-names))
-         (name-old (completing-read "Edit list: "
-                                    list-names))
-         (id (mastodon-tl--get-list-id name-old))
+  (let ((id (get-text-property (point) 'list-id)))
+    (mastodon-tl--edit-list id)))
+
+(defun mastodon-tl--edit-list (&optional id)
+  "Prompt for a list and edit the name and replies policy.
+If ID is provided, use that list."
+  (interactive)
+  (let* ((list-names (unless id (mastodon-tl--get-lists-names)))
+         (name-old (unless id (completing-read "Edit list: "
+                                               list-names)))
+         (id (or id (mastodon-tl--get-list-id name-old)))
          (name-choice (read-string "List name: " name-old))
          (replies-policy (completing-read "Replies policy: " ; give this a proper name
                                           '("followed" "list" "none")
@@ -1404,13 +1437,19 @@ ID is that of the toot to view."
                                       (name-new (alist-get 'title json)))
                                  (message "list %s edited to %s!" name-old name-new)))))))
 
-(defun mastodon-tl--view-list-timeline ()
-  "Prompt for a list and view its timeline."
+(defun mastodon-tl--view-timeline-list-at-point ()
+  "View timeline of list at point."
   (interactive)
-  (let* ((list-names (mastodon-tl--get-lists-names))
-         (list-name (completing-read "View list: "
-                                     list-names))
-         (id (mastodon-tl--get-list-id list-name))
+  (let ((list-id (get-text-property (point) 'list-id)))
+    (mastodon-tl--view-list-timeline list-id)))
+
+(defun mastodon-tl--view-list-timeline (&optional id)
+  "Prompt for a list and view its timeline.
+If ID is provided, use that list."
+  (interactive)
+  (let* ((list-names (unless id (mastodon-tl--get-lists-names)))
+         (list-name (unless id (completing-read "View list: " list-names)))
+         (id (or id (mastodon-tl--get-list-id list-name)))
          (endpoint (format "timelines/list/%s" id))
          (name (mastodon-tl--get-list-name id))
          (buffer-name (format "list-%s" name)))
@@ -1420,7 +1459,7 @@ ID is that of the toot to view."
   "Create a new list.
 Prompt for name and replies policy."
   (interactive)
-  (let* ((title (read-string "List name: "))
+  (let* ((title (read-string "New list name: "))
          (replies-policy (completing-read "Replies policy: " ; give this a proper name
                                           '("followed" "list" "none")
                                           nil t nil nil "list")) ; default
@@ -1432,18 +1471,72 @@ Prompt for name and replies policy."
                            (lambda ()
                              (message "list %s created!" title)))))
 
-(defun mastodon-tl--delete-list ()
-  "Prompt for a list and delete it."
+(defun mastodon-tl--delete-list-at-point ()
+  "Delete list at point."
   (interactive)
-  (let* ((list-names (mastodon-tl--get-lists-names))
-         (name (completing-read "Delete list: "
-                                list-names))
-         (id (mastodon-tl--get-list-id name))
-         (url (mastodon-http--api (format "lists/%s" id)))
-         (response (mastodon-http--delete url)))
-    (mastodon-http--triage response
-                           (lambda ()
-                             (message "list %s deleted!" name)))))
+  (let ((id (get-text-property (point) 'list-id)))
+    (mastodon-tl--delete-list id)))
+
+(defun mastodon-tl--delete-list (&optional id)
+  "Prompt for a list and delete it.
+If ID is provided, delete that list."
+  (interactive)
+  (let* ((list-names (unless id (mastodon-tl--get-lists-names)))
+         (name (if id
+                   (mastodon-tl--get-list-name id)
+                 (completing-read "Delete list: "
+                                  list-names)))
+         (id (or id (mastodon-tl--get-list-id name)))
+         (url (mastodon-http--api (format "lists/%s" id))))
+    (when (y-or-n-p (format "Delete list %s?" name))
+      (let ((response (mastodon-http--delete url)))
+        (mastodon-http--triage response
+                               (lambda ()
+                                 (message "list %s deleted!" name)))))))
+
+(defun mastodon-tl--view-lists ()
+  "Show the user's lists in a new buffer."
+  (interactive)
+  (mastodon-tl--init-sync "lists"
+                          "lists"
+                          'mastodon-tl--insert-lists)
+  (use-local-map mastodon-tl--view-lists-keymap))
+
+(defun mastodon-tl--insert-lists (_json)
+  "Insert the user's lists from JSON."
+  ;; TODO: for now we don't use the JSON, we get it ourself again
+  (let* ((lists-names (mastodon-tl--get-lists-names)))
+    (insert (mastodon-tl--set-face
+             (concat "\n ------------\n"
+                     " YOUR LISTS\n"
+                     " ------------\n\n")
+             'success)
+            (mastodon-tl--set-face
+             "[C - create a list\n D - delete a list\
+\n A/R - add/remove account from a list\
+\n E - edit a list\n n/p - go to next/prev item]\n\n"
+             'font-lock-comment-face))
+    (mapc (lambda (x)
+            (mastodon-tl--print-list-accounts x))
+          lists-names)))
+
+(defun mastodon-tl--print-list-accounts (list-name)
+  "Insert the accounts in list named LIST-NAME."
+  (let* ((id (mastodon-tl--get-list-id list-name))
+         (accounts (mastodon-tl--accounts-in-list id)))
+    (insert
+     (propertize list-name
+                 'list t
+                 'list-name list-name
+                 'list-id id
+                 'keymap mastodon-tl--list-name-keymap
+                 'byline t ; so we nav here
+                 'toot-id "0" ; so we nav here
+                 'help-echo "RET: view list timeline, d: delete this list, \
+a: add account to this list, r: remove account from this list"
+                 'face '((:underline t :inherit success)))
+     "\n\n")
+    (mastodon-search--insert-users-propertized accounts)))
 
 (defun mastodon-tl--get-users-followings ()
   "Return the list of followers of the logged in account."
@@ -1451,12 +1544,20 @@ Prompt for name and replies policy."
          (url (mastodon-http--api (format "accounts/%s/following" id))))
     (mastodon-http--get-json url)))
 
-(defun mastodon-tl--add-account-to-list ()
-  "Prompt for a list and for an account, add account to list."
+(defun mastodon-tl--add-account-to-list-at-point ()
+  "Prompt for account and add to list at point."
   (interactive)
-  (let* ((list-name (completing-read "Add account to list: "
-                                     (mastodon-tl--get-lists-names) nil t))
-         (list-id (mastodon-tl--get-list-id list-name))
+  (let ((id (get-text-property (point) 'list-id)))
+    (mastodon-tl--add-account-to-list id)))
+
+(defun mastodon-tl--add-account-to-list (&optional id)
+  "Prompt for a list and for an account, add account to list.
+If ID is provided, use that list."
+  (interactive)
+  (let* ((list-name (unless id
+                      (completing-read "Add account to list: "
+                                       (mastodon-tl--get-lists-names) nil t)))
+         (list-id (or id (mastodon-tl--get-list-id list-name)))
          (followings (mastodon-tl--get-users-followings))
          (handles (mapcar (lambda (x)
                             (cons (alist-get 'acct x)
@@ -1473,18 +1574,26 @@ Prompt for name and replies policy."
                            (lambda ()
                              (message "%s added to list %s!" account list-name)))))
 
-(defun mastodon-tl--remove-account-from-list ()
-  "Promppt for a list, select an account and remove from list."
+(defun mastodon-tl--remove-account-from-list-at-point ()
+  "Prompt for account and remove from list at point."
   (interactive)
-  (let* ((list-name (completing-read "Remove account from list: "
-                                     (mastodon-tl--get-lists-names) nil t))
-         (list-id (mastodon-tl--get-list-id list-name))
+  (let ((id (get-text-property (point) 'list-id)))
+    (mastodon-tl--remove-account-from-list id)))
+
+(defun mastodon-tl--remove-account-from-list (&optional id)
+  "Prompt for a list, select an account and remove from list.
+If ID is provided, use that list."
+  (interactive)
+  (let* ((list-name (unless id
+                      (completing-read "Remove account from list: "
+                                       (mastodon-tl--get-lists-names) nil t)))
+         (list-id (or id (mastodon-tl--get-list-id list-name)))
          (accounts (mastodon-tl--accounts-in-list list-id))
          (handles (mapcar (lambda (x)
                             (cons (alist-get 'acct x)
                                   (alist-get 'id x)))
                           accounts))
-         (account (completing-read "Account: "
+         (account (completing-read "Account to remove: "
                                    handles nil t))
          (account-id (alist-get account handles nil nil 'equal))
          (url (mastodon-http--api (format "lists/%s/accounts" list-id)))
