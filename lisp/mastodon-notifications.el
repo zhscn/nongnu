@@ -268,15 +268,28 @@ of the toot responded to."
     (mapc #'mastodon-notifications--by-type json)
     (goto-char (point-min))))
 
-(defun mastodon-notifications--get ()
-  "Display NOTIFICATIONS in buffer."
+(defun mastodon-notifications--get (&optional type)
+  "Display NOTIFICATIONS in buffer.
+Optionally only print notifications of type TYPE, a string."
   (interactive)
   (message "Loading your notifications...")
   (mastodon-tl--init-sync
    "notifications"
    "notifications"
-   'mastodon-notifications--timeline)
+   'mastodon-notifications--timeline
+   type)
   (use-local-map mastodon-notifications--map))
+
+(defun mastodon-notifications--get-mentions ()
+  "Display mention notifications in buffer."
+  (interactive)
+  (mastodon-notifications--get "mention"))
+
+(defun mastodon-notifications--filter-types-list (type)
+  "Return a list of notification types with TYPE (and \"status\") removed."
+  (let ((types (remove "status"
+                       (mapcar #'car mastodon-notifications--types-alist))))
+    (remove type types)))
 
 (defun mastodon-notifications--clear-all ()
   "Clear all notifications."
