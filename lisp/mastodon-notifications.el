@@ -140,7 +140,7 @@ Can be called in notifications view or in follow-requests view."
   "Reject a follow request.
 Can be called in notifications view or in follow-requests view."
   (interactive)
-  (mastodon-notifications--follow-request-process t))
+  (mastodon-notifications--follow-request-process :reject))
 
 (defun mastodon-notifications--mention (note)
   "Format for a `mention' NOTE."
