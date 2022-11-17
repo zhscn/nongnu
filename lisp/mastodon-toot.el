@@ -1265,9 +1265,13 @@ Added to `after-change-functions'."
       (mastodon-toot--propertize-item "\\([\n\t ]\\|^\\)\\(?2:#[1-9a-zA-Z_]+\\)\\b"
                                       'success
                                       (cdr header-region))
-      (mastodon-toot--propertize-item "\\([\n\t ]\\|^\\)\\(?2:@[1-9a-zA-Z._-]+\\)\\b"
-                                      'mastodon-display-name-face
-                                      (cdr header-region)))))
+      (mastodon-toot--propertize-item
+       (concat "\\([\n\t ]\\|^\\)" ; preceding space or bol
+               "\\(?2:@[1-9a-zA-Z._-]+" ; a handle
+               "\\(@[1-9a-zA-Z._-]+\\)?\\)" ; with poss domain
+               "\\b") ; boundary
+       'mastodon-display-name-face
+       (cdr header-region)))))
 
 (defun mastodon-toot--propertize-item (regex face start)
   "Propertize item matching REGEX with FACE starting from START."
