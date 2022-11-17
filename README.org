@@ -155,6 +155,7 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 |---------------+-----------------------------------------------------------------------|
 |               | Notifications view                                                    |
 | =a=, =j=          | accept/reject follow request                                          |
+| =c=             | clear notification at point                                           |
 |---------------+-----------------------------------------------------------------------|
 |               | *Quitting*                                                              |
 | =q=             | Quit mastodon buffer, leave window open                               |
