@@ -122,6 +122,7 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 | =H=             | Open home timeline                                                    |
 | =L=             | Open local timeline                                                   |
 | =N=             | Open notifications timeline                                           |
+| =@=             | Open mentions-only notifications timeline                             |
 | =u=             | Update current timeline                                               |
 | =T=             | Open thread for toot under =point=                                      |
 | =#=             | Prompt for tag and open its timeline                                  |
