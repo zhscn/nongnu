@@ -71,6 +71,8 @@
 (autoload 'mastodon-http--get-response-async "mastodon-http")
 (autoload 'mastodon-url-lookup "mastodon")
 (autoload 'mastodon-http--build-array-args-alist "mastodon-http")
+(autoload 'mastodon-http--build-query-string "mastodon-http")
+(autoload 'mastodon-notifications--filter-types-list "mastodon-notifications")
 
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
@@ -2109,7 +2111,8 @@ headers."
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 
 UPDATE-FUNCTION is used to receive more toots.
-Runs synchronously."
+Runs synchronously.
+Optional arg NOTE-TYPE means only get that type of note."
   (let* ((exclude-types (when note-type
                           (mastodon-notifications--filter-types-list note-type)))
          (args (when note-type (mastodon-http--build-array-args-alist
