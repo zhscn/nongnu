@@ -1,20 +1,15 @@
 pipeline:
-  current-emacs:
+  current:
     image: silex/emacs:cask
-    when:
-      branch: [main, develop]
-      commands:
-        - emacs --version
-        - cask install
-        - cask emacs -batch -l test/ert-helper.el -f ert-run-tests-batch-and-exit
-
-  last-emacs:
+    commands:
+      - emacs --version
+      - cask install
+      - cask emacs -batch -l test/ert-helper.el -f ert-run-tests-batch-and-exit
+  last:
     image: silex/emacs:27-ci-cask
-    when:
-      branch: [main, develop]
-      commands:
-        - emacs --version
-        - cask install
-        - cask emacs -batch -l test/ert-helper.el -f ert-run-tests-batch-and-exit
+    commands:
+      - emacs --version
+      - cask install
+      - cask emacs -batch -l test/ert-helper.el -f ert-run-tests-batch-and-exit
 
-
++branches: [ main, develop ]
