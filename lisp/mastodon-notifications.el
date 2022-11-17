@@ -52,25 +52,26 @@
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
+(defvar mastodon-mode-map)
 
 (defvar mastodon-notifications--types-alist
-  '(("mention" . mastodon-notifications--mention)
-    ("follow" . mastodon-notifications--follow)
+  '(("follow" . mastodon-notifications--follow)
     ("favourite" . mastodon-notifications--favourite)
     ("reblog" . mastodon-notifications--reblog)
+    ("mention" . mastodon-notifications--mention)
+    ("poll" . mastodon-notifications--poll)
     ("follow_request" . mastodon-notifications--follow-request)
-    ("status" . mastodon-notifications--status)
-    ("poll" . mastodon-notifications--poll))
+    ("status" . mastodon-notifications--status))
   "Alist of notification types and their corresponding function.")
 
 (defvar mastodon-notifications--response-alist
-  '(("Mentioned" . "you")
-    ("Followed" . "you")
+  '(("Followed" . "you")
     ("Favourited" . "your status from")
     ("Boosted" . "your status from")
+    ("Mentioned" . "you")
+    ("Posted a poll" . "that has now ended")
     ("Requested to follow" . "you")
-    ("Posted" . "a post")
-    ("Posted a poll" . "that has now ended"))
+    ("Posted" . "a post"))
   "Alist of subjects for notification types.")
 
 (defvar mastodon-notifications--map
