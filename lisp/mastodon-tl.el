@@ -70,6 +70,8 @@
 (autoload 'mastodon-profile--get-preferences-pref "mastodon-profile")
 (autoload 'mastodon-http--get-response-async "mastodon-http")
 (autoload 'mastodon-url-lookup "mastodon")
+(autoload 'mastodon-http--build-array-args-alist "mastodon-http")
+
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
 (defvar mastodon-instance-url)
@@ -2110,10 +2112,8 @@ UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously."
   (let* ((exclude-types (when note-type
                           (mastodon-notifications--filter-types-list note-type)))
-         (args (when note-type
-                 (mapcar (lambda (x)
-                           `("exclude_types[]" . ,x))
-                         exclude-types)))
+         (args (when note-type (mastodon-http--build-array-args-alist
+                                "exclude_types[]" exclude-types)))
          (query-string (when note-type
                          (mastodon-http--build-query-string args)))
          ;; add note-type exclusions to endpoint so it works in `mastodon-tl--buffer-spec'
