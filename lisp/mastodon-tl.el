@@ -349,17 +349,29 @@ Used on initializing a timeline or thread."
          (t2 (replace-regexp-in-string "<\/?span>" "" t1)))
     (replace-regexp-in-string "<span class=\"h-card\">" "" t2)))
 
-(defun mastodon-tl--byline-author (toot)
-  "Propertize author of TOOT."
+(defun mastodon-tl--byline-author (toot &optional avatar)
+  "Propertize author of TOOT.
+With arg AVATAR, include the account's avatar image."
   (let* ((account (alist-get 'account toot))
          (handle (alist-get 'acct account))
          (name (if (not (string-empty-p (alist-get 'display_name account)))
                    (alist-get 'display_name account)
                  (alist-get 'username account)))
-         (profile-url (alist-get 'url account)))
+         (profile-url (alist-get 'url account))
+         (avatar-url (alist-get 'avatar account)))
+    ;; TODO: Once we have a view for a user (e.g. their posts
+    ;; timeline) make this a tab-stop and attach an action
     (concat
-     ;; avatar insertion moved up to `mastodon-tl--byline' in order to be
-     ;; outside of text prop 'byline t.
+     ;; avatar insertion moved up to `mastodon-tl--byline' by default in order
+     ;; to be outside of text prop 'byline t. arg avatar is used by
+     ;; `mastodon-profile--add-author-bylines'
+     (when (and avatar
+                mastodon-tl--show-avatars
+                mastodon-tl--display-media-p
+                (if (version< emacs-version "27.1")
+                    (image-type-available-p 'imagemagick)
+                  (image-transforms-p)))
+       (mastodon-media--get-avatar-rendering avatar-url))
      (propertize name
                  'face 'mastodon-display-name-face
                  ;; enable playing of videos when point is on byline:

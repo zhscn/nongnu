@@ -707,7 +707,8 @@ Used to view a user's followers and those they're following."
               (let ((start-pos (point)))
                 (insert "\n"
                         (propertize
-                         (mastodon-tl--byline-author `((account . ,toot)))
+                         (mastodon-tl--byline-author `((account . ,toot))
+                                                     :avatar)
                          'byline  't
                          'toot-id (alist-get 'id toot)
                          'base-toot-id (mastodon-tl--toot-id toot)
