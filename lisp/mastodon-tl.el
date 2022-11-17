@@ -70,6 +70,8 @@
 (autoload 'mastodon-profile--get-preferences-pref "mastodon-profile")
 (autoload 'mastodon-http--get-response-async "mastodon-http")
 (autoload 'mastodon-url-lookup "mastodon")
+(autoload 'mastodon-http--build-array-args-alist "mastodon-http")
+
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
 (defvar mastodon-instance-url)
@@ -2103,12 +2105,21 @@ headers."
         ;; for everything save profiles
         (mastodon-tl--goto-first-item)))))
 
-(defun mastodon-tl--init-sync (buffer-name endpoint update-function)
+(defun mastodon-tl--init-sync (buffer-name endpoint update-function &optional note-type)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously."
-  (let* ((url (mastodon-http--api endpoint))
+  (let* ((exclude-types (when note-type
+                          (mastodon-notifications--filter-types-list note-type)))
+         (args (when note-type (mastodon-http--build-array-args-alist
+                                "exclude_types[]" exclude-types)))
+         (query-string (when note-type
+                         (mastodon-http--build-query-string args)))
+         ;; add note-type exclusions to endpoint so it works in `mastodon-tl--buffer-spec'
+         ;; that way `mastodon-tl--more' works seamlessly too:
+         (endpoint (if note-type (concat endpoint "?" query-string) endpoint))
+         (url (mastodon-http--api endpoint))
          (buffer (concat "*mastodon-" buffer-name "*"))
          (json (mastodon-http--get-json url)))
     (with-output-to-temp-buffer buffer
