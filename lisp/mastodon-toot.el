@@ -80,6 +80,7 @@
 (autoload 'mastodon-tl--render-text "mastodon-tl")
 (autoload 'mastodon-profile-fetch-server-account-settings-maybe "mastodon-profile")
 (autoload 'mastodon-http--build-array-args-alist "mastodon-http")
+(autoload 'mastodon-tl--get-endpoint "mastodon-tl")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -515,8 +516,8 @@ Pushes `mastodon-toot-current-toot-text' to
     (message "Draft saved!")))
 
 (defun mastodon-toot-empty-p (&optional text-only)
-  "Return t if no text, attachments, or polls have been added to the compose buffer.
-TEXT-ONLY means don't check for attachments."
+  "Return t if toot has no text, attachments, or polls.
+TEXT-ONLY means don't check for attachments or polls."
   (and (if text-only
            t
          (not mastodon-toot--media-attachments)
@@ -972,7 +973,7 @@ which is used to attach it to a toot when posting."
       50)) ; masto default
 
 (defun mastodon-toot--fetch-poll-field (field)
-  "Return FIELD from the poll settings from the user's instance. "
+  "Return FIELD from the poll settings from the user's instance."
   (let* ((instance (mastodon-http--get-json (mastodon-http--api "instance"))))
     (alist-get field
                (alist-get 'polls
@@ -1004,7 +1005,8 @@ MAX is the maximum number set by their instance."
     (message "poll created!")))
 
 (defun mastodon-toot--read-poll-options (count length)
-  "Read a list of options for poll of LENGTH options."
+  "Read a list of options for poll with COUNT options.
+LENGTH is the maximum character length allowed for a poll option."
   (cl-loop for x from 1 to count
            collect (read-string (format "Poll option [%s/%s] [max %s chars]: " x count length))))
 
