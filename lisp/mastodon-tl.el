@@ -2059,10 +2059,11 @@ from the start if it is nil."
          (update-function (mastodon-tl--get-update-function))
          (id (mastodon-tl--newest-id))
          (json (mastodon-tl--updated-json endpoint id)))
-    (when json
-      (let ((inhibit-read-only t))
-        (goto-char (or mastodon-tl--update-point (point-min)))
-        (funcall update-function json)))))
+    (if json
+        (let ((inhibit-read-only t))
+          (goto-char (or mastodon-tl--update-point (point-min)))
+          (funcall update-function json))
+      (message "nothing to update"))))
 
 (defun mastodon-tl--get-link-header-from-response (headers)
   "Get http Link header from list of http HEADERS."
