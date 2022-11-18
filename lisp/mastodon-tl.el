@@ -1012,7 +1012,8 @@ this just means displaying toot client."
          (expiry (mastodon-tl--field 'expires_at poll))
          (expired-p (if (eq (mastodon-tl--field 'expired poll) :json-false) nil t))
          (multi (mastodon-tl--field 'multiple poll))
-         (vote-count (mastodon-tl--field 'voters_count poll))
+         (voters-count (mastodon-tl--field 'voters_count poll))
+         (vote-count (mastodon-tl--field 'votes_count poll))
          (options (mastodon-tl--field 'options poll))
          (option-titles (mapcar (lambda (x)
                                   (alist-get 'title x))
@@ -1041,10 +1042,16 @@ this just means displaying toot client."
                        options
                        "\n")
             "\n"
-            (propertize (if (= vote-count 1)
-                            (format "%s person | " vote-count)
-                          (format "%s people | " vote-count))
-                        'face 'font-lock-comment-face)
+            (propertize
+             (cond (voters-count ; sometimes it is nil
+                    (if (= voters-count 1)
+                        (format "%s person | " voters-count)
+                      (format "%s people | " voters-count)))
+                   (vote-count
+                    (format "%s votes | " vote-count))
+                   (t
+                    ""))
+             'face 'font-lock-comment-face)
             (let ((str (if expired-p
                            "Poll expired."
                          (mastodon-tl--format-poll-expiry expiry))))
