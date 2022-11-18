@@ -1496,23 +1496,23 @@ RESPONSE is the JSON returned by the server."
        (message "Looks like there's no toot or user at point?")
      ,@body))
 
-(defun mastodon-tl-view-own-instance (&optional brief)
+(defun mastodon-tl--view-own-instance (&optional brief)
   "View details of your own instance.
 BRIEF means show fewer details."
   (interactive)
-  (mastodon-tl-view-instance-description :user brief))
+  (mastodon-tl--view-instance-description :user brief))
 
-(defun mastodon-tl-view-own-instance-brief ()
+(defun mastodon-tl--view-own-instance-brief ()
   "View brief details of your own instance."
   (interactive)
-  (mastodon-tl-view-instance-description :user :brief))
+  (mastodon-tl--view-instance-description :user :brief))
 
-(defun mastodon-tl-view-instance-description-brief ()
+(defun mastodon-tl--view-instance-description-brief ()
   "View brief details of the instance the current post's author is on."
   (interactive)
-  (mastodon-tl-view-instance-description nil :brief))
+  (mastodon-tl--view-instance-description nil :brief))
 
-(defun mastodon-tl-view-instance-description (&optional user brief instance)
+(defun mastodon-tl--view-instance-description (&optional user brief instance)
   "View the details of the instance the current post's author is on.
 USER means to show the instance details for the logged in user.
 BRIEF means to show fewer details.
