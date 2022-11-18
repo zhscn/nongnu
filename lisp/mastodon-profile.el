@@ -87,7 +87,7 @@
     ;; maybe we can retire both of these awful bindings
     ;; (define-key map (kbd "s") #'mastodon-profile--open-followers)
     ;; (define-key map (kbd "g") #'mastodon-profile--open-following)
-    (define-key map (kbd "C-c C-c") #'mastodon-profile-account-view-cycle)
+    (define-key map (kbd "C-c C-c") #'mastodon-profile--account-view-cycle)
     map)
   "Keymap for `mastodon-profile-mode'.")
 
@@ -156,7 +156,7 @@ contains")
    account "statuses" #'mastodon-tl--timeline))
 
 ;; TODO: we shd just load all views' data then switch coz this is slow af:
-(defun mastodon-profile-account-view-cycle ()
+(defun mastodon-profile--account-view-cycle ()
   "Cycle through profile view: toots, followers, and following."
   (interactive)
   (let ((endpoint (plist-get mastodon-tl--buffer-spec 'endpoint)))
@@ -295,25 +295,25 @@ SOURCE means that the preference is in the 'source' part of the account JSON."
          (response (mastodon-http--patch url `((,pref-formatted . ,val)))))
     (mastodon-http--triage response
                            (lambda ()
-                             (mastodon-profile-fetch-server-account-settings)
+                             (mastodon-profile--fetch-server-account-settings)
                              (message "Account setting %s updated to %s!" pref val)))))
 
 (defun mastodon-profile--get-pref (pref)
   "Return PREF from `mastodon-profile-account-settings'."
   (plist-get mastodon-profile-account-settings pref))
 
-(defun mastodon-profile-update-preference-plist (pref val)
+(defun mastodon-profile--update-preference-plist (pref val)
   "Set local account preference plist preference PREF to VAL.
 This is done after changing the setting on the server."
   (setq mastodon-profile-account-settings
         (plist-put mastodon-profile-account-settings pref val)))
 
-(defun mastodon-profile-fetch-server-account-settings-maybe ()
+(defun mastodon-profile--fetch-server-account-settings-maybe ()
   "Fetch account settings from the server.
 Only do so if `mastodon-profile-account-settings' is nil."
-  (mastodon-profile-fetch-server-account-settings :no-force))
+  (mastodon-profile--fetch-server-account-settings :no-force))
 
-(defun mastodon-profile-fetch-server-account-settings (&optional no-force)
+(defun mastodon-profile--fetch-server-account-settings (&optional no-force)
   "Fetch basic account settings from the server.
 Store the values in `mastodon-profile-account-settings'.
 Run in `mastodon-mode-hook'.
@@ -324,42 +324,42 @@ If NO-FORCE, only fetch if `mastodon-profile-account-settings' is nil."
     (let ((keys '(locked discoverable display_name bot))
           (source-keys '(privacy sensitive language)))
       (mapc (lambda (k)
-              (mastodon-profile-update-preference-plist
+              (mastodon-profile--update-preference-plist
                k
                (mastodon-profile--get-json-value k)))
             keys)
       (mapc (lambda (sk)
-              (mastodon-profile-update-preference-plist
+              (mastodon-profile--update-preference-plist
                sk
                (mastodon-profile--get-source-value sk)))
             source-keys)
       ;; hack for max toot chars:
       (mastodon-toot--get-max-toot-chars :no-toot)
-      (mastodon-profile-update-preference-plist 'max_toot_chars
-                                                mastodon-toot--max-toot-chars)
+      (mastodon-profile--update-preference-plist 'max_toot_chars
+                                                 mastodon-toot--max-toot-chars)
       ;; TODO: remove now redundant vars, replace with fetchers from the plist
       (setq mastodon-toot--visibility (mastodon-profile--get-pref 'privacy)
             mastodon-toot--content-nsfw (mastodon-profile--get-pref 'sensitive))
       mastodon-profile-account-settings)))
 
-(defun mastodon-profile-account-locked-toggle ()
+(defun mastodon-profile--account-locked-toggle ()
   "Toggle the locked status of your account.
 Locked means follow requests have to be approved."
   (interactive)
   (mastodon-profile--toggle-account-key 'locked))
 
-(defun mastodon-profile-account-discoverable-toggle ()
+(defun mastodon-profile--account-discoverable-toggle ()
   "Toggle the discoverable status of your account.
 Discoverable means the account is listed in the server directory."
   (interactive)
   (mastodon-profile--toggle-account-key 'discoverable))
 
-(defun mastodon-profile-account-bot-toggle ()
+(defun mastodon-profile--account-bot-toggle ()
   "Toggle the bot status of your account."
   (interactive)
   (mastodon-profile--toggle-account-key 'bot))
 
-(defun mastodon-profile-account-sensitive-toggle ()
+(defun mastodon-profile--account-sensitive-toggle ()
   "Toggle the sensitive status of your account.
 When enabled, statuses are marked as sensitive by default."
   (interactive)
@@ -387,7 +387,7 @@ Current settings are fetched from the server."
                        val)))
     (mastodon-profile--update-preference (symbol-name key) new-val)))
 
-(defun mastodon-profile-update-display-name ()
+(defun mastodon-profile--update-display-name ()
   "Update display name for your account."
   (interactive)
   (mastodon-profile--edit-string-value 'display_name))
@@ -396,8 +396,8 @@ Current settings are fetched from the server."
   "Construct a parameter query string from metadata alist FIELDS.
 Returns an alist."
   (let ((keys (cl-loop for count from 1 to 5
-                      collect (cons (format "fields_attributes[%s][name]" count)
-                                    (format "fields_attributes[%s][value]" count)))))
+                       collect (cons (format "fields_attributes[%s][name]" count)
+                                     (format "fields_attributes[%s][value]" count)))))
     (cl-loop for a-pair in keys
              for b-pair in fields
              append (list (cons (car a-pair)
@@ -405,7 +405,7 @@ Returns an alist."
                           (cons (cdr a-pair)
                                 (cdr b-pair))))))
 
-(defun mastodon-profile-update-meta-fields ()
+(defun mastodon-profile--update-meta-fields ()
   "Prompt for new metadata fields information and PATCH the server."
   (interactive)
   (let* ((url (mastodon-http--api "accounts/update_credentials"))
@@ -414,7 +414,7 @@ Returns an alist."
          (response (mastodon-http--patch url params)))
     (mastodon-http--triage response
                            (lambda ()
-                             (mastodon-profile-fetch-server-account-settings)
+                             (mastodon-profile--fetch-server-account-settings)
                              (message "Account setting %s updated to %s!"
                                       "metadata fields" fields-updated)))))
 
@@ -458,7 +458,7 @@ This endpoint only holds a few preferences. For others, see
              (mastodon-http--get-json
               (mastodon-http--api "preferences"))))
 
-(defun mastodon-profile-view-preferences ()
+(defun mastodon-profile--view-preferences ()
   "View user preferences in another window."
   (interactive)
   (let* ((url (mastodon-http--api "preferences"))
