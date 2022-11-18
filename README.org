@@ -222,12 +222,12 @@ You can download and use your instance's custom emoji
 
 - =mastodon-tl--view-instance-description=: View information about the instance that the author of the toot at point is on.
 - =mastodon-tl--view-own-instance=: View information about your own instance.
-- =mastodon-search-trending-tags=: View a list of trending hashtags on your instance.
+- =mastodon-search--trending-tags=: View a list of trending hashtags on your instance.
 
 - =mastodon-profile--update-display-name=: Update the display name for your account.
-- =mastodon-profile-update-user-profile-note=: Update your bio note.
+- =mastodon-profile--update-user-profile-note=: Update your bio note.
 - =mastodon-profile--update-meta-fields=: Update your metadata fields.
-- =mastodon-profile-set-default-toot-visibility=: Set the default visibility for your toots.
+- =mastodon-profile--set-default-toot-visibility=: Set the default visibility for your toots.
 - =mastodon-profile--account-locked-toggle=: Toggle the locked status of your account. Locked accounts have to manually approve follow requests.
 - =mastodon-profile--account-discoverable-toggle=: Toggle the discoverable status of your account. Non-discoverable accounts are not listed in the profile directory.
 - =mastodon-profile--account-bot-toggle=: Toggle whether your account is flagged as a bot.
