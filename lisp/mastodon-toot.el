@@ -76,9 +76,9 @@
 (autoload 'mastodon-toot "mastodon")
 (autoload 'mastodon-profile--get-source-pref "mastodon-profile")
 (autoload 'mastodon-profile--update-preference "mastodon-profile")
-(autoload 'mastodon-profile-fetch-server-account-settings "mastodon-profile")
+(autoload 'mastodon-profile--fetch-server-account-settings "mastodon-profile")
 (autoload 'mastodon-tl--render-text "mastodon-tl")
-(autoload 'mastodon-profile-fetch-server-account-settings-maybe "mastodon-profile")
+(autoload 'mastodon-profile--fetch-server-account-settings-maybe "mastodon-profile")
 (autoload 'mastodon-http--build-array-args-alist "mastodon-http")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl")
 
@@ -502,10 +502,10 @@ If toot is not empty, prompt to save text as a draft."
   (if (mastodon-toot-empty-p)
       (mastodon-toot--kill)
     (when (y-or-n-p "Save draft toot?")
-      (mastodon-toot-save-draft))
+      (mastodon-toot--save-draft))
     (mastodon-toot--kill)))
 
-(defun mastodon-toot-save-draft ()
+(defun mastodon-toot--save-draft ()
   "Save the current compose toot text as a draft.
 Pushes `mastodon-toot-current-toot-text' to
 `mastodon-toot-draft-toots-list'."
@@ -1338,7 +1338,7 @@ a draft into the buffer."
       (insert initial-text))))
 
 ;;;###autoload
-(add-hook 'mastodon-toot-mode-hook #'mastodon-profile-fetch-server-account-settings-maybe)
+(add-hook 'mastodon-toot-mode-hook #'mastodon-profile--fetch-server-account-settings-maybe)
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."

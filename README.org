@@ -211,7 +211,7 @@ You can download and use your instance's custom emoji
 **** draft toots
 
 - Compose buffer text is saved as you type, kept in =mastodon-toot-current-toot-text=.
-- =mastodon-toot-save-draft=: save the current toot as a draft.
+- =mastodon-toot--save-draft=: save the current toot as a draft.
 - =mastodon-toot-open-draft-toot=: Open a compose buffer and insert one of your draft toots.
 - =mastodon-toot-delete-draft-toot=: Delete a draft toot.
 - =mastodon-toot-delete-all-drafts=: Delete all your drafts.
@@ -220,18 +220,18 @@ You can download and use your instance's custom emoji
 
 - =mastodon-url-lookup=: Attempt to load URL in =mastodon.el=. URL may be the one at point or provided in the minibuffer. Should also work if =mastodon.el= is not yet loaded.
 
-- =mastodon-tl-view-instance-description=: View information about the instance that the author of the toot at point is on.
-- =mastodon-tl-view-own-instance=: View information about your own instance.
+- =mastodon-tl--view-instance-description=: View information about the instance that the author of the toot at point is on.
+- =mastodon-tl--view-own-instance=: View information about your own instance.
 - =mastodon-search-trending-tags=: View a list of trending hashtags on your instance.
 
-- =mastodon-profile-update-display-name=: Update the display name for your account.
+- =mastodon-profile--update-display-name=: Update the display name for your account.
 - =mastodon-profile-update-user-profile-note=: Update your bio note.
-- =mastodon-profile-update-meta-fields=: Update your metadata fields.
+- =mastodon-profile--update-meta-fields=: Update your metadata fields.
 - =mastodon-profile-set-default-toot-visibility=: Set the default visibility for your toots.
-- =mastodon-profile-account-locked-toggle=: Toggle the locked status of your account. Locked accounts have to manually approve follow requests.
-- =mastodon-profile-account-discoverable-toggle=: Toggle the discoverable status of your account. Non-discoverable accounts are not listed in the profile directory.
-- =mastodon-profile-account-bot-toggle=: Toggle whether your account is flagged as a bot.
-- =mastodon-profile-account-sensitive-toggle=: Toggle whether your posts are marked as sensitive (nsfw) by default.
+- =mastodon-profile--account-locked-toggle=: Toggle the locked status of your account. Locked accounts have to manually approve follow requests.
+- =mastodon-profile--account-discoverable-toggle=: Toggle the discoverable status of your account. Non-discoverable accounts are not listed in the profile directory.
+- =mastodon-profile--account-bot-toggle=: Toggle whether your account is flagged as a bot.
+- =mastodon-profile--account-sensitive-toggle=: Toggle whether your posts are marked as sensitive (nsfw) by default.
 
 *** Customization
 

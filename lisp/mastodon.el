@@ -91,7 +91,7 @@
 (when (require 'lingva nil :no-error)
   (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
 (autoload 'mastodon-search--trending-tags "mastodon-search")
-(autoload 'mastodon-profile-fetch-server-account-settings "mastodon-profile")
+(autoload 'mastodon-profile--fetch-server-account-settings "mastodon-profile")
 
 (defgroup mastodon nil
   "Interface with Mastodon."
@@ -324,7 +324,7 @@ not, just browse the URL in the normal fashion."
                                     (mastodon-toot--enable-custom-emoji)))))
 
 ;;;###autoload
-(add-hook 'mastodon-mode-hook #'mastodon-profile-fetch-server-account-settings)
+(add-hook 'mastodon-mode-hook #'mastodon-profile--fetch-server-account-settings)
 
 (define-derived-mode mastodon-mode special-mode "Mastodon"
   "Major mode for Mastodon, the federated microblogging network."
