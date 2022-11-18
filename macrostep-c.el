@@ -1,4 +1,4 @@
-;;; macrostep-c.el --- macrostep interface to C preprocessor
+;;; macrostep-c.el --- macrostep interface to C preprocessor  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015 Jon Oddie
 
@@ -47,15 +47,16 @@
 (require 'cmacexp)
 (require 'cl-lib)
 
-(eval-and-compile
-  (if (require 'subr-x nil t)
-      (defalias 'macrostep-c-string-trim 'string-trim)
-    (defun macrostep-c-string-trim (string)
+(require 'subr-x nil t)
+(defalias 'macrostep-c-string-trim
+  (if (fboundp 'string-trim)
+      #'string-trim
+    (lambda (string)
       (when (string-match "\\`[ \t\n\r]+" string)
 	(setq string (replace-match "" t t string)))
       (when (string-match "[ \t\n\r]+\\'" string)
 	(setq string (replace-match "" t t string)))
-	string)))
+      string)))
 
 (put 'macrostep-c-non-macro 'error-conditions
      '(macrostep-c-non-macro error))
@@ -84,7 +85,7 @@
   (add-hook 'macrostep-mode-off-hook
             #'macrostep-c-mode-off nil t))
 
-(defun macrostep-c-mode-off (&rest ignore)
+(defun macrostep-c-mode-off (&rest _ignore)
   (when (derived-mode-p 'c-mode)
     (let ((warning-window
            (get-buffer-window macrostep-c-warning-buffer)))
@@ -124,7 +125,7 @@
 (defun macrostep-c-expandable-p (region)
   (cl-destructuring-bind (start . end) region
     (condition-case nil
-        (cl-destructuring-bind (expansion warnings)
+        (cl-destructuring-bind (expansion _warnings)
             (macrostep-c-expand-region start end)
           (and (cl-plusp (length expansion))
                (not (string= expansion (buffer-substring start end)))))

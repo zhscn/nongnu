@@ -1,4 +1,4 @@
-;;; macrostep.el --- interactive macro expander
+;;; macrostep.el --- interactive macro expander  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2015 Jon Oddie
 
@@ -285,7 +285,7 @@
 (make-variable-buffer-local 'macrostep-expansion-buffer)
 
 (defvar macrostep-outer-environment nil
-  "Outermost macro-expansion environment to use in a macro-expansion buffers.
+  "Outermost macro-expansion environment to use in macro-expansion buffers.
 
 This variable is used to save information about any enclosing
 `cl-macrolet' context when a macro form is expanded in a separate
@@ -304,36 +304,31 @@ buffer.")
   '((((min-colors 16581375)) :foreground "#8080c0" :box t :bold t)
     (((min-colors 8)) :background "cyan")
     (t :inverse-video t))
-  "Face for gensyms created in the first level of macro expansion."
-  :group 'macrostep)
+  "Face for gensyms created in the first level of macro expansion.")
 
 (defface macrostep-gensym-2
   '((((min-colors 16581375)) :foreground "#8fbc8f" :box t :bold t)
     (((min-colors 8)) :background "#00cd00")
     (t :inverse-video t))
-  "Face for gensyms created in the second level of macro expansion."
-  :group 'macrostep)
+  "Face for gensyms created in the second level of macro expansion.")
 
 (defface macrostep-gensym-3
   '((((min-colors 16581375)) :foreground "#daa520" :box t :bold t)
     (((min-colors 8)) :background "yellow")
     (t :inverse-video t))
-  "Face for gensyms created in the third level of macro expansion."
-  :group 'macrostep)
+  "Face for gensyms created in the third level of macro expansion.")
 
 (defface macrostep-gensym-4
   '((((min-colors 16581375)) :foreground "#cd5c5c" :box t :bold t)
     (((min-colors 8)) :background "red")
     (t :inverse-video t))
-  "Face for gensyms created in the fourth level of macro expansion."
-  :group 'macrostep)
+  "Face for gensyms created in the fourth level of macro expansion.")
 
 (defface macrostep-gensym-5
   '((((min-colors 16581375)) :foreground "#da70d6" :box t :bold t)
     (((min-colors 8)) :background "magenta")
     (t :inverse-video t))
-  "Face for gensyms created in the fifth level of macro expansion."
-  :group 'macrostep)
+  "Face for gensyms created in the fifth level of macro expansion.")
 
 (defface macrostep-expansion-highlight-face
   `((((min-colors 16581375) (background light))
@@ -342,27 +337,22 @@ buffer.")
     (((min-colors 16581375) (background dark))
      ,@(and (>= emacs-major-version 27) '(:extend t))
      :background "#222222"))
-  "Face for macro-expansion highlight."
-  :group 'macrostep)
+  "Face for macro-expansion highlight.")
 
 (defface macrostep-macro-face
   '((t :underline t))
-  "Face for macros in macro-expanded code."
-  :group 'macrostep)
+  "Face for macros in macro-expanded code.")
 
 (defface macrostep-compiler-macro-face
   '((t :slant italic))
-  "Face for compiler macros in macro-expanded code."
-  :group 'macrostep)
+  "Face for compiler macros in macro-expanded code.")
 
 (defcustom macrostep-expand-in-separate-buffer nil
   "When non-nil, show expansions in a separate buffer instead of inline."
-  :group 'macrostep
   :type 'boolean)
 
 (defcustom macrostep-expand-compiler-macros t
   "When non-nil, also expand compiler macros."
-  :group 'macrostep
   :type 'boolean)
 
 ;; Need the following for making the ring of faces
@@ -467,23 +457,24 @@ The default value, `macrostep-macro-form-p', is specific to Emacs Lisp.")
 
 
 ;;; Define keymap and minor mode
-(defvar macrostep-keymap
+(define-obsolete-variable-alias 'macrostep-keymap 'macrostep-mode-keymap "2022")
+(defvar macrostep-mode-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'macrostep-expand)
-    (define-key map "=" 'macrostep-expand)
-    (define-key map "e" 'macrostep-expand)
+    (define-key map (kbd "RET") #'macrostep-expand)
+    (define-key map "=" #'macrostep-expand)
+    (define-key map "e" #'macrostep-expand)
 
-    (define-key map (kbd "DEL") 'macrostep-collapse)
-    (define-key map "u" 'macrostep-collapse)
-    (define-key map "c" 'macrostep-collapse)
+    (define-key map (kbd "DEL") #'macrostep-collapse)
+    (define-key map "u" #'macrostep-collapse)
+    (define-key map "c" #'macrostep-collapse)
 
-    (define-key map (kbd "TAB") 'macrostep-next-macro)
-    (define-key map "n" 'macrostep-next-macro)
-    (define-key map (kbd "M-TAB") 'macrostep-prev-macro)
-    (define-key map "p" 'macrostep-prev-macro)
+    (define-key map (kbd "TAB") #'macrostep-next-macro)
+    (define-key map "n" #'macrostep-next-macro)
+    (define-key map (kbd "M-TAB") #'macrostep-prev-macro)
+    (define-key map "p" #'macrostep-prev-macro)
 
-    (define-key map "q" 'macrostep-collapse-all)
-    (define-key map (kbd "C-c C-c") 'macrostep-collapse-all)
+    (define-key map "q" #'macrostep-collapse-all)
+    (define-key map (kbd "C-c C-c") #'macrostep-collapse-all)
     map)
   "Keymap for `macrostep-mode'.")
 
@@ -497,10 +488,8 @@ Use \\[macrostep-collapse-all] or collapse all visible expansions to
 quit and return to normal editing.
 
 \\{macrostep-keymap}"
-  :init-value nil
   :lighter " Macro-Stepper"
-  :keymap macrostep-keymap
-  :group macrostep
+  :group 'macrostep
   (if macrostep-mode
       (progn
         ;; Disable recording of undo information
@@ -510,7 +499,7 @@ quit and return to normal editing.
         (setq macrostep-saved-read-only buffer-read-only
               buffer-read-only t)
         ;; Set up post-command hook to bail out on leaving read-only
-        (add-hook 'post-command-hook 'macrostep-command-hook nil t)
+        (add-hook 'post-command-hook #'macrostep-command-hook nil t)
         (message
          (substitute-command-keys
           "\\<macrostep-keymap>Entering macro stepper mode. Use \\[macrostep-expand] to expand, \\[macrostep-collapse] to collapse, \\[macrostep-collapse-all] to exit.")))
@@ -526,7 +515,7 @@ quit and return to normal editing.
             buffer-read-only macrostep-saved-read-only
             macrostep-saved-undo-list nil)
       ;; Remove our post-command hook
-      (remove-hook 'post-command-hook 'macrostep-command-hook t))))
+      (remove-hook 'post-command-hook #'macrostep-command-hook t))))
 
 ;; Post-command hook: bail out of macrostep-mode if the user types C-x
 ;; C-q to make the buffer writable again.
@@ -541,7 +530,7 @@ quit and return to normal editing.
   "Expand the macro form following point by one step.
 
 Enters `macrostep-mode' if it is not already active, making the
-buffer temporarily read-only. If macrostep-mode is active and the
+buffer temporarily read-only.  If `macrostep-mode' is active and the
 form following point is not a macro form, search forward in the
 buffer and expand the next macro form found, if any.
 
@@ -651,7 +640,7 @@ If no more macro expansions are visible after this, exit
 (defun macrostep-next-macro ()
   "Move point forward to the next macro form in macro-expanded text."
   (interactive)
-  (let* ((start 
+  (let* ((start
 	 (if (get-text-property (point) 'macrostep-macro-start)
 	     (1+ (point))
 	   (point)))
@@ -690,7 +679,7 @@ If no more macro expansions are visible after this, exit
   "Collapse a macro-expansion overlay and restore the unexpanded source text.
 
 As a minor optimization, does not restore the original source
-text if NO-RESTORE-P is non-nil. This is safe to do when
+text if NO-RESTORE-P is non-nil.  This is safe to do when
 collapsing all the sub-expansions of an outer overlay, since the
 outer overlay will restore the original source itself.
 
@@ -757,7 +746,7 @@ Returns a cons of buffer positions, (START . END)."
              (error "Text at point is not a macro form"))))))
     (cons (point) (scan-sexps (point) 1))))
 
-(defun macrostep-sexp-at-point (&rest ignore)
+(defun macrostep-sexp-at-point (&rest _ignore)
   "Return the sexp near point for purposes of macro-stepper expansion.
 
 If the sexp near point is part of a macro expansion, returns the

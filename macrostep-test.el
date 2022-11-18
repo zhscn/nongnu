@@ -1,4 +1,4 @@
-;;; macrostep-test.el --- tests for macrostep.el
+;;; macrostep-test.el --- tests for macrostep.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2014-2015 Jon Oddie <j.j.oddie@gmail.com>
 
@@ -99,9 +99,9 @@
         (macrostep-goto "(first ")
         (let ((original-text (buffer-string)))
           (dotimes (i 10)
-            (dotimes (j i)
+            (dotimes (_ i)
               (macrostep-expand))
-            (dotimes (j i)
+            (dotimes (_ i)
               (macrostep-collapse))
             (should (null macrostep-overlays))
             (should (string= (buffer-string)
