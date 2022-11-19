@@ -327,6 +327,12 @@ PRs, issues, feature requests, and general feedback are very welcome!
 3. Run the tests and ensure that your code doesn't break any of them.
 4. Create a pull request referencing the issue from step 1.
 
+** Supporting mastodon.el
+
+If you'd like to support continued development of =mastodon.el=, I accept donations via paypal at martianhiatus [ at ] riseup [ dot ] net. If you would prefer a different payment method, write to me at that address and I can provide IBAN or other details.
+
+I don't have a tech worker's income, so even a small tip would help out.
+
 ** Contributors:
 
 =mastodon.el= is the work of a number of people.
