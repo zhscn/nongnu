@@ -273,13 +273,17 @@ of the toot responded to."
   "Display NOTIFICATIONS in buffer.
 Optionally only print notifications of type TYPE, a string."
   (interactive)
-  (message "Loading your notifications...")
-  (mastodon-tl--init-sync
-   (or buffer-name "notifications")
-   "notifications"
-   'mastodon-notifications--timeline
-   type)
-  (use-local-map mastodon-notifications--map))
+  (let ((buffer "*mastodon-notifications*"))
+    (if (get-buffer buffer)
+        (progn (switch-to-buffer buffer)
+               (mastodon-tl--update))
+      (message "Loading your notifications...")
+      (mastodon-tl--init-sync
+       (or buffer-name "notifications")
+       "notifications"
+       'mastodon-notifications--timeline
+       type)
+      (use-local-map mastodon-notifications--map))))
 
 (defun mastodon-notifications--get-mentions ()
   "Display mention notifications in buffer."
