@@ -1445,7 +1445,7 @@ If ID is provided, use that list."
   (interactive)
   (let* ((list-names (unless id (mastodon-tl--get-lists-names)))
          (name-old (if id
-                       (word-at-point :no-properties)
+                       (get-text-property (point) 'list-id)
                      (completing-read "Edit list: "
                                       list-names)))
          (id (or id (mastodon-tl--get-list-id name-old)))
@@ -1557,17 +1557,20 @@ If ID is provided, delete that list."
          (accounts (mastodon-tl--accounts-in-list id)))
     (insert
      (propertize list-name
-                 'list t
-                 'list-name list-name
-                 'list-id id
-                 'keymap mastodon-tl--list-name-keymap
                  'byline t ; so we nav here
                  'toot-id "0" ; so we nav here
                  'help-echo "RET: view list timeline, d: delete this list, \
 a: add account to this list, r: remove account from this list"
                  'face 'link) ; '((:underline t :inherit success)))
-     "\n\n")
-    (mastodon-search--insert-users-propertized accounts)))
+     "\n\n"
+     (propertize
+      (mapconcat #'mastodon-search--propertize-user accounts
+                 " ")
+      ;; (mastodon-search--insert-users-propertized accounts)
+      'list t
+      'keymap mastodon-tl--list-name-keymap
+      'list-name list-name
+      'list-id id))))
 
 (defun mastodon-tl--get-users-followings ()
   "Return the list of followers of the logged in account."
@@ -1586,7 +1589,7 @@ a: add account to this list, r: remove account from this list"
 If ID is provided, use that list."
   (interactive)
   (let* ((list-name (if id
-                        (word-at-point :no-properties)
+                        (get-text-property (point) 'list-id)
                       (completing-read "Add account to list: "
                                        (mastodon-tl--get-lists-names) nil t)))
          (list-id (or id (mastodon-tl--get-list-id list-name)))
@@ -1617,7 +1620,7 @@ If ID is provided, use that list."
 If ID is provided, use that list."
   (interactive)
   (let* ((list-name (if id
-                        (word-at-point :no-properties)
+                        (get-text-property (point) 'list-id)
                       (completing-read "Remove account from list: "
                                        (mastodon-tl--get-lists-names) nil t)))
          (list-id (or id (mastodon-tl--get-list-id list-name)))
