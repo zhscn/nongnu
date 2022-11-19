@@ -1497,9 +1497,8 @@ Prompt for name and replies policy."
                                         `(("title" . ,title)
                                           ("replies_policy" . ,replies-policy))
                                         nil)))
-    (mastodon-tl--list-action-triage
-     response
-     (message "list %s created!" title))))
+    (mastodon-tl--list-action-triage response
+                                     (message "list %s created!" title))))
 
 (defun mastodon-tl--delete-list-at-point ()
   "Delete list at point."
@@ -1520,9 +1519,8 @@ If ID is provided, delete that list."
          (url (mastodon-http--api (format "lists/%s" id))))
     (when (y-or-n-p (format "Delete list %s?" name))
       (let ((response (mastodon-http--delete url)))
-        (mastodon-tl--list-action-triage
-         response
-         (message "list %s deleted!" name))))))
+        (mastodon-tl--list-action-triage response
+                                         (message "list %s deleted!" name))))))
 
 (defun mastodon-tl--view-lists ()
   "Show the user's lists in a new buffer."
@@ -1567,7 +1565,7 @@ If ID is provided, delete that list."
                  'toot-id "0" ; so we nav here
                  'help-echo "RET: view list timeline, d: delete this list, \
 a: add account to this list, r: remove account from this list"
-                 'face '((:underline t :inherit success)))
+                 'face 'link) ; '((:underline t :inherit success)))
      "\n\n")
     (mastodon-search--insert-users-propertized accounts)))
 
