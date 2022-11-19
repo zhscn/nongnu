@@ -286,10 +286,35 @@ Optionally only print notifications of type TYPE, a string."
   (interactive)
   (mastodon-notifications--get "mention" "mentions"))
 
+(defun mastodon-notifications--get-favourites ()
+  "Display favourite notifications in buffer."
+  (interactive)
+  (mastodon-notifications--get "favourite" "favourites"))
+
+(defun mastodon-notifications--get-boosts ()
+  "Display boost notifications in buffer."
+  (interactive)
+  (mastodon-notifications--get "reblog" "boosts"))
+
+(defun mastodon-notifications--get-polls ()
+  "Display poll notifications in buffer."
+  (interactive)
+  (mastodon-notifications--get "poll" "polls"))
+
+(defun mastodon-notifications--get-statuses ()
+  "Display status notifications in buffer.
+Status notifications are created when you call
+`mastodon-tl--enable-notify-user-posts'."
+  (interactive)
+  (mastodon-notifications--get "status" "statuses"))
+
 (defun mastodon-notifications--filter-types-list (type)
-  "Return a list of notification types with TYPE (and \"status\") removed."
-  (let ((types (remove "status"
-                       (mapcar #'car mastodon-notifications--types-alist))))
+  "Return a list of notification types with TYPE removed."
+  (let ((types
+         ;; the docs don't mention "status" as an options
+         ;; but we do need to exclude it, so keep it in the list here
+         ;;(remove "status"
+         (mapcar #'car mastodon-notifications--types-alist)))
     (remove type types)))
 
 (defun mastodon-notifications--clear-all ()
