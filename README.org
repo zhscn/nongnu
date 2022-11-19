@@ -257,7 +257,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
 Works for federated, local, and home timelines and for notifications. It's a
 little touchy, one thing to avoid is trying to load a timeline more than once
 at a time. It can go off the rails a bit, but it's still pretty cool. The
-current maintainer of =mastodon.el= is unable to debug improve this feature.
+current maintainer of =mastodon.el= is unable to debug or improve this feature.
 
 To enable, it, add =(require 'mastodon-async)= to your =init.el=. Then you can
 view a timeline with one of the commands that begin with
