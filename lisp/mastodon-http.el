@@ -125,7 +125,8 @@ Unless UNAUTHENTICATED-P is non-nil."
              "&"))
 
 (defun mastodon-http--build-array-args-alist (param-str array)
-  "Return parameters alist using PARAM-STR and ARRAY param values."
+  "Return parameters alist using PARAM-STR and ARRAY param values.
+Used for API form data parameters that take an array."
   (cl-loop for x in array
            collect (cons param-str x)))
 
