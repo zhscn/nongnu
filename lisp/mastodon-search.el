@@ -167,28 +167,32 @@ user's profile note. This is also called by
 `mastodon-tl--get-follow-suggestions' and
 `mastodon-profile--insert-follow-requests'."
   (mapc (lambda (acct)
-          (let ((user (mastodon-search--get-user-info acct)))
-            (insert
-             (propertize
-              (concat (propertize (car user)
-                                  'face 'mastodon-display-name-face
-                                  'byline t
-                                  'toot-id "0")
-                      " : \n : "
-                      (propertize (concat "@" (cadr user))
-                                  'face 'mastodon-handle-face
-                                  'mouse-face 'highlight
-		                          'mastodon-tab-stop 'user-handle
-		                          'keymap mastodon-tl--link-keymap
-                                  'mastodon-handle (concat "@" (cadr user))
-		                          'help-echo (concat "Browse user profile of @" (cadr user)))
-                      " : \n"
-                      (if note
-                          (mastodon-tl--render-text (cadddr user) nil)
-                        "")
-                      "\n")
-              'toot-json acct)))) ; so named for compat w other processing functions
+          (insert (mastodon-search--propertize-user acct note)))
         json))
+
+(defun mastodon-search--propertize-user (acct &optional note)
+  "Propertize display string for ACCT, optionally including profile
+NOTE."
+  (let ((user (mastodon-search--get-user-info acct)))
+    (propertize
+     (concat (propertize (car user)
+                         'face 'mastodon-display-name-face
+                         'byline t
+                         'toot-id "0")
+             " : \n : "
+             (propertize (concat "@" (cadr user))
+                         'face 'mastodon-handle-face
+                         'mouse-face 'highlight
+		         'mastodon-tab-stop 'user-handle
+		         'keymap mastodon-tl--link-keymap
+                         'mastodon-handle (concat "@" (cadr user))
+		         'help-echo (concat "Browse user profile of @" (cadr user)))
+             " : \n"
+             (if note
+                 (mastodon-tl--render-text (cadddr user) nil)
+               "")
+             "\n")
+     'toot-json acct))) ; so named for compat w other processing functions
 
 (defun mastodon-search--print-tags-list (tags)
   "Insert a propertized list of TAGS."
