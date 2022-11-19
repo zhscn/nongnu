@@ -63,6 +63,7 @@
 ;; make notifications--get available via M-x and outside our keymap:
 (autoload 'mastodon-notifications--get "mastodon-notifications"
   "Display NOTIFICATIONS in buffer." t) ; interactive
+(autoload 'mastodon-search--propertize-user "mastodon-search")
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 (autoload 'mastodon-search--get-user-info "mastodon-search")
 (autoload 'mastodon-http--delete "mastodon-http")
@@ -2130,6 +2131,45 @@ by `mastodon-tl--follow-user' to enable or disable notifications."
                                     (message "User %s (@%s) %sd!" name user-handle action))
                                    ((eq notify nil)
                                     (message "User %s (@%s) %sed!" name user-handle action)))))))
+
+;; FOLLOW TAGS
+
+(defun mastodon-tl--get-tag-json (tag)
+  "Return JSON data about TAG."
+  (let ((url (mastodon-http--api (format "tags/%s" tag))))
+    (mastodon-http--get-json url)))
+
+(defun mastodon-tl--follow-tag (&optional tag)
+  "Prompt for a tag and follow it.
+If TAG provided, follow it."
+  (interactive)
+  (let* ((tag (or tag (read-string "Tag to follow: ")))
+         (url (mastodon-http--api (format "tags/%s/follow" tag)))
+         (response (mastodon-http--post url nil nil)))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (message "tag #%s followed!" tag)))))
+
+(defun mastodon-tl--followed-tags ()
+  "Return JSON of tags followed."
+  (let ((url (mastodon-http--api (format "followed_tags"))))
+    (mastodon-http--get-json url)))
+
+(defun mastodon-tl--unfollow-tag (&optional tag)
+  "Prompt for a followed tag, and unfollow it.
+If TAG if provided, unfollow it."
+  (interactive)
+  (let* ((followed-tags-json (unless tag (mastodon-tl--followed-tags)))
+         (tags (unless tag (mapcar (lambda (x)
+                                     (alist-get 'name x))
+                                   followed-tags-json)))
+         (tag (or tag (completing-read "Unfollow tag: "
+                                       tags)))
+         (url (mastodon-http--api (format "tags/%s/unfollow" tag)))
+         (response (mastodon-http--post url nil nil)))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (message "tag #%s unfollowed!" tag)))))
 
 ;; TODO: add this to new posts in some cases, e.g. in thread view.
 (defun mastodon-tl--reload-timeline-or-profile ()
