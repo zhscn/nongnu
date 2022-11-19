@@ -1421,8 +1421,10 @@ ID is that of the toot to view."
 If ID is provided, use that list."
   (interactive)
   (let* ((list-names (unless id (mastodon-tl--get-lists-names)))
-         (name-old (unless id (completing-read "Edit list: "
-                                               list-names)))
+         (name-old (if id
+                       (word-at-point :no-properties)
+                     (completing-read "Edit list: "
+                                      list-names)))
          (id (or id (mastodon-tl--get-list-id name-old)))
          (name-choice (read-string "List name: " name-old))
          (replies-policy (completing-read "Replies policy: " ; give this a proper name
@@ -1437,7 +1439,10 @@ If ID is provided, use that list."
                              (with-current-buffer response
                                (let* ((json (mastodon-http--process-json))
                                       (name-new (alist-get 'title json)))
-                                 (message "list %s edited to %s!" name-old name-new)))))))
+                                 (message "list %s edited to %s!" name-old name-new)))
+                             (when (equal (buffer-name (current-buffer))
+                                          "*mastodon-lists*")
+                               (mastodon-tl--view-lists))))))
 
 (defun mastodon-tl--view-timeline-list-at-point ()
   "View timeline of list at point."
@@ -1471,6 +1476,9 @@ Prompt for name and replies policy."
                                         nil)))
     (mastodon-http--triage response
                            (lambda ()
+                             (when (equal (buffer-name (current-buffer))
+                                          "*mastodon-lists*")
+                               (mastodon-tl--view-lists))
                              (message "list %s created!" title)))))
 
 (defun mastodon-tl--delete-list-at-point ()
@@ -1494,6 +1502,9 @@ If ID is provided, delete that list."
       (let ((response (mastodon-http--delete url)))
         (mastodon-http--triage response
                                (lambda ()
+                                 (when (equal (buffer-name (current-buffer))
+                                              "*mastodon-lists*")
+                                   (mastodon-tl--view-lists))
                                  (message "list %s deleted!" name)))))))
 
 (defun mastodon-tl--view-lists ()
@@ -1508,6 +1519,7 @@ If ID is provided, delete that list."
   "Insert the user's lists from JSON."
   ;; TODO: for now we don't use the JSON, we get it ourself again
   (let* ((lists-names (mastodon-tl--get-lists-names)))
+    (erase-buffer)
     (insert (mastodon-tl--set-face
              (concat "\n ------------\n"
                      " YOUR LISTS\n"
@@ -1520,7 +1532,9 @@ If ID is provided, delete that list."
              'font-lock-comment-face))
     (mapc (lambda (x)
             (mastodon-tl--print-list-accounts x))
-          lists-names)))
+          lists-names)
+    (goto-char (point-min))))
+;; (mastodon-tl--goto-next-item))) ; causes another request!
 
 (defun mastodon-tl--print-list-accounts (list-name)
   "Insert the accounts in list named LIST-NAME."
@@ -1574,6 +1588,9 @@ If ID is provided, use that list."
                                         nil)))
     (mastodon-http--triage response
                            (lambda ()
+                             (when (equal (buffer-name (current-buffer))
+                                          "*mastodon-lists*")
+                               (mastodon-tl--view-lists))
                              (message "%s added to list %s!" account list-name)))))
 
 (defun mastodon-tl--remove-account-from-list-at-point ()
@@ -1586,7 +1603,8 @@ If ID is provided, use that list."
   "Prompt for a list, select an account and remove from list.
 If ID is provided, use that list."
   (interactive)
-  (let* ((list-name (unless id
+  (let* ((list-name (if id
+                        (word-at-point :no-properties)
                       (completing-read "Remove account from list: "
                                        (mastodon-tl--get-lists-names) nil t)))
          (list-id (or id (mastodon-tl--get-list-id list-name)))
