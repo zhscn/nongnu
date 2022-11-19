@@ -117,8 +117,7 @@ follow-requests view."
                          (mastodon-http--api "follow_requests")
                          (format "/%s/%s" id (if reject
                                                  "reject"
-                                               "authorize")))
-                        nil nil)))
+                                               "authorize"))))))
                   (mastodon-http--triage response
                                          (lambda ()
                                            (if f-reqs-view-p
@@ -326,8 +325,7 @@ Status notifications are created when you call
   (interactive)
   (when (y-or-n-p "Clear all notifications?")
     (let ((response
-           (mastodon-http--post (mastodon-http--api "notifications/clear")
-                                nil nil)))
+           (mastodon-http--post (mastodon-http--api "notifications/clear"))))
       (mastodon-http--triage
        response (lambda ()
                   (when mastodon-tl--buffer-spec
@@ -342,8 +340,7 @@ Status notifications are created when you call
                                      (mastodon-tl--property 'toot-json))))
          (response
           (mastodon-http--post (mastodon-http--api
-                                (format "notifications/%s/dismiss" id))
-                               nil nil)))
+                                (format "notifications/%s/dismiss" id)))))
     (mastodon-http--triage
      response (lambda ()
                 (when mastodon-tl--buffer-spec

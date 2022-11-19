@@ -130,8 +130,8 @@ Used for API form data parameters that take an array."
   (cl-loop for x in array
            collect (cons param-str x)))
 
-(defun mastodon-http--post (url args headers &optional unauthenticated-p)
-  "POST synchronously to URL with ARGS and HEADERS.
+(defun mastodon-http--post (url &optional args headers unauthenticated-p)
+  "POST synchronously to URL, optionally with ARGS and HEADERS.
 
 Authorization header is included by default unless UNAUTHENTICATED-P is non-nil."
   (mastodon-http--authorized-request

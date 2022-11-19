@@ -152,14 +152,14 @@ mention string."
           (toot mastodon-toot-test-base-toot)
           (id 61208))
       (with-mock
-        (mock (mastodon-tl--property 'base-toot-id) => id)
-        (mock (mastodon-http--api "statuses/61208/pin")
-        => "https://example.space/statuses/61208/pin")
-        (mock (mastodon-http--post "https://example.space/statuses/61208/pin" nil nil)
-              => pin-response)
-        (should (equal (mastodon-toot--action "pin" (lambda ()
-                                                      (message "Toot pinned!")))
-                       "Toot pinned!"))))))
+       (mock (mastodon-tl--property 'base-toot-id) => id)
+       (mock (mastodon-http--api "statuses/61208/pin")
+             => "https://example.space/statuses/61208/pin")
+       (mock (mastodon-http--post "https://example.space/statuses/61208/pin")
+             => pin-response)
+       (should (equal (mastodon-toot--action "pin" (lambda ()
+                                                     (message "Toot pinned!")))
+                      "Toot pinned!"))))))
 
 (ert-deftest mastodon-toot--pin-toot-fail ()
   (with-temp-buffer

@@ -268,7 +268,7 @@ boosting, or bookmarking toots."
                                           (mastodon-tl--as-string id)
                                           "/"
                                           action))))
-    (let ((response (mastodon-http--post url nil nil)))
+    (let ((response (mastodon-http--post url)))
       (mastodon-http--triage response callback))))
 
 (defun mastodon-toot--toggle-boost-or-favourite (type)
@@ -666,7 +666,7 @@ If media items have been attached and uploaded with
           ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
           (t
-           (let ((response (mastodon-http--post endpoint args nil)))
+           (let ((response (mastodon-http--post endpoint args)))
              (mastodon-http--triage response
                                     (lambda ()
                                       (mastodon-toot--kill)

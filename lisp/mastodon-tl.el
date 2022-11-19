@@ -1145,7 +1145,7 @@ this just means displaying toot client."
            ;; need to zero-index our option:
            (option-as-arg (number-to-string (1- (string-to-number (car option)))))
            (arg `(("choices[]" . ,option-as-arg)))
-           (response (mastodon-http--post url arg nil)))
+           (response (mastodon-http--post url arg)))
       (mastodon-http--triage response
                              (lambda ()
                                (message "You voted for option %s: %s!"
@@ -1604,8 +1604,7 @@ If ID is provided, use that list."
          (account-id (alist-get account handles nil nil 'equal))
          (url (mastodon-http--api (format "lists/%s/accounts" list-id)))
          (response (mastodon-http--post url
-                                        `(("account_ids[]" . ,account-id))
-                                        nil)))
+                                        `(("account_ids[]" . ,account-id)))))
     (mastodon-tl--list-action-triage
      response
      (message "%s added to list %s!" account list-name))))
@@ -1685,8 +1684,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
                     contexts)))
          (response (mastodon-http--post url (push
                                              `("phrase" . ,word)
-                                             contexts-processed)
-                                        nil)))
+                                             contexts-processed))))
     (mastodon-http--triage response
                            (lambda ()
                              (message "Filter created for %s!" word)
@@ -2117,7 +2115,7 @@ NOTIFY is only non-nil when called by `mastodon-tl--follow-user'."
   "Post ACTION on user NAME/USER-HANDLE to URL.
 NOTIFY is either \"true\" or \"false\", and used when we have been called
 by `mastodon-tl--follow-user' to enable or disable notifications."
-  (let ((response (mastodon-http--post url nil nil)))
+  (let ((response (mastodon-http--post url)))
     (mastodon-http--triage response
                            (lambda ()
                              (cond ((string-equal notify "true")
@@ -2145,7 +2143,7 @@ If TAG provided, follow it."
   (interactive)
   (let* ((tag (or tag (read-string "Tag to follow: ")))
          (url (mastodon-http--api (format "tags/%s/follow" tag)))
-         (response (mastodon-http--post url nil nil)))
+         (response (mastodon-http--post url)))
     (mastodon-http--triage response
                            (lambda ()
                              (message "tag #%s followed!" tag)))))
@@ -2166,7 +2164,7 @@ If TAG if provided, unfollow it."
          (tag (or tag (completing-read "Unfollow tag: "
                                        tags)))
          (url (mastodon-http--api (format "tags/%s/unfollow" tag)))
-         (response (mastodon-http--post url nil nil)))
+         (response (mastodon-http--post url)))
     (mastodon-http--triage response
                            (lambda ()
                              (message "tag #%s unfollowed!" tag)))))
