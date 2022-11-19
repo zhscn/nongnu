@@ -1639,22 +1639,20 @@ If ID is provided, use that list."
          (account (completing-read "Account to remove: "
                                    handles nil t))
          (account-id (alist-get account handles nil nil 'equal))
-         (url (mastodon-http--api (format "lists/%s/accounts" list-id)))
-         (response (mastodon-http--delete url
-                                          `(("account_ids[]" . ,account-id)))))
+         ;; letting --delete handle the params doesn't work
+         ;; so we do it here for now:
+         (base-url (mastodon-http--api (format "lists/%s/accounts" list-id)))
+         (args (mastodon-http--build-array-args-alist "account_ids[]" `(,account-id)))
+         (query-str (mastodon-http--build-query-string args))
+         (url (concat base-url "?" query-str))
+         (response (mastodon-http--delete url)))
     (mastodon-http--triage response
                            (lambda ()
                              (message "%s removed from list %s!" account list-name)))))
 
-(defun mastodon-tl--accounts-in-list (&optional list-id)
-  "Prompt for a list and return the JSON of the accounts in it.
-Use LIST-ID rather than prompting if given."
-  (interactive)
-  (let* ((list-name (unless list-id
-                      (completing-read "View accounts in list: "
-                                       (mastodon-tl--get-lists-names) nil t)))
-         (list-id (or list-id (mastodon-tl--get-list-id list-name)))
-         (url (mastodon-http--api (format "lists/%s/accounts" list-id))))
+(defun mastodon-tl--accounts-in-list (list-id)
+  "Return the JSON of the accounts in list with LIST-ID."
+  (let* ((url (mastodon-http--api (format "lists/%s/accounts" list-id))))
     (mastodon-http--get-json url)))
 
 ;;; FILTERS
