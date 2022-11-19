@@ -124,6 +124,11 @@ Unless UNAUTHENTICATED-P is non-nil."
              args
              "&"))
 
+(defun mastodon-http--build-array-args-alist (param-str array)
+  "Return parameters alist using PARAM-STR and ARRAY param values."
+  (cl-loop for x in array
+           collect (cons param-str x)))
+
 (defun mastodon-http--post (url args headers &optional unauthenticated-p)
   "POST synchronously to URL with ARGS and HEADERS.
 

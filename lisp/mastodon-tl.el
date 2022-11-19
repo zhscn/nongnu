@@ -73,6 +73,10 @@
 (autoload 'mastodon-auth--get-account-id "mastodon-auth")
 (autoload 'mastodon-http--put "mastodon-http")
 (autoload 'mastodon-http--process-json "mastodon-http")
+(autoload 'mastodon-http--build-array-args-alist "mastodon-http")
+(autoload 'mastodon-http--build-query-string "mastodon-http")
+(autoload 'mastodon-notifications--filter-types-list "mastodon-notifications")
+
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
 (defvar mastodon-instance-url)
@@ -372,17 +376,29 @@ Used on initializing a timeline or thread."
          (t2 (replace-regexp-in-string "<\/?span>" "" t1)))
     (replace-regexp-in-string "<span class=\"h-card\">" "" t2)))
 
-(defun mastodon-tl--byline-author (toot)
-  "Propertize author of TOOT."
+(defun mastodon-tl--byline-author (toot &optional avatar)
+  "Propertize author of TOOT.
+With arg AVATAR, include the account's avatar image."
   (let* ((account (alist-get 'account toot))
          (handle (alist-get 'acct account))
          (name (if (not (string-empty-p (alist-get 'display_name account)))
                    (alist-get 'display_name account)
                  (alist-get 'username account)))
-         (profile-url (alist-get 'url account)))
+         (profile-url (alist-get 'url account))
+         (avatar-url (alist-get 'avatar account)))
+    ;; TODO: Once we have a view for a user (e.g. their posts
+    ;; timeline) make this a tab-stop and attach an action
     (concat
-     ;; avatar insertion moved up to `mastodon-tl--byline' in order to be
-     ;; outside of text prop 'byline t.
+     ;; avatar insertion moved up to `mastodon-tl--byline' by default in order
+     ;; to be outside of text prop 'byline t. arg avatar is used by
+     ;; `mastodon-profile--add-author-bylines'
+     (when (and avatar
+                mastodon-tl--show-avatars
+                mastodon-tl--display-media-p
+                (if (version< emacs-version "27.1")
+                    (image-type-available-p 'imagemagick)
+                  (image-transforms-p)))
+       (mastodon-media--get-avatar-rendering avatar-url))
      (propertize name
                  'face 'mastodon-display-name-face
                  ;; enable playing of videos when point is on byline:
@@ -1023,7 +1039,8 @@ this just means displaying toot client."
          (expiry (mastodon-tl--field 'expires_at poll))
          (expired-p (if (eq (mastodon-tl--field 'expired poll) :json-false) nil t))
          (multi (mastodon-tl--field 'multiple poll))
-         (vote-count (mastodon-tl--field 'voters_count poll))
+         (voters-count (mastodon-tl--field 'voters_count poll))
+         (vote-count (mastodon-tl--field 'votes_count poll))
          (options (mastodon-tl--field 'options poll))
          (option-titles (mapcar (lambda (x)
                                   (alist-get 'title x))
@@ -1052,10 +1069,16 @@ this just means displaying toot client."
                        options
                        "\n")
             "\n"
-            (propertize (if (= vote-count 1)
-                            (format "%s person | " vote-count)
-                          (format "%s people | " vote-count))
-                        'face 'font-lock-comment-face)
+            (propertize
+             (cond (voters-count ; sometimes it is nil
+                    (if (= voters-count 1)
+                        (format "%s person | " voters-count)
+                      (format "%s people | " voters-count)))
+                   (vote-count
+                    (format "%s votes | " vote-count))
+                   (t
+                    ""))
+             'face 'font-lock-comment-face)
             (let ((str (if expired-p
                            "Poll expired."
                          (mastodon-tl--format-poll-expiry expiry))))
@@ -1762,23 +1785,23 @@ RESPONSE is the JSON returned by the server."
 
 ;;;; INSTANCES
 
-(defun mastodon-tl-view-own-instance (&optional brief)
+(defun mastodon-tl--view-own-instance (&optional brief)
   "View details of your own instance.
 BRIEF means show fewer details."
   (interactive)
-  (mastodon-tl-view-instance-description :user brief))
+  (mastodon-tl--view-instance-description :user brief))
 
-(defun mastodon-tl-view-own-instance-brief ()
+(defun mastodon-tl--view-own-instance-brief ()
   "View brief details of your own instance."
   (interactive)
-  (mastodon-tl-view-instance-description :user :brief))
+  (mastodon-tl--view-instance-description :user :brief))
 
-(defun mastodon-tl-view-instance-description-brief ()
+(defun mastodon-tl--view-instance-description-brief ()
   "View brief details of the instance the current post's author is on."
   (interactive)
-  (mastodon-tl-view-instance-description nil :brief))
+  (mastodon-tl--view-instance-description nil :brief))
 
-(defun mastodon-tl-view-instance-description (&optional user brief instance)
+(defun mastodon-tl--view-instance-description (&optional user brief instance)
   "View the details of the instance the current post's author is on.
 USER means to show the instance details for the logged in user.
 BRIEF means to show fewer details.
@@ -2327,10 +2350,11 @@ from the start if it is nil."
          (update-function (mastodon-tl--get-update-function))
          (id (mastodon-tl--newest-id))
          (json (mastodon-tl--updated-json endpoint id)))
-    (when json
-      (let ((inhibit-read-only t))
-        (goto-char (or mastodon-tl--update-point (point-min)))
-        (funcall update-function json)))))
+    (if json
+        (let ((inhibit-read-only t))
+          (goto-char (or mastodon-tl--update-point (point-min)))
+          (funcall update-function json))
+      (message "nothing to update"))))
 
 (defun mastodon-tl--get-link-header-from-response (headers)
   "Get http Link header from list of http HEADERS."
@@ -2394,12 +2418,22 @@ headers."
         ;; for everything save profiles
         (mastodon-tl--goto-first-item)))))
 
-(defun mastodon-tl--init-sync (buffer-name endpoint update-function)
+(defun mastodon-tl--init-sync (buffer-name endpoint update-function &optional note-type)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 
 UPDATE-FUNCTION is used to receive more toots.
-Runs synchronously."
-  (let* ((url (mastodon-http--api endpoint))
+Runs synchronously.
+Optional arg NOTE-TYPE means only get that type of note."
+  (let* ((exclude-types (when note-type
+                          (mastodon-notifications--filter-types-list note-type)))
+         (args (when note-type (mastodon-http--build-array-args-alist
+                                "exclude_types[]" exclude-types)))
+         (query-string (when note-type
+                         (mastodon-http--build-query-string args)))
+         ;; add note-type exclusions to endpoint so it works in `mastodon-tl--buffer-spec'
+         ;; that way `mastodon-tl--more' works seamlessly too:
+         (endpoint (if note-type (concat endpoint "?" query-string) endpoint))
+         (url (mastodon-http--api endpoint))
          (buffer (concat "*mastodon-" buffer-name "*"))
          (json (mastodon-http--get-json url)))
     (with-output-to-temp-buffer buffer

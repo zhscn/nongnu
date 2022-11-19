@@ -91,7 +91,7 @@
 (when (require 'lingva nil :no-error)
   (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
 (autoload 'mastodon-search--trending-tags "mastodon-search")
-(autoload 'mastodon-profile-fetch-server-account-settings "mastodon-profile")
+(autoload 'mastodon-profile--fetch-server-account-settings "mastodon-profile")
 
 (defgroup mastodon nil
   "Interface with Mastodon."
@@ -193,7 +193,11 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "K") #'mastodon-profile--view-bookmarks)
     (define-key map (kbd "I") #'mastodon-tl--view-filters)
     (define-key map (kbd "G") #'mastodon-tl--get-follow-suggestions)
+<<<<<<< HEAD
     (define-key map (kbd "X") #'mastodon-tl--view-lists)
+=======
+    (define-key map (kbd "@") #'mastodon-notifications--get-mentions)
+>>>>>>> develop
     (when (require 'lingva nil :no-error)
       (define-key map (kbd "s") #'mastodon-toot--translate-toot-text))
     map)
@@ -324,7 +328,7 @@ not, just browse the URL in the normal fashion."
                                     (mastodon-toot--enable-custom-emoji)))))
 
 ;;;###autoload
-(add-hook 'mastodon-mode-hook #'mastodon-profile-fetch-server-account-settings)
+(add-hook 'mastodon-mode-hook #'mastodon-profile--fetch-server-account-settings)
 
 (define-derived-mode mastodon-mode special-mode "Mastodon"
   "Major mode for Mastodon, the federated microblogging network."

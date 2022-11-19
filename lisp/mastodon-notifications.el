@@ -52,25 +52,26 @@
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
+(defvar mastodon-mode-map)
 
 (defvar mastodon-notifications--types-alist
-  '(("mention" . mastodon-notifications--mention)
-    ("follow" . mastodon-notifications--follow)
+  '(("follow" . mastodon-notifications--follow)
     ("favourite" . mastodon-notifications--favourite)
     ("reblog" . mastodon-notifications--reblog)
+    ("mention" . mastodon-notifications--mention)
+    ("poll" . mastodon-notifications--poll)
     ("follow_request" . mastodon-notifications--follow-request)
-    ("status" . mastodon-notifications--status)
-    ("poll" . mastodon-notifications--poll))
+    ("status" . mastodon-notifications--status))
   "Alist of notification types and their corresponding function.")
 
 (defvar mastodon-notifications--response-alist
-  '(("Mentioned" . "you")
-    ("Followed" . "you")
+  '(("Followed" . "you")
     ("Favourited" . "your status from")
     ("Boosted" . "your status from")
+    ("Mentioned" . "you")
+    ("Posted a poll" . "that has now ended")
     ("Requested to follow" . "you")
-    ("Posted" . "a post")
-    ("Posted a poll" . "that has now ended"))
+    ("Posted" . "a post"))
   "Alist of subjects for notification types.")
 
 (defvar mastodon-notifications--map
@@ -78,6 +79,7 @@
          (copy-keymap mastodon-mode-map)))
     (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
     (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
+    (define-key map (kbd "c") #'mastodon-notifications--clear-current)
     (define-key map (kbd "g") #'mastodon-notifications--get)
     (keymap-canonicalize map))
   "Keymap for viewing notifications.")
@@ -139,7 +141,7 @@ Can be called in notifications view or in follow-requests view."
   "Reject a follow request.
 Can be called in notifications view or in follow-requests view."
   (interactive)
-  (mastodon-notifications--follow-request-process t))
+  (mastodon-notifications--follow-request-process :reject))
 
 (defun mastodon-notifications--mention (note)
   "Format for a `mention' NOTE."
@@ -267,15 +269,28 @@ of the toot responded to."
     (mapc #'mastodon-notifications--by-type json)
     (goto-char (point-min))))
 
-(defun mastodon-notifications--get ()
-  "Display NOTIFICATIONS in buffer."
+(defun mastodon-notifications--get (&optional type buffer-name)
+  "Display NOTIFICATIONS in buffer.
+Optionally only print notifications of type TYPE, a string."
   (interactive)
   (message "Loading your notifications...")
   (mastodon-tl--init-sync
+   (or buffer-name "notifications")
    "notifications"
-   "notifications"
-   'mastodon-notifications--timeline)
+   'mastodon-notifications--timeline
+   type)
   (use-local-map mastodon-notifications--map))
+
+(defun mastodon-notifications--get-mentions ()
+  "Display mention notifications in buffer."
+  (interactive)
+  (mastodon-notifications--get "mention" "mentions"))
+
+(defun mastodon-notifications--filter-types-list (type)
+  "Return a list of notification types with TYPE (and \"status\") removed."
+  (let ((types (remove "status"
+                       (mapcar #'car mastodon-notifications--types-alist))))
+    (remove type types)))
 
 (defun mastodon-notifications--clear-all ()
   "Clear all notifications."
