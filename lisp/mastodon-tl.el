@@ -1497,12 +1497,9 @@ Prompt for name and replies policy."
                                         `(("title" . ,title)
                                           ("replies_policy" . ,replies-policy))
                                         nil)))
-    (mastodon-http--triage response
-                           (lambda ()
-                             (when (equal (buffer-name (current-buffer))
-                                          "*mastodon-lists*")
-                               (mastodon-tl--view-lists))
-                             (message "list %s created!" title)))))
+    (mastodon-tl--list-action-triage
+     response
+     (message "list %s created!" title))))
 
 (defun mastodon-tl--delete-list-at-point ()
   "Delete list at point."
@@ -1523,12 +1520,9 @@ If ID is provided, delete that list."
          (url (mastodon-http--api (format "lists/%s" id))))
     (when (y-or-n-p (format "Delete list %s?" name))
       (let ((response (mastodon-http--delete url)))
-        (mastodon-http--triage response
-                               (lambda ()
-                                 (when (equal (buffer-name (current-buffer))
-                                              "*mastodon-lists*")
-                                   (mastodon-tl--view-lists))
-                                 (message "list %s deleted!" name)))))))
+        (mastodon-tl--list-action-triage
+         response
+         (message "list %s deleted!" name))))))
 
 (defun mastodon-tl--view-lists ()
   "Show the user's lists in a new buffer."
@@ -1593,7 +1587,8 @@ a: add account to this list, r: remove account from this list"
   "Prompt for a list and for an account, add account to list.
 If ID is provided, use that list."
   (interactive)
-  (let* ((list-name (unless id
+  (let* ((list-name (if id
+                        (word-at-point :no-properties)
                       (completing-read "Add account to list: "
                                        (mastodon-tl--get-lists-names) nil t)))
          (list-id (or id (mastodon-tl--get-list-id list-name)))
@@ -1609,12 +1604,9 @@ If ID is provided, use that list."
          (response (mastodon-http--post url
                                         `(("account_ids[]" . ,account-id))
                                         nil)))
-    (mastodon-http--triage response
-                           (lambda ()
-                             (when (equal (buffer-name (current-buffer))
-                                          "*mastodon-lists*")
-                               (mastodon-tl--view-lists))
-                             (message "%s added to list %s!" account list-name)))))
+    (mastodon-tl--list-action-triage
+     response
+     (message "%s added to list %s!" account list-name))))
 
 (defun mastodon-tl--remove-account-from-list-at-point ()
   "Prompt for account and remove from list at point."
@@ -1646,9 +1638,18 @@ If ID is provided, use that list."
          (query-str (mastodon-http--build-query-string args))
          (url (concat base-url "?" query-str))
          (response (mastodon-http--delete url)))
-    (mastodon-http--triage response
-                           (lambda ()
-                             (message "%s removed from list %s!" account list-name)))))
+    (mastodon-tl--list-action-triage
+     response
+     (message "%s removed from list %s!" account list-name))))
+
+(defun mastodon-tl--list-action-triage (response message)
+  "Call `mastodon-http--triage' on RESPONSE and display MESSAGE."
+  (mastodon-http--triage response
+                         (lambda ()
+                           (when (equal (buffer-name (current-buffer))
+                                        "*mastodon-lists*")
+                             (mastodon-tl--view-lists))
+                           message)))
 
 (defun mastodon-tl--accounts-in-list (list-id)
   "Return the JSON of the accounts in list with LIST-ID."
