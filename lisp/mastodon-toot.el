@@ -157,7 +157,7 @@ Valid values are \"direct\", \"private\" (followers-only),
 
 This is determined by the account setting on the server. To
 change the setting on the server, see
-`mastodon-toot-set-default-visibility'.")
+`mastodon-toot--set-default-visibility'.")
 
 (defvar-local mastodon-toot--media-attachments nil
   "A list of the media attachments of the toot being composed.")
@@ -203,7 +203,7 @@ send.")
     map)
   "Keymap for `mastodon-toot'.")
 
-(defun mastodon-toot-set-default-visibility ()
+(defun mastodon-toot--set-default-visibility ()
   "Set the default visibility for toots on the server."
   (interactive)
   (let ((vis (completing-read "Set default visibility to:"
@@ -460,7 +460,7 @@ NO-REDRAFT means delete toot only."
                                          toot-visibility
                                          toot-cw)))))))))
 
-(defun mastodon-toot-set-cw (&optional cw)
+(defun mastodon-toot--set-cw (&optional cw)
   "Set content warning to CW if it is non-nil."
   (unless (string-empty-p cw)
     (setq mastodon-toot--content-warning t)
@@ -479,7 +479,7 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
       (when reply-id
         (setq mastodon-toot--reply-to-id reply-id))
       (setq mastodon-toot--visibility toot-visibility)
-      (mastodon-toot-set-cw toot-cw)
+      (mastodon-toot--set-cw toot-cw)
       (mastodon-toot--update-status-fields))))
 
 (defun mastodon-toot--kill (&optional cancel)
@@ -499,7 +499,7 @@ CANCEL means the toot was not sent, so we save the toot text as a draft."
   "Kill new-toot buffer/window. Does not POST content to Mastodon.
 If toot is not empty, prompt to save text as a draft."
   (interactive)
-  (if (mastodon-toot-empty-p)
+  (if (mastodon-toot--empty-p)
       (mastodon-toot--kill)
     (when (y-or-n-p "Save draft toot?")
       (mastodon-toot--save-draft))
@@ -515,7 +515,7 @@ Pushes `mastodon-toot-current-toot-text' to
                 mastodon-toot-draft-toots-list :test 'equal)
     (message "Draft saved!")))
 
-(defun mastodon-toot-empty-p (&optional text-only)
+(defun mastodon-toot--empty-p (&optional text-only)
   "Return t if toot has no text, attachments, or polls.
 TEXT-ONLY means don't check for attachments or polls."
   (and (if text-only
@@ -631,7 +631,7 @@ If media items have been attached and uploaded with
   (interactive)
   (let* ((toot (mastodon-toot--remove-docs))
          (endpoint (mastodon-http--api "statuses"))
-         (spoiler (when (and (not (mastodon-toot-empty-p))
+         (spoiler (when (and (not (mastodon-toot--empty-p))
                              mastodon-toot--content-warning)
                     (read-string "Warning: " mastodon-toot--content-warning-from-reply-or-redraft)))
          (args-no-media `(("status" . ,toot)
@@ -663,7 +663,7 @@ If media items have been attached and uploaded with
           ((and mastodon-toot--max-toot-chars
                 (> (length toot) mastodon-toot--max-toot-chars))
            (message "Looks like your toot is longer than that maximum allowed length."))
-          ((mastodon-toot-empty-p)
+          ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
           (t
            (let ((response (mastodon-http--post endpoint args nil)))
@@ -1160,7 +1160,7 @@ REPLY-JSON is the full JSON of the toot being replied to."
       (setq mastodon-toot--reply-to-id reply-to-id)
       (unless (equal mastodon-toot--visibility reply-visibility)
         (setq mastodon-toot--visibility reply-visibility))
-      (mastodon-toot-set-cw reply-cw))))
+      (mastodon-toot--set-cw reply-cw))))
 
 (defun mastodon-toot--update-status-fields (&rest _args)
   "Update the status fields in the header based on the current state."
@@ -1206,15 +1206,15 @@ Added to `after-change-functions' in new toot buffers."
     (unless (string-empty-p text)
       (setq mastodon-toot-current-toot-text text))))
 
-(defun mastodon-toot-open-draft-toot ()
+(defun mastodon-toot--open-draft-toot ()
   "Prompt for a draft and compose a toot with it."
   (interactive)
   (if mastodon-toot-draft-toots-list
       (let ((text (completing-read "Select draft toot: "
                                    mastodon-toot-draft-toots-list
                                    nil t)))
-        (if (mastodon-toot-compose-buffer-p)
-            (when (and (not (mastodon-toot-empty-p :text-only))
+        (if (mastodon-toot--compose-buffer-p)
+            (when (and (not (mastodon-toot--empty-p :text-only))
                        (y-or-n-p "Replace current text with draft?"))
               (cl-pushnew mastodon-toot-current-toot-text
                           mastodon-toot-draft-toots-list)
@@ -1226,11 +1226,11 @@ Added to `after-change-functions' in new toot buffers."
               ;; (delete-region (point) (point-max))
               (insert text))
           (mastodon-toot--compose-buffer nil nil nil text)))
-    (unless (mastodon-toot-compose-buffer-p)
+    (unless (mastodon-toot--compose-buffer-p)
       (mastodon-toot--compose-buffer))
     (message "No drafts available.")))
 
-(defun mastodon-toot-delete-draft-toot ()
+(defun mastodon-toot--delete-draft-toot ()
   "Prompt for a draft toot and delete it."
   (interactive)
   (if mastodon-toot-draft-toots-list
@@ -1243,7 +1243,7 @@ Added to `after-change-functions' in new toot buffers."
         (message "Draft deleted!"))
     (message "No drafts to delete.")))
 
-(defun mastodon-toot-delete-all-drafts ()
+(defun mastodon-toot--delete-all-drafts ()
   "Delete all drafts."
   (interactive)
   (setq mastodon-toot-draft-toots-list nil)
@@ -1252,7 +1252,7 @@ Added to `after-change-functions' in new toot buffers."
 (defun mastodon-toot--propertize-tags-and-handles (&rest _args)
   "Propertize tags and handles in toot compose buffer.
 Added to `after-change-functions'."
-  (when (mastodon-toot-compose-buffer-p)
+  (when (mastodon-toot--compose-buffer-p)
     (let ((header-region
            (mastodon-tl--find-property-range 'toot-post-header
                                              (point-min))))
@@ -1280,7 +1280,7 @@ Added to `after-change-functions'."
                                      (match-end 2)
                                      `(face ,face)))))
 
-(defun mastodon-toot-compose-buffer-p ()
+(defun mastodon-toot--compose-buffer-p ()
   "Return t if compose buffer is current."
   (equal (buffer-name (current-buffer)) "*new toot*"))
 

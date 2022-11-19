@@ -212,9 +212,9 @@ You can download and use your instance's custom emoji
 
 - Compose buffer text is saved as you type, kept in =mastodon-toot-current-toot-text=.
 - =mastodon-toot--save-draft=: save the current toot as a draft.
-- =mastodon-toot-open-draft-toot=: Open a compose buffer and insert one of your draft toots.
-- =mastodon-toot-delete-draft-toot=: Delete a draft toot.
-- =mastodon-toot-delete-all-drafts=: Delete all your drafts.
+- =mastodon-toot--open-draft-toot=: Open a compose buffer and insert one of your draft toots.
+- =mastodon-toot--delete-draft-toot=: Delete a draft toot.
+- =mastodon-toot--delete-all-drafts=: Delete all your drafts.
 
 *** Other commands and account settings:
 
