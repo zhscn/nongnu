@@ -2169,6 +2169,17 @@ If TAG if provided, unfollow it."
                            (lambda ()
                              (message "tag #%s unfollowed!" tag)))))
 
+(defun mastodon-tl--list-followed-tags ()
+  "List tags followed. If user choses one, display its JSON."
+  (interactive)
+  (let* ((followed-tags-json (mastodon-tl--followed-tags))
+         (tags (mapcar (lambda (x)
+                         (alist-get 'name x))
+                       followed-tags-json))
+         (tag (completing-read "Tag: " tags)))
+    (message (prin1-to-string
+              (mastodon-tl--get-tag-json tag)))))
+
 ;; TODO: add this to new posts in some cases, e.g. in thread view.
 (defun mastodon-tl--reload-timeline-or-profile ()
   "Reload the current timeline or profile page.
