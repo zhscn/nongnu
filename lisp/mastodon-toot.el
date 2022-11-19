@@ -1182,21 +1182,23 @@ REPLY-JSON is the full JSON of the toot being replied to."
 (defun mastodon-toot--update-status-fields (&rest _args)
   "Update the status fields in the header based on the current state."
   (ignore-errors  ;; called from after-change-functions so let's not leak errors
-    (let ((inhibit-read-only t)
-          (header-region (mastodon-tl--find-property-range 'toot-post-header
+    (let* ((inhibit-read-only t)
+           (header-region (mastodon-tl--find-property-range 'toot-post-header
+                                                            (point-min)))
+           (count-region (mastodon-tl--find-property-range 'toot-post-counter
                                                            (point-min)))
-          (count-region (mastodon-tl--find-property-range 'toot-post-counter
+           (visibility-region (mastodon-tl--find-property-range
+                               'toot-post-visibility (point-min)))
+           (nsfw-region (mastodon-tl--find-property-range 'toot-post-nsfw-flag
                                                           (point-min)))
-          (visibility-region (mastodon-tl--find-property-range
-                              'toot-post-visibility (point-min)))
-          (nsfw-region (mastodon-tl--find-property-range 'toot-post-nsfw-flag
-                                                         (point-min)))
-          (cw-region (mastodon-tl--find-property-range 'toot-post-cw-flag
-                                                       (point-min))))
+           (cw-region (mastodon-tl--find-property-range 'toot-post-cw-flag
+                                                        (point-min)))
+           (toot-string (buffer-substring-no-properties (cdr header-region)
+                                                        (point-max))))
       (add-text-properties (car count-region) (cdr count-region)
                            (list 'display
                                  (format "%s/%s characters"
-                                         (- (point-max) (cdr header-region))
+                                         (mastodon-toot--count-toot-chars toot-string)
                                          (number-to-string mastodon-toot--max-toot-chars))))
       (add-text-properties (car visibility-region) (cdr visibility-region)
                            (list 'display
@@ -1215,6 +1217,27 @@ REPLY-JSON is the full JSON of the toot being replied to."
       (add-text-properties (car cw-region) (cdr cw-region)
                            (list 'invisible (not mastodon-toot--content-warning)
                                  'face 'mastodon-cw-face)))))
+
+(defun mastodon-toot--count-toot-chars (toot-string)
+  "Count the characters in the current toot.
+URLs always = 23, and domain names of handles are not counted.
+This is how mastodon does it."
+  (with-temp-buffer
+    (switch-to-buffer (current-buffer))
+    (insert toot-string)
+    (goto-char (point-min))
+    ;; handle URLs
+    (while (search-forward-regexp "\\w+://[^ \n]*" nil t) ; URL
+      (replace-match "xxxxxxxxxxxxxxxxxxxxxxx")) ; 23 x's
+    ;; handle @handles
+    (goto-char (point-min))
+    (while (search-forward-regexp (concat "\\(?2:@[^ @\n]+\\)" ; a handle only
+                                          "\\(@[^ \n]+\\)?" ; with poss domain
+                                          "\\b")
+                                  nil t)
+      (replace-match (match-string 2))) ; replace with handle only
+    (length (buffer-substring (point-min) (point-max)))))
+
 
 (defun mastodon-toot--save-toot-text (&rest _args)
   "Save the current toot text in `mastodon-toot-current-toot-text'.
