@@ -138,6 +138,7 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 | =G=             | view follow suggestions                                               |
 | =V=             | view your favourited toots                                            |
 | =K=             | view bookmarked toots                                                 |
+| =X=             | view/edit/create/delete lists                                         |
 |---------------+-----------------------------------------------------------------------|
 |               | *Toot actions*                                                          |
 | =t=             | Compose a new toot                                                    |
@@ -157,6 +158,7 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 |               | Notifications view                                                    |
 | =a=, =j=          | accept/reject follow request                                          |
 | =c=             | clear notification at point                                           |
+|               | see =mastodon-notifications--get-*= functions for filtered views        |
 |---------------+-----------------------------------------------------------------------|
 |               | *Quitting*                                                              |
 | =q=             | Quit mastodon buffer, leave window open                               |
