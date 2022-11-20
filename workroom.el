@@ -107,6 +107,7 @@
 (defgroup workroom nil
   "Named rooms for work without irrelevant distracting buffers."
   :group 'convenience
+  :group 'tools
   :prefix "workroom-"
   :link '(url-link "https://codeberg.org/akib/emacs-workroom"))
 
