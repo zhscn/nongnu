@@ -418,7 +418,8 @@ Uses `lingva.el'."
 (defun mastodon-toot--pin-toot-toggle ()
   "Pin or unpin user's toot at point."
   (interactive)
-  (let* ((toot (mastodon-tl--property 'toot-json))
+  (let* ((toot (or (mastodon-tl--property 'base-toot) ;fave/boost notifs
+                   (mastodon-tl--property 'toot-json)))
          (pinnable-p (mastodon-toot--own-toot-p toot))
          (pinned-p (equal (alist-get 'pinned toot) t))
          (action (if pinned-p "unpin" "pin"))
@@ -443,7 +444,8 @@ Uses `lingva.el'."
   "Delete and redraft user's toot at point synchronously.
 NO-REDRAFT means delete toot only."
   (interactive)
-  (let* ((toot (mastodon-tl--property 'toot-json))
+  (let* ((toot (or (mastodon-tl--property 'base-toot) ;fave/boost notifs
+                   (mastodon-tl--property 'toot-json)))
          (id (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
          (url (mastodon-http--api (format "statuses/%s" id)))
          (toot-cw (alist-get 'spoiler_text toot))
