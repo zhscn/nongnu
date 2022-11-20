@@ -1913,15 +1913,23 @@ argument while setting as the buffer manager, PROJECT, the project."
      (cl-destructuring-bind (data buffers) args
        (let ((project (project-current
                        nil (plist-get data :project-root))))
-         (setf (workroom-buffer-manager-data room)
-               `( :project ,project
-                  :whitelist ,(cl-set-difference
-                               buffers (project-buffers project))
-                  :blacklist ,(cl-delete-if
-                               #'null
-                               (mapcar
-                                #'get-buffer
-                                (plist-get data :blacklist))))))))))
+         (if project
+             (setf (workroom-buffer-manager-data room)
+                   `( :project ,project
+                      :whitelist ,(cl-set-difference
+                                   buffers (project-buffers project))
+                      :blacklist ,(cl-delete-if
+                                   #'null
+                                   (mapcar
+                                    #'get-buffer
+                                    (plist-get data :blacklist)))))
+           ;; The project no longer exists, so hand over the buffers
+           ;; to the plain default manager.
+           (workroom-set-buffer-manager-function
+            room #'workroom--default-buffer-manager
+            'do-not-initialize)
+           (workroom--default-buffer-manager
+            room :load data buffers)))))))
 
 (defun workroom--project-name (project)
   "Return a name for project PROJECT."
