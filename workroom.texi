@@ -4,8 +4,8 @@
 @setfilename workroom.info
 @set UPDATED 14 November 2022
 @set UPDATED-MONTH November 2022
-@set EDITION 2.0.3
-@set VERSION 2.0.3
+@set EDITION 2.0.4
+@set VERSION 2.0.4
 @documentencoding UTF-8
 @codequotebacktick on
 @codequoteundirected on
