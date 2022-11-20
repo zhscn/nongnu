@@ -1097,8 +1097,16 @@ ROOM is should be workroom object, or a name of a workroom object."
   (let ((clone
          (workroom--make-room
           :name name
-          :view-list (mapcar #'workroom--copy-view
-                             (workroom-view-list room))
+          :view-list (mapcar
+                      (lambda (view)
+                        (workroom--make-view
+                         :name (workroom--view-name view)
+                         :window-config
+                         (workroom-view-window-configuration view)
+                         :window-config-writable
+                         (workroom--view-window-config-writable
+                          view)))
+                      (workroom-view-list room))
           :buffer-manager (workroom--room-buffer-manager room))))
     (funcall (workroom--room-buffer-manager room) clone :clone room)
     (push clone workroom--rooms)
@@ -1140,7 +1148,9 @@ ROOM is should be workroom object, or a name of a workroom object."
   (let ((clone
          (workroom--make-view
           :name name
-          :window-config (workroom-view-window-configuration view))))
+          :window-config (workroom-view-window-configuration view)
+          :window-config-writable
+          (workroom--view-window-config-writable view))))
     (setf (workroom--room-view-list room)
           (nconc (workroom--room-view-list room) `(,clone)))
     clone))
