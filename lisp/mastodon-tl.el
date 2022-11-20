@@ -108,14 +108,23 @@ width fonts when rendering HTML text"))
 
 ;; Various symbols using throughout timeline
 ;; Default comes from nerd-font (www.nerdfonts.com)
-(defcustom mastodon-tl-symbols '((reply     . ("" . "R"))
-                                 (boost     . ("" . "B"))
-                                 (favourite . ("" . "F"))
-                                 (bookmark  . ("" . "K"))
-                                 (media     . ("" . "M"))
-                                 (verified  . ("" . "V"))
-                                 (private   . ("" . "P"))
-                                 (direct    . ("" . "D")))
+(defcustom mastodon-tl-symbols
+  '(;; See https://icon-sets.iconify.design/octicon/comment-24/
+    (reply     . ("" . "R"))
+    ;; See https://icon-sets.iconify.design/octicon/reply-24/
+    (boost     . ("" . "B"))
+    ;; See https://icon-sets.iconify.design/octicon/star-fill-24/
+    (favourite . ("" . "F"))
+    ;; See https://icon-sets.iconify.design/octicon/bookmark-24/
+    (bookmark  . ("" . "K"))
+    ;; See https://icon-sets.iconify.design/octicon/file-media-24/
+    (media     . ("" . "M"))
+    ;; See https://icon-sets.iconify.design/octicon/verified-24/
+    (verified  . ("" . "V"))
+    ;; See https://icon-sets.iconify.design/octicon/person-fill-24/
+    (private   . ("" . "P"))
+    ;; See https://icon-sets.iconify.design/octicon/location-24/
+    (direct    . ("" . "D")))
   "Set of symbols (or strings) to be used in timeline. If a symbol does not look right (tofu), it means your font settings do not support it."
   :type '(alist :key-type symbol :value-type string)
   :group 'mastodon-tl)
@@ -603,7 +612,7 @@ this just means displaying toot client."
        (cond ((equal visibility "direct")
               (mastodon-tl--symbol 'direct))
              ((equal visibility "private")
-              (mastodon-tl--symbol 'private))
+              (mastodon-tl--symbol 'private)))
        (funcall action-byline toot)
        " "
        ;; TODO: Once we have a view for toot (responses etc.) make
