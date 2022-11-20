@@ -191,7 +191,7 @@ For the moment we just put all composed toots in here, as we want
 to also capture toots that are 'sent' but that don't successfully
 send.")
 
-(defvar mastodon-handle-regex
+(defvar mastodon-toot-handle-regex
   (concat
    ;; preceding space or bol [boundary doesn't work with @]
    "\\([\n\t ]\\|^\\)"
@@ -639,7 +639,8 @@ to `emojify-user-emojis', and the emoji data is updated."
   "POST contents of new-toot buffer to Mastodon instance and kill buffer.
 If media items have been attached and uploaded with
 `mastodon-toot--attach-media', they are attached to the toot.
-If `mastodon-toot--edit-toot-id' is non-nil, PUT contents to instance to edit a toot."
+If `mastodon-toot--edit-toot-id' is non-nil, PUT contents to
+instance to edit a toot."
   (interactive)
   (let* ((edit-p (if mastodon-toot--edit-toot-id t nil))
          (toot (mastodon-toot--remove-docs))
@@ -832,7 +833,7 @@ meta fields respectively."
          (if (string= str-prefix "@")
              (save-match-data
                (save-excursion
-                 (re-search-backward mastodon-handle-regex nil :no-error)
+                 (re-search-backward mastodon-toot-handle-regex nil :no-error)
                  (if (match-string-no-properties 2)
                      ;; match full handle inc. domain (see the regex for subexp 2)
                      (buffer-substring-no-properties (match-beginning 2) (match-end 2))
@@ -1269,7 +1270,7 @@ REPLY-JSON is the full JSON of the toot being replied to."
                                  'face 'mastodon-cw-face)))))
 
 (defun mastodon-toot--count-toot-chars (toot-string)
-  "Count the characters in the current toot.
+  "Count the characters in TOOT-STRING.
 URLs always = 23, and domain names of handles are not counted.
 This is how mastodon does it."
   (with-temp-buffer
@@ -1354,7 +1355,7 @@ Added to `after-change-functions'."
                                       'success
                                       (cdr header-region))
       (mastodon-toot--propertize-item
-       mastodon-handle-regex
+       mastodon-toot-handle-regex
        'mastodon-display-name-face
        (cdr header-region)))))
 

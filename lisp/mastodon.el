@@ -92,6 +92,8 @@
   (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
 (autoload 'mastodon-search--trending-tags "mastodon-search")
 (autoload 'mastodon-profile--fetch-server-account-settings "mastodon-profile")
+(autoload 'mastodon-notifications--get-mentions "mastodon-notifications")
+(autoload 'mastodon-tl--view-lists "mastodon-tl")
 (autoload 'mastodon-toot--edit-toot-at-point "mastodon-toot")
 
 (defgroup mastodon nil
@@ -250,7 +252,9 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (if buffer
         (switch-to-buffer buffer)
       (mastodon-tl--get-home-timeline)
-      (message "Loading Mastodon account %s on %s..." (mastodon-auth--user-acct) mastodon-instance-url))))
+      (message "Loading Mastodon account %s on %s..."
+               (mastodon-auth--user-acct)
+               mastodon-instance-url))))
 
 ;;;###autoload
 (defun mastodon-toot (&optional user reply-to-id reply-json)
