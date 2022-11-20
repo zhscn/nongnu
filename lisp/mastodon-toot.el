@@ -728,20 +728,43 @@ instance to edit a toot."
   (let ((url (mastodon-http--api (format "/statuses/%s/source" id))))
     (mastodon-http--get-json url :silent)))
 
-(defun mastodon-toot--get-toot-edits ()
-  "Return the edit history of toot at point."
-  (let* ((toot (or (mastodon-tl--property 'base-toot)
-                   (mastodon-tl--property 'toot-json)))
-         (id (mastodon-tl--field 'id toot))
-         (url (mastodon-http--api (format "statuses/%s/history" id))))
+(defun mastodon-toot--get-toot-edits (id)
+  "Return the edit history of toot with ID."
+  (let* ((url (mastodon-http--api (format "statuses/%s/history" id))))
     (mastodon-http--get-json url)))
 
-(defun mastodon-toot--edited-at ()
-  "Return edited_at timestamp of TOOT.
-Is also a predicated test for whether a toot has been edited."
-  (let* ((toot (or (mastodon-tl--property 'base-toot)
-                   (mastodon-tl--property 'toot-json))))
-    (alist-get 'edited_at toot)))
+(defun mastodon-toot--view-toot-edits ()
+  "View editing history of the toot at point in a popup buffer."
+  (interactive)
+  (let ((history (mastodon-tl--property 'edit-history)))
+    (with-current-buffer (get-buffer-create "*mastodon-toot-edits*")
+      (let ((inhibit-read-only t))
+        (special-mode)
+        (erase-buffer)
+        (let ((count 1))
+          (mapc (lambda (x)
+                  (insert (propertize (if (= count 1)
+                                          (format "%s [original]:\n" count)
+                                        (format "%s:\n" count))
+                                      'face 'font-lock-comment-face)
+                          (mastodon-toot--insert-toot-iter x)
+                          "\n")
+                  (cl-incf count))
+                history))
+        (switch-to-buffer-other-window (current-buffer))
+        (setq-local header-line-format
+                    (propertize
+                     (format "Edits to toot by %s:"
+                             (alist-get 'username
+                                        (alist-get 'account (car history))))
+                     'face font-lock-comment-face))))))
+
+(defun mastodon-toot--insert-toot-iter (it)
+  "Insert iteration IT of toot."
+  (let ((content (alist-get 'content it))
+        (account (alist-get 'account it)))
+    ;; TODO: handle polls, media
+    (mastodon-tl--render-text content)))
 
 (defun mastodon-toot--restore-previous-window-config (config)
   "Restore the window CONFIG after killing the toot compose buffer.

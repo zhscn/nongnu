@@ -95,6 +95,7 @@
 (autoload 'mastodon-notifications--get-mentions "mastodon-notifications")
 (autoload 'mastodon-tl--view-lists "mastodon-tl")
 (autoload 'mastodon-toot--edit-toot-at-point "mastodon-toot")
+(autoload 'mastodon-toot--view-toot-history "mastodon-tl")
 
 (defgroup mastodon nil
   "Interface with Mastodon."
@@ -199,6 +200,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "X") #'mastodon-tl--view-lists)
     (define-key map (kbd "@") #'mastodon-notifications--get-mentions)
     (define-key map (kbd "e") #'mastodon-toot--edit-toot-at-point)
+    (define-key map (kbd "E") #'mastodon-toot--view-toot-edits)
     (when (require 'lingva nil :no-error)
       (define-key map (kbd "s") #'mastodon-toot--translate-toot-text))
     map)
