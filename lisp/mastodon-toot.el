@@ -728,6 +728,14 @@ instance to edit a toot."
   (let ((url (mastodon-http--api (format "/statuses/%s/source" id))))
     (mastodon-http--get-json url :silent)))
 
+(defun mastodon-toot--get-toot-edits ()
+  "Return the edit history of toot at point."
+  (let* ((toot (or (mastodon-tl--property 'base-toot)
+                   (mastodon-tl--property 'toot-json)))
+         (id (mastodon-tl--field 'id toot))
+         (url (mastodon-http--api (format "statuses/%s/history" id))))
+    (mastodon-http--get-json url)))
+
 (defun mastodon-toot--restore-previous-window-config (config)
   "Restore the window CONFIG after killing the toot compose buffer.
 Buffer-local variable `mastodon-toot-previous-window-config' holds the config."
