@@ -106,6 +106,21 @@ width fonts when rendering HTML text"))
   :group 'mastodon-tl
   :type '(boolean :tag "Whether to display user avatars in timelines"))
 
+;; Various symbols using throughout timeline
+;; Default comes from nerd-font (www.nerdfonts.com)
+(defcustom mastodon-tl-symbols '((reply     . ("" . "R"))
+                                 (boost     . ("" . "B"))
+                                 (favourite . ("" . "F"))
+                                 (bookmark  . ("" . "K"))
+                                 (media     . ("" . "M"))
+                                 (verified  . ("" . "V"))
+                                 (private   . ("" . "P"))
+                                 (direct    . ("" . "D")))
+  "Set of symbols (or strings) to be used in timeline. If a symbol does not look right (tofu), it means your font settings do not support it."
+  :type '(alist :key-type symbol :value-type string)
+  :group 'mastodon-tl)
+
+
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
 
@@ -199,6 +214,19 @@ types of mastodon links and not just shr.el-generated ones.")
       (keymap-canonicalize map)))
   "The keymap to be set for the author byline.
 It is active where point is placed by `mastodon-tl--goto-next-toot.'")
+
+(defun mastodon-tl--symbol (name)
+  "Return the unicode symbol (as a string) corresponding to NAME.
+
+If symbol is not displayable, an ASCII equivalent is returned. If
+NAME is not part of the symbol table, '?' is returned."
+
+  (if-let* ((symbol (alist-get name mastodon-tl-symbols)))
+    (if (char-displayable-p (string-to-char (car symbol)))
+        (car symbol)
+      (cdr symbol))
+    "?"))
+
 
 (defun mastodon-tl--next-tab-item ()
   "Move to the next interesting item.
@@ -551,9 +579,7 @@ this just means displaying toot client."
          (faved (equal 't (mastodon-tl--field 'favourited toot)))
          (boosted (equal 't (mastodon-tl--field 'reblogged toot)))
          (bookmarked (equal 't (mastodon-tl--field 'bookmarked toot)))
-         (bookmark-str (if (fontp (char-displayable-p #10r128278))
-                           "🔖"
-                         "K"))
+         (bookmark-str (mastodon-tl--symbol 'bookmark))
          (visibility (mastodon-tl--field 'visibility toot)))
     (concat
      ;; Boosted/favourited markers are not technically part of the byline, so
@@ -575,13 +601,9 @@ this just means displaying toot client."
        ;; in `mastodon-tl--byline-author'
        (funcall author-byline toot)
        (cond ((equal visibility "direct")
-              (if (fontp (char-displayable-p #10r9993))
-                  " ✉"
-                " [direct]"))
+              (mastodon-tl--symbol 'direct))
              ((equal visibility "private")
-              (if (fontp (char-displayable-p #10r128274))
-                  " 🔒"
-                " [followers]")))
+              (mastodon-tl--symbol 'private))
        (funcall action-byline toot)
        " "
        ;; TODO: Once we have a view for toot (responses etc.) make
