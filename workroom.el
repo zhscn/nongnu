@@ -1299,7 +1299,7 @@ ACTION and ARGS are also described there."
        ;; the default buffer manager.
        (workroom-set-buffer-manager-function
         room #'workroom--default-buffer-manager 'do-not-initialize)
-       (workroom--default-buffer-manager room :clone (buffer-list))))
+       (setf (workroom-buffer-manager-data room) (buffer-list))))
     (:member-buffer-p
      (cl-destructuring-bind (buffer) args
        ;; All live buffer are members.
