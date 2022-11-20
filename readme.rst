@@ -116,7 +116,8 @@ These functions can overridden to adjust behavior.
    so by default they are ignored to avoid unnecessary overhead.
 
 ``doc-show-inline-locations`` (symbol ``'doc-show-inline-locations-default``)
-   A function that returns a list of points that contain symbols from the current buffer.
+   A function that returns a list of ``(symbol . point)`` cons cells,
+   containing symbols and their starting positions in th current buffer.
 
    By default ``imenu`` is used for this purpose.
 
@@ -134,7 +135,7 @@ Details
 - This package only directly depends on ``imenu`` and ``xref``,
   so any languages that store function definitions in external files will work.
 - While there are no direct dependencies on ``lsp-mode``,
-  this has only been tested using ``lsp-mode`` with both ``ccls`` and ``clangd`` backends.
+  this has been tested using ``lsp-mode`` and ``eglot`` with both ``ccls`` and ``clangd`` backends.
 - Documentation overlays are added while idle.
 - Any comment before the function is considered it's doc-string,
   *(unless it's the trailing comment of a non-blank line).*

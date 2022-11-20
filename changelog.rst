@@ -3,6 +3,9 @@
 Change Log
 ##########
 
+- 2022-11-20
+  - Fix use with ``eglot``.
+
 - 2022-04-19
   - Fix use of marker-position on an integer.
 
