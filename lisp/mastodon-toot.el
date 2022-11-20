@@ -188,6 +188,14 @@ For the moment we just put all composed toots in here, as we want
 to also capture toots that are 'sent' but that don't successfully
 send.")
 
+(defvar mastodon-handle-regex
+  (concat
+   ;; preceding space or bol [boundary doesn't work with @]
+   "\\([\n\t ]\\|^\\)"
+   "\\(?2:@[1-9a-zA-Z._-]+" ; a handle
+   "\\(@[^ \n\t]*\\)?\\)" ; with poss domain, * = allow only @
+   "\\b"))
+
 (defvar mastodon-toot-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-toot--send)
@@ -773,17 +781,30 @@ for matches, CANDIDATES-FUN, ANNOT-FUN, and META-FUN are
 functions called on ARG to generate formatted candidates, annotation, and
 meta fields respectively."
   (interactive (list 'interactive))
-  (cl-case command
-    (interactive (company-begin-backend (quote backend-name)))
-    (prefix (when (and (bound-and-true-p mastodon-toot-mode) ; if masto toot minor mode
-                       (save-excursion
-                         (forward-whitespace -1)
-                         (forward-whitespace 1)
-                         (looking-at str-prefix)))
-              (concat str-prefix (company-grab-symbol))))
-    (candidates (funcall candidates-fun arg))
-    (annotation (funcall annot-fun arg))
-    (meta (funcall meta-fun arg))))
+  (let ((handle-before
+         ;; hack to handle @handles@with.domains, as "@" is a word/symbol boundary
+         (if (string= str-prefix "@")
+             (save-match-data
+               (save-excursion
+                 (re-search-backward mastodon-handle-regex nil :no-error)
+                 (if (match-string-no-properties 2)
+                     ;; match full handle inc. domain (see the regex for subexp 2)
+                     (buffer-substring-no-properties (match-beginning 2) (match-end 2))
+                   ""))))))
+    (cl-case command
+      (interactive (company-begin-backend (quote backend-name)))
+      (prefix (when (and (bound-and-true-p mastodon-toot-mode) ; if masto toot minor mode
+                         (save-excursion
+                           (forward-whitespace -1)
+                           (forward-whitespace 1)
+                           (looking-at str-prefix)))
+                (if (and (string= str-prefix "@")
+                         (> (length handle-before) 1)) ; more than just @
+                    (concat str-prefix (substring-no-properties handle-before 1)) ;handle
+                  (concat str-prefix (company-grab-symbol))))) ; tag
+      (candidates (funcall candidates-fun arg))
+      (annotation (funcall annot-fun arg))
+      (meta (funcall meta-fun arg)))))
 
 (defun mastodon-toot-mentions (command &optional arg &rest ignored)
   "A company completion backend for toot mentions.
@@ -1287,10 +1308,7 @@ Added to `after-change-functions'."
                                       'success
                                       (cdr header-region))
       (mastodon-toot--propertize-item
-       (concat "\\([\n\t ]\\|^\\)" ; preceding space or bol
-               "\\(?2:@[1-9a-zA-Z._-]+" ; a handle
-               "\\(@[1-9a-zA-Z._-]+\\)?\\)" ; with poss domain
-               "\\b") ; boundary
+       mastodon-handle-regex
        'mastodon-display-name-face
        (cdr header-region)))))
 
