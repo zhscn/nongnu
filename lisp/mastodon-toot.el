@@ -736,6 +736,13 @@ instance to edit a toot."
          (url (mastodon-http--api (format "statuses/%s/history" id))))
     (mastodon-http--get-json url)))
 
+(defun mastodon-toot--edited-at ()
+  "Return edited_at timestamp of TOOT.
+Is also a predicated test for whether a toot has been edited."
+  (let* ((toot (or (mastodon-tl--property 'base-toot)
+                   (mastodon-tl--property 'toot-json))))
+    (alist-get 'edited_at toot)))
+
 (defun mastodon-toot--restore-previous-window-config (config)
   "Restore the window CONFIG after killing the toot compose buffer.
 Buffer-local variable `mastodon-toot-previous-window-config' holds the config."
