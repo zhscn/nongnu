@@ -81,6 +81,7 @@
 (autoload 'mastodon-profile--fetch-server-account-settings-maybe "mastodon-profile")
 (autoload 'mastodon-http--build-array-args-alist "mastodon-http")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl")
+(autoload 'mastodon-http--put "mastodon-http")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -171,6 +172,8 @@ change the setting on the server, see
 (defvar-local mastodon-toot--reply-to-id nil
   "Buffer-local variable to hold the id of the toot being replied to.")
 
+(defvar-local mastodon-toot--edit-toot-id nil
+  "The id of the toot being edited.")
 
 (defvar-local mastodon-toot-previous-window-config nil
   "A list of window configuration prior to composing a toot.
@@ -635,13 +638,21 @@ to `emojify-user-emojis', and the emoji data is updated."
 (defun mastodon-toot--send ()
   "POST contents of new-toot buffer to Mastodon instance and kill buffer.
 If media items have been attached and uploaded with
-`mastodon-toot--attach-media', they are attached to the toot."
+`mastodon-toot--attach-media', they are attached to the toot.
+If `mastodon-toot--edit-toot-id' is non-nil, PUT contents to instance to edit a toot."
   (interactive)
-  (let* ((toot (mastodon-toot--remove-docs))
-         (endpoint (mastodon-http--api "statuses"))
+  (let* ((edit-p (if mastodon-toot--edit-toot-id t nil))
+         (toot (mastodon-toot--remove-docs))
+         (endpoint
+          (if edit-p
+              ;; we are sending an edit:
+              (mastodon-http--api (format "statuses/%s"
+                                          mastodon-toot--edit-toot-id))
+            (mastodon-http--api "statuses")))
          (spoiler (when (and (not (mastodon-toot--empty-p))
                              mastodon-toot--content-warning)
-                    (read-string "Warning: " mastodon-toot--content-warning-from-reply-or-redraft)))
+                    (read-string "Warning: "
+                                 mastodon-toot--content-warning-from-reply-or-redraft)))
          (args-no-media `(("status" . ,toot)
                           ("in_reply_to_id" . ,mastodon-toot--reply-to-id)
                           ("visibility" . ,mastodon-toot--visibility)
@@ -674,12 +685,47 @@ If media items have been attached and uploaded with
           ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
           (t
-           (let ((response (mastodon-http--post endpoint args)))
+           (let ((response (if edit-p
+                               ;; we are sending an edit:
+                               (mastodon-http--put endpoint args)
+                             (mastodon-http--post endpoint args))))
              (mastodon-http--triage response
                                     (lambda ()
                                       (mastodon-toot--kill)
                                       (message "Toot toot!")
                                       (mastodon-toot--restore-previous-window-config prev-window-config))))))))
+
+;; EDITING TOOTS:
+
+(defun mastodon-toot--edit-toot-at-point ()
+  "Edit the user's toot at point."
+  (interactive)
+  (let ((toot (or (mastodon-tl--property 'base-toot); fave/boost notifs
+                  (mastodon-tl--property 'toot-json))))
+    (if (not (mastodon-toot--own-toot-p toot))
+        (message "You can only edit your own toots.")
+      (let* ((id (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
+             (source (mastodon-toot--get-toot-source id))
+             (content (alist-get 'text source))
+             (source-cw (alist-get 'spoiler_text source))
+             (toot-visibility (alist-get 'visibility toot))
+             (reply-id (alist-get 'in_reply_to_id toot)))
+        (when (y-or-n-p "Edit this toot? ")
+          (mastodon-toot--compose-buffer)
+          (goto-char (point-max))
+          (insert content)
+          ;; adopt reply-to-id, visibility and CW:
+          (when reply-id
+            (setq mastodon-toot--reply-to-id reply-id))
+          (setq mastodon-toot--visibility toot-visibility)
+          (mastodon-toot--set-cw source-cw)
+          (mastodon-toot--update-status-fields)
+          (setq mastodon-toot--edit-toot-id id))))))
+
+(defun mastodon-toot--get-toot-source (id)
+  "Fetch the source JSON of toot with ID."
+  (let ((url (mastodon-http--api (format "/statuses/%s/source" id))))
+    (mastodon-http--get-json url :silent)))
 
 (defun mastodon-toot--restore-previous-window-config (config)
   "Restore the window CONFIG after killing the toot compose buffer.
