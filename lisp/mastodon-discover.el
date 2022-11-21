@@ -76,7 +76,7 @@
                        ("F" "Federated" mastodon-tl--get-federated-timeline)
                        ("H" "Home" mastodon-tl--get-home-timeline)
                        ("L" "Local" mastodon-tl--get-local-timeline)
-                       ("N" "Notifications" mastodon-notifications--get)
+                       ("N" "Notifications" mastodon-notifications-get)
                        ("u" "Update timeline" mastodon-tl--update)
                        ("S" "Search" mastodon-search--search-query)
                        ("O" "Jump to your profile" mastodon-profile--my-profile)
