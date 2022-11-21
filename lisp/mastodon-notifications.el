@@ -280,7 +280,8 @@ of the toot responded to."
   "Display NOTIFICATIONS in buffer.
 Optionally only print notifications of type TYPE, a string."
   (interactive)
-  (let ((buffer "*mastodon-notifications*"))
+  (let ((buffer (or (concat "*mastodon-" buffer-name)
+                    "*mastodon-notifications*")))
     (if (get-buffer buffer)
         (progn (switch-to-buffer buffer)
                (mastodon-tl--update))
