@@ -203,7 +203,8 @@ contains")
   (message "Loading your bookmarked toots...")
   (mastodon-tl--init "bookmarks"
                      "bookmarks"
-                     'mastodon-tl--timeline))
+                     'mastodon-tl--timeline
+                     :headers))
 
 (defun mastodon-profile--view-follow-requests ()
   "Open a new buffer displaying the user's follow requests."

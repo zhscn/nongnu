@@ -128,6 +128,10 @@ If nil `(point-min)' is used instead.")
 (defvar-local mastodon-tl--timestamp-update-timer nil
   "The timer that, when set will scan the buffer to update the timestamps.")
 
+(defvar mastodon-tl--link-header-buffers
+  '("*mastodon-favourites*" "*mastodon-bookmarks*")
+  "A list of buffers that use link headers for pagination.")
+
 (defvar mastodon-tl--link-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [return] 'mastodon-tl--do-link-action-at-point)
@@ -1232,7 +1236,7 @@ Optionally get it for BUFFER."
   (mastodon-tl--get-buffer-property 'buffer-name buffer))
 
 (defun mastodon-tl--link-header (&optional buffer)
-  "Get the BUFFER-NAME stored in `mastodon-tl--buffer-spec'.
+  "Get the LINK HEADER stored in `mastodon-tl--buffer-spec'.
 Optionally get it for BUFFER."
   (mastodon-tl--get-buffer-property 'link-header buffer))
 
@@ -2213,10 +2217,10 @@ For use after e.g. deleting a toot."
   "Append older toots to timeline, asynchronously."
   (interactive)
   (message "Loading older toots...")
-  (if (string= (buffer-name (current-buffer)) "*mastodon-favourites*")
+  (if (member (buffer-name (current-buffer)) mastodon-tl--link-header-buffers)
       ;; link-header: can't build a URL with --more-json-async, endpoint/id:
       (let* ((next (car (mastodon-tl--link-header)))
-             (prev (cadr (mastodon-tl--link-header)))
+             ;(prev (cadr (mastodon-tl--link-header)))
              (url (mastodon-tl--build-link-header-url next)))
         (mastodon-http--get-response-async url 'mastodon-tl--more* (current-buffer)
                                            (point) :headers))
