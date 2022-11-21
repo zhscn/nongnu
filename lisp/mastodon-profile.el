@@ -555,7 +555,9 @@ FIELDS means provide a fields vector fetched by other means."
                         (alist-get 'followed_by relationships)))
          (followsp (or (equal follows-you 't) (equal followed-by-you 't)))
          (fields (mastodon-profile--fields-get account))
-         (pinned (mastodon-profile--get-statuses-pinned account)))
+         (pinned (mastodon-profile--get-statuses-pinned account))
+         (joined-ts (ts-parse
+                     (mastodon-profile--account-field account 'created_at))))
     (with-output-to-temp-buffer buffer
       (switch-to-buffer buffer)
       (mastodon-mode)
@@ -600,7 +602,15 @@ FIELDS means provide a fields vector fetched by other means."
                         (mastodon-profile--fields-insert fields)
                         'success)
                        "\n")
-             ""))
+             "")
+           (propertize
+            (format "Joined %s"
+                    (format "%s" (concat (ts-month-name joined-ts)
+                                         " "
+                                         (number-to-string
+                                          (ts-year joined-ts)))))
+            'face 'success)
+           "\n\n")
           'profile-json account)
          ;; insert counts
          (mastodon-tl--set-face
