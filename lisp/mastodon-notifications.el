@@ -61,7 +61,8 @@
     ("mention" . mastodon-notifications--mention)
     ("poll" . mastodon-notifications--poll)
     ("follow_request" . mastodon-notifications--follow-request)
-    ("status" . mastodon-notifications--status))
+    ("status" . mastodon-notifications--status)
+    ("update" . mastodon-notifications--edit))
   "Alist of notification types and their corresponding function.")
 
 (defvar mastodon-notifications--response-alist
@@ -71,7 +72,8 @@
     ("Mentioned" . "you")
     ("Posted a poll" . "that has now ended")
     ("Requested to follow" . "you")
-    ("Posted" . "a post"))
+    ("Posted" . "a post")
+    ("Edited" . "a post"))
   "Alist of subjects for notification types.")
 
 (defvar mastodon-notifications--map
@@ -172,6 +174,10 @@ Status notifications are given when
   "Format for a `poll' NOTE."
   (mastodon-notifications--format-note note 'poll))
 
+(defun mastodon-notifications--edit (note)
+  "Format for an `edit' NOTE."
+  (mastodon-notifications--format-note note 'edit))
+
 (defun mastodon-notifications--format-note (note type)
   "Format for a NOTE of TYPE."
   (let ((id (alist-get 'id note))
@@ -196,7 +202,7 @@ Status notifications are given when
                          "Congratulations, you have a new follower!"
                        (format "You have a follow request from... %s"
                                follower))
-                       'face 'default)
+                     'face 'default)
        (mastodon-tl--clean-tabs-and-nl
         (if (mastodon-tl--has-spoiler status)
             (mastodon-tl--spoiler status)
@@ -223,7 +229,9 @@ Status notifications are given when
               ((equal type 'status)
                "Posted")
               ((equal type 'poll)
-               "Posted a poll"))))
+               "Posted a poll")
+              ((equal type 'edit)
+               "Edited"))))
      id
      (when (or (equal type 'favourite)
                (equal type 'boost))
@@ -314,9 +322,6 @@ Status notifications are created when you call
 (defun mastodon-notifications--filter-types-list (type)
   "Return a list of notification types with TYPE removed."
   (let ((types
-         ;; the docs don't mention "status" as an options
-         ;; but we do need to exclude it, so keep it in the list here
-         ;;(remove "status"
          (mapcar #'car mastodon-notifications--types-alist)))
     (remove type types)))
 

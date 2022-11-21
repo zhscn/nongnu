@@ -604,7 +604,9 @@ this just means displaying toot client."
                          "K"))
          (visibility (mastodon-tl--field 'visibility toot))
          (account (alist-get 'account toot))
-         (avatar-url (alist-get 'avatar account)))
+         (avatar-url (alist-get 'avatar account))
+         (edited-time (alist-get 'edited_at toot))
+         (edited-parsed (when edited-time (date-to-time edited-time))))
     (concat
      ;; Boosted/favourited markers are not technically part of the byline, so
      ;; we don't propertize them with 'byline t', as per the rest. This
@@ -632,6 +634,7 @@ this just means displaying toot client."
        ;; we propertize help-echo format faves for author name
        ;; in `mastodon-tl--byline-author'
        (funcall author-byline toot)
+       ;; visibility:
        (cond ((equal visibility "direct")
               (if (fontp (char-displayable-p #10r9993))
                   " ✉"
@@ -640,6 +643,7 @@ this just means displaying toot client."
               (if (fontp (char-displayable-p #10r128274))
                   " 🔒"
                 " [followers]")))
+       ;; action:
        (funcall action-byline toot)
        " "
        ;; TODO: Once we have a view for toot (responses etc.) make
@@ -665,11 +669,43 @@ this just means displaying toot client."
 		          'shr-url app-url
                           'help-echo app-url
 		          'keymap mastodon-tl--shr-map-replacement)))))
+       (when edited-time
+         (concat
+          (if (fontp (char-displayable-p #10r128274))
+              " ✍ "
+            " [edited] ")
+          (propertize
+           (format-time-string mastodon-toot-timestamp-format
+                               edited-parsed)
+           'face 'font-lock-comment-face
+           'timestamp edited-parsed
+           'display (if mastodon-tl--enable-relative-timestamps
+                        (mastodon-tl--relative-time-description edited-parsed)
+                      edited-parsed))))
        (propertize "\n  ------------\n" 'face 'default))
       'favourited-p faved
       'boosted-p    boosted
       'bookmarked-p bookmarked
+      'edited edited-time
+      'edit-history (when edited-time
+                      (mastodon-toot--get-toot-edits (alist-get 'id toot)))
       'byline       t))))
+
+(defun mastodon-tl--format-edit-timestamp (timestamp)
+  "Convert edit TIMESTAMP into a descriptive string."
+  (let ((parsed (ts-human-duration
+                 (ts-diff (ts-now) (ts-parse timestamp)))))
+    (cond ((> (plist-get parsed :days) 0)
+           (format "%s days ago" (plist-get parsed :days) (plist-get parsed :hours)))
+          ((> (plist-get parsed :hours) 0)
+           (format "%s hours ago" (plist-get parsed :hours) (plist-get parsed :minutes)))
+          ((> (plist-get parsed :minutes) 0)
+           (format "%s minutes ago" (plist-get parsed :minutes)))
+          (t ;; we failed to guess:
+           (format "%s days, %s hours, %s minutes ago"
+                   (plist-get parsed :days)
+                   (plist-get parsed :hours)
+                   (plist-get parsed :minutes))))))
 
 (defun mastodon-tl--format-faved-or-boosted-byline (letter)
   "Format the byline marker for a boosted or favourited status.

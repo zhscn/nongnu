@@ -150,10 +150,12 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 | =v=             | Vote on poll at point                                                 |
 | =C=             | copy url of toot at point                                             |
 | =C-RET=         | play video/gif at point (requires =mpv=)                                |
+| =e=             | edit your toot at point                                               |
+| =E=             | view edits of toot at point                                           |
 | =i=             | (un)pin your toot at point                                            |
 | =d=             | delete your toot at point, and reload current timeline                |
 | =D=             | delete and redraft toot at point, preserving reply/CW/visibility      |
-| (=S-C=) =W=, =M=, =B= | (un)follow, (un)mute, (un)block author of toot at point               |
+| (=S-C-=) =W=, =M=, =B= | (un)follow, (un)mute, (un)block author of toot at point               |
 |---------------+-----------------------------------------------------------------------|
 |               | Notifications view                                                    |
 | =a=, =j=          | accept/reject follow request                                          |
