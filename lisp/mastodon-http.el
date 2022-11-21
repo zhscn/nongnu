@@ -88,11 +88,13 @@ Message status and JSON error from RESPONSE if unsuccessful."
                   (mastodon-http--status))))
     (if (string-prefix-p "2" status)
         (funcall success)
-      (switch-to-buffer response)
-      ;; 404 returns http response not JSON:
+      ;; don't switch to buffer, just with-current-buffer the response:
+      ;; (switch-to-buffer response)
+      ;; 404 sometimes returns http response so --process-json fails:
       (if (string-prefix-p "404" status)
           (message "Error %s: page not found" status)
-        (let ((json-response (mastodon-http--process-json)))
+        (let ((json-response (with-current-buffer response
+                               (mastodon-http--process-json))))
           (message "Error %s: %s" status (alist-get 'error json-response)))))))
 
 (defun mastodon-http--read-file-as-string (filename)
