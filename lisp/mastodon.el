@@ -206,7 +206,6 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (when (require 'lingva nil :no-error)
       (define-key map (kbd "s") #'mastodon-toot--translate-toot-text))
     map)
-
   "Keymap for `mastodon-mode'.")
 
 (defcustom mastodon-mode-hook nil
