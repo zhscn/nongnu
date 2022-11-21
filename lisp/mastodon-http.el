@@ -88,7 +88,7 @@ Message status and JSON error from RESPONSE if unsuccessful."
                   (mastodon-http--status))))
     (if (string-prefix-p "2" status)
         (funcall success)
-      (switch-to-buffer response)
+      ;; (switch-to-buffer response)
       ;; 404 returns http response not JSON:
       (if (string-prefix-p "404" status)
           (message "Error %s: page not found" status)
