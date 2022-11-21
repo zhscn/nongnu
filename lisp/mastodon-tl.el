@@ -1594,7 +1594,9 @@ If ID is provided, delete that list."
 \n E - edit a list\n n/p - go to next/prev item]\n\n"
              'font-lock-comment-face))
     (mapc (lambda (x)
-            (mastodon-tl--print-list-accounts x))
+            (mastodon-tl--print-list-accounts x)
+            (insert (propertize " ------------\n\n"
+                                'face 'success)))
           lists-names)
     (goto-char (point-min))))
 ;; (mastodon-tl--goto-next-item))) ; causes another request!
@@ -1609,8 +1611,17 @@ If ID is provided, delete that list."
                  'toot-id "0" ; so we nav here
                  'help-echo "RET: view list timeline, d: delete this list, \
 a: add account to this list, r: remove account from this list"
-                 'face 'link) ; '((:underline t :inherit success)))
-     "\n\n"
+                 'list t
+                 'face 'link
+                 'keymap mastodon-tl--list-name-keymap
+                 'list-name list-name
+                 'list-id id)
+     (propertize
+      "\n\n"
+      'list t
+      'keymap mastodon-tl--list-name-keymap
+      'list-name list-name
+      'list-id id)
      (propertize
       (mapconcat #'mastodon-search--propertize-user accounts
                  " ")
