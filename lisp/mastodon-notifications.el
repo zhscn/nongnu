@@ -50,6 +50,7 @@
 (autoload 'mastodon-http--get-params-async-json "mastodon-http.el")
 (autoload 'mastodon-profile--view-follow-requests "mastodon-profile.el")
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
+(autoload 'mastodon-tl--update "mastodon-tl")
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
 (defvar mastodon-mode-map)
@@ -276,11 +277,13 @@ of the toot responded to."
     (mapc #'mastodon-notifications--by-type json)
     (goto-char (point-min))))
 
+;;;###autoload
 (defun mastodon-notifications--get (&optional type buffer-name)
   "Display NOTIFICATIONS in buffer.
-Optionally only print notifications of type TYPE, a string."
+Optionally only print notifications of type TYPE, a string.
+BUFFER-NAME is added to \"*mastodon-\" to create the buffer name."
   (interactive)
-  (let ((buffer (or (concat "*mastodon-" buffer-name)
+  (let ((buffer (or (concat "*mastodon-" buffer-name "*")
                     "*mastodon-notifications*")))
     (if (get-buffer buffer)
         (progn (switch-to-buffer buffer)
