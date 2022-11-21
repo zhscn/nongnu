@@ -150,10 +150,10 @@ contains")
   ;; or handle --property failing
   (mastodon-tl--property 'toot-json))
 
-(defun mastodon-profile--make-author-buffer (account)
+(defun mastodon-profile--make-author-buffer (account &optional no-reblogs)
   "Take an ACCOUNT json and insert a user account into a new buffer."
   (mastodon-profile--make-profile-buffer-for
-   account "statuses" #'mastodon-tl--timeline))
+   account "statuses" #'mastodon-tl--timeline no-reblogs))
 
 ;; TODO: we shd just load all views' data then switch coz this is slow af:
 (defun mastodon-profile--account-view-cycle ()
@@ -164,9 +164,17 @@ contains")
            (mastodon-profile--open-followers))
           ((string-suffix-p "followers" endpoint)
            (mastodon-profile--open-following))
+          ((string-suffix-p "following" endpoint)
+           (mastodon-profile--open-statuses-no-reblogs))
           (t
-           (mastodon-profile--make-profile-buffer-for
-            mastodon-profile--account "statuses" #'mastodon-tl--timeline)))))
+           (mastodon-profile--make-author-buffer mastodon-profile--account)))))
+
+(defun mastodon-profile--open-statuses-no-reblogs ()
+  "Open a profile buffer showing statuses without reblogs."
+  (interactive)
+  (if mastodon-profile--account
+      (mastodon-profile--make-author-buffer mastodon-profile--account :no-reblogs)
+    (error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-following ()
   "Open a profile buffer showing the accounts that current profile follows."
@@ -530,10 +538,14 @@ FIELDS means provide a fields vector fetched by other means."
           (mastodon-tl--toot pinned-status))
         pinned-statuses))
 
-(defun mastodon-profile--make-profile-buffer-for (account endpoint-type update-function)
+(defun mastodon-profile--make-profile-buffer-for (account endpoint-type update-function &optional no-reblogs)
   "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION."
   (let* ((id (mastodon-profile--account-field account 'id))
-         (url (mastodon-http--api (format "accounts/%s/%s" id endpoint-type)))
+         (args (when no-reblogs '(("exclude_reblogs" . "t"))))
+         (base-url (mastodon-http--api (format "accounts/%s/%s" id endpoint-type)))
+         (url (if no-reblogs
+                  (concat base-url "?" (mastodon-http--build-query-string args))
+                base-url))
          (acct (mastodon-profile--account-field account 'acct))
          (buffer (concat "*mastodon-" acct "-" endpoint-type  "*"))
          (note (mastodon-profile--account-field account 'note))
