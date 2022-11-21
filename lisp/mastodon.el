@@ -171,11 +171,13 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "c") #'mastodon-tl--toggle-spoiler-text-in-toot)
     (define-key map (kbd "f") #'mastodon-toot--toggle-favourite)
     (define-key map (kbd "r") #'mastodon-toot--reply)
+    ;; this is now duplicated by 'g', cd remove/use for else:
     (define-key map (kbd "u") #'mastodon-tl--update)
     ;; new toot
     (define-key map (kbd "t") #'mastodon-toot)
     ;; override special mode binding
     (define-key map (kbd "g") #'undefined)
+    (define-key map (kbd "g") #'mastodon-tl--update)
     ;; mousebot additions
     (define-key map (kbd "W") #'mastodon-tl--follow-user)
     (define-key map (kbd "C-S-W") #'mastodon-tl--unfollow-user)
