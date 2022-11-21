@@ -84,7 +84,6 @@
     (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
     (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
     (define-key map (kbd "c") #'mastodon-notifications--clear-current)
-    (define-key map (kbd "g") #'mastodon-notifications-get)
     (keymap-canonicalize map))
   "Keymap for viewing notifications.")
 
