@@ -333,8 +333,8 @@ PARAMS is an alist of any extra parameters to send with the request."
   "Make GET request to URL. Call CALLBACK with json-list and ARGS.
 PARAMS is an alist of any extra parameters to send with the request."
   (mastodon-http--get-async
-   params
    url
+   params
    (lambda (status)
      (when status ;; only when we actually get sth?
        (apply callback (mastodon-http--process-json) args)))))

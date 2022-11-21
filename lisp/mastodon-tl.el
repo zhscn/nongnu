@@ -1315,7 +1315,7 @@ LINK-HEADER is the http Link header if present."
 Then run CALLBACK with arguments CBARGS."
   (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
          (url (mastodon-http--api endpoint)))
-    (apply 'mastodon-http--get-json-async url params callback cbargs)))
+    (apply 'mastodon-http--get-json-async url args callback cbargs)))
 
 ;; TODO
 ;; Look into the JSON returned here by Local
@@ -1323,7 +1323,7 @@ Then run CALLBACK with arguments CBARGS."
   "Return JSON for timeline ENDPOINT since ID."
   (let* ((args `(("since_id" . ,(mastodon-tl--as-string id))))
          (url (mastodon-http--api endpoint)))
-    (mastodon-http--get-json url)))
+    (mastodon-http--get-json url args)))
 
 (defun mastodon-tl--property (prop &optional backward)
   "Get property PROP for toot at point.
@@ -1873,8 +1873,7 @@ INSTANCE is an instance domain name."
           (response (mastodon-http--get-json
                      (if user
                          (mastodon-http--api "instance")
-                       (concat instance
-                               "/api/v1/instance"))
+                       (concat instance "/api/v1/instance"))
                      nil
                      :vector)))
      (when response
@@ -2462,7 +2461,7 @@ favourites."
         (mastodon-http--get-response-async
          url 'mastodon-tl--init* buffer endpoint update-function headers)
       (mastodon-http--get-json-async
-       url 'mastodon-tl--init* buffer endpoint update-function))))
+       url nil 'mastodon-tl--init* buffer endpoint update-function))))
 
 (defun mastodon-tl--init* (response buffer endpoint update-function &optional headers)
   "Initialize BUFFER with timeline targeted by ENDPOINT.
