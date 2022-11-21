@@ -132,6 +132,8 @@ If nil `(point-min)' is used instead.")
   '("*mastodon-favourites*" "*mastodon-bookmarks*")
   "A list of buffers that use link headers for pagination.")
 
+;; KEYMAPS
+
 (defvar mastodon-tl--link-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [return] 'mastodon-tl--do-link-action-at-point)
@@ -236,6 +238,8 @@ types of mastodon links and not just shr.el-generated ones.")
   "The keymap to be set for the author byline.
 It is active where point is placed by `mastodon-tl--goto-next-toot.'")
 
+;; NAV
+
 (defun mastodon-tl--next-tab-item ()
   "Move to the next interesting item.
 
@@ -278,52 +282,6 @@ text, i.e. hidden spoiler text."
       (goto-char (car next-range))
       (message "%s" (get-text-property (point) 'help-echo)))))
 
-(defun mastodon-tl--get-federated-timeline ()
-  "Opens federated timeline."
-  (interactive)
-  (message "Loading federated timeline...")
-  (mastodon-tl--init
-   "federated" "timelines/public" 'mastodon-tl--timeline))
-
-(defun mastodon-tl--get-home-timeline ()
-  "Opens home timeline."
-  (interactive)
-  (message "Loading home timeline...")
-  (mastodon-tl--init
-   "home" "timelines/home" 'mastodon-tl--timeline))
-
-(defun mastodon-tl--get-local-timeline ()
-  "Opens local timeline."
-  (interactive)
-  (message "Loading local timeline...")
-  (mastodon-tl--init
-   "local" "timelines/public?local=true" 'mastodon-tl--timeline))
-
-(defun mastodon-tl--get-tag-timeline ()
-  "Prompt for tag and opens its timeline."
-  (interactive)
-  (let* ((word (or (word-at-point) ""))
-         (input (read-string (format "Load timeline for tag (%s): " word)))
-         (tag (if (string-empty-p input) word input)))
-    (message "Loading timeline for #%s..." tag)
-    (mastodon-tl--show-tag-timeline tag)))
-
-(defun mastodon-tl--show-tag-timeline (tag)
-  "Opens a new buffer showing the timeline of posts with hastag TAG."
-  (mastodon-tl--init
-   (concat "tag-" tag) (concat "timelines/tag/" tag) 'mastodon-tl--timeline))
-
-(defun mastodon-tl--message-help-echo ()
-  "Call message on 'help-echo property at point.
-Do so if type of status at poins is not follow_request/follow."
-  (let ((type (alist-get
-               'type
-               (get-text-property (point) 'toot-json)))
-        (echo (get-text-property (point) 'help-echo)))
-    (when echo ; not for followers/following in profile
-      (unless (or (string= type "follow_request")
-                  (string= type "follow")) ; no counts for these
-        (message "%s" (get-text-property (point) 'help-echo))))))
 
 (defun mastodon-tl--goto-toot-pos (find-pos refresh &optional pos)
   "Search for toot with FIND-POS.
@@ -374,6 +332,55 @@ Used on initializing a timeline or thread."
   (interactive)
   (mastodon-tl--goto-toot-pos 'previous-single-property-change
                               'previous-line))
+
+;; TIMELINES
+
+(defun mastodon-tl--get-federated-timeline ()
+  "Opens federated timeline."
+  (interactive)
+  (message "Loading federated timeline...")
+  (mastodon-tl--init
+   "federated" "timelines/public" 'mastodon-tl--timeline))
+
+(defun mastodon-tl--get-home-timeline ()
+  "Opens home timeline."
+  (interactive)
+  (message "Loading home timeline...")
+  (mastodon-tl--init
+   "home" "timelines/home" 'mastodon-tl--timeline))
+
+(defun mastodon-tl--get-local-timeline ()
+  "Opens local timeline."
+  (interactive)
+  (message "Loading local timeline...")
+  (mastodon-tl--init
+   "local" "timelines/public?local=true" 'mastodon-tl--timeline))
+
+(defun mastodon-tl--get-tag-timeline ()
+  "Prompt for tag and opens its timeline."
+  (interactive)
+  (let* ((word (or (word-at-point) ""))
+         (input (read-string (format "Load timeline for tag (%s): " word)))
+         (tag (if (string-empty-p input) word input)))
+    (message "Loading timeline for #%s..." tag)
+    (mastodon-tl--show-tag-timeline tag)))
+
+(defun mastodon-tl--show-tag-timeline (tag)
+  "Opens a new buffer showing the timeline of posts with hastag TAG."
+  (mastodon-tl--init
+   (concat "tag-" tag) (concat "timelines/tag/" tag) 'mastodon-tl--timeline))
+
+(defun mastodon-tl--message-help-echo ()
+  "Call message on 'help-echo property at point.
+Do so if type of status at poins is not follow_request/follow."
+  (let ((type (alist-get
+               'type
+               (get-text-property (point) 'toot-json)))
+        (echo (get-text-property (point) 'help-echo)))
+    (when echo ; not for followers/following in profile
+      (unless (or (string= type "follow_request")
+                  (string= type "follow")) ; no counts for these
+        (message "%s" (get-text-property (point) 'help-echo))))))
 
 (defun mastodon-tl--remove-html (toot)
   "Remove unrendered tags from TOOT."
