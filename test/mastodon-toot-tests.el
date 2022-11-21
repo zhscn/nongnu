@@ -120,11 +120,12 @@ mention string."
   "Should refuse to delete toot."
   (let ((toot mastodon-toot-test-base-toot))
     (with-mock
-      (mock (mastodon-auth--user-acct) => "joebogus")
-      ;; (mock (mastodon-toot--own-toot-p toot) => nil)
-      (mock (mastodon-tl--property 'toot-json) => mastodon-toot-test-base-toot)
-      (should (equal (mastodon-toot--delete-toot)
-                     "You can only delete (and redraft) your own toots.")))))
+     (mock (mastodon-auth--user-acct) => "joebogus")
+     ;; (mock (mastodon-toot--own-toot-p toot) => nil)
+     (mock (mastodon-tl--property 'toot-json) => mastodon-toot-test-base-toot)
+     (mock (mastodon-tl--property 'base-toot) => toot)
+     (should (equal (mastodon-toot--delete-toot)
+                    "You can only delete (and redraft) your own toots.")))))
 
 (ert-deftest mastodon-toot--delete-toot ()
   "Should return correct triaged response to a legitimate DELETE request."
@@ -133,16 +134,17 @@ mention string."
     (let ((delete-response (current-buffer))
           (toot mastodon-toot-test-base-toot))
       (with-mock
-        (mock (mastodon-tl--property 'toot-json) => toot)
-        ;; (mock (mastodon-toot--own-toot-p toot) => t)
-        (mock (mastodon-auth--user-acct) => "acct42@example.space")
-        (mock (mastodon-http--api (format "statuses/61208"))
-              => "https://example.space/statuses/61208")
-        (mock (y-or-n-p "Delete this toot? ") => t)
-        (mock (mastodon-http--delete "https://example.space/statuses/61208")
-              => delete-response)
-        (should (equal (mastodon-toot--delete-toot)
-                       "Toot deleted!"))))))
+       (mock (mastodon-tl--property 'toot-json) => toot)
+       (mock (mastodon-tl--property 'base-toot) => toot)
+       ;; (mock (mastodon-toot--own-toot-p toot) => t)
+       (mock (mastodon-auth--user-acct) => "acct42@example.space")
+       (mock (mastodon-http--api (format "statuses/61208"))
+             => "https://example.space/statuses/61208")
+       (mock (y-or-n-p "Delete this toot? ") => t)
+       (mock (mastodon-http--delete "https://example.space/statuses/61208")
+             => delete-response)
+       (should (equal (mastodon-toot--delete-toot)
+                      "Toot deleted!"))))))
 
 (ert-deftest mastodon-toot-action-pin ()
   "Should return callback provided by `mastodon-toot--pin-toot-toggle'."
@@ -167,7 +169,8 @@ mention string."
     (let ((pin-response (current-buffer))
           (toot mastodon-toot-test-base-toot))
       (with-mock
-        (mock (mastodon-tl--property 'toot-json) => toot)
-        (mock (mastodon-auth--user-acct) => "joebogus@example.space")
-        (should (equal (mastodon-toot--pin-toot-toggle)
-                       "You can only pin your own toots."))))))
+       (mock (mastodon-tl--property 'toot-json) => toot)
+       (mock (mastodon-tl--property 'base-toot) => toot)
+       (mock (mastodon-auth--user-acct) => "joebogus@example.space")
+       (should (equal (mastodon-toot--pin-toot-toggle)
+                      "You can only pin your own toots."))))))
