@@ -91,8 +91,12 @@
 (when (require 'lingva nil :no-error)
   (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
 (autoload 'mastodon-search--trending-tags "mastodon-search")
-(autoload 'mastodon-profile-fetch-server-account-settings "mastodon-profile")
 (autoload 'mastodon-profile-account-settings "mastodon-profile")
+(autoload 'mastodon-profile--fetch-server-account-settings "mastodon-profile")
+(autoload 'mastodon-notifications--get-mentions "mastodon-notifications")
+(autoload 'mastodon-tl--view-lists "mastodon-tl")
+(autoload 'mastodon-toot--edit-toot-at-point "mastodon-toot")
+(autoload 'mastodon-toot--view-toot-history "mastodon-tl")
 
 (defgroup mastodon nil
   "Interface with Mastodon."
@@ -188,18 +192,16 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "i") #'mastodon-toot--pin-toot-toggle)
     (define-key map (kbd "V") #'mastodon-profile--view-favourites)
     (define-key map (kbd "R") #'mastodon-profile--view-follow-requests)
-    ;; (define-key map (kbd "C-c h") #'mastodon-async--stream-home)
-    ;; (define-key map (kbd "C-c f") #'mastodon-async--stream-federated)
-    ;; (define-key map (kbd "C-c l") #'mastodon-async--stream-local)
-    ;; (define-key map (kbd "C-c n") #'mastodon-async--stream-notifications)
     (define-key map (kbd "U") #'mastodon-profile--update-user-profile-note)
-    (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
-    (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
     (define-key map (kbd "v") #'mastodon-tl--poll-vote)
     (define-key map (kbd "k") #'mastodon-toot--bookmark-toot-toggle)
     (define-key map (kbd "K") #'mastodon-profile--view-bookmarks)
     (define-key map (kbd "I") #'mastodon-tl--view-filters)
     (define-key map (kbd "G") #'mastodon-tl--get-follow-suggestions)
+    (define-key map (kbd "X") #'mastodon-tl--view-lists)
+    (define-key map (kbd "@") #'mastodon-notifications--get-mentions)
+    (define-key map (kbd "e") #'mastodon-toot--edit-toot-at-point)
+    (define-key map (kbd "E") #'mastodon-toot--view-toot-edits)
     (when (require 'lingva nil :no-error)
       (define-key map (kbd "s") #'mastodon-toot--translate-toot-text))
     map)
@@ -214,7 +216,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
 
 (defface mastodon-handle-face
   '((t :inherit default))
-  "Face used for user display names.")
+  "Face used for user handles in bylines.")
 
 (defface mastodon-display-name-face
   '((t :inherit warning))
@@ -253,7 +255,9 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (if buffer
         (switch-to-buffer buffer)
       (mastodon-tl--get-home-timeline)
-      (message "Loading Mastodon account %s on %s..." (mastodon-auth--user-acct) mastodon-instance-url))))
+      (message "Loading Mastodon account %s on %s..."
+               (mastodon-auth--user-acct)
+               mastodon-instance-url))))
 
 ;;;###autoload
 (defun mastodon-toot (&optional user reply-to-id reply-json)
@@ -330,7 +334,7 @@ not, just browse the URL in the normal fashion."
                                     (mastodon-toot--enable-custom-emoji)))))
 
 ;;;###autoload
-(add-hook 'mastodon-mode-hook #'mastodon-profile-fetch-server-account-settings)
+(add-hook 'mastodon-mode-hook #'mastodon-profile--fetch-server-account-settings)
 
 (define-derived-mode mastodon-mode special-mode "Mastodon"
   "Major mode for Mastodon, the federated microblogging network."

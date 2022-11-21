@@ -1047,53 +1047,53 @@ correct value for following, as well as notifications enabled or disabled."
       (let ((response-buffer-true (current-buffer)))
         (insert mastodon-tl--follow-notify-true-response)
         (with-mock
-          (mock (mastodon-http--post url-follow-only nil nil)
-                => response-buffer-true)
-          (should
-           (equal
-            (mastodon-tl--do-user-action-function url-follow-only
-                                                  user-name
-                                                  user-handle
-                                                  "follow")
-            "User some-user (@some-user@instance.url) followed!"))
-          (mock (mastodon-http--post url-mute nil nil)
-                => response-buffer-true)
-          (should
-           (equal
-            (mastodon-tl--do-user-action-function url-mute
-                                                  user-name
-                                                  user-handle
-                                                  "mute")
-            "User some-user (@some-user@instance.url) muted!"))
-          (mock (mastodon-http--post url-block nil nil)
-                => response-buffer-true)
-          (should
-           (equal
-            (mastodon-tl--do-user-action-function url-block
-                                                  user-name
-                                                  user-handle
-                                                  "block")
-            "User some-user (@some-user@instance.url) blocked!")))
+         (mock (mastodon-http--post url-follow-only)
+               => response-buffer-true)
+         (should
+          (equal
+           (mastodon-tl--do-user-action-function url-follow-only
+                                                 user-name
+                                                 user-handle
+                                                 "follow")
+           "User some-user (@some-user@instance.url) followed!"))
+         (mock (mastodon-http--post url-mute)
+               => response-buffer-true)
+         (should
+          (equal
+           (mastodon-tl--do-user-action-function url-mute
+                                                 user-name
+                                                 user-handle
+                                                 "mute")
+           "User some-user (@some-user@instance.url) muted!"))
+         (mock (mastodon-http--post url-block)
+               => response-buffer-true)
+         (should
+          (equal
+           (mastodon-tl--do-user-action-function url-block
+                                                 user-name
+                                                 user-handle
+                                                 "block")
+           "User some-user (@some-user@instance.url) blocked!")))
         (with-mock
-          (mock (mastodon-http--post url-true nil nil) => response-buffer-true)
-          (should
-           (equal
-            (mastodon-tl--do-user-action-function url-true
-                                                  user-name
-                                                  user-handle
-                                                  "follow"
-                                                  "true")
-            "Receiving notifications for user some-user (@some-user@instance.url)!")))))
+         (mock (mastodon-http--post url-true) => response-buffer-true)
+         (should
+          (equal
+           (mastodon-tl--do-user-action-function url-true
+                                                 user-name
+                                                 user-handle
+                                                 "follow"
+                                                 "true")
+           "Receiving notifications for user some-user (@some-user@instance.url)!")))))
     (with-temp-buffer
       (let ((response-buffer-false (current-buffer)))
         (insert mastodon-tl--follow-notify-false-response)
         (with-mock
-          (mock (mastodon-http--post url-false nil nil) => response-buffer-false)
-          (should
-           (equal
-            (mastodon-tl--do-user-action-function url-false
-                                                  user-name
-                                                  user-handle
-                                                  "follow"
-                                                  "false")
-            "Not receiving notifications for user some-user (@some-user@instance.url)!")))))))
+         (mock (mastodon-http--post url-false) => response-buffer-false)
+         (should
+          (equal
+           (mastodon-tl--do-user-action-function url-false
+                                                 user-name
+                                                 user-handle
+                                                 "follow"
+                                                 "false")
+           "Not receiving notifications for user some-user (@some-user@instance.url)!")))))))

@@ -187,11 +187,11 @@
   "Ensure get request format for notifictions is accurate."
   (let ((mastodon-instance-url "https://instance.url"))
     (with-mock
-      (mock (mastodon-http--get-json "https://instance.url/api/v1/notifications"))
-      (mock (mastodon-profile-fetch-server-account-settings)
-            => '(max_toot_chars 1312 privacy "public" display_name "Eugen" discoverable t locked :json-false bot :json-false sensitive :json-false language ""))
+     (mock (mastodon-http--get-json "https://instance.url/api/v1/notifications"))
+     (mock (mastodon-profile--fetch-server-account-settings)
+           => '(max_toot_chars 1312 privacy "public" display_name "Eugen" discoverable t locked :json-false bot :json-false sensitive :json-false language ""))
 
-      (mastodon-notifications--get))))
+     (mastodon-notifications--get))))
 
 (defun mastodon-notifications--test-type (fun sample)
   "Test notification draw functions.

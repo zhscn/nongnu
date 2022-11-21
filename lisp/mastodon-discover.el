@@ -100,7 +100,7 @@
                        ("-" "zoom out" 'image-decrease-size)
                        ("u" "copy URL" 'shr-maybe-probe-and-copy-url))
                       ("Profile view"
-                       ("C-c C-c" "Cycle profile views" mastodon-profile-account-view-cycle))
+                       ("C-c C-c" "Cycle profile views" mastodon-profile--account-view-cycle))
                       ("Quit"
                        ("q" "Quit mastodon and bury buffer." kill-this-buffer)
                        ("Q" "Quit mastodon buffer and kill window." kill-buffer-and-window)))))))

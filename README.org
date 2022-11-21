@@ -122,6 +122,7 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 | =H=             | Open home timeline                                                    |
 | =L=             | Open local timeline                                                   |
 | =N=             | Open notifications timeline                                           |
+| =@=             | Open mentions-only notifications timeline                             |
 | =u=             | Update current timeline                                               |
 | =T=             | Open thread for toot under =point=                                      |
 | =#=             | Prompt for tag and open its timeline                                  |
@@ -137,6 +138,7 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 | =G=             | view follow suggestions                                               |
 | =V=             | view your favourited toots                                            |
 | =K=             | view bookmarked toots                                                 |
+| =X=             | view/edit/create/delete lists                                         |
 |---------------+-----------------------------------------------------------------------|
 |               | *Toot actions*                                                          |
 | =t=             | Compose a new toot                                                    |
@@ -148,13 +150,17 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 | =v=             | Vote on poll at point                                                 |
 | =C=             | copy url of toot at point                                             |
 | =C-RET=         | play video/gif at point (requires =mpv=)                                |
+| =e=             | edit your toot at point                                               |
+| =E=             | view edits of toot at point                                           |
 | =i=             | (un)pin your toot at point                                            |
 | =d=             | delete your toot at point, and reload current timeline                |
 | =D=             | delete and redraft toot at point, preserving reply/CW/visibility      |
-| (=S-C=) =W=, =M=, =B= | (un)follow, (un)mute, (un)block author of toot at point               |
+| (=S-C-=) =W=, =M=, =B= | (un)follow, (un)mute, (un)block author of toot at point               |
 |---------------+-----------------------------------------------------------------------|
 |               | Notifications view                                                    |
 | =a=, =j=          | accept/reject follow request                                          |
+| =c=             | clear notification at point                                           |
+|               | see =mastodon-notifications--get-*= functions for filtered views        |
 |---------------+-----------------------------------------------------------------------|
 |               | *Quitting*                                                              |
 | =q=             | Quit mastodon buffer, leave window open                               |
@@ -209,27 +215,34 @@ You can download and use your instance's custom emoji
 **** draft toots
 
 - Compose buffer text is saved as you type, kept in =mastodon-toot-current-toot-text=.
-- =mastodon-toot-save-draft=: save the current toot as a draft.
-- =mastodon-toot-open-draft-toot=: Open a compose buffer and insert one of your draft toots.
-- =mastodon-toot-delete-draft-toot=: Delete a draft toot.
-- =mastodon-toot-delete-all-drafts=: Delete all your drafts.
+- =mastodon-toot--save-draft=: save the current toot as a draft.
+- =mastodon-toot--open-draft-toot=: Open a compose buffer and insert one of your draft toots.
+- =mastodon-toot--delete-draft-toot=: Delete a draft toot.
+- =mastodon-toot--delete-all-drafts=: Delete all your drafts.
 
 *** Other commands and account settings:
 
 - =mastodon-url-lookup=: Attempt to load URL in =mastodon.el=. URL may be the one at point or provided in the minibuffer. Should also work if =mastodon.el= is not yet loaded.
 
-- =mastodon-tl-view-instance-description=: View information about the instance that the author of the toot at point is on.
-- =mastodon-tl-view-own-instance=: View information about your own instance.
-- =mastodon-search-trending-tags=: View a list of trending hashtags on your instance.
 
-- =mastodon-profile-update-display-name=: Update the display name for your account.
-- =mastodon-profile-update-user-profile-note=: Update your bio note.
-- =mastodon-profile-update-meta-fields=: Update your metadata fields.
-- =mastodon-profile-set-default-toot-visibility=: Set the default visibility for your toots.
-- =mastodon-profile-account-locked-toggle=: Toggle the locked status of your account. Locked accounts have to manually approve follow requests.
-- =mastodon-profile-account-discoverable-toggle=: Toggle the discoverable status of your account. Non-discoverable accounts are not listed in the profile directory.
-- =mastodon-profile-account-bot-toggle=: Toggle whether your account is flagged as a bot.
-- =mastodon-profile-account-sensitive-toggle=: Toggle whether your posts are marked as sensitive (nsfw) by default.
+- =mastodon-tl--view-instance-description=: View information about the instance that the author of the toot at point is on.
+- =mastodon-tl--view-own-instance=: View information about your own instance.
+- =mastodon-search--trending-tags=: View a list of trending hashtags on your instance.
+
+
+- =mastodon-tl--follow-tag=: Follow a tag (works like following a user)
+- =mastodon-tl--unfollow-tag=: Unfollow a tag
+- =mastodon-tl--list-followed-tags=: View a list of tags you're following.
+
+
+- =mastodon-profile--update-display-name=: Update the display name for your account.
+- =mastodon-profile--update-user-profile-note=: Update your bio note.
+- =mastodon-profile--update-meta-fields=: Update your metadata fields.
+- =mastodon-profile--set-default-toot-visibility=: Set the default visibility for your toots.
+- =mastodon-profile--account-locked-toggle=: Toggle the locked status of your account. Locked accounts have to manually approve follow requests.
+- =mastodon-profile--account-discoverable-toggle=: Toggle the discoverable status of your account. Non-discoverable accounts are not listed in the profile directory.
+- =mastodon-profile--account-bot-toggle=: Toggle whether your account is flagged as a bot.
+- =mastodon-profile--account-sensitive-toggle=: Toggle whether your posts are marked as sensitive (nsfw) by default.
 
 *** Customization
 
@@ -255,7 +268,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
 Works for federated, local, and home timelines and for notifications. It's a
 little touchy, one thing to avoid is trying to load a timeline more than once
 at a time. It can go off the rails a bit, but it's still pretty cool. The
-current maintainer of =mastodon.el= is unable to debug improve this feature.
+current maintainer of =mastodon.el= is unable to debug or improve this feature.
 
 To enable, it, add =(require 'mastodon-async)= to your =init.el=. Then you can
 view a timeline with one of the commands that begin with
@@ -313,7 +326,7 @@ PRs, issues, feature requests, and general feedback are very welcome!
 
 1. Create an [[https://codeberg.org/martianh/mastodon.el/issues][issue]] detailing what you'd like to do.
 2. Fork the repository and create a branch off of =develop=.
-3. Run the tests against your code and ensure it doesn't break any of them.
+3. Run the tests and ensure that your code doesn't break any of them.
 4. Create a pull request referencing the issue created in step 1.
 
 ** Supporting mastodon.el

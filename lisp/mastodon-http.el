@@ -89,8 +89,11 @@ Message status and JSON error from RESPONSE if unsuccessful."
     (if (string-prefix-p "2" status)
         (funcall success)
       (switch-to-buffer response)
-      (let ((json-response (mastodon-http--process-json)))
-        (message "Error %s: %s" status (alist-get 'error json-response))))))
+      ;; 404 returns http response not JSON:
+      (if (string-prefix-p "404" status)
+          (message "Error %s: page not found" status)
+        (let ((json-response (mastodon-http--process-json)))
+          (message "Error %s: %s" status (alist-get 'error json-response)))))))
 
 (defun mastodon-http--read-file-as-string (filename)
   "Read a file FILENAME as a string. Used to generate image preview."
@@ -121,8 +124,14 @@ Unless UNAUTHENTICATED-P is non-nil."
              args
              "&"))
 
-(defun mastodon-http--post (url args headers &optional unauthenticated-p)
-  "POST synchronously to URL with ARGS and HEADERS.
+(defun mastodon-http--build-array-args-alist (param-str array)
+  "Return parameters alist using PARAM-STR and ARRAY param values.
+Used for API form data parameters that take an array."
+  (cl-loop for x in array
+           collect (cons param-str x)))
+
+(defun mastodon-http--post (url &optional args headers unauthenticated-p)
+  "POST synchronously to URL, optionally with ARGS and HEADERS.
 
 Authorization header is included by default unless UNAUTHENTICATED-P is non-nil."
   (mastodon-http--authorized-request
@@ -203,12 +212,31 @@ Callback to `mastodon-http--get-response-async', usually
                 (cons (car list) (cadr list))))
             head-list)))
 
-(defun mastodon-http--delete (url)
+(defun mastodon-http--delete (url &optional args)
   "Make DELETE request to URL."
+  (let ((url-request-data
+         (when args
+           (mastodon-http--build-query-string args))))
+    (mastodon-http--authorized-request
+     "DELETE"
+     (with-temp-buffer
+       (mastodon-http--url-retrieve-synchronously url)))))
+
+(defun mastodon-http--put (url &optional args headers)
+  "Make PUT request to URL."
   (mastodon-http--authorized-request
-   "DELETE"
-   (with-temp-buffer
-     (mastodon-http--url-retrieve-synchronously url))))
+   "PUT"
+   (let ((url-request-data
+          (when args
+            (mastodon-http--build-query-string args)))
+         (url-request-extra-headers
+          (append url-request-extra-headers ; auth set in macro
+                  ;; pleroma compat:
+                  (unless (assoc "Content-Type" headers)
+                    '(("Content-Type" . "application/x-www-form-urlencoded")))
+                  headers)))
+     (with-temp-buffer
+       (mastodon-http--url-retrieve-synchronously url)))))
 
 (defun mastodon-http--append-query-string (url params)
   "Append PARAMS to URL as query strings and return it.
