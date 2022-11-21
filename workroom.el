@@ -921,10 +921,17 @@ ROOM is should be a workroom, or a name of a workroom."
   (when (workroom-default-p room)
     (error "Cannot kill default workroom"))
   (when (eq room (workroom-current-room))
-    (workroom-switch-view (workroom-get-default)
-                          (workroom-view-get-create
-                           (workroom-get-default)
-                           workroom-default-view-name)))
+    (workroom-switch
+     (let ((r (cond
+               ((and (eq (car (workroom-previous-room-list))
+                         (workroom-current-room))
+                     (> (length (workroom-previous-room-list)) 1))
+                (cadr (workroom-previous-room-list)))
+               ((car (workroom-previous-room-list)))
+               (t (workroom-get-default)))))
+       (if (eq r room)
+           (workroom-get-default)
+         r))))
   (setf (workroom--room-name room) nil)
   (setq workroom--rooms (delete room workroom--rooms))
   (dolist (frame (frame-list))
