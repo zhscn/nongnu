@@ -169,13 +169,13 @@ take place if your =mastodon-token-file= does not contain =:client_id= and
 
 **** Toot byline legend
 
-|----------------+------------------------|
-| Marker         | Meaning                |
-|----------------+------------------------|
-| =(B)=            | I boosted this toot    |
-| =(F)=            | I favourited this toot |
-| (=K=) (or emoji) | I bookmarked this toot |
-|----------------+------------------------|
+|---------------+------------------------|
+| Marker        | Meaning                |
+|---------------+------------------------|
+| =(B)=           | I boosted this toot    |
+| =(F)=           | I favourited this toot |
+| =(🔖)= (or (=K=)) | I bookmarked this toot |
+|---------------+------------------------|
 
 *** Composing toots
 
