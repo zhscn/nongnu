@@ -728,7 +728,7 @@ instance to edit a toot."
 (defun mastodon-toot--get-toot-source (id)
   "Fetch the source JSON of toot with ID."
   (let ((url (mastodon-http--api (format "/statuses/%s/source" id))))
-    (mastodon-http--get-json url :silent)))
+    (mastodon-http--get-json url nil :silent)))
 
 (defun mastodon-toot--get-toot-edits (id)
   "Return the edit history of toot with ID."

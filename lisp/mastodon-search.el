@@ -61,7 +61,7 @@ Returns a nested list containing user handle, display name, and URL."
   (interactive "sSearch mastodon for: ")
   (let* ((url (mastodon-http--api "accounts/search"))
          (response (if (equal mastodon-toot--completion-style-for-mentions "following")
-                       (mastodon-http--get-search-json url query "following=true")
+                       (mastodon-http--get-search-json url query '(("following" . "true")))
                      (mastodon-http--get-search-json url query))))
     (mapcar #'mastodon-search--get-user-info-@ response)))
 
@@ -72,7 +72,7 @@ Returns a nested list containing user handle, display name, and URL."
 QUERY is the string to search."
   (interactive "sSearch for hashtag: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
-         (type-param (concat "type=hashtags"))
+         (type-param '(("type" . "hashtags")))
          (response (mastodon-http--get-search-json url query type-param))
          (tags (alist-get 'hashtags response)))
     (mapcar #'mastodon-search--get-hashtag-info tags)))

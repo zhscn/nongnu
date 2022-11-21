@@ -151,27 +151,34 @@ Authorization header is included by default unless UNAUTHENTICATED-P is non-nil.
        (mastodon-http--url-retrieve-synchronously url)))
    unauthenticated-p))
 
-(defun mastodon-http--get (url &optional silent)
+(defun mastodon-http--get (url &optional params silent)
   "Make synchronous GET request to URL.
-Pass response buffer to CALLBACK function.
+PARAMS is an alist of any extra parameters to send with the request.
 SILENT means don't message."
   (mastodon-http--authorized-request
    "GET"
-   (mastodon-http--url-retrieve-synchronously url silent)))
+   ;; url-request-data doesn't seem to work with GET requests:
+   (let ((url (if params
+                  (concat url "?"
+                          (mastodon-http--build-query-string params))
+                url)))
+     (mastodon-http--url-retrieve-synchronously url silent))))
 
-(defun mastodon-http--get-response (url &optional no-headers silent vector)
+(defun mastodon-http--get-response (url &optional params no-headers silent vector)
   "Make synchronous GET request to URL. Return JSON and response headers.
+PARAMS is an alist of any extra parameters to send with the request.
 SILENT means don't message.
 NO-HEADERS means don't collect http response headers.
 VECTOR means return json arrays as vectors."
-  (with-current-buffer (mastodon-http--get url silent)
+  (with-current-buffer (mastodon-http--get url params silent)
     (mastodon-http--process-response no-headers vector)))
 
-(defun mastodon-http--get-json (url &optional silent vector)
+(defun mastodon-http--get-json (url &optional params silent vector)
   "Return only JSON data from URL request.
+PARAMS is an alist of any extra parameters to send with the request.
 SILENT means don't message.
 VECTOR means return json arrays as vectors."
-  (car (mastodon-http--get-response url :no-headers silent vector)))
+  (car (mastodon-http--get-response url params :no-headers silent vector)))
 
 (defun mastodon-http--process-json ()
   "Return only JSON data from async URL request.
@@ -214,35 +221,37 @@ Callback to `mastodon-http--get-response-async', usually
                 (cons (car list) (cadr list))))
             head-list)))
 
-(defun mastodon-http--delete (url &optional args)
-  "Make DELETE request to URL."
-  (let ((url-request-data
-         (when args
-           (mastodon-http--build-query-string args))))
+(defun mastodon-http--delete (url &optional params)
+  "Make DELETE request to URL.
+PARAMS is an alist of any extra parameters to send with the request."
+  ;; url-request-data only works with POST requests?
+  (let ((url
+         (if params
+             (concat url "?"
+                     (mastodon-http--build-query-string params))
+           url)))
     (mastodon-http--authorized-request
      "DELETE"
      (with-temp-buffer
        (mastodon-http--url-retrieve-synchronously url)))))
 
-(defun mastodon-http--put (url &optional args headers)
-  "Make PUT request to URL."
+(defun mastodon-http--put (url &optional params headers)
+  "Make PUT request to URL.
+PARAMS is an alist of any extra parameters to send with the request."
   (mastodon-http--authorized-request
    "PUT"
    (let ((url-request-data
-          (when args
-            (mastodon-http--build-query-string args)))
+          (when args (mastodon-http--build-query-string params)))
          (url-request-extra-headers
           (append url-request-extra-headers ; auth set in macro
                   ;; pleroma compat:
                   (unless (assoc "Content-Type" headers)
                     '(("Content-Type" . "application/x-www-form-urlencoded")))
                   headers)))
-     (with-temp-buffer
-       (mastodon-http--url-retrieve-synchronously url)))))
+     (with-temp-buffer (mastodon-http--url-retrieve-synchronously url)))))
 
 (defun mastodon-http--append-query-string (url params)
   "Append PARAMS to URL as query strings and return it.
-
 PARAMS should be an alist as required by `url-build-query-string'."
   (let ((query-string (url-build-query-string params)))
     (concat url "?" query-string)))
@@ -259,24 +268,25 @@ PARAMS should be an alist as required by `url-build-query-string'."
     (kill-buffer)
     (json-read-from-string json-string)))
 
-(defun mastodon-http--get-search-json (url query &optional param silent)
+(defun mastodon-http--get-search-json (url query &optional params silent)
   "Make GET request to URL, searching for QUERY and return JSON response.
-PARAM is any extra parameters to send with the request.
+PARAMS is an alist of any extra parameters to send with the request.
 SILENT means don't message."
-  (let ((buffer (mastodon-http--get-search url query param silent)))
+  (let ((buffer (mastodon-http--get-search url query params silent)))
     (with-current-buffer buffer
       (mastodon-http--process-json-search))))
 
-(defun mastodon-http--get-search (base-url query &optional param silent)
+(defun mastodon-http--get-search (base-url query &optional params silent)
   "Make GET request to BASE-URL, searching for QUERY.
 Pass response buffer to CALLBACK function.
-PARAM is a formatted request parameter, eg 'following=true'.
+PARAMS is an alist of any extra parameters to send with the request.
 SILENT means don't message."
   (mastodon-http--authorized-request
    "GET"
-   (let ((url (if param
-                  (concat base-url "?" param "&q=" (url-hexify-string query))
-                (concat base-url "?q=" (url-hexify-string query)))))
+   (let* ((query-str (mastodon-http--build-query-string
+                      `(("q" . ,(url-hexify-string query)))))
+          (params-str (mastodon-http--build-query-string params))
+          (url (concat base-url "?" query-str params-str)))
      (mastodon-http--url-retrieve-synchronously url silent))))
 
 ;; profile update functions
@@ -299,12 +309,17 @@ Optionally specify the PARAMS to send."
 
  ;; Asynchronous functions
 
-(defun mastodon-http--get-async (url &optional callback &rest cbargs)
+(defun mastodon-http--get-async (url &optional params callback &rest cbargs)
   "Make GET request to URL.
-Pass response buffer to CALLBACK function with args CBARGS."
-  (mastodon-http--authorized-request
-   "GET"
-   (url-retrieve url callback cbargs)))
+Pass response buffer to CALLBACK function with args CBARGS.
+PARAMS is an alist of any extra parameters to send with the request."
+  (let ((url (if params
+                 (concat url "?"
+                         (mastodon-http--build-query-string params))
+               url)))
+    (mastodon-http--authorized-request
+     "GET"
+     (url-retrieve url callback cbargs))))
 
 (defun mastodon-http--get-response-async (url callback &rest args)
   "Make GET request to URL. Call CALLBACK with http response and ARGS."
@@ -314,9 +329,11 @@ Pass response buffer to CALLBACK function with args CBARGS."
      (when status ;; only when we actually get sth?
        (apply callback (mastodon-http--process-response) args)))))
 
-(defun mastodon-http--get-json-async (url callback &rest args)
-  "Make GET request to URL. Call CALLBACK with json-list and ARGS."
+(defun mastodon-http--get-json-async (url &optional params callback &rest args)
+  "Make GET request to URL. Call CALLBACK with json-list and ARGS.
+PARAMS is an alist of any extra parameters to send with the request."
   (mastodon-http--get-async
+   params
    url
    (lambda (status)
      (when status ;; only when we actually get sth?
