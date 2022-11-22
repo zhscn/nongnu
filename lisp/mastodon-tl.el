@@ -499,7 +499,7 @@ The result is added as an attachments property to author-byline."
   (let ((reblog (alist-get 'reblog toot)))
     (when reblog
       (concat
-       "\n "
+       "\n  "
        (propertize "Boosted" 'face 'mastodon-boosted-face)
        " "
        (mastodon-tl--byline-author reblog)))))
