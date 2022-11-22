@@ -222,7 +222,10 @@ You can download and use your instance's custom emoji
 
 *** Other commands and account settings:
 
-- =mastodon-url-lookup=: Attempt to load URL in =mastodon.el=. URL may be the one at point or provided in the minibuffer. Should also work if =mastodon.el= is not yet loaded.
+In addition to =mastodon=, the following functions are autoloaded and should work without first loading =mastodon.el=:
+- =mastodon-toot=: Compose new toot
+- =mastodon-notifications-get=: View all notifications
+- =mastodon-url-lookup=: Attempt to load a URL in =mastodon.el=. URL may be at point or provided in the minibuffer.
 
 
 - =mastodon-tl--view-instance-description=: View information about the instance that the author of the toot at point is on.

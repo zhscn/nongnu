@@ -57,7 +57,6 @@
 (autoload 'mastodon-tl--thread "mastodon-tl")
 (autoload 'mastodon-tl--toggle-spoiler-text-in-toot "mastodon-tl")
 (autoload 'mastodon-tl--update "mastodon-tl")
-(autoload 'mastodon-notifications--get "mastodon-notifications")
 (autoload 'mastodon-profile--get-toot-author "mastodon-profile")
 (autoload 'mastodon-profile--make-author-buffer "mastodon-profile")
 (autoload 'mastodon-profile--show-user "mastodon-profile")
@@ -96,6 +95,10 @@
 (autoload 'mastodon-tl--view-lists "mastodon-tl")
 (autoload 'mastodon-toot--edit-toot-at-point "mastodon-toot")
 (autoload 'mastodon-toot--view-toot-history "mastodon-tl")
+(autoload 'mastodon-tl--init-sync "mastodon-tl")
+(autoload 'mastodon-notifications--timeline "mastodon-notifications")
+
+(defvar mastodon-notifications--map)
 
 (defgroup mastodon nil
   "Interface with Mastodon."
@@ -160,7 +163,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "F") #'mastodon-tl--get-federated-timeline)
     (define-key map (kbd "H") #'mastodon-tl--get-home-timeline)
     (define-key map (kbd "L") #'mastodon-tl--get-local-timeline)
-    (define-key map (kbd "N") #'mastodon-notifications--get)
+    (define-key map (kbd "N") #'mastodon-notifications-get)
     (define-key map (kbd "P") #'mastodon-profile--show-user)
     (define-key map (kbd "T") #'mastodon-tl--thread)
     ;; navigation out of mastodon
@@ -267,6 +270,25 @@ If REPLY-TO-ID is non-nil, attach new toot to a conversation.
 If REPLY-JSON is the json of the toot being replied to."
   (interactive)
   (mastodon-toot--compose-buffer user reply-to-id reply-json))
+
+;;;###autoload
+(defun mastodon-notifications-get (&optional type buffer-name)
+  "Display NOTIFICATIONS in buffer.
+Optionally only print notifications of type TYPE, a string.
+BUFFER-NAME is added to \"*mastodon-\" to create the buffer name."
+  (interactive)
+  (let ((buffer (or (concat "*mastodon-" buffer-name "*")
+                    "*mastodon-notifications*")))
+    (if (get-buffer buffer)
+        (progn (switch-to-buffer buffer)
+               (mastodon-tl--update))
+      (message "Loading your notifications...")
+      (mastodon-tl--init-sync
+       (or buffer-name "notifications")
+       "notifications"
+       'mastodon-notifications--timeline
+       type)
+      (use-local-map mastodon-notifications--map))))
 
 ;; URL lookup: should be available even if `mastodon.el' not loaded:
 

@@ -61,7 +61,7 @@
 (autoload 'mastodon-profile--lookup-account-in-status "mastodon-profile")
 (autoload 'mastodon-profile-mode "mastodon-profile")
 ;; make notifications--get available via M-x and outside our keymap:
-(autoload 'mastodon-notifications--get "mastodon-notifications"
+(autoload 'mastodon-notifications-get "mastodon-notifications"
   "Display NOTIFICATIONS in buffer." t) ; interactive
 (autoload 'mastodon-search--propertize-user "mastodon-search")
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
@@ -2250,7 +2250,7 @@ For use after e.g. deleting a toot."
         ((equal (mastodon-tl--get-endpoint) "timelines/public?local=true")
          (mastodon-tl--get-local-timeline))
         ((equal (mastodon-tl--get-endpoint) "notifications")
-         (mastodon-notifications--get))
+         (mastodon-notifications-get))
         ((equal (mastodon-tl--buffer-name)
                 (concat "*mastodon-" (mastodon-auth--get-account-name) "-statuses*"))
          (mastodon-profile--my-profile))
