@@ -1493,7 +1493,7 @@ If ID is provided, use that list."
   (interactive)
   (let* ((list-names (unless id (mastodon-tl--get-lists-names)))
          (name-old (if id
-                       (get-text-property (point) 'list-id)
+                       (get-text-property (point) 'list-name)
                      (completing-read "Edit list: "
                                       list-names)))
          (id (or id (mastodon-tl--get-list-id name-old)))
@@ -1637,7 +1637,7 @@ a: add account to this list, r: remove account from this list"
 If ID is provided, use that list."
   (interactive)
   (let* ((list-name (if id
-                        (get-text-property (point) 'list-id)
+                        (get-text-property (point) 'list-name)
                       (completing-read "Add account to list: "
                                        (mastodon-tl--get-lists-names) nil t)))
          (list-id (or id (mastodon-tl--get-list-id list-name)))
@@ -1667,7 +1667,7 @@ If ID is provided, use that list."
 If ID is provided, use that list."
   (interactive)
   (let* ((list-name (if id
-                        (get-text-property (point) 'list-id)
+                        (get-text-property (point) 'list-name)
                       (completing-read "Remove account from list: "
                                        (mastodon-tl--get-lists-names) nil t)))
          (list-id (or id (mastodon-tl--get-list-id list-name)))
