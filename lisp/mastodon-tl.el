@@ -74,8 +74,8 @@
 (autoload 'mastodon-auth--get-account-id "mastodon-auth")
 (autoload 'mastodon-http--put "mastodon-http")
 (autoload 'mastodon-http--process-json "mastodon-http")
-(autoload 'mastodon-http--build-array-args-alist "mastodon-http")
-(autoload 'mastodon-http--build-query-string "mastodon-http")
+(autoload 'mastodon-http--build-array-params-alist "mastodon-http")
+(autoload 'mastodon-http--build-params-string "mastodon-http")
 (autoload 'mastodon-notifications--filter-types-list "mastodon-notifications")
 (autoload 'mastodon-toot--get-toot-edits "mastodon-toot")
 
@@ -1678,7 +1678,7 @@ If ID is provided, use that list."
                                    handles nil t))
          (account-id (alist-get account handles nil nil 'equal))
          (url (mastodon-http--api (format "lists/%s/accounts" list-id)))
-         (args (mastodon-http--build-array-args-alist "account_ids[]" `(,account-id)))
+         (args (mastodon-http--build-array-params-alist "account_ids[]" `(,account-id)))
          (response (mastodon-http--delete url args)))
     (mastodon-tl--list-action-triage
      response
@@ -2517,10 +2517,10 @@ Runs synchronously.
 Optional arg NOTE-TYPE means only get that type of note."
   (let* ((exclude-types (when note-type
                           (mastodon-notifications--filter-types-list note-type)))
-         (args (when note-type (mastodon-http--build-array-args-alist
+         (args (when note-type (mastodon-http--build-array-params-alist
                                 "exclude_types[]" exclude-types)))
          ;; (query-string (when note-type
-         ;; (mastodon-http--build-query-string args)))
+         ;; (mastodon-http--build-params-string args)))
          ;; add note-type exclusions to endpoint so it works in `mastodon-tl--buffer-spec'
          ;; that way `mastodon-tl--more' works seamlessly too:
          ;; (endpoint (if note-type (concat endpoint "?" query-string) endpoint))

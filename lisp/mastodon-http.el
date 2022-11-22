@@ -114,19 +114,19 @@ Unless UNAUTHENTICATED-P is non-nil."
                         (concat "Bearer " (mastodon-auth--access-token)))))))
      ,body))
 
-(defun mastodon-http--build-query-string (args)
-  "Build a request query string from ARGS."
+(defun mastodon-http--build-params-string (params)
+  "Build a request parameters string from parameters alist PARAMS."
   ;; (url-build-query-string args nil))
   ;; url-build-query-string adds 'nil' to empty params so lets stay with our
   ;; own:
-  (mapconcat (lambda (arg)
-               (concat (url-hexify-string (car arg))
+  (mapconcat (lambda (p)
+               (concat (url-hexify-string (car p))
                        "="
-                       (url-hexify-string (cdr arg))))
-             args
+                       (url-hexify-string (cdr p))))
+             params
              "&"))
 
-(defun mastodon-http--build-array-args-alist (param-str array)
+(defun mastodon-http--build-array-params-alist (param-str array)
   "Return parameters alist using PARAM-STR and ARRAY param values.
 Used for API form data parameters that take an array."
   (cl-loop for x in array
@@ -140,7 +140,7 @@ Authorization header is included by default unless UNAUTHENTICATED-P is non-nil.
    "POST"
    (let ((url-request-data
           (when args
-            (mastodon-http--build-query-string args)))
+            (mastodon-http--build-params-string args)))
          (url-request-extra-headers
           (append url-request-extra-headers ; auth set in macro
                   ;; pleroma compat:
@@ -160,7 +160,7 @@ SILENT means don't message."
    ;; url-request-data doesn't seem to work with GET requests:
    (let ((url (if params
                   (concat url "?"
-                          (mastodon-http--build-query-string params))
+                          (mastodon-http--build-params-string params))
                 url)))
      (mastodon-http--url-retrieve-synchronously url silent))))
 
@@ -228,7 +228,7 @@ PARAMS is an alist of any extra parameters to send with the request."
   (let ((url
          (if params
              (concat url "?"
-                     (mastodon-http--build-query-string params))
+                     (mastodon-http--build-params-string params))
            url)))
     (mastodon-http--authorized-request
      "DELETE"
@@ -241,7 +241,7 @@ PARAMS is an alist of any extra parameters to send with the request."
   (mastodon-http--authorized-request
    "PUT"
    (let ((url-request-data
-          (when args (mastodon-http--build-query-string params)))
+          (when args (mastodon-http--build-params-string params)))
          (url-request-extra-headers
           (append url-request-extra-headers ; auth set in macro
                   ;; pleroma compat:
@@ -271,7 +271,7 @@ Optionally specify the PARAMS to send."
    "PATCH"
    (let ((url
           (concat base-url "?"
-                  (mastodon-http--build-query-string params))))
+                  (mastodon-http--build-params-string params))))
      (mastodon-http--url-retrieve-synchronously url))))
 
  ;; Asynchronous functions
@@ -282,7 +282,7 @@ Pass response buffer to CALLBACK function with args CBARGS.
 PARAMS is an alist of any extra parameters to send with the request."
   (let ((url (if params
                  (concat url "?"
-                         (mastodon-http--build-query-string params))
+                         (mastodon-http--build-params-string params))
                url)))
     (mastodon-http--authorized-request
      "GET"
@@ -316,7 +316,7 @@ Authorization header is included by default unless UNAUTHENTICED-P is non-nil."
    (let ((request-timeout 5)
          (url-request-data
           (when args
-            (mastodon-http--build-query-string args))))
+            (mastodon-http--build-params-string args))))
      (with-temp-buffer
        (url-retrieve url callback cbargs)))))
 

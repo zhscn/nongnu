@@ -79,7 +79,7 @@
 (autoload 'mastodon-profile--fetch-server-account-settings "mastodon-profile")
 (autoload 'mastodon-tl--render-text "mastodon-tl")
 (autoload 'mastodon-profile--fetch-server-account-settings-maybe "mastodon-profile")
-(autoload 'mastodon-http--build-array-args-alist "mastodon-http")
+(autoload 'mastodon-http--build-array-params-alist "mastodon-http")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl")
 (autoload 'mastodon-http--put "mastodon-http")
 
@@ -631,7 +631,7 @@ to `emojify-user-emojis', and the emoji data is updated."
 (defun mastodon-toot--build-poll-params ()
   "Return an alist of parameters for POSTing a poll status."
   (append
-   (mastodon-http--build-array-args-alist
+   (mastodon-http--build-array-params-alist
     "poll[options][]"
     (plist-get mastodon-toot-poll :options))
    `(("poll[expires_in]" .  ,(plist-get mastodon-toot-poll :expiry)))
@@ -664,7 +664,7 @@ instance to edit a toot."
                                             (symbol-name t)))
                           ("spoiler_text" . ,spoiler)))
          (args-media (when mastodon-toot--media-attachments
-                       (mastodon-http--build-array-args-alist
+                       (mastodon-http--build-array-params-alist
                         "media_ids[]"
                         mastodon-toot--media-attachment-ids)))
          (args-poll (when mastodon-toot-poll
