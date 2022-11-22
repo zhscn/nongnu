@@ -1475,7 +1475,8 @@ a draft into the buffer."
         (set (make-local-variable 'company-backends)
              (add-to-list 'company-backends 'mastodon-toot-mentions))
         (add-to-list 'company-backends 'mastodon-toot-tags))
-      (company-mode-on))
+      (unless (bound-and-true-p corfu-mode) ; don't clash w corfu mode
+        (company-mode-on)))
     (make-local-variable 'after-change-functions)
     (push #'mastodon-toot--update-status-fields after-change-functions)
     (mastodon-toot--refresh-attachments-display)
