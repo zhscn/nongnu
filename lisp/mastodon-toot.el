@@ -1469,14 +1469,24 @@ a draft into the buffer."
       ;; no need to fetch from `mastodon-profile-account-settings' as
       ;; `mastodon-toot--max-toot-chars' is set when we set it
       (mastodon-toot--get-max-toot-chars))
-    ;; set up company backends:
+    ;; set up completion backends:
     (when (require 'company nil :noerror)
       (when mastodon-toot--enable-completion
-        (set (make-local-variable 'company-backends)
-             (add-to-list 'company-backends 'mastodon-toot-mentions))
-        (add-to-list 'company-backends 'mastodon-toot-tags))
-      (unless (bound-and-true-p corfu-mode) ; don't clash w corfu mode
-        (company-mode-on)))
+        ;; convert our company backends into capfs for use with corfu:
+        ;; FIXME replace this with a customize
+        (if (and (require 'cape nil :noerror)
+                 (bound-and-true-p corfu-mode))
+            (dolist (company-backend (list #'mastodon-toot-tags #'mastodon-toot-mentions))
+              (add-hook 'completion-at-point-functions
+                        (cape-company-to-capf company-backend)
+                        nil
+                        'local))
+          ;; else stick with company:
+          (set (make-local-variable 'company-backends)
+               (add-to-list 'company-backends 'mastodon-toot-mentions))
+          (add-to-list 'company-backends 'mastodon-toot-tags))
+        (unless (bound-and-true-p corfu-mode) ; don't clash w corfu mode
+          (company-mode-on))))
     (make-local-variable 'after-change-functions)
     (push #'mastodon-toot--update-status-fields after-change-functions)
     (mastodon-toot--refresh-attachments-display)
