@@ -666,24 +666,25 @@ this just means displaying toot client."
                           'face 'mastodon-display-name-face
                           'follow-link t
                           'mouse-face 'highlight
-		          'mastodon-tab-stop 'shr-url
-		          'shr-url app-url
+		                  'mastodon-tab-stop 'shr-url
+		                  'shr-url app-url
                           'help-echo app-url
-		          'keymap mastodon-tl--shr-map-replacement)))))
-       (when edited-time
-         (concat
-          (if (fontp (char-displayable-p #10r128274))
-              " ✍ "
-            " [edited] ")
-          (propertize
-           (format-time-string mastodon-toot-timestamp-format
-                               edited-parsed)
-           'face 'font-lock-comment-face
-           'timestamp edited-parsed
-           'display (if mastodon-tl--enable-relative-timestamps
-                        (mastodon-tl--relative-time-description edited-parsed)
-                      edited-parsed))))
-       (propertize "\n  ------------\n" 'face 'default))
+		                  'keymap mastodon-tl--shr-map-replacement)))))
+       (if edited-time
+           (concat
+            (if (fontp (char-displayable-p #10r128274))
+                " ✍ "
+              " [edited] ")
+            (propertize
+             (format-time-string mastodon-toot-timestamp-format
+                                 edited-parsed)
+             'face 'font-lock-comment-face
+             'timestamp edited-parsed
+             'display (if mastodon-tl--enable-relative-timestamps
+                          (mastodon-tl--relative-time-description edited-parsed)
+                        edited-parsed)))
+         "")
+       (propertize "\n  ------------\n  " 'face 'default))
       'favourited-p faved
       'boosted-p    boosted
       'bookmarked-p bookmarked
