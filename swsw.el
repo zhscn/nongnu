@@ -94,18 +94,25 @@
   :group 'convenience
   :prefix "swsw-")
 
+(defun swsw--set-and-maybe-update (sym val)
+  "Set SYM's variable cell to VAL and call `swsw--update' conditionally."
+  (set-default sym val)
+  (and (boundp swsw-mode) swsw-mode (swsw--update)))
+
 (defcustom swsw-id-chars '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
   "Base set of characters from which window IDs are constructed.
 This list should contain at least two characters."
   :link '(info-link "(swsw) Customization")
-  :type '(repeat character)
+  :type '( repeat :validate
+           (lambda (w)
+             (unless (nth 1 (widget-value w))
+               (widget-put
+                w :error
+                "`swsw-id-chars' should contain at least two characters")
+               w))
+           character)
   :initialize #'custom-initialize-changed
-  :set (lambda (sym chars)
-         (unless (nth 1 chars)
-           (user-error
-            "`swsw-id-chars' should contain at least two characters"))
-         (set-default sym chars)
-         (swsw--update))
+  :set #'swsw--set-and-maybe-update
   :risky t
   :package-version '(swsw . 1.0))
 
@@ -125,9 +132,7 @@ This list should contain at least two characters."
                  :tag "All windows on the currently selected frame"
                  current))
   :initialize #'custom-initialize-changed
-  :set (lambda (sym scope)
-         (set-default sym scope)
-         (swsw--update))
+  :set #'swsw--set-and-maybe-update
   :risky t
   :package-version '(swsw . 1.1))
 
@@ -159,8 +164,8 @@ compatibility (see `swsw-display-function')."
          (and (boundp sym) (functionp (symbol-value sym))
               (funcall (symbol-value sym) nil))
          (set-default sym fun)
-         (when (functionp fun)
-           (funcall fun t)))
+         (and (boundp swsw-mode) (functionp fun)
+              (funcall fun swsw-mode)))
   :package-version '(swsw . 2.2))
 
 (defcustom swsw-mode-hook nil
