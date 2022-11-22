@@ -385,9 +385,12 @@ TYPE is a symbol, either 'favourite or 'boost."
       (message (format "Nothing to %s here?!?" action)))))
 
 (defun mastodon-toot--copy-toot-url ()
-  "Copy URL of toot at point."
+  "Copy URL of toot at point.
+If the toot is a fave/boost notification, copy the URLof the
+base toot."
   (interactive)
-  (let* ((toot (mastodon-tl--property 'toot-json))
+  (let* ((toot (or (mastodon-tl--property 'base-toot)
+                   (mastodon-tl--property 'toot-json)))
          (url (if (mastodon-tl--field 'reblog toot)
                   (alist-get 'url (alist-get 'reblog toot))
                 (alist-get 'url toot))))
@@ -395,9 +398,12 @@ TYPE is a symbol, either 'favourite or 'boost."
     (message "Toot URL copied to the clipboard.")))
 
 (defun mastodon-toot--copy-toot-text ()
-  "Copy text of toot at point."
+  "Copy text of toot at point.
+If the toot is a fave/boost notification, copy the text of the
+base toot."
   (interactive)
-  (let* ((toot (mastodon-tl--property 'toot-json)))
+  (let* ((toot (or (mastodon-tl--property 'base-toot)
+                   (mastodon-tl--property 'toot-json))))
     (kill-new (mastodon-tl--content toot))
     (message "Toot content copied to the clipboard.")))
 
