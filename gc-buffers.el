@@ -102,8 +102,9 @@ not have any side-effect."
       (dolist (buffer (buffer-list))
         (when (not (run-hook-with-args-until-success
                     'gc-buffers-ignore-functions buffer))
-          (let ((kill-fn (run-hook-with-args-until-success
-                          'gc-buffers-functions buffer)))
+          (let ((kill-fn (ignore-errors
+                           (run-hook-with-args-until-success
+                            'gc-buffers-functions buffer))))
             (when kill-fn
               (funcall (if (eq kill-fn t)
                            #'kill-buffer
