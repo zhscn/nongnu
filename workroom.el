@@ -1766,7 +1766,8 @@ any previous bookmark with the same name."
   (when workroom-mode
     (insert
      "
-;; Workroom section:"
+;; Workroom section:
+"
      (let ((fn-sym (intern (format "workroom--desktop-restore-%s"
                                    (format-time-string "%s%N")))))
        (prin1-to-string
@@ -1774,6 +1775,7 @@ any previous bookmark with the same name."
            (defun ,fn-sym ()
              "Restore workrooms."
              (remove-hook 'desktop-after-read-hook #',fn-sym)
+             (fmakunbound #',fn-sym)
              (when (bound-and-true-p workroom-mode)
                (workroom--desktop-restore
                 ',(list
