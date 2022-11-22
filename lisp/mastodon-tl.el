@@ -1914,6 +1914,7 @@ INSTANCE is an instance domain name."
                            (assoc 'rules response)
                            (assoc 'stats response))))
              (mastodon-tl--print-json-keys response)
+             (mastodon-mode)
              (goto-char (point-min)))))))))
 
 (defun mastodon-tl--format-key (el pad)
