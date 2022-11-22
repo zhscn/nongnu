@@ -61,8 +61,8 @@ Returns a nested list containing user handle, display name, and URL."
   (interactive "sSearch mastodon for: ")
   (let* ((url (mastodon-http--api "accounts/search"))
          (response (if (equal mastodon-toot--completion-style-for-mentions "following")
-                       (mastodon-http--get-search-json url query '(("following" . "true")))
-                     (mastodon-http--get-search-json url query))))
+                       (mastodon-http--get-json url `(("q" . ,query) ("following" . "true")))
+                     (mastodon-http--get-json url `(("q" . ,query))))))
     (mapcar #'mastodon-search--get-user-info-@ response)))
 
 ;; functions for tags completion:
@@ -72,8 +72,10 @@ Returns a nested list containing user handle, display name, and URL."
 QUERY is the string to search."
   (interactive "sSearch for hashtag: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
-         (type-param '(("type" . "hashtags")))
-         (response (mastodon-http--get-search-json url query type-param))
+         ;; (type-param '(("type" . "hashtags")))
+         (params `(("q" . ,query)
+                   ("type" . "hashtags")))
+         (response (mastodon-http--get-json url params))
          (tags (alist-get 'hashtags response)))
     (mapcar #'mastodon-search--get-hashtag-info tags)))
 
@@ -112,7 +114,7 @@ QUERY is the string to search."
   (interactive "sSearch mastodon for: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
          (buffer (format "*mastodon-search-%s*" query))
-         (response (mastodon-http--get-search-json url query))
+         (response (mastodon-http--get-json url `(("q" . ,query))))
          (accts (alist-get 'accounts response))
          (tags (alist-get 'hashtags response))
          (statuses (alist-get 'statuses response))

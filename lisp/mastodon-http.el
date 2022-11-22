@@ -256,40 +256,6 @@ PARAMS should be an alist as required by `url-build-query-string'."
   (let ((query-string (url-build-query-string params)))
     (concat url "?" query-string)))
 
-;; search functions:
-(defun mastodon-http--process-json-search ()
-  "Process JSON returned by a search query to the server."
-  (goto-char (point-min))
-  (re-search-forward "^$" nil 'move)
-  (let ((json-string
-         (decode-coding-string
-          (buffer-substring-no-properties (point) (point-max))
-          'utf-8)))
-    (kill-buffer)
-    (json-read-from-string json-string)))
-
-(defun mastodon-http--get-search-json (url query &optional params silent)
-  "Make GET request to URL, searching for QUERY and return JSON response.
-PARAMS is an alist of any extra parameters to send with the request.
-SILENT means don't message."
-  (let ((buffer (mastodon-http--get-search url query params silent)))
-    (with-current-buffer buffer
-      (mastodon-http--process-json-search))))
-
-(defun mastodon-http--get-search (base-url query &optional params silent)
-  "Make GET request to BASE-URL, searching for QUERY.
-Pass response buffer to CALLBACK function.
-PARAMS is an alist of any extra parameters to send with the request.
-SILENT means don't message."
-  (mastodon-http--authorized-request
-   "GET"
-   (let* ((query-str (mastodon-http--build-query-string
-                      `(("q" . ,(url-hexify-string query)))))
-          (params-str (mastodon-http--build-query-string params))
-          (url (concat base-url "?" query-str (when params-str
-                                                (concat "&" params-str)))))
-     (mastodon-http--url-retrieve-synchronously url silent))))
-
 ;; profile update functions
 
 (defun mastodon-http--patch-json (url &optional params)

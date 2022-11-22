@@ -291,8 +291,9 @@ not, just browse the URL in the normal fashion."
         (browse-url query)
       (message "Performing lookup...")
       (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
-             (param '(("resolve" . "t"))) ; webfinger
-             (response (mastodon-http--get-search-json url query param :silent)))
+             (params `(("q" . ,query)
+                       ("resolve" . "t"))) ; webfinger
+             (response (mastodon-http--get-json url params :silent)))
         (cond ((not (seq-empty-p
                      (alist-get 'statuses response)))
                (let* ((statuses (assoc 'statuses response))
