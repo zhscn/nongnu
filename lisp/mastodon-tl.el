@@ -2259,9 +2259,9 @@ For use after e.g. deleting a toot."
   (if (member (buffer-name (current-buffer)) mastodon-tl--link-header-buffers)
       ;; link-header: can't build a URL with --more-json-async, endpoint/id:
       (let* ((next (car (mastodon-tl--link-header)))
-             ;(prev (cadr (mastodon-tl--link-header)))
+             ;;(prev (cadr (mastodon-tl--link-header)))
              (url (mastodon-tl--build-link-header-url next)))
-        (mastodon-http--get-response-async url 'mastodon-tl--more* (current-buffer)
+        (mastodon-http--get-response-async url nil 'mastodon-tl--more* (current-buffer)
                                            (point) :headers))
     (mastodon-tl--more-json-async (mastodon-tl--get-endpoint) (mastodon-tl--oldest-id)
                                   'mastodon-tl--more* (current-buffer) (point))))
