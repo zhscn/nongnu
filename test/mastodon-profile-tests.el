@@ -249,6 +249,8 @@ content generation in the function under test."
     (mock (mastodon-profile--fetch-server-account-settings)
           => '(max_toot_chars 1312 privacy "public" display_name "Eugen" discoverable t locked :json-false bot :json-false sensitive :json-false language ""))
 
+    (mock (mastodon-profile--format-joined-date-string *) => "Joined March 2016")
+
     (let ((mastodon-tl--show-avatars t)
           (mastodon-tl--display-media-p t)
           (mastodon-instance-url "https://instance.url"))
