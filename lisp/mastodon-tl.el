@@ -1874,7 +1874,8 @@ INSTANCE is an instance domain name."
                      (if user
                          (mastodon-http--api "instance")
                        (concat instance "/api/v1/instance"))
-                     nil
+                     nil ; params
+                     nil ; silent
                      :vector)))
      (when response
        (let ((buf (get-buffer-create "*mastodon-instance*")))
