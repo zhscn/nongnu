@@ -1933,7 +1933,8 @@ prefix argument is given."
                (project-current nil (project-prompt-project-dir))
              (project-current 'maybe-prompt)))
           (root (project-root project))
-          (name (file-name-base (project-root project))))
+          (name (file-name-base (directory-file-name
+                                 (project-root project)))))
      (list
       (read-string
        (format-message "Workname name for project `%s': " name)
@@ -1963,7 +1964,8 @@ prefix argument is given."
           (workroom-switch room)
         (let ((workroom--dont-clear-new-view t))
           (workroom-switch-to-project-workroom
-           (file-name-base (project-root project))
+           (file-name-base (directory-file-name
+                            (project-root project)))
            (project-root project)))))))
 
 (define-minor-mode workroom-auto-project-workroom-mode
