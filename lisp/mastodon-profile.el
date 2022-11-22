@@ -568,8 +568,7 @@ FIELDS means provide a fields vector fetched by other means."
          (followsp (or (equal follows-you 't) (equal followed-by-you 't)))
          (fields (mastodon-profile--fields-get account))
          (pinned (mastodon-profile--get-statuses-pinned account))
-         (joined-ts (ts-parse
-                     (mastodon-profile--account-field account 'created_at))))
+         (joined (mastodon-profile--account-field account 'created_at)))
     (with-output-to-temp-buffer buffer
       (switch-to-buffer buffer)
       (mastodon-mode)
@@ -616,11 +615,7 @@ FIELDS means provide a fields vector fetched by other means."
                        "\n")
              "")
            (propertize
-            (format "Joined %s"
-                    (format "%s" (concat (ts-month-name joined-ts)
-                                         " "
-                                         (number-to-string
-                                          (ts-year joined-ts)))))
+            (mastodon-profile--format-joined-date-string joined)
             'face 'success)
            "\n\n")
           'profile-json account)
@@ -656,6 +651,14 @@ FIELDS means provide a fields vector fetched by other means."
           (setq mastodon-tl--update-point (point))) ;updates to follow pinned toots
         (funcall update-function json)))
     (goto-char (point-min))))
+
+(defun mastodon-profile--format-joined-date-string (joined)
+  "Format a Joined timestamp."
+  (let ((joined-ts (ts-parse joined)))
+    (format "Joined %s" (concat (ts-month-name joined-ts)
+                                " "
+                                (number-to-string
+                                 (ts-year joined-ts))))))
 
 (defun mastodon-profile--get-toot-author ()
   "Open profile of author of toot under point.
