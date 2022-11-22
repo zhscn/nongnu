@@ -204,6 +204,13 @@ send.")
    "\\(@[^ \n\t]*\\)?\\)" ; with poss domain, * = allow only @
    "\\b"))
 
+(defvar mastodon-toot-tag-regex
+  (concat
+   ;; preceding space or bol [boundary doesn't work with #]
+   "\\([\n\t ]\\|^\\)"
+   "\\(?2:#[1-9a-zA-Z_]+\\)" ; tag
+   "\\b")) ; boundary
+
 (defvar mastodon-toot-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-toot--send)
@@ -1415,13 +1422,12 @@ Added to `after-change-functions'."
       ;; stops all text after a handle or mention being propertized:
       (set-text-properties (cdr header-region) (point-max) nil)
       ;; TODO: confirm allowed hashtag/handle characters:
-      (mastodon-toot--propertize-item "\\([\n\t ]\\|^\\)\\(?2:#[1-9a-zA-Z_]+\\)\\b"
+      (mastodon-toot--propertize-item mastodon-toot-tag-regex
                                       'success
                                       (cdr header-region))
-      (mastodon-toot--propertize-item
-       mastodon-toot-handle-regex
-       'mastodon-display-name-face
-       (cdr header-region)))))
+      (mastodon-toot--propertize-item mastodon-toot-handle-regex
+                                      'mastodon-display-name-face
+                                      (cdr header-region)))))
 
 (defun mastodon-toot--propertize-item (regex face start)
   "Propertize item matching REGEX with FACE starting from START."
