@@ -47,6 +47,8 @@
   (declare-function company-grab-symbol "company")
   (defvar company-backends))
 
+(require 'mastodon-iso)
+
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--enable-proportional-fonts)
@@ -169,6 +171,9 @@ change the setting on the server, see
 (defvar-local mastodon-toot-poll nil
   "A list of poll options for the toot being composed.")
 
+(defvar-local mastodon-toot--language nil
+  "The language of the toot being composed, in ISO 639 (two-letter).")
+
 (defvar-local mastodon-toot--reply-to-id nil
   "Buffer-local variable to hold the id of the toot being replied to.")
 
@@ -211,6 +216,7 @@ send.")
     (define-key map (kbd "C-c C-a") #'mastodon-toot--attach-media)
     (define-key map (kbd "C-c !") #'mastodon-toot--clear-all-attachments)
     (define-key map (kbd "C-c C-p") #'mastodon-toot--create-poll)
+    (define-key map (kbd "C-c C-l") #'mastodon-toot--set-toot-lang)
     map)
   "Keymap for `mastodon-toot'.")
 
@@ -661,7 +667,8 @@ instance to edit a toot."
                           ("visibility" . ,mastodon-toot--visibility)
                           ("sensitive" . ,(when mastodon-toot--content-nsfw
                                             (symbol-name t)))
-                          ("spoiler_text" . ,spoiler)))
+                          ("spoiler_text" . ,spoiler)
+                          ("language" . ,mastodon-toot--language)))
          (args-media (when mastodon-toot--media-attachments
                        (mastodon-http--build-array-args-alist
                         "media_ids[]"
@@ -1141,6 +1148,18 @@ LENGTH is the maximum character length allowed for a poll option."
     ("14 days" . ,(number-to-string (* 60 60 24 14)))
     ("30 days" . ,(number-to-string (* 60 60 24 30)))))
 
+(defun mastodon-toot--set-toot-lang ()
+  "Prompt for a language and return its two letter ISO 639 1 code."
+  (interactive)
+  (let* ((langs (mapcar (lambda (x)
+                          (cons (cadr x)
+                                (car x)))
+                        mastodon-iso-639-1))
+         (choice (completing-read "Language for this toot: "
+                                  langs)))
+    (setq mastodon-toot--language
+          (alist-get choice langs nil nil 'equal))))
+
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
 (defun mastodon-toot--get-mode-kbinds ()
@@ -1328,7 +1347,6 @@ This is how mastodon does it."
                                   nil t)
       (replace-match (match-string 2))) ; replace with handle only
     (length (buffer-substring (point-min) (point-max)))))
-
 
 (defun mastodon-toot--save-toot-text (&rest _args)
   "Save the current toot text in `mastodon-toot-current-toot-text'.
