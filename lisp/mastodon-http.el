@@ -286,7 +286,8 @@ SILENT means don't message."
    (let* ((query-str (mastodon-http--build-query-string
                       `(("q" . ,(url-hexify-string query)))))
           (params-str (mastodon-http--build-query-string params))
-          (url (concat base-url "?" query-str params-str)))
+          (url (concat base-url "?" query-str (when params-str
+                                                (concat "&" params-str)))))
      (mastodon-http--url-retrieve-synchronously url silent))))
 
 ;; profile update functions
