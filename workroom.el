@@ -100,6 +100,7 @@
 (require 'cl-lib)
 (require 'bookmark)
 (require 'project)
+(require 'compat)
 
 
 ;;;; User Options.
@@ -550,9 +551,8 @@ Return DEF when input is empty, where DEF is either a string or nil.
 
 REQUIRE-MATCH and PREDICATE is same as in `completing-read'."
   (completing-read
-   (concat prompt (when def (format " (default %s)" def)) ": ")
-   (mapcar #'workroom-name workroom--rooms) predicate require-match
-   nil 'workroom-room-history def))
+   (format-prompt prompt def) (mapcar #'workroom-name workroom--rooms)
+   predicate require-match  nil 'workroom-room-history def))
 
 (defun workroom--read-to-switch ( prompt &optional def require-match
                                   predicate)
@@ -577,9 +577,8 @@ Return DEF when input is empty, where DEF is either a string or nil.
 
 REQUIRE-MATCH and PREDICATE is same as in `completing-read-multiple'."
   (completing-read-multiple
-   (concat prompt (when def (format " (default %s)" def)) ": ")
-   (mapcar #'workroom-name workroom--rooms) predicate require-match
-   nil 'workroom-room-history def))
+   (format-prompt prompt def) (mapcar #'workroom-name workroom--rooms)
+   predicate require-match nil 'workroom-room-history def))
 
 (defun workroom--read-view ( room prompt &optional def require-match
                              predicate)
@@ -594,7 +593,7 @@ REQUIRE-MATCH and PREDICATE is same as in `completing-read'."
   (let ((workroom--view-history (workroom-view-history room)))
     (prog1
         (completing-read
-         (concat prompt (when def (format " (default %s)" def)) ": ")
+         (format-prompt prompt def)
          (mapcar #'workroom-view-name (workroom-view-list room))
          predicate require-match nil 'workroom-room-history def)
       (setf (workroom--room-view-history room)
