@@ -2459,7 +2459,7 @@ favourites."
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers
         (mastodon-http--get-response-async
-         url 'mastodon-tl--init* buffer endpoint update-function headers)
+         url nil 'mastodon-tl--init* buffer endpoint update-function headers)
       (mastodon-http--get-json-async
        url nil 'mastodon-tl--init* buffer endpoint update-function))))
 

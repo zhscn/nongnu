@@ -321,10 +321,11 @@ PARAMS is an alist of any extra parameters to send with the request."
      "GET"
      (url-retrieve url callback cbargs))))
 
-(defun mastodon-http--get-response-async (url callback &rest args)
+(defun mastodon-http--get-response-async (url &optional params callback &rest args)
   "Make GET request to URL. Call CALLBACK with http response and ARGS."
   (mastodon-http--get-async
    url
+   params
    (lambda (status)
      (when status ;; only when we actually get sth?
        (apply callback (mastodon-http--process-response) args)))))
