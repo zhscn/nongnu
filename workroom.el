@@ -404,7 +404,7 @@ written to a string (or file) and read back.
 
 This is expensive, because it can recalculate the window configuration
 and returns a copy of it."
-  (when (workroom--view-frame view)
+  (when (frame-live-p (workroom--view-frame view))
     (setf (workroom--view-window-config (workroom-current-view))
           (workroom--frame-window-config
            (workroom--view-frame view)))
