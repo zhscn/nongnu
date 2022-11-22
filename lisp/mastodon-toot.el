@@ -47,6 +47,8 @@
   (declare-function company-grab-symbol "company")
   (defvar company-backends))
 
+(require 'mastodon-iso)
+
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--enable-proportional-fonts)
@@ -1141,6 +1143,16 @@ LENGTH is the maximum character length allowed for a poll option."
     ("14 days" . ,(number-to-string (* 60 60 24 14)))
     ("30 days" . ,(number-to-string (* 60 60 24 30)))))
 
+(defun mastodon-toot--prompt-toot-lang ()
+  "Prompt for a language and return its two letter ISO 639 1 code."
+  (let* ((langs (mapcar (lambda (x)
+                          (cons (cadr x)
+                                (car x)))
+                        mastodon-iso-639-1))
+         (choice (completing-read "Language for this toot: "
+                                  langs)))
+    (alist-get choice langs nil nil 'equal)))
+
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
 (defun mastodon-toot--get-mode-kbinds ()
@@ -1328,7 +1340,6 @@ This is how mastodon does it."
                                   nil t)
       (replace-match (match-string 2))) ; replace with handle only
     (length (buffer-substring (point-min) (point-max)))))
-
 
 (defun mastodon-toot--save-toot-text (&rest _args)
   "Save the current toot text in `mastodon-toot-current-toot-text'.
