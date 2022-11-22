@@ -1962,7 +1962,7 @@ prefix argument is given."
           (workroom-switch room)
         (let ((workroom--dont-clear-new-view t))
           (workroom-switch-to-project-workroom
-           (workroom--project-name project)
+           (file-name-base (project-root project))
            (project-root project)))))))
 
 (define-minor-mode workroom-auto-project-workroom-mode
