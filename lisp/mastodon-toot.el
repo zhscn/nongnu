@@ -108,12 +108,13 @@
 (defcustom mastodon-toot--enable-completion
   (if (require 'company nil :noerror) t nil)
   "Whether to enable completion of mentions and hashtags.
-
 Used for completion in toot compose buffer.
-
 This is only used if company mode is installed."
   :group 'mastodon-toot
   :type 'boolean)
+
+(defcustom mastodon-toot--use-company-for-completion t
+  "Whether to use company for completion.")
 
 (defcustom mastodon-toot--completion-style-for-mentions
   (if (require 'company nil :noerror) "following" "off")
@@ -913,6 +914,56 @@ meta fields respectively."
       (annotation (funcall annot-fun arg))
       (meta (funcall meta-fun arg)))))
 
+(defun mastodon-toot-mentions-capf ()
+  "Build a mentions completion backend for `completion-at-point-functions'."
+  (let* ((handle-bounds
+          ;; hack for @handles@with.domains, as "@" is not inc in any thing at pt!
+          (save-match-data
+            (save-excursion
+              ;; match full handle inc. domain (see the regex for subexp 2)
+              (when (re-search-backward mastodon-toot-handle-regex nil :no-error)
+                ;; (when (match-string-no-properties 2)
+                (cons (match-beginning 2)
+                      (match-end 2))))))
+         (start (car handle-bounds))
+         (end (cdr handle-bounds)))
+    (when handle-bounds
+      (list start
+            end
+            ;; only search when necessary:
+            (completion-table-dynamic
+             (lambda (_)
+               (mastodon-search--search-accounts-query
+                (buffer-substring-no-properties start end)
+                :capf)))
+            :exclusive 'no))))
+
+(defun mastodon-toot-tags-capf ()
+  "Build a tags completion backend for `completion-at-point-functions'."
+  (let* ((tag-bounds
+          (save-match-data
+            (save-excursion
+              ;; match full tag with # (see regex for subexp)
+              (re-search-backward mastodon-toot-tag-regex nil :no-error)
+              (when (match-string-no-properties 2)
+                (cons (match-beginning 2)
+                      (match-end 2))))))
+         (start (car tag-bounds))
+         (end (cdr tag-bounds)))
+    (when tag-bounds
+      (list start
+            end
+            ;; only search when necessary:
+            (completion-table-dynamic
+             (lambda (_)
+               (let ((tags (mastodon-search--search-tags-query
+                            (buffer-substring-no-properties start end))))
+                 (mapcar (lambda (x)
+                           (list (concat "#" (car x))
+                                 (cdr x)))
+                         tags))))
+            :exclusive 'no))))
+
 (defun mastodon-toot-mentions (command &optional arg &rest ignored)
   "A company completion backend for toot mentions.
 COMMAND is either prefix, to fetch a prefix query, candidates, to
@@ -1475,24 +1526,20 @@ a draft into the buffer."
       ;; no need to fetch from `mastodon-profile-account-settings' as
       ;; `mastodon-toot--max-toot-chars' is set when we set it
       (mastodon-toot--get-max-toot-chars))
-    ;; set up completion backends:
-    (when (require 'company nil :noerror)
-      (when mastodon-toot--enable-completion
-        ;; convert our company backends into capfs for use with corfu:
-        ;; FIXME replace this with a customize
-        (if (and (require 'cape nil :noerror)
-                 (bound-and-true-p corfu-mode))
-            (dolist (company-backend (list #'mastodon-toot-tags #'mastodon-toot-mentions))
-              (add-hook 'completion-at-point-functions
-                        (cape-company-to-capf company-backend)
-                        nil
-                        'local))
-          ;; else stick with company:
-          (set (make-local-variable 'company-backends)
-               (add-to-list 'company-backends 'mastodon-toot-mentions))
-          (add-to-list 'company-backends 'mastodon-toot-tags))
-        (unless (bound-and-true-p corfu-mode) ; don't clash w corfu mode
-          (company-mode-on))))
+    ;; set up completion:
+    (when mastodon-toot--enable-completion
+      ;; (setq-local
+      (set
+       (make-local-variable 'completion-at-point-functions)
+       (add-to-list
+        'completion-at-point-functions
+        #'mastodon-toot-mentions-capf))
+      (add-to-list
+       'completion-at-point-functions
+       #'mastodon-toot-tags-capf)
+      (when mastodon-toot--use-company-for-completion
+        (company-mode-on)))
+    ;; after-change:
     (make-local-variable 'after-change-functions)
     (push #'mastodon-toot--update-status-fields after-change-functions)
     (mastodon-toot--refresh-attachments-display)
