@@ -1643,9 +1643,10 @@ a: add account to this list, r: remove account from this list"
   (let ((id (get-text-property (point) 'list-id)))
     (mastodon-tl--add-account-to-list id)))
 
-(defun mastodon-tl--add-account-to-list (&optional id)
+(defun mastodon-tl--add-account-to-list (&optional id account-id handle)
   "Prompt for a list and for an account, add account to list.
-If ID is provided, use that list."
+If ID is provided, use that list.
+If ACCOUNT-ID and HANDLE are provided use them rather than prompting."
   (interactive)
   (let* ((list-name (if id
                         (get-text-property (point) 'list-name)
@@ -1657,9 +1658,9 @@ If ID is provided, use that list."
                             (cons (alist-get 'acct x)
                                   (alist-get 'id x)))
                           followings))
-         (account (completing-read "Account to add: "
-                                   handles nil t))
-         (account-id (alist-get account handles nil nil 'equal))
+         (account (or handle (completing-read "Account to add: "
+                                              handles nil t)))
+         (account-id (or account-id (alist-get account handles nil nil 'equal)))
          (url (mastodon-http--api (format "lists/%s/accounts" list-id)))
          (response (mastodon-http--post url
                                         `(("account_ids[]" . ,account-id)))))
@@ -1714,6 +1715,15 @@ If ID is provided, use that list."
   "Return the JSON of the accounts in list with LIST-ID."
   (let* ((url (mastodon-http--api (format "lists/%s/accounts" list-id))))
     (mastodon-http--get-json url)))
+
+(defun mastodon-tl--add-profile-account-to-list ()
+  "Add account of current profile buffer to a list."
+  (interactive)
+  (when mastodon-profile--account
+    (let* ((profile mastodon-profile--account)
+           (id (alist-get 'id profile))
+           (handle (alist-get 'acct profile)))
+      (mastodon-tl--add-account-to-list nil id handle))))
 
 ;;; FILTERS
 
