@@ -114,7 +114,19 @@ This is only used if company mode is installed."
   :type 'boolean)
 
 (defcustom mastodon-toot--use-company-for-completion nil
-  "Whether to use company for completion.")
+  "Whether to use company completion backends directly.
+When non-nil, company backends `mastodon-toot-mentions' and
+`mastodon-toot-tags' are used for completion.
+
+A nil setting will use `completion-at-point-functions' for
+completion, which also work with company, provided that the
+backend `company-capf' is enabled.
+
+If setting this to non-nil, ensure `corfu-mode' is disabled as the
+two are incompatible.
+
+When the `completion-at-point-functions' backends are more
+complete, direct company backends will be removed.")
 
 (defcustom mastodon-toot--completion-style-for-mentions
   (if (require 'company nil :noerror) "following" "off")
@@ -1526,16 +1538,21 @@ a draft into the buffer."
       (mastodon-toot--get-max-toot-chars))
     ;; set up completion:
     (when mastodon-toot--enable-completion
-      ;; (setq-local
-      (set
-       (make-local-variable 'completion-at-point-functions)
-       (add-to-list
-        'completion-at-point-functions
-        #'mastodon-toot--mentions-capf))
-      (add-to-list
-       'completion-at-point-functions
-       #'mastodon-toot--tags-capf)
-      (when mastodon-toot--use-company-for-completion
+      (if (not mastodon-toot--use-company-for-completion)
+          ;; capf
+          (progn
+            (set ; (setq-local
+             (make-local-variable 'completion-at-point-functions)
+             (add-to-list
+              'completion-at-point-functions
+              #'mastodon-toot--mentions-capf))
+            (add-to-list
+             'completion-at-point-functions
+             #'mastodon-toot--tags-capf))
+        ;; company
+        (set (make-local-variable 'company-backends)
+             (add-to-list 'company-backends 'mastodon-toot-mentions))
+        (add-to-list 'company-backends 'mastodon-toot-tags)
         (company-mode-on)))
     ;; after-change:
     (make-local-variable 'after-change-functions)
