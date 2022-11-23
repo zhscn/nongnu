@@ -77,6 +77,7 @@
 (autoload 'mastodon-http--build-array-args-alist "mastodon-http")
 (autoload 'mastodon-http--build-query-string "mastodon-http")
 (autoload 'mastodon-notifications--filter-types-list "mastodon-notifications")
+(autoload 'mastodon-toot--get-toot-edits "mastodon-toot")
 
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
@@ -665,10 +666,10 @@ this just means displaying toot client."
                           'face 'mastodon-display-name-face
                           'follow-link t
                           'mouse-face 'highlight
-		          'mastodon-tab-stop 'shr-url
-		          'shr-url app-url
+		                  'mastodon-tab-stop 'shr-url
+		                  'shr-url app-url
                           'help-echo app-url
-		          'keymap mastodon-tl--shr-map-replacement)))))
+		                  'keymap mastodon-tl--shr-map-replacement)))))
        (when edited-time
          (concat
           (if (fontp (char-displayable-p #10r128274))
@@ -1715,15 +1716,6 @@ If ID is provided, use that list."
   "Return the JSON of the accounts in list with LIST-ID."
   (let* ((url (mastodon-http--api (format "lists/%s/accounts" list-id))))
     (mastodon-http--get-json url)))
-
-(defun mastodon-tl--add-profile-account-to-list ()
-  "Add account of current profile buffer to a list."
-  (interactive)
-  (when mastodon-profile--account
-    (let* ((profile mastodon-profile--account)
-           (id (alist-get 'id profile))
-           (handle (alist-get 'acct profile)))
-      (mastodon-tl--add-account-to-list nil id handle))))
 
 ;;; FILTERS
 

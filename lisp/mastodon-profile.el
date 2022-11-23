@@ -69,6 +69,8 @@
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl.el")
 (autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
+(autoload 'mastodon-tl--add-account-to-list "mastodon-tl")
+
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--update-point)
@@ -242,6 +244,15 @@ JSON is the data returned by the server."
                'toot-id "0"))
     (mastodon-search--insert-users-propertized json :note)))
 ;; (mastodon-profile--add-author-bylines json)))
+
+(defun mastodon-profile--add-account-to-list ()
+  "Add account of current profile buffer to a list."
+  (interactive)
+  (when mastodon-profile--account
+    (let* ((profile mastodon-profile--account)
+           (id (alist-get 'id profile))
+           (handle (alist-get 'acct profile)))
+      (mastodon-tl--add-account-to-list nil id handle))))
 
 ;;; ACCOUNT PREFERENCES
 
