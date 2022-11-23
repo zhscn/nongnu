@@ -619,7 +619,8 @@ this just means displaying toot client."
      (concat (when boosted
                (mastodon-tl--format-faved-or-boosted-byline "B"))
              (when faved
-               (mastodon-tl--format-faved-or-boosted-byline "F"))
+               (mastodon-tl--format-faved-or-boosted-byline
+                (mastodon-tl--return-fave-char)))
              (when bookmarked
                (mastodon-tl--format-faved-or-boosted-byline bookmark-str)))
      ;; we remove avatars from the byline also, so that they also do not mess
@@ -691,6 +692,16 @@ this just means displaying toot client."
       'edit-history (when edited-time
                       (mastodon-toot--get-toot-edits (alist-get 'id toot)))
       'byline       t))))
+
+(defun mastodon-tl--return-fave-char ()
+  ""
+  (cond
+   ((fontp (char-displayable-p #10r11088))
+    "⭐")
+   ((fontp (char-displayable-p #10r9733))
+    "★")
+   (t
+    "F")))
 
 (defun mastodon-tl--format-edit-timestamp (timestamp)
   "Convert edit TIMESTAMP into a descriptive string."
