@@ -914,20 +914,24 @@ meta fields respectively."
       (annotation (funcall annot-fun arg))
       (meta (funcall meta-fun arg)))))
 
-(defun mastodon-toot-mentions-capf ()
+(defun mastodon-toot--get-bounds (regex)
+  "Get bounds of tag or handle before point."
+  ;; needed because # and @ are not part of any existing thing at point
+  (save-match-data
+    (save-excursion
+      ;; match full handle inc. domain, or tag including #
+      ;; (see the regexes for subexp 2)
+      (when (re-search-backward regex nil :no-error)
+        (cons (match-beginning 2)
+              (match-end 2))))))
+
+(defun mastodon-toot--mentions-capf ()
   "Build a mentions completion backend for `completion-at-point-functions'."
-  (let* ((handle-bounds
-          ;; hack for @handles@with.domains, as "@" is not inc in any thing at pt!
-          (save-match-data
-            (save-excursion
-              ;; match full handle inc. domain (see the regex for subexp 2)
-              (when (re-search-backward mastodon-toot-handle-regex nil :no-error)
-                ;; (when (match-string-no-properties 2)
-                (cons (match-beginning 2)
-                      (match-end 2))))))
-         (start (car handle-bounds))
-         (end (cdr handle-bounds)))
-    (when handle-bounds
+  (let* ((bounds
+          (mastodon-toot--get-bounds mastodon-toot-handle-regex))
+         (start (car bounds))
+         (end (cdr bounds)))
+    (when bounds
       (list start
             end
             ;; only search when necessary:
@@ -938,19 +942,13 @@ meta fields respectively."
                 :capf)))
             :exclusive 'no))))
 
-(defun mastodon-toot-tags-capf ()
+(defun mastodon-toot--tags-capf ()
   "Build a tags completion backend for `completion-at-point-functions'."
-  (let* ((tag-bounds
-          (save-match-data
-            (save-excursion
-              ;; match full tag with # (see regex for subexp)
-              (re-search-backward mastodon-toot-tag-regex nil :no-error)
-              (when (match-string-no-properties 2)
-                (cons (match-beginning 2)
-                      (match-end 2))))))
-         (start (car tag-bounds))
-         (end (cdr tag-bounds)))
-    (when tag-bounds
+  (let* ((bounds
+          (mastodon-toot--get-bounds mastodon-toot-tag-regex))
+         (start (car bounds))
+         (end (cdr bounds)))
+    (when bounds
       (list start
             end
             ;; only search when necessary:
@@ -1533,10 +1531,10 @@ a draft into the buffer."
        (make-local-variable 'completion-at-point-functions)
        (add-to-list
         'completion-at-point-functions
-        #'mastodon-toot-mentions-capf))
+        #'mastodon-toot--mentions-capf))
       (add-to-list
        'completion-at-point-functions
-       #'mastodon-toot-tags-capf)
+       #'mastodon-toot--tags-capf)
       (when mastodon-toot--use-company-for-completion
         (company-mode-on)))
     ;; after-change:
