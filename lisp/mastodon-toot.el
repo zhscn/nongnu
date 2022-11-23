@@ -113,7 +113,7 @@ This is only used if company mode is installed."
   :group 'mastodon-toot
   :type 'boolean)
 
-(defcustom mastodon-toot--use-company-for-completion t
+(defcustom mastodon-toot--use-company-for-completion nil
   "Whether to use company for completion.")
 
 (defcustom mastodon-toot--completion-style-for-mentions
