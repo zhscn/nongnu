@@ -6,7 +6,7 @@
 
 * README
 
-=mastodon.el= is an Emacs client for the Mastodon and Pleroma social networks. For info see https://joinmastodon.org/.
+=mastodon.el= is an Emacs client for the AcitivityPub social networks that implement the Mastodon API. For info see https://joinmastodon.org/.
 
 ** Installation
 
@@ -316,6 +316,12 @@ Optional dependencies:
 - =emojify= for inserting and viewing emojis
 - =mpv= and =mpv.el= for viewing videos and gifs
 - =lingva.el= for translating toots
+
+** Network compatibility.
+
+=mastodon.el= should work with ActivityPub servers that implement the Mastodon API.
+
+Apart from Mastodon itself, it is currently known to work with Pleroma and Gotosocial. If you attempt to use =mastodon.el= with another server that implements the Mastodon API and run into problems, feel free to open an issue.
 
 ** Contributing
 
