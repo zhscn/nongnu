@@ -822,5 +822,54 @@ These include the author, author of reblogged entries and any user mentioned."
           (t
            (mastodon-profile--search-account-by-handle handle)))))
 
+(defun mastodon-profile--remove-user-from-followers (&optional id)
+  "Remove a user from your followers.
+User may be the current profile page if not your own, or the
+account ('toot-json) at point if you are on your own profile page (followers)."
+  (interactive)
+  (let* ((account (unless id
+                    (cond ((and ;; we are on a profile page
+                            mastodon-profile--account
+                            ;; that is not our own:
+                            (not (string= (mastodon-auth--user-acct)
+                                          (alist-get 'acct mastodon-profile--account))))
+                           mastodon-profile--account)
+                          ;; we are on our own profile page:
+                          ((and (string= (mastodon-auth--user-acct)
+                                         (alist-get 'acct mastodon-profile--account))
+                                ;; viewing our followers:
+                                (string= endpoint-type "followers"))
+                           ;; try for a follower at point:
+                           ;; (mastodon-tl--field 'toot-json)
+                           (get-text-property (point) 'toot-json))
+                          (t
+                           ;; FIXME: do some thing else?
+                           (get-text-property (point) 'toot-json)))))
+         ;; TODO: read account from list of all followers' handles
+         (id (or (alist-get 'id account)))
+         (handle (if account
+                     (alist-get 'acct account)
+                   (let ((account
+                          (mastodon-profile--account-from-id id)))
+                     (alist-get 'acct account))))
+         (url (mastodon-http--api
+               (format "accounts/%s/remove_from_followers" id))))
+    (when (y-or-n-p "Remove follower %s? " handle)
+      (let ((response (mastodon-http--post url)))
+        (mastodon-http--triage (lambda ()
+                                 (message "Follower %s removed!" handle)))))))
+
+(defun mastodon-profile--remove-from-followers-toot-at-point ()
+  "Prompt for a user in the toot at point and remove from followers."
+  (let* ((handles
+          (mastodon-profile--extract-users-handles
+           (mastodon-profile--toot-json)))
+         (handle (completing-read "Handle to unfollow: "
+                                  handles))
+         (account (mastodon-profile--lookup-account-in-status
+                   handle (mastodon-profile--toot-json)))
+         (id (alist-get 'id account)))
+    (mastodon-profile--remove-user-from-followers id)))
+
 (provide 'mastodon-profile)
 ;;; mastodon-profile.el ends here
