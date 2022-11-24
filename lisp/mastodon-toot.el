@@ -334,7 +334,7 @@ TYPE is a symbol, either 'favourite or 'boost."
                                       (list 'favourited-p (not faved))))
                (mastodon-toot--action-success
                 (if boost-p
-                    "B"
+                    (mastodon-tl--return-boost-char)
                   (mastodon-tl--return-fave-char))
                 byline-region remove))
              (message (format "%s #%s" (if boost-p msg action) id))))))
