@@ -172,7 +172,8 @@ The search will happen as if called without the \"@\"."
   (with-mock
 
     (mock (mastodon-http--get-json
-           "https://instance.url/api/v1/accounts/search?q=gargron"))
+           "https://instance.url/api/v1/accounts/search"
+           '(("q" . "gargron"))))
 
     (let ((mastodon-instance-url "https://instance.url"))
       ;; We don't check anything from the return value. We only care
@@ -182,7 +183,9 @@ The search will happen as if called without the \"@\"."
 (ert-deftest mastodon-profile--search-account-by-handle--filters-out-false-results ()
   "Should ignore results that don't match the searched handle."
   (with-mock
-    (mock (mastodon-http--get-json *)
+    (mock (mastodon-http--get-json
+           "https://instance.url/api/v1/accounts/search"
+           '(("q" . "Gargron")))
           =>
           (vector ccc-profile-json gargron-profile-json))
 
@@ -197,7 +200,9 @@ The search will happen as if called without the \"@\"."
 
 TODO: We need to decide if this is actually desired or not."
   (with-mock
-    (mock (mastodon-http--get-json *) => (vector gargron-profile-json))
+    (mock (mastodon-http--get-json *
+                                   '(("q" . "gargron")))
+          => (vector gargron-profile-json))
 
     (let ((mastodon-instance-url "https://instance.url"))
       (should

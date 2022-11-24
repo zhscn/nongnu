@@ -74,8 +74,8 @@
 (autoload 'mastodon-auth--get-account-id "mastodon-auth")
 (autoload 'mastodon-http--put "mastodon-http")
 (autoload 'mastodon-http--process-json "mastodon-http")
-(autoload 'mastodon-http--build-array-args-alist "mastodon-http")
-(autoload 'mastodon-http--build-query-string "mastodon-http")
+(autoload 'mastodon-http--build-array-params-alist "mastodon-http")
+(autoload 'mastodon-http--build-params-string "mastodon-http")
 (autoload 'mastodon-notifications--filter-types-list "mastodon-notifications")
 (autoload 'mastodon-toot--get-toot-edits "mastodon-toot")
 
@@ -499,7 +499,7 @@ The result is added as an attachments property to author-byline."
   (let ((reblog (alist-get 'reblog toot)))
     (when reblog
       (concat
-       "\n "
+       "\n  "
        (propertize "Boosted" 'face 'mastodon-boosted-face)
        " "
        (mastodon-tl--byline-author reblog)))))
@@ -671,20 +671,21 @@ this just means displaying toot client."
 		                  'shr-url app-url
                           'help-echo app-url
 		                  'keymap mastodon-tl--shr-map-replacement)))))
-       (when edited-time
-         (concat
-          (if (fontp (char-displayable-p #10r128274))
-              " ✍ "
-            " [edited] ")
-          (propertize
-           (format-time-string mastodon-toot-timestamp-format
-                               edited-parsed)
-           'face 'font-lock-comment-face
-           'timestamp edited-parsed
-           'display (if mastodon-tl--enable-relative-timestamps
-                        (mastodon-tl--relative-time-description edited-parsed)
-                      edited-parsed))))
-       (propertize "\n  ------------\n" 'face 'default))
+       (if edited-time
+           (concat
+            (if (fontp (char-displayable-p #10r128274))
+                " ✍ "
+              " [edited] ")
+            (propertize
+             (format-time-string mastodon-toot-timestamp-format
+                                 edited-parsed)
+             'face 'font-lock-comment-face
+             'timestamp edited-parsed
+             'display (if mastodon-tl--enable-relative-timestamps
+                          (mastodon-tl--relative-time-description edited-parsed)
+                        edited-parsed)))
+         "")
+       (propertize "\n  ------------\n  " 'face 'default))
       'favourited-p faved
       'boosted-p    boosted
       'bookmarked-p bookmarked
@@ -1317,39 +1318,24 @@ LINK-HEADER is the http Link header if present."
 
 (defun mastodon-tl--more-json (endpoint id)
   "Return JSON for timeline ENDPOINT before ID."
-  (let* ((url (mastodon-http--api (concat
-                                   endpoint
-                                   (if (string-match-p "?" endpoint)
-                                       "&"
-                                     "?")
-                                   "max_id="
-                                   (mastodon-tl--as-string id)))))
-    (mastodon-http--get-json url)))
+  (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
+         (url (mastodon-http--api endpoint)))
+    (mastodon-http--get-json url args)))
 
 (defun mastodon-tl--more-json-async (endpoint id callback &rest cbargs)
   "Return JSON for timeline ENDPOINT before ID.
 Then run CALLBACK with arguments CBARGS."
-  (let* ((url (mastodon-http--api (concat
-                                   endpoint
-                                   (if (string-match-p "?" endpoint)
-                                       "&"
-                                     "?")
-                                   "max_id="
-                                   (mastodon-tl--as-string id)))))
-    (apply 'mastodon-http--get-json-async url callback cbargs)))
+  (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
+         (url (mastodon-http--api endpoint)))
+    (apply 'mastodon-http--get-json-async url args callback cbargs)))
 
 ;; TODO
 ;; Look into the JSON returned here by Local
 (defun mastodon-tl--updated-json (endpoint id)
   "Return JSON for timeline ENDPOINT since ID."
-  (let ((url (mastodon-http--api (concat
-                                  endpoint
-                                  (if (string-match-p "?" endpoint)
-                                      "&"
-                                    "?")
-                                  "since_id="
-                                  (mastodon-tl--as-string id)))))
-    (mastodon-http--get-json url)))
+  (let* ((args `(("since_id" . ,(mastodon-tl--as-string id))))
+         (url (mastodon-http--api endpoint)))
+    (mastodon-http--get-json url args)))
 
 (defun mastodon-tl--property (prop &optional backward)
   "Get property PROP for toot at point.
@@ -1429,8 +1415,9 @@ ID is that of the toot to view."
               ;; refetch current toot in case we just faved/boosted:
               (mastodon-http--get-json
                (mastodon-http--api (concat "statuses/" id))
+               nil
                :silent))
-             (context (mastodon-http--get-json url :silent))
+             (context (mastodon-http--get-json url nil :silent))
              (marker (make-marker)))
         (if (equal (caar toot) 'error)
             (message "Error: %s" (cdar toot))
@@ -1703,13 +1690,9 @@ If ID is provided, use that list."
          (account (completing-read "Account to remove: "
                                    handles nil t))
          (account-id (alist-get account handles nil nil 'equal))
-         ;; letting --delete handle the params doesn't work
-         ;; so we do it here for now:
-         (base-url (mastodon-http--api (format "lists/%s/accounts" list-id)))
-         (args (mastodon-http--build-array-args-alist "account_ids[]" `(,account-id)))
-         (query-str (mastodon-http--build-query-string args))
-         (url (concat base-url "?" query-str))
-         (response (mastodon-http--delete url)))
+         (url (mastodon-http--api (format "lists/%s/accounts" list-id)))
+         (args (mastodon-http--build-array-params-alist "account_ids[]" `(,account-id)))
+         (response (mastodon-http--delete url args)))
     (mastodon-tl--list-action-triage
      response
      (message "%s removed from list %s!" account list-name))))
@@ -1903,9 +1886,9 @@ INSTANCE is an instance domain name."
           (response (mastodon-http--get-json
                      (if user
                          (mastodon-http--api "instance")
-                       (concat instance
-                               "/api/v1/instance"))
-                     nil
+                       (concat instance "/api/v1/instance"))
+                     nil ; params
+                     nil ; silent
                      :vector)))
      (when response
        (let ((buf (get-buffer-create "*mastodon-instance*")))
@@ -2288,9 +2271,9 @@ For use after e.g. deleting a toot."
   (if (member (buffer-name (current-buffer)) mastodon-tl--link-header-buffers)
       ;; link-header: can't build a URL with --more-json-async, endpoint/id:
       (let* ((next (car (mastodon-tl--link-header)))
-             ;(prev (cadr (mastodon-tl--link-header)))
+             ;;(prev (cadr (mastodon-tl--link-header)))
              (url (mastodon-tl--build-link-header-url next)))
-        (mastodon-http--get-response-async url 'mastodon-tl--more* (current-buffer)
+        (mastodon-http--get-response-async url nil 'mastodon-tl--more* (current-buffer)
                                            (point) :headers))
     (mastodon-tl--more-json-async (mastodon-tl--get-endpoint) (mastodon-tl--oldest-id)
                                   'mastodon-tl--more* (current-buffer) (point))))
@@ -2491,9 +2474,9 @@ favourites."
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers
         (mastodon-http--get-response-async
-         url 'mastodon-tl--init* buffer endpoint update-function headers)
+         url nil 'mastodon-tl--init* buffer endpoint update-function headers)
       (mastodon-http--get-json-async
-       url 'mastodon-tl--init* buffer endpoint update-function))))
+       url nil 'mastodon-tl--init* buffer endpoint update-function))))
 
 (defun mastodon-tl--init* (response buffer endpoint update-function &optional headers)
   "Initialize BUFFER with timeline targeted by ENDPOINT.
@@ -2547,16 +2530,16 @@ Runs synchronously.
 Optional arg NOTE-TYPE means only get that type of note."
   (let* ((exclude-types (when note-type
                           (mastodon-notifications--filter-types-list note-type)))
-         (args (when note-type (mastodon-http--build-array-args-alist
+         (args (when note-type (mastodon-http--build-array-params-alist
                                 "exclude_types[]" exclude-types)))
-         (query-string (when note-type
-                         (mastodon-http--build-query-string args)))
+         ;; (query-string (when note-type
+         ;; (mastodon-http--build-params-string args)))
          ;; add note-type exclusions to endpoint so it works in `mastodon-tl--buffer-spec'
          ;; that way `mastodon-tl--more' works seamlessly too:
-         (endpoint (if note-type (concat endpoint "?" query-string) endpoint))
+         ;; (endpoint (if note-type (concat endpoint "?" query-string) endpoint))
          (url (mastodon-http--api endpoint))
          (buffer (concat "*mastodon-" buffer-name "*"))
-         (json (mastodon-http--get-json url)))
+         (json (mastodon-http--get-json url args)))
     (with-output-to-temp-buffer buffer
       (switch-to-buffer buffer)
       ;; mastodon-mode wipes buffer-spec, so order must unforch be:
