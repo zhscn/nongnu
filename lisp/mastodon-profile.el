@@ -113,7 +113,6 @@
 
 (define-minor-mode mastodon-profile-mode
   "Toggle mastodon profile minor mode.
-
 This minor mode is used for mastodon profile pages and adds a couple of
 extra keybindings."
   :init-value nil
@@ -675,7 +674,6 @@ NO-REBLOGS means do not display boosts in statuses."
 
 (defun mastodon-profile--get-toot-author ()
   "Open profile of author of toot under point.
-
 If toot is a boost, opens the profile of the booster."
   (interactive)
   (mastodon-profile--make-author-buffer
@@ -731,7 +729,6 @@ IMG_TYPE is the JSON key from the account data."
 
 (defun mastodon-profile--account-field (account field)
   "Return FIELD from the ACCOUNT.
-
 FIELD is used to identify regions under 'account"
   (cdr (assoc field account)))
 
@@ -762,7 +759,6 @@ Used to view a user's followers and those they're following."
 
 (defun mastodon-profile--search-account-by-handle (handle)
   "Return an account based on a user's HANDLE.
-
 If the handle does not match a search return then retun NIL."
   (let* ((handle (if (string= "@" (substring handle 0 1))
                      (substring handle 1 (length handle))
@@ -785,15 +781,14 @@ If the handle does not match a search return then retun NIL."
 
 (defun mastodon-profile--extract-users-handles (status)
   "Return all user handles found in STATUS.
-
 These include the author, author of reblogged entries and any user mentioned."
   (when status
     (let ((this-account
            (or (alist-get 'account status) ; status is a toot
                status)) ; status is a user listing
-	      (mentions (or (alist-get 'mentions (alist-get 'status status))
+	  (mentions (or (alist-get 'mentions (alist-get 'status status))
                         (alist-get 'mentions status)))
-	      (reblog (or (alist-get 'reblog (alist-get 'status status))
+	  (reblog (or (alist-get 'reblog (alist-get 'status status))
                       (alist-get 'reblog status))))
       (seq-filter
        'stringp
