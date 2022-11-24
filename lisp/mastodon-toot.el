@@ -81,7 +81,7 @@
 (autoload 'mastodon-profile--fetch-server-account-settings "mastodon-profile")
 (autoload 'mastodon-tl--render-text "mastodon-tl")
 (autoload 'mastodon-profile--fetch-server-account-settings-maybe "mastodon-profile")
-(autoload 'mastodon-http--build-array-args-alist "mastodon-http")
+(autoload 'mastodon-http--build-array-params-alist "mastodon-http")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl")
 (autoload 'mastodon-http--put "mastodon-http")
 
@@ -253,6 +253,7 @@ send.")
 NO-TOOT means we are not calling from a toot buffer."
   (mastodon-http--get-json-async
    (mastodon-http--api "instance")
+   nil
    'mastodon-toot--get-max-toot-chars-callback no-toot))
 
 (defun mastodon-toot--get-max-toot-chars-callback (json-response
@@ -352,7 +353,9 @@ TYPE is a symbol, either 'favourite or 'boost."
                                         (list 'boosted-p (not boosted))
                                       (list 'favourited-p (not faved))))
                (mastodon-toot--action-success
-                (if boost-p "B" "F")
+                (if boost-p
+                    (mastodon-tl--return-boost-char)
+                  (mastodon-tl--return-fave-char))
                 byline-region remove))
              (message (format "%s #%s" (if boost-p msg action) id))))))
       (message (format "Nothing to %s here?!?" action-string)))))
@@ -662,7 +665,7 @@ to `emojify-user-emojis', and the emoji data is updated."
 (defun mastodon-toot--build-poll-params ()
   "Return an alist of parameters for POSTing a poll status."
   (append
-   (mastodon-http--build-array-args-alist
+   (mastodon-http--build-array-params-alist
     "poll[options][]"
     (plist-get mastodon-toot-poll :options))
    `(("poll[expires_in]" .  ,(plist-get mastodon-toot-poll :expiry)))
@@ -696,7 +699,7 @@ instance to edit a toot."
                           ("spoiler_text" . ,spoiler)
                           ("language" . ,mastodon-toot--language)))
          (args-media (when mastodon-toot--media-attachments
-                       (mastodon-http--build-array-args-alist
+                       (mastodon-http--build-array-params-alist
                         "media_ids[]"
                         mastodon-toot--media-attachment-ids)))
          (args-poll (when mastodon-toot-poll
@@ -761,7 +764,7 @@ instance to edit a toot."
 (defun mastodon-toot--get-toot-source (id)
   "Fetch the source JSON of toot with ID."
   (let ((url (mastodon-http--api (format "/statuses/%s/source" id))))
-    (mastodon-http--get-json url :silent)))
+    (mastodon-http--get-json url nil :silent)))
 
 (defun mastodon-toot--get-toot-edits (id)
   "Return the edit history of toot with ID."

@@ -36,6 +36,7 @@
 (require 'seq)
 (require 'cl-lib)
 (require 'persist)
+(require 'ts)
 
 (autoload 'mastodon-http--api "mastodon-http.el")
 (autoload 'mastodon-http--get-json "mastodon-http.el")
@@ -69,6 +70,8 @@
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl.el")
 (autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
+(autoload 'mastodon-tl--add-account-to-list "mastodon-tl")
+
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--update-point)
@@ -242,6 +245,15 @@ JSON is the data returned by the server."
                'toot-id "0"))
     (mastodon-search--insert-users-propertized json :note)))
 ;; (mastodon-profile--add-author-bylines json)))
+
+(defun mastodon-profile--add-account-to-list ()
+  "Add account of current profile buffer to a list."
+  (interactive)
+  (when mastodon-profile--account
+    (let* ((profile mastodon-profile--account)
+           (id (alist-get 'id profile))
+           (handle (alist-get 'acct profile)))
+      (mastodon-tl--add-account-to-list nil id handle))))
 
 ;;; ACCOUNT PREFERENCES
 
@@ -492,11 +504,10 @@ This endpoint only holds a few preferences. For others, see
 (defun mastodon-profile--relationships-get (id)
   "Fetch info about logged-in user's relationship to user with id ID."
   (let* ((their-id id)
-         (url (mastodon-http--api (format
-                                   "accounts/relationships?id[]=%s"
-                                   their-id))))
+         (args `(("id[]" . ,their-id)))
+         (url (mastodon-http--api "accounts/relationships")))
     ;; FIXME: not sure why we need to do this for relationships only!
-    (car (mastodon-http--get-json url))))
+    (car (mastodon-http--get-json url args))))
 
 (defun mastodon-profile--fields-get (&optional account fields)
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
@@ -527,8 +538,9 @@ FIELDS means provide a fields vector fetched by other means."
 (defun mastodon-profile--get-statuses-pinned (account)
   "Fetch the pinned toots for ACCOUNT."
   (let* ((id (mastodon-profile--account-field account 'id))
-         (url (mastodon-http--api (format "accounts/%s/statuses?pinned=true" id))))
-    (mastodon-http--get-json url)))
+         (args `(("pinned" . "true")))
+         (url (mastodon-http--api (format "accounts/%s/statuses" id))))
+    (mastodon-http--get-json url args)))
 
 (defun mastodon-profile--insert-statuses-pinned (pinned-statuses)
   "Insert each of the PINNED-STATUSES for a given account."
@@ -538,18 +550,17 @@ FIELDS means provide a fields vector fetched by other means."
           (mastodon-tl--toot pinned-status))
         pinned-statuses))
 
-(defun mastodon-profile--make-profile-buffer-for (account endpoint-type update-function &optional no-reblogs)
+(defun mastodon-profile--make-profile-buffer-for (account endpoint-type
+                                                          update-function
+                                                          &optional no-reblogs)
   "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION."
   (let* ((id (mastodon-profile--account-field account 'id))
          (args (when no-reblogs '(("exclude_reblogs" . "t"))))
-         (base-url (mastodon-http--api (format "accounts/%s/%s" id endpoint-type)))
-         (url (if no-reblogs
-                  (concat base-url "?" (mastodon-http--build-query-string args))
-                base-url))
+         (url (mastodon-http--api (format "accounts/%s/%s" id endpoint-type)))
          (acct (mastodon-profile--account-field account 'acct))
          (buffer (concat "*mastodon-" acct "-" endpoint-type  "*"))
          (note (mastodon-profile--account-field account 'note))
-         (json (mastodon-http--get-json url))
+         (json (mastodon-http--get-json url args))
          (locked (mastodon-profile--account-field account 'locked))
          (followers-count (mastodon-tl--as-string
                            (mastodon-profile--account-field
@@ -754,12 +765,14 @@ If the handle does not match a search return then retun NIL."
   (let* ((handle (if (string= "@" (substring handle 0 1))
                      (substring handle 1 (length handle))
                    handle))
+         (args `(("q" . ,handle)))
          (matching-account
           (seq-remove
            (lambda (x)
              (not (string= (alist-get 'acct x) handle)))
            (mastodon-http--get-json
-            (mastodon-http--api (format "accounts/search?q=%s" handle))))))
+            (mastodon-http--api "accounts/search")
+            args))))
     (when (equal 1 (length matching-account))
       (elt matching-account 0))))
 

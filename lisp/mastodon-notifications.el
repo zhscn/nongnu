@@ -51,6 +51,7 @@
 (autoload 'mastodon-profile--view-follow-requests "mastodon-profile.el")
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (autoload 'mastodon-tl--update "mastodon-tl")
+(autoload 'mastodon-notifications-get "mastodon")
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
 (defvar mastodon-mode-map)
@@ -124,7 +125,7 @@ follow-requests view."
                                          (lambda ()
                                            (if f-reqs-view-p
                                                (mastodon-profile--view-follow-requests)
-                                             (mastodon-notifications--get))
+                                             (mastodon-notifications-get))
                                            (message "Follow request of %s (@%s) %s!"
                                                     name handle (if reject
                                                                     "rejected"
@@ -276,51 +277,32 @@ of the toot responded to."
     (mapc #'mastodon-notifications--by-type json)
     (goto-char (point-min))))
 
-;;;###autoload
-(defun mastodon-notifications--get (&optional type buffer-name)
-  "Display NOTIFICATIONS in buffer.
-Optionally only print notifications of type TYPE, a string.
-BUFFER-NAME is added to \"*mastodon-\" to create the buffer name."
-  (interactive)
-  (let ((buffer (or (concat "*mastodon-" buffer-name "*")
-                    "*mastodon-notifications*")))
-    (if (get-buffer buffer)
-        (progn (switch-to-buffer buffer)
-               (mastodon-tl--update))
-      (message "Loading your notifications...")
-      (mastodon-tl--init-sync
-       (or buffer-name "notifications")
-       "notifications"
-       'mastodon-notifications--timeline
-       type)
-      (use-local-map mastodon-notifications--map))))
-
 (defun mastodon-notifications--get-mentions ()
   "Display mention notifications in buffer."
   (interactive)
-  (mastodon-notifications--get "mention" "mentions"))
+  (mastodon-notifications-get "mention" "mentions"))
 
 (defun mastodon-notifications--get-favourites ()
   "Display favourite notifications in buffer."
   (interactive)
-  (mastodon-notifications--get "favourite" "favourites"))
+  (mastodon-notifications-get "favourite" "favourites"))
 
 (defun mastodon-notifications--get-boosts ()
   "Display boost notifications in buffer."
   (interactive)
-  (mastodon-notifications--get "reblog" "boosts"))
+  (mastodon-notifications-get "reblog" "boosts"))
 
 (defun mastodon-notifications--get-polls ()
   "Display poll notifications in buffer."
   (interactive)
-  (mastodon-notifications--get "poll" "polls"))
+  (mastodon-notifications-get "poll" "polls"))
 
 (defun mastodon-notifications--get-statuses ()
   "Display status notifications in buffer.
 Status notifications are created when you call
 `mastodon-tl--enable-notify-user-posts'."
   (interactive)
-  (mastodon-notifications--get "status" "statuses"))
+  (mastodon-notifications-get "status" "statuses"))
 
 (defun mastodon-notifications--filter-types-list (type)
   "Return a list of notification types with TYPE removed."
