@@ -949,10 +949,17 @@ meta fields respectively."
             ;; only search when necessary:
             (completion-table-dynamic
              (lambda (_)
-               (mastodon-search--search-accounts-query
-                (buffer-substring-no-properties start end)
-                :capf)))
-            :exclusive 'no))))
+               ;; TODO: do we really need to set a local var here
+               ;; just for the annotation-function?
+               (setq mastodon-toot-completions
+                     (mastodon-search--search-accounts-query
+                      (buffer-substring-no-properties start end)
+                      :capf))))
+            :exclusive 'no
+            :annotation-function
+            (lambda (candidate)
+              (concat " "
+                      (mastodon-toot--mentions-annotation-fun candidate)))))))
 
 (defun mastodon-toot--tags-capf ()
   "Build a tags completion backend for `completion-at-point-functions'."
@@ -966,13 +973,31 @@ meta fields respectively."
             ;; only search when necessary:
             (completion-table-dynamic
              (lambda (_)
-               (let ((tags (mastodon-search--search-tags-query
-                            (buffer-substring-no-properties start end))))
-                 (mapcar (lambda (x)
-                           (list (concat "#" (car x))
-                                 (cdr x)))
-                         tags))))
-            :exclusive 'no))))
+               (setq mastodon-toot-completions
+                     (let ((tags (mastodon-search--search-tags-query
+                                  (buffer-substring-no-properties start end))))
+                       (mapcar (lambda (x)
+                                 (list (concat "#" (car x))
+                                       (cdr x)))
+                               tags)))))
+            :exclusive 'no
+            :annotation-function
+            (lambda (candidate)
+              (concat " "
+                      (mastodon-toot--tags-annotation-fun candidate)))))))
+
+(defvar-local mastodon-toot-completions nil
+  "The data of completion candidates for the current completion at point.")
+
+(defun mastodon-toot--mentions-annotation-fun (candidate)
+  "Given a handle completion CANDIDATE, return its annotation string, a username."
+  (caddr (assoc candidate mastodon-toot-completions)))
+
+(defun mastodon-toot--tags-annotation-fun (candidate)
+  "Given a tag string CANDIDATE, return an annotation, the tag's URL."
+  ;; FIXME check the list returned here? should be cadr
+  ;;or make it an alist and use cdr
+  (caadr (assoc candidate mastodon-toot-completions)))
 
 (defun mastodon-toot-mentions (command &optional arg &rest ignored)
   "A company completion backend for toot mentions.
