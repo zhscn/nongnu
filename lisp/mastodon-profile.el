@@ -154,7 +154,8 @@ contains")
   (mastodon-tl--property 'toot-json))
 
 (defun mastodon-profile--make-author-buffer (account &optional no-reblogs)
-  "Take an ACCOUNT json and insert a user account into a new buffer."
+  "Take an ACCOUNT json and insert a user account into a new buffer.
+NO-REBLOGS means do not display boosts in statuses."
   (mastodon-profile--make-profile-buffer-for
    account "statuses" #'mastodon-tl--timeline no-reblogs))
 
@@ -553,7 +554,8 @@ FIELDS means provide a fields vector fetched by other means."
 (defun mastodon-profile--make-profile-buffer-for (account endpoint-type
                                                           update-function
                                                           &optional no-reblogs)
-  "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION."
+  "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION.
+NO-REBLOGS means do not display boosts in statuses."
   (let* ((id (mastodon-profile--account-field account 'id))
          (args (when no-reblogs '(("exclude_reblogs" . "t"))))
          (url (mastodon-http--api (format "accounts/%s/%s" id endpoint-type)))
@@ -664,7 +666,7 @@ FIELDS means provide a fields vector fetched by other means."
     (goto-char (point-min))))
 
 (defun mastodon-profile--format-joined-date-string (joined)
-  "Format a Joined timestamp."
+  "Format a human-readable Joined string from timestamp JOINED."
   (let ((joined-ts (ts-parse joined)))
     (format "Joined %s" (concat (ts-month-name joined-ts)
                                 " "
