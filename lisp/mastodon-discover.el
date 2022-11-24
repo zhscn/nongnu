@@ -57,8 +57,8 @@
                        ("p" "Prev" mastodon-tl--goto-prev-toot)
                        ("TAB" "Next link item" mastodon-tl--next-tab-item)
                        ("S-TAB" "Prev link item" mastodon-tl--previous-tab-item)
-                       (when (require 'mpv nil :noerror)
-                         ("C-RET" "Play media" mastodon-tl--mpv-play-video-at-point))
+                       ;; NB: (when (require 'mpv etc. calls don't work here
+                       ("C-RET" "Play media" mastodon-tl--mpv-play-video-at-point)
                        ("t" "New toot" mastodon-toot)
                        ("r" "Reply" mastodon-toot--reply)
                        ("C" "Copy toot URL" mastodon-toot--copy-toot-url)
@@ -66,8 +66,7 @@
                        ("D" "Delete and redraft (your) toot" mastodon-toot--delete-toot)
                        ("i" "Pin/Unpin (your) toot" mastodon-toot--pin-toot-toggle)
                        ("P" "View user profile" mastodon-profile--show-user)
-                       (when (require 'lingva nil :noerror)
-                         "s" "Translate toot at point" mastodon-toot--translate-toot-text)
+                       ("s" "Translate toot at point" mastodon-toot--translate-toot-text)
                        ("T" "View thread" mastodon-tl--thread)
                        ("v" "Vote on poll" mastodon-tl--poll-vote))
                       ("Views"
@@ -94,7 +93,8 @@
                        ("B" "Block" mastodon-tl--block-user)
                        ("C-S-B" "Unblock" mastodon-tl--unblock-user))
                       ("Images"
-                       ("RET/i" "Load full image in browser" 'shr-browse-image)
+                       ;; RET errors here also :/
+                       ("<return>/i" "Load full image in browser" 'shr-browse-image)
                        ("r" "rotate" 'image-rotate)
                        ("+" "zoom in" 'image-increase-size)
                        ("-" "zoom out" 'image-decrease-size)
