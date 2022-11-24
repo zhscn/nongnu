@@ -175,27 +175,30 @@ Strict-Transport-Security: max-age=31536000
   "Should request toots older than max_id."
   (let ((mastodon-instance-url "https://instance.url"))
     (with-mock
-      (mock (mastodon-http--get-json "https://instance.url/api/v1/timelines/foo?max_id=12345"))
-      (mastodon-tl--more-json "timelines/foo" 12345))))
+      (mock (mastodon-http--get-json "https://instance.url/api/v1/timelines/foo"
+                                     '(("max_id" . "12345"))))
+      (mastodon-tl--more-json "timelines/foo" "12345"))))
 
 (ert-deftest mastodon-tl--more-json-id-string ()
   "Should request toots older than max_id.
 
-`mastodon-tl--more-json' should accept and id that is either
-a string or a numeric."
+  `mastodon-tl--more-json' should accept and id that is either
+  a string or a numeric."
   (let ((mastodon-instance-url "https://instance.url"))
     (with-mock
-      (mock (mastodon-http--get-json "https://instance.url/api/v1/timelines/foo?max_id=12345"))
+      (mock (mastodon-http--get-json "https://instance.url/api/v1/timelines/foo"
+                                     '(("max_id" . "12345"))))
       (mastodon-tl--more-json "timelines/foo" "12345"))))
 
 (ert-deftest mastodon-tl--update-json-id-string ()
   "Should request toots more recent than since_id.
 
-`mastodon-tl--updated-json' should accept and id that is either
-a string or a numeric."
+  `mastodon-tl--updated-json' should accept and id that is either
+  a string or a numeric."
   (let ((mastodon-instance-url "https://instance.url"))
     (with-mock
-      (mock (mastodon-http--get-json "https://instance.url/api/v1/timelines/foo?since_id=12345"))
+      (mock (mastodon-http--get-json "https://instance.url/api/v1/timelines/foo"
+                                     '(("since_id" . "12345"))))
       (mastodon-tl--updated-json "timelines/foo" "12345"))))
 
 (ert-deftest mastodon-tl--relative-time-description ()
@@ -314,7 +317,7 @@ a string or a numeric."
 			              byline)
 			             "Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
-"))
+  "))
         (should (eq (get-text-property handle-location 'mastodon-tab-stop byline)
                     'user-handle))
         (should (string= (get-text-property handle-location 'mastodon-handle byline)
@@ -337,7 +340,7 @@ a string or a numeric."
                                              'mastodon-tl--byline-boosted))
                        "Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
-")))))
+  ")))))
 
 (ert-deftest mastodon-tl--byline-boosted ()
   "Should format the boosted toot correctly."
@@ -354,7 +357,7 @@ a string or a numeric."
                                              'mastodon-tl--byline-boosted))
                        "(B) Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
-")))))
+  ")))))
 
 (ert-deftest mastodon-tl--byline-favorited ()
   "Should format the favourited toot correctly."
@@ -371,7 +374,7 @@ a string or a numeric."
                                              'mastodon-tl--byline-boosted))
                        "(F) Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
-")))))
+  ")))))
 
 
 (ert-deftest mastodon-tl--byline-boosted/favorited ()
@@ -389,7 +392,7 @@ a string or a numeric."
                                              'mastodon-tl--byline-boosted))
                        "(B) (F) Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
-")))))
+  ")))))
 
 (ert-deftest mastodon-tl--byline-reblogged ()
   "Should format the reblogged toot correctly."
@@ -413,9 +416,9 @@ a string or a numeric."
 	        (handle2-location 65))
         (should (string= (substring-no-properties byline)
 			             "Account 42 (@acct42@example.space)
- Boosted Account 43 (@acct43@example.space) original time
+  Boosted Account 43 (@acct43@example.space) original time
   ------------
-"))
+  "))
         (should (eq (get-text-property handle1-location 'mastodon-tab-stop byline)
                     'user-handle))
         (should (equal (get-text-property handle1-location 'help-echo byline)
@@ -446,9 +449,9 @@ a string or a numeric."
                                              'mastodon-tl--byline-author
                                              'mastodon-tl--byline-boosted))
                        "Account 42 (@acct42@example.space)
- Boosted Account 43 (@acct43@example.space) original time
+  Boosted Account 43 (@acct43@example.space) original time
   ------------
-")))))
+  ")))))
 
 (ert-deftest mastodon-tl--byline-reblogged-boosted/favorited ()
   "Should format the reblogged toot that was also boosted & favoritedcorrectly."
@@ -470,9 +473,9 @@ a string or a numeric."
                                              'mastodon-tl--byline-author
                                              'mastodon-tl--byline-boosted))
                        "(B) (F) Account 42 (@acct42@example.space)
- Boosted Account 43 (@acct43@example.space) original time
+  Boosted Account 43 (@acct43@example.space) original time
   ------------
-")))))
+  ")))))
 
 (ert-deftest mastodon-tl--byline-timestamp-has-relative-display ()
   "Should display the timestamp with a relative time."
@@ -808,8 +811,8 @@ a string or a numeric."
 (defun tl-tests--property-values-at (property ranges)
   "Returns a list with property values at the given ranges.
 
-The property value for PROPERTY within a region is assumed to be
-constant."
+  The property value for PROPERTY within a region is assumed to be
+  constant."
   (let (result)
     (dolist (range ranges (nreverse result))
       (push (get-text-property (car range) property) result))))
