@@ -189,9 +189,7 @@ Pops a new buffer/window in =mastodon-toot= minor mode. Enter the
 contents of your toot here. =C-c C-c= sends the toot. =C-c C-k= cancels.
 Both actions kill the buffer and window.
 
-Autocompletion of mentions and tags is provided by mastodon company backends
-(requires =company-mode= and =mastodon-toot--enable-completion= must be set to =t=)
-. Type =@= or =#= followed by two or more characters for candidates to appear.
+Autocompletion of mentions and tags is provided by =completion-at-point-functions= (capf) backends. =mastodon-toot--enable-completion= is enabled by default. If you want to enable =company-mode= in the toot compose buffer, set =mastodon-toot--use-company-for-completion= to =t=. (=mastodon.el= used to run its own native company backends, but these have been removed in favour of capfs.)
 
 Replies preserve visibility status/content warnings, and include boosters by default.
 
@@ -312,7 +310,6 @@ Hard dependencies (should all install with =mastodon.el=):
 - =ts= for poll relative expiry times
 
 Optional dependencies:
-- =company= for autocompletion of mentions and tags when composing a toot
 - =emojify= for inserting and viewing emojis
 - =mpv= and =mpv.el= for viewing videos and gifs
 - =lingva.el= for translating toots
