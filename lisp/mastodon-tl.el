@@ -107,6 +107,13 @@ By default fixed width fonts are used."
   :type '(boolean :tag "Enable using proportional rather than fixed \
 width fonts when rendering HTML text"))
 
+(defcustom mastodon-tl--display-caption-not-url-when-no-media t
+  "Display an image's caption rather than URL.
+Only has an effect when `mastodon-tl--display-media-p' is set to
+nil."
+  :group 'mastodon-tl
+  :type 'boolean)
+
 (defvar-local mastodon-tl--buffer-spec nil
   "A unique identifier and functions for each Mastodon buffer.")
 
@@ -600,9 +607,6 @@ this just means displaying toot client."
          (faved (equal 't (mastodon-tl--field 'favourited toot)))
          (boosted (equal 't (mastodon-tl--field 'reblogged toot)))
          (bookmarked (equal 't (mastodon-tl--field 'bookmarked toot)))
-         (bookmark-str (if (fontp (char-displayable-p #10r128278))
-                           "🔖"
-                         "K"))
          (visibility (mastodon-tl--field 'visibility toot))
          (account (alist-get 'account toot))
          (avatar-url (alist-get 'avatar account))
@@ -617,12 +621,14 @@ this just means displaying toot client."
      ;; displayed for an already boosted/favourited toot or as the result of
      ;; the toot having just been favourited/boosted.
      (concat (when boosted
-               (mastodon-tl--format-faved-or-boosted-byline "B"))
+               (mastodon-tl--format-faved-or-boosted-byline
+                (mastodon-tl--return-boost-char)))
              (when faved
                (mastodon-tl--format-faved-or-boosted-byline
                 (mastodon-tl--return-fave-char)))
              (when bookmarked
-               (mastodon-tl--format-faved-or-boosted-byline bookmark-str)))
+               (mastodon-tl--format-faved-or-boosted-byline
+                (mastodon-tl--return-bookmark-char))))
      ;; we remove avatars from the byline also, so that they also do not mess
      ;; with `mastodon-tl--goto-next-toot':
      (when (and mastodon-tl--show-avatars
@@ -667,10 +673,10 @@ this just means displaying toot client."
                           'face 'mastodon-display-name-face
                           'follow-link t
                           'mouse-face 'highlight
-		                  'mastodon-tab-stop 'shr-url
-		                  'shr-url app-url
+		          'mastodon-tab-stop 'shr-url
+		          'shr-url app-url
                           'help-echo app-url
-		                  'keymap mastodon-tl--shr-map-replacement)))))
+		          'keymap mastodon-tl--shr-map-replacement)))))
        (if edited-time
            (concat
             (if (fontp (char-displayable-p #10r128274))
@@ -685,7 +691,7 @@ this just means displaying toot client."
                           (mastodon-tl--relative-time-description edited-parsed)
                         edited-parsed)))
          "")
-       (propertize "\n  ------------\n  " 'face 'default))
+       (propertize "\n  ------------\n" 'face 'default))
       'favourited-p faved
       'boosted-p    boosted
       'bookmarked-p bookmarked
@@ -693,6 +699,14 @@ this just means displaying toot client."
       'edit-history (when edited-time
                       (mastodon-toot--get-toot-edits (alist-get 'id toot)))
       'byline       t))))
+
+(defun mastodon-tl--return-boost-char ()
+  ""
+  (cond
+   ((fontp (char-displayable-p #10r128257))
+    "🔁")
+   (t
+    "B")))
 
 (defun mastodon-tl--return-fave-char ()
   ""
@@ -703,6 +717,12 @@ this just means displaying toot client."
     "★")
    (t
     "F")))
+
+(defun mastodon-tl--return-bookmark-char ()
+  ""
+  (if (fontp (char-displayable-p #10r128278))
+      "🔖"
+    "K"))
 
 (defun mastodon-tl--format-edit-timestamp (timestamp)
   "Convert edit TIMESTAMP into a descriptive string."
@@ -1018,26 +1038,69 @@ message is a link which unhides/hides the main body."
 
 (defun mastodon-tl--media (toot)
   "Retrieve a media attachment link for TOOT if one exists."
-  (let* ((media-attachements (mastodon-tl--field 'media_attachments toot))
-         (media-string (mapconcat
-                        (lambda (media-attachement)
-                          (let ((preview-url
-                                 (alist-get 'preview_url media-attachement))
-                                (remote-url
-                                 (or (alist-get 'remote_url media-attachement)
-                                     ;; fallback b/c notifications don't have remote_url
-                                     (alist-get 'url media-attachement)))
-                                (type (alist-get 'type media-attachement))
-                                (caption (alist-get 'description media-attachement)))
-                            (if mastodon-tl--display-media-p
-                                (mastodon-media--get-media-link-rendering
-                                 preview-url remote-url type caption) ; 2nd arg for shr-browse-url
-                              (concat "Media::" preview-url "\n"))))
-                        media-attachements "")))
+  (let* ((media-attachments (mastodon-tl--field 'media_attachments toot))
+         (media-string (mapconcat #'mastodon-tl--media-attachment
+                                  media-attachments "")))
     (if (not (and mastodon-tl--display-media-p
                   (string-empty-p media-string)))
         (concat "\n" media-string)
       "")))
+
+(defun mastodon-tl--media-attachment (media-attachment)
+  "Return a propertized string for MEDIA-ATTACHMENT."
+  (let* ((preview-url
+          (alist-get 'preview_url media-attachment))
+         (remote-url
+          (or (alist-get 'remote_url media-attachment)
+              ;; fallback b/c notifications don't have remote_url
+              (alist-get 'url media-attachment)))
+         (type (alist-get 'type media-attachment))
+         (caption (alist-get 'description media-attachment))
+         (display-str
+          (if (and mastodon-tl--display-caption-not-url-when-no-media
+                   caption)
+              (concat "Media:: " caption)
+            (concat "Media:: " preview-url))))
+    (if mastodon-tl--display-media-p
+        ;; return placeholder [img]:
+        (mastodon-media--get-media-link-rendering
+         preview-url remote-url type caption) ; 2nd arg for shr-browse-url
+      ;; return URL/caption:
+      (concat
+       (mastodon-tl--propertize-img-str-or-url
+        (concat "Media:: " preview-url) ;; string
+        preview-url remote-url type caption
+        display-str ;; display
+        ;; FIXME: shr-link underlining is awful for captions with
+        ;; newlines, as the underlining runs to the edge of the
+        ;; frame even if the text doesn'
+        'shr-link)
+       "\n"))))
+
+(defun mastodon-tl--propertize-img-str-or-url (str media-url full-remote-url type
+                                                   help-echo &optional display face)
+  "Propertize an media placeholder string \"[img]\" or media URL.
+
+STR is the string to propertize, MEDIA-URL is the preview link,
+FULL-REMOTE-URL is the link to the full resolution image on the
+server, TYPE is the media type.
+HELP-ECHO, DISPLAY, and FACE are the text properties to add."
+  (propertize str
+              'media-url media-url
+              'media-state (when (string= str "[img]") 'needs-loading)
+              'media-type 'media-link
+              'mastodon-media-type type
+              'display display
+              'face face
+              'mouse-face 'highlight
+              'mastodon-tab-stop 'image ; for do-link-action-at-point
+              'image-url full-remote-url ; for shr-browse-image
+              'keymap mastodon-tl--shr-image-map-replacement
+              'help-echo (if (or (string= type "image")
+                                 (string= type nil)
+                                 (string= type "unknown")) ;handle borked images
+                             help-echo
+                           (concat help-echo "\nC-RET: play " type " with mpv"))))
 
 (defun mastodon-tl--content (toot)
   "Retrieve text content from TOOT.

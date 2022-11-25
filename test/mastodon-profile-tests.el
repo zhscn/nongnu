@@ -237,7 +237,7 @@ content generation in the function under test."
     (if (version< emacs-version "27.1")
         (mock (image-type-available-p 'imagemagick) => t)
       (mock (image-transforms-p) => t))
-    (mock (mastodon-http--get-json "https://instance.url/api/v1/accounts/1/statuses")
+    (mock (mastodon-http--get-json "https://instance.url/api/v1/accounts/1/statuses" nil)
           =>
           gargon-statuses-json)
     (mock (mastodon-profile--get-statuses-pinned *)
@@ -271,7 +271,8 @@ content generation in the function under test."
          "@Gargron\n"
          " ------------\n"
          "<p>Developer of Mastodon and administrator of mastodon.social. I post service announcements, development updates, and personal stuff.</p>\n"
-         "_ Patreon __ :: <a href=\"https://www.patreon.com/mastodon\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://www.</span><span class=\"\">patreon.com/mastodon</span><span class=\"invisible\"></span></a>_ Homepage _ :: <a href=\"https://zeonfederated.com\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://</span><span class=\"\">zeonfederated.com</span><span class=\"invisible\"></span></a>\n"
+         "_ Patreon __ :: <a href=\"https://www.patreon.com/mastodon\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://www.</span><span class=\"\">patreon.com/mastodon</span><span class=\"invisible\"></span></a>_ Homepage _ :: <a href=\"https://zeonfederated.com\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://</span><span class=\"\">zeonfederated.com</span><span class=\"invisible\"></span></a>"
+         "\n"
          "Joined March 2016"
          "\n\n"
          " ------------\n"

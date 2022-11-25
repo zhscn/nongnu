@@ -41,12 +41,6 @@
 (require 'cl-lib)
 (require 'persist)
 
-(when (require 'company nil :noerror)
-  (declare-function company-mode-on "company")
-  (declare-function company-begin-backend "company")
-  (declare-function company-grab-symbol "company")
-  (defvar company-backends))
-
 (require 'mastodon-iso)
 
 (defvar mastodon-instance-url)
@@ -106,18 +100,24 @@
   :group 'mastodon-toot
   :type 'integer)
 
-(defcustom mastodon-toot--enable-completion
-  (if (require 'company nil :noerror) t nil)
+(defcustom mastodon-toot--enable-completion t
   "Whether to enable completion of mentions and hashtags.
-
-Used for completion in toot compose buffer.
-
-This is only used if company mode is installed."
+Used for completion in toot compose buffer."
   :group 'mastodon-toot
   :type 'boolean)
 
-(defcustom mastodon-toot--completion-style-for-mentions
-  (if (require 'company nil :noerror) "following" "off")
+(defcustom mastodon-toot--use-company-for-completion nil
+  "Whether to enable company for completion.
+
+When non-nil, `company-mode' is enabled in the toot compose
+buffer, and mastodon completion backends are added to
+`company-capf'.
+
+You need to install company yourself to use this."
+  :group 'mastodon-toot
+  :type 'boolean)
+
+(defcustom mastodon-toot--completion-style-for-mentions "all"
   "The company completion style to use for mentions."
   :group 'mastodon-toot
   :type '(choice
@@ -188,6 +188,9 @@ Takes its form from `window-configuration-to-register'.")
 (defvar mastodon-toot--max-toot-chars nil
   "The maximum allowed characters count for a single toot.")
 
+(defvar-local mastodon-toot-completions nil
+  "The data of completion candidates for the current completion at point.")
+
 (defvar mastodon-toot-current-toot-text nil
   "The text of the toot being composed.")
 
@@ -204,6 +207,13 @@ send.")
    "\\(?2:@[1-9a-zA-Z._-]+" ; a handle
    "\\(@[^ \n\t]*\\)?\\)" ; with poss domain, * = allow only @
    "\\b"))
+
+(defvar mastodon-toot-tag-regex
+  (concat
+   ;; preceding space or bol [boundary doesn't work with #]
+   "\\([\n\t ]\\|^\\)"
+   "\\(?2:#[1-9a-zA-Z_]+\\)" ; tag
+   "\\b")) ; boundary
 
 (defvar mastodon-toot-mode-map
   (let ((map (make-sparse-keymap)))
@@ -335,7 +345,7 @@ TYPE is a symbol, either 'favourite or 'boost."
                                       (list 'favourited-p (not faved))))
                (mastodon-toot--action-success
                 (if boost-p
-                    "B"
+                    (mastodon-tl--return-boost-char)
                   (mastodon-tl--return-fave-char))
                 byline-region remove))
              (message (format "%s #%s" (if boost-p msg action) id))))))
@@ -818,129 +828,75 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
                (reverse (append mentions nil))
                "")))
 
-(defun mastodon-toot--mentions-company-meta (candidate)
-  "Format company completion CANDIDATE's meta field."
-  (format " %s"
-          (get-text-property 0 'meta candidate)))
+(defun mastodon-toot--get-bounds (regex)
+  "Get bounds of tag or handle before point."
+  ;; needed because # and @ are not part of any existing thing at point
+  (save-match-data
+    (save-excursion
+      ;; match full handle inc. domain, or tag including #
+      ;; (see the regexes for subexp 2)
+      (when (re-search-backward regex nil :no-error)
+        (cons (match-beginning 2)
+              (match-end 2))))))
 
-(defun mastodon-toot--mentions-company-annotation (candidate)
-  "Format company completion CANDIDATE's annotation."
-  (format " %s" (get-text-property 0 'annot candidate)))
+(defun mastodon-toot--mentions-capf ()
+  "Build a mentions completion backend for `completion-at-point-functions'."
+  (let* ((bounds
+          (mastodon-toot--get-bounds mastodon-toot-handle-regex))
+         (start (car bounds))
+         (end (cdr bounds)))
+    (when bounds
+      (list start
+            end
+            ;; only search when necessary:
+            (completion-table-dynamic
+             (lambda (_)
+               ;; TODO: do we really need to set a local var here
+               ;; just for the annotation-function?
+               (setq mastodon-toot-completions
+                     (mastodon-search--search-accounts-query
+                      (buffer-substring-no-properties start end)
+                      :capf))))
+            :exclusive 'no
+            :annotation-function
+            (lambda (candidate)
+              (concat " "
+                      (mastodon-toot--mentions-annotation-fun candidate)))))))
 
-(defun mastodon-toot--mentions-company-make-candidate (candidate)
-  "Construct a company completion CANDIDATE for display."
-  (let ((display-name (car candidate))
-        (handle (cadr candidate))
-        (url (caddr candidate)))
-    (propertize handle 'annot display-name 'meta url)))
+(defun mastodon-toot--tags-capf ()
+  "Build a tags completion backend for `completion-at-point-functions'."
+  (let* ((bounds
+          (mastodon-toot--get-bounds mastodon-toot-tag-regex))
+         (start (car bounds))
+         (end (cdr bounds)))
+    (when bounds
+      (list start
+            end
+            ;; only search when necessary:
+            (completion-table-dynamic
+             (lambda (_)
+               (setq mastodon-toot-completions
+                     (let ((tags (mastodon-search--search-tags-query
+                                  (buffer-substring-no-properties start end))))
+                       (mapcar (lambda (x)
+                                 (list (concat "#" (car x))
+                                       (cdr x)))
+                               tags)))))
+            :exclusive 'no
+            :annotation-function
+            (lambda (candidate)
+              (concat " "
+                      (mastodon-toot--tags-annotation-fun candidate)))))))
 
-(defun mastodon-toot--tags-company-make-candidate (candidate)
-  "Construct a company completion CANDIDATE for display."
-  (let ((tag (concat "#" (car candidate)))
-        (url (cadr candidate)))
-    (propertize tag 'annot url 'meta url)))
+(defun mastodon-toot--mentions-annotation-fun (candidate)
+  "Given a handle completion CANDIDATE, return its annotation string, a username."
+  (caddr (assoc candidate mastodon-toot-completions)))
 
-(defun mastodon-toot--company-build-candidates (query list-fun make-fun)
-  "Build a list of completion candidates for a company backend.
-QUERY is the search prefix, LIST-FUN builds a list of items to
-match against, and MAKE-FUN builds the actual cadidate list item
-for display by company."
-  (let ((query (substring query 1)) ; remove @ or # for search
-        (res))
-    (dolist (item (funcall list-fun query))
-      (when (or (string-prefix-p query (substring (cadr item) 1) t)
-                (string-prefix-p query (car item) t))
-        (push (funcall make-fun item) res)))
-    res))
-
-(defun mastodon-toot--mentions-company-candidates (query)
-  "Given a company QUERY, build a list of candidates.
-The query can match both user handles and display names."
-  (mastodon-toot--company-build-candidates
-   query
-   'mastodon-search--search-accounts-query
-   'mastodon-toot--mentions-company-make-candidate))
-
-(defun mastodon-toot--tags-company-candidates (query)
-  "Given a company QUERY, build a list of candidates.
-The query is matched against a tag search on the server."
-  (mastodon-toot--company-build-candidates
-   query
-   'mastodon-search--search-tags-query
-   'mastodon-toot--tags-company-make-candidate))
-
-(defun mastodon-toot--make-company-backend
-    (command _backend-name str-prefix candidates-fun annot-fun meta-fun
-             &optional arg
-             &rest ignored)
-  "Make a company backend for `mastodon-toot-mode'.
-COMMAND, ARG, IGNORED are all company backend args.
-COMMAND is either prefix, to fetch a prefix query, candidates, to
-build a list of candidates with query ARG, annotation, to format
-an annotation for candidate ARG, or meta, to format meta info for
-candidate ARG. IGNORED remains a mystery.
-
-BACKEND-NAME is the backend's name, STR-PREFIX is used to search
-for matches, CANDIDATES-FUN, ANNOT-FUN, and META-FUN are
-functions called on ARG to generate formatted candidates, annotation, and
-meta fields respectively."
-  (interactive (list 'interactive))
-  (let ((handle-before
-         ;; hack to handle @handles@with.domains, as "@" is a word/symbol boundary
-         (if (string= str-prefix "@")
-             (save-match-data
-               (save-excursion
-                 (re-search-backward mastodon-toot-handle-regex nil :no-error)
-                 (if (match-string-no-properties 2)
-                     ;; match full handle inc. domain (see the regex for subexp 2)
-                     (buffer-substring-no-properties (match-beginning 2) (match-end 2))
-                   ""))))))
-    (cl-case command
-      (interactive (company-begin-backend (quote backend-name)))
-      (prefix (when (and (bound-and-true-p mastodon-toot-mode) ; if masto toot minor mode
-                         (save-excursion
-                           (forward-whitespace -1)
-                           (forward-whitespace 1)
-                           (looking-at str-prefix)))
-                (if (and (string= str-prefix "@")
-                         (> (length handle-before) 1)) ; more than just @
-                    (concat str-prefix (substring-no-properties handle-before 1)) ;handle
-                  (concat str-prefix (company-grab-symbol))))) ; tag
-      (candidates (funcall candidates-fun arg))
-      (annotation (funcall annot-fun arg))
-      (meta (funcall meta-fun arg)))))
-
-(defun mastodon-toot-mentions (command &optional arg &rest ignored)
-  "A company completion backend for toot mentions.
-COMMAND is either prefix, to fetch a prefix query, candidates, to
-build a list of candidates with query ARG, annotation, to format
-an annotation for candidate ARG, or meta, to format meta info for
-candidate ARG. IGNORED remains a mystery."
-  (mastodon-toot--make-company-backend
-   command
-   'mastodon-toot-mentions
-   "@"
-   'mastodon-toot--mentions-company-candidates
-   'mastodon-toot--mentions-company-annotation
-   'mastodon-toot--mentions-company-meta
-   arg
-   ignored))
-
-(defun mastodon-toot-tags (command &optional arg &rest ignored)
-  "A company completion backend for toot tags.
-COMMAND is either prefix, to fetch a prefix query, candidates, to
-build a list of candidates with query ARG, annotation, to format
-an annotation for candidate ARG, or meta, to format meta info for
-candidate ARG. IGNORED remains a mystery."
-  (mastodon-toot--make-company-backend
-   command
-   'mastodon-toot-tags
-   "#"
-   'mastodon-toot--tags-company-candidates
-   'mastodon-toot--mentions-company-annotation
-   'mastodon-toot--mentions-company-meta
-   arg
-   ignored))
+(defun mastodon-toot--tags-annotation-fun (candidate)
+  "Given a tag string CANDIDATE, return an annotation, the tag's URL."
+  ;; FIXME check the list returned here? should be cadr
+  ;;or make it an alist and use cdr
+  (caadr (assoc candidate mastodon-toot-completions)))
 
 (defun mastodon-toot--reply ()
   "Reply to toot at `point'.
@@ -1419,13 +1375,12 @@ Added to `after-change-functions'."
       ;; stops all text after a handle or mention being propertized:
       (set-text-properties (cdr header-region) (point-max) nil)
       ;; TODO: confirm allowed hashtag/handle characters:
-      (mastodon-toot--propertize-item "\\([\n\t ]\\|^\\)\\(?2:#[1-9a-zA-Z_]+\\)\\b"
+      (mastodon-toot--propertize-item mastodon-toot-tag-regex
                                       'success
                                       (cdr header-region))
-      (mastodon-toot--propertize-item
-       mastodon-toot-handle-regex
-       'mastodon-display-name-face
-       (cdr header-region)))))
+      (mastodon-toot--propertize-item mastodon-toot-handle-regex
+                                      'mastodon-display-name-face
+                                      (cdr header-region)))))
 
 (defun mastodon-toot--propertize-item (regex face start)
   "Propertize item matching REGEX with FACE starting from START."
@@ -1473,14 +1428,22 @@ a draft into the buffer."
       ;; no need to fetch from `mastodon-profile-account-settings' as
       ;; `mastodon-toot--max-toot-chars' is set when we set it
       (mastodon-toot--get-max-toot-chars))
-    ;; set up company backends:
-    (when (require 'company nil :noerror)
-      (when mastodon-toot--enable-completion
+    ;; set up completion:
+    (when mastodon-toot--enable-completion
+      (set ; (setq-local
+       (make-local-variable 'completion-at-point-functions)
+       (add-to-list
+        'completion-at-point-functions
+        #'mastodon-toot--mentions-capf))
+      (add-to-list
+       'completion-at-point-functions
+       #'mastodon-toot--tags-capf)
+      ;; company
+      (when mastodon-toot--use-company-for-completion
         (set (make-local-variable 'company-backends)
-             (add-to-list 'company-backends 'mastodon-toot-mentions))
-        (add-to-list 'company-backends 'mastodon-toot-tags))
-      (unless (bound-and-true-p corfu-mode) ; don't clash w corfu mode
+             (add-to-list 'company-backends 'company-capf))
         (company-mode-on)))
+    ;; after-change:
     (make-local-variable 'after-change-functions)
     (push #'mastodon-toot--update-status-fields after-change-functions)
     (mastodon-toot--refresh-attachments-display)
