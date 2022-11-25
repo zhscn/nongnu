@@ -214,6 +214,7 @@ You can download and use your instance's custom emoji
 | =C-c !=   | Remove all attachments           |
 | =C-c C-e= | Add emoji (if =emojify= installed) |
 | =C-c C-p= | Create a poll                    |
+| =C-c C-l= | Set toot language                |
 |---------+----------------------------------|
 
 **** draft toots
