@@ -1115,7 +1115,8 @@ LENGTH is the maximum character length allowed for a poll option."
     ("30 days" . ,(number-to-string (* 60 60 24 30)))))
 
 (defun mastodon-toot--set-toot-lang ()
-  "Prompt for a language and return its two letter ISO 639 1 code."
+  "Prompt for a language and set `mastodon-toot--language'.
+Return its two letter ISO 639 1 code."
   (interactive)
   (let* ((langs (mapcar (lambda (x)
                           (cons (cadr x)
