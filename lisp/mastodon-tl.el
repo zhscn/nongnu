@@ -607,9 +607,6 @@ this just means displaying toot client."
          (faved (equal 't (mastodon-tl--field 'favourited toot)))
          (boosted (equal 't (mastodon-tl--field 'reblogged toot)))
          (bookmarked (equal 't (mastodon-tl--field 'bookmarked toot)))
-         (bookmark-str (if (fontp (char-displayable-p #10r128278))
-                           "🔖"
-                         "K"))
          (visibility (mastodon-tl--field 'visibility toot))
          (account (alist-get 'account toot))
          (avatar-url (alist-get 'avatar account))
@@ -624,12 +621,14 @@ this just means displaying toot client."
      ;; displayed for an already boosted/favourited toot or as the result of
      ;; the toot having just been favourited/boosted.
      (concat (when boosted
-               (mastodon-tl--format-faved-or-boosted-byline "B"))
+               (mastodon-tl--format-faved-or-boosted-byline
+                (mastodon-tl--return-boost-char)))
              (when faved
                (mastodon-tl--format-faved-or-boosted-byline
                 (mastodon-tl--return-fave-char)))
              (when bookmarked
-               (mastodon-tl--format-faved-or-boosted-byline bookmark-str)))
+               (mastodon-tl--format-faved-or-boosted-byline
+                (mastodon-tl--return-bookmark-char))))
      ;; we remove avatars from the byline also, so that they also do not mess
      ;; with `mastodon-tl--goto-next-toot':
      (when (and mastodon-tl--show-avatars
@@ -674,10 +673,10 @@ this just means displaying toot client."
                           'face 'mastodon-display-name-face
                           'follow-link t
                           'mouse-face 'highlight
-		                  'mastodon-tab-stop 'shr-url
-		                  'shr-url app-url
+		          'mastodon-tab-stop 'shr-url
+		          'shr-url app-url
                           'help-echo app-url
-		                  'keymap mastodon-tl--shr-map-replacement)))))
+		          'keymap mastodon-tl--shr-map-replacement)))))
        (if edited-time
            (concat
             (if (fontp (char-displayable-p #10r128274))
@@ -701,6 +700,14 @@ this just means displaying toot client."
                       (mastodon-toot--get-toot-edits (alist-get 'id toot)))
       'byline       t))))
 
+(defun mastodon-tl--return-boost-char ()
+  ""
+  (cond
+   ((fontp (char-displayable-p #10r128257))
+    "🔁")
+   (t
+    "B")))
+
 (defun mastodon-tl--return-fave-char ()
   ""
   (cond
@@ -710,6 +717,12 @@ this just means displaying toot client."
     "★")
    (t
     "F")))
+
+(defun mastodon-tl--return-bookmark-char ()
+  ""
+  (if (fontp (char-displayable-p #10r128278))
+      "🔖"
+    "K"))
 
 (defun mastodon-tl--format-edit-timestamp (timestamp)
   "Convert edit TIMESTAMP into a descriptive string."

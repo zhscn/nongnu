@@ -49,21 +49,29 @@
 
 ;; functions for company completion of mentions in mastodon-toot
 
+(defun mastodon-search--get-user-info-@-capf (account)
+  "Get user handle, display name and account URL from ACCOUNT."
+  (list (concat "@" (cdr (assoc 'acct account)))
+        (cdr (assoc 'url account))
+        (cdr (assoc 'display_name account))))
+
 (defun mastodon-search--get-user-info-@ (account)
   "Get user handle, display name and account URL from ACCOUNT."
   (list (cdr (assoc 'display_name account))
         (concat "@" (cdr (assoc 'acct account)))
         (cdr (assoc 'url account))))
 
-(defun mastodon-search--search-accounts-query (query)
+(defun mastodon-search--search-accounts-query (query &optional capf)
   "Prompt for a search QUERY and return accounts synchronously.
 Returns a nested list containing user handle, display name, and URL."
   (interactive "sSearch mastodon for: ")
   (let* ((url (mastodon-http--api "accounts/search"))
          (response (if (equal mastodon-toot--completion-style-for-mentions "following")
-                       (mastodon-http--get-json url `(("q" . ,query) ("following" . "true")))
-                     (mastodon-http--get-json url `(("q" . ,query))))))
-    (mapcar #'mastodon-search--get-user-info-@ response)))
+                       (mastodon-http--get-json url `(("q" . ,query) ("following" . "true")) :silent)
+                     (mastodon-http--get-json url `(("q" . ,query)) :silent))))
+    (if capf
+        (mapcar #'mastodon-search--get-user-info-@-capf response)
+      (mapcar #'mastodon-search--get-user-info-@ response))))
 
 ;; functions for tags completion:
 
@@ -72,10 +80,9 @@ Returns a nested list containing user handle, display name, and URL."
 QUERY is the string to search."
   (interactive "sSearch for hashtag: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
-         ;; (type-param '(("type" . "hashtags")))
          (params `(("q" . ,query)
                    ("type" . "hashtags")))
-         (response (mastodon-http--get-json url params))
+         (response (mastodon-http--get-json url params :silent))
          (tags (alist-get 'hashtags response)))
     (mapcar #'mastodon-search--get-hashtag-info tags)))
 
