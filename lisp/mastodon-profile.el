@@ -849,7 +849,7 @@ account ('toot-json) at point if you are on your own profile page (followers)."
                            ;; FIXME: do some thing else?
                            (get-text-property (point) 'toot-json)))))
          ;; TODO: read account from list of all followers' handles
-         (id (or (alist-get 'id account)))
+         (id (or id (alist-get 'id account)))
          (handle (if account
                      (alist-get 'acct account)
                    (let ((account
@@ -857,17 +857,18 @@ account ('toot-json) at point if you are on your own profile page (followers)."
                      (alist-get 'acct account))))
          (url (mastodon-http--api
                (format "accounts/%s/remove_from_followers" id))))
-    (when (y-or-n-p "Remove follower %s? " handle)
+    (when (y-or-n-p (format "Remove follower %s? " handle))
       (let ((response (mastodon-http--post url)))
-        (mastodon-http--triage (lambda ()
+        (mastodon-http--triage response
+                               (lambda ()
                                  (message "Follower %s removed!" handle)))))))
 
 (defun mastodon-profile--remove-from-followers-toot-at-point ()
   "Prompt for a user in the toot at point and remove from followers."
-  (let* ((handles
-          (mastodon-profile--extract-users-handles
-           (mastodon-profile--toot-json)))
-         (handle (completing-read "Handle to unfollow: "
+  (interactive)
+  (let* ((handles (mastodon-profile--extract-users-handles
+                   (mastodon-profile--toot-json)))
+         (handle (completing-read "Remove from followers: "
                                   handles))
          (account (mastodon-profile--lookup-account-in-status
                    handle (mastodon-profile--toot-json)))
