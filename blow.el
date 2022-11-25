@@ -93,7 +93,7 @@
 
 (defun blow--set-mode-list (symbol value)
   "Set SYMBOL's default value to VALUE, SYMBOL should be `blow-mode-list'."
-  (set-default symbol value)
+  (custom-set-default symbol value)
   (when blow-mode
     (blow--setup-all-buffers)))
 
@@ -111,12 +111,12 @@ Don't modify this variable from Lisp programs, use `blow' instead."
                        (sexp :tag "Mode line template")))
   :set #'blow--set-mode-list)
 
-(defvar blow--original-lighters nil
+(defvar blow--original-lighters (make-hash-table)
   "Hash table of modes and their original lighters or nil.")
 
 (defun blow--hash-exists-p (key table)
   "Return t if KEY is in hash table TABLE."
-  (let ((default (make-symbol "blow--nonexistant")))
+  (let ((default (make-symbol "nonexistant")))
     (not (eq (gethash key table default) default))))
 
 (defun blow--puthash-unless-exists (key value table)
@@ -140,7 +140,7 @@ Don't modify this variable from Lisp programs, use `blow' instead."
              replacement-lighters)
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer
-        (let* ((default (make-symbol "blow--nonexistant"))
+        (let* ((default (make-symbol "nonexistant"))
                (replacement
                 (gethash major-mode major-mode-replacement-lighters
                          default)))
@@ -151,8 +151,6 @@ Don't modify this variable from Lisp programs, use `blow' instead."
 
 (defun blow--setup-all-buffers ()
   "Blow mode lighters on all buffers."
-  (unless blow--original-lighters
-    (setq blow--original-lighters (make-hash-table)))
   (let ((changed-lighters
          (make-hash-table :test 'eq
                           :size (length blow-mode-list))))
@@ -204,7 +202,7 @@ Don't modify this variable from Lisp programs, use `blow' instead."
                   #'blow--after-major-mode-change))
     (let ((blow-mode-list nil))
       (blow--setup-all-buffers)
-      (setq blow--original-lighters nil)
+      (setq blow--original-lighters (make-hash-table))
       (remove-hook 'after-change-major-mode-hook
                    #'blow--after-major-mode-change))))
 
