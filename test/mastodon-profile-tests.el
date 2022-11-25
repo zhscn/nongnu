@@ -237,7 +237,7 @@ content generation in the function under test."
     (if (version< emacs-version "27.1")
         (mock (image-type-available-p 'imagemagick) => t)
       (mock (image-transforms-p) => t))
-    (mock (mastodon-http--get-json "https://instance.url/api/v1/accounts/1/statuses")
+    (mock (mastodon-http--get-json "https://instance.url/api/v1/accounts/1/statuses" nil)
           =>
           gargon-statuses-json)
     (mock (mastodon-profile--get-statuses-pinned *)
