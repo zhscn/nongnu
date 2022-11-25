@@ -5,7 +5,7 @@
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Created: 2022-07-31
 ;; Version: 0.1
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "26.1") (compat "28.1.2.2"))
 ;; Keywords: frames
 ;; URL: https://codeberg.org/akib/emacs-iwindow
 
@@ -45,6 +45,7 @@
 
 ;;; Code:
 
+(require 'compat)
 (require 'cl-lib)
 
 (defgroup iwindow nil
@@ -126,28 +127,27 @@ list of form (OPTION...), whose length of no more than the length of
   (let ((current-window (selected-window))
         (windows nil)
         (decorators nil))
-    (cl-labels ((walk
-                  (tree keys)
-                  (if (windowp tree)
-                      (push (cons tree (reverse keys))
-                            windows)
-                    (seq-map-indexed
-                     (lambda (node index)
-                       (walk node
-                             (cons (nth index iwindow-selection-keys)
-                                   keys)))
-                     tree))))
-      (walk tree nil))
+    (named-let walk ((tree tree)
+                     (keys nil))
+      ;; This doesn't benefit from tail call optimization.
+      (if (windowp tree)
+          (push (cons tree (reverse keys))
+                windows)
+        (seq-map-indexed
+         (lambda (node index)
+           (walk node
+                 (cons (nth index iwindow-selection-keys)
+                       keys)))
+         tree)))
     (run-hook-wrapped 'iwindow-decoration-functions
                       (lambda (fn) (ignore (push fn decorators))))
-    (cl-labels ((call-decorators (fns)
-                  (with-selected-window current-window
-                    (if fns
-                        (funcall (car fns) windows
-                                 (lambda ()
-                                   (call-decorators (cdr fns))))
-                      (funcall payload)))))
-      (call-decorators (nreverse decorators)))))
+    (named-let call-decorators ((fns (nreverse decorators)))
+      ;; This doesn't benefit from tail call optimization.
+      (with-selected-window current-window
+        (if fns
+            (funcall (car fns) windows
+                     (lambda () (call-decorators (cdr fns))))
+          (funcall payload))))))
 
 (defun iwindow--ask (tree)
   "Given decision tree TREE, ask user for the decision.
@@ -202,25 +202,24 @@ WINDOW and ignore WINDOW when PREDICATE returns nil."
 WINDOWS and CALLBACK is described in the docstring of
 `iwindow-decoration-functions', which see."
   (let ((original-mode-lines nil))
-    (cl-labels ((setup-windows (window-list)
-                  (with-selected-window (caar window-list)
-                    (unless (assq (current-buffer) original-mode-lines)
-                      (push (cons (current-buffer) mode-line-format)
-                            original-mode-lines))
-                    (let ((mode-line-format
-                           `(:eval
-                             (if-let ((keys
-                                       (alist-get (selected-window)
-                                                  ',windows)))
-                                 (mapconcat
-                                  (apply-partially #'string ?\s)
-                                  keys "")
-                               ',(alist-get (current-buffer)
-                                            original-mode-lines)))))
-                      (if (cdr window-list)
-                          (setup-windows (cdr window-list))
-                        (funcall callback))))))
-      (setup-windows windows))))
+    (named-let setup-windows ((window-list windows))
+      (with-selected-window (caar window-list)
+        (unless (assq (current-buffer) original-mode-lines)
+          (push (cons (current-buffer) mode-line-format)
+                original-mode-lines))
+        (let ((mode-line-format
+               `(:eval
+                 (if-let ((keys
+                           (alist-get (selected-window)
+                                      ',windows)))
+                     (mapconcat
+                      (apply-partially #'string ?\s)
+                      keys "")
+                   ',(alist-get (current-buffer)
+                                original-mode-lines)))))
+          (if (cdr window-list)
+              (setup-windows (cdr window-list))
+            (funcall callback)))))))
 
 (defun iwindow-highlight-window (windows callback)
   "Highlight all candidate windows.
@@ -229,58 +228,54 @@ WINDOWS and CALLBACK is described in the docstring of
 `iwindow-decoration-functions', which see."
   (let ((buffers nil)
         (sym (make-symbol "iwindow-parameter")))
-    (cl-labels ((setup-windows
-                  (window-list)
-                  (with-selected-window (caar window-list)
-                    (cl-letf* (((window-parameter nil sym) sym)
-                               (payload
-                                (lambda ()
-                                  (if (cdr window-list)
-                                      (setup-windows (cdr window-list))
-                                    (funcall callback)))))
-                      (if (memq (current-buffer) buffers)
-                          (funcall payload)
-                        (let ((face-remapping-alist
-                               face-remapping-alist))
-                          (cl-letf (((symbol-function
-                                      'make-local-variable)
-                                     #'ignore))
-                            (dolist (pair iwindow-highlight-faces)
-                              (face-remap-add-relative
-                               (car pair)
-                               `(:filtered (:window ,sym ,sym)
-                                           ,(cdr pair)))))
-                          (push (current-buffer) buffers)
-                          (funcall payload)))))))
-      (setup-windows windows))))
+    (named-let setup-windows ((window-list windows))
+      (with-selected-window (caar window-list)
+        (cl-letf* (((window-parameter nil sym) sym))
+          (if (memq (current-buffer) buffers)
+              (if (cdr window-list)
+                  (setup-windows (cdr window-list))
+                (funcall callback))
+            (let ((face-remapping-alist
+                   face-remapping-alist))
+              (cl-letf (((symbol-function
+                          'make-local-variable)
+                         #'ignore))
+                (dolist (pair iwindow-highlight-faces)
+                  (face-remap-add-relative
+                   (car pair)
+                   `(:filtered (:window ,sym ,sym)
+                               ,(cdr pair)))))
+              (push (current-buffer) buffers)
+              (if (cdr window-list)
+                  (setup-windows (cdr window-list))
+                (funcall callback)))))))))
 
 (defun iwindow-show-keys-for-minibuffer (windows callback)
   "Show the keys to choose minibuffer in minibuffer.
 
 WINDOWS and CALLBACK is described in the docstring of
 `iwindow-decoration-functions', which see."
-  (cl-labels ((setup-windows (window-list)
-                (with-selected-window (caar window-list)
-                  (let ((ov nil))
-                    (when (minibufferp)
-                      (setq ov (make-overlay (point-min)
-                                             (point-min)))
-                      (overlay-put
-                       ov 'before-string
-                       (concat (propertize
-                                (mapconcat #'string (cdar window-list)
-                                           " ")
-                                'face '(iwindow-minibuffer-keys-face
-                                        default))
-                               " "))
-                      (overlay-put ov 'window (selected-window)))
-                    (unwind-protect
-                        (if (cdr window-list)
-                            (setup-windows (cdr window-list))
-                          (funcall callback))
-                      (when ov
-                        (delete-overlay ov)))))))
-    (setup-windows windows)))
+  (named-let setup-windows ((window-list windows))
+    (with-selected-window (caar window-list)
+      (let ((ov nil))
+        (when (minibufferp)
+          (setq ov (make-overlay (point-min)
+                                 (point-min)))
+          (overlay-put
+           ov 'before-string
+           (concat (propertize
+                    (mapconcat #'string (cdar window-list)
+                               " ")
+                    'face '(iwindow-minibuffer-keys-face
+                            default))
+                   " "))
+          (overlay-put ov 'window (selected-window)))
+        (unwind-protect
+            (if (cdr window-list)
+                (setup-windows (cdr window-list))
+              (funcall callback))
+          (when ov
+            (delete-overlay ov)))))))
 
 ;;;###autoload
 (defun iwindow-select ()
