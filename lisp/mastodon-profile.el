@@ -617,15 +617,18 @@ NO-REBLOGS means do not display boosts in statuses."
                  " [locked]")
              "")
            "\n ------------\n"
-           (mastodon-tl--render-text note account)
+           ;; profile note:
            ;; account here to enable tab-stops in profile note
+           (mastodon-tl--render-text note account)
+           ;; meta fields:
            (if fields
                (concat "\n"
                        (mastodon-tl--set-face
                         (mastodon-profile--fields-insert fields)
-                        'success)
-                       "\n")
+                        'success))
              "")
+           "\n"
+           ;; Joined date:
            (propertize
             (mastodon-profile--format-joined-date-string joined)
             'face 'success)
