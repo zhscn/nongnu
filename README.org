@@ -263,7 +263,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Enable image caching
 
 - Compose options:
-   - Completion for mentions and tags
+   - Completion style for mentions and tags
    - Enable custom emoji
    - Display toot being replied to
 
