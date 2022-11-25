@@ -317,7 +317,7 @@ Strict-Transport-Security: max-age=31536000
 			              byline)
 			             "Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
-  "))
+"))
         (should (eq (get-text-property handle-location 'mastodon-tab-stop byline)
                     'user-handle))
         (should (string= (get-text-property handle-location 'mastodon-handle byline)
@@ -418,7 +418,7 @@ Strict-Transport-Security: max-age=31536000
 			             "Account 42 (@acct42@example.space)
   Boosted Account 43 (@acct43@example.space) original time
   ------------
-  "))
+"))
         (should (eq (get-text-property handle1-location 'mastodon-tab-stop byline)
                     'user-handle))
         (should (equal (get-text-property handle1-location 'help-echo byline)

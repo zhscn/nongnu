@@ -685,7 +685,7 @@ this just means displaying toot client."
                           (mastodon-tl--relative-time-description edited-parsed)
                         edited-parsed)))
          "")
-       (propertize "\n  ------------\n  " 'face 'default))
+       (propertize "\n  ------------\n" 'face 'default))
       'favourited-p faved
       'boosted-p    boosted
       'bookmarked-p bookmarked
