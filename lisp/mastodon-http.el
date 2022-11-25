@@ -132,15 +132,15 @@ Used for API form data parameters that take an array."
   (cl-loop for x in array
            collect (cons param-str x)))
 
-(defun mastodon-http--post (url &optional args headers unauthenticated-p)
-  "POST synchronously to URL, optionally with ARGS and HEADERS.
+(defun mastodon-http--post (url &optional params headers unauthenticated-p)
+  "POST synchronously to URL, optionally with PARAMS and HEADERS.
 
 Authorization header is included by default unless UNAUTHENTICATED-P is non-nil."
   (mastodon-http--authorized-request
    "POST"
    (let ((url-request-data
-          (when args
-            (mastodon-http--build-params-string args)))
+          (when params
+            (mastodon-http--build-params-string params)))
          (url-request-extra-headers
           (append url-request-extra-headers ; auth set in macro
                   ;; pleroma compat:
@@ -237,11 +237,12 @@ PARAMS is an alist of any extra parameters to send with the request."
 
 (defun mastodon-http--put (url &optional params headers)
   "Make PUT request to URL.
-PARAMS is an alist of any extra parameters to send with the request."
+PARAMS is an alist of any extra parameters to send with the request.
+HEADERS is an alist of any extra headers to send with the request."
   (mastodon-http--authorized-request
    "PUT"
    (let ((url-request-data
-          (when args (mastodon-http--build-params-string params)))
+          (when params (mastodon-http--build-params-string params)))
          (url-request-extra-headers
           (append url-request-extra-headers ; auth set in macro
                   ;; pleroma compat:
@@ -288,35 +289,36 @@ PARAMS is an alist of any extra parameters to send with the request."
      "GET"
      (url-retrieve url callback cbargs))))
 
-(defun mastodon-http--get-response-async (url &optional params callback &rest args)
-  "Make GET request to URL. Call CALLBACK with http response and ARGS."
-  (mastodon-http--get-async
-   url
-   params
-   (lambda (status)
-     (when status ;; only when we actually get sth?
-       (apply callback (mastodon-http--process-response) args)))))
-
-(defun mastodon-http--get-json-async (url &optional params callback &rest args)
-  "Make GET request to URL. Call CALLBACK with json-list and ARGS.
+(defun mastodon-http--get-response-async (url &optional params callback &rest cbargs)
+  "Make GET request to URL. Call CALLBACK with http response and CBARGS.
 PARAMS is an alist of any extra parameters to send with the request."
   (mastodon-http--get-async
    url
    params
    (lambda (status)
      (when status ;; only when we actually get sth?
-       (apply callback (mastodon-http--process-json) args)))))
+       (apply callback (mastodon-http--process-response) cbargs)))))
 
-(defun mastodon-http--post-async (url args headers &optional callback &rest cbargs)
-  "POST asynchronously to URL with ARGS and HEADERS.
+(defun mastodon-http--get-json-async (url &optional params callback &rest cbargs)
+  "Make GET request to URL. Call CALLBACK with json-list and CBARGS.
+PARAMS is an alist of any extra parameters to send with the request."
+  (mastodon-http--get-async
+   url
+   params
+   (lambda (status)
+     (when status ;; only when we actually get sth?
+       (apply callback (mastodon-http--process-json) cbargs)))))
+
+(defun mastodon-http--post-async (url params headers &optional callback &rest cbargs)
+  "POST asynchronously to URL with PARAMS and HEADERS.
 Then run function CALLBACK with arguements CBARGS.
 Authorization header is included by default unless UNAUTHENTICED-P is non-nil."
   (mastodon-http--authorized-request
    "POST"
    (let ((request-timeout 5)
          (url-request-data
-          (when args
-            (mastodon-http--build-params-string args))))
+          (when params
+            (mastodon-http--build-params-string params))))
      (with-temp-buffer
        (url-retrieve url callback cbargs)))))
 

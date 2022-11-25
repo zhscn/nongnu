@@ -113,7 +113,6 @@
 
 (define-minor-mode mastodon-profile-mode
   "Toggle mastodon profile minor mode.
-
 This minor mode is used for mastodon profile pages and adds a couple of
 extra keybindings."
   :init-value nil
@@ -154,7 +153,8 @@ contains")
   (mastodon-tl--property 'toot-json))
 
 (defun mastodon-profile--make-author-buffer (account &optional no-reblogs)
-  "Take an ACCOUNT json and insert a user account into a new buffer."
+  "Take an ACCOUNT json and insert a user account into a new buffer.
+NO-REBLOGS means do not display boosts in statuses."
   (mastodon-profile--make-profile-buffer-for
    account "statuses" #'mastodon-tl--timeline no-reblogs))
 
@@ -553,7 +553,8 @@ FIELDS means provide a fields vector fetched by other means."
 (defun mastodon-profile--make-profile-buffer-for (account endpoint-type
                                                           update-function
                                                           &optional no-reblogs)
-  "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION."
+  "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION.
+NO-REBLOGS means do not display boosts in statuses."
   (let* ((id (mastodon-profile--account-field account 'id))
          (args (when no-reblogs '(("exclude_reblogs" . "t"))))
          (url (mastodon-http--api (format "accounts/%s/%s" id endpoint-type)))
@@ -616,15 +617,18 @@ FIELDS means provide a fields vector fetched by other means."
                  " [locked]")
              "")
            "\n ------------\n"
-           (mastodon-tl--render-text note account)
+           ;; profile note:
            ;; account here to enable tab-stops in profile note
+           (mastodon-tl--render-text note account)
+           ;; meta fields:
            (if fields
                (concat "\n"
                        (mastodon-tl--set-face
                         (mastodon-profile--fields-insert fields)
-                        'success)
-                       "\n")
+                        'success))
              "")
+           "\n"
+           ;; Joined date:
            (propertize
             (mastodon-profile--format-joined-date-string joined)
             'face 'success)
@@ -664,7 +668,7 @@ FIELDS means provide a fields vector fetched by other means."
     (goto-char (point-min))))
 
 (defun mastodon-profile--format-joined-date-string (joined)
-  "Format a Joined timestamp."
+  "Format a human-readable Joined string from timestamp JOINED."
   (let ((joined-ts (ts-parse joined)))
     (format "Joined %s" (concat (ts-month-name joined-ts)
                                 " "
@@ -673,7 +677,6 @@ FIELDS means provide a fields vector fetched by other means."
 
 (defun mastodon-profile--get-toot-author ()
   "Open profile of author of toot under point.
-
 If toot is a boost, opens the profile of the booster."
   (interactive)
   (mastodon-profile--make-author-buffer
@@ -729,7 +732,6 @@ IMG_TYPE is the JSON key from the account data."
 
 (defun mastodon-profile--account-field (account field)
   "Return FIELD from the ACCOUNT.
-
 FIELD is used to identify regions under 'account"
   (cdr (assoc field account)))
 
@@ -760,7 +762,6 @@ Used to view a user's followers and those they're following."
 
 (defun mastodon-profile--search-account-by-handle (handle)
   "Return an account based on a user's HANDLE.
-
 If the handle does not match a search return then retun NIL."
   (let* ((handle (if (string= "@" (substring handle 0 1))
                      (substring handle 1 (length handle))
@@ -783,15 +784,14 @@ If the handle does not match a search return then retun NIL."
 
 (defun mastodon-profile--extract-users-handles (status)
   "Return all user handles found in STATUS.
-
 These include the author, author of reblogged entries and any user mentioned."
   (when status
     (let ((this-account
            (or (alist-get 'account status) ; status is a toot
                status)) ; status is a user listing
-	      (mentions (or (alist-get 'mentions (alist-get 'status status))
+	  (mentions (or (alist-get 'mentions (alist-get 'status status))
                         (alist-get 'mentions status)))
-	      (reblog (or (alist-get 'reblog (alist-get 'status status))
+	  (reblog (or (alist-get 'reblog (alist-get 'status status))
                       (alist-get 'reblog status))))
       (seq-filter
        'stringp

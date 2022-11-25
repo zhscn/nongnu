@@ -78,6 +78,7 @@
 (autoload 'mastodon-http--build-array-params-alist "mastodon-http")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl")
 (autoload 'mastodon-http--put "mastodon-http")
+(autoload 'mastodon-tl--return-fave-char "mastodon-tl")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")

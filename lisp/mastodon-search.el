@@ -180,8 +180,7 @@ user's profile note. This is also called by
         json))
 
 (defun mastodon-search--propertize-user (acct &optional note)
-  "Propertize display string for ACCT, optionally including profile
-NOTE."
+  "Propertize display string for ACCT, optionally including profile NOTE."
   (let ((user (mastodon-search--get-user-info acct)))
     (propertize
      (concat (propertize (car user)
