@@ -36,6 +36,7 @@
 (require 'thingatpt) ; for word-at-point
 (require 'time-date)
 (require 'cl-lib)
+(require 'mastodon-iso)
 
 (require 'mpv nil :no-error)
 
@@ -2079,16 +2080,18 @@ IND is the optional indentation level to print at."
 
 ;;; FOLLOW/BLOCK/MUTE, ETC
 
-(defun mastodon-tl--follow-user (user-handle &optional notify)
+(defun mastodon-tl--follow-user (user-handle &optional notify langs)
   "Query for USER-HANDLE from current status and follow that user.
 If NOTIFY is \"true\", enable notifications when that user posts.
 If NOTIFY is \"false\", disable notifications when that user posts.
-Can be called to toggle NOTIFY on users already being followed."
+Can be called to toggle NOTIFY on users already being followed.
+LANGS is an array parameters alist of languages to filer user's posts by."
   (interactive
    (list
     (mastodon-tl--interactive-user-handles-get "follow")))
   (mastodon-tl--do-if-toot
-   (mastodon-tl--do-user-action-and-response user-handle "follow" nil notify)))
+   (mastodon-tl--do-user-action-and-response
+    user-handle "follow" nil notify langs)))
 
 (defun mastodon-tl--enable-notify-user-posts (user-handle)
   "Query for USER-HANDLE and enable notifications when they post."
@@ -2104,6 +2107,31 @@ Can be called to toggle NOTIFY on users already being followed."
    (list
     (mastodon-tl--interactive-user-handles-get "disable")))
   (mastodon-tl--follow-user user-handle "false"))
+
+(defun mastodon-tl--filter-user-user-posts-by-language (user-handle)
+  "Query for USER-HANDLE and enable notifications when they post."
+  (interactive
+   (list
+    (mastodon-tl--interactive-user-handles-get "filter by language")))
+  (let ((langs (mastodon-tl--read-filter-langs)))
+    (mastodon-tl--do-if-toot
+     (mastodon-tl--follow-user user-handle nil langs))))
+
+(defun mastodon-tl--read-filter-langs (&optional langs)
+  "Read language choices and return an alist array parameter.
+LANGS is the accumulated array param alist if we re-run recursively."
+  (let* ((langs-alist langs)
+         (choice (completing-read "Filter user's posts by language: "
+                                  mastodon-iso-639-1)))
+    (when choice
+      (setq langs-alist
+            (push `("languages[]" . ,(alist-get choice mastodon-iso-639-1
+                                                nil nil
+                                                #'string=))
+                  langs-alist))
+      (if (y-or-n-p "Filter by another language? ")
+          (mastodon-tl--read-filter-langs langs-alist)
+        langs-alist))))
 
 (defun mastodon-tl--unfollow-user (user-handle)
   "Query for USER-HANDLE from current status and unfollow that user."
@@ -2197,12 +2225,13 @@ Action must be either \"unblock\" or \"unmute\"."
                        nil ; predicate
                        t))))
 
-(defun mastodon-tl--do-user-action-and-response (user-handle action &optional negp notify)
+(defun mastodon-tl--do-user-action-and-response (user-handle action &optional negp notify langs)
   "Do ACTION on user USER-HANDLE.
 NEGP is whether the action involves un-doing something.
 If NOTIFY is \"true\", enable notifications when that user posts.
 If NOTIFY is \"false\", disable notifications when that user posts.
-NOTIFY is only non-nil when called by `mastodon-tl--follow-user'."
+NOTIFY is only non-nil when called by `mastodon-tl--follow-user'.
+LANGS is an array parameters alist of languages to filer user's posts by."
   (let* ((account (if negp
                       ;; if unmuting/unblocking, we got handle from mute/block list
                       (mastodon-profile--search-account-by-handle
@@ -2218,35 +2247,41 @@ NOTIFY is only non-nil when called by `mastodon-tl--follow-user'."
          (name (if (not (string-empty-p (mastodon-profile--account-field account 'display_name)))
                    (mastodon-profile--account-field account 'display_name)
                  (mastodon-profile--account-field account 'username)))
-         (url (mastodon-http--api
-               (if notify
-                   (format "accounts/%s/%s?notify=%s" user-id action notify)
-                 (format "accounts/%s/%s" user-id action)))))
+         (args (cond (notify
+                      `(("notify" . ,notify)))
+                     (langs langs)
+                     (t nil)))
+         (url (mastodon-http--api (format "accounts/%s/%s" user-id action))))
     (if account
         (if (equal action "follow") ; y-or-n for all but follow
-            (mastodon-tl--do-user-action-function url name user-handle action notify)
+            (mastodon-tl--do-user-action-function url name user-handle action notify args)
           (when (y-or-n-p (format "%s user %s? " action name))
-            (mastodon-tl--do-user-action-function url name user-handle action)))
+            (mastodon-tl--do-user-action-function url name user-handle action args)))
       (message "Cannot find a user with handle %S" user-handle))))
 
-(defun mastodon-tl--do-user-action-function (url name user-handle action &optional notify)
+(defun mastodon-tl--do-user-action-function (url name user-handle action &optional notify args)
   "Post ACTION on user NAME/USER-HANDLE to URL.
 NOTIFY is either \"true\" or \"false\", and used when we have been called
-by `mastodon-tl--follow-user' to enable or disable notifications."
-  (let ((response (mastodon-http--post url)))
-    (mastodon-http--triage response
-                           (lambda ()
-                             (cond ((string-equal notify "true")
-                                    (message "Receiving notifications for user %s (@%s)!"
-                                             name user-handle))
-                                   ((string-equal notify "false")
-                                    (message "Not receiving notifications for user %s (@%s)!"
-                                             name user-handle))
-                                   ((or (string-equal action "mute")
-                                        (string-equal action "unmute"))
-                                    (message "User %s (@%s) %sd!" name user-handle action))
-                                   ((eq notify nil)
-                                    (message "User %s (@%s) %sed!" name user-handle action)))))))
+by `mastodon-tl--follow-user' to enable or disable notifications.
+ARGS is an alist of any parameters to send with the request."
+  (let ((response (mastodon-http--post url args)))
+    (mastodon-http--triage
+     response
+     (lambda ()
+       (cond ((string-equal notify "true")
+              (message "Receiving notifications for user %s (@%s)!"
+                       name user-handle))
+             ((string-equal notify "false")
+              (message "Not receiving notifications for user %s (@%s)!"
+                       name user-handle))
+             ((or (string-equal action "mute")
+                  (string-equal action "unmute"))
+              (message "User %s (@%s) %sd!" name user-handle action))
+             ((assoc "languages[]" args #'equal)
+              (message "User %s filtered by language(s): %s" name
+                       (mapconcat #'cdr args " ")))
+             ((eq notify nil)
+              (message "User %s (@%s) %sed!" name user-handle action)))))))
 
 ;; FOLLOW TAGS
 

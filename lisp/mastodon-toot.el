@@ -1117,14 +1117,11 @@ LENGTH is the maximum character length allowed for a poll option."
 (defun mastodon-toot--set-toot-lang ()
   "Prompt for a language and return its two letter ISO 639 1 code."
   (interactive)
-  (let* ((langs (mapcar (lambda (x)
-                          (cons (cadr x)
-                                (car x)))
-                        mastodon-iso-639-1))
-         (choice (completing-read "Language for this toot: "
-                                  langs)))
+  (let* ((choice (completing-read "Language for this toot: "
+                                  mastodon-iso-639-1)))
     (setq mastodon-toot--language
-          (alist-get choice langs nil nil 'equal))))
+          (alist-get choice mastodon-iso-639-1 nil nil 'equal))
+    (message "Language set to %s" choice)))
 
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
