@@ -340,7 +340,7 @@ Strict-Transport-Security: max-age=31536000
                                              'mastodon-tl--byline-boosted))
                        "Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
-  ")))))
+")))))
 
 (ert-deftest mastodon-tl--byline-boosted ()
   "Should format the boosted toot correctly."
@@ -357,7 +357,7 @@ Strict-Transport-Security: max-age=31536000
                                              'mastodon-tl--byline-boosted))
                        "(B) Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
-  ")))))
+")))))
 
 (ert-deftest mastodon-tl--byline-favorited ()
   "Should format the favourited toot correctly."
@@ -374,7 +374,7 @@ Strict-Transport-Security: max-age=31536000
                                              'mastodon-tl--byline-boosted))
                        "(F) Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
-  ")))))
+")))))
 
 
 (ert-deftest mastodon-tl--byline-boosted/favorited ()
@@ -392,7 +392,7 @@ Strict-Transport-Security: max-age=31536000
                                              'mastodon-tl--byline-boosted))
                        "(B) (F) Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
-  ")))))
+")))))
 
 (ert-deftest mastodon-tl--byline-reblogged ()
   "Should format the reblogged toot correctly."
@@ -451,7 +451,7 @@ Strict-Transport-Security: max-age=31536000
                        "Account 42 (@acct42@example.space)
   Boosted Account 43 (@acct43@example.space) original time
   ------------
-  ")))))
+")))))
 
 (ert-deftest mastodon-tl--byline-reblogged-boosted/favorited ()
   "Should format the reblogged toot that was also boosted & favoritedcorrectly."
@@ -475,7 +475,7 @@ Strict-Transport-Security: max-age=31536000
                        "(B) (F) Account 42 (@acct42@example.space)
   Boosted Account 43 (@acct43@example.space) original time
   ------------
-  ")))))
+")))))
 
 (ert-deftest mastodon-tl--byline-timestamp-has-relative-display ()
   "Should display the timestamp with a relative time."
