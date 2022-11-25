@@ -53,8 +53,7 @@
   :link '(url-link "https://codeberg.org/akib/emacs-iwindow")
   :prefix "iwindow-")
 
-(defcustom iwindow-selection-keys
-  '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)
+(defcustom iwindow-selection-keys (number-sequence ?0 ?9)
   "List of keys to use to select window.
 
 Each element should be a key that `read-key' can return."
@@ -141,8 +140,7 @@ list of form (OPTION...), whose length of no more than the length of
       (walk tree nil))
     (run-hook-wrapped 'iwindow-decoration-functions
                       (lambda (fn) (ignore (push fn decorators))))
-    (cl-labels ((call-decorators
-                  (fns)
+    (cl-labels ((call-decorators (fns)
                   (with-selected-window current-window
                     (if fns
                         (funcall (car fns) windows
@@ -156,9 +154,9 @@ list of form (OPTION...), whose length of no more than the length of
 
 Return the window chosen."
   (if (windowp tree)
-      (prog1
-          tree
-        (redraw-display))
+      (progn
+        (redraw-display)
+        tree)
     (let ((option nil)
           (choices (cl-mapcar #'cons iwindow-selection-keys
                               tree)))
@@ -192,7 +190,7 @@ WINDOW and ignore WINDOW when PREDICATE returns nil."
                          (seq-filter predicate windows)
                        windows)))
     (when candidates
-      (if (cdr candidates)                 ; (> (length candidates) 1)
+      (if (cdr candidates)                 ; (length> candidates 1)
           (iwindow--ask (iwindow--make-decision-tree
                          (vconcat windows) 0 (length windows)
                          predicate))
@@ -215,7 +213,7 @@ WINDOWS and CALLBACK is described in the docstring of
                                        (alist-get (selected-window)
                                                   ',windows)))
                                  (mapconcat
-                                  (apply-partially #'string ? )
+                                  (apply-partially #'string ?\s)
                                   keys "")
                                ',(alist-get (current-buffer)
                                             original-mode-lines)))))
