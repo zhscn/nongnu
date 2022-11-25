@@ -830,6 +830,7 @@ These include the author, author of reblogged entries and any user mentioned."
 User may be the current profile page if not your own, or the
 account ('toot-json) at point if you are on your own profile page (followers)."
   (interactive)
+  ;; FIXME: this means you can't choose another account if on a profile page
   (let* ((account (unless id
                     (cond ((and ;; we are on a profile page
                             mastodon-profile--account
@@ -869,7 +870,7 @@ account ('toot-json) at point if you are on your own profile page (followers)."
   (let* ((handles (mastodon-profile--extract-users-handles
                    (mastodon-profile--toot-json)))
          (handle (completing-read "Remove from followers: "
-                                  handles))
+                                  handles nil))
          (account (mastodon-profile--lookup-account-in-status
                    handle (mastodon-profile--toot-json)))
          (id (alist-get 'id account)))
