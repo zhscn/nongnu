@@ -47,7 +47,7 @@
 (defvar mastodon-toot--enable-completion-for-mentions)
 (defvar mastodon-tl--buffer-spec)
 
-;; functions for company completion of mentions in mastodon-toot
+;; functions for completion of mentions in mastodon-toot
 
 (defun mastodon-search--get-user-info-@-capf (account)
   "Get user handle, display name and account URL from ACCOUNT."
