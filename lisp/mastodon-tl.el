@@ -1019,25 +1019,55 @@ message is a link which unhides/hides the main body."
 (defun mastodon-tl--media (toot)
   "Retrieve a media attachment link for TOOT if one exists."
   (let* ((media-attachements (mastodon-tl--field 'media_attachments toot))
-         (media-string (mapconcat
-                        (lambda (media-attachement)
-                          (let ((preview-url
-                                 (alist-get 'preview_url media-attachement))
-                                (remote-url
-                                 (or (alist-get 'remote_url media-attachement)
-                                     ;; fallback b/c notifications don't have remote_url
-                                     (alist-get 'url media-attachement)))
-                                (type (alist-get 'type media-attachement))
-                                (caption (alist-get 'description media-attachement)))
-                            (if mastodon-tl--display-media-p
-                                (mastodon-media--get-media-link-rendering
-                                 preview-url remote-url type caption) ; 2nd arg for shr-browse-url
-                              (concat "Media::" preview-url "\n"))))
-                        media-attachements "")))
+         (media-string
+          (mapconcat
+           (lambda (media-attachement)
+             (let ((preview-url
+                    (alist-get 'preview_url media-attachement))
+                   (remote-url
+                    (or (alist-get 'remote_url media-attachement)
+                        ;; fallback b/c notifications don't have remote_url
+                        (alist-get 'url media-attachement)))
+                   (type (alist-get 'type media-attachement))
+                   (caption (alist-get 'description media-attachement)))
+               (if mastodon-tl--display-media-p
+                   (mastodon-media--get-media-link-rendering
+                    preview-url remote-url type caption) ; 2nd arg for shr-browse-url
+                 (concat
+                  (mastodon-tl--propertize-img-str-or-url
+                   (concat "Media:: " preview-url)
+                   preview-url remote-url type caption nil 'shr-link)
+                  "\n"))))
+           media-attachements "")))
     (if (not (and mastodon-tl--display-media-p
                   (string-empty-p media-string)))
         (concat "\n" media-string)
       "")))
+
+(defun mastodon-tl--propertize-img-str-or-url (str media-url full-remote-url type
+                                                   help-echo &optional display face)
+  "Propertize an media placeholder string \"[img]\" or media URL.
+
+STR is the string to propertize, MEDIA-URL is the preview link,
+FULL-REMOTE-URL is the link to the full resolution image on the
+server, TYPE is the media type.
+HELP-ECHO, DISPLAY, and FACE are the text properties to add."
+  (propertize str
+              'media-url media-url
+              'media-state (when (string= str "[img]") 'needs-loading)
+              'media-type 'media-link
+              'mastodon-media-type type
+              'display display
+              'face face
+              'mouse-face 'highlight
+              'mastodon-tab-stop 'image ; for do-link-action-at-point
+              'image-url full-remote-url ; for shr-browse-image
+              'keymap mastodon-tl--shr-image-map-replacement
+              'help-echo (if (or (string= type "image")
+                                 (string= type nil)
+                                 (string= type "unknown")) ;handle borked images
+                             help-echo
+                           (concat help-echo "\nC-RET: play " type " with mpv"))))
 
 (defun mastodon-tl--content (toot)
   "Retrieve text content from TOOT.
