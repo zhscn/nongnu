@@ -5,7 +5,7 @@
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Created: 2022-07-31
 ;; Version: 0.1
-;; Package-Requires: ((emacs "26.1") (compat "28.1.2.2"))
+;; Package-Requires: ((emacs "24.3") (seq "2.23") (compat "28.1.2.2"))
 ;; Keywords: frames
 ;; URL: https://codeberg.org/akib/emacs-iwindow
 
@@ -46,7 +46,7 @@
 ;;; Code:
 
 (require 'compat)
-(require 'cl-lib)
+(require 'seq)
 
 (defgroup iwindow nil
   "Interactively manipulate windows."
@@ -158,8 +158,7 @@ Return the window chosen."
         (redraw-display)
         tree)
     (let ((option nil)
-          (choices (cl-mapcar #'cons iwindow-selection-keys
-                              tree)))
+          (choices (seq-mapn #'cons iwindow-selection-keys tree)))
       (iwindow--decorate-windows
        tree
        (lambda ()
@@ -168,11 +167,12 @@ Return the window chosen."
            (let ((key (read-key)))
              (if (= key ?\C-g)
                  (keyboard-quit)
-               (if-let ((choice (alist-get key choices)))
-                   (setq option choice)
-                 (message "Unbound key: %s (press C-g to quit)"
-                          (key-description (list key)))
-                 (ding)))))))
+               (let ((choice (cdr (assoc key choices))))
+                 (if choice
+                     (setq option choice)
+                   (message "Unbound key: %s (press C-g to quit)"
+                            (key-description (list key)))
+                   (ding))))))))
       (iwindow--ask option))))
 
 ;;;###autoload
@@ -209,14 +209,14 @@ WINDOWS and CALLBACK is described in the docstring of
                 original-mode-lines))
         (let ((mode-line-format
                `(:eval
-                 (if-let ((keys
-                           (alist-get (selected-window)
-                                      ',windows)))
-                     (mapconcat
-                      (apply-partially #'string ?\s)
-                      keys "")
-                   ',(alist-get (current-buffer)
-                                original-mode-lines)))))
+                 (let ((keys (cdr (assq (selected-window)
+                                        ',windows))))
+                   (if keys
+                       (mapconcat
+                        (apply-partially #'string ?\s)
+                        keys "")
+                     ',(cdr (assq (current-buffer)
+                                  original-mode-lines)))))))
           (if (cdr window-list)
               (setup-windows (cdr window-list))
             (funcall callback)))))))
@@ -227,28 +227,34 @@ WINDOWS and CALLBACK is described in the docstring of
 WINDOWS and CALLBACK is described in the docstring of
 `iwindow-decoration-functions', which see."
   (let ((buffers nil)
-        (sym (make-symbol "iwindow-parameter")))
+        (sym (make-symbol "iwindow-parameter"))
+        (make-local-variable (symbol-function #'make-local-variable)))
     (named-let setup-windows ((window-list windows))
       (with-selected-window (caar window-list)
-        (cl-letf* (((window-parameter nil sym) sym))
-          (if (memq (current-buffer) buffers)
-              (if (cdr window-list)
-                  (setup-windows (cdr window-list))
-                (funcall callback))
-            (let ((face-remapping-alist
-                   face-remapping-alist))
-              (cl-letf (((symbol-function
-                          'make-local-variable)
-                         #'ignore))
-                (dolist (pair iwindow-highlight-faces)
-                  (face-remap-add-relative
-                   (car pair)
-                   `(:filtered (:window ,sym ,sym)
-                               ,(cdr pair)))))
-              (push (current-buffer) buffers)
-              (if (cdr window-list)
-                  (setup-windows (cdr window-list))
-                (funcall callback)))))))))
+        (let ((param (window-parameter nil sym)))
+          (set-window-parameter nil sym sym)
+          (unwind-protect
+              (if (memq (current-buffer) buffers)
+                  (if (cdr window-list)
+                      (setup-windows (cdr window-list))
+                    (funcall callback))
+                (let ((face-remapping-alist
+                       face-remapping-alist))
+                  (setf (symbol-function #'make-local-variable)
+                        (lambda (variable) variable))
+                  (unwind-protect
+                      (dolist (pair iwindow-highlight-faces)
+                        (face-remap-add-relative
+                         (car pair)
+                         `(:filtered (:window ,sym ,sym)
+                                     ,(cdr pair))))
+                    (setf (symbol-function #'make-local-variable)
+                          make-local-variable))
+                  (push (current-buffer) buffers)
+                  (if (cdr window-list)
+                      (setup-windows (cdr window-list))
+                    (funcall callback))))
+            (set-window-parameter nil sym param)))))))
 
 (defun iwindow-show-keys-for-minibuffer (windows callback)
   "Show the keys to choose minibuffer in minibuffer.
@@ -281,24 +287,26 @@ WINDOWS and CALLBACK is described in the docstring of
 (defun iwindow-select ()
   "Interactively select a window."
   (interactive)
-  (when-let ((window (iwindow-choose
-                      (lambda (window)
-                        (not (eq window (selected-window)))))))
-    (select-window window)))
+  (let ((window (iwindow-choose
+                 (lambda (window)
+                   (not (eq window (selected-window)))))))
+    (when window
+      (select-window window))))
 
 ;;;###autoload
 (defun iwindow-swap ()
   "Interactively swap two windows."
   (interactive)
-  (when-let ((window (iwindow-choose
-                      (lambda (window)
-                        (not (eq window (selected-window)))))))
-    (unless (eq (window-frame window) (selected-frame))
-      (select-frame-set-input-focus (window-frame window)))
-    (let ((current-buffer (window-buffer (selected-window))))
-      (set-window-buffer (selected-window) (window-buffer window))
-      (set-window-buffer window current-buffer)
-      (select-window window))))
+  (let ((window (iwindow-choose
+                 (lambda (window)
+                   (not (eq window (selected-window)))))))
+    (when window
+      (unless (eq (window-frame window) (selected-frame))
+        (select-frame-set-input-focus (window-frame window)))
+      (let ((current-buffer (window-buffer (selected-window))))
+        (set-window-buffer (selected-window) (window-buffer window))
+        (set-window-buffer window current-buffer)
+        (select-window window)))))
 
 ;;;###autoload
 (defun iwindow-delete ()
