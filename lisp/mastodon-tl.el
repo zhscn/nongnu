@@ -1022,21 +1022,29 @@ message is a link which unhides/hides the main body."
          (media-string
           (mapconcat
            (lambda (media-attachement)
-             (let ((preview-url
-                    (alist-get 'preview_url media-attachement))
-                   (remote-url
-                    (or (alist-get 'remote_url media-attachement)
-                        ;; fallback b/c notifications don't have remote_url
-                        (alist-get 'url media-attachement)))
-                   (type (alist-get 'type media-attachement))
-                   (caption (alist-get 'description media-attachement)))
+             (let* ((preview-url
+                     (alist-get 'preview_url media-attachement))
+                    (remote-url
+                     (or (alist-get 'remote_url media-attachement)
+                         ;; fallback b/c notifications don't have remote_url
+                         (alist-get 'url media-attachement)))
+                    (type (alist-get 'type media-attachement))
+                    (caption (alist-get 'description media-attachement))
+                    (display-str (if caption
+                                     (concat "Media:: " caption)
+                                   (concat "Media:: " preview-url))))
                (if mastodon-tl--display-media-p
                    (mastodon-media--get-media-link-rendering
                     preview-url remote-url type caption) ; 2nd arg for shr-browse-url
                  (concat
                   (mastodon-tl--propertize-img-str-or-url
-                   (concat "Media:: " preview-url)
-                   preview-url remote-url type caption nil 'shr-link)
+                   (concat "Media:: " preview-url) ;; string
+                   preview-url remote-url type caption
+                   display-str ;; display
+                   ;; FIXME: shr-link underlining is awful for captions with
+                   ;; newlines, as the underlining runs to the edge of the
+                   ;; frame even if the text doesn'
+                   'shr-link)
                   "\n"))))
            media-attachements "")))
     (if (not (and mastodon-tl--display-media-p
