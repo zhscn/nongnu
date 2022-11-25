@@ -188,6 +188,9 @@ Takes its form from `window-configuration-to-register'.")
 (defvar mastodon-toot--max-toot-chars nil
   "The maximum allowed characters count for a single toot.")
 
+(defvar-local mastodon-toot-completions nil
+  "The data of completion candidates for the current completion at point.")
+
 (defvar mastodon-toot-current-toot-text nil
   "The text of the toot being composed.")
 
@@ -884,9 +887,6 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
             (lambda (candidate)
               (concat " "
                       (mastodon-toot--tags-annotation-fun candidate)))))))
-
-(defvar-local mastodon-toot-completions nil
-  "The data of completion candidates for the current completion at point.")
 
 (defun mastodon-toot--mentions-annotation-fun (candidate)
   "Given a handle completion CANDIDATE, return its annotation string, a username."
