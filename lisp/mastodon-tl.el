@@ -107,6 +107,13 @@ By default fixed width fonts are used."
   :type '(boolean :tag "Enable using proportional rather than fixed \
 width fonts when rendering HTML text"))
 
+(defcustom mastodon-tl--display-caption-not-url-when-no-media t
+  "Display an image's caption rather than URL.
+Only has an effect when `mastodon-tl--display-media-p' is set to
+nil."
+  :group 'mastodon-tl
+  :type 'boolean)
+
 (defvar-local mastodon-tl--buffer-spec nil
   "A unique identifier and functions for each Mastodon buffer.")
 
@@ -1018,39 +1025,44 @@ message is a link which unhides/hides the main body."
 
 (defun mastodon-tl--media (toot)
   "Retrieve a media attachment link for TOOT if one exists."
-  (let* ((media-attachements (mastodon-tl--field 'media_attachments toot))
-         (media-string
-          (mapconcat
-           (lambda (media-attachement)
-             (let* ((preview-url
-                     (alist-get 'preview_url media-attachement))
-                    (remote-url
-                     (or (alist-get 'remote_url media-attachement)
-                         ;; fallback b/c notifications don't have remote_url
-                         (alist-get 'url media-attachement)))
-                    (type (alist-get 'type media-attachement))
-                    (caption (alist-get 'description media-attachement))
-                    (display-str (if caption
-                                     (concat "Media:: " caption)
-                                   (concat "Media:: " preview-url))))
-               (if mastodon-tl--display-media-p
-                   (mastodon-media--get-media-link-rendering
-                    preview-url remote-url type caption) ; 2nd arg for shr-browse-url
-                 (concat
-                  (mastodon-tl--propertize-img-str-or-url
-                   (concat "Media:: " preview-url) ;; string
-                   preview-url remote-url type caption
-                   display-str ;; display
-                   ;; FIXME: shr-link underlining is awful for captions with
-                   ;; newlines, as the underlining runs to the edge of the
-                   ;; frame even if the text doesn'
-                   'shr-link)
-                  "\n"))))
-           media-attachements "")))
+  (let* ((media-attachments (mastodon-tl--field 'media_attachments toot))
+         (media-string (mapconcat #'mastodon-tl--media-attachment
+                                  media-attachments "")))
     (if (not (and mastodon-tl--display-media-p
                   (string-empty-p media-string)))
         (concat "\n" media-string)
       "")))
+
+(defun mastodon-tl--media-attachment (media-attachment)
+  "Return a propertized string for MEDIA-ATTACHMENT."
+  (let* ((preview-url
+          (alist-get 'preview_url media-attachment))
+         (remote-url
+          (or (alist-get 'remote_url media-attachment)
+              ;; fallback b/c notifications don't have remote_url
+              (alist-get 'url media-attachment)))
+         (type (alist-get 'type media-attachment))
+         (caption (alist-get 'description media-attachment))
+         (display-str
+          (if (and mastodon-tl--display-caption-not-url-when-no-media
+                   caption)
+              (concat "Media:: " caption)
+            (concat "Media:: " preview-url))))
+    (if mastodon-tl--display-media-p
+        ;; return placeholder [img]:
+        (mastodon-media--get-media-link-rendering
+         preview-url remote-url type caption) ; 2nd arg for shr-browse-url
+      ;; return URL/caption:
+      (concat
+       (mastodon-tl--propertize-img-str-or-url
+        (concat "Media:: " preview-url) ;; string
+        preview-url remote-url type caption
+        display-str ;; display
+        ;; FIXME: shr-link underlining is awful for captions with
+        ;; newlines, as the underlining runs to the edge of the
+        ;; frame even if the text doesn'
+        'shr-link)
+       "\n"))))
 
 (defun mastodon-tl--propertize-img-str-or-url (str media-url full-remote-url type
                                                    help-echo &optional display face)
