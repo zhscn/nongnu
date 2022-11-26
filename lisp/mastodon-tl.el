@@ -127,7 +127,7 @@ nil."
     (boost     . ("🔁" . "B"))
     (favourite . ("⭐" . "F"))
     (bookmark  . ("🔖" . "K"))
-    (media     . ("" . "M"))
+    (media     . ("📹" . "[media]"))
     (verified  . ("" . "V"))
     (locked    . ("🔒" . "[locked]"))
     (private   . ("🔒" . "[followers]"))
