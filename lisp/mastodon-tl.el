@@ -1453,7 +1453,7 @@ ID is that of the toot to view."
         (mastodon-mode)
         (mastodon-tl--set-buffer-spec buffer
                                       (format "statuses/%s" id)
-                                      (lambda (_toot) (message "END of thread.")))
+                                      nil)
         (let ((inhibit-read-only t))
           (mastodon-tl--toot toot :detailed-p))))))
 
@@ -1493,7 +1493,7 @@ ID is that of the toot to view."
                   (mastodon-tl--set-buffer-spec
                    buffer
                    (format "statuses/%s/context" id)
-                   (lambda (_toot) (message "END of thread.")))
+                   'mastodon-tl--thread)
                   (let ((inhibit-read-only t))
                     (mastodon-tl--timeline (alist-get 'ancestors context))
                     (goto-char (point-max))

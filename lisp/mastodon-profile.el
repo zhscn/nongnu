@@ -584,7 +584,6 @@ HEADERS means also fetch link headers for pagination."
          (link-header (when headers
                         (mastodon-tl--get-link-header-from-response
                          (cdr response))))
-
          (note (mastodon-profile--account-field account 'note))
          (locked (mastodon-profile--account-field account 'locked))
          (followers-count (mastodon-tl--as-string
