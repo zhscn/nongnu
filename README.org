@@ -1,20 +1,21 @@
 #+title: Devhelp - Browse documentation in Devhelp format
 
-In this unfortunate world, many documentations are using various HTML based
-format, instead of using the excellent Texinfo and Info format.  This makes
-integrating of these manuals with Emacs hard, although not impossible.
+In this unfortunate world, many documentations are using various HTML
+based format, instead of using the excellent text-based formats like
+Texinfo and Info format.  This makes integrating of these manuals with
+Emacs hard, although not impossible.
 
-This package make tries to integrate one of those stupid formats, Devhelp,
-with Emacs.
+This package make tries to integrate one of those stupid formats,
+Devhelp, with Emacs.
 
 [[./devhelp-demo.gif]]
 
 * Usage
 
-=M-x devhelp= and you are good to go.  But you use a system that isn't FHS
-(Filesystem Hierarchy Standard) compliant, then you would need to change
-it.  For example, you have to put the following in the init file for GNU
-Guix:
+=M-x devhelp= and you are good to go.  But you use a system that isn't
+FHS (Filesystem Hierarchy Standard) compliant, then you would need to
+change it.  For example, you have to put the following in the init
+file for GNU Guix:
 
 #+begin_src emacs-lisp
 (setq devhelp-search-directories
@@ -24,12 +25,13 @@ Guix:
         "~/.guix-profile/share/gtk-doc/html/"))
 #+end_src
 
-You can also bookmark pages, with the standard ~bookmark-set~ function.
+You can also bookmark pages, with the standard ~bookmark-set~
+function.
 
 * Installation
 
-Devhelp isn't available on any ELPA right now.  So, you have to follow one
-of the following methods:
+Devhelp isn't available on any ELPA right now.  So, you have to follow
+one of the following methods:
 
 ** Quelpa
 
@@ -42,7 +44,8 @@ of the following methods:
 
 #+begin_src emacs-lisp
 (straight-use-package
- '(devhelp :type git :repo "https://codeberg.org/akib/emacs-devhelp.git"))
+ '(devhelp :type git
+           :repo "https://codeberg.org/akib/emacs-devhelp.git"))
 #+end_src
 
 ** Manual

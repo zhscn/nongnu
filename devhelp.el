@@ -26,10 +26,10 @@
 
 ;;; Commentary:
 
-;; In this unfortunate world, many documentations are using various HTML
-;; based format, instead of using the excellent Texinfo and Info format.
-;; This makes integrating of these manuals with Emacs hard, although not
-;; impossible.
+;; In this unfortunate world, many documentations are using various
+;; HTML based format, instead of using the excellent Texinfo and Info
+;; format.  This makes integrating of these manuals with Emacs hard,
+;; although not impossible.
 
 ;; This package make tries to integrate one of those stupid formats,
 ;; Devhelp, with Emacs.
@@ -37,10 +37,10 @@
 ;; Usage
 ;; -----
 
-;; M-x devhelp and you are good to go.  But you use a system that isn't FHS
-;; (Filesystem Hierarchy Standard) compliant, then you would need to change
-;; it.  For example, you have to put the following in the init file for GNU
-;; Guix:
+;; M-x devhelp and you are good to go.  But you use a system that
+;; isn't FHS (Filesystem Hierarchy Standard) compliant, then you would
+;; need to change it.  For example, you have to put the following in
+;; the init file for GNU Guix:
 
 ;;     (setq devhelp-search-directories
 ;;           '("/run/current-system/profile/share/doc/"
@@ -48,7 +48,8 @@
 ;;             "~/.guix-profile/share/doc/"
 ;;             "~/.guix-profile/share/gtk-doc/html/"))
 
-;; You can also bookmark pages, with the standard `bookmark-set' function.
+;; You can also bookmark pages, with the standard `bookmark-set'
+;; function.
 
 ;;; Code:
 
@@ -70,7 +71,8 @@
 (defcustom devhelp-text-width nil
   "Window width to use for HTML rendering.
 
-Integer means use that many columns.  Nil means use full window width."
+Integer means use that many columns.  Nil means use full window
+width."
   :type '(choice (integer :tag "Fixed width in characters")
 		 (const :tag "Use the width of the window" nil)))
 
@@ -103,27 +105,30 @@ Each element is a list returned by `devhelp--parse-devhelp-file'.")
 (defvar devhelp--history nil
   "History of pages visited by the user.
 
-The value is of form (CURRENT . STACK), where STACK is the stack of user
-visited pages, and CURRENT is the index of current page in STACK.  Each
-element of STACK is a list of form (TITLE FILE BUFFERPOS), where TITLE is
-the title of the page, FILE is the FILE name followed by optional target
-\(see `url-generic-parse-url') and BUFFERPOS is the position in buffer.
-FILE can also be the symbol `toc', meaning the table of contents page.")
+The value is of form (CURRENT . STACK), where STACK is the stack of
+user visited pages, and CURRENT is the index of current page in STACK.
+Each element of STACK is a list of form (TITLE FILE BUFFERPOS), where
+TITLE is the title of the page, FILE is the FILE name followed by
+optional target \(see `url-generic-parse-url') and BUFFERPOS is the
+position in buffer.  FILE can also be the symbol `toc', meaning the
+table of contents page.")
 
 (defun devhelp--parse-devhelp-file (file)
   "Parse Devhelp file FILE and return book data.
 
-Return a list of form (TITLE NAME LANGUAGE PATH CHAPTERS KEYWORDS), where
-TITLE is the title of book, NAME is the name of the book, LANGUAGE is the
- programming language name, PATH is the absolute path to it, CHAPTER is a
-list of form (SECTION...) and KEYWORDS is a list of form (KEYWORD...).
-SECTION is a list of form (NAME PATH SUB-SECTIONS...), where NAME is the
-name of the section, PATH is the absolute path to the file and SUB-SECTION
-is a list of form (SECTION...).  KEYWORD is a list of (NAME TYPE PATH),
-where NAME  the keyword name, TYPE is the type of keyword and PATH is the
-absolute path to it."
+Return a list of form (TITLE NAME LANGUAGE PATH CHAPTERS KEYWORDS),
+where TITLE is the title of book, NAME is the name of the book,
+LANGUAGE is the programming language name, PATH is the absolute path
+to it, CHAPTER is a list of form (SECTION...) and KEYWORDS is a list
+of form (KEYWORD...).  SECTION is a list of form (NAME PATH
+SUB-SECTIONS...), where NAME is the name of the section, PATH is the
+absolute path to the file and SUB-SECTION is a list of form
+(SECTION...).  KEYWORD is a list of (NAME TYPE PATH), where NAME the
+keyword name, TYPE is the type of keyword and PATH is the absolute
+path to it."
   (unless (fboundp 'libxml-parse-html-region)
-    (error "This function requires Emacs to be compiled with libxml2"))
+    (error
+     "This function requires Emacs to be compiled with libxml2"))
   (let* ((dom (with-temp-buffer
                 (insert-file-contents file)
                 (libxml-parse-xml-region (point-min) (point-max))))
@@ -138,7 +143,8 @@ absolute path to it."
                                  (file-name-directory file))))
     (cl-labels ((children-by-tag (tree tag)
                   (mapcan (lambda (node)
-                            (when (and (listp node) (eq (dom-tag node) tag))
+                            (when (and (listp node)
+                                       (eq (dom-tag node) tag))
                               (list node)))
                           (dom-children tree)))
                 (process-section (sec)
@@ -167,10 +173,11 @@ absolute path to it."
 (defun devhelp--search-for-books ()
   "Search for Devhelp books in `devhelp-search-directories'.
 
-Return a list of book data returned by `devhelp--parse-devhelp-file' for
-each valid Devhelp books."
+Return a list of book data returned by `devhelp--parse-devhelp-file'
+for each valid Devhelp books."
   (unless (fboundp 'libxml-parse-html-region)
-    (error "This function requires Emacs to be compiled with libxml2"))
+    (error
+     "This function requires Emacs to be compiled with libxml2"))
   (let ((books nil))
     (dolist (path devhelp-search-directories)
       (when (file-directory-p path)
@@ -200,11 +207,14 @@ each valid Devhelp books."
 If a single file was opened, only show that book's table of contents."
   (interactive)
   (when (cdr devhelp--history)
-    (if (eq (nth 1 (nth (car devhelp--history) (cdr devhelp--history)))
+    (if (eq (nth 1 (nth (car devhelp--history)
+                        (cdr devhelp--history)))
             'history)
         (setf (nthcdr (car devhelp--history) (cdr devhelp--history))
-              (nthcdr (1+ (car devhelp--history)) (cdr devhelp--history)))
-      (setf (nth 2 (nth (car devhelp--history) (cdr devhelp--history)))
+              (nthcdr (1+ (car devhelp--history))
+                      (cdr devhelp--history)))
+      (setf (nth 2 (nth (car devhelp--history)
+                        (cdr devhelp--history)))
             (point))
       (setf (cdr devhelp--history) (nthcdr (car devhelp--history)
                                            (cdr devhelp--history)))))
@@ -246,7 +256,8 @@ See `devhelp-toc' for more details."
                    (when (nth 4 book)
                      (format
                       "<ul>%s</ul>"
-                      (mapconcat #'section-to-html (nth 4 book) "")))))))
+                      (mapconcat #'section-to-html
+                                 (nth 4 book) "")))))))
              devhelp--books)))
        (if (not devhelp-toc-group-books-by-language)
            (mapconcat (lambda (toc) (format "<li>%s</li>" (cdr toc)))
@@ -277,11 +288,14 @@ See `devhelp-toc' for more details."
 If a single file was opened, only show that book's index."
   (interactive)
   (when (cdr devhelp--history)
-    (if (eq (nth 1 (nth (car devhelp--history) (cdr devhelp--history)))
+    (if (eq (nth 1 (nth (car devhelp--history)
+                        (cdr devhelp--history)))
             'history)
         (setf (nthcdr (car devhelp--history) (cdr devhelp--history))
-              (nthcdr (1+ (car devhelp--history)) (cdr devhelp--history)))
-      (setf (nth 2 (nth (car devhelp--history) (cdr devhelp--history)))
+              (nthcdr (1+ (car devhelp--history))
+                      (cdr devhelp--history)))
+      (setf (nth 2 (nth (car devhelp--history)
+                        (cdr devhelp--history)))
             (point))
       (setf (cdr devhelp--history) (nthcdr (car devhelp--history)
                                            (cdr devhelp--history)))))
@@ -299,8 +313,8 @@ See `devhelp-index' for more details."
     (insert
      "<html><head><title>Index</title></head><body><ul>"
      (let ((keywords (mapcan (lambda (book)
-                            (copy-sequence (nth 5 book)))
-                          devhelp--books)))
+                               (copy-sequence (nth 5 book)))
+                             devhelp--books)))
        (sort keywords (lambda (a b) (string< (car a) (car b))))
        (if (not devhelp-index-group-keywords-by-type)
            (mapconcat (lambda (keyword)
@@ -311,9 +325,10 @@ See `devhelp-index' for more details."
                       keywords "")
          (let ((groups nil))
            (dolist (keyword keywords)
-             (let ((entry (format "<a href=%S>%s</a>"
-                                  (devhelp--file-to-url (nth 2 keyword))
-                                  (nth 0 keyword))))
+             (let ((entry
+                    (format "<a href=%S>%s</a>"
+                            (devhelp--file-to-url (nth 2 keyword))
+                            (nth 0 keyword))))
                (if-let ((pair (assoc (nth 1 keyword) groups)))
                    (setf (cdr pair) (nconc (cdr pair) (list entry)))
                  (push (cons (nth 1 keyword) (list entry)) groups))))
@@ -325,7 +340,8 @@ See `devhelp-index' for more details."
                 (format
                  "<li><b><u>Type: %s</u></b><ul>%s</ul></li>"
                  (capitalize (car group))
-                 (mapconcat (lambda (entry) (format "<li>%s</li>" entry))
+                 (mapconcat (lambda (entry)
+                              (format "<li>%s</li>" entry))
                             (cdr group) ""))))
             groups ""))))
      "</ul></body></html>")
@@ -336,7 +352,8 @@ See `devhelp-index' for more details."
   "Set the title of current page to TITLE."
   (setq header-line-format
         (when title (replace-regexp-in-string "%" "%%" title)))
-  (setf (car (nth (car devhelp--history) (cdr devhelp--history))) title))
+  (setf (car (nth (car devhelp--history) (cdr devhelp--history)))
+        title))
 
 (defun devhelp-browse-url (&optional event)
   "Follow link under point/mouse.
@@ -376,7 +393,8 @@ EVENT is a mouse event, if any."
           (goto-char (point-min))
           (when (and (url-target url)
                      (not (string-empty-p (url-target url))))
-            (text-property-search-forward 'shr-target-id (url-target url)))
+            (text-property-search-forward
+             'shr-target-id (url-target url)))
           (recenter 0)
           (setf (nth 2 (nth 0 (cdr devhelp--history))) (point)))
       (browse-url url))))
@@ -391,20 +409,22 @@ When BASE is given, use it to make relative URLs absolute."
            (let ((fn (if (eq (nth 1 (nth (car devhelp--history)
                                          (cdr devhelp--history)))
                              'history)
-                         #'devhelp-history-goto #'devhelp-browse-url)))
+                         #'devhelp-history-goto
+                       #'devhelp-browse-url)))
              (define-key map (kbd "RET") fn)
              (define-key map [mouse-2] fn))
            map))
         (shr-external-rendering-functions
-         (append `((title
-                    . ,(lambda (dom)
-                         (devhelp--set-title (car (dom-children dom))))))
+         (append `((title . ,(lambda (dom)
+                               (devhelp--set-title
+                                (car (dom-children dom))))))
                  shr-external-rendering-functions))
         (shr-use-fonts devhelp-use-variable-pitch-font)
         (shr-width devhelp-text-width)
         (dom (libxml-parse-html-region (point-min) (point-max))))
     (erase-buffer)
-    (shr-insert-document (if base `(base ((href . ,base)) (,dom)) dom))
+    (shr-insert-document
+     (if base `(base ((href . ,base)) (,dom)) dom))
     (goto-char (point-min))))
 
 (defun devhelp--render-html-file (file)
@@ -421,11 +441,14 @@ When BASE is given, use it to make relative URLs absolute."
                            'history)
                        (1- (length (cdr devhelp--history)))
                      (length (cdr devhelp--history)))))
-      (user-error (concat (if (< n 0) "Beginning" "End") " of history"))
-    (when (eq (nth 1 (nth (car devhelp--history) (cdr devhelp--history)))
+      (user-error (concat (if (< n 0) "Beginning" "End")
+                          " of history"))
+    (when (eq (nth 1 (nth (car devhelp--history)
+                          (cdr devhelp--history)))
               'history)
       (setf (nthcdr (car devhelp--history) (cdr devhelp--history))
-            (nthcdr (1+ (car devhelp--history)) (cdr devhelp--history))))
+            (nthcdr (1+ (car devhelp--history))
+                    (cdr devhelp--history))))
     (setf (nth 2 (nth (car devhelp--history)
                       (cdr devhelp--history)))
           (point))
@@ -481,17 +504,20 @@ EVENT is a mouse event, if any."
         (point))
   (let ((inhibit-read-only t))
     (erase-buffer)
-    (insert "<html><head><title>History of visited pages</title></head>"
-            "<body><h1>History of visited pages</h1><ul>")
-    (dolist (i (number-sequence 0 (1- (length (cdr devhelp--history)))))
-      (insert (format "<li><a href=\"%i\">%s</a></li>" i
-                      (let ((title (car (nth i (cdr devhelp--history)))))
-                        (if (eq i (car devhelp--history))
-                            (format "<i>%s</i>" title)
-                          title)))))
+    (insert
+     "<html><head><title>History of visited pages</title></head>"
+     "<body><h1>History of visited pages</h1><ul>")
+    (dolist (i (number-sequence
+                0 (1- (length (cdr devhelp--history)))))
+      (insert (format
+               "<li><a href=\"%i\">%s</a></li>" i
+               (let ((title (car (nth i (cdr devhelp--history)))))
+                 (if (eq i (car devhelp--history))
+                     (format "<i>%s</i>" title)
+                   title)))))
     (insert "</ul></body></html>")
-    (push (list nil 'history (point-min)) (nthcdr (car devhelp--history)
-                                                  (cdr devhelp--history)))
+    (push (list nil 'history (point-min))
+          (nthcdr (car devhelp--history) (cdr devhelp--history)))
     (devhelp--render-html)))
 
 (defun devhelp--directory ()
@@ -511,25 +537,27 @@ EVENT is a mouse event, if any."
 (defun devhelp (file buffer)
   "Browse documentation in Devhelp format.
 
-Interactively, when a non-numeric prefix argument is given, the Devhelp
-file name is read interactively from the minibuffer.  When a numeric
-argument N is given, a buffer named `*devhelp*<N>' is selected.  When no
-prefix argument is given and `*devhelp*' buffer already exists, just
-display it.
+Interactively, when a non-numeric prefix argument is given, the
+Devhelp file name is read interactively from the minibuffer.  When a
+numeric argument N is given, a buffer named `*devhelp*<N>' is
+selected.  When no prefix argument is given and `*devhelp*' buffer
+already exists, just display it.
 
 Optional argument BUFFER specifies the BUFFER to use, it can be a live
-buffer or a buffer name.  If BUFFER is a buffer name and the buffer doesn't
-exist, it is created.
+buffer or a buffer name.  If BUFFER is a buffer name and the buffer
+doesn't exist, it is created.
 
-Optional argument FILE specifies the file to open, the default is to open
-the conbined table of contents of all available Devhelp books."
+Optional argument FILE specifies the file to open, the default is to
+open the conbined table of contents of all available Devhelp books."
   (interactive
-   (list (when (and current-prefix-arg (not (numberp current-prefix-arg)))
+   (list (when (and current-prefix-arg
+                    (not (numberp current-prefix-arg)))
            (read-file-name "Devhelp file name: " nil nil t))
          (when (numberp current-prefix-arg)
            (format "*devhelp*<%s>" current-prefix-arg))))
   (unless (fboundp 'libxml-parse-html-region)
-    (error "This function requires Emacs to be compiled with libxml2"))
+    (error
+     "This function requires Emacs to be compiled with libxml2"))
   (if (and (not buffer) (get-buffer "*devhelp*"))
       (display-buffer "*devhelp*")
     (with-current-buffer (get-buffer-create (or buffer "*devhelp*"))
@@ -554,7 +582,8 @@ the conbined table of contents of all available Devhelp books."
 (defun devhelp-bookmark-jump (bookmark)
   "Jump to BOOKMARK."
   (unless (fboundp 'libxml-parse-html-region)
-    (error "This function requires Emacs to be compiled with libxml2"))
+    (error
+     "This function requires Emacs to be compiled with libxml2"))
   (let ((buffer-existed-p (get-buffer "*devhelp*")))
     (with-current-buffer (get-buffer-create "*devhelp*")
       (unless buffer-existed-p
