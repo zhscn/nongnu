@@ -163,6 +163,10 @@ This is determined by the account setting on the server. To
 change the setting on the server, see
 `mastodon-toot--set-default-visibility'.")
 
+(defvar-local mastodon-toot--scheduled-at nil
+  "An ISO 8601 timestamp that declares when the post should be published.
+Should be at least 5 minutes into the future.")
+
 (defvar-local mastodon-toot--media-attachments nil
   "A list of the media attachments of the toot being composed.")
 
@@ -686,7 +690,8 @@ instance to edit a toot."
                           ("sensitive" . ,(when mastodon-toot--content-nsfw
                                             (symbol-name t)))
                           ("spoiler_text" . ,spoiler)
-                          ("language" . ,mastodon-toot--language)))
+                          ("language" . ,mastodon-toot--language)
+                          ("scheduled_at" . ,mastodon-toot--scheduled-at)))
          (args-media (when mastodon-toot--media-attachments
                        (mastodon-http--build-array-params-alist
                         "media_ids[]"
