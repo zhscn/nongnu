@@ -106,29 +106,21 @@ width fonts when rendering HTML text"))
   :group 'mastodon-tl
   :type '(boolean :tag "Whether to display user avatars in timelines"))
 
-;; Various symbols using throughout timeline
-;; Default comes from nerd-font (www.nerdfonts.com)
-(defcustom mastodon-tl-symbols
-  '(;; See https://icon-sets.iconify.design/octicon/comment-24/
-    (reply     . ("" . "R"))
-    ;; See https://icon-sets.iconify.design/octicon/reply-24/
-    (boost     . ("" . "B"))
-    ;; See https://icon-sets.iconify.design/octicon/star-fill-24/
-    (favourite . ("" . "F"))
-    ;; See https://icon-sets.iconify.design/octicon/bookmark-24/
-    (bookmark  . ("" . "K"))
-    ;; See https://icon-sets.iconify.design/octicon/file-media-24/
-    (media     . ("" . "M"))
-    ;; See https://icon-sets.iconify.design/octicon/verified-24/
-    (verified  . ("" . "V"))
-    ;; See https://icon-sets.iconify.design/octicon/person-fill-24/
-    (private   . ("" . "P"))
-    ;; See https://icon-sets.iconify.design/octicon/location-24/
-    (direct    . ("" . "D")))
-  "Set of symbols (or strings) to be used in timeline. If a symbol does not look right (tofu), it means your font settings do not support it."
+(defcustom mastodon-tl--symbols
+  '((reply     . ("💬" . "R"))
+    (boost     . ("🔁" . "B"))
+    (favourite . ("⭐" . "F"))
+    (bookmark  . ("🔖" . "K"))
+    (media     . ("" . "M"))
+    (verified  . ("" . "V"))
+    (private   . ("🔒" . "P"))
+    (direct    . ("✉" . "D"))
+    (edited    . ("✍" . "E")))
+  "A set of symbols (and fallback strings) to be used in timeline.
+If a symbol does not look right (tofu), it means your
+font settings do not support it."
   :type '(alist :key-type symbol :value-type string)
   :group 'mastodon-tl)
-
 
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
@@ -226,14 +218,12 @@ It is active where point is placed by `mastodon-tl--goto-next-toot.'")
 
 (defun mastodon-tl--symbol (name)
   "Return the unicode symbol (as a string) corresponding to NAME.
-
 If symbol is not displayable, an ASCII equivalent is returned. If
 NAME is not part of the symbol table, '?' is returned."
-
-  (if-let* ((symbol (alist-get name mastodon-tl-symbols)))
-    (if (char-displayable-p (string-to-char (car symbol)))
-        (car symbol)
-      (cdr symbol))
+  (if-let* ((symbol (alist-get name mastodon-tl--symbols)))
+      (if (char-displayable-p (string-to-char (car symbol)))
+          (car symbol)
+        (cdr symbol))
     "?"))
 
 
