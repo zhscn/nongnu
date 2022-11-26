@@ -83,15 +83,16 @@ Integer means use that many columns.  Nil means use full window width."
   :type 'boolean)
 
 (defcustom devhelp-search-directories
-  '("/usr/share/doc/" "/usr/share/gtk-doc/html/" "/usr/local/share/doc/"
-    "/usr/local/share/gtk-doc/html/")
+  '("/usr/share/doc/" "/usr/share/gtk-doc/html/"
+    "/usr/local/share/doc/"  "/usr/local/share/gtk-doc/html/")
   "List of directories to search for Devhelp books.
 
-Note that on GNU Guix, Nix or other FHS (Filesystem Hierarchy Standard)
-non-compliant distributions, the default value won't work.  For GNU Guix,
-set it to '(\"/run/current-system/profile/share/doc/\"
+Note that on GNU Guix, Nix or other FHS (Filesystem Hierarchy
+Standard) non-compliant distributions, the default value won't work.
+For GNU Guix, set it to \='(\"/run/current-system/profile/share/doc/\"
 \"/run/current-system/profile/share/gtk-doc/html/\"
-\"~/.guix-profile/share/doc/\" \"~/.guix-profile/share/gtk-doc/html/\")."
+\"~/.guix-profile/share/doc/\"
+\"~/.guix-profile/share/gtk-doc/html/\")."
   :type '(repeat directory))
 
 (defvar devhelp--books nil
@@ -135,34 +136,33 @@ absolute path to it."
                     (_ (error "Invalid Devhelp file"))))
          (base (expand-file-name (or (dom-attr dom 'base) "")
                                  (file-name-directory file))))
-    (cl-labels ((children-by-tag
-                 (tree tag)
-                 (mapcan (lambda (node)
-                           (when (and (listp node) (eq (dom-tag node) tag))
-                             (list node)))
-                         (dom-children tree)))
-                (process-section
-                 (sec)
-                 `(,(dom-attr sec 'name)
-                   ,(expand-file-name (dom-attr sec 'link) base)
-                   ,(mapcar #'process-section (children-by-tag
-                                               sec 'sub)))))
-      `(,(or (dom-attr dom 'title) "Untitled")
-        ,(or (dom-attr dom 'name) (file-name-base file))
-        ,(or (dom-attr dom 'language) "any")
-        ,(expand-file-name (dom-attr dom 'link) base)
-        ,(mapcar #'process-section
-                 (mapcan (lambda (tree) (children-by-tag tree 'sub))
-                         (children-by-tag dom 'chapters)))
-        ,(mapcar
-          (lambda (kw)
-            `(,(dom-attr kw 'name)
-              ,(or (dom-attr kw 'type) "function")
-              ,(expand-file-name (dom-attr kw 'link) base)))
-          (mapcan (lambda (tree)
-                    (children-by-tag
-                     tree (if (eq version 1) 'function 'keyword)))
-                  (children-by-tag dom 'functions)))))))
+    (cl-labels ((children-by-tag (tree tag)
+                  (mapcan (lambda (node)
+                            (when (and (listp node) (eq (dom-tag node) tag))
+                              (list node)))
+                          (dom-children tree)))
+                (process-section (sec)
+                  (list (dom-attr sec 'name)
+                        (expand-file-name (dom-attr sec 'link) base)
+                        (mapcar #'process-section (children-by-tag
+                                                   sec 'sub)))))
+      (list (or (dom-attr dom 'title) "Untitled")
+            (or (dom-attr dom 'name) (file-name-base file))
+            (or (dom-attr dom 'language) "any")
+            (expand-file-name (dom-attr dom 'link) base)
+            (mapcar #'process-section
+                    (mapcan (lambda (tree)
+                              (children-by-tag tree 'sub))
+                            (children-by-tag dom 'chapters)))
+            (mapcar
+             (lambda (kw)
+               (list (dom-attr kw 'name)
+                     (or (dom-attr kw 'type) "function")
+                     (expand-file-name (dom-attr kw 'link) base)))
+             (mapcan (lambda (tree)
+                       (children-by-tag
+                        tree (if (eq version 1) 'function 'keyword)))
+                     (children-by-tag dom 'functions)))))))
 
 (defun devhelp--search-for-books ()
   "Search for Devhelp books in `devhelp-search-directories'.
@@ -224,20 +224,19 @@ See `devhelp-toc' for more details."
      (let ((book-tocs
             (mapcar
              (lambda (book)
-               (cl-labels ((section-to-html
-                            (section)
-                            (concat
-                             "<li>"
-                             (format
-                              "<a href=%S>%s</a>"
-                              (devhelp--file-to-url (nth 1 section))
-                              (nth 0 section))
-                             (when (nth 2 section)
-                               (format
-                                "<ul>%s</ul>"
-                                (mapconcat #'section-to-html
-                                           (nth 2 section) "")))
-                             "</li>")))
+               (cl-labels ((section-to-html (section)
+                             (concat
+                              "<li>"
+                              (format
+                               "<a href=%S>%s</a>"
+                               (devhelp--file-to-url (nth 1 section))
+                               (nth 0 section))
+                              (when (nth 2 section)
+                                (format
+                                 "<ul>%s</ul>"
+                                 (mapconcat #'section-to-html
+                                            (nth 2 section) "")))
+                              "</li>")))
                  (cons
                   (nth 2 book)
                   (concat
@@ -451,14 +450,14 @@ When BASE is given, use it to make relative URLs absolute."
 
 When prefix argument N is given, go to Nth previous page."
   (interactive "p")
-  (devhelp--history-goto (+ (car devhelp--history) n)))
+  (devhelp--history-goto (+ (car devhelp--history) (or n 1))))
 
 (defun devhelp-history-forward (&optional n)
   "Go to the next page.
 
 When prefix argument N is given, go to Nth next page."
   (interactive "p")
-  (devhelp--history-goto (- (car devhelp--history) n)))
+  (devhelp--history-goto (- (car devhelp--history) (or n 1))))
 
 (defun devhelp-history-goto (&optional event)
   "Go to history link under point.
