@@ -136,10 +136,6 @@ If nil `(point-min)' is used instead.")
 (defvar-local mastodon-tl--timestamp-update-timer nil
   "The timer that, when set will scan the buffer to update the timestamps.")
 
-(defvar mastodon-tl--link-header-buffers
-  '("*mastodon-favourites*" "*mastodon-bookmarks*")
-  "A list of buffers that use link headers for pagination.")
-
 ;; KEYMAPS
 
 (defvar mastodon-tl--link-keymap
@@ -2327,11 +2323,22 @@ For use after e.g. deleting a toot."
          (param (cadr split)))
     (concat url-base "&" param)))
 
+(defun mastodon-tl--use-link-header-p ()
+  "Return t if we are in a view that uses Link header pagination.
+Currently this includes favourites, bookmarks, and profile pages
+when showing followers or accounts followed."
+  (let ((buf (buffer-name (current-buffer)))
+        (endpoint (mastodon-tl--get-endpoint)))
+    (or (member buf '("*mastodon-favourites*" "*mastodon-bookmarks*"))
+        (and (string-prefix-p "accounts" endpoint)
+             (or (string-suffix-p "followers" endpoint)
+                 (string-suffix-p "following" endpoint))))))
+
 (defun mastodon-tl--more ()
   "Append older toots to timeline, asynchronously."
   (interactive)
   (message "Loading older toots...")
-  (if (member (buffer-name (current-buffer)) mastodon-tl--link-header-buffers)
+  (if (mastodon-tl--use-link-header-p)
       ;; link-header: can't build a URL with --more-json-async, endpoint/id:
       (let* ((next (car (mastodon-tl--link-header)))
              ;;(prev (cadr (mastodon-tl--link-header)))
@@ -2532,7 +2539,7 @@ from the start if it is nil."
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT asynchronously.
 UPDATE-FUNCTION is used to recieve more toots.
 HEADERS means to also collect the response headers. Used for paginating
-favourites."
+favourites and bookmarks."
   (let ((url (mastodon-http--api endpoint))
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers
@@ -2545,8 +2552,8 @@ favourites."
   "Initialize BUFFER with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to recieve more toots.
 RESPONSE is the data returned from the server by
-`mastodon-http--process-json', a cons cell of JSON and http
-headers."
+`mastodon-http--process-json', with arg HEADERS a cons cell of
+JSON and http headers, without it just the JSON."
   (let* ((json (if headers (car response) response))
          (headers (if headers (cdr response) nil))
          (link-header (mastodon-tl--get-link-header-from-response headers)))
