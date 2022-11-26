@@ -74,6 +74,7 @@
 (autoload 'mastodon-http--get-response "mastodon-http")
 (autoload 'mastodon-tl--get-link-header-from-response "mastodon-tl")
 (autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
+(autoload 'mastodon-tl--symbol "mastodon-tl")
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
@@ -628,9 +629,7 @@ HEADERS means also fetch link headers for pagination."
            (propertize (concat "@" acct)
                        'face 'default)
            (if (equal locked t)
-               (if (fontp (char-displayable-p #10r9993))
-                   " 🔒"
-                 " [locked]")
+               (mastodon-tl--symbol 'locked)
              "")
            "\n ------------\n"
            ;; profile note:

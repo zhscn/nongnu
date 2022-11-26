@@ -129,9 +129,10 @@ nil."
     (bookmark  . ("🔖" . "K"))
     (media     . ("" . "M"))
     (verified  . ("" . "V"))
-    (private   . ("🔒" . "P"))
-    (direct    . ("✉" . "D"))
-    (edited    . ("✍" . "E")))
+    (locked    . ("🔒" . "[locked]"))
+    (private   . ("🔒" . "[followers]"))
+    (direct    . ("✉" . "[direct]"))
+    (edited    . ("✍" . "[edited]")))
   "A set of symbols (and fallback strings) to be used in timeline.
 If a symbol does not look right (tofu), it means your
 font settings do not support it."
@@ -629,7 +630,6 @@ this just means displaying toot client."
          (faved (equal 't (mastodon-tl--field 'favourited toot)))
          (boosted (equal 't (mastodon-tl--field 'reblogged toot)))
          (bookmarked (equal 't (mastodon-tl--field 'bookmarked toot)))
-         (bookmark-str (mastodon-tl--symbol 'bookmark))
          (visibility (mastodon-tl--field 'visibility toot))
          (account (alist-get 'account toot))
          (avatar-url (alist-get 'avatar account))
@@ -645,13 +645,13 @@ this just means displaying toot client."
      ;; the toot having just been favourited/boosted.
      (concat (when boosted
                (mastodon-tl--format-faved-or-boosted-byline
-                (mastodon-tl--return-boost-char)))
+                (mastodon-tl--symbol 'boost)))
              (when faved
                (mastodon-tl--format-faved-or-boosted-byline
-                (mastodon-tl--return-fave-char)))
+                (mastodon-tl--symbol 'favourite)))
              (when bookmarked
                (mastodon-tl--format-faved-or-boosted-byline
-                (mastodon-tl--return-bookmark-char))))
+                (mastodon-tl--symbol 'bookmark))))
      ;; we remove avatars from the byline also, so that they also do not mess
      ;; with `mastodon-tl--goto-next-toot':
      (when (and mastodon-tl--show-avatars
@@ -717,30 +717,6 @@ this just means displaying toot client."
       'edit-history (when edited-time
                       (mastodon-toot--get-toot-edits (alist-get 'id toot)))
       'byline       t))))
-
-(defun mastodon-tl--return-boost-char ()
-  ""
-  (cond
-   ((fontp (char-displayable-p #10r128257))
-    "🔁")
-   (t
-    "B")))
-
-(defun mastodon-tl--return-fave-char ()
-  ""
-  (cond
-   ((fontp (char-displayable-p #10r11088))
-    "⭐")
-   ((fontp (char-displayable-p #10r9733))
-    "★")
-   (t
-    "F")))
-
-(defun mastodon-tl--return-bookmark-char ()
-  ""
-  (if (fontp (char-displayable-p #10r128278))
-      "🔖"
-    "K"))
 
 (defun mastodon-tl--format-edit-timestamp (timestamp)
   "Convert edit TIMESTAMP into a descriptive string."
