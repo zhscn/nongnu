@@ -229,14 +229,11 @@ ENDPOINT is the endpoint for the stream and timeline."
         (mastodon-tl--timeline (mastodon-http--get-json
                                 (mastodon-http--api endpoint))))
       (mastodon-mode)
-      (setq mastodon-tl--buffer-spec
-            `(buffer-name
-              ,buffer-name
-              endpoint ,endpoint
-              update-function
-              ,(if (equal name "notifications")
-                   'mastodon-notifications--timeline
-                 'mastodon-tl--timeline)))
+      (mastodon-tl--set-buffer-spec buffer-name
+                                    endpoint
+                                    ,(if (equal name "notifications")
+                                         'mastodon-notifications--timeline
+                                       'mastodon-tl--timeline))
       (setq-local mastodon-tl--enable-relative-timestamps nil)
       (setq-local mastodon-tl--display-media-p t)
       (current-buffer))))

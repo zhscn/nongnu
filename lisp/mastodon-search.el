@@ -40,20 +40,21 @@
 (autoload 'mastodon-auth--access-token "mastodon-auth")
 (autoload 'mastodon-http--get-search-json "mastodon-http")
 (autoload 'mastodon-http--api "mastodon-http")
+(autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
+
 (defvar mastodon-toot--completion-style-for-mentions)
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--link-keymap)
 (defvar mastodon-http--timeout)
 (defvar mastodon-toot--enable-completion-for-mentions)
-(defvar mastodon-tl--buffer-spec)
 
-;; functions for company completion of mentions in mastodon-toot
+;; functions for completion of mentions in mastodon-toot
 
 (defun mastodon-search--get-user-info-@ (account)
   "Get user handle, display name and account URL from ACCOUNT."
-  (list (cdr (assoc 'display_name account))
-        (concat "@" (cdr (assoc 'acct account)))
-        (cdr (assoc 'url account))))
+  (list (concat "@" (cdr (assoc 'acct account)))
+        (cdr (assoc 'url account))
+        (cdr (assoc 'display_name account))))
 
 (defun mastodon-search--search-accounts-query (query)
   "Prompt for a search QUERY and return accounts synchronously.
@@ -61,8 +62,8 @@ Returns a nested list containing user handle, display name, and URL."
   (interactive "sSearch mastodon for: ")
   (let* ((url (mastodon-http--api "accounts/search"))
          (response (if (equal mastodon-toot--completion-style-for-mentions "following")
-                       (mastodon-http--get-search-json url query "following=true")
-                     (mastodon-http--get-search-json url query))))
+                       (mastodon-http--get-json url `(("q" . ,query) ("following" . "true")) :silent)
+                     (mastodon-http--get-json url `(("q" . ,query)) :silent))))
     (mapcar #'mastodon-search--get-user-info-@ response)))
 
 ;; functions for tags completion:
@@ -72,8 +73,9 @@ Returns a nested list containing user handle, display name, and URL."
 QUERY is the string to search."
   (interactive "sSearch for hashtag: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
-         (type-param (concat "type=hashtags"))
-         (response (mastodon-http--get-search-json url query type-param))
+         (params `(("q" . ,query)
+                   ("type" . "hashtags")))
+         (response (mastodon-http--get-json url params :silent))
          (tags (alist-get 'hashtags response)))
     (mapcar #'mastodon-search--get-hashtag-info tags)))
 
@@ -92,11 +94,9 @@ QUERY is the string to search."
       (mastodon-mode)
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (setq mastodon-tl--buffer-spec
-              `(buffer-name ,buffer
-                            endpoint ,(format "api/v1/trends")
-                            update-function
-                            (lambda (toot) (message "Trends."))))
+        (mastodon-tl--set-buffer-spec buffer
+                                      "api/v1/trends"
+                                      nil)
         ;; hashtag results:
         (insert (mastodon-tl--set-face
                  (concat "\n ------------\n"
@@ -112,7 +112,7 @@ QUERY is the string to search."
   (interactive "sSearch mastodon for: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
          (buffer (format "*mastodon-search-%s*" query))
-         (response (mastodon-http--get-search-json url query))
+         (response (mastodon-http--get-json url `(("q" . ,query))))
          (accts (alist-get 'accounts response))
          (tags (alist-get 'hashtags response))
          (statuses (alist-get 'statuses response))
@@ -132,11 +132,9 @@ QUERY is the string to search."
       (mastodon-mode)
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (setq mastodon-tl--buffer-spec
-              `(buffer-name ,buffer
-                            endpoint ,(format "api/v2/search")
-                            update-function
-                            (lambda (toot) (message "Searched."))))
+        (mastodon-tl--set-buffer-spec buffer
+                                      "api/v2/search"
+                                      nil)
         ;; user results:
         (insert (mastodon-tl--set-face
                  (concat "\n ------------\n"
@@ -171,8 +169,7 @@ user's profile note. This is also called by
         json))
 
 (defun mastodon-search--propertize-user (acct &optional note)
-  "Propertize display string for ACCT, optionally including profile
-NOTE."
+  "Propertize display string for ACCT, optionally including profile NOTE."
   (let ((user (mastodon-search--get-user-info acct)))
     (propertize
      (concat (propertize (car user)

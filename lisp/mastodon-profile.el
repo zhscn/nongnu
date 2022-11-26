@@ -36,6 +36,7 @@
 (require 'seq)
 (require 'cl-lib)
 (require 'persist)
+(require 'ts)
 
 (autoload 'mastodon-http--api "mastodon-http.el")
 (autoload 'mastodon-http--get-json "mastodon-http.el")
@@ -69,6 +70,12 @@
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl.el")
 (autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
+(autoload 'mastodon-tl--add-account-to-list "mastodon-tl")
+(autoload 'mastodon-http--get-response "mastodon-http")
+(autoload 'mastodon-tl--get-link-header-from-response "mastodon-tl")
+(autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
+(autoload 'mastodon-tl--symbol "mastodon-tl")
+
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--update-point)
@@ -110,7 +117,6 @@
 
 (define-minor-mode mastodon-profile-mode
   "Toggle mastodon profile minor mode.
-
 This minor mode is used for mastodon profile pages and adds a couple of
 extra keybindings."
   :init-value nil
@@ -150,10 +156,11 @@ contains")
   ;; or handle --property failing
   (mastodon-tl--property 'toot-json))
 
-(defun mastodon-profile--make-author-buffer (account)
-  "Take an ACCOUNT json and insert a user account into a new buffer."
+(defun mastodon-profile--make-author-buffer (account &optional no-reblogs)
+  "Take an ACCOUNT json and insert a user account into a new buffer.
+NO-REBLOGS means do not display boosts in statuses."
   (mastodon-profile--make-profile-buffer-for
-   account "statuses" #'mastodon-tl--timeline))
+   account "statuses" #'mastodon-tl--timeline no-reblogs))
 
 ;; TODO: we shd just load all views' data then switch coz this is slow af:
 (defun mastodon-profile--account-view-cycle ()
@@ -164,9 +171,17 @@ contains")
            (mastodon-profile--open-followers))
           ((string-suffix-p "followers" endpoint)
            (mastodon-profile--open-following))
+          ((string-suffix-p "following" endpoint)
+           (mastodon-profile--open-statuses-no-reblogs))
           (t
-           (mastodon-profile--make-profile-buffer-for
-            mastodon-profile--account "statuses" #'mastodon-tl--timeline)))))
+           (mastodon-profile--make-author-buffer mastodon-profile--account)))))
+
+(defun mastodon-profile--open-statuses-no-reblogs ()
+  "Open a profile buffer showing statuses without reblogs."
+  (interactive)
+  (if mastodon-profile--account
+      (mastodon-profile--make-author-buffer mastodon-profile--account :no-reblogs)
+    (error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-following ()
   "Open a profile buffer showing the accounts that current profile follows."
@@ -175,7 +190,9 @@ contains")
       (mastodon-profile--make-profile-buffer-for
        mastodon-profile--account
        "following"
-       #'mastodon-profile--add-author-bylines)
+       #'mastodon-profile--add-author-bylines
+       nil
+       :headers)
     (error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-followers ()
@@ -185,7 +202,9 @@ contains")
       (mastodon-profile--make-profile-buffer-for
        mastodon-profile--account
        "followers"
-       #'mastodon-profile--add-author-bylines)
+       #'mastodon-profile--add-author-bylines
+       nil
+       :headers)
     (error "Not in a mastodon profile")))
 
 (defun mastodon-profile--view-favourites ()
@@ -235,6 +254,15 @@ JSON is the data returned by the server."
     (mastodon-search--insert-users-propertized json :note)))
 ;; (mastodon-profile--add-author-bylines json)))
 
+(defun mastodon-profile--add-account-to-list ()
+  "Add account of current profile buffer to a list."
+  (interactive)
+  (when mastodon-profile--account
+    (let* ((profile mastodon-profile--account)
+           (id (alist-get 'id profile))
+           (handle (alist-get 'acct profile)))
+      (mastodon-tl--add-account-to-list nil id handle))))
+
 ;;; ACCOUNT PREFERENCES
 
 (defun mastodon-profile--get-json-value (val)
@@ -259,7 +287,8 @@ JSON is the data returned by the server."
 (defun mastodon-profile--update-user-profile-note ()
   "Fetch user's profile note and display for editing."
   (interactive)
-  (let* ((url (mastodon-http--api "accounts/verify_credentials"))
+  (let* ((endpoint "accounts/verify_credentials")
+         (url (mastodon-http--api endpoint))
          (json (mastodon-http--get-json url))
          (source (alist-get 'source json))
          (note (alist-get 'note source))
@@ -267,6 +296,9 @@ JSON is the data returned by the server."
          (inhibit-read-only t))
     (switch-to-buffer-other-window buffer)
     (text-mode)
+    (mastodon-tl--set-buffer-spec (buffer-name buffer)
+                                  endpoint
+                                  nil)
     (setq-local header-line-format
                 (propertize
                  "Edit your profile note. C-c C-c to send, C-c C-k to cancel."
@@ -469,6 +501,9 @@ This endpoint only holds a few preferences. For others, see
       (switch-to-buffer-other-window buf)
       (erase-buffer)
       (special-mode)
+      (mastodon-tl--set-buffer-spec (buffer-name buf)
+                                    "preferences"
+                                    nil)
       (let ((inhibit-read-only t))
         (while response
           (let ((el (pop response)))
@@ -484,11 +519,10 @@ This endpoint only holds a few preferences. For others, see
 (defun mastodon-profile--relationships-get (id)
   "Fetch info about logged-in user's relationship to user with id ID."
   (let* ((their-id id)
-         (url (mastodon-http--api (format
-                                   "accounts/relationships?id[]=%s"
-                                   their-id))))
+         (args `(("id[]" . ,their-id)))
+         (url (mastodon-http--api "accounts/relationships")))
     ;; FIXME: not sure why we need to do this for relationships only!
-    (car (mastodon-http--get-json url))))
+    (car (mastodon-http--get-json url args))))
 
 (defun mastodon-profile--fields-get (&optional account fields)
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
@@ -519,8 +553,9 @@ FIELDS means provide a fields vector fetched by other means."
 (defun mastodon-profile--get-statuses-pinned (account)
   "Fetch the pinned toots for ACCOUNT."
   (let* ((id (mastodon-profile--account-field account 'id))
-         (url (mastodon-http--api (format "accounts/%s/statuses?pinned=true" id))))
-    (mastodon-http--get-json url)))
+         (args `(("pinned" . "true")))
+         (url (mastodon-http--api (format "accounts/%s/statuses" id))))
+    (mastodon-http--get-json url args)))
 
 (defun mastodon-profile--insert-statuses-pinned (pinned-statuses)
   "Insert each of the PINNED-STATUSES for a given account."
@@ -530,14 +565,26 @@ FIELDS means provide a fields vector fetched by other means."
           (mastodon-tl--toot pinned-status))
         pinned-statuses))
 
-(defun mastodon-profile--make-profile-buffer-for (account endpoint-type update-function)
-  "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION."
+(defun mastodon-profile--make-profile-buffer-for (account endpoint-type
+                                                          update-function
+                                                          &optional no-reblogs headers)
+  "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION.
+NO-REBLOGS means do not display boosts in statuses.
+HEADERS means also fetch link headers for pagination."
   (let* ((id (mastodon-profile--account-field account 'id))
+         (args (when no-reblogs '(("exclude_reblogs" . "t"))))
          (url (mastodon-http--api (format "accounts/%s/%s" id endpoint-type)))
          (acct (mastodon-profile--account-field account 'acct))
          (buffer (concat "*mastodon-" acct "-" endpoint-type  "*"))
+         (response (if headers
+                       (mastodon-http--get-response url args)
+                     (mastodon-http--get-json url args)))
+         (json (if headers (car response) response))
+         (endpoint (format "accounts/%s/%s" id endpoint-type))
+         (link-header (when headers
+                        (mastodon-tl--get-link-header-from-response
+                         (cdr response))))
          (note (mastodon-profile--account-field account 'note))
-         (json (mastodon-http--get-json url))
          (locked (mastodon-profile--account-field account 'locked))
          (followers-count (mastodon-tl--as-string
                            (mastodon-profile--account-field
@@ -555,16 +602,17 @@ FIELDS means provide a fields vector fetched by other means."
                         (alist-get 'followed_by relationships)))
          (followsp (or (equal follows-you 't) (equal followed-by-you 't)))
          (fields (mastodon-profile--fields-get account))
-         (pinned (mastodon-profile--get-statuses-pinned account)))
+         (pinned (mastodon-profile--get-statuses-pinned account))
+         (joined (mastodon-profile--account-field account 'created_at)))
     (with-output-to-temp-buffer buffer
       (switch-to-buffer buffer)
       (mastodon-mode)
       (mastodon-profile-mode)
-      (setq mastodon-profile--account account
-            mastodon-tl--buffer-spec
-            `(buffer-name ,buffer
-                          endpoint ,(format "accounts/%s/%s" id endpoint-type)
-                          update-function ,update-function))
+      (setq mastodon-profile--account account)
+      (mastodon-tl--set-buffer-spec buffer
+                                    endpoint
+                                    update-function
+                                    link-header)
       (let* ((inhibit-read-only t)
              (is-statuses (string= endpoint-type "statuses"))
              (is-followers (string= endpoint-type "followers"))
@@ -587,20 +635,25 @@ FIELDS means provide a fields vector fetched by other means."
            (propertize (concat "@" acct)
                        'face 'default)
            (if (equal locked t)
-               (if (fontp (char-displayable-p #10r9993))
-                   " 🔒"
-                 " [locked]")
+               (concat " " (mastodon-tl--symbol 'locked))
              "")
            "\n ------------\n"
-           (mastodon-tl--render-text note account)
+           ;; profile note:
            ;; account here to enable tab-stops in profile note
+           (mastodon-tl--render-text note account)
+           ;; meta fields:
            (if fields
                (concat "\n"
                        (mastodon-tl--set-face
                         (mastodon-profile--fields-insert fields)
-                        'success)
-                       "\n")
-             ""))
+                        'success))
+             "")
+           "\n"
+           ;; Joined date:
+           (propertize
+            (mastodon-profile--format-joined-date-string joined)
+            'face 'success)
+           "\n\n")
           'profile-json account)
          ;; insert counts
          (mastodon-tl--set-face
@@ -635,9 +688,16 @@ FIELDS means provide a fields vector fetched by other means."
         (funcall update-function json)))
     (goto-char (point-min))))
 
+(defun mastodon-profile--format-joined-date-string (joined)
+  "Format a human-readable Joined string from timestamp JOINED."
+  (let ((joined-ts (ts-parse joined)))
+    (format "Joined %s" (concat (ts-month-name joined-ts)
+                                " "
+                                (number-to-string
+                                 (ts-year joined-ts))))))
+
 (defun mastodon-profile--get-toot-author ()
   "Open profile of author of toot under point.
-
 If toot is a boost, opens the profile of the booster."
   (interactive)
   (mastodon-profile--make-author-buffer
@@ -683,17 +743,8 @@ IMG_TYPE is the JSON key from the account data."
   (message "Loading your profile...")
   (mastodon-profile--show-user (mastodon-auth--get-account-name)))
 
-(defun mastodon-profile--view-author-profile ()
-  "View the profile of author of present toot."
-  (interactive)
-  (let* ((toot-json (mastodon-tl--property 'toot-json))
-         (acct (alist-get 'account toot-json))
-         (handle (alist-get 'acct acct)))
-    (mastodon-profile--show-user handle)))
-
 (defun mastodon-profile--account-field (account field)
   "Return FIELD from the ACCOUNT.
-
 FIELD is used to identify regions under 'account"
   (cdr (assoc field account)))
 
@@ -724,17 +775,18 @@ Used to view a user's followers and those they're following."
 
 (defun mastodon-profile--search-account-by-handle (handle)
   "Return an account based on a user's HANDLE.
-
 If the handle does not match a search return then retun NIL."
   (let* ((handle (if (string= "@" (substring handle 0 1))
                      (substring handle 1 (length handle))
                    handle))
+         (args `(("q" . ,handle)))
          (matching-account
           (seq-remove
            (lambda (x)
              (not (string= (alist-get 'acct x) handle)))
            (mastodon-http--get-json
-            (mastodon-http--api (format "accounts/search?q=%s" handle))))))
+            (mastodon-http--api "accounts/search")
+            args))))
     (when (equal 1 (length matching-account))
       (elt matching-account 0))))
 
@@ -745,15 +797,14 @@ If the handle does not match a search return then retun NIL."
 
 (defun mastodon-profile--extract-users-handles (status)
   "Return all user handles found in STATUS.
-
 These include the author, author of reblogged entries and any user mentioned."
   (when status
     (let ((this-account
            (or (alist-get 'account status) ; status is a toot
                status)) ; status is a user listing
-	      (mentions (or (alist-get 'mentions (alist-get 'status status))
+	  (mentions (or (alist-get 'mentions (alist-get 'status status))
                         (alist-get 'mentions status)))
-	      (reblog (or (alist-get 'reblog (alist-get 'status status))
+	  (reblog (or (alist-get 'reblog (alist-get 'status status))
                       (alist-get 'reblog status))))
       (seq-filter
        'stringp

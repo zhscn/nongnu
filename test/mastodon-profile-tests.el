@@ -172,7 +172,8 @@ The search will happen as if called without the \"@\"."
   (with-mock
 
     (mock (mastodon-http--get-json
-           "https://instance.url/api/v1/accounts/search?q=gargron"))
+           "https://instance.url/api/v1/accounts/search"
+           '(("q" . "gargron"))))
 
     (let ((mastodon-instance-url "https://instance.url"))
       ;; We don't check anything from the return value. We only care
@@ -182,7 +183,9 @@ The search will happen as if called without the \"@\"."
 (ert-deftest mastodon-profile--search-account-by-handle--filters-out-false-results ()
   "Should ignore results that don't match the searched handle."
   (with-mock
-    (mock (mastodon-http--get-json *)
+    (mock (mastodon-http--get-json
+           "https://instance.url/api/v1/accounts/search"
+           '(("q" . "Gargron")))
           =>
           (vector ccc-profile-json gargron-profile-json))
 
@@ -197,7 +200,9 @@ The search will happen as if called without the \"@\"."
 
 TODO: We need to decide if this is actually desired or not."
   (with-mock
-    (mock (mastodon-http--get-json *) => (vector gargron-profile-json))
+    (mock (mastodon-http--get-json *
+                                   '(("q" . "gargron")))
+          => (vector gargron-profile-json))
 
     (let ((mastodon-instance-url "https://instance.url"))
       (should
@@ -227,64 +232,69 @@ help identify when things change unexpectedly.
 TODO: Consider separating the data retrieval and the actual
 content generation in the function under test."
   (with-mock
-   ;; Don't start any image loading:
-   (mock (mastodon-media--inline-images * *) => nil)
-   (if (version< emacs-version "27.1")
-       (mock (image-type-available-p 'imagemagick) => t)
-     (mock (image-transforms-p) => t))
-   (mock (mastodon-http--get-json "https://instance.url/api/v1/accounts/1/statuses")
-         =>
-         gargon-statuses-json)
-   (mock (mastodon-profile--get-statuses-pinned *)
-         =>
-         [])
-   (mock (mastodon-profile--relationships-get "1")
-         =>
-         '(((id . "1") (following . :json-false) (showing_reblogs . :json-false) (notifying . :json-false) (followed_by . :json-false) (blocking . :json-false) (blocked_by . :json-false) (muting . :json-false) (muting_notifications . :json-false) (requested . :json-false) (domain_blocking . :json-false) (endorsed . :json-false) (note . ""))))
-   ;; Let's not do formatting as that makes it hard to not rely on
-   ;; window width and reflowing the text.
-   (mock (shr-render-region * *) => nil)
-   ;; Don't perform the actual update call at the end.
-   ;;(mock (mastodon-tl--timeline *))
-   (mock (mastodon-profile--fetch-server-account-settings)
-         => '(max_toot_chars 1312 privacy "public" display_name "Eugen" discoverable t locked :json-false bot :json-false sensitive :json-false language ""))
+    ;; Don't start any image loading:
+    (mock (mastodon-media--inline-images * *) => nil)
+    (if (version< emacs-version "27.1")
+        (mock (image-type-available-p 'imagemagick) => t)
+      (mock (image-transforms-p) => t))
+    (mock (mastodon-http--get-json "https://instance.url/api/v1/accounts/1/statuses" nil)
+          =>
+          gargon-statuses-json)
+    (mock (mastodon-profile--get-statuses-pinned *)
+          =>
+          [])
+    (mock (mastodon-profile--relationships-get "1")
+          =>
+          '(((id . "1") (following . :json-false) (showing_reblogs . :json-false) (notifying . :json-false) (followed_by . :json-false) (blocking . :json-false) (blocked_by . :json-false) (muting . :json-false) (muting_notifications . :json-false) (requested . :json-false) (domain_blocking . :json-false) (endorsed . :json-false) (note . ""))))
+    ;; Let's not do formatting as that makes it hard to not rely on
+    ;; window width and reflowing the text.
+    (mock (shr-render-region * *) => nil)
+    ;; Don't perform the actual update call at the end.
+    ;;(mock (mastodon-tl--timeline *))
+    (mock (mastodon-profile--fetch-server-account-settings)
+          => '(max_toot_chars 1312 privacy "public" display_name "Eugen" discoverable t locked :json-false bot :json-false sensitive :json-false language ""))
 
-   (let ((mastodon-tl--show-avatars t)
-         (mastodon-tl--display-media-p t)
-         (mastodon-instance-url "https://instance.url"))
-     (mastodon-profile--make-author-buffer gargron-profile-json)
+    (mock (mastodon-profile--format-joined-date-string *) => "Joined March 2016")
 
-     (should
-      (equal
-       (buffer-substring-no-properties (point-min) (point-max))
-       (concat
-        "\n"
-        "[img] [img] \n"
-        "Eugen\n"
-        "@Gargron\n"
-        " ------------\n"
-        "<p>Developer of Mastodon and administrator of mastodon.social. I post service announcements, development updates, and personal stuff.</p>\n"
-        "_ Patreon __ :: <a href=\"https://www.patreon.com/mastodon\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://www.</span><span class=\"\">patreon.com/mastodon</span><span class=\"invisible\"></span></a>_ Homepage _ :: <a href=\"https://zeonfederated.com\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://</span><span class=\"\">zeonfederated.com</span><span class=\"invisible\"></span></a>\n"
-        " ------------\n"
-        " TOOTS: 70741 | FOLLOWERS: 470905 | FOLLOWING: 451\n"
-        " ------------\n"
-        "\n"
-        " ------------\n"
-        "     TOOTS   \n"
-        " ------------\n"
-        "\n"
-        "<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</p> \n"
-        "  Eugen (@Gargron) 2021-11-11 11:11:11\n"
-        "  ------------\n"
-        "\n"
-        "\n"
-        "<p><span class=\"h-card\"><a href=\"https://social.bau-ha.us/@CCC\" class=\"u-url mention\">@<span>CCC</span></a></span> At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p> \n"
-        "  Eugen (@Gargron) 2021-11-11 00:00:00\n"
-        "  ------------\n"
-        "\n"
-        )))
+    (let ((mastodon-tl--show-avatars t)
+          (mastodon-tl--display-media-p t)
+          (mastodon-instance-url "https://instance.url"))
+      (mastodon-profile--make-author-buffer gargron-profile-json)
 
-     ;; Until the function gets refactored this creates a non-temp
-     ;; buffer with Gargron's statuses which we want to delete (if
-     ;; the tests succeed).
-     (kill-buffer))))
+      (should
+       (equal
+        (buffer-substring-no-properties (point-min) (point-max))
+        (concat
+         "\n"
+         "[img] [img] \n"
+         "Eugen\n"
+         "@Gargron\n"
+         " ------------\n"
+         "<p>Developer of Mastodon and administrator of mastodon.social. I post service announcements, development updates, and personal stuff.</p>\n"
+         "_ Patreon __ :: <a href=\"https://www.patreon.com/mastodon\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://www.</span><span class=\"\">patreon.com/mastodon</span><span class=\"invisible\"></span></a>_ Homepage _ :: <a href=\"https://zeonfederated.com\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://</span><span class=\"\">zeonfederated.com</span><span class=\"invisible\"></span></a>"
+         "\n"
+         "Joined March 2016"
+         "\n\n"
+         " ------------\n"
+         " TOOTS: 70741 | FOLLOWERS: 470905 | FOLLOWING: 451\n"
+         " ------------\n"
+         "\n"
+         " ------------\n"
+         "     TOOTS   \n"
+         " ------------\n"
+         "\n"
+         "<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</p> \n"
+         "  Eugen (@Gargron) 2021-11-11 11:11:11\n"
+         "  ------------\n"
+         "\n"
+         "\n"
+         "<p><span class=\"h-card\"><a href=\"https://social.bau-ha.us/@CCC\" class=\"u-url mention\">@<span>CCC</span></a></span> At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p> \n"
+         "  Eugen (@Gargron) 2021-11-11 00:00:00\n"
+         "  ------------\n"
+         "\n"
+         )))
+
+      ;; Until the function gets refactored this creates a non-temp
+      ;; buffer with Gargron's statuses which we want to delete (if
+      ;; the tests succeed).
+      (kill-buffer))))
