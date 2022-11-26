@@ -71,6 +71,10 @@
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl.el")
 (autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
 (autoload 'mastodon-tl--add-account-to-list "mastodon-tl")
+(autoload 'mastodon-http--get-response "mastodon-http")
+(autoload 'mastodon-tl--get-link-header-from-response "mastodon-tl")
+(autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
+(autoload 'mastodon-tl--symbol "mastodon-tl")
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
@@ -186,7 +190,9 @@ NO-REBLOGS means do not display boosts in statuses."
       (mastodon-profile--make-profile-buffer-for
        mastodon-profile--account
        "following"
-       #'mastodon-profile--add-author-bylines)
+       #'mastodon-profile--add-author-bylines
+       nil
+       :headers)
     (error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-followers ()
@@ -196,7 +202,9 @@ NO-REBLOGS means do not display boosts in statuses."
       (mastodon-profile--make-profile-buffer-for
        mastodon-profile--account
        "followers"
-       #'mastodon-profile--add-author-bylines)
+       #'mastodon-profile--add-author-bylines
+       nil
+       :headers)
     (error "Not in a mastodon profile")))
 
 (defun mastodon-profile--view-favourites ()
@@ -279,7 +287,8 @@ JSON is the data returned by the server."
 (defun mastodon-profile--update-user-profile-note ()
   "Fetch user's profile note and display for editing."
   (interactive)
-  (let* ((url (mastodon-http--api "accounts/verify_credentials"))
+  (let* ((endpoint "accounts/verify_credentials")
+         (url (mastodon-http--api endpoint))
          (json (mastodon-http--get-json url))
          (source (alist-get 'source json))
          (note (alist-get 'note source))
@@ -287,6 +296,9 @@ JSON is the data returned by the server."
          (inhibit-read-only t))
     (switch-to-buffer-other-window buffer)
     (text-mode)
+    (mastodon-tl--set-buffer-spec (buffer-name buffer)
+                                  endpoint
+                                  nil)
     (setq-local header-line-format
                 (propertize
                  "Edit your profile note. C-c C-c to send, C-c C-k to cancel."
@@ -489,6 +501,9 @@ This endpoint only holds a few preferences. For others, see
       (switch-to-buffer-other-window buf)
       (erase-buffer)
       (special-mode)
+      (mastodon-tl--set-buffer-spec (buffer-name buf)
+                                    "preferences"
+                                    nil)
       (let ((inhibit-read-only t))
         (while response
           (let ((el (pop response)))
@@ -552,16 +567,24 @@ FIELDS means provide a fields vector fetched by other means."
 
 (defun mastodon-profile--make-profile-buffer-for (account endpoint-type
                                                           update-function
-                                                          &optional no-reblogs)
+                                                          &optional no-reblogs headers)
   "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION.
-NO-REBLOGS means do not display boosts in statuses."
+NO-REBLOGS means do not display boosts in statuses.
+HEADERS means also fetch link headers for pagination."
   (let* ((id (mastodon-profile--account-field account 'id))
          (args (when no-reblogs '(("exclude_reblogs" . "t"))))
          (url (mastodon-http--api (format "accounts/%s/%s" id endpoint-type)))
          (acct (mastodon-profile--account-field account 'acct))
          (buffer (concat "*mastodon-" acct "-" endpoint-type  "*"))
+         (response (if headers
+                       (mastodon-http--get-response url args)
+                     (mastodon-http--get-json url args)))
+         (json (if headers (car response) response))
+         (endpoint (format "accounts/%s/%s" id endpoint-type))
+         (link-header (when headers
+                        (mastodon-tl--get-link-header-from-response
+                         (cdr response))))
          (note (mastodon-profile--account-field account 'note))
-         (json (mastodon-http--get-json url args))
          (locked (mastodon-profile--account-field account 'locked))
          (followers-count (mastodon-tl--as-string
                            (mastodon-profile--account-field
@@ -585,11 +608,11 @@ NO-REBLOGS means do not display boosts in statuses."
       (switch-to-buffer buffer)
       (mastodon-mode)
       (mastodon-profile-mode)
-      (setq mastodon-profile--account account
-            mastodon-tl--buffer-spec
-            `(buffer-name ,buffer
-                          endpoint ,(format "accounts/%s/%s" id endpoint-type)
-                          update-function ,update-function))
+      (setq mastodon-profile--account account)
+      (mastodon-tl--set-buffer-spec buffer
+                                    endpoint
+                                    update-function
+                                    link-header)
       (let* ((inhibit-read-only t)
              (is-statuses (string= endpoint-type "statuses"))
              (is-followers (string= endpoint-type "followers"))
@@ -612,9 +635,7 @@ NO-REBLOGS means do not display boosts in statuses."
            (propertize (concat "@" acct)
                        'face 'default)
            (if (equal locked t)
-               (if (fontp (char-displayable-p #10r9993))
-                   " 🔒"
-                 " [locked]")
+               (concat " " (mastodon-tl--symbol 'locked))
              "")
            "\n ------------\n"
            ;; profile note:
@@ -721,14 +742,6 @@ IMG_TYPE is the JSON key from the account data."
   (interactive)
   (message "Loading your profile...")
   (mastodon-profile--show-user (mastodon-auth--get-account-name)))
-
-(defun mastodon-profile--view-author-profile ()
-  "View the profile of author of present toot."
-  (interactive)
-  (let* ((toot-json (mastodon-tl--property 'toot-json))
-         (acct (alist-get 'account toot-json))
-         (handle (alist-get 'acct acct)))
-    (mastodon-profile--show-user handle)))
 
 (defun mastodon-profile--account-field (account field)
   "Return FIELD from the ACCOUNT.

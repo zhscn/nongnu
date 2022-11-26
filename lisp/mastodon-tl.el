@@ -123,6 +123,23 @@ nil."
   :group 'mastodon-tl
   :type '(boolean :tag "Whether to display user avatars in timelines"))
 
+(defcustom mastodon-tl--symbols
+  '((reply     . ("💬" . "R"))
+    (boost     . ("🔁" . "B"))
+    (favourite . ("⭐" . "F"))
+    (bookmark  . ("🔖" . "K"))
+    (media     . ("📹" . "[media]"))
+    (verified  . ("" . "V"))
+    (locked    . ("🔒" . "[locked]"))
+    (private   . ("🔒" . "[followers]"))
+    (direct    . ("✉" . "[direct]"))
+    (edited    . ("✍" . "[edited]")))
+  "A set of symbols (and fallback strings) to be used in timeline.
+If a symbol does not look right (tofu), it means your
+font settings do not support it."
+  :type '(alist :key-type symbol :value-type string)
+  :group 'mastodon-tl)
+
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
 
@@ -136,10 +153,6 @@ If nil `(point-min)' is used instead.")
 
 (defvar-local mastodon-tl--timestamp-update-timer nil
   "The timer that, when set will scan the buffer to update the timestamps.")
-
-(defvar mastodon-tl--link-header-buffers
-  '("*mastodon-favourites*" "*mastodon-bookmarks*")
-  "A list of buffers that use link headers for pagination.")
 
 ;; KEYMAPS
 
@@ -242,10 +255,20 @@ types of mastodon links and not just shr.el-generated ones.")
   (when (require 'mpv nil :no-error)
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-from-byline)
-      (define-key map (kbd "<return>") 'mastodon-profile--view-author-profile)
+      (define-key map (kbd "<return>") 'mastodon-profile--get-toot-author)
       (keymap-canonicalize map)))
   "The keymap to be set for the author byline.
 It is active where point is placed by `mastodon-tl--goto-next-toot.'")
+
+(defun mastodon-tl--symbol (name)
+  "Return the unicode symbol (as a string) corresponding to NAME.
+If symbol is not displayable, an ASCII equivalent is returned. If
+NAME is not part of the symbol table, '?' is returned."
+  (if-let* ((symbol (alist-get name mastodon-tl--symbols)))
+      (if (char-displayable-p (string-to-char (car symbol)))
+          (car symbol)
+        (cdr symbol))
+    "?"))
 
 ;; NAV
 
@@ -623,13 +646,13 @@ this just means displaying toot client."
      ;; the toot having just been favourited/boosted.
      (concat (when boosted
                (mastodon-tl--format-faved-or-boosted-byline
-                (mastodon-tl--return-boost-char)))
+                (mastodon-tl--symbol 'boost)))
              (when faved
                (mastodon-tl--format-faved-or-boosted-byline
-                (mastodon-tl--return-fave-char)))
+                (mastodon-tl--symbol 'favourite)))
              (when bookmarked
                (mastodon-tl--format-faved-or-boosted-byline
-                (mastodon-tl--return-bookmark-char))))
+                (mastodon-tl--symbol 'bookmark))))
      ;; we remove avatars from the byline also, so that they also do not mess
      ;; with `mastodon-tl--goto-next-toot':
      (when (and mastodon-tl--show-avatars
@@ -645,14 +668,9 @@ this just means displaying toot client."
        (funcall author-byline toot)
        ;; visibility:
        (cond ((equal visibility "direct")
-              (if (fontp (char-displayable-p #10r9993))
-                  " ✉"
-                " [direct]"))
+              (concat " " (mastodon-tl--symbol 'direct)))
              ((equal visibility "private")
-              (if (fontp (char-displayable-p #10r128274))
-                  " 🔒"
-                " [followers]")))
-       ;; action:
+              (concat " " (mastodon-tl--symbol 'private))))
        (funcall action-byline toot)
        " "
        ;; TODO: Once we have a view for toot (responses etc.) make
@@ -680,9 +698,9 @@ this just means displaying toot client."
 		          'keymap mastodon-tl--shr-map-replacement)))))
        (if edited-time
            (concat
-            (if (fontp (char-displayable-p #10r128274))
-                " ✍ "
-              " [edited] ")
+            " "
+            (mastodon-tl--symbol 'edited)
+            " "
             (propertize
              (format-time-string mastodon-toot-timestamp-format
                                  edited-parsed)
@@ -700,30 +718,6 @@ this just means displaying toot client."
       'edit-history (when edited-time
                       (mastodon-toot--get-toot-edits (alist-get 'id toot)))
       'byline       t))))
-
-(defun mastodon-tl--return-boost-char ()
-  ""
-  (cond
-   ((fontp (char-displayable-p #10r128257))
-    "🔁")
-   (t
-    "B")))
-
-(defun mastodon-tl--return-fave-char ()
-  ""
-  (cond
-   ((fontp (char-displayable-p #10r11088))
-    "⭐")
-   ((fontp (char-displayable-p #10r9733))
-    "★")
-   (t
-    "F")))
-
-(defun mastodon-tl--return-bookmark-char ()
-  ""
-  (if (fontp (char-displayable-p #10r128278))
-      "🔖"
-    "K"))
 
 (defun mastodon-tl--format-edit-timestamp (timestamp)
   "Convert edit TIMESTAMP into a descriptive string."
@@ -1375,10 +1369,12 @@ BUFFER is buffer name, ENDPOINT is buffer's enpoint,
 UPDATE-FUNCTION is its update function.
 LINK-HEADER is the http Link header if present."
   (setq mastodon-tl--buffer-spec
-        `(buffer-name ,buffer
-                      endpoint ,endpoint
-                      update-function ,update-function
-                      link-header ,link-header)))
+        `(account ,(cons mastodon-active-user
+                         mastodon-instance-url)
+                  buffer-name ,buffer
+                  endpoint ,endpoint
+                  update-function ,update-function
+                  link-header ,link-header)))
 
 (defun mastodon-tl--more-json (endpoint id)
   "Return JSON for timeline ENDPOINT before ID."
@@ -1458,7 +1454,7 @@ ID is that of the toot to view."
         (mastodon-mode)
         (mastodon-tl--set-buffer-spec buffer
                                       (format "statuses/%s" id)
-                                      (lambda (_toot) (message "END of thread.")))
+                                      nil)
         (let ((inhibit-read-only t))
           (mastodon-tl--toot toot :detailed-p))))))
 
@@ -1498,7 +1494,7 @@ ID is that of the toot to view."
                   (mastodon-tl--set-buffer-spec
                    buffer
                    (format "statuses/%s/context" id)
-                   (lambda (_toot) (message "END of thread.")))
+                   'mastodon-tl--thread)
                   (let ((inhibit-read-only t))
                     (mastodon-tl--timeline (alist-get 'ancestors context))
                     (goto-char (point-max))
@@ -1958,6 +1954,9 @@ INSTANCE is an instance domain name."
        (let ((buf (get-buffer-create "*mastodon-instance*")))
          (with-current-buffer buf
            (switch-to-buffer-other-window buf)
+           (mastodon-tl--set-buffer-spec (buffer-name buf)
+                                         "instance"
+                                         nil)
            (let ((inhibit-read-only t))
              (erase-buffer)
              (special-mode)
@@ -2364,11 +2363,22 @@ For use after e.g. deleting a toot."
          (param (cadr split)))
     (concat url-base "&" param)))
 
+(defun mastodon-tl--use-link-header-p ()
+  "Return t if we are in a view that uses Link header pagination.
+Currently this includes favourites, bookmarks, and profile pages
+when showing followers or accounts followed."
+  (let ((buf (buffer-name (current-buffer)))
+        (endpoint (mastodon-tl--get-endpoint)))
+    (or (member buf '("*mastodon-favourites*" "*mastodon-bookmarks*"))
+        (and (string-prefix-p "accounts" endpoint)
+             (or (string-suffix-p "followers" endpoint)
+                 (string-suffix-p "following" endpoint))))))
+
 (defun mastodon-tl--more ()
   "Append older toots to timeline, asynchronously."
   (interactive)
   (message "Loading older toots...")
-  (if (member (buffer-name (current-buffer)) mastodon-tl--link-header-buffers)
+  (if (mastodon-tl--use-link-header-p)
       ;; link-header: can't build a URL with --more-json-async, endpoint/id:
       (let* ((next (car (mastodon-tl--link-header)))
              ;;(prev (cadr (mastodon-tl--link-header)))
@@ -2569,7 +2579,7 @@ from the start if it is nil."
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT asynchronously.
 UPDATE-FUNCTION is used to recieve more toots.
 HEADERS means to also collect the response headers. Used for paginating
-favourites."
+favourites and bookmarks."
   (let ((url (mastodon-http--api endpoint))
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers
@@ -2582,8 +2592,8 @@ favourites."
   "Initialize BUFFER with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to recieve more toots.
 RESPONSE is the data returned from the server by
-`mastodon-http--process-json', a cons cell of JSON and http
-headers."
+`mastodon-http--process-json', with arg HEADERS a cons cell of
+JSON and http headers, without it just the JSON."
   (let* ((json (if headers (car response) response))
          (headers (if headers (cdr response) nil))
          (link-header (mastodon-tl--get-link-header-from-response headers)))
