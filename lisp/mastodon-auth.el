@@ -222,6 +222,14 @@ Handle any errors from the server."
     (mastodon-http--api
      "accounts/verify_credentials"))))
 
+(defun mastodon-auth--get-account-id ()
+  "Request user credentials and return an account name."
+  (alist-get
+   'id
+   (mastodon-http--get-json
+    (mastodon-http--api
+     "accounts/verify_credentials"))))
+
 (defun mastodon-auth--user-acct ()
   "Return a mastodon user acct name."
   (or (cdr (assoc mastodon-instance-url mastodon-auth--acct-alist))

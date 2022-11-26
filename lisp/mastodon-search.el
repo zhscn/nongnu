@@ -47,7 +47,13 @@
 (defvar mastodon-toot--enable-completion-for-mentions)
 (defvar mastodon-tl--buffer-spec)
 
-;; functions for company completion of mentions in mastodon-toot
+;; functions for completion of mentions in mastodon-toot
+
+(defun mastodon-search--get-user-info-@-capf (account)
+  "Get user handle, display name and account URL from ACCOUNT."
+  (list (concat "@" (cdr (assoc 'acct account)))
+        (cdr (assoc 'url account))
+        (cdr (assoc 'display_name account))))
 
 (defun mastodon-search--get-user-info-@ (account)
   "Get user handle, display name and account URL from ACCOUNT."
@@ -55,15 +61,17 @@
         (concat "@" (cdr (assoc 'acct account)))
         (cdr (assoc 'url account))))
 
-(defun mastodon-search--search-accounts-query (query)
+(defun mastodon-search--search-accounts-query (query &optional capf)
   "Prompt for a search QUERY and return accounts synchronously.
 Returns a nested list containing user handle, display name, and URL."
   (interactive "sSearch mastodon for: ")
   (let* ((url (mastodon-http--api "accounts/search"))
          (response (if (equal mastodon-toot--completion-style-for-mentions "following")
-                       (mastodon-http--get-search-json url query "following=true")
-                     (mastodon-http--get-search-json url query))))
-    (mapcar #'mastodon-search--get-user-info-@ response)))
+                       (mastodon-http--get-json url `(("q" . ,query) ("following" . "true")) :silent)
+                     (mastodon-http--get-json url `(("q" . ,query)) :silent))))
+    (if capf
+        (mapcar #'mastodon-search--get-user-info-@-capf response)
+      (mapcar #'mastodon-search--get-user-info-@ response))))
 
 ;; functions for tags completion:
 
@@ -72,8 +80,9 @@ Returns a nested list containing user handle, display name, and URL."
 QUERY is the string to search."
   (interactive "sSearch for hashtag: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
-         (type-param (concat "type=hashtags"))
-         (response (mastodon-http--get-search-json url query type-param))
+         (params `(("q" . ,query)
+                   ("type" . "hashtags")))
+         (response (mastodon-http--get-json url params :silent))
          (tags (alist-get 'hashtags response)))
     (mapcar #'mastodon-search--get-hashtag-info tags)))
 
@@ -112,7 +121,7 @@ QUERY is the string to search."
   (interactive "sSearch mastodon for: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
          (buffer (format "*mastodon-search-%s*" query))
-         (response (mastodon-http--get-search-json url query))
+         (response (mastodon-http--get-json url `(("q" . ,query))))
          (accts (alist-get 'accounts response))
          (tags (alist-get 'hashtags response))
          (statuses (alist-get 'statuses response))
@@ -162,33 +171,36 @@ QUERY is the string to search."
 
 (defun mastodon-search--insert-users-propertized (json &optional note)
   "Insert users list into the buffer.
-JSON is the data from the server.. If NOTE is non-nil, include
+JSON is the data from the server. If NOTE is non-nil, include
 user's profile note. This is also called by
 `mastodon-tl--get-follow-suggestions' and
 `mastodon-profile--insert-follow-requests'."
   (mapc (lambda (acct)
-          (let ((user (mastodon-search--get-user-info acct)))
-            (insert
-             (propertize
-              (concat (propertize (car user)
-                                  'face 'mastodon-display-name-face
-                                  'byline t
-                                  'toot-id "0")
-                      " : \n : "
-                      (propertize (concat "@" (cadr user))
-                                  'face 'mastodon-handle-face
-                                  'mouse-face 'highlight
-		                          'mastodon-tab-stop 'user-handle
-		                          'keymap mastodon-tl--link-keymap
-                                  'mastodon-handle (concat "@" (cadr user))
-		                          'help-echo (concat "Browse user profile of @" (cadr user)))
-                      " : \n"
-                      (if note
-                          (mastodon-tl--render-text (cadddr user) nil)
-                        "")
-                      "\n")
-              'toot-json acct)))) ; so named for compat w other processing functions
+          (insert (mastodon-search--propertize-user acct note)))
         json))
+
+(defun mastodon-search--propertize-user (acct &optional note)
+  "Propertize display string for ACCT, optionally including profile NOTE."
+  (let ((user (mastodon-search--get-user-info acct)))
+    (propertize
+     (concat (propertize (car user)
+                         'face 'mastodon-display-name-face
+                         'byline t
+                         'toot-id "0")
+             " : \n : "
+             (propertize (concat "@" (cadr user))
+                         'face 'mastodon-handle-face
+                         'mouse-face 'highlight
+		         'mastodon-tab-stop 'user-handle
+		         'keymap mastodon-tl--link-keymap
+                         'mastodon-handle (concat "@" (cadr user))
+		         'help-echo (concat "Browse user profile of @" (cadr user)))
+             " : \n"
+             (if note
+                 (mastodon-tl--render-text (cadddr user) nil)
+               "")
+             "\n")
+     'toot-json acct))) ; so named for compat w other processing functions
 
 (defun mastodon-search--print-tags-list (tags)
   "Insert a propertized list of TAGS."

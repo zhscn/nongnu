@@ -6,7 +6,8 @@
 
 * README
 
-=mastodon.el= is an Emacs client for the Mastodon and Pleroma social networks. For info see https://joinmastodon.org/.
+=mastodon.el= is an Emacs client for the AcitivityPub social networks that
+implement the Mastodon API. For info see https://joinmastodon.org/.
 
 ** Installation
 
@@ -25,7 +26,8 @@ Or, with =use-package=:
     :ensure t)
 #+END_SRC
 
-The minimum Emacs version is now 27.1. But if you are running an older version it shouldn't be very hard to get it working.
+The minimum Emacs version is now 27.1. But if you are running an older version
+it shouldn't be very hard to get it working.
 
 *** MELPA
 
@@ -100,76 +102,86 @@ restart Emacs and follow the steps again.
 
 =M-x mastodon=
 
-Opens a =*mastodon-home*= buffer in the major mode and displays  toots. If your credentials are not yet saved, you
-will be prompted for email and password. The app registration process will
-take place if your =mastodon-token-file= does not contain =:client_id= and
-=:client_secret=.
+Opens a =*mastodon-home*= buffer in the major mode and displays toots. If your
+credentials are not yet saved, you will be prompted for email and password.
+The app registration process will take place if your =mastodon-token-file= does
+not contain =:client_id= and =:client_secret=.
 
 **** Keybindings
 
-|---------------+-----------------------------------------------------------------------|
-| Key           | Action                                                                |
-|---------------+-----------------------------------------------------------------------|
-|               | *Help*                                                                  |
-| =?=             | Open context menu if =discover= is available                            |
-|---------------+-----------------------------------------------------------------------|
-|               | *Timeline actions*                                                      |
-| =n=             | Go to next item (toot, notification)                                  |
-| =p=             | Go to previous item (toot, notification)                              |
-| =M-n=/=<tab>=   | Go to the next interesting thing that has an action                   |
-| =M-p=/=<S-tab>= | Go to the previous interesting thing that has an action               |
-| =F=             | Open federated timeline                                               |
-| =H=             | Open home timeline                                                    |
-| =L=             | Open local timeline                                                   |
-| =N=             | Open notifications timeline                                           |
-| =u=             | Update current timeline                                               |
-| =T=             | Open thread for toot under =point=                                      |
-| =#=             | Prompt for tag and open its timeline                                  |
-| =A=             | Open author profile of toot under =point=                               |
-| =P=             | Open profile of user attached to toot under =point=                     |
-| =O=             | View own profile                                                      |
-| =U=             | update your profile bio note                                          |
-|---------------+-----------------------------------------------------------------------|
-|               | *Other views*                                                           |
-| =S=             | search (posts, users, tags) (NB: only posts you have interacted with) |
-| =I=, =c=, =d=       | view, create, and delete filters                                      |
-| =R=, =a=, =j=       | view/accept/reject follow requests                                    |
-| =G=             | view follow suggestions                                               |
-| =V=             | view your favourited toots                                            |
-| =K=             | view bookmarked toots                                                 |
-|---------------+-----------------------------------------------------------------------|
-|               | *Toot actions*                                                          |
-| =t=             | Compose a new toot                                                    |
-| =c=             | Toggle content warning content                                        |
-| =b=             | Boost toot under =point=                                                |
-| =f=             | Favourite toot under =point=                                            |
-| =k=             | toggle bookmark of toot at point                                      |
-| =r=             | Reply to toot under =point=                                             |
-| =v=             | Vote on poll at point                                                 |
-| =C=             | copy url of toot at point                                             |
-| =C-RET=         | play video/gif at point (requires =mpv=)                                |
-| =i=             | (un)pin your toot at point                                            |
-| =d=             | delete your toot at point, and reload current timeline                |
-| =D=             | delete and redraft toot at point, preserving reply/CW/visibility      |
-| (=S-C=) =W=, =M=, =B= | (un)follow, (un)mute, (un)block author of toot at point               |
-|---------------+-----------------------------------------------------------------------|
-|               | Notifications view                                                    |
-| =a=, =j=          | accept/reject follow request                                          |
-|---------------+-----------------------------------------------------------------------|
-|               | *Quitting*                                                              |
-| =q=             | Quit mastodon buffer, leave window open                               |
-| =Q=             | Quit mastodon buffer and kill window                                  |
-|---------------+-----------------------------------------------------------------------|
+|----------------+-----------------------------------------------------------------------|
+| Key            | Action                                                                |
+|----------------+-----------------------------------------------------------------------|
+|                | *Help*                                                                  |
+| =?=              | Open context menu if =discover= is available                            |
+|----------------+-----------------------------------------------------------------------|
+|                | *Timeline actions*                                                      |
+| =n=              | Go to next item (toot, notification)                                  |
+| =p=              | Go to previous item (toot, notification)                              |
+| =M-n=/=<tab>=    | Go to the next interesting thing that has an action                   |
+| =M-p=/=<S-tab>=  | Go to the previous interesting thing that has an action               |
+| =F=              | Open federated timeline                                               |
+| =H=              | Open home timeline                                                    |
+| =L=              | Open local timeline                                                   |
+| =N=              | Open notifications timeline                                           |
+| =@=              | Open mentions-only notifications timeline                             |
+| =u=              | Update current timeline                                               |
+| =T=              | Open thread for toot under =point=                                      |
+| =#=              | Prompt for tag and open its timeline                                  |
+| =A=              | Open author profile of toot under =point=                               |
+| =P=              | Open profile of user attached to toot under =point=                     |
+| =O=              | View own profile                                                      |
+| =U=              | update your profile bio note                                          |
+|----------------+-----------------------------------------------------------------------|
+|                | *Other views*                                                           |
+| =S=              | search (posts, users, tags) (NB: only posts you have interacted with) |
+| =I=, =c=, =d=        | view, create, and delete filters                                      |
+| =R=, =a=, =j=        | view/accept/reject follow requests                                    |
+| =G=              | view follow suggestions                                               |
+| =V=              | view your favourited toots                                            |
+| =K=              | view bookmarked toots                                                 |
+| =X=              | view/edit/create/delete lists                                         |
+|----------------+-----------------------------------------------------------------------|
+|                | *Toot actions*                                                          |
+| =t=              | Compose a new toot                                                    |
+| =c=              | Toggle content warning content                                        |
+| =b=              | Boost toot under =point=                                                |
+| =f=              | Favourite toot under =point=                                            |
+| =k=              | toggle bookmark of toot at point                                      |
+| =r=              | Reply to toot under =point=                                             |
+| =v=              | Vote on poll at point                                                 |
+| =C=              | copy url of toot at point                                             |
+| =C-RET=          | play video/gif at point (requires =mpv=)                                |
+| =e=              | edit your toot at point                                               |
+| =E=              | view edits of toot at point                                           |
+| =i=              | (un)pin your toot at point                                            |
+| =d=              | delete your toot at point, and reload current timeline                |
+| =D=              | delete and redraft toot at point, preserving reply/CW/visibility      |
+| (=S-C-=) =W=, =M=, =B= | (un)follow, (un)mute, (un)block author of toot at point               |
+|----------------+-----------------------------------------------------------------------|
+|                | *Profile view*                                                          |
+| =C-c C-c=        | cycle between statuses, followers, following, and statuses without boosts |
+|                | =mastodon-profile--account-account-to-list= (see lists view)               |
+|----------------+-----------------------------------------------------------------------|
+|                | *Notifications view*                                                    |
+| =a=, =j=           | accept/reject follow request                                          |
+| =c=              | clear notification at point                                           |
+|                | see =mastodon-notifications--get-*= functions for filtered views        |
+|----------------+-----------------------------------------------------------------------|
+|                | *Quitting*                                                              |
+| =q=              | Quit mastodon buffer, leave window open                               |
+| =Q=              | Quit mastodon buffer and kill window                                  |
+|----------------+-----------------------------------------------------------------------|
 
 **** Toot byline legend
 
-|----------------+------------------------|
-| Marker         | Meaning                |
-|----------------+------------------------|
-| =(B)=            | I boosted this toot    |
-| =(F)=            | I favourited this toot |
-| (=K=) (or emoji) | I bookmarked this toot |
-|----------------+------------------------|
+|---------------+------------------------|
+| Marker        | Meaning                |
+|---------------+------------------------|
+| =(B)=           | I boosted this toot    |
+| =(F)=           | I favourited this toot |
+| =(🔖)= (or (=K=)) | I bookmarked this toot |
+|---------------+------------------------|
 
 *** Composing toots
 
@@ -179,9 +191,7 @@ Pops a new buffer/window in =mastodon-toot= minor mode. Enter the
 contents of your toot here. =C-c C-c= sends the toot. =C-c C-k= cancels.
 Both actions kill the buffer and window.
 
-Autocompletion of mentions and tags is provided by mastodon company backends
-(requires =company-mode= and =mastodon-toot--enable-completion= must be set to =t=)
-. Type =@= or =#= followed by two or more characters for candidates to appear.
+Autocompletion of mentions and tags is provided by =completion-at-point-functions= (capf) backends. =mastodon-toot--enable-completion= is enabled by default. If you want to enable =company-mode= in the toot compose buffer, set =mastodon-toot--use-company-for-completion= to =t=. (=mastodon.el= used to run its own native company backends, but these have been removed in favour of capfs.)
 
 Replies preserve visibility status/content warnings, and include boosters by default.
 
@@ -204,32 +214,54 @@ You can download and use your instance's custom emoji
 | =C-c !=   | Remove all attachments           |
 | =C-c C-e= | Add emoji (if =emojify= installed) |
 | =C-c C-p= | Create a poll                    |
+| =C-c C-l= | Set toot language                |
 |---------+----------------------------------|
 
 **** draft toots
 
 - Compose buffer text is saved as you type, kept in =mastodon-toot-current-toot-text=.
-- =mastodon-toot-save-draft=: save the current toot as a draft.
-- =mastodon-toot-open-draft-toot=: Open a compose buffer and insert one of your draft toots.
-- =mastodon-toot-delete-draft-toot=: Delete a draft toot.
-- =mastodon-toot-delete-all-drafts=: Delete all your drafts.
+- =mastodon-toot--save-draft=: save the current toot as a draft.
+- =mastodon-toot--open-draft-toot=: Open a compose buffer and insert one of your draft toots.
+- =mastodon-toot--delete-draft-toot=: Delete a draft toot.
+- =mastodon-toot--delete-all-drafts=: Delete all your drafts.
 
 *** Other commands and account settings:
 
-- =mastodon-url-lookup=: Attempt to load URL in =mastodon.el=. URL may be the one at point or provided in the minibuffer. Should also work if =mastodon.el= is not yet loaded.
+In addition to =mastodon=, the following functions are autoloaded and should
+work without first loading =mastodon.el=:
+- =mastodon-toot=: Compose new toot
+- =mastodon-notifications-get=: View all notifications
+- =mastodon-url-lookup=: Attempt to load a URL in =mastodon.el=. URL may be at
+  point or provided in the minibuffer.
 
-- =mastodon-tl-view-instance-description=: View information about the instance that the author of the toot at point is on.
-- =mastodon-tl-view-own-instance=: View information about your own instance.
-- =mastodon-search-trending-tags=: View a list of trending hashtags on your instance.
 
-- =mastodon-profile-update-display-name=: Update the display name for your account.
-- =mastodon-profile-update-user-profile-note=: Update your bio note.
-- =mastodon-profile-update-meta-fields=: Update your metadata fields.
-- =mastodon-profile-set-default-toot-visibility=: Set the default visibility for your toots.
-- =mastodon-profile-account-locked-toggle=: Toggle the locked status of your account. Locked accounts have to manually approve follow requests.
-- =mastodon-profile-account-discoverable-toggle=: Toggle the discoverable status of your account. Non-discoverable accounts are not listed in the profile directory.
-- =mastodon-profile-account-bot-toggle=: Toggle whether your account is flagged as a bot.
-- =mastodon-profile-account-sensitive-toggle=: Toggle whether your posts are marked as sensitive (nsfw) by default.
+- =mastodon-tl--view-instance-description=: View information about the instance
+  that the author of the toot at point is on.
+- =mastodon-tl--view-own-instance=: View information about your own instance.
+- =mastodon-search--trending-tags=: View a list of trending hashtags on your
+  instance.
+
+
+- =mastodon-tl--follow-tag=: Follow a tag (works like following a user)
+- =mastodon-tl--unfollow-tag=: Unfollow a tag
+- =mastodon-tl--list-followed-tags=: View a list of tags you're following.
+
+
+- =mastodon-profile--update-display-name=: Update the display name for your
+  account.
+- =mastodon-profile--update-user-profile-note=: Update your bio note.
+- =mastodon-profile--update-meta-fields=: Update your metadata fields.
+- =mastodon-profile--set-default-toot-visibility=: Set the default visibility
+  for your toots.
+- =mastodon-profile--account-locked-toggle=: Toggle the locked status of your
+  account. Locked accounts have to manually approve follow requests.
+- =mastodon-profile--account-discoverable-toggle=: Toggle the discoverable
+  status of your account. Non-discoverable accounts are not listed in the
+  profile directory.
+- =mastodon-profile--account-bot-toggle=: Toggle whether your account is flagged
+  as a bot.
+- =mastodon-profile--account-sensitive-toggle=: Toggle whether your posts are
+  marked as sensitive (nsfw) by default.
 
 *** Customization
 
@@ -244,7 +276,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Enable image caching
 
 - Compose options:
-   - Completion for mentions and tags
+   - Completion style for mentions and tags
    - Enable custom emoji
    - Display toot being replied to
 
@@ -255,7 +287,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
 Works for federated, local, and home timelines and for notifications. It's a
 little touchy, one thing to avoid is trying to load a timeline more than once
 at a time. It can go off the rails a bit, but it's still pretty cool. The
-current maintainer of =mastodon.el= is unable to debug improve this feature.
+current maintainer of =mastodon.el= is unable to debug or improve this feature.
 
 To enable, it, add =(require 'mastodon-async)= to your =init.el=. Then you can
 view a timeline with one of the commands that begin with
@@ -292,10 +324,17 @@ Hard dependencies (should all install with =mastodon.el=):
 - =ts= for poll relative expiry times
 
 Optional dependencies:
-- =company= for autocompletion of mentions and tags when composing a toot
 - =emojify= for inserting and viewing emojis
 - =mpv= and =mpv.el= for viewing videos and gifs
 - =lingva.el= for translating toots
+
+** Network compatibility.
+
+=mastodon.el= should work with ActivityPub servers that implement the Mastodon API.
+
+Apart from Mastodon itself, it is currently known to work with Pleroma and
+Gotosocial. If you attempt to use =mastodon.el= with another server that
+implements the Mastodon API and run into problems, feel free to open an issue.
 
 ** Contributing
 
@@ -305,20 +344,27 @@ PRs, issues, feature requests, and general feedback are very welcome!
 
 1. =mastodon.el= has bugs, as well as lots of room for improvement.
 2. I receive very little feedback, so if I don't run into the bug it often doesn't get fixed.
-3. If you run into something that seems broken, first try running =mastodon.el= in emacs with no init file (i.e. =emacs -q= (instructions and code for doing this are [[https://codeberg.org/martianh/mastodon.el/issues/300][here]]) to see if it also happens independently of your own config (it probably does).
-4. Enable debug on error (=toggle-debug-on-error=), make the bug happen again, and copy the backtrace that appears.
+3. If you run into something that seems broken, first try running =mastodon.el=
+   in emacs with no init file (i.e. =emacs -q= (instructions and code for doing
+   this are [[https://codeberg.org/martianh/mastodon.el/issues/300][here]]) to see if it also happens independently of your own config
+   (it probably does).
+4. Enable debug on error (=toggle-debug-on-error=), make the bug happen again,
+   and copy the backtrace that appears.
 5. Open an issue here and explain what is going on.
 
 *** Fixes and features
 
 1. Create an [[https://codeberg.org/martianh/mastodon.el/issues][issue]] detailing what you'd like to do.
 2. Fork the repository and create a branch off of =develop=.
-3. Run the tests against your code and ensure it doesn't break any of them.
+3. Run the tests and ensure that your code doesn't break any of them.
 4. Create a pull request referencing the issue created in step 1.
 
 ** Supporting mastodon.el
 
-If you'd like to support continued development of =mastodon.el=, I accept donations via paypal at martianhiatus [ at ] riseup [ dot ] net. If you would prefer a different payment method, write to me at that address and I can provide IBAN or other details.
+If you'd like to support continued development of =mastodon.el=, I accept
+donations via paypal at martianhiatus [ at ] riseup [ dot ] net. If you would
+prefer a different payment method, write to me at that address and I can
+provide IBAN or other details.
 
 I don't have a tech worker's income, so even a small tip would help out.
 

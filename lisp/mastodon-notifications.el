@@ -50,28 +50,42 @@
 (autoload 'mastodon-http--get-params-async-json "mastodon-http.el")
 (autoload 'mastodon-profile--view-follow-requests "mastodon-profile.el")
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
+(autoload 'mastodon-tl--update "mastodon-tl")
+(autoload 'mastodon-notifications-get "mastodon")
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
+(defvar mastodon-mode-map)
 
 (defvar mastodon-notifications--types-alist
-  '(("mention" . mastodon-notifications--mention)
-    ("follow" . mastodon-notifications--follow)
+  '(("follow" . mastodon-notifications--follow)
     ("favourite" . mastodon-notifications--favourite)
     ("reblog" . mastodon-notifications--reblog)
+    ("mention" . mastodon-notifications--mention)
+    ("poll" . mastodon-notifications--poll)
     ("follow_request" . mastodon-notifications--follow-request)
     ("status" . mastodon-notifications--status)
-    ("poll" . mastodon-notifications--poll))
+    ("update" . mastodon-notifications--edit))
   "Alist of notification types and their corresponding function.")
 
 (defvar mastodon-notifications--response-alist
-  '(("Mentioned" . "you")
-    ("Followed" . "you")
+  '(("Followed" . "you")
     ("Favourited" . "your status from")
     ("Boosted" . "your status from")
+    ("Mentioned" . "you")
+    ("Posted a poll" . "that has now ended")
     ("Requested to follow" . "you")
     ("Posted" . "a post")
-    ("Posted a poll" . "that has now ended"))
+    ("Edited" . "a post"))
   "Alist of subjects for notification types.")
+
+(defvar mastodon-notifications--map
+  (let ((map
+         (copy-keymap mastodon-mode-map)))
+    (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
+    (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
+    (define-key map (kbd "c") #'mastodon-notifications--clear-current)
+    (keymap-canonicalize map))
+  "Keymap for viewing notifications.")
 
 (defun mastodon-notifications--byline-concat (message)
   "Add byline for TOOT with MESSAGE."
@@ -106,13 +120,12 @@ follow-requests view."
                          (mastodon-http--api "follow_requests")
                          (format "/%s/%s" id (if reject
                                                  "reject"
-                                               "authorize")))
-                        nil nil)))
+                                               "authorize"))))))
                   (mastodon-http--triage response
                                          (lambda ()
                                            (if f-reqs-view-p
                                                (mastodon-profile--view-follow-requests)
-                                             (mastodon-notifications--get))
+                                             (mastodon-notifications-get))
                                            (message "Follow request of %s (@%s) %s!"
                                                     name handle (if reject
                                                                     "rejected"
@@ -130,7 +143,7 @@ Can be called in notifications view or in follow-requests view."
   "Reject a follow request.
 Can be called in notifications view or in follow-requests view."
   (interactive)
-  (mastodon-notifications--follow-request-process t))
+  (mastodon-notifications--follow-request-process :reject))
 
 (defun mastodon-notifications--mention (note)
   "Format for a `mention' NOTE."
@@ -162,6 +175,10 @@ Status notifications are given when
   "Format for a `poll' NOTE."
   (mastodon-notifications--format-note note 'poll))
 
+(defun mastodon-notifications--edit (note)
+  "Format for an `edit' NOTE."
+  (mastodon-notifications--format-note note 'edit))
+
 (defun mastodon-notifications--format-note (note type)
   "Format for a NOTE of TYPE."
   (let ((id (alist-get 'id note))
@@ -186,7 +203,7 @@ Status notifications are given when
                          "Congratulations, you have a new follower!"
                        (format "You have a follow request from... %s"
                                follower))
-                       'face 'default)
+                     'face 'default)
        (mastodon-tl--clean-tabs-and-nl
         (if (mastodon-tl--has-spoiler status)
             (mastodon-tl--spoiler status)
@@ -213,7 +230,9 @@ Status notifications are given when
               ((equal type 'status)
                "Posted")
               ((equal type 'poll)
-               "Posted a poll"))))
+               "Posted a poll")
+              ((equal type 'edit)
+               "Edited"))))
      id
      (when (or (equal type 'favourite)
                (equal type 'boost))
@@ -258,22 +277,45 @@ of the toot responded to."
     (mapc #'mastodon-notifications--by-type json)
     (goto-char (point-min))))
 
-(defun mastodon-notifications--get ()
-  "Display NOTIFICATIONS in buffer."
+(defun mastodon-notifications--get-mentions ()
+  "Display mention notifications in buffer."
   (interactive)
-  (message "Loading your notifications...")
-  (mastodon-tl--init-sync
-   "notifications"
-   "notifications"
-   'mastodon-notifications--timeline))
+  (mastodon-notifications-get "mention" "mentions"))
+
+(defun mastodon-notifications--get-favourites ()
+  "Display favourite notifications in buffer."
+  (interactive)
+  (mastodon-notifications-get "favourite" "favourites"))
+
+(defun mastodon-notifications--get-boosts ()
+  "Display boost notifications in buffer."
+  (interactive)
+  (mastodon-notifications-get "reblog" "boosts"))
+
+(defun mastodon-notifications--get-polls ()
+  "Display poll notifications in buffer."
+  (interactive)
+  (mastodon-notifications-get "poll" "polls"))
+
+(defun mastodon-notifications--get-statuses ()
+  "Display status notifications in buffer.
+Status notifications are created when you call
+`mastodon-tl--enable-notify-user-posts'."
+  (interactive)
+  (mastodon-notifications-get "status" "statuses"))
+
+(defun mastodon-notifications--filter-types-list (type)
+  "Return a list of notification types with TYPE removed."
+  (let ((types
+         (mapcar #'car mastodon-notifications--types-alist)))
+    (remove type types)))
 
 (defun mastodon-notifications--clear-all ()
   "Clear all notifications."
   (interactive)
   (when (y-or-n-p "Clear all notifications?")
     (let ((response
-           (mastodon-http--post (mastodon-http--api "notifications/clear")
-                                nil nil)))
+           (mastodon-http--post (mastodon-http--api "notifications/clear"))))
       (mastodon-http--triage
        response (lambda ()
                   (when mastodon-tl--buffer-spec
@@ -288,8 +330,7 @@ of the toot responded to."
                                      (mastodon-tl--property 'toot-json))))
          (response
           (mastodon-http--post (mastodon-http--api
-                                (format "notifications/%s/dismiss" id))
-                               nil nil)))
+                                (format "notifications/%s/dismiss" id)))))
     (mastodon-http--triage
      response (lambda ()
                 (when mastodon-tl--buffer-spec

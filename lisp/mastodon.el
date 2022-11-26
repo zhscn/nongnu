@@ -57,7 +57,6 @@
 (autoload 'mastodon-tl--thread "mastodon-tl")
 (autoload 'mastodon-tl--toggle-spoiler-text-in-toot "mastodon-tl")
 (autoload 'mastodon-tl--update "mastodon-tl")
-(autoload 'mastodon-notifications--get "mastodon-notifications")
 (autoload 'mastodon-profile--get-toot-author "mastodon-profile")
 (autoload 'mastodon-profile--make-author-buffer "mastodon-profile")
 (autoload 'mastodon-profile--show-user "mastodon-profile")
@@ -91,8 +90,15 @@
 (when (require 'lingva nil :no-error)
   (autoload 'mastodon-toot--translate-toot-text "mastodon-toot"))
 (autoload 'mastodon-search--trending-tags "mastodon-search")
-(autoload 'mastodon-profile-fetch-server-account-settings "mastodon-profile")
-(autoload 'mastodon-profile-account-settings "mastodon-profile")
+(autoload 'mastodon-profile--fetch-server-account-settings "mastodon-profile")
+(autoload 'mastodon-notifications--get-mentions "mastodon-notifications")
+(autoload 'mastodon-tl--view-lists "mastodon-tl")
+(autoload 'mastodon-toot--edit-toot-at-point "mastodon-toot")
+(autoload 'mastodon-toot--view-toot-history "mastodon-tl")
+(autoload 'mastodon-tl--init-sync "mastodon-tl")
+(autoload 'mastodon-notifications--timeline "mastodon-notifications")
+
+(defvar mastodon-notifications--map)
 
 (defgroup mastodon nil
   "Interface with Mastodon."
@@ -157,7 +163,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "F") #'mastodon-tl--get-federated-timeline)
     (define-key map (kbd "H") #'mastodon-tl--get-home-timeline)
     (define-key map (kbd "L") #'mastodon-tl--get-local-timeline)
-    (define-key map (kbd "N") #'mastodon-notifications--get)
+    (define-key map (kbd "N") #'mastodon-notifications-get)
     (define-key map (kbd "P") #'mastodon-profile--show-user)
     (define-key map (kbd "T") #'mastodon-tl--thread)
     ;; navigation out of mastodon
@@ -168,11 +174,13 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "c") #'mastodon-tl--toggle-spoiler-text-in-toot)
     (define-key map (kbd "f") #'mastodon-toot--toggle-favourite)
     (define-key map (kbd "r") #'mastodon-toot--reply)
+    ;; this is now duplicated by 'g', cd remove/use for else:
     (define-key map (kbd "u") #'mastodon-tl--update)
     ;; new toot
     (define-key map (kbd "t") #'mastodon-toot)
     ;; override special mode binding
     (define-key map (kbd "g") #'undefined)
+    (define-key map (kbd "g") #'mastodon-tl--update)
     ;; mousebot additions
     (define-key map (kbd "W") #'mastodon-tl--follow-user)
     (define-key map (kbd "C-S-W") #'mastodon-tl--unfollow-user)
@@ -188,22 +196,19 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "i") #'mastodon-toot--pin-toot-toggle)
     (define-key map (kbd "V") #'mastodon-profile--view-favourites)
     (define-key map (kbd "R") #'mastodon-profile--view-follow-requests)
-    ;; (define-key map (kbd "C-c h") #'mastodon-async--stream-home)
-    ;; (define-key map (kbd "C-c f") #'mastodon-async--stream-federated)
-    ;; (define-key map (kbd "C-c l") #'mastodon-async--stream-local)
-    ;; (define-key map (kbd "C-c n") #'mastodon-async--stream-notifications)
     (define-key map (kbd "U") #'mastodon-profile--update-user-profile-note)
-    (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
-    (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
     (define-key map (kbd "v") #'mastodon-tl--poll-vote)
     (define-key map (kbd "k") #'mastodon-toot--bookmark-toot-toggle)
     (define-key map (kbd "K") #'mastodon-profile--view-bookmarks)
     (define-key map (kbd "I") #'mastodon-tl--view-filters)
     (define-key map (kbd "G") #'mastodon-tl--get-follow-suggestions)
+    (define-key map (kbd "X") #'mastodon-tl--view-lists)
+    (define-key map (kbd "@") #'mastodon-notifications--get-mentions)
+    (define-key map (kbd "e") #'mastodon-toot--edit-toot-at-point)
+    (define-key map (kbd "E") #'mastodon-toot--view-toot-edits)
     (when (require 'lingva nil :no-error)
       (define-key map (kbd "s") #'mastodon-toot--translate-toot-text))
     map)
-
   "Keymap for `mastodon-mode'.")
 
 (defcustom mastodon-mode-hook nil
@@ -214,7 +219,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
 
 (defface mastodon-handle-face
   '((t :inherit default))
-  "Face used for user display names.")
+  "Face used for user handles in bylines.")
 
 (defface mastodon-display-name-face
   '((t :inherit warning))
@@ -253,7 +258,9 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (if buffer
         (switch-to-buffer buffer)
       (mastodon-tl--get-home-timeline)
-      (message "Loading Mastodon account %s on %s..." (mastodon-auth--user-acct) mastodon-instance-url))))
+      (message "Loading Mastodon account %s on %s..."
+               (mastodon-auth--user-acct)
+               mastodon-instance-url))))
 
 ;;;###autoload
 (defun mastodon-toot (&optional user reply-to-id reply-json)
@@ -263,6 +270,25 @@ If REPLY-TO-ID is non-nil, attach new toot to a conversation.
 If REPLY-JSON is the json of the toot being replied to."
   (interactive)
   (mastodon-toot--compose-buffer user reply-to-id reply-json))
+
+;;;###autoload
+(defun mastodon-notifications-get (&optional type buffer-name)
+  "Display NOTIFICATIONS in buffer.
+Optionally only print notifications of type TYPE, a string.
+BUFFER-NAME is added to \"*mastodon-\" to create the buffer name."
+  (interactive)
+  (let ((buffer (or (concat "*mastodon-" buffer-name "*")
+                    "*mastodon-notifications*")))
+    (if (get-buffer buffer)
+        (progn (switch-to-buffer buffer)
+               (mastodon-tl--update))
+      (message "Loading your notifications...")
+      (mastodon-tl--init-sync
+       (or buffer-name "notifications")
+       "notifications"
+       'mastodon-notifications--timeline
+       type)
+      (use-local-map mastodon-notifications--map))))
 
 ;; URL lookup: should be available even if `mastodon.el' not loaded:
 
@@ -287,8 +313,9 @@ not, just browse the URL in the normal fashion."
         (browse-url query)
       (message "Performing lookup...")
       (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
-             (param (concat "resolve=t")) ; webfinger
-             (response (mastodon-http--get-search-json url query param :silent)))
+             (params `(("q" . ,query)
+                       ("resolve" . "t"))) ; webfinger
+             (response (mastodon-http--get-json url params :silent)))
         (cond ((not (seq-empty-p
                      (alist-get 'statuses response)))
                (let* ((statuses (assoc 'statuses response))
@@ -330,7 +357,7 @@ not, just browse the URL in the normal fashion."
                                     (mastodon-toot--enable-custom-emoji)))))
 
 ;;;###autoload
-(add-hook 'mastodon-mode-hook #'mastodon-profile-fetch-server-account-settings)
+(add-hook 'mastodon-mode-hook #'mastodon-profile--fetch-server-account-settings)
 
 (define-derived-mode mastodon-mode special-mode "Mastodon"
   "Major mode for Mastodon, the federated microblogging network."

@@ -35,6 +35,8 @@
 ;;; Code:
 (require 'url-cache)
 
+(autoload 'mastodon-tl--propertize-img-str-or-url "mastodon-tl")
+
 (defvar url-show-status)
 
 (defvar mastodon-tl--shr-image-map-replacement)
@@ -306,34 +308,23 @@ Replace them with the referenced image."
                                  t image-options))
      " ")))
 
-(defun mastodon-media--get-media-link-rendering (media-url &optional full-remote-url type caption)
+(defun mastodon-media--get-media-link-rendering (media-url &optional full-remote-url
+                                                           type caption)
   "Return the string to be written that renders the image at MEDIA-URL.
 FULL-REMOTE-URL is used for `shr-browse-image'.
 TYPE is the attachment's type field on the server.
 CAPTION is the image caption if provided."
   (let* ((help-echo-base "RET/i: load full image (prefix: copy URL), +/-: zoom, r: rotate, o: save preview")
-        (help-echo (if caption
-                       (concat help-echo-base
-                               "\n\""
-                               caption "\"")
-                     help-echo-base)))
+         (help-echo (if caption
+                        (concat help-echo-base
+                                "\n\""
+                                caption "\"")
+                      help-echo-base)))
     (concat
-     (propertize "[img]"
-                 'media-url media-url
-                 'media-state 'needs-loading
-                 'media-type 'media-link
-                 'mastodon-media-type type
-                 'display (create-image mastodon-media--generic-broken-image-data nil t)
-                 'mouse-face 'highlight
-                 'mastodon-tab-stop 'image ; for do-link-action-at-point
-                 'image-url full-remote-url ; for shr-browse-image
-                 'keymap mastodon-tl--shr-image-map-replacement
-                 'help-echo (if (or (string= type "image")
-                                    (string= type nil)
-                                    (string= type "unknown")) ;handle borked images
-                                help-echo
-                              (concat help-echo "\nC-RET: play " type " with mpv")))
-                 " ")))
+     (mastodon-tl--propertize-img-str-or-url
+      "[img]" media-url full-remote-url type help-echo
+      (create-image mastodon-media--generic-broken-image-data nil t))
+     " ")))
 
 (provide 'mastodon-media)
 ;;; mastodon-media.el ends here

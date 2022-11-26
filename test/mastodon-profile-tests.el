@@ -172,7 +172,8 @@ The search will happen as if called without the \"@\"."
   (with-mock
 
     (mock (mastodon-http--get-json
-           "https://instance.url/api/v1/accounts/search?q=gargron"))
+           "https://instance.url/api/v1/accounts/search"
+           '(("q" . "gargron"))))
 
     (let ((mastodon-instance-url "https://instance.url"))
       ;; We don't check anything from the return value. We only care
@@ -182,7 +183,9 @@ The search will happen as if called without the \"@\"."
 (ert-deftest mastodon-profile--search-account-by-handle--filters-out-false-results ()
   "Should ignore results that don't match the searched handle."
   (with-mock
-    (mock (mastodon-http--get-json *)
+    (mock (mastodon-http--get-json
+           "https://instance.url/api/v1/accounts/search"
+           '(("q" . "Gargron")))
           =>
           (vector ccc-profile-json gargron-profile-json))
 
@@ -197,7 +200,9 @@ The search will happen as if called without the \"@\"."
 
 TODO: We need to decide if this is actually desired or not."
   (with-mock
-    (mock (mastodon-http--get-json *) => (vector gargron-profile-json))
+    (mock (mastodon-http--get-json *
+                                   '(("q" . "gargron")))
+          => (vector gargron-profile-json))
 
     (let ((mastodon-instance-url "https://instance.url"))
       (should
@@ -232,7 +237,7 @@ content generation in the function under test."
     (if (version< emacs-version "27.1")
         (mock (image-type-available-p 'imagemagick) => t)
       (mock (image-transforms-p) => t))
-    (mock (mastodon-http--get-json "https://instance.url/api/v1/accounts/1/statuses")
+    (mock (mastodon-http--get-json "https://instance.url/api/v1/accounts/1/statuses" nil)
           =>
           gargon-statuses-json)
     (mock (mastodon-profile--get-statuses-pinned *)
@@ -246,8 +251,10 @@ content generation in the function under test."
     (mock (shr-render-region * *) => nil)
     ;; Don't perform the actual update call at the end.
     ;;(mock (mastodon-tl--timeline *))
-    (mock (mastodon-profile-fetch-server-account-settings)
+    (mock (mastodon-profile--fetch-server-account-settings)
           => '(max_toot_chars 1312 privacy "public" display_name "Eugen" discoverable t locked :json-false bot :json-false sensitive :json-false language ""))
+
+    (mock (mastodon-profile--format-joined-date-string *) => "Joined March 2016")
 
     (let ((mastodon-tl--show-avatars t)
           (mastodon-tl--display-media-p t)
@@ -264,7 +271,10 @@ content generation in the function under test."
          "@Gargron\n"
          " ------------\n"
          "<p>Developer of Mastodon and administrator of mastodon.social. I post service announcements, development updates, and personal stuff.</p>\n"
-         "_ Patreon __ :: <a href=\"https://www.patreon.com/mastodon\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://www.</span><span class=\"\">patreon.com/mastodon</span><span class=\"invisible\"></span></a>_ Homepage _ :: <a href=\"https://zeonfederated.com\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://</span><span class=\"\">zeonfederated.com</span><span class=\"invisible\"></span></a>\n"
+         "_ Patreon __ :: <a href=\"https://www.patreon.com/mastodon\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://www.</span><span class=\"\">patreon.com/mastodon</span><span class=\"invisible\"></span></a>_ Homepage _ :: <a href=\"https://zeonfederated.com\" rel=\"me nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://</span><span class=\"\">zeonfederated.com</span><span class=\"invisible\"></span></a>"
+         "\n"
+         "Joined March 2016"
+         "\n\n"
          " ------------\n"
          " TOOTS: 70741 | FOLLOWERS: 470905 | FOLLOWING: 451\n"
          " ------------\n"
