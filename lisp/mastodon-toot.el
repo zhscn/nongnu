@@ -853,8 +853,7 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
                ;; just for the annotation-function?
                (setq mastodon-toot-completions
                      (mastodon-search--search-accounts-query
-                      (buffer-substring-no-properties start end)
-                      :capf))))
+                      (buffer-substring-no-properties start end)))))
             :exclusive 'no
             :annotation-function
             (lambda (candidate)

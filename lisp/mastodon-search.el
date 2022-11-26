@@ -50,19 +50,13 @@
 
 ;; functions for completion of mentions in mastodon-toot
 
-(defun mastodon-search--get-user-info-@-capf (account)
+(defun mastodon-search--get-user-info-@ (account)
   "Get user handle, display name and account URL from ACCOUNT."
   (list (concat "@" (cdr (assoc 'acct account)))
         (cdr (assoc 'url account))
         (cdr (assoc 'display_name account))))
 
-(defun mastodon-search--get-user-info-@ (account)
-  "Get user handle, display name and account URL from ACCOUNT."
-  (list (cdr (assoc 'display_name account))
-        (concat "@" (cdr (assoc 'acct account)))
-        (cdr (assoc 'url account))))
-
-(defun mastodon-search--search-accounts-query (query &optional capf)
+(defun mastodon-search--search-accounts-query (query)
   "Prompt for a search QUERY and return accounts synchronously.
 Returns a nested list containing user handle, display name, and URL."
   (interactive "sSearch mastodon for: ")
@@ -70,9 +64,7 @@ Returns a nested list containing user handle, display name, and URL."
          (response (if (equal mastodon-toot--completion-style-for-mentions "following")
                        (mastodon-http--get-json url `(("q" . ,query) ("following" . "true")) :silent)
                      (mastodon-http--get-json url `(("q" . ,query)) :silent))))
-    (if capf
-        (mapcar #'mastodon-search--get-user-info-@-capf response)
-      (mapcar #'mastodon-search--get-user-info-@ response))))
+    (mapcar #'mastodon-search--get-user-info-@ response)))
 
 ;; functions for tags completion:
 
