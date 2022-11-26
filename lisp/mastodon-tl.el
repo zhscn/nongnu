@@ -1368,10 +1368,12 @@ BUFFER is buffer name, ENDPOINT is buffer's enpoint,
 UPDATE-FUNCTION is its update function.
 LINK-HEADER is the http Link header if present."
   (setq mastodon-tl--buffer-spec
-        `(buffer-name ,buffer
-                      endpoint ,endpoint
-                      update-function ,update-function
-                      link-header ,link-header)))
+        `(account ,(cons mastodon-active-user
+                         mastodon-instance-url)
+                  buffer-name ,buffer
+                  endpoint ,endpoint
+                  update-function ,update-function
+                  link-header ,link-header)))
 
 (defun mastodon-tl--more-json (endpoint id)
   "Return JSON for timeline ENDPOINT before ID."
@@ -1951,6 +1953,9 @@ INSTANCE is an instance domain name."
        (let ((buf (get-buffer-create "*mastodon-instance*")))
          (with-current-buffer buf
            (switch-to-buffer-other-window buf)
+           (mastodon-tl--set-buffer-spec (buffer-name buf)
+                                         "instance"
+                                         nil)
            (let ((inhibit-read-only t))
              (erase-buffer)
              (special-mode)

@@ -287,7 +287,8 @@ JSON is the data returned by the server."
 (defun mastodon-profile--update-user-profile-note ()
   "Fetch user's profile note and display for editing."
   (interactive)
-  (let* ((url (mastodon-http--api "accounts/verify_credentials"))
+  (let* ((endpoint "accounts/verify_credentials")
+         (url (mastodon-http--api endpoint))
          (json (mastodon-http--get-json url))
          (source (alist-get 'source json))
          (note (alist-get 'note source))
@@ -295,6 +296,9 @@ JSON is the data returned by the server."
          (inhibit-read-only t))
     (switch-to-buffer-other-window buffer)
     (text-mode)
+    (mastodon-tl--set-buffer-spec (buffer-name buffer)
+                                  endpoint
+                                  nil)
     (setq-local header-line-format
                 (propertize
                  "Edit your profile note. C-c C-c to send, C-c C-k to cancel."
@@ -497,6 +501,9 @@ This endpoint only holds a few preferences. For others, see
       (switch-to-buffer-other-window buf)
       (erase-buffer)
       (special-mode)
+      (mastodon-tl--set-buffer-spec (buffer-name buf)
+                                    "preferences"
+                                    nil)
       (let ((inhibit-read-only t))
         (while response
           (let ((el (pop response)))
