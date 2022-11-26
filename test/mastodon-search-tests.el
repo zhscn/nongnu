@@ -119,7 +119,7 @@
   (should
    (equal
     (mastodon-search--get-user-info-@ mastodon-search--single-account-query)
-    '(": ( ) { : | : & } ; :" "@mousebot" "https://todon.nl/@mousebot"))))
+    '("@mousebot" "https://todon.nl/@mousebot" ": ( ) { : | : & } ; :"))))
 
 (ert-deftest mastodon-search--get-user-info ()
   "Should build a list from a single account for company completion."
