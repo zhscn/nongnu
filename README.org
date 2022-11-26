@@ -6,7 +6,8 @@
 
 * README
 
-=mastodon.el= is an Emacs client for the AcitivityPub social networks that implement the Mastodon API. For info see https://joinmastodon.org/.
+=mastodon.el= is an Emacs client for the AcitivityPub social networks that
+implement the Mastodon API. For info see https://joinmastodon.org/.
 
 ** Installation
 
@@ -25,7 +26,8 @@ Or, with =use-package=:
     :ensure t)
 #+END_SRC
 
-The minimum Emacs version is now 27.1. But if you are running an older version it shouldn't be very hard to get it working.
+The minimum Emacs version is now 27.1. But if you are running an older version
+it shouldn't be very hard to get it working.
 
 *** MELPA
 
@@ -100,10 +102,10 @@ restart Emacs and follow the steps again.
 
 =M-x mastodon=
 
-Opens a =*mastodon-home*= buffer in the major mode and displays  toots. If your credentials are not yet saved, you
-will be prompted for email and password. The app registration process will
-take place if your =mastodon-token-file= does not contain =:client_id= and
-=:client_secret=.
+Opens a =*mastodon-home*= buffer in the major mode and displays toots. If your
+credentials are not yet saved, you will be prompted for email and password.
+The app registration process will take place if your =mastodon-token-file= does
+not contain =:client_id= and =:client_secret=.
 
 **** Keybindings
 
@@ -225,15 +227,19 @@ You can download and use your instance's custom emoji
 
 *** Other commands and account settings:
 
-In addition to =mastodon=, the following functions are autoloaded and should work without first loading =mastodon.el=:
+In addition to =mastodon=, the following functions are autoloaded and should
+work without first loading =mastodon.el=:
 - =mastodon-toot=: Compose new toot
 - =mastodon-notifications-get=: View all notifications
-- =mastodon-url-lookup=: Attempt to load a URL in =mastodon.el=. URL may be at point or provided in the minibuffer.
+- =mastodon-url-lookup=: Attempt to load a URL in =mastodon.el=. URL may be at
+  point or provided in the minibuffer.
 
 
-- =mastodon-tl--view-instance-description=: View information about the instance that the author of the toot at point is on.
+- =mastodon-tl--view-instance-description=: View information about the instance
+  that the author of the toot at point is on.
 - =mastodon-tl--view-own-instance=: View information about your own instance.
-- =mastodon-search--trending-tags=: View a list of trending hashtags on your instance.
+- =mastodon-search--trending-tags=: View a list of trending hashtags on your
+  instance.
 
 
 - =mastodon-tl--follow-tag=: Follow a tag (works like following a user)
@@ -241,14 +247,21 @@ In addition to =mastodon=, the following functions are autoloaded and should wor
 - =mastodon-tl--list-followed-tags=: View a list of tags you're following.
 
 
-- =mastodon-profile--update-display-name=: Update the display name for your account.
+- =mastodon-profile--update-display-name=: Update the display name for your
+  account.
 - =mastodon-profile--update-user-profile-note=: Update your bio note.
 - =mastodon-profile--update-meta-fields=: Update your metadata fields.
-- =mastodon-profile--set-default-toot-visibility=: Set the default visibility for your toots.
-- =mastodon-profile--account-locked-toggle=: Toggle the locked status of your account. Locked accounts have to manually approve follow requests.
-- =mastodon-profile--account-discoverable-toggle=: Toggle the discoverable status of your account. Non-discoverable accounts are not listed in the profile directory.
-- =mastodon-profile--account-bot-toggle=: Toggle whether your account is flagged as a bot.
-- =mastodon-profile--account-sensitive-toggle=: Toggle whether your posts are marked as sensitive (nsfw) by default.
+- =mastodon-profile--set-default-toot-visibility=: Set the default visibility
+  for your toots.
+- =mastodon-profile--account-locked-toggle=: Toggle the locked status of your
+  account. Locked accounts have to manually approve follow requests.
+- =mastodon-profile--account-discoverable-toggle=: Toggle the discoverable
+  status of your account. Non-discoverable accounts are not listed in the
+  profile directory.
+- =mastodon-profile--account-bot-toggle=: Toggle whether your account is flagged
+  as a bot.
+- =mastodon-profile--account-sensitive-toggle=: Toggle whether your posts are
+  marked as sensitive (nsfw) by default.
 
 *** Customization
 
@@ -319,7 +332,9 @@ Optional dependencies:
 
 =mastodon.el= should work with ActivityPub servers that implement the Mastodon API.
 
-Apart from Mastodon itself, it is currently known to work with Pleroma and Gotosocial. If you attempt to use =mastodon.el= with another server that implements the Mastodon API and run into problems, feel free to open an issue.
+Apart from Mastodon itself, it is currently known to work with Pleroma and
+Gotosocial. If you attempt to use =mastodon.el= with another server that
+implements the Mastodon API and run into problems, feel free to open an issue.
 
 ** Contributing
 
@@ -329,8 +344,12 @@ PRs, issues, feature requests, and general feedback are very welcome!
 
 1. =mastodon.el= has bugs, as well as lots of room for improvement.
 2. I receive very little feedback, so if I don't run into the bug it often doesn't get fixed.
-3. If you run into something that seems broken, first try running =mastodon.el= in emacs with no init file (i.e. =emacs -q= (instructions and code for doing this are [[https://codeberg.org/martianh/mastodon.el/issues/300][here]]) to see if it also happens independently of your own config (it probably does).
-4. Enable debug on error (=toggle-debug-on-error=), make the bug happen again, and copy the backtrace that appears.
+3. If you run into something that seems broken, first try running =mastodon.el=
+   in emacs with no init file (i.e. =emacs -q= (instructions and code for doing
+   this are [[https://codeberg.org/martianh/mastodon.el/issues/300][here]]) to see if it also happens independently of your own config
+   (it probably does).
+4. Enable debug on error (=toggle-debug-on-error=), make the bug happen again,
+   and copy the backtrace that appears.
 5. Open an issue here and explain what is going on.
 
 *** Features
@@ -349,7 +368,10 @@ PRs, issues, feature requests, and general feedback are very welcome!
 
 ** Supporting mastodon.el
 
-If you'd like to support continued development of =mastodon.el=, I accept donations via paypal at martianhiatus [ at ] riseup [ dot ] net. If you would prefer a different payment method, write to me at that address and I can provide IBAN or other details.
+If you'd like to support continued development of =mastodon.el=, I accept
+donations via paypal at martianhiatus [ at ] riseup [ dot ] net. If you would
+prefer a different payment method, write to me at that address and I can
+provide IBAN or other details.
 
 I don't have a tech worker's income, so even a small tip would help out.
 
