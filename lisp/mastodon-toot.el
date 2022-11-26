@@ -78,7 +78,7 @@
 (autoload 'mastodon-http--build-array-params-alist "mastodon-http")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl")
 (autoload 'mastodon-http--put "mastodon-http")
-(autoload 'mastodon-tl--return-fave-char "mastodon-tl")
+(autoload 'mastodon-tl--symbol "mastodon-tl")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -345,8 +345,8 @@ TYPE is a symbol, either 'favourite or 'boost."
                                       (list 'favourited-p (not faved))))
                (mastodon-toot--action-success
                 (if boost-p
-                    (mastodon-tl--return-boost-char)
-                  (mastodon-tl--return-fave-char))
+                    (mastodon-tl--symbol 'boost)
+                  (mastodon-tl--symbol 'favourite))
                 byline-region remove))
              (message (format "%s #%s" (if boost-p msg action) id))))))
       (message (format "Nothing to %s here?!?" action-string)))))
@@ -366,23 +366,21 @@ TYPE is a symbol, either 'favourite or 'boost."
   "Bookmark or unbookmark toot at point."
   (interactive)
   (let* ( ;(toot (mastodon-tl--property 'toot-json))
-          (id (mastodon-tl--property 'base-toot-id))
-          ;; (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
-          (bookmarked-p (mastodon-tl--property 'bookmarked-p))
-          (prompt (if bookmarked-p
-                      (format "Toot already bookmarked. Remove? ")
-                    (format "Bookmark this toot? ")))
-          (byline-region
-           (when id
-             (mastodon-tl--find-property-range 'byline (point))))
-          (action (if bookmarked-p "unbookmark" "bookmark"))
-          (bookmark-str (if (fontp (char-displayable-p #10r128278))
-                            "🔖"
-                          "K"))
-          (message (if bookmarked-p
-                       "Bookmark removed!"
-                     "Toot bookmarked!"))
-          (remove (when bookmarked-p t)))
+         (id (mastodon-tl--property 'base-toot-id))
+         ;; (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
+         (bookmarked-p (mastodon-tl--property 'bookmarked-p))
+         (prompt (if bookmarked-p
+                     (format "Toot already bookmarked. Remove? ")
+                   (format "Bookmark this toot? ")))
+         (byline-region
+          (when id
+            (mastodon-tl--find-property-range 'byline (point))))
+         (action (if bookmarked-p "unbookmark" "bookmark"))
+         (bookmark-str (mastodon-tl--symbol 'bookmark))
+         (message (if bookmarked-p
+                      "Bookmark removed!"
+                    "Toot bookmarked!"))
+         (remove (when bookmarked-p t)))
     (if byline-region
         (when (y-or-n-p prompt)
           (mastodon-toot--action

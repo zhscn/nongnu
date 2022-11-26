@@ -697,9 +697,9 @@ this just means displaying toot client."
 		          'keymap mastodon-tl--shr-map-replacement)))))
        (if edited-time
            (concat
-            (if (fontp (char-displayable-p #10r128274))
-                " ✍ "
-              " [edited] ")
+            " "
+            (mastodon-tl--symbol 'edited)
+            " "
             (propertize
              (format-time-string mastodon-toot-timestamp-format
                                  edited-parsed)
