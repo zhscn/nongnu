@@ -2109,7 +2109,9 @@ LANGS is an array parameters alist of languages to filer user's posts by."
   (mastodon-tl--follow-user user-handle "false"))
 
 (defun mastodon-tl--filter-user-user-posts-by-language (user-handle)
-  "Query for USER-HANDLE and enable notifications when they post."
+  "Query for USER-HANDLE and enable notifications when they post.
+This feature is experimental and for now not easily varified by
+the instance API."
   (interactive
    (list
     (mastodon-tl--interactive-user-handles-get "filter by language")))
