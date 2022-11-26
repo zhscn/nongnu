@@ -254,7 +254,7 @@ types of mastodon links and not just shr.el-generated ones.")
   (when (require 'mpv nil :no-error)
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-from-byline)
-      (define-key map (kbd "<return>") 'mastodon-profile--view-author-profile)
+      (define-key map (kbd "<return>") 'mastodon-profile--get-toot-author)
       (keymap-canonicalize map)))
   "The keymap to be set for the author byline.
 It is active where point is placed by `mastodon-tl--goto-next-toot.'")

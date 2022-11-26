@@ -737,14 +737,6 @@ IMG_TYPE is the JSON key from the account data."
   (message "Loading your profile...")
   (mastodon-profile--show-user (mastodon-auth--get-account-name)))
 
-(defun mastodon-profile--view-author-profile ()
-  "View the profile of author of present toot."
-  (interactive)
-  (let* ((toot-json (mastodon-tl--property 'toot-json))
-         (acct (alist-get 'account toot-json))
-         (handle (alist-get 'acct acct)))
-    (mastodon-profile--show-user handle)))
-
 (defun mastodon-profile--account-field (account field)
   "Return FIELD from the ACCOUNT.
 FIELD is used to identify regions under 'account"
