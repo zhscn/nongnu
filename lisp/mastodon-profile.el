@@ -629,7 +629,7 @@ HEADERS means also fetch link headers for pagination."
            (propertize (concat "@" acct)
                        'face 'default)
            (if (equal locked t)
-               (mastodon-tl--symbol 'locked)
+               (concat " " (mastodon-tl--symbol 'locked))
              "")
            "\n ------------\n"
            ;; profile note:
