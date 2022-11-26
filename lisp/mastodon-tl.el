@@ -1491,10 +1491,9 @@ ID is that of the toot to view."
                 (with-output-to-temp-buffer buffer
                   (switch-to-buffer buffer)
                   (mastodon-mode)
-                  (mastodon-tl--set-buffer-spec
-                   buffer
-                   (format "statuses/%s/context" id)
-                   'mastodon-tl--thread)
+                  (mastodon-tl--set-buffer-spec buffer
+                                                (format "statuses/%s/context" id)
+                                                nil)
                   (let ((inhibit-read-only t))
                     (mastodon-tl--timeline (alist-get 'ancestors context))
                     (goto-char (point-max))
