@@ -123,7 +123,7 @@ to it, CHAPTER is a list of form (SECTION...) and KEYWORDS is a list
 of form (KEYWORD...).  SECTION is a list of form (NAME PATH
 SUB-SECTIONS...), where NAME is the name of the section, PATH is the
 absolute path to the file and SUB-SECTION is a list of form
-(SECTION...).  KEYWORD is a list of (NAME TYPE PATH), where NAME the
+\(SECTION...).  KEYWORD is a list of (NAME TYPE PATH), where NAME the
 keyword name, TYPE is the type of keyword and PATH is the absolute
 path to it."
   (unless (fboundp 'libxml-parse-html-region)
@@ -228,58 +228,62 @@ If a single file was opened, only show that book's table of contents."
 
 See `devhelp-toc' for more details."
   (let ((inhibit-read-only t))
-    (erase-buffer)
-    (insert
-     "<html><head><title>Table of contents</title></head><body><ul>"
-     (let ((book-tocs
-            (mapcar
-             (lambda (book)
-               (cl-labels ((section-to-html (section)
-                             (concat
-                              "<li>"
-                              (format
-                               "<a href=%S>%s</a>"
-                               (devhelp--file-to-url (nth 1 section))
-                               (nth 0 section))
-                              (when (nth 2 section)
-                                (format
-                                 "<ul>%s</ul>"
-                                 (mapconcat #'section-to-html
-                                            (nth 2 section) "")))
-                              "</li>")))
-                 (cons
-                  (nth 2 book)
-                  (concat
-                   (format
-                    "<b><a href=%S>%s</a></b>"
-                    (devhelp--file-to-url (nth 3 book)) (nth 0 book))
-                   (when (nth 4 book)
-                     (format
-                      "<ul>%s</ul>"
-                      (mapconcat #'section-to-html
-                                 (nth 4 book) "")))))))
-             devhelp--books)))
-       (if (not devhelp-toc-group-books-by-language)
-           (mapconcat (lambda (toc) (format "<li>%s</li>" (cdr toc)))
-                      book-tocs "")
-         (let ((groups nil))
-           (dolist (toc book-tocs)
-             (if-let ((pair (assoc (car toc) groups)))
-                 (setf (cdr pair) (nconc (cdr pair) (list (cdr toc))))
-               (push (cons (car toc) (list (cdr toc))) groups)))
-           (setq groups (sort groups (lambda (a b)
-                                       (string< (car a) (car b)))))
-           (mapconcat
-            (lambda (group)
-              (when (cdr group)
-                (format
-                 "<li><b><u>Language: %s</u></b><ul>%s</ul></li>"
-                 (capitalize (car group))
-                 (mapconcat (lambda (toc) (format "<li>%s</li>" toc))
-                            (cdr group) ""))))
-            groups ""))))
-     "</ul></body></html>")
-    (devhelp--render-html)
+    (devhelp--render-html-dom
+     `( html nil
+        ( head nil
+          (title nil "Table of Contents"))
+        ( body nil
+          ( ul nil
+            ,@(let ((book-tocs
+                     (mapcar
+                      (lambda (book)
+                        (cl-labels
+                            ((section-to-html (section)
+                               `( li nil
+                                  ( a ((href . ,(devhelp--file-to-url
+                                                 (nth 1 section))))
+                                    ,(nth 0 section))
+                                  ,@(when (nth 2 section)
+                                      `(( ul nil
+                                          ,@(mapcar
+                                             #'section-to-html
+                                             (nth 2 section))))))))
+                          (cons
+                           (nth 2 book)
+                           `(( b nil
+                               ( a ((href . ,(devhelp--file-to-url
+                                              (nth 3 book))))
+                                 ,(nth 0 book)))
+                             ,@(when (nth 4 book)
+                                 `(( ul nil
+                                     ,@(mapcar #'section-to-html
+                                               (nth 4 book)))))))))
+                      devhelp--books)))
+                (if (not devhelp-toc-group-books-by-language)
+                    (mapcar (lambda (toc) `(li nil ,@(cdr toc)))
+                            book-tocs)
+                  (let ((groups nil))
+                    (dolist (toc book-tocs)
+                      (if-let ((pair (assoc (car toc) groups)))
+                          (setf (cdr pair)
+                                (nconc (cdr pair) (list (cdr toc))))
+                        (push (cons (car toc) (list (cdr toc)))
+                              groups)))
+                    (setq groups
+                          (sort groups (lambda (a b)
+                                         (string< (car a) (car b)))))
+                    (mapcar
+                     (lambda (group)
+                       `( li nil
+                          ( b nil
+                            ( u nil
+                              ,(format "Language: %s"
+                                       (capitalize (car group)))))
+                          ( ul nil
+                            ,@(mapcar (lambda (toc) `(li nil ,@toc))
+                                      (cdr group)))))
+                     (seq-remove (lambda (g) (null (cdr g)))
+                                 groups)))))))))
     (goto-char (point-min))))
 
 (defun devhelp-index ()
@@ -309,43 +313,54 @@ If a single file was opened, only show that book's index."
 
 See `devhelp-index' for more details."
   (let ((inhibit-read-only t))
-    (erase-buffer)
-    (insert
-     "<html><head><title>Index</title></head><body><ul>"
-     (let ((keywords (mapcan (lambda (book)
-                               (copy-sequence (nth 5 book)))
-                             devhelp--books)))
-       (sort keywords (lambda (a b) (string< (car a) (car b))))
-       (if (not devhelp-index-group-keywords-by-type)
-           (mapconcat (lambda (keyword)
-                        (format "<li>%s <a href=%S>%s</a></li>"
-                                (capitalize (nth 1 keyword))
-                                (devhelp--file-to-url (nth 2 keyword))
-                                (nth 0 keyword)))
-                      keywords "")
-         (let ((groups nil))
-           (dolist (keyword keywords)
-             (let ((entry
-                    (format "<a href=%S>%s</a>"
-                            (devhelp--file-to-url (nth 2 keyword))
+    (devhelp--render-html-dom
+     `( html nil
+        ( head nil
+          (title nil "Index"))
+        ( body nil
+          ( ul nil
+            ,@(let ((keywords (mapcan (lambda (book)
+                                        (copy-sequence (nth 5 book)))
+                                      devhelp--books)))
+                (sort keywords (lambda (a b)
+                                 (string< (car a) (car b))))
+                (if (not devhelp-index-group-keywords-by-type)
+                    (mapcar
+                     (lambda (keyword)
+                       `( li nil
+                          ,(format "%s " (capitalize (nth 1 keyword)))
+                          ( a ((href . ,(devhelp--file-to-url
+                                         (nth 2 keyword))))
                             (nth 0 keyword))))
-               (if-let ((pair (assoc (nth 1 keyword) groups)))
-                   (setf (cdr pair) (nconc (cdr pair) (list entry)))
-                 (push (cons (nth 1 keyword) (list entry)) groups))))
-           (setq groups (sort groups (lambda (a b)
-                                       (string< (car a) (car b)))))
-           (mapconcat
-            (lambda (group)
-              (when (cdr group)
-                (format
-                 "<li><b><u>Type: %s</u></b><ul>%s</ul></li>"
-                 (capitalize (car group))
-                 (mapconcat (lambda (entry)
-                              (format "<li>%s</li>" entry))
-                            (cdr group) ""))))
-            groups ""))))
-     "</ul></body></html>")
-    (devhelp--render-html)
+                     keywords)
+                  (let ((groups nil))
+                    (dolist (keyword keywords)
+                      (let ((entry
+                             `( a ((href . ,(devhelp--file-to-url
+                                             (nth 2 keyword))))
+                                (nth 0 keyword))))
+                        (if-let ((pair
+                                  (assoc (nth 1 keyword) groups)))
+                            (setf (cdr pair) (nconc (cdr pair)
+                                                    (list entry)))
+                          (push (cons (nth 1 keyword) (list entry))
+                                groups))))
+                    (setq groups
+                          (sort groups (lambda (a b)
+                                         (string< (car a) (car b)))))
+                    (mapconcat
+                     (lambda (group)
+                       `( li nil
+                          ( b nil
+                            ( u nil
+                              (format "Type: %s"
+                                      (capitalize (car group)))))
+                          ( ul nil
+                            ,@(mapcar (lambda (entry)
+                                        `( li nil ,entry))
+                                      (cdr group)))))
+                     (seq-remove (lambda (g) (null (cdr g)))
+                                 groups)))))))))
     (goto-char (point-min))))
 
 (defun devhelp--set-title (title)
@@ -399,10 +414,11 @@ EVENT is a mouse event, if any."
           (setf (nth 2 (nth 0 (cdr devhelp--history))) (point)))
       (browse-url url))))
 
-(defun devhelp--render-html (&optional base)
-  "Render HTML in current buffer.
+(defun devhelp--render-html-dom (dom &optional base)
+  "Render HTML DOM \"DOM\" in current buffer.
 
 When BASE is given, use it to make relative URLs absolute."
+  (erase-buffer)
   (let ((shr-map
          (let ((map (make-sparse-keymap)))
            (set-keymap-parent map shr-map)
@@ -420,12 +436,17 @@ When BASE is given, use it to make relative URLs absolute."
                                 (car (dom-children dom))))))
                  shr-external-rendering-functions))
         (shr-use-fonts devhelp-use-variable-pitch-font)
-        (shr-width devhelp-text-width)
-        (dom (libxml-parse-html-region (point-min) (point-max))))
-    (erase-buffer)
+        (shr-width devhelp-text-width))
     (shr-insert-document
      (if base `(base ((href . ,base)) (,dom)) dom))
     (goto-char (point-min))))
+
+(defun devhelp--render-html (&optional base)
+  "Render HTML in current buffer.
+
+When BASE is given, use it to make relative URLs absolute."
+  (devhelp--render-html-dom
+   (libxml-parse-html-region (point-min) (point-max)) base))
 
 (defun devhelp--render-html-file (file)
   "Load and render HTML file FILE in current buffer."
@@ -503,22 +524,26 @@ EVENT is a mouse event, if any."
   (setf (nth 2 (nth (car devhelp--history) (cdr devhelp--history)))
         (point))
   (let ((inhibit-read-only t))
-    (erase-buffer)
-    (insert
-     "<html><head><title>History of visited pages</title></head>"
-     "<body><h1>History of visited pages</h1><ul>")
-    (dolist (i (number-sequence
-                0 (1- (length (cdr devhelp--history)))))
-      (insert (format
-               "<li><a href=\"%i\">%s</a></li>" i
-               (let ((title (car (nth i (cdr devhelp--history)))))
-                 (if (eq i (car devhelp--history))
-                     (format "<i>%s</i>" title)
-                   title)))))
-    (insert "</ul></body></html>")
     (push (list nil 'history (point-min))
           (nthcdr (car devhelp--history) (cdr devhelp--history)))
-    (devhelp--render-html)))
+    (devhelp--render-html-dom
+     `( html nil
+        ( head nil
+          (title nil "History of visited pages"))
+        ( body nil
+          (h1 nil "History of visited pages")
+          ( ul nil
+            ,@(mapcar
+               (lambda (i)
+                 `( li nil
+                    ( a ((href . ,(number-to-string i)))
+                      ,(let ((title
+                              (car (nth i (cdr devhelp--history)))))
+                         (if (eq i (car devhelp--history))
+                             `(i nil title)
+                           title)))))
+               (number-sequence
+                0 (1- (length (cdr devhelp--history)))))))))))
 
 (defun devhelp--directory ()
   "List all available Devhelp books."
