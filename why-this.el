@@ -320,29 +320,17 @@ When EXACT is non-nil, be as exact as possible."
 TIME-FORMAT is used to format data."
   (if (functionp format)
       (funcall format data)
-    (let ((alist
-           `((?a . (plist-get data :author))
-             (?A . (why-this-nick-name (plist-get data :author)))
-             (?t . (why-this-format-time
-                    time-format (plist-get data :time)))
-             (?i . (plist-get data :desc)))))
-      (replace-regexp-in-string
-       "%."
-       (lambda (str)
-         (let ((char (aref str 1)))
-           (if (eq char ?%)
-               "%"
-             (let ((sexp (cdr (assoc char alist))))
-               (if sexp
-                   (eval sexp `((data . ,data)
-                                (time-format . ,time-format)))
-                 str)))))
-       format t t))))
+    (format-spec
+     format `((?a . ,(plist-get data :author))
+              (?A . ,(why-this-nick-name (plist-get data :author)))
+              (?t . ,(why-this-format-time
+                      time-format (plist-get data :time)))
+              (?i . ,(plist-get data :desc))))))
 
 (defun why-this--overlay-bg-type (pos)
   "Return the background type for overlay at POS."
   (cond
-   ((and (use-region-p)
+   ((and (region-active-p)
          (>= pos (region-beginning))
          (< pos (region-end)))
     'region)
@@ -382,12 +370,11 @@ TIME-FORMAT is used to format data."
   (while why-this--overlays
     (delete-overlay (pop why-this--overlays)))
   (when why-this-mode
-    (let* ((begin (line-number-at-pos (if (use-region-p)
-                                          (region-beginning)
-                                        (point))))
-           (end (1+ (line-number-at-pos (if (use-region-p)
-                                            (region-end)
-                                          (point)))))
+    (let* ((line (line-number-at-pos (if (use-region-p)
+                                         (region-end)
+                                       (point))))
+           (begin line)
+           (end (1+ line))
            (backend why-this--backend)
            (data (funcall backend 'line-data begin end)))
       (dolist (i (number-sequence 0 (- end begin 1)))
@@ -445,10 +432,8 @@ TIME-FORMAT is used to format data."
         (end (1+ (line-number-at-pos (if (use-region-p)
                                          (region-end)
                                        (point))))))
-    (setq
-     why-this--overlays
-     (delq
-      nil
+    (thread-last
+      why-this--overlays
       (mapcar
        (lambda (ov)
          (if (and (eq (overlay-buffer ov) (current-buffer))
@@ -458,10 +443,10 @@ TIME-FORMAT is used to format data."
                          (< line end)
                          (eq line (overlay-get ov 'why-this-line)))))
              (progn
-               (let* ((ov-start (overlay-start ov))
-                      line-begin
-                      line-end
-                      column)
+               (let ((ov-start (overlay-start ov))
+                     line-begin
+                     line-end
+                     column)
                  (save-excursion
                    (goto-char ov-start)
                    (setq line-begin (line-beginning-position))
@@ -498,8 +483,9 @@ TIME-FORMAT is used to format data."
                      (overlay-put ov 'why-this-bg-type type))))
                ov)
            (delete-overlay ov)
-           nil))
-       why-this--overlays)))))
+           nil)))
+      (delq nil)
+      (setq why-this--overlays))))
 
 ;;;###autoload
 (defun why-this-supported-p ()
