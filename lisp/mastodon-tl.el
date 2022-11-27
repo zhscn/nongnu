@@ -79,6 +79,11 @@
 (autoload 'mastodon-http--build-params-string "mastodon-http")
 (autoload 'mastodon-notifications--filter-types-list "mastodon-notifications")
 (autoload 'mastodon-toot--get-toot-edits "mastodon-toot")
+(autoload 'mastodon-toot--update-status-fields "mastodon-toot")
+(autoload 'mastodon-toot--compose-buffer "mastodon-toot")
+
+(defvar mastodon-toot--visibility)
+(defvar mastodon-active-user)
 
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
@@ -1157,7 +1162,7 @@ this just means displaying toot client."
   (let* ((poll (mastodon-tl--field 'poll toot))
          (expiry (mastodon-tl--field 'expires_at poll))
          (expired-p (if (eq (mastodon-tl--field 'expired poll) :json-false) nil t))
-         (multi (mastodon-tl--field 'multiple poll))
+         ;; (multi (mastodon-tl--field 'multiple poll))
          (voters-count (mastodon-tl--field 'voters_count poll))
          (vote-count (mastodon-tl--field 'votes_count poll))
          (options (mastodon-tl--field 'options poll))
@@ -1539,7 +1544,7 @@ If UNMUTE, unmute it."
           (if (not we-posted-p)
               (message "You can only (un)mute a thread you have posted in.")
             (when (if unmute
-                      (y-or-n-p "Unute this thread? ")
+                      (y-or-n-p "Unnute this thread? ")
                     (y-or-n-p "Mute this thread? "))
               (let ((response (mastodon-http--post url)))
                 (mastodon-http--triage response

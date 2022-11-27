@@ -788,8 +788,8 @@ instance to edit a toot."
 
 (defun mastodon-toot--insert-toot-iter (it)
   "Insert iteration IT of toot."
-  (let ((content (alist-get 'content it))
-        (account (alist-get 'account it)))
+  (let ((content (alist-get 'content it)))
+    ;; (account (alist-get 'account it))
     ;; TODO: handle polls, media
     (mastodon-tl--render-text content)))
 
@@ -827,7 +827,7 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
                "")))
 
 (defun mastodon-toot--get-bounds (regex)
-  "Get bounds of tag or handle before point."
+  "Get bounds of tag or handle before point using REGEX."
   ;; needed because # and @ are not part of any existing thing at point
   (save-match-data
     (save-excursion
