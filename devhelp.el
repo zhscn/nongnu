@@ -85,8 +85,16 @@ width."
   :type 'boolean)
 
 (defcustom devhelp-search-directories
-  '("/usr/share/doc/" "/usr/share/gtk-doc/html/"
-    "/usr/local/share/doc/"  "/usr/local/share/gtk-doc/html/")
+  `("/usr/share/doc/" "/usr/share/gtk-doc/html/"
+    "/usr/local/share/doc/"  "/usr/local/share/gtk-doc/html/"
+    ,@(mapcan (lambda (dir)
+                (when (and (file-exists-p dir)
+                           (file-directory-p dir))
+                  (list dir)))
+              '("/run/current-system/profile/share/doc/"
+                "/run/current-system/profile/share/gtk-doc/html/"
+                "~/.guix-profile/share/doc/"
+                "~/.guix-profile/share/gtk-doc/html/")))
   "List of directories to search for Devhelp books.
 
 Note that on GNU Guix, Nix or other FHS (Filesystem Hierarchy
