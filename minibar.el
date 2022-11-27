@@ -137,9 +137,7 @@ a string to display, or nil in case there is to show."
 ;;;###autoload
 (define-minor-mode minibar-mode
   "Toggle Minibar display."
-  :init-value nil
   :lighter " Minibar"
-  :keymap nil
   :global t
   (if minibar-mode
       (progn
@@ -436,50 +434,36 @@ when it was recorded.")
         (format
          "%3i%%%s"
          (minibar--module-cpu-calculate-load "cpu")
-         (if (or (char-displayable-p ?█)  ; #x2588
-                 (char-displayable-p ?▇)  ; #x2587
-                 (char-displayable-p ?▆)  ; #x2586
-                 (char-displayable-p ?▅)  ; #x2585
-                 (char-displayable-p ?▄)  ; #x2584
-                 (char-displayable-p ?▃)  ; #x2583
-                 (char-displayable-p ?▂)  ; #x2582
-                 (char-displayable-p ?▁)) ; #x2581
+         (if (seq-some #'char-displayable-p
+                       ;; Characters ▁▂▃▄▅▆▇█
+                       (number-sequence #x2581 #x2588))
              (concat
               " "
               (mapconcat
                (lambda (i)
                  (let ((load (minibar--module-cpu-calculate-load
                               (format "cpu%i" i))))
-                   (cond
-                    ((and (char-displayable-p ?█)  ; #x2588
-                          (>= load 87.5))
-                     (propertize "█" 'face 'bold))
-                    ((and (char-displayable-p ?▇)  ; #x2587
-                          (>= load 75))
-                     (propertize "▇" 'face 'bold))
-                    ((and (char-displayable-p ?▆)  ; #x2586
-                          (>= load 62.5))
-                     (propertize "▆" 'face 'bold))
-                    ((and (char-displayable-p ?▅)  ; #x2585
-                          (>= load 50))
-                     (propertize "▅" 'face 'bold))
-                    ((and (char-displayable-p ?▄)  ; #x2584
-                          (>= load 37.5))
-                     (propertize "▄" 'face 'bold))
-                    ((and (char-displayable-p ?▃)  ; #x2583
-                          (>= load 25))
-                     (propertize "▃" 'face 'bold))
-                    ((and (char-displayable-p ?▂)  ; #x2582
-                          (>= load 12.5))
-                     (propertize "▂" 'face 'bold))
-                    (t ; (char-displayable-p ?▁) => t
-                     (propertize
-                      (if (char-displayable-p ?▁)  ;  #x2581
-                          "▁"
-                        " ")
-                      'face
-                      '( :weight bold
-                         :inherit font-lock-comment-face))))))
+                   (let ((char (seq-some
+                                (lambda (e)
+                                  (and (>= load (car e))
+                                       (char-displayable-p (cdr e))
+                                       (cdr e)))
+                                '((87.5 . ?█)     ; #x2588
+                                  (75 . ?▇)       ; #x2587
+                                  (62.5 . ?▆)     ; #x2586
+                                  (50 . ?▅)       ; #x2585
+                                  (37.5 . ?▄)     ; #x2584
+                                  (25  . ?▃)      ; #x2583
+                                  (12.5 . ?▂))))) ; #x2582
+                     (if char
+                         (propertize (string char) 'face 'bold)
+                       (propertize
+                        (if (char-displayable-p ?▁)  ;  #x2581
+                            "▁"
+                          " ")
+                        'face
+                        '( :weight bold
+                           :inherit font-lock-comment-face))))))
                (number-sequence 0 (1- minibar--module-cpu-count)) ""))
            "")))
       (current-time))))
