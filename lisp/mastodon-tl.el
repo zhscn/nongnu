@@ -1533,9 +1533,9 @@ If UNMUTE, unmute it."
     (if (string-suffix-p "context" endpoint) ; thread view
         (let* ((id
                 (save-match-data
-                  (let ((str (string-match "statuses/\\(?2:[[:digit:]]+\\)/context"
-                                           endpoint)))
-                    (match-string 2 endpoint))))
+                  (string-match "statuses/\\(?2:[[:digit:]]+\\)/context"
+                                endpoint)
+                  (match-string 2 endpoint)))
                (we-posted-p (mastodon-tl--user-in-thread-p id))
                (url (mastodon-http--api
                      (if unmute
