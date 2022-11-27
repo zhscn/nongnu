@@ -1510,8 +1510,20 @@ ID is that of the toot to view."
 
 
 (defun mastodon-tl--mute-thread ()
-  "Mute the thread displayed in the current buffer."
+  "Mute the thread displayed in the current buffer.
+Note that you can only (un)mute threads you have posted in."
   (interactive)
+  (mastodon-tl--mute-or-unmute-thread))
+
+(defun mastodon-tl--unmute-thread ()
+  "Mute the thread displayed in the current buffer.
+Note that you can only (un)mute threads you have posted in."
+  (interactive)
+  (mastodon-tl--mute-or-unmute-thread :unmute))
+
+(defun mastodon-tl--mute-or-unmute-thread  (&optional unmute)
+  "Mute a thread.
+If UNMUTE, unmute it."
   (let ((endpoint (mastodon-tl--get-endpoint)))
     (if (string-suffix-p "context" endpoint) ; thread view
         (let* ((id
@@ -1520,14 +1532,21 @@ ID is that of the toot to view."
                                            endpoint)))
                     (match-string 2 endpoint))))
                (we-posted-p (mastodon-tl--user-in-thread-p id))
-               (url (mastodon-http--api (format "statuses/%s/mute" id))))
+               (url (mastodon-http--api
+                     (if unmute
+                         (format "statuses/%s/unmute" id)
+                       (format "statuses/%s/mute" id)))))
           (if (not we-posted-p)
-              (message "You can only mute a thread you have posted in.")
-            (when (y-or-n-p "Mute this thread? ")
+              (message "You can only (un)mute a thread you have posted in.")
+            (when (if unmute
+                      (y-or-n-p "Unute this thread? ")
+                    (y-or-n-p "Mute this thread? "))
               (let ((response (mastodon-http--post url)))
                 (mastodon-http--triage response
                                        (lambda ()
-                                         (message "Thread muted!"))))))))))
+                                         (if unmute
+                                             (message "Thread unmuted!")
+                                           (message "Thread muted!")))))))))))
 
 (defun mastodon-tl--user-in-thread-p (id)
   "Return non-nil if the logged-in user has posted to the current thread.
