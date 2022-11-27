@@ -1508,6 +1508,46 @@ ID is that of the toot to view."
             ;; else just print the lone toot:
             (mastodon-tl--single-toot id)))))))
 
+
+(defun mastodon-tl--mute-thread ()
+  "Mute the thread displayed in the current buffer."
+  (interactive)
+  (let ((endpoint (mastodon-tl--get-endpoint)))
+    (if (string-suffix-p "context" endpoint) ; thread view
+        (let* ((id
+                (save-match-data
+                  (let ((str (string-match "statuses/\\(?2:[[:digit:]]+\\)/context"
+                                           endpoint)))
+                    (match-string 2 endpoint))))
+               (we-posted-p (mastodon-tl--user-in-thread-p id))
+               (url (mastodon-http--api (format "statuses/%s/mute" id))))
+          (if (not we-posted-p)
+              (message "You can only mute a thread you have posted in.")
+            (when (y-or-n-p "Mute this thread? ")
+              (let ((response (mastodon-http--post url)))
+                (mastodon-http--triage response
+                                       (lambda ()
+                                         (message "Thread muted!"))))))))))
+
+(defun mastodon-tl--user-in-thread-p (id)
+  "Return non-nil if the logged-in user has posted to the current thread.
+ID is that of the post the context is currently displayed for."
+  (let* ((context-json (mastodon-http--get-json
+                        (mastodon-http--api (format "statuses/%s/context" id))
+                        nil :silent))
+         (ancestors (alist-get 'ancestors context-json))
+         (descendants (alist-get 'descendants context-json))
+         (a-ids (mapcar (lambda (status)
+                          (alist-get 'id
+                                     (alist-get 'account status)))
+                        ancestors))
+         (d-ids (mapcar (lambda (status)
+                          (alist-get 'id
+                                     (alist-get 'account status)))
+                        descendants)))
+    (or (member (mastodon-auth--get-account-id) a-ids)
+        (member (mastodon-auth--get-account-id) d-ids))))
+
 ;;; LISTS
 
 (defun mastodon-tl--get-users-lists ()
