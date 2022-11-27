@@ -352,11 +352,10 @@ TIME-FORMAT is used to format data."
                    'solaire-region-face
                  'region))
               ('line
-               (if (bound-and-true-p hl-line-mode)
-                   (if (bound-and-true-p solaire-mode)
-                       'solaire-hl-line-face
-                     'hl-line)
-                 'why-this-face))
+               (cond
+                ((not (bound-and-true-p hl-line-mode)) 'why-this-face)
+                ((not (bound-and-true-p solaire-mode)) 'hl-line)
+                (t 'solaire-hl-line-face)))
               (_
                'why-this-face))
             nil t)
