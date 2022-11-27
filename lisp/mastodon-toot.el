@@ -1211,6 +1211,9 @@ REPLY-TEXT is the text of the toot being replied to."
        (propertize "Visibility"
                    'toot-post-visibility t)
        " ⋅ "
+       (propertize "Language"
+                   'toot-post-language t)
+       " "
        (propertize "CW"
                    'toot-post-cw-flag t)
        " "
@@ -1264,6 +1267,8 @@ REPLY-JSON is the full JSON of the toot being replied to."
                                                           (point-min)))
            (cw-region (mastodon-tl--find-property-range 'toot-post-cw-flag
                                                         (point-min)))
+           (lang-region (mastodon-tl--find-property-range 'toot-post-language
+                                                          (point-min)))
            (toot-string (buffer-substring-no-properties (cdr header-region)
                                                         (point-max))))
       (add-text-properties (car count-region) (cdr count-region)
@@ -1279,10 +1284,16 @@ REPLY-JSON is the full JSON of the toot being replied to."
                                               "private")
                                              "followers-only"
                                            mastodon-toot--visibility))))
+      (add-text-properties (car lang-region) (cdr lang-region)
+                           (list 'display
+                                 (if mastodon-toot--language
+                                     (format "Language: %s"
+                                             mastodon-toot--language)
+                                   "")))
       (add-text-properties (car nsfw-region) (cdr nsfw-region)
                            (list 'display (if mastodon-toot--content-nsfw
                                               (if mastodon-toot--media-attachments
-                                                  "NSFW" "NSFW (no effect until attachments added)")
+                                                  "NSFW" "NSFW (for attachments only)")
                                             "")
                                  'face 'mastodon-cw-face))
       (add-text-properties (car cw-region) (cdr cw-region)
