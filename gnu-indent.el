@@ -100,6 +100,20 @@ When called non-interactively, indent text between BEG and END."
       (message "Indenting...done"))))
 
 ;;;###autoload
+(defun gnu-indent-defun-or-fill (arg)
+  "Indent current function with GNU Indent.
+If point is in a comment, call `fill-paragraph' instead.  A
+prefix argument ARG is passed to `fill-paragraph'."
+  (interactive "P")
+  (if (nth 8 (syntax-ppss))           ; If in a comment.
+      (fill-paragraph arg)
+    (let ((bounds (bounds-of-thing-at-point 'defun)))
+      (if (consp bounds)
+          (gnu-indent-region (car bounds) (cdr bounds))
+        (user-error "No defun at point")))))
+
+
+;;;###autoload
 (defun gnu-indent-buffer ()
   "Indent current buffer with GNU Indent."
   (interactive)
