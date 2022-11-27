@@ -1434,7 +1434,9 @@ a draft into the buffer."
        'completion-at-point-functions
        #'mastodon-toot--tags-capf)
       ;; company
-      (when mastodon-toot--use-company-for-completion
+      (when (and mastodon-toot--use-company-for-completion
+                 (require 'company nil :no-error))
+        (declare-function 'company-mode-on "company")
         (set (make-local-variable 'company-backends)
              (add-to-list 'company-backends 'company-capf))
         (company-mode-on)))
