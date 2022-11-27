@@ -1469,7 +1469,8 @@ ID is that of the toot to view."
     (if (or (string= type "follow_request")
             (string= type "follow")) ; no can thread these
         (error "No thread")
-      (let* ((url (mastodon-http--api (format "statuses/%s/context" id)))
+      (let* ((endpoint (format "statuses/%s/context" id))
+             (url (mastodon-http--api endpoint))
              (buffer (format "*mastodon-thread-%s*" id))
              (toot
               ;; refetch current toot in case we just faved/boosted:
@@ -1492,7 +1493,7 @@ ID is that of the toot to view."
                   (switch-to-buffer buffer)
                   (mastodon-mode)
                   (mastodon-tl--set-buffer-spec buffer
-                                                (format "statuses/%s/context" id)
+                                                endpoint
                                                 nil)
                   (let ((inhibit-read-only t))
                     (mastodon-tl--timeline (alist-get 'ancestors context))
