@@ -4,7 +4,7 @@
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Created: 2022-07-26
-;; Version: 0.1
+;; Version: 1.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: docs
 ;; URL: https://codeberg.org/akib/emacs-devhelp
