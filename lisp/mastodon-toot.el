@@ -164,10 +164,6 @@ This is determined by the account setting on the server. To
 change the setting on the server, see
 `mastodon-toot--set-default-visibility'.")
 
-(defvar-local mastodon-toot--scheduled-at nil
-  "An ISO 8601 timestamp that declares when the post should be published.
-Should be at least 5 minutes into the future.")
-
 (defvar-local mastodon-toot--media-attachments nil
   "A list of the media attachments of the toot being composed.")
 
@@ -179,6 +175,10 @@ Should be at least 5 minutes into the future.")
 
 (defvar-local mastodon-toot--language nil
   "The language of the toot being composed, in ISO 639 (two-letter).")
+
+(defvar-local mastodon-toot--scheduled-for nil
+  "An ISO 8601 timestamp that specifying when the post should be published.
+Should be at least 5 minutes into the future.")
 
 (defvar-local mastodon-toot--reply-to-id nil
   "Buffer-local variable to hold the id of the toot being replied to.")
@@ -233,6 +233,7 @@ send.")
     (define-key map (kbd "C-c !") #'mastodon-toot--clear-all-attachments)
     (define-key map (kbd "C-c C-p") #'mastodon-toot--create-poll)
     (define-key map (kbd "C-c C-l") #'mastodon-toot--set-toot-lang)
+    (define-key map (kbd "C-c C-s") #'mastodon-toot--schedule-toot)
     map)
   "Keymap for `mastodon-toot'.")
 
@@ -1126,6 +1127,15 @@ Return its two letter ISO 639 1 code."
     (setq mastodon-toot--language
           (alist-get choice mastodon-iso-639-1 nil nil 'equal))
     (message "Language set to %s" choice)))
+
+(defun mastodon-toot--schedule-toot ()
+  "Read a date (+ time) in the minibuffer and schedule the current toot."
+  (interactive)
+  (let* ((time-value (org-read-date nil t nil "Schedule toot:"))
+         (iso8601-string (format-time-string "%Y-%m-%dT%H:%M:%S%z" time-value))
+         (msg-str (format-time-string "%Y-%m-%d at %H:%M[%z]" time-value)))
+    (setq-local mastodon-toot--scheduled-at iso8601-string)
+    (message (format "Toot scheduled for %s." msg-str))))
 
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
