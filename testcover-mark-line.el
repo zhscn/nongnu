@@ -4,7 +4,7 @@
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Created: 2022-10-11
-;; Version: 0.1
+;; Version: 0.2
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: lisp utility
 ;; Homepage: https://codeberg.org/akib/emacs-testcover-mark-line
