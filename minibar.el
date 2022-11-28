@@ -3,7 +3,7 @@
 ;; Copyright (C) 2022 Akib Azmain Turja.
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
-;; Version: 0.1
+;; Version: 0.2
 ;; Package-Requires: ((emacs "27.2"))
 ;; Keywords: calendar, hardware
 ;; URL: https://codeberg.org/akib/emacs-minibar
