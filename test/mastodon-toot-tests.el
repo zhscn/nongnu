@@ -68,7 +68,7 @@ Even the local name \"local\" gets a domain name added."
         (mastodon-instance-url "https://local.social"))
     (should (string=
              (mastodon-toot--mentions mastodon-toot--multi-mention)
-             "@local@local.social @federated@federated.social @federated@federated.cafe "))))
+             "@local@local.social @federated@federated.social @federated@federated.cafe"))))
 
 (ert-deftest mastodon-toot--multi-mentions-with-name ()
   "Should build a correct mention string omitting self.
@@ -80,7 +80,7 @@ mention string."
         (mastodon-instance-url "https://local.social"))
     (should (string=
              (mastodon-toot--mentions mastodon-toot--multi-mention)
-             "@federated@federated.social @federated@federated.cafe "))))
+             "@federated@federated.social @federated@federated.cafe"))))
 
 (ert-deftest mastodon-toot--no-mention ()
   "Should construct an empty mention string without mentions."

@@ -808,10 +808,10 @@ eg. \"user\" -> \"user@local.social \" (when local.social is the domain of the
 mastodon-instance-url).
 eg. \"yourusername\" -> \"\"
 eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
-  (cond ((string-match-p "@" acct) (concat "@" acct " ")) ; federated acct
+  (cond ((string-match-p "@" acct) (concat "@" acct)) ; federated acct
         ((string= (mastodon-auth--user-acct) acct) "") ; your acct
         (t (concat "@" acct "@" ; local acct
-                   (cadr (split-string mastodon-instance-url "/" t)) " "))))
+                   (cadr (split-string mastodon-instance-url "/" t))))))
 
 (defun mastodon-toot--mentions (status)
   "Extract mentions from STATUS and process them into a string."
@@ -821,11 +821,11 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
           (if boosted
               (alist-get 'mentions (alist-get 'reblog status))
             (alist-get 'mentions status))))
-    (mapconcat (lambda(x) (mastodon-toot--process-local
+    (string-trim (mapconcat (lambda(x) (mastodon-toot--process-local
                            (alist-get 'acct x)))
                ;; reverse does not work on vectors in 24.5
                (reverse (append mentions nil))
-               "")))
+               " "))))
 
 (defun mastodon-toot--get-bounds (regex)
   "Get bounds of tag or handle before point using REGEX."
