@@ -845,25 +845,7 @@ These include the author, author of reblogged entries and any user mentioned."
 User may be the current profile page if not your own, or the
 account ('toot-json) at point if you are on your own profile page (followers)."
   (interactive)
-  ;; FIXME: this means you can't choose another account if on a profile page
-  (let* ((account (unless id
-                    (cond ((and ;; we are on a profile page
-                            mastodon-profile--account
-                            ;; that is not our own:
-                            (not (string= (mastodon-auth--user-acct)
-                                          (alist-get 'acct mastodon-profile--account))))
-                           mastodon-profile--account)
-                          ;; we are on our own profile page:
-                          ((and (string= (mastodon-auth--user-acct)
-                                         (alist-get 'acct mastodon-profile--account))
-                                ;; viewing our followers:
-                                (string= endpoint-type "followers"))
-                           ;; try for a follower at point:
-                           ;; (mastodon-tl--field 'toot-json)
-                           (get-text-property (point) 'toot-json))
-                          (t
-                           ;; FIXME: do some thing else?
-                           (get-text-property (point) 'toot-json)))))
+  (let* ((account (unless id (get-text-property (point) 'toot-json)))
          ;; TODO: read account from list of all followers' handles
          (id (or id (alist-get 'id account)))
          (handle (if account
