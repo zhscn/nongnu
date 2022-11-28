@@ -1768,7 +1768,9 @@ any previous bookmark with the same name."
      "
 ;; Workroom section:
 "
-     (let ((fn-sym (intern (format "workroom--desktop-restore-%s"
+     (let ((print-level nil)
+           (print-length nil)
+           (fn-sym (intern (format "workroom--desktop-restore-%s"
                                    (format-time-string "%s%N")))))
        (prin1-to-string
         `(progn
