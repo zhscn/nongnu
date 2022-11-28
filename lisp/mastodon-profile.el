@@ -132,7 +132,7 @@ extra keybindings."
 (defvar mastodon-profile-update-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-profile--user-profile-send-updated)
-    (define-key map (kbd "C-c C-k") #'kill-buffer-and-window)
+    (define-key map (kbd "C-c C-k") #'mastodon-profile--update-profile-note-cancel)
     map)
   "Keymap for `mastodon-profile-update-mode'.")
 
@@ -296,26 +296,63 @@ JSON is the data returned by the server."
          (source (alist-get 'source json))
          (note (alist-get 'note source))
          (buffer (get-buffer-create "*mastodon-update-profile*"))
-         (inhibit-read-only t))
+         (inhibit-read-only t)
+         (msg-str "Edit your profile note. C-c C-c to send, C-c C-k to cancel."))
     (switch-to-buffer-other-window buffer)
     (text-mode)
     (mastodon-tl--set-buffer-spec (buffer-name buffer)
                                   endpoint
                                   nil)
     (setq-local header-line-format
-                (propertize
-                 "Edit your profile note. C-c C-c to send, C-c C-k to cancel."
-                 'face font-lock-comment-face))
+                (propertize msg-str
+                            'face font-lock-comment-face))
     (mastodon-profile-update-mode t)
-    (insert note)
-    (goto-char (point-min))
+    (insert (propertize (concat (propertize "0"
+                                            'note-counter t
+                                            'display nil)
+                                "/500 characters")
+                        'read-only t
+                        'face 'font-lock-comment-face
+                        'note-header t)
+            "\n")
+    (make-local-variable 'after-change-functions)
+    (push #'mastodon-profile--update-note-count after-change-functions)
+    (let ((start-point (point)))
+      (insert note)
+      (goto-char start-point))
     (delete-trailing-whitespace) ; remove all ^M's
-    (message "Edit your profile note. C-c C-c to send, C-c C-k to cancel.")))
+    (message msg-str)))
+
+(defun mastodon-profile--update-note-count (&rest _args)
+  "Display the character count of the profile note buffer."
+  (let ((inhibit-read-only t)
+        (header-region (mastodon-tl--find-property-range 'note-header
+                                                         (point-min)))
+        (count-region (mastodon-tl--find-property-range 'note-counter
+                                                        (point-min))))
+    (add-text-properties (car count-region) (cdr count-region)
+                         (list 'display
+                               (number-to-string
+                                (mastodon-toot--count-toot-chars
+                                 (buffer-substring-no-properties
+                                  (cdr header-region) (point-max))))))))
+
+(defun mastodon-profile--update-profile-note-cancel ()
+  "Cancel updating user profile and kill buffer and window."
+  (interactive)
+  (when (y-or-n-p "Cancel updating your profile note?")
+    (kill-buffer-and-window)))
+
+(defun mastodon-profile--note-remove-header ()
+  "Get the body of a toot from the current compose buffer."
+  (let ((header-region (mastodon-tl--find-property-range 'note-header
+                                                         (point-min))))
+    (buffer-substring (cdr header-region) (point-max))))
 
 (defun mastodon-profile--user-profile-send-updated ()
   "Send PATCH request with the updated profile note."
   (interactive)
-  (let* ((note (buffer-substring-no-properties (point-min) (point-max)))
+  (let* ((note (mastodon-profile--note-remove-header))
          (url (mastodon-http--api "accounts/update_credentials")))
     (kill-buffer-and-window)
     (let ((response (mastodon-http--patch url `(("note" . ,note)))))
