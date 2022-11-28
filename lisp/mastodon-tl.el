@@ -570,7 +570,7 @@ TIMESTAMP is assumed to be in the past."
          (relative-result
           (cond
            ((< seconds-difference 60)
-            (cons "now"
+            (cons "just now"
                   60))
            ((< seconds-difference (* 1.5 60))
             (cons "1 minute ago"
