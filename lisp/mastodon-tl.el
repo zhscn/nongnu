@@ -257,6 +257,13 @@ types of mastodon links and not just shr.el-generated ones.")
     (keymap-canonicalize map))
   "Keymap for when point is on list name.")
 
+(defvar mastodon-tl--scheduled-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "r") 'mastodon-tl--reschedule-toot)
+    (define-key map (kbd "c") 'mastodon-tl--cancel-scheduled-toot)
+    (keymap-canonicalize map))
+  "Keymap for when point is on a scheduled toot.")
+
 (defvar mastodon-tl--byline-link-keymap
   (when (require 'mpv nil :no-error)
     (let ((map (make-sparse-keymap)))
@@ -1835,6 +1842,97 @@ If ID is provided, use that list."
   "Return the JSON of the accounts in list with LIST-ID."
   (let* ((url (mastodon-http--api (format "lists/%s/accounts" list-id))))
     (mastodon-http--get-json url)))
+
+;;; SCHEDULED TOOTS
+
+(defun mastodon-tl--get-scheduled-toots (&optional id)
+  "Get the user's currently scheduled toots.
+If ID, just return that toot."
+  (let* ((endpoint (if id
+                       (format "scheduled_statuses/%s" id)
+                     "scheduled_statuses"))
+         (url (mastodon-http--api endpoint)))
+    (mastodon-http--get-json url)))
+
+(defun mastodon-tl--reschedule-toot (&optional id)
+  "Reschedule the scheduled toot at point."
+  (interactive)
+  (let* ((id (get-text-property (point) 'id))
+         (time-value (org-read-date nil t nil "Schedule toot:"))
+         (iso8601-str (format-time-string "%Y-%m-%dT%H:%M:%S%z" time-value))
+         (msg-str (format-time-string "%Y-%m-%d at %H:%M[%z]" time-value))
+         (args `(("scheduled_at" . ,iso8601-str)))
+         (url (mastodon-http--api (format "scheduled_statuses/%s" id)))
+         (response (mastodon-http--put url args)))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (mastodon-tl--update)
+                             (message
+                              (format "Toot rescheduled for %s." msg-str))))))
+
+(defun mastodon-tl--view-scheduled-toots ()
+  "Show the user's scheduled toots in a new buffer."
+  (interactive)
+  (mastodon-tl--init-sync "scheduled-toots"
+                          "scheduled_statuses"
+                          'mastodon-tl--insert-scheduled-toots))
+
+(defun mastodon-tl--insert-scheduled-toots (json)
+  "Insert the user's scheduled toots."
+  (let ((scheduleds (mastodon-tl--get-scheduled-toots)))
+    (erase-buffer)
+    (insert (mastodon-tl--set-face
+             (concat "\n ------------\n"
+                     " YOUR SCHEDULED TOOTS\n"
+                     " ------------\n\n")
+             'success)
+            (mastodon-tl--set-face
+             "[n/p - prev/next\n r - reschedule\n c - cancel]\n\n"
+             'font-lock-comment-face))
+    (mapcar (lambda (x)
+              (mastodon-tl--insert-scheduled-toot x))
+            scheduleds)
+    (goto-char (point-min))
+    (when json
+      (mastodon-tl--goto-next-toot))))
+
+(defun mastodon-tl--insert-scheduled-toot (toot)
+  "Insert scheduled TOOT into the buffer."
+  (let* ((id (alist-get 'id toot))
+         (scheduled (alist-get 'scheduled_at toot))
+         (params (alist-get 'params toot))
+         (text (alist-get 'text params)))
+    (insert
+     (propertize (concat text
+                         " | "
+                         scheduled)
+                 'byline t ; so we nav here
+                 'toot-id "0" ; so we nav here
+                 'face 'font-lock-comment-face
+                 'keymap mastodon-tl--scheduled-map
+                 'scheduled-json toot
+                 'id id)
+     "\n")))
+
+(defun mastodon-tl--copy-scheduled-toot-text ()
+  "Copy the text of the scheduled toot at point."
+  (interactive)
+  (let* ((toot (get-text-property (point) 'toot))
+         (params (alist-get 'params toot))
+         (text (alist-get 'text params)))
+    (kill-new text)))
+
+(defun mastodon-tl--cancel-scheduled-toot ()
+  "Cancel the scheduled toot at point."
+  (interactive)
+  (let* ((id (get-text-property (point) 'id))
+         (url (mastodon-http--api (format "scheduled_statuses/%s" id))))
+    (when (y-or-n-p "Cancel scheduled toot?")
+      (let ((response (mastodon-http--delete url)))
+        (mastodon-http--triage response
+                               (lambda ()
+                                 (mastodon-tl--view-scheduled-toots)
+                                 (message "Toot cancelled!")))))))
 
 ;;; FILTERS
 
