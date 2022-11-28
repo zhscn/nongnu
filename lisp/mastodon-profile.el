@@ -77,6 +77,7 @@
 (autoload 'mastodon-tl--get-link-header-from-response "mastodon-tl")
 (autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
 (autoload 'mastodon-tl--symbol "mastodon-tl")
+(autoload 'mastodon-auth--get-account-id "mastodon-auth")
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
@@ -575,14 +576,14 @@ NO-REBLOGS means do not display boosts in statuses.
 HEADERS means also fetch link headers for pagination."
   (let* ((id (mastodon-profile--account-field account 'id))
          (args (when no-reblogs '(("exclude_reblogs" . "t"))))
-         (url (mastodon-http--api (format "accounts/%s/%s" id endpoint-type)))
+         (endpoint (format "accounts/%s/%s" id endpoint-type))
+         (url (mastodon-http--api endpoint))
          (acct (mastodon-profile--account-field account 'acct))
          (buffer (concat "*mastodon-" acct "-" endpoint-type  "*"))
          (response (if headers
                        (mastodon-http--get-response url args)
                      (mastodon-http--get-json url args)))
          (json (if headers (car response) response))
-         (endpoint (format "accounts/%s/%s" id endpoint-type))
          (link-header (when headers
                         (mastodon-tl--get-link-header-from-response
                          (cdr response))))
@@ -839,6 +840,57 @@ These include the author, author of reblogged entries and any user mentioned."
            (mastodon-profile--account-from-id mention-id))
           (t
            (mastodon-profile--search-account-by-handle handle)))))
+
+(defun mastodon-profile--remove-user-from-followers (&optional id)
+  "Remove a user from your followers.
+Optionally provide the ID of the account to remove."
+  (interactive)
+  (let* ((account (unless id (get-text-property (point) 'toot-json)))
+         (id (or id (alist-get 'id account)))
+         (handle (if account
+                     (alist-get 'acct account)
+                   (let ((account
+                          (mastodon-profile--account-from-id id)))
+                     (alist-get 'acct account))))
+         (url (mastodon-http--api
+               (format "accounts/%s/remove_from_followers" id))))
+    (when (y-or-n-p (format "Remove follower %s? " handle))
+      (let ((response (mastodon-http--post url)))
+        (mastodon-http--triage response
+                               (lambda ()
+                                 (message "Follower %s removed!" handle)))))))
+
+(defun mastodon-profile--remove-from-followers-at-point ()
+  "Prompt for a user in the item at point and remove from followers."
+  (interactive)
+  (let* ((handles (mastodon-profile--extract-users-handles
+                   (mastodon-profile--toot-json)))
+         (handle (completing-read "Remove from followers: "
+                                  handles nil))
+         (account (mastodon-profile--lookup-account-in-status
+                   handle (mastodon-profile--toot-json)))
+         (id (alist-get 'id account)))
+    (mastodon-profile--remove-user-from-followers id)))
+
+(defun mastodon-profile--remove-from-followers-list ()
+  "Select a user from your followers and remove from followers.
+Currently limited to 100 handles. If not found, try
+`mastodon-search--search-query'."
+  (interactive)
+  (let* ((endpoint (format "accounts/%s/followers"
+                           (mastodon-auth--get-account-id)))
+         (url (mastodon-http--api endpoint))
+         (response (mastodon-http--get-json url
+                                            `(("limit" . "100"))))
+         (handles (mapcar (lambda (x)
+                            (cons
+                             (alist-get 'acct x)
+                             (alist-get 'id x)))
+                          response))
+         (choice (completing-read "Remove from followers: "
+                                  handles))
+         (id (alist-get choice handles nil nil 'equal)))
+    (mastodon-profile--remove-user-from-followers id)))
 
 (provide 'mastodon-profile)
 ;;; mastodon-profile.el ends here
