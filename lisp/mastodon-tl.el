@@ -570,25 +570,25 @@ TIMESTAMP is assumed to be in the past."
          (relative-result
           (cond
            ((< seconds-difference 60)
-            (cons "less than a minute ago"
+            (cons "just now"
                   60))
            ((< seconds-difference (* 1.5 60))
-            (cons "one minute ago"
+            (cons "1 minute ago"
                   90)) ;; at 90 secs
            ((< seconds-difference (* 60 59.5))
             (funcall regular-response seconds-difference 60 "minute"))
            ((< seconds-difference (* 1.5 60 60))
-            (cons "one hour ago"
+            (cons "1 hour ago"
                   (* 60 90))) ;; at 90 minutes
            ((< seconds-difference (* 60 60 23.5))
             (funcall regular-response seconds-difference (* 60 60) "hour"))
            ((< seconds-difference (* 1.5 60 60 24))
-            (cons "one day ago"
+            (cons "1 day ago"
                   (* 1.5 60 60 24))) ;; at a day and a half
            ((< seconds-difference (* 60 60 24 6.5))
             (funcall regular-response seconds-difference (* 60 60 24) "day"))
            ((< seconds-difference (* 1.5 60 60 24 7))
-            (cons "one week ago"
+            (cons "1 week ago"
                   (* 1.5 60 60 24 7))) ;; a week and a half
            ((< seconds-difference (* 60 60 24 7 52))
             (if (= 52 (floor (+ 0.5 (/ seconds-difference 60 60 24 7))))
@@ -596,7 +596,7 @@ TIMESTAMP is assumed to be in the past."
                       (* 60 60 24 7 52))
               (funcall regular-response seconds-difference (* 60 60 24 7) "week")))
            ((< seconds-difference (* 1.5 60 60 24 365))
-            (cons "one year ago"
+            (cons "1 year ago"
                   (* 60 60 24 365 1.5))) ;; a year and a half
            (t
             (funcall regular-response seconds-difference (* 60 60 24 365.25) "year")))))
