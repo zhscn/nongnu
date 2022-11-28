@@ -1,6 +1,7 @@
 ;;; mastodon-toot.el --- Minor mode for sending Mastodon toots  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2019 Johnson Denen
+;; Copyright (C) 2020-2022 Marty Hiatt
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
@@ -78,7 +79,7 @@
 (autoload 'mastodon-http--build-array-params-alist "mastodon-http")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl")
 (autoload 'mastodon-http--put "mastodon-http")
-(autoload 'mastodon-tl--return-fave-char "mastodon-tl")
+(autoload 'mastodon-tl--symbol "mastodon-tl")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -345,8 +346,8 @@ TYPE is a symbol, either 'favourite or 'boost."
                                       (list 'favourited-p (not faved))))
                (mastodon-toot--action-success
                 (if boost-p
-                    (mastodon-tl--return-boost-char)
-                  (mastodon-tl--return-fave-char))
+                    (mastodon-tl--symbol 'boost)
+                  (mastodon-tl--symbol 'favourite))
                 byline-region remove))
              (message (format "%s #%s" (if boost-p msg action) id))))))
       (message (format "Nothing to %s here?!?" action-string)))))
@@ -366,23 +367,21 @@ TYPE is a symbol, either 'favourite or 'boost."
   "Bookmark or unbookmark toot at point."
   (interactive)
   (let* ( ;(toot (mastodon-tl--property 'toot-json))
-          (id (mastodon-tl--property 'base-toot-id))
-          ;; (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
-          (bookmarked-p (mastodon-tl--property 'bookmarked-p))
-          (prompt (if bookmarked-p
-                      (format "Toot already bookmarked. Remove? ")
-                    (format "Bookmark this toot? ")))
-          (byline-region
-           (when id
-             (mastodon-tl--find-property-range 'byline (point))))
-          (action (if bookmarked-p "unbookmark" "bookmark"))
-          (bookmark-str (if (fontp (char-displayable-p #10r128278))
-                            "🔖"
-                          "K"))
-          (message (if bookmarked-p
-                       "Bookmark removed!"
-                     "Toot bookmarked!"))
-          (remove (when bookmarked-p t)))
+         (id (mastodon-tl--property 'base-toot-id))
+         ;; (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
+         (bookmarked-p (mastodon-tl--property 'bookmarked-p))
+         (prompt (if bookmarked-p
+                     (format "Toot already bookmarked. Remove? ")
+                   (format "Bookmark this toot? ")))
+         (byline-region
+          (when id
+            (mastodon-tl--find-property-range 'byline (point))))
+         (action (if bookmarked-p "unbookmark" "bookmark"))
+         (bookmark-str (mastodon-tl--symbol 'bookmark))
+         (message (if bookmarked-p
+                      "Bookmark removed!"
+                    "Toot bookmarked!"))
+         (remove (when bookmarked-p t)))
     (if byline-region
         (when (y-or-n-p prompt)
           (mastodon-toot--action
@@ -790,8 +789,8 @@ instance to edit a toot."
 
 (defun mastodon-toot--insert-toot-iter (it)
   "Insert iteration IT of toot."
-  (let ((content (alist-get 'content it))
-        (account (alist-get 'account it)))
+  (let ((content (alist-get 'content it)))
+    ;; (account (alist-get 'account it))
     ;; TODO: handle polls, media
     (mastodon-tl--render-text content)))
 
@@ -829,7 +828,7 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
                "")))
 
 (defun mastodon-toot--get-bounds (regex)
-  "Get bounds of tag or handle before point."
+  "Get bounds of tag or handle before point using REGEX."
   ;; needed because # and @ are not part of any existing thing at point
   (save-match-data
     (save-excursion
@@ -855,8 +854,7 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
                ;; just for the annotation-function?
                (setq mastodon-toot-completions
                      (mastodon-search--search-accounts-query
-                      (buffer-substring-no-properties start end)
-                      :capf))))
+                      (buffer-substring-no-properties start end)))))
             :exclusive 'no
             :annotation-function
             (lambda (candidate)
@@ -1115,16 +1113,14 @@ LENGTH is the maximum character length allowed for a poll option."
     ("30 days" . ,(number-to-string (* 60 60 24 30)))))
 
 (defun mastodon-toot--set-toot-lang ()
-  "Prompt for a language and return its two letter ISO 639 1 code."
+  "Prompt for a language and set `mastodon-toot--language'.
+Return its two letter ISO 639 1 code."
   (interactive)
-  (let* ((langs (mapcar (lambda (x)
-                          (cons (cadr x)
-                                (car x)))
-                        mastodon-iso-639-1))
-         (choice (completing-read "Language for this toot: "
-                                  langs)))
+  (let* ((choice (completing-read "Language for this toot: "
+                                  mastodon-iso-639-1)))
     (setq mastodon-toot--language
-          (alist-get choice langs nil nil 'equal))))
+          (alist-get choice mastodon-iso-639-1 nil nil 'equal))
+    (message "Language set to %s" choice)))
 
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
@@ -1216,6 +1212,9 @@ REPLY-TEXT is the text of the toot being replied to."
        (propertize "Visibility"
                    'toot-post-visibility t)
        " ⋅ "
+       (propertize "Language"
+                   'toot-post-language t)
+       " "
        (propertize "CW"
                    'toot-post-cw-flag t)
        " "
@@ -1269,6 +1268,8 @@ REPLY-JSON is the full JSON of the toot being replied to."
                                                           (point-min)))
            (cw-region (mastodon-tl--find-property-range 'toot-post-cw-flag
                                                         (point-min)))
+           (lang-region (mastodon-tl--find-property-range 'toot-post-language
+                                                          (point-min)))
            (toot-string (buffer-substring-no-properties (cdr header-region)
                                                         (point-max))))
       (add-text-properties (car count-region) (cdr count-region)
@@ -1284,10 +1285,16 @@ REPLY-JSON is the full JSON of the toot being replied to."
                                               "private")
                                              "followers-only"
                                            mastodon-toot--visibility))))
+      (add-text-properties (car lang-region) (cdr lang-region)
+                           (list 'display
+                                 (if mastodon-toot--language
+                                     (format "Language: %s"
+                                             mastodon-toot--language)
+                                   "")))
       (add-text-properties (car nsfw-region) (cdr nsfw-region)
                            (list 'display (if mastodon-toot--content-nsfw
                                               (if mastodon-toot--media-attachments
-                                                  "NSFW" "NSFW (no effect until attachments added)")
+                                                  "NSFW" "NSFW (for attachments only)")
                                             "")
                                  'face 'mastodon-cw-face))
       (add-text-properties (car cw-region) (cdr cw-region)
@@ -1439,7 +1446,9 @@ a draft into the buffer."
        'completion-at-point-functions
        #'mastodon-toot--tags-capf)
       ;; company
-      (when mastodon-toot--use-company-for-completion
+      (when (and mastodon-toot--use-company-for-completion
+                 (require 'company nil :no-error))
+        (declare-function 'company-mode-on "company")
         (set (make-local-variable 'company-backends)
              (add-to-list 'company-backends 'company-capf))
         (company-mode-on)))

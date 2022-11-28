@@ -40,28 +40,23 @@
 (autoload 'mastodon-auth--access-token "mastodon-auth")
 (autoload 'mastodon-http--get-search-json "mastodon-http")
 (autoload 'mastodon-http--api "mastodon-http")
+(autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
+
 (defvar mastodon-toot--completion-style-for-mentions)
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--link-keymap)
 (defvar mastodon-http--timeout)
 (defvar mastodon-toot--enable-completion-for-mentions)
-(defvar mastodon-tl--buffer-spec)
 
 ;; functions for completion of mentions in mastodon-toot
 
-(defun mastodon-search--get-user-info-@-capf (account)
+(defun mastodon-search--get-user-info-@ (account)
   "Get user handle, display name and account URL from ACCOUNT."
   (list (concat "@" (cdr (assoc 'acct account)))
         (cdr (assoc 'url account))
         (cdr (assoc 'display_name account))))
 
-(defun mastodon-search--get-user-info-@ (account)
-  "Get user handle, display name and account URL from ACCOUNT."
-  (list (cdr (assoc 'display_name account))
-        (concat "@" (cdr (assoc 'acct account)))
-        (cdr (assoc 'url account))))
-
-(defun mastodon-search--search-accounts-query (query &optional capf)
+(defun mastodon-search--search-accounts-query (query)
   "Prompt for a search QUERY and return accounts synchronously.
 Returns a nested list containing user handle, display name, and URL."
   (interactive "sSearch mastodon for: ")
@@ -69,9 +64,7 @@ Returns a nested list containing user handle, display name, and URL."
          (response (if (equal mastodon-toot--completion-style-for-mentions "following")
                        (mastodon-http--get-json url `(("q" . ,query) ("following" . "true")) :silent)
                      (mastodon-http--get-json url `(("q" . ,query)) :silent))))
-    (if capf
-        (mapcar #'mastodon-search--get-user-info-@-capf response)
-      (mapcar #'mastodon-search--get-user-info-@ response))))
+    (mapcar #'mastodon-search--get-user-info-@ response)))
 
 ;; functions for tags completion:
 
@@ -101,11 +94,9 @@ QUERY is the string to search."
       (mastodon-mode)
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (setq mastodon-tl--buffer-spec
-              `(buffer-name ,buffer
-                            endpoint ,(format "api/v1/trends")
-                            update-function
-                            (lambda (toot) (message "Trends."))))
+        (mastodon-tl--set-buffer-spec buffer
+                                      "api/v1/trends"
+                                      nil)
         ;; hashtag results:
         (insert (mastodon-tl--set-face
                  (concat "\n ------------\n"
@@ -141,11 +132,9 @@ QUERY is the string to search."
       (mastodon-mode)
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (setq mastodon-tl--buffer-spec
-              `(buffer-name ,buffer
-                            endpoint ,(format "api/v2/search")
-                            update-function
-                            (lambda (toot) (message "Searched."))))
+        (mastodon-tl--set-buffer-spec buffer
+                                      "api/v2/search"
+                                      nil)
         ;; user results:
         (insert (mastodon-tl--set-face
                  (concat "\n ------------\n"
