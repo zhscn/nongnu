@@ -4,7 +4,7 @@
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Created: 2022-07-31
-;; Version: 0.2
+;; Version: 1.0
 ;; Package-Requires: ((emacs "24.3") (seq "2.23") (compat "28.1.2.2"))
 ;; Keywords: frames
 ;; URL: https://codeberg.org/akib/emacs-iwindow
