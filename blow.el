@@ -4,7 +4,7 @@
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Created: 2022-06-08
-;; Version: 0.1
+;; Version: 1.0
 ;; Package-Requires: ((emacs "24.1"))
 ;; Keywords: convenience
 ;; URL: https://codeberg.org/akib/emacs-blow
