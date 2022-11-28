@@ -350,14 +350,23 @@ JSON is the data returned by the server."
     (buffer-substring (cdr header-region) (point-max))))
 
 (defun mastodon-profile--user-profile-send-updated ()
-  "Send PATCH request with the updated profile note."
+  "Send PATCH request with the updated profile note.
+Ask for confirmation if length > 500 characters."
   (interactive)
   (let* ((note (mastodon-profile--note-remove-header))
          (url (mastodon-http--api "accounts/update_credentials")))
-    (kill-buffer-and-window)
-    (let ((response (mastodon-http--patch url `(("note" . ,note)))))
-      (mastodon-http--triage response
-                             (lambda () (message "Profile note updated!"))))))
+    (if (> (mastodon-toot--count-toot-chars note) 500)
+        (when (y-or-n-p "Note is over mastodon's max for profile notes (500). Proceed?")
+          (kill-buffer-and-window)
+          (mastodon-profile--user-profile-send-updated-do url note))
+      (kill-buffer-and-window)
+      (mastodon-profile--user-profile-send-updated-do url note))))
+
+(defun mastodon-profile--user-profile-send-updated-do (url note)
+  "Send PATCH request with the updated profile note."
+  (let ((response (mastodon-http--patch url `(("note" . ,note)))))
+    (mastodon-http--triage response
+                           (lambda () (message "Profile note updated!")))))
 
 (defun mastodon-profile--update-preference (pref val &optional source)
   "Update account PREF erence to setting VAL.
