@@ -6,6 +6,8 @@ which sometimes don't attract attention and is hard to see, especially
 when your code is heavy highlighted.  This package highlights the
 whole line, which can easily get your attention.
 
+Enable with ~M-x testcover-mark-line-mode~, and you're done.
+
 * Installation
 
 ~testcover-mark-line~ isn't available on any ELPA right now.  So, you
@@ -28,6 +30,8 @@ have to follow one of the following methods:
    :type git
    :repo "https://codeberg.org/akib/emacs-testcover-mark-line.git"))
 #+end_src
+
+* Usa
 
 ** Manual
 

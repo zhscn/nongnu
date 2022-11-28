@@ -32,6 +32,8 @@
 ;; especially when your code is heavy highlighted.  This package
 ;; highlights the whole line, which can easily get your attention.
 
+;; Enable with M-x testcover-mark-line-mode, and you're done.
+
 ;;; Code:
 
 (require 'cl-lib)
