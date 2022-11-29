@@ -766,16 +766,15 @@ instance to edit a toot."
              (content (alist-get 'text source))
              (source-cw (alist-get 'spoiler_text source))
              (toot-visibility (alist-get 'visibility toot))
+             (toot-language (alist-get 'language toot))
              (reply-id (alist-get 'in_reply_to_id toot)))
         (when (y-or-n-p "Edit this toot? ")
           (mastodon-toot--compose-buffer)
           (goto-char (point-max))
           (insert content)
-          ;; adopt reply-to-id, visibility and CW:
-          (when reply-id
-            (setq mastodon-toot--reply-to-id reply-id))
-          (setq mastodon-toot--visibility toot-visibility)
-          (mastodon-toot--set-cw source-cw)
+          ;; adopt reply-to-id, visibility, CW, and language:
+          (mastodon-toot--set-toot-properties reply-id toot-visibility
+                                              source-cw toot-language)
           (mastodon-toot--update-status-fields)
           (setq mastodon-toot--edit-toot-id id))))))
 
