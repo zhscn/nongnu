@@ -369,11 +369,12 @@ TIME-FORMAT is used to format data."
   (while why-this--overlays
     (delete-overlay (pop why-this--overlays)))
   (when why-this-mode
-    (let* ((line (line-number-at-pos (if (use-region-p)
-                                         (region-end)
-                                       (point))))
-           (begin line)
-           (end (1+ line))
+    (let* ((begin (line-number-at-pos (if (use-region-p)
+                                          (region-beginning)
+                                        (point))))
+           (end (1+ (line-number-at-pos (if (use-region-p)
+                                            (region-end)
+                                          (point)))))
            (backend why-this--backend)
            (data (funcall backend 'line-data begin end)))
       (dolist (i (number-sequence 0 (- end begin 1)))
