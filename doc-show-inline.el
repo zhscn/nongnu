@@ -959,7 +959,7 @@ Use STATE to enable/disable."
 ;; Developer note, use global hooks since these run before buffers are loaded.
 ;; Each function checks if the local mode is active before operating.
 
-(defun doc-show-inline-mode-enable (&optional is-interactive)
+(defun doc-show-inline--mode-enable (&optional is-interactive)
   "Turn on option `doc-show-inline-mode' for the current buffer.
 When IS-INTERACTIVE is true, use `doc-show-inline-idle-delay-init'."
 
@@ -983,7 +983,7 @@ When IS-INTERACTIVE is true, use `doc-show-inline-idle-delay-init'."
       ;; Repeat.
       t)))
 
-(defun doc-show-inline-mode-disable ()
+(defun doc-show-inline--mode-disable ()
   "Turn off option `doc-show-inline-mode' for the current buffer."
 
   (when doc-show-inline--use-lookup-cache
@@ -999,9 +999,9 @@ When IS-INTERACTIVE is true, use `doc-show-inline-idle-delay-init'."
   (cond
     (doc-show-inline-mode
       (unless doc-show-inline--inhibit-mode
-        (doc-show-inline-mode-enable (called-interactively-p 'interactive))))
+        (doc-show-inline--mode-enable (called-interactively-p 'interactive))))
     (t
-      (doc-show-inline-mode-disable))))
+      (doc-show-inline--mode-disable))))
 
 (provide 'doc-show-inline)
 ;;; doc-show-inline.el ends here
