@@ -693,7 +693,7 @@ instance to edit a toot."
                                             (symbol-name t)))
                           ("spoiler_text" . ,spoiler)
                           ("language" . ,mastodon-toot--language)
-                          ("scheduled_at" . ,mastodon-toot--scheduled-at)))
+                          ("scheduled_at" . ,mastodon-toot--scheduled-for)))
          (args-media (when mastodon-toot--media-attachments
                        (mastodon-http--build-array-params-alist
                         "media_ids[]"
@@ -1126,16 +1126,35 @@ Return its two letter ISO 639 1 code."
                                   mastodon-iso-639-1)))
     (setq mastodon-toot--language
           (alist-get choice mastodon-iso-639-1 nil nil 'equal))
-    (message "Language set to %s" choice)))
+    (message "Language set to %s" choice)
+    (mastodon-toot--update-status-fields)))
 
-(defun mastodon-toot--schedule-toot ()
-  "Read a date (+ time) in the minibuffer and schedule the current toot."
+(defun mastodon-toot--schedule-toot (&optional reschedule)
+  "Read a date (+ time) in the minibuffer and schedule the current toot.
+With RESCHEDULE, reschedule the scheduled toot at point."
   (interactive)
-  (let* ((time-value (org-read-date nil t nil "Schedule toot:"))
-         (iso8601-string (format-time-string "%Y-%m-%dT%H:%M:%S%z" time-value))
+  (let* ((id (when reschedule (get-text-property (point) 'id)))
+         (time-value (org-read-date nil t nil "Schedule toot:"))
+         (iso8601-str (format-time-string "%FT%T%z" time-value))
          (msg-str (format-time-string "%d-%m-%y at %H:%M[%z]" time-value)))
-    (setq-local mastodon-toot--scheduled-at iso8601-string)
-    (message (format "Toot scheduled for %s." msg-str))))
+    (if (not reschedule)
+        (progn
+          (setq-local mastodon-toot--scheduled-for iso8601-str)
+          (message (format "Toot scheduled for %s." msg-str)))
+      (let ((args (when reschedule `(("scheduled_at" . ,iso8601-str))))
+            (url (when reschedule (mastodon-http--api (format "scheduled_statuses/%s" id))))
+            (response (mastodon-http--put url args)))
+        (mastodon-http--triage response
+                               (lambda ()
+                                 (mastodon-tl--view-scheduled-toots)
+                                 (message
+                                  (format "Toot rescheduled for %s." msg-str))))))))
+
+(defun mastodon-toot--iso-to-human (ts)
+  "Format an ISO8601 timestamp TS to be more human-readable."
+  (let* ((decoded (iso8601-parse ts))
+         (encoded (encode-time decoded)))
+    (format-time-string "%d-%m-%y, %H:%M[%z]" encoded)))
 
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
@@ -1230,6 +1249,9 @@ REPLY-TEXT is the text of the toot being replied to."
        (propertize "Language"
                    'toot-post-language t)
        " "
+       (propertize "Scheduled"
+                   'toot-post-scheduled t)
+       " "
        (propertize "CW"
                    'toot-post-cw-flag t)
        " "
@@ -1285,6 +1307,8 @@ REPLY-JSON is the full JSON of the toot being replied to."
                                                         (point-min)))
            (lang-region (mastodon-tl--find-property-range 'toot-post-language
                                                           (point-min)))
+           (scheduled-region (mastodon-tl--find-property-range 'toot-post-scheduled
+                                                               (point-min)))
            (toot-string (buffer-substring-no-properties (cdr header-region)
                                                         (point-max))))
       (add-text-properties (car count-region) (cdr count-region)
@@ -1305,6 +1329,13 @@ REPLY-JSON is the full JSON of the toot being replied to."
                                  (if mastodon-toot--language
                                      (format "Lang: %s ⋅"
                                              mastodon-toot--language)
+                                   "")))
+      (add-text-properties (car scheduled-region) (cdr scheduled-region)
+                           (list 'display
+                                 (if mastodon-toot--scheduled-for
+                                     (format "Scheduled: %s ⋅"
+                                             (mastodon-toot--iso-to-human
+                                              mastodon-toot--scheduled-for))
                                    "")))
       (add-text-properties (car nsfw-region) (cdr nsfw-region)
                            (list 'display (if mastodon-toot--content-nsfw

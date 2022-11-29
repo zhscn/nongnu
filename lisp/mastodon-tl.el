@@ -1854,21 +1854,9 @@ If ID, just return that toot."
          (url (mastodon-http--api endpoint)))
     (mastodon-http--get-json url)))
 
-(defun mastodon-tl--reschedule-toot (&optional id)
+(defun mastodon-tl--reschedule-toot ()
   "Reschedule the scheduled toot at point."
-  (interactive)
-  (let* ((id (get-text-property (point) 'id))
-         (time-value (org-read-date nil t nil "Schedule toot:"))
-         (iso8601-str (format-time-string "%Y-%m-%dT%H:%M:%S%z" time-value))
-         (msg-str (format-time-string "%Y-%m-%d at %H:%M[%z]" time-value))
-         (args `(("scheduled_at" . ,iso8601-str)))
-         (url (mastodon-http--api (format "scheduled_statuses/%s" id)))
-         (response (mastodon-http--put url args)))
-    (mastodon-http--triage response
-                           (lambda ()
-                             (mastodon-tl--update)
-                             (message
-                              (format "Toot rescheduled for %s." msg-str))))))
+  (mastodon-toot--schedule-toot :reschedule))
 
 (defun mastodon-tl--view-scheduled-toots ()
   "Show the user's scheduled toots in a new buffer."
@@ -1905,7 +1893,7 @@ If ID, just return that toot."
     (insert
      (propertize (concat text
                          " | "
-                         scheduled)
+                         (mastodon-toot--iso-to-human scheduled))
                  'byline t ; so we nav here
                  'toot-id "0" ; so we nav here
                  'face 'font-lock-comment-face
@@ -1913,6 +1901,12 @@ If ID, just return that toot."
                  'scheduled-json toot
                  'id id)
      "\n")))
+
+(defun mastodon-toot--iso-to-human (ts)
+  "Format an ISO8601 timestamp TS to be more human-readable."
+  (let* ((decoded (iso8601-parse ts))
+         (encoded (encode-time decoded)))
+    (format-time-string "%d-%m-%y, %H:%M[%z]" encoded)))
 
 (defun mastodon-tl--copy-scheduled-toot-text ()
   "Copy the text of the scheduled toot at point."
@@ -1933,6 +1927,32 @@ If ID, just return that toot."
                                (lambda ()
                                  (mastodon-tl--view-scheduled-toots)
                                  (message "Toot cancelled!")))))))
+
+(defun mastodon-tl--edit-scheduled-as-new ()
+  "Edit scheduled status as new toot."
+  (interactive)
+  (let* ((toot (get-text-property (point) 'scheduled-json))
+         (scheduled (alist-get 'scheduled_at toot))
+         (params (alist-get 'params toot))
+         (text (alist-get 'text params))
+         (visibility (alist-get 'visibility params))
+         (cw (alist-get 'spoiler_text params))
+         (lang (alist-get 'language params))
+         (poll (alist-get 'poll params))
+         (reply-id (alist-get 'in_reply_to_id params))
+         (media (alist-get 'media_attachments toot)))
+    (mastodon-toot--compose-buffer)
+    (goto-char (point-max))
+    (insert text)
+    ;; adopt properties from scheduled toot:
+    (when reply-id
+      (setq mastodon-toot--reply-to-id reply-id))
+    (setq mastodon-toot--visibility visibility)
+    (setq mastodon-toot--scheduled-for scheduled)
+    (when (not (equal "" lang))
+      (setq mastodon-toot--language lang))
+    (mastodon-toot--set-cw cw)
+    (mastodon-toot--update-status-fields)))
 
 ;;; FILTERS
 
