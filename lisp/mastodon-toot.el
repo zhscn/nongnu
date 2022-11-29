@@ -1133,7 +1133,7 @@ Return its two letter ISO 639 1 code."
   (interactive)
   (let* ((time-value (org-read-date nil t nil "Schedule toot:"))
          (iso8601-string (format-time-string "%Y-%m-%dT%H:%M:%S%z" time-value))
-         (msg-str (format-time-string "%Y-%m-%d at %H:%M[%z]" time-value)))
+         (msg-str (format-time-string "%d-%m-%y at %H:%M[%z]" time-value)))
     (setq-local mastodon-toot--scheduled-at iso8601-string)
     (message (format "Toot scheduled for %s." msg-str))))
 
