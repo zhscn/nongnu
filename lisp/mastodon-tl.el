@@ -1446,6 +1446,8 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
+;;; THREADS
+
 (defun mastodon-tl--single-toot (id)
   "View toot at point in separate buffer.
 ID is that of the toot to view."
@@ -1961,7 +1963,7 @@ RESPONSE is the JSON returned by the server."
        (message "Looks like there's no toot or user at point?")
      ,@body))
 
-;;;; INSTANCES
+;;; INSTANCES
 
 (defun mastodon-tl--view-own-instance (&optional brief)
   "View details of your own instance.
