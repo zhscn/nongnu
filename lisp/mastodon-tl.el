@@ -1859,6 +1859,7 @@ If ID, just return that toot."
 
 (defun mastodon-tl--reschedule-toot ()
   "Reschedule the scheduled toot at point."
+  (interactive)
   (mastodon-toot--schedule-toot :reschedule))
 
 (defun mastodon-tl--view-scheduled-toots ()

@@ -1160,14 +1160,20 @@ Return its two letter ISO 639 1 code."
 
 (defun mastodon-toot--schedule-toot (&optional reschedule)
   "Read a date (+ time) in the minibuffer and schedule the current toot.
-With RESCHEDULE, reschedule the scheduled toot at point."
+With RESCHEDULE, reschedule the scheduled toot at point without editing."
   (interactive)
   (let* ((id (when reschedule (get-text-property (point) 'id)))
-         ;; TODO if reschedule, set org-read-date to scheduled time
+         (ts (when reschedule
+               (alist-get 'scheduled_at
+                          (get-text-property (point) 'scheduled-json))))
          (time-value
           (org-read-date t t nil "Schedule toot:"
                          ;; default to scheduled timestamp if already set:
-                         (mastodon-toot--iso-to-org mastodon-toot--scheduled-for)))
+                         (mastodon-toot--iso-to-org
+                          ;; we are rescheduling without editing:
+                          (or ts
+                              ;; we are maybe editing the scheduled toot:
+                              mastodon-toot--scheduled-for))))
          (iso8601-str (format-time-string "%FT%T%z" time-value))
          (msg-str (format-time-string "%d-%m-%y at %H:%M[%z]" time-value)))
     (if (not reschedule)
@@ -1193,8 +1199,8 @@ With RESCHEDULE, reschedule the scheduled toot at point."
 
 (defun mastodon-toot--iso-to-org (ts)
   "Convert ISO8601 timestamp TS to something `org-read-date' can handle."
-  (let* ((decoded (iso8601-parse ts)))
-    (encode-time decoded)))
+  (when ts (let* ((decoded (iso8601-parse ts)))
+             (encode-time decoded))))
 
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
