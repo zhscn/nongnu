@@ -1289,12 +1289,12 @@ REPLY-JSON is the full JSON of the toot being replied to."
                                                         (point-max))))
       (add-text-properties (car count-region) (cdr count-region)
                            (list 'display
-                                 (format "%s/%s characters"
+                                 (format "%s/%s chars"
                                          (mastodon-toot--count-toot-chars toot-string)
                                          (number-to-string mastodon-toot--max-toot-chars))))
       (add-text-properties (car visibility-region) (cdr visibility-region)
                            (list 'display
-                                 (format "Visibility: %s"
+                                 (format "%s"
                                          (if (equal
                                               mastodon-toot--visibility
                                               "private")
@@ -1303,7 +1303,7 @@ REPLY-JSON is the full JSON of the toot being replied to."
       (add-text-properties (car lang-region) (cdr lang-region)
                            (list 'display
                                  (if mastodon-toot--language
-                                     (format "Language: %s"
+                                     (format "Lang: %s ⋅"
                                              mastodon-toot--language)
                                    "")))
       (add-text-properties (car nsfw-region) (cdr nsfw-region)
