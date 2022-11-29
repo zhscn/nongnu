@@ -184,6 +184,9 @@ change the setting on the server, see
   "An ISO 8601 timestamp that specifying when the post should be published.
 Should be at least 5 minutes into the future.")
 
+(defvar-local mastodon-toot--scheduled-id nil
+  "The id of the scheduled post that we are now editing.")
+
 (defvar-local mastodon-toot--reply-to-id nil
   "Buffer-local variable to hold the id of the toot being replied to.")
 
@@ -526,16 +529,18 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
       (mastodon-toot--set-toot-properties
        reply-id toot-visibility toot-cw
        ;; TODO set new lang/scheduled props here
-       nil nil))))
+       nil))))
 
-(defun mastodon-toot--set-toot-properties (reply-id visibility cw
-                                                    scheduled lang)
+(defun mastodon-toot--set-toot-properties (reply-id visibility cw lang
+                                                    &optional scheduled
+                                                    scheduled-id)
   "Set the toot properties for the current redrafted or edited toot.
 REPLY-ID, VISIBILITY, CW, SCHEDULED, and LANG are the properties to set."
   (when reply-id
     (setq mastodon-toot--reply-to-id reply-id))
   (setq mastodon-toot--visibility visibility)
   (setq mastodon-toot--scheduled-for scheduled)
+  (setq mastodon-toot--scheduled-id scheduled-id)
   (when (not (string-empty-p lang))
     (setq mastodon-toot--language lang))
   (mastodon-toot--set-cw cw)

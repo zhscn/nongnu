@@ -1931,6 +1931,7 @@ NO-CONFIRM means don't ask, just do."
   "Edit scheduled status as new toot."
   (interactive)
   (let* ((toot (get-text-property (point) 'scheduled-json))
+         (id (alist-get 'id toot))
          (scheduled (alist-get 'scheduled_at toot))
          (params (alist-get 'params toot))
          (text (alist-get 'text params))
@@ -1945,7 +1946,7 @@ NO-CONFIRM means don't ask, just do."
     (insert text)
     ;; adopt properties from scheduled toot:
     (mastodon-toot--set-toot-properties reply-id visibility cw
-                                        scheduled lang)))
+                                        lang scheduled id)))
 
 ;;; FILTERS
 
