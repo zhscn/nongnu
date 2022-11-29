@@ -727,7 +727,9 @@ instance to edit a toot."
                  (if mastodon-toot-poll
                      (append args-no-media args-poll)
                    args-no-media)))
-         (prev-window-config mastodon-toot-previous-window-config))
+         (prev-window-config mastodon-toot-previous-window-config)
+         (scheduled mastodon-toot--scheduled-for)
+         (scheduled-id mastodon-toot--scheduled-id))
     (cond ((and mastodon-toot--media-attachments
                 ;; make sure we have media args
                 ;; and the same num of ids as attachments
@@ -748,7 +750,13 @@ instance to edit a toot."
              (mastodon-http--triage response
                                     (lambda ()
                                       (mastodon-toot--kill)
-                                      (message "Toot toot!")
+                                      (if scheduled
+                                          (message "Toot scheduled!")
+                                        (message "Toot toot!"))
+                                      ;; cancel scheduled toot if we were editing it:
+                                      (when scheduled-id
+                                        (mastodon-tl--cancel-scheduled-toot
+                                         scheduled-id :no-confirm))
                                       (mastodon-toot--restore-previous-window-config
                                        prev-window-config))))))))
 
@@ -1155,6 +1163,7 @@ Return its two letter ISO 639 1 code."
 With RESCHEDULE, reschedule the scheduled toot at point."
   (interactive)
   (let* ((id (when reschedule (get-text-property (point) 'id)))
+         ;; TODO if reschedule, set org-read-date to scheduled time
          (time-value (org-read-date nil t nil "Schedule toot:"))
          (iso8601-str (format-time-string "%FT%T%z" time-value))
          (msg-str (format-time-string "%d-%m-%y at %H:%M[%z]" time-value)))

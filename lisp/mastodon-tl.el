@@ -1913,11 +1913,11 @@ If ID, just return that toot."
          (text (alist-get 'text params)))
     (kill-new text)))
 
-(defun mastodon-tl--cancel-scheduled-toot (no-confirm)
+(defun mastodon-tl--cancel-scheduled-toot (&optional id no-confirm)
   "Cancel the scheduled toot at point.
-NO-CONFIRM means don't ask, just do."
+NO-CONFIRM means there is no ask or message, there is only do."
   (interactive)
-  (let* ((id (get-text-property (point) 'id))
+  (let* ((id (or id (get-text-property (point) 'id)))
          (url (mastodon-http--api (format "scheduled_statuses/%s" id))))
     (when (or no-confirm
               (y-or-n-p "Cancel scheduled toot?"))
@@ -1925,7 +1925,8 @@ NO-CONFIRM means don't ask, just do."
         (mastodon-http--triage response
                                (lambda ()
                                  (mastodon-tl--view-scheduled-toots)
-                                 (message "Toot cancelled!")))))))
+                                 (unless no-confirm
+                                   (message "Toot cancelled!"))))))))
 
 (defun mastodon-tl--edit-scheduled-as-new ()
   "Edit scheduled status as new toot."
