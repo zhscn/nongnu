@@ -81,7 +81,7 @@
 (autoload 'mastodon-http--put "mastodon-http")
 (autoload 'mastodon-tl--symbol "mastodon-tl")
 (autoload 'mastodon-tl--view-scheduled-toots "mastodon-tl")
-
+(autoload 'mastodon-tl--cancel-scheduled-toot "mastodon-toot")
 (autoload 'org-read-date "org")
 (autoload 'iso8601-parse "iso8601")
 
@@ -1164,7 +1164,10 @@ With RESCHEDULE, reschedule the scheduled toot at point."
   (interactive)
   (let* ((id (when reschedule (get-text-property (point) 'id)))
          ;; TODO if reschedule, set org-read-date to scheduled time
-         (time-value (org-read-date nil t nil "Schedule toot:"))
+         (time-value
+          (org-read-date t t nil "Schedule toot:"
+                         ;; default to scheduled timestamp if already set:
+                         (mastodon-toot--iso-to-org mastodon-toot--scheduled-for)))
          (iso8601-str (format-time-string "%FT%T%z" time-value))
          (msg-str (format-time-string "%d-%m-%y at %H:%M[%z]" time-value)))
     (if (not reschedule)
@@ -1172,10 +1175,12 @@ With RESCHEDULE, reschedule the scheduled toot at point."
           (setq-local mastodon-toot--scheduled-for iso8601-str)
           (message (format "Toot scheduled for %s." msg-str)))
       (let* ((args (when reschedule `(("scheduled_at" . ,iso8601-str))))
-             (url (when reschedule (mastodon-http--api (format "scheduled_statuses/%s" id))))
+             (url (when reschedule (mastodon-http--api
+                                    (format "scheduled_statuses/%s" id))))
              (response (mastodon-http--put url args)))
         (mastodon-http--triage response
                                (lambda ()
+                                 ;; reschedule means we are in scheduled toots view:
                                  (mastodon-tl--view-scheduled-toots)
                                  (message
                                   (format "Toot rescheduled for %s." msg-str))))))))
@@ -1185,6 +1190,11 @@ With RESCHEDULE, reschedule the scheduled toot at point."
   (let* ((decoded (iso8601-parse ts))
          (encoded (encode-time decoded)))
     (format-time-string "%d-%m-%y, %H:%M[%z]" encoded)))
+
+(defun mastodon-toot--iso-to-org (ts)
+  "Convert ISO8601 timestamp TS to something `org-read-date' can handle."
+  (let* ((decoded (iso8601-parse ts)))
+    (encode-time decoded)))
 
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
