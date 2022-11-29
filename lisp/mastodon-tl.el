@@ -264,6 +264,8 @@ types of mastodon links and not just shr.el-generated ones.")
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") 'mastodon-tl--reschedule-toot)
     (define-key map (kbd "c") 'mastodon-tl--cancel-scheduled-toot)
+    (define-key map (kbd "e") 'mastodon-tl--edit-scheduled-as-new)
+    (define-key map (kbd "<return>") 'mastodon-tl--edit-scheduled-as-new)
     (keymap-canonicalize map))
   "Keymap for when point is on a scheduled toot.")
 
@@ -1879,7 +1881,7 @@ If ID, just return that toot."
                      " ------------\n\n")
              'success)
             (mastodon-tl--set-face
-             "[n/p - prev/next\n r - reschedule\n c - cancel]\n\n"
+             "[n/p - prev/next\n r - reschedule\n e/RET - edit toot\n c - cancel]\n\n"
              'font-lock-comment-face))
     (mapc (lambda (x)
             (mastodon-tl--insert-scheduled-toot x))
@@ -1916,6 +1918,7 @@ If ID, just return that toot."
 
 (defun mastodon-tl--cancel-scheduled-toot (&optional id no-confirm)
   "Cancel the scheduled toot at point.
+ID is that of the scheduled toot to cancel.
 NO-CONFIRM means there is no ask or message, there is only do."
   (interactive)
   (let* ((id (or id (get-text-property (point) 'id)))
