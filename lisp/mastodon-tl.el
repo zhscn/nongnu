@@ -82,6 +82,9 @@
 (autoload 'mastodon-toot--get-toot-edits "mastodon-toot")
 (autoload 'mastodon-toot--update-status-fields "mastodon-toot")
 (autoload 'mastodon-toot--compose-buffer "mastodon-toot")
+(autoload 'mastodon-toot--set-toot-properties "mastodon-toot")
+(autoload 'mastodon-toot--schedule-toot "mastodon-toot")
+(autoload 'mastodon-toot--iso-to-human "mastodon-toot")
 
 (defvar mastodon-toot--visibility)
 (defvar mastodon-active-user)
@@ -1866,7 +1869,7 @@ If ID, just return that toot."
                           'mastodon-tl--insert-scheduled-toots))
 
 (defun mastodon-tl--insert-scheduled-toots (json)
-  "Insert the user's scheduled toots."
+  "Insert the user's scheduled toots, from JSON."
   (let ((scheduleds (mastodon-tl--get-scheduled-toots)))
     (erase-buffer)
     (insert (mastodon-tl--set-face
@@ -1877,9 +1880,9 @@ If ID, just return that toot."
             (mastodon-tl--set-face
              "[n/p - prev/next\n r - reschedule\n c - cancel]\n\n"
              'font-lock-comment-face))
-    (mapcar (lambda (x)
-              (mastodon-tl--insert-scheduled-toot x))
-            scheduleds)
+    (mapc (lambda (x)
+            (mastodon-tl--insert-scheduled-toot x))
+          scheduleds)
     (goto-char (point-min))
     (when json
       (mastodon-tl--goto-next-toot))))
@@ -1902,12 +1905,6 @@ If ID, just return that toot."
                  'id id)
      "\n")))
 
-(defun mastodon-toot--iso-to-human (ts)
-  "Format an ISO8601 timestamp TS to be more human-readable."
-  (let* ((decoded (iso8601-parse ts))
-         (encoded (encode-time decoded)))
-    (format-time-string "%d-%m-%y, %H:%M[%z]" encoded)))
-
 (defun mastodon-tl--copy-scheduled-toot-text ()
   "Copy the text of the scheduled toot at point."
   (interactive)
@@ -1916,12 +1913,14 @@ If ID, just return that toot."
          (text (alist-get 'text params)))
     (kill-new text)))
 
-(defun mastodon-tl--cancel-scheduled-toot ()
-  "Cancel the scheduled toot at point."
+(defun mastodon-tl--cancel-scheduled-toot (no-confirm)
+  "Cancel the scheduled toot at point.
+NO-CONFIRM means don't ask, just do."
   (interactive)
   (let* ((id (get-text-property (point) 'id))
          (url (mastodon-http--api (format "scheduled_statuses/%s" id))))
-    (when (y-or-n-p "Cancel scheduled toot?")
+    (when (or no-confirm
+              (y-or-n-p "Cancel scheduled toot?"))
       (let ((response (mastodon-http--delete url)))
         (mastodon-http--triage response
                                (lambda ()
@@ -1938,21 +1937,15 @@ If ID, just return that toot."
          (visibility (alist-get 'visibility params))
          (cw (alist-get 'spoiler_text params))
          (lang (alist-get 'language params))
-         (poll (alist-get 'poll params))
-         (reply-id (alist-get 'in_reply_to_id params))
-         (media (alist-get 'media_attachments toot)))
+         ;; (poll (alist-get 'poll params))
+         (reply-id (alist-get 'in_reply_to_id params)))
+    ;; (media (alist-get 'media_attachments toot)))
     (mastodon-toot--compose-buffer)
     (goto-char (point-max))
     (insert text)
     ;; adopt properties from scheduled toot:
-    (when reply-id
-      (setq mastodon-toot--reply-to-id reply-id))
-    (setq mastodon-toot--visibility visibility)
-    (setq mastodon-toot--scheduled-for scheduled)
-    (when (not (equal "" lang))
-      (setq mastodon-toot--language lang))
-    (mastodon-toot--set-cw cw)
-    (mastodon-toot--update-status-fields)))
+    (mastodon-toot--set-toot-properties reply-id visibility cw
+                                        scheduled lang)))
 
 ;;; FILTERS
 

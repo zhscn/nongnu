@@ -80,6 +80,10 @@
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl")
 (autoload 'mastodon-http--put "mastodon-http")
 (autoload 'mastodon-tl--symbol "mastodon-tl")
+(autoload 'mastodon-tl--view-scheduled-toots "mastodon-tl")
+
+(autoload 'org-read-date "org")
+(autoload 'iso8601-parse "iso8601")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -519,11 +523,23 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
       (goto-char (point-max))
       (insert content)
       ;; adopt reply-to-id, visibility and CW from deleted toot:
-      (when reply-id
-        (setq mastodon-toot--reply-to-id reply-id))
-      (setq mastodon-toot--visibility toot-visibility)
-      (mastodon-toot--set-cw toot-cw)
-      (mastodon-toot--update-status-fields))))
+      (mastodon-toot--set-toot-properties
+       reply-id toot-visibility toot-cw
+       ;; TODO set new lang/scheduled props here
+       nil nil))))
+
+(defun mastodon-toot--set-toot-properties (reply-id visibility cw
+                                                    scheduled lang)
+  "Set the toot properties for the current redrafted or edited toot.
+REPLY-ID, VISIBILITY, CW, SCHEDULED, and LANG are the properties to set."
+  (when reply-id
+    (setq mastodon-toot--reply-to-id reply-id))
+  (setq mastodon-toot--visibility visibility)
+  (setq mastodon-toot--scheduled-for scheduled)
+  (when (not (string-empty-p lang))
+    (setq mastodon-toot--language lang))
+  (mastodon-toot--set-cw cw)
+  (mastodon-toot--update-status-fields))
 
 (defun mastodon-toot--kill (&optional cancel)
   "Kill `mastodon-toot-mode' buffer and window.
@@ -728,7 +744,8 @@ instance to edit a toot."
                                     (lambda ()
                                       (mastodon-toot--kill)
                                       (message "Toot toot!")
-                                      (mastodon-toot--restore-previous-window-config prev-window-config))))))))
+                                      (mastodon-toot--restore-previous-window-config
+                                       prev-window-config))))))))
 
 ;; EDITING TOOTS:
 
@@ -1141,9 +1158,9 @@ With RESCHEDULE, reschedule the scheduled toot at point."
         (progn
           (setq-local mastodon-toot--scheduled-for iso8601-str)
           (message (format "Toot scheduled for %s." msg-str)))
-      (let ((args (when reschedule `(("scheduled_at" . ,iso8601-str))))
-            (url (when reschedule (mastodon-http--api (format "scheduled_statuses/%s" id))))
-            (response (mastodon-http--put url args)))
+      (let* ((args (when reschedule `(("scheduled_at" . ,iso8601-str))))
+             (url (when reschedule (mastodon-http--api (format "scheduled_statuses/%s" id))))
+             (response (mastodon-http--put url args)))
         (mastodon-http--triage response
                                (lambda ()
                                  (mastodon-tl--view-scheduled-toots)
