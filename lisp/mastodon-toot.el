@@ -1161,6 +1161,8 @@ Return its two letter ISO 639 1 code."
 (defun mastodon-toot--schedule-toot (&optional reschedule)
   "Read a date (+ time) in the minibuffer and schedule the current toot.
 With RESCHEDULE, reschedule the scheduled toot at point without editing."
+  ;; original idea by christian tietze, thanks!
+  ;; https://codeberg.org/martianh/mastodon.el/issues/285
   (interactive)
   (let* ((id (when reschedule (get-text-property (point) 'id)))
          (ts (when reschedule
