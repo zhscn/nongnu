@@ -802,7 +802,7 @@ Buffer-local variable `mastodon-toot-previous-window-config' holds the config."
 
 (defun mastodon-toot--mentions-to-string (mentions)
   "Applies mastodon-toot--process-local function to each mention,
-removes empty string (self) from result and joins the sequence with \" \"."
+removes empty string (self) from result and joins the sequence with whitespace \" \"."
   (mapconcat (lambda(mention) mention)
 	     (remove "" (mapcar (lambda(x) (mastodon-toot--process-local x))
 				mentions))
@@ -811,18 +811,21 @@ removes empty string (self) from result and joins the sequence with \" \"."
 (defun mastodon-toot--process-local (acct)
   "Add domain to local ACCT and replace the curent user name with \"\".
 
-Mastodon requires the full user@domain, even in the case of local accts.
-eg. \"user\" -> \"user@local.social\" (when local.social is the domain of the
+Mastodon requires the full @user@domain, even in the case of local accts.
+eg. \"user\" -> \"@user@local.social\" (when local.social is the domain of the
 mastodon-instance-url).
 eg. \"yourusername\" -> \"\"
-eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
+eg. \"feduser@fed.social\" -> \"@feduser@fed.social\"."
   (cond ((string-match-p "@" acct) (concat "@" acct)) ; federated acct
         ((string= (mastodon-auth--user-acct) acct) "") ; your acct
         (t (concat "@" acct "@" ; local acct
                    (cadr (split-string mastodon-instance-url "/" t))))))
 
 (defun mastodon-toot--mentions (status)
-  "Extract mentions (not the reply-to author or booster) from STATUS and process them into a string."
+  "Extract mentions (not the reply-to author or booster) from STATUS.
+The mentioned users look like this:
+Local user (including the logged in): `username`.
+Federated user: `username@host.co`."
   (interactive)
   (let* ((boosted (mastodon-tl--field 'reblog status))
          (mentions
