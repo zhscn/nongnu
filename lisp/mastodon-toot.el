@@ -800,11 +800,19 @@ Buffer-local variable `mastodon-toot-previous-window-config' holds the config."
   (set-window-configuration (car config))
   (goto-char (cadr config)))
 
+(defun mastodon-toot--mentions-to-string (mentions)
+  "Applies mastodon-toot--process-local function to each mention,
+removes empty string (self) from result and joins the sequence with \" \"."
+  (mapconcat (lambda(mention) mention)
+	     (remove "" (mapcar (lambda(x) (mastodon-toot--process-local x))
+				mentions))
+	     " "))
+
 (defun mastodon-toot--process-local (acct)
   "Add domain to local ACCT and replace the curent user name with \"\".
 
 Mastodon requires the full user@domain, even in the case of local accts.
-eg. \"user\" -> \"user@local.social \" (when local.social is the domain of the
+eg. \"user\" -> \"user@local.social\" (when local.social is the domain of the
 mastodon-instance-url).
 eg. \"yourusername\" -> \"\"
 eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
@@ -814,19 +822,17 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
                    (cadr (split-string mastodon-instance-url "/" t))))))
 
 (defun mastodon-toot--mentions (status)
-  "Extract mentions from STATUS and process them into a string."
+  "Extract mentions (not the reply-to author or booster) from STATUS and process them into a string."
   (interactive)
   (let* ((boosted (mastodon-tl--field 'reblog status))
          (mentions
           (if boosted
-              (alist-get 'mentions (alist-get 'reblog status))
-            (alist-get 'mentions status))))
-    (string-trim (mapconcat (lambda(x) (mastodon-toot--process-local
-                           (alist-get 'acct x)))
-               ;; reverse does not work on vectors in 24.5
-               (reverse (append mentions nil))
-               " "))))
-
+	      (alist-get 'mentions (alist-get 'reblog status))
+	    (alist-get 'mentions status))))
+    ;; reverse does not work on vectors in 24.5
+    (mapcar (lambda(x) (alist-get 'acct x))
+	    (reverse mentions))))
+    
 (defun mastodon-toot--get-bounds (regex)
   "Get bounds of tag or handle before point using REGEX."
   ;; needed because # and @ are not part of any existing thing at point
@@ -917,26 +923,21 @@ text of the toot being replied to in the compose buffer."
     (mastodon-toot (when user
                      (if booster
                          (if (and (not (equal user booster))
-                                  (not (string-match booster mentions)))
+                                  (not (member booster mentions)))
                              ;; different booster, user and mentions:
-                             (concat (mastodon-toot--process-local user)
-                                     ;; "@" booster " "
-                                     (mastodon-toot--process-local booster)
-                                     mentions)
+			     (mastodon-toot--mentions-to-string (append (list user booster) mentions nil))
                            ;; booster is either user or in mentions:
-                           (if (not (string-match user mentions))
+                           (if (not (member user mentions))
                                ;; user not already in mentions:
-                               (concat (mastodon-toot--process-local user)
-                                       mentions)
+			       (mastodon-toot--mentions-to-string (append (list user) mentions nil))
                              ;; user already in mentions:
-                             mentions))
+                             (mastodon-toot--mentions-to-string (copy-sequence mentions))))
                        ;; ELSE no booster:
-                       (if (not (string-match user mentions))
+                       (if (not (member user mentions))
                            ;; user not in mentions:
-                           (concat (mastodon-toot--process-local user)
-                                   mentions)
+			   (mastodon-toot--mentions-to-string (append (list user) mentions nil))
                          ;; user in mentions already:
-                         mentions)))
+                         (mastodon-toot--mentions-to-string (copy-sequence mentions)))))
                    id
                    (or base-toot toot))))
 
