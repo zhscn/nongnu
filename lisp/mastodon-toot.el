@@ -877,6 +877,24 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
         (cons (match-beginning 2)
               (match-end 2))))))
 
+(defun mastodon-toot--fetch-completion-candidates (start end &optional tags)
+  "Search for a completion prefix from buffer positions START to END.
+Return a list of candidates.
+If TAGS, we search for tags, else we search for handles."
+  ;; FIXME: can we save the first two-letter search then only filter the
+  ;; resulting list?
+  ;; (or mastodon-toot-completions
+  ;; would work if we could null that var upon completion success
+  (setq mastodon-toot-completions
+        (if tags
+            (let ((tags-list (mastodon-search--search-tags-query
+                              (buffer-substring-no-properties start end))))
+              (cl-loop for tag in tags-list
+                       collect (cons (concat "#" (car tag))
+                                     (cdr tag))))
+          (mastodon-search--search-accounts-query
+           (buffer-substring-no-properties start end)))))
+
 (defun mastodon-toot--mentions-capf ()
   "Build a mentions completion backend for `completion-at-point-functions'."
   (let* ((bounds
@@ -889,11 +907,7 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
             ;; only search when necessary:
             (completion-table-dynamic
              (lambda (_)
-               ;; TODO: do we really need to set a local var here
-               ;; just for the annotation-function?
-               (setq mastodon-toot-completions
-                     (mastodon-search--search-accounts-query
-                      (buffer-substring-no-properties start end)))))
+               (mastodon-toot--fetch-completion-candidates start end)))
             :exclusive 'no
             :annotation-function
             (lambda (candidate)
@@ -912,13 +926,7 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
             ;; only search when necessary:
             (completion-table-dynamic
              (lambda (_)
-               (setq mastodon-toot-completions
-                     (let ((tags (mastodon-search--search-tags-query
-                                  (buffer-substring-no-properties start end))))
-                       (mapcar (lambda (x)
-                                 (list (concat "#" (car x))
-                                       (cdr x)))
-                               tags)))))
+               (mastodon-toot--fetch-completion-candidates start end :tags)))
             :exclusive 'no
             :annotation-function
             (lambda (candidate)
@@ -933,7 +941,7 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
   "Given a tag string CANDIDATE, return an annotation, the tag's URL."
   ;; FIXME check the list returned here? should be cadr
   ;;or make it an alist and use cdr
-  (caadr (assoc candidate mastodon-toot-completions)))
+  (cadr (assoc candidate mastodon-toot-completions)))
 
 (defun mastodon-toot--reply ()
   "Reply to toot at `point'.
