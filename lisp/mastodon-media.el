@@ -1,7 +1,9 @@
 ;;; mastodon-media.el --- Functions for inlining Mastodon media  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2019 Johnson Denen
+;; Copyright (C) 2020-2022 Marty Hiatt
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
+;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "27.1"))

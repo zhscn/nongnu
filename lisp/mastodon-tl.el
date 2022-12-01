@@ -1,6 +1,7 @@
 ;;; mastodon-tl.el --- HTTP request/response functions for mastodon.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2019 Johnson Denen
+;; Copyright (C) 2020-2022 Marty Hiatt
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
@@ -79,6 +80,14 @@
 (autoload 'mastodon-http--build-params-string "mastodon-http")
 (autoload 'mastodon-notifications--filter-types-list "mastodon-notifications")
 (autoload 'mastodon-toot--get-toot-edits "mastodon-toot")
+(autoload 'mastodon-toot--update-status-fields "mastodon-toot")
+(autoload 'mastodon-toot--compose-buffer "mastodon-toot")
+(autoload 'mastodon-toot--set-toot-properties "mastodon-toot")
+(autoload 'mastodon-toot--schedule-toot "mastodon-toot")
+(autoload 'mastodon-toot--iso-to-human "mastodon-toot")
+
+(defvar mastodon-toot--visibility)
+(defvar mastodon-active-user)
 
 (when (require 'mpv nil :no-error)
   (declare-function mpv-start "mpv"))
@@ -250,6 +259,15 @@ types of mastodon links and not just shr.el-generated ones.")
     (define-key map (kbd "e") 'mastodon-tl--edit-list-at-point)
     (keymap-canonicalize map))
   "Keymap for when point is on list name.")
+
+(defvar mastodon-tl--scheduled-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "r") 'mastodon-tl--reschedule-toot)
+    (define-key map (kbd "c") 'mastodon-tl--cancel-scheduled-toot)
+    (define-key map (kbd "e") 'mastodon-tl--edit-scheduled-as-new)
+    (define-key map (kbd "<return>") 'mastodon-tl--edit-scheduled-as-new)
+    (keymap-canonicalize map))
+  "Keymap for when point is on a scheduled toot.")
 
 (defvar mastodon-tl--byline-link-keymap
   (when (require 'mpv nil :no-error)
@@ -564,25 +582,25 @@ TIMESTAMP is assumed to be in the past."
          (relative-result
           (cond
            ((< seconds-difference 60)
-            (cons "less than a minute ago"
+            (cons "just now"
                   60))
            ((< seconds-difference (* 1.5 60))
-            (cons "one minute ago"
+            (cons "1 minute ago"
                   90)) ;; at 90 secs
            ((< seconds-difference (* 60 59.5))
             (funcall regular-response seconds-difference 60 "minute"))
            ((< seconds-difference (* 1.5 60 60))
-            (cons "one hour ago"
+            (cons "1 hour ago"
                   (* 60 90))) ;; at 90 minutes
            ((< seconds-difference (* 60 60 23.5))
             (funcall regular-response seconds-difference (* 60 60) "hour"))
            ((< seconds-difference (* 1.5 60 60 24))
-            (cons "one day ago"
+            (cons "1 day ago"
                   (* 1.5 60 60 24))) ;; at a day and a half
            ((< seconds-difference (* 60 60 24 6.5))
             (funcall regular-response seconds-difference (* 60 60 24) "day"))
            ((< seconds-difference (* 1.5 60 60 24 7))
-            (cons "one week ago"
+            (cons "1 week ago"
                   (* 1.5 60 60 24 7))) ;; a week and a half
            ((< seconds-difference (* 60 60 24 7 52))
             (if (= 52 (floor (+ 0.5 (/ seconds-difference 60 60 24 7))))
@@ -590,7 +608,7 @@ TIMESTAMP is assumed to be in the past."
                       (* 60 60 24 7 52))
               (funcall regular-response seconds-difference (* 60 60 24 7) "week")))
            ((< seconds-difference (* 1.5 60 60 24 365))
-            (cons "one year ago"
+            (cons "1 year ago"
                   (* 60 60 24 365 1.5))) ;; a year and a half
            (t
             (funcall regular-response seconds-difference (* 60 60 24 365.25) "year")))))
@@ -1157,7 +1175,7 @@ this just means displaying toot client."
   (let* ((poll (mastodon-tl--field 'poll toot))
          (expiry (mastodon-tl--field 'expires_at poll))
          (expired-p (if (eq (mastodon-tl--field 'expired poll) :json-false) nil t))
-         (multi (mastodon-tl--field 'multiple poll))
+         ;; (multi (mastodon-tl--field 'multiple poll))
          (voters-count (mastodon-tl--field 'voters_count poll))
          (vote-count (mastodon-tl--field 'votes_count poll))
          (options (mastodon-tl--field 'options poll))
@@ -1440,6 +1458,8 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
+;;; THREADS
+
 (defun mastodon-tl--single-toot (id)
   "View toot at point in separate buffer.
 ID is that of the toot to view."
@@ -1469,7 +1489,8 @@ ID is that of the toot to view."
     (if (or (string= type "follow_request")
             (string= type "follow")) ; no can thread these
         (error "No thread")
-      (let* ((url (mastodon-http--api (format "statuses/%s/context" id)))
+      (let* ((endpoint (format "statuses/%s/context" id))
+             (url (mastodon-http--api endpoint))
              (buffer (format "*mastodon-thread-%s*" id))
              (toot
               ;; refetch current toot in case we just faved/boosted:
@@ -1492,7 +1513,7 @@ ID is that of the toot to view."
                   (switch-to-buffer buffer)
                   (mastodon-mode)
                   (mastodon-tl--set-buffer-spec buffer
-                                                (format "statuses/%s/context" id)
+                                                endpoint
                                                 nil)
                   (let ((inhibit-read-only t))
                     (mastodon-tl--timeline (alist-get 'ancestors context))
@@ -1506,6 +1527,65 @@ ID is that of the toot to view."
                 (mastodon-tl--goto-next-toot))
             ;; else just print the lone toot:
             (mastodon-tl--single-toot id)))))))
+
+
+(defun mastodon-tl--mute-thread ()
+  "Mute the thread displayed in the current buffer.
+Note that you can only (un)mute threads you have posted in."
+  (interactive)
+  (mastodon-tl--mute-or-unmute-thread))
+
+(defun mastodon-tl--unmute-thread ()
+  "Mute the thread displayed in the current buffer.
+Note that you can only (un)mute threads you have posted in."
+  (interactive)
+  (mastodon-tl--mute-or-unmute-thread :unmute))
+
+(defun mastodon-tl--mute-or-unmute-thread  (&optional unmute)
+  "Mute a thread.
+If UNMUTE, unmute it."
+  (let ((endpoint (mastodon-tl--get-endpoint)))
+    (if (string-suffix-p "context" endpoint) ; thread view
+        (let* ((id
+                (save-match-data
+                  (string-match "statuses/\\(?2:[[:digit:]]+\\)/context"
+                                endpoint)
+                  (match-string 2 endpoint)))
+               (we-posted-p (mastodon-tl--user-in-thread-p id))
+               (url (mastodon-http--api
+                     (if unmute
+                         (format "statuses/%s/unmute" id)
+                       (format "statuses/%s/mute" id)))))
+          (if (not we-posted-p)
+              (message "You can only (un)mute a thread you have posted in.")
+            (when (if unmute
+                      (y-or-n-p "Unnute this thread? ")
+                    (y-or-n-p "Mute this thread? "))
+              (let ((response (mastodon-http--post url)))
+                (mastodon-http--triage response
+                                       (lambda ()
+                                         (if unmute
+                                             (message "Thread unmuted!")
+                                           (message "Thread muted!")))))))))))
+
+(defun mastodon-tl--user-in-thread-p (id)
+  "Return non-nil if the logged-in user has posted to the current thread.
+ID is that of the post the context is currently displayed for."
+  (let* ((context-json (mastodon-http--get-json
+                        (mastodon-http--api (format "statuses/%s/context" id))
+                        nil :silent))
+         (ancestors (alist-get 'ancestors context-json))
+         (descendants (alist-get 'descendants context-json))
+         (a-ids (mapcar (lambda (status)
+                          (alist-get 'id
+                                     (alist-get 'account status)))
+                        ancestors))
+         (d-ids (mapcar (lambda (status)
+                          (alist-get 'id
+                                     (alist-get 'account status)))
+                        descendants)))
+    (or (member (mastodon-auth--get-account-id) a-ids)
+        (member (mastodon-auth--get-account-id) d-ids))))
 
 ;;; LISTS
 
@@ -1770,6 +1850,111 @@ If ID is provided, use that list."
   (let* ((url (mastodon-http--api (format "lists/%s/accounts" list-id))))
     (mastodon-http--get-json url)))
 
+;;; SCHEDULED TOOTS
+
+(defun mastodon-tl--get-scheduled-toots (&optional id)
+  "Get the user's currently scheduled toots.
+If ID, just return that toot."
+  (let* ((endpoint (if id
+                       (format "scheduled_statuses/%s" id)
+                     "scheduled_statuses"))
+         (url (mastodon-http--api endpoint)))
+    (mastodon-http--get-json url)))
+
+(defun mastodon-tl--reschedule-toot ()
+  "Reschedule the scheduled toot at point."
+  (interactive)
+  (mastodon-toot--schedule-toot :reschedule))
+
+(defun mastodon-tl--view-scheduled-toots ()
+  "Show the user's scheduled toots in a new buffer."
+  (interactive)
+  (mastodon-tl--init-sync "scheduled-toots"
+                          "scheduled_statuses"
+                          'mastodon-tl--insert-scheduled-toots))
+
+(defun mastodon-tl--insert-scheduled-toots (json)
+  "Insert the user's scheduled toots, from JSON."
+  (let ((scheduleds (mastodon-tl--get-scheduled-toots)))
+    (erase-buffer)
+    (insert (mastodon-tl--set-face
+             (concat "\n ------------\n"
+                     " YOUR SCHEDULED TOOTS\n"
+                     " ------------\n\n")
+             'success)
+            (mastodon-tl--set-face
+             "[n/p - prev/next\n r - reschedule\n e/RET - edit toot\n c - cancel]\n\n"
+             'font-lock-comment-face))
+    (mapc (lambda (x)
+            (mastodon-tl--insert-scheduled-toot x))
+          scheduleds)
+    (goto-char (point-min))
+    (when json
+      (mastodon-tl--goto-next-toot))))
+
+(defun mastodon-tl--insert-scheduled-toot (toot)
+  "Insert scheduled TOOT into the buffer."
+  (let* ((id (alist-get 'id toot))
+         (scheduled (alist-get 'scheduled_at toot))
+         (params (alist-get 'params toot))
+         (text (alist-get 'text params)))
+    (insert
+     (propertize (concat text
+                         " | "
+                         (mastodon-toot--iso-to-human scheduled))
+                 'byline t ; so we nav here
+                 'toot-id "0" ; so we nav here
+                 'face 'font-lock-comment-face
+                 'keymap mastodon-tl--scheduled-map
+                 'scheduled-json toot
+                 'id id)
+     "\n")))
+
+(defun mastodon-tl--copy-scheduled-toot-text ()
+  "Copy the text of the scheduled toot at point."
+  (interactive)
+  (let* ((toot (get-text-property (point) 'toot))
+         (params (alist-get 'params toot))
+         (text (alist-get 'text params)))
+    (kill-new text)))
+
+(defun mastodon-tl--cancel-scheduled-toot (&optional id no-confirm)
+  "Cancel the scheduled toot at point.
+ID is that of the scheduled toot to cancel.
+NO-CONFIRM means there is no ask or message, there is only do."
+  (interactive)
+  (let* ((id (or id (get-text-property (point) 'id)))
+         (url (mastodon-http--api (format "scheduled_statuses/%s" id))))
+    (when (or no-confirm
+              (y-or-n-p "Cancel scheduled toot?"))
+      (let ((response (mastodon-http--delete url)))
+        (mastodon-http--triage response
+                               (lambda ()
+                                 (mastodon-tl--view-scheduled-toots)
+                                 (unless no-confirm
+                                   (message "Toot cancelled!"))))))))
+
+(defun mastodon-tl--edit-scheduled-as-new ()
+  "Edit scheduled status as new toot."
+  (interactive)
+  (let* ((toot (get-text-property (point) 'scheduled-json))
+         (id (alist-get 'id toot))
+         (scheduled (alist-get 'scheduled_at toot))
+         (params (alist-get 'params toot))
+         (text (alist-get 'text params))
+         (visibility (alist-get 'visibility params))
+         (cw (alist-get 'spoiler_text params))
+         (lang (alist-get 'language params))
+         ;; (poll (alist-get 'poll params))
+         (reply-id (alist-get 'in_reply_to_id params)))
+    ;; (media (alist-get 'media_attachments toot)))
+    (mastodon-toot--compose-buffer)
+    (goto-char (point-max))
+    (insert text)
+    ;; adopt properties from scheduled toot:
+    (mastodon-toot--set-toot-properties reply-id visibility cw
+                                        lang scheduled id)))
+
 ;;; FILTERS
 
 (defun mastodon-tl--create-filter ()
@@ -1895,7 +2080,7 @@ RESPONSE is the JSON returned by the server."
        (message "Looks like there's no toot or user at point?")
      ,@body))
 
-;;;; INSTANCES
+;;; INSTANCES
 
 (defun mastodon-tl--view-own-instance (&optional brief)
   "View details of your own instance.
@@ -2174,6 +2359,16 @@ LANGS is the accumulated array param alist if we re-run recursively."
   (if (not user-handle)
       (message "Looks like you have no mutes to unmute!")
     (mastodon-tl--do-user-action-and-response user-handle "unmute" t)))
+
+(defun mastodon-tl--dm-user (user-handle)
+  "Query for USER-HANDLE from current status and compose a message to that user."
+  (interactive
+   (list
+    (mastodon-tl--interactive-user-handles-get "message")))
+  (mastodon-tl--do-if-toot
+   (mastodon-toot--compose-buffer (concat "@" user-handle))
+   (setq mastodon-toot--visibility "direct")
+   (mastodon-toot--update-status-fields)))
 
 (defun mastodon-tl--interactive-user-handles-get (action)
   "Get the list of user-handles for ACTION from the current toot."

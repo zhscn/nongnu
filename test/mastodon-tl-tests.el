@@ -213,28 +213,28 @@ Strict-Transport-Security: max-age=31536000
                                       (mastodon-tl--relative-time-description timestamp)))
               (check (seconds expected)
                      (should (string= (format-seconds-since seconds) expected))))
-    (check 1 "less than a minute ago")
-    (check 59 "less than a minute ago")
-    (check 60 "one minute ago")
-    (check 89 "one minute ago")            ;; rounding down
+    (check 1 "just now")
+    (check 59 "just now")
+    (check 60 "1 minute ago")
+    (check 89 "1 minute ago")            ;; rounding down
     (check 91 "2 minutes ago")             ;; rounding up
     (check (minutes 3.49) "3 minutes ago") ;; rounding down
     (check (minutes 3.52) "4 minutes ago")
     (check (minutes 59) "59 minutes ago")
-    (check (minutes 60) "one hour ago")
-    (check (minutes 89) "one hour ago")
+    (check (minutes 60) "1 hour ago")
+    (check (minutes 89) "1 hour ago")
     (check (minutes 91) "2 hours ago")
     (check (hours 3.49) "3 hours ago") ;; rounding down
     (check (hours 3.51) "4 hours ago") ;; rounding down
     (check (hours 23.4) "23 hours ago")
-    (check (hours 23.6) "one day ago") ;; rounding up
-    (check (days 1.48) "one day ago")  ;; rounding down
+    (check (hours 23.6) "1 day ago") ;; rounding up
+    (check (days 1.48) "1 day ago")  ;; rounding down
     (check (days 1.52) "2 days ago")   ;; rounding up
-    (check (days 6.6) "one week ago")  ;; rounding up
+    (check (days 6.6) "1 week ago")  ;; rounding up
     (check (weeks 2.49) "2 weeks ago") ;; rounding down
     (check (weeks 2.51) "3 weeks ago") ;; rounding down
     (check (1- (weeks 52)) "52 weeks ago")
-    (check (weeks 52) "one year ago")
+    (check (weeks 52) "1 year ago")
     (check (years 2.49) "2 years ago") ;; rounding down
     (check (years 2.51) "3 years ago") ;; rounding down
     ))

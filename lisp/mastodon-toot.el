@@ -1,6 +1,7 @@
 ;;; mastodon-toot.el --- Minor mode for sending Mastodon toots  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2019 Johnson Denen
+;; Copyright (C) 2020-2022 Marty Hiatt
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
@@ -79,6 +80,10 @@
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl")
 (autoload 'mastodon-http--put "mastodon-http")
 (autoload 'mastodon-tl--symbol "mastodon-tl")
+(autoload 'mastodon-tl--view-scheduled-toots "mastodon-tl")
+(autoload 'mastodon-tl--cancel-scheduled-toot "mastodon-toot")
+(autoload 'org-read-date "org")
+(autoload 'iso8601-parse "iso8601")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -175,6 +180,13 @@ change the setting on the server, see
 (defvar-local mastodon-toot--language nil
   "The language of the toot being composed, in ISO 639 (two-letter).")
 
+(defvar-local mastodon-toot--scheduled-for nil
+  "An ISO 8601 timestamp that specifying when the post should be published.
+Should be at least 5 minutes into the future.")
+
+(defvar-local mastodon-toot--scheduled-id nil
+  "The id of the scheduled post that we are now editing.")
+
 (defvar-local mastodon-toot--reply-to-id nil
   "Buffer-local variable to hold the id of the toot being replied to.")
 
@@ -227,7 +239,8 @@ send.")
     (define-key map (kbd "C-c C-a") #'mastodon-toot--attach-media)
     (define-key map (kbd "C-c !") #'mastodon-toot--clear-all-attachments)
     (define-key map (kbd "C-c C-p") #'mastodon-toot--create-poll)
-    (define-key map (kbd "C-c C-l") #'mastodon-toot--set-toot-lang)
+    (define-key map (kbd "C-c C-l") #'mastodon-toot--set-toot-language)
+    (define-key map (kbd "C-c C-s") #'mastodon-toot--schedule-toot)
     map)
   "Keymap for `mastodon-toot'.")
 
@@ -513,11 +526,25 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
       (goto-char (point-max))
       (insert content)
       ;; adopt reply-to-id, visibility and CW from deleted toot:
-      (when reply-id
-        (setq mastodon-toot--reply-to-id reply-id))
-      (setq mastodon-toot--visibility toot-visibility)
-      (mastodon-toot--set-cw toot-cw)
-      (mastodon-toot--update-status-fields))))
+      (mastodon-toot--set-toot-properties
+       reply-id toot-visibility toot-cw
+       ;; TODO set new lang/scheduled props here
+       nil))))
+
+(defun mastodon-toot--set-toot-properties (reply-id visibility cw lang
+                                                    &optional scheduled
+                                                    scheduled-id)
+  "Set the toot properties for the current redrafted or edited toot.
+REPLY-ID, VISIBILITY, CW, SCHEDULED, and LANG are the properties to set."
+  (when reply-id
+    (setq mastodon-toot--reply-to-id reply-id))
+  (setq mastodon-toot--visibility visibility)
+  (setq mastodon-toot--scheduled-for scheduled)
+  (setq mastodon-toot--scheduled-id scheduled-id)
+  (when (not (string-empty-p lang))
+    (setq mastodon-toot--language lang))
+  (mastodon-toot--set-cw cw)
+  (mastodon-toot--update-status-fields))
 
 (defun mastodon-toot--kill (&optional cancel)
   "Kill `mastodon-toot-mode' buffer and window.
@@ -686,7 +713,8 @@ instance to edit a toot."
                           ("sensitive" . ,(when mastodon-toot--content-nsfw
                                             (symbol-name t)))
                           ("spoiler_text" . ,spoiler)
-                          ("language" . ,mastodon-toot--language)))
+                          ("language" . ,mastodon-toot--language)
+                          ("scheduled_at" . ,mastodon-toot--scheduled-for)))
          (args-media (when mastodon-toot--media-attachments
                        (mastodon-http--build-array-params-alist
                         "media_ids[]"
@@ -699,7 +727,9 @@ instance to edit a toot."
                  (if mastodon-toot-poll
                      (append args-no-media args-poll)
                    args-no-media)))
-         (prev-window-config mastodon-toot-previous-window-config))
+         (prev-window-config mastodon-toot-previous-window-config)
+         (scheduled mastodon-toot--scheduled-for)
+         (scheduled-id mastodon-toot--scheduled-id))
     (cond ((and mastodon-toot--media-attachments
                 ;; make sure we have media args
                 ;; and the same num of ids as attachments
@@ -720,8 +750,15 @@ instance to edit a toot."
              (mastodon-http--triage response
                                     (lambda ()
                                       (mastodon-toot--kill)
-                                      (message "Toot toot!")
-                                      (mastodon-toot--restore-previous-window-config prev-window-config))))))))
+                                      (if scheduled
+                                          (message "Toot scheduled!")
+                                        (message "Toot toot!"))
+                                      ;; cancel scheduled toot if we were editing it:
+                                      (when scheduled-id
+                                        (mastodon-tl--cancel-scheduled-toot
+                                         scheduled-id :no-confirm))
+                                      (mastodon-toot--restore-previous-window-config
+                                       prev-window-config))))))))
 
 ;; EDITING TOOTS:
 
@@ -737,16 +774,15 @@ instance to edit a toot."
              (content (alist-get 'text source))
              (source-cw (alist-get 'spoiler_text source))
              (toot-visibility (alist-get 'visibility toot))
+             (toot-language (alist-get 'language toot))
              (reply-id (alist-get 'in_reply_to_id toot)))
         (when (y-or-n-p "Edit this toot? ")
           (mastodon-toot--compose-buffer)
           (goto-char (point-max))
           (insert content)
-          ;; adopt reply-to-id, visibility and CW:
-          (when reply-id
-            (setq mastodon-toot--reply-to-id reply-id))
-          (setq mastodon-toot--visibility toot-visibility)
-          (mastodon-toot--set-cw source-cw)
+          ;; adopt reply-to-id, visibility, CW, and language:
+          (mastodon-toot--set-toot-properties reply-id toot-visibility
+                                              source-cw toot-language)
           (mastodon-toot--update-status-fields)
           (setq mastodon-toot--edit-toot-id id))))))
 
@@ -788,8 +824,8 @@ instance to edit a toot."
 
 (defun mastodon-toot--insert-toot-iter (it)
   "Insert iteration IT of toot."
-  (let ((content (alist-get 'content it))
-        (account (alist-get 'account it)))
+  (let ((content (alist-get 'content it)))
+    ;; (account (alist-get 'account it))
     ;; TODO: handle polls, media
     (mastodon-tl--render-text content)))
 
@@ -827,15 +863,37 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
                "")))
 
 (defun mastodon-toot--get-bounds (regex)
-  "Get bounds of tag or handle before point."
+  "Get bounds of tag or handle before point using REGEX."
   ;; needed because # and @ are not part of any existing thing at point
   (save-match-data
     (save-excursion
       ;; match full handle inc. domain, or tag including #
       ;; (see the regexes for subexp 2)
-      (when (re-search-backward regex nil :no-error)
+      (when (re-search-backward regex
+                                (save-excursion
+                                  (forward-whitespace -1)
+                                  (point))
+                                :no-error)
         (cons (match-beginning 2)
               (match-end 2))))))
+
+(defun mastodon-toot--fetch-completion-candidates (start end &optional tags)
+  "Search for a completion prefix from buffer positions START to END.
+Return a list of candidates.
+If TAGS, we search for tags, else we search for handles."
+  ;; FIXME: can we save the first two-letter search then only filter the
+  ;; resulting list?
+  ;; (or mastodon-toot-completions
+  ;; would work if we could null that var upon completion success
+  (setq mastodon-toot-completions
+        (if tags
+            (let ((tags-list (mastodon-search--search-tags-query
+                              (buffer-substring-no-properties start end))))
+              (cl-loop for tag in tags-list
+                       collect (cons (concat "#" (car tag))
+                                     (cdr tag))))
+          (mastodon-search--search-accounts-query
+           (buffer-substring-no-properties start end)))))
 
 (defun mastodon-toot--mentions-capf ()
   "Build a mentions completion backend for `completion-at-point-functions'."
@@ -849,11 +907,7 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
             ;; only search when necessary:
             (completion-table-dynamic
              (lambda (_)
-               ;; TODO: do we really need to set a local var here
-               ;; just for the annotation-function?
-               (setq mastodon-toot-completions
-                     (mastodon-search--search-accounts-query
-                      (buffer-substring-no-properties start end)))))
+               (mastodon-toot--fetch-completion-candidates start end)))
             :exclusive 'no
             :annotation-function
             (lambda (candidate)
@@ -872,13 +926,7 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
             ;; only search when necessary:
             (completion-table-dynamic
              (lambda (_)
-               (setq mastodon-toot-completions
-                     (let ((tags (mastodon-search--search-tags-query
-                                  (buffer-substring-no-properties start end))))
-                       (mapcar (lambda (x)
-                                 (list (concat "#" (car x))
-                                       (cdr x)))
-                               tags)))))
+               (mastodon-toot--fetch-completion-candidates start end :tags)))
             :exclusive 'no
             :annotation-function
             (lambda (candidate)
@@ -893,7 +941,7 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
   "Given a tag string CANDIDATE, return an annotation, the tag's URL."
   ;; FIXME check the list returned here? should be cadr
   ;;or make it an alist and use cdr
-  (caadr (assoc candidate mastodon-toot-completions)))
+  (cadr (assoc candidate mastodon-toot-completions)))
 
 (defun mastodon-toot--reply ()
   "Reply to toot at `point'.
@@ -1111,7 +1159,7 @@ LENGTH is the maximum character length allowed for a poll option."
     ("14 days" . ,(number-to-string (* 60 60 24 14)))
     ("30 days" . ,(number-to-string (* 60 60 24 30)))))
 
-(defun mastodon-toot--set-toot-lang ()
+(defun mastodon-toot--set-toot-language ()
   "Prompt for a language and set `mastodon-toot--language'.
 Return its two letter ISO 639 1 code."
   (interactive)
@@ -1119,7 +1167,54 @@ Return its two letter ISO 639 1 code."
                                   mastodon-iso-639-1)))
     (setq mastodon-toot--language
           (alist-get choice mastodon-iso-639-1 nil nil 'equal))
-    (message "Language set to %s" choice)))
+    (message "Language set to %s" choice)
+    (mastodon-toot--update-status-fields)))
+
+(defun mastodon-toot--schedule-toot (&optional reschedule)
+  "Read a date (+ time) in the minibuffer and schedule the current toot.
+With RESCHEDULE, reschedule the scheduled toot at point without editing."
+  ;; original idea by christian tietze, thanks!
+  ;; https://codeberg.org/martianh/mastodon.el/issues/285
+  (interactive)
+  (let* ((id (when reschedule (get-text-property (point) 'id)))
+         (ts (when reschedule
+               (alist-get 'scheduled_at
+                          (get-text-property (point) 'scheduled-json))))
+         (time-value
+          (org-read-date t t nil "Schedule toot:"
+                         ;; default to scheduled timestamp if already set:
+                         (mastodon-toot--iso-to-org
+                          ;; we are rescheduling without editing:
+                          (or ts
+                              ;; we are maybe editing the scheduled toot:
+                              mastodon-toot--scheduled-for))))
+         (iso8601-str (format-time-string "%FT%T%z" time-value))
+         (msg-str (format-time-string "%d-%m-%y at %H:%M[%z]" time-value)))
+    (if (not reschedule)
+        (progn
+          (setq-local mastodon-toot--scheduled-for iso8601-str)
+          (message (format "Toot scheduled for %s." msg-str)))
+      (let* ((args (when reschedule `(("scheduled_at" . ,iso8601-str))))
+             (url (when reschedule (mastodon-http--api
+                                    (format "scheduled_statuses/%s" id))))
+             (response (mastodon-http--put url args)))
+        (mastodon-http--triage response
+                               (lambda ()
+                                 ;; reschedule means we are in scheduled toots view:
+                                 (mastodon-tl--view-scheduled-toots)
+                                 (message
+                                  (format "Toot rescheduled for %s." msg-str))))))))
+
+(defun mastodon-toot--iso-to-human (ts)
+  "Format an ISO8601 timestamp TS to be more human-readable."
+  (let* ((decoded (iso8601-parse ts))
+         (encoded (encode-time decoded)))
+    (format-time-string "%d-%m-%y, %H:%M[%z]" encoded)))
+
+(defun mastodon-toot--iso-to-org (ts)
+  "Convert ISO8601 timestamp TS to something `org-read-date' can handle."
+  (when ts (let* ((decoded (iso8601-parse ts)))
+             (encode-time decoded))))
 
 ;; we'll need to revisit this if the binds get
 ;; more diverse than two-chord bindings
@@ -1211,6 +1306,12 @@ REPLY-TEXT is the text of the toot being replied to."
        (propertize "Visibility"
                    'toot-post-visibility t)
        " ⋅ "
+       (propertize "Language"
+                   'toot-post-language t)
+       " "
+       (propertize "Scheduled"
+                   'toot-post-scheduled t)
+       " "
        (propertize "CW"
                    'toot-post-cw-flag t)
        " "
@@ -1264,25 +1365,42 @@ REPLY-JSON is the full JSON of the toot being replied to."
                                                           (point-min)))
            (cw-region (mastodon-tl--find-property-range 'toot-post-cw-flag
                                                         (point-min)))
+           (lang-region (mastodon-tl--find-property-range 'toot-post-language
+                                                          (point-min)))
+           (scheduled-region (mastodon-tl--find-property-range 'toot-post-scheduled
+                                                               (point-min)))
            (toot-string (buffer-substring-no-properties (cdr header-region)
                                                         (point-max))))
       (add-text-properties (car count-region) (cdr count-region)
                            (list 'display
-                                 (format "%s/%s characters"
+                                 (format "%s/%s chars"
                                          (mastodon-toot--count-toot-chars toot-string)
                                          (number-to-string mastodon-toot--max-toot-chars))))
       (add-text-properties (car visibility-region) (cdr visibility-region)
                            (list 'display
-                                 (format "Visibility: %s"
+                                 (format "%s"
                                          (if (equal
                                               mastodon-toot--visibility
                                               "private")
                                              "followers-only"
                                            mastodon-toot--visibility))))
+      (add-text-properties (car lang-region) (cdr lang-region)
+                           (list 'display
+                                 (if mastodon-toot--language
+                                     (format "Lang: %s ⋅"
+                                             mastodon-toot--language)
+                                   "")))
+      (add-text-properties (car scheduled-region) (cdr scheduled-region)
+                           (list 'display
+                                 (if mastodon-toot--scheduled-for
+                                     (format "Scheduled: %s ⋅"
+                                             (mastodon-toot--iso-to-human
+                                              mastodon-toot--scheduled-for))
+                                   "")))
       (add-text-properties (car nsfw-region) (cdr nsfw-region)
                            (list 'display (if mastodon-toot--content-nsfw
                                               (if mastodon-toot--media-attachments
-                                                  "NSFW" "NSFW (no effect until attachments added)")
+                                                  "NSFW" "NSFW (for attachments only)")
                                             "")
                                  'face 'mastodon-cw-face))
       (add-text-properties (car cw-region) (cdr cw-region)
@@ -1434,7 +1552,9 @@ a draft into the buffer."
        'completion-at-point-functions
        #'mastodon-toot--tags-capf)
       ;; company
-      (when mastodon-toot--use-company-for-completion
+      (when (and mastodon-toot--use-company-for-completion
+                 (require 'company nil :no-error))
+        (declare-function 'company-mode-on "company")
         (set (make-local-variable 'company-backends)
              (add-to-list 'company-backends 'company-capf))
         (company-mode-on)))
