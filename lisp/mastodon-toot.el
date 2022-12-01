@@ -869,7 +869,11 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
     (save-excursion
       ;; match full handle inc. domain, or tag including #
       ;; (see the regexes for subexp 2)
-      (when (re-search-backward regex nil :no-error)
+      (when (re-search-backward regex
+                                (save-excursion
+                                  (forward-whitespace -1)
+                                  (point))
+                                :no-error)
         (cons (match-beginning 2)
               (match-end 2))))))
 
