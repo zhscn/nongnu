@@ -881,10 +881,8 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
   "Search for a completion prefix from buffer positions START to END.
 Return a list of candidates.
 If TAGS, we search for tags, else we search for handles."
-  ;; FIXME: can we save the first two-letter search then only filter the
-  ;; resulting list?
-  ;; (or mastodon-toot-completions
-  ;; would work if we could null that var upon completion success
+  ;; we can't save the first two-letter search then only filter the
+  ;; resulting list, as max results returned is 40.
   (setq mastodon-toot-completions
         (if tags
             (let ((tags-list (mastodon-search--search-tags-query
