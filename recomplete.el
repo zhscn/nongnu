@@ -28,7 +28,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'seq))
+(eval-when-compile
+  (require 'seq))
 
 ;; TODO: make this lazy load (not everyone needs to use).
 (require 'dabbrev)
@@ -37,7 +38,9 @@
 ;; ---------------------------------------------------------------------------
 ;; Custom Variables
 
-(defgroup recomplete nil "Extensible, immediate completion utility." :group 'tools)
+(defgroup recomplete nil
+  "Extensible, immediate completion utility."
+  :group 'tools)
 
 (defcustom recomplete-single-line-display t
   "Display completion options to a single line, centered around the current item."
@@ -65,20 +68,21 @@
 ;;   Using this is optional, it can be left nil by callbacks.
 ;; - `is-first-post-command' Detect if the `post-command-hook' runs immediately
 ;;   after `recomplete-with-callback', so we know not to break the chain in that case.
-(defvar-local recomplete--alist nil "Internal properties for repeated `recomplete' calls.")
+(defvar-local recomplete--alist nil
+  "Internal properties for repeated `recomplete' calls.")
 
 
 (defmacro recomplete--with-advice (fn-orig where fn-advice &rest body)
   "Execute BODY with advice added.
 
 WHERE using FN-ADVICE temporarily added to FN-ORIG."
-  `
-  (let ((fn-advice-var ,fn-advice))
-    (unwind-protect
-      (progn
-        (advice-add ,fn-orig ,where fn-advice-var)
-        ,@body)
-      (advice-remove ,fn-orig fn-advice-var))))
+  (declare (indent 3))
+  `(let ((fn-advice-var ,fn-advice))
+     (unwind-protect
+         (progn
+           (advice-add ,fn-orig ,where fn-advice-var)
+           ,@body)
+       (advice-remove ,fn-orig fn-advice-var))))
 
 ;; Back-ported from emacs-29.1 (remove once older versions have beeen dropped).
 (defmacro recomplete--with-undo-amalgamate (&rest body)
@@ -88,62 +92,58 @@ This allows multiple operations to be undone in a single step.
 When undo is disabled this behaves like `progn'."
   (declare (indent 0) (debug t))
   (let ((handle (make-symbol "--change-group-handle--")))
-    `
-    (let
-      (
-        (,handle (prepare-change-group))
-        ;; Don't truncate any undo data in the middle of this,
-        ;; otherwise Emacs might truncate part of the resulting
-        ;; undo step: we want to mimic the behavior we'd get if the
-        ;; undo-boundaries were never added in the first place.
-        (undo-outer-limit nil)
-        (undo-limit most-positive-fixnum)
-        (undo-strong-limit most-positive-fixnum))
-      (unwind-protect
-        (progn
-          (activate-change-group ,handle)
-          ,@body)
-        (progn
-          (accept-change-group ,handle)
-          (undo-amalgamate-change-group ,handle))))))
+    `(let ((,handle (prepare-change-group))
+           ;; Don't truncate any undo data in the middle of this,
+           ;; otherwise Emacs might truncate part of the resulting
+           ;; undo step: we want to mimic the behavior we'd get if the
+           ;; undo-boundaries were never added in the first place.
+           (undo-outer-limit nil)
+           (undo-limit most-positive-fixnum)
+           (undo-strong-limit most-positive-fixnum))
+       (unwind-protect
+           (progn
+             (activate-change-group ,handle)
+             ,@body)
+         (progn
+           (accept-change-group ,handle)
+           (undo-amalgamate-change-group ,handle))))))
 
 (defmacro recomplete--with-messages-as-list (message-list &rest body)
   "Run BODY adding any message call to the MESSAGE-LIST list."
   (declare (indent 1))
-  `
-  (let ((temp-message-list (list)))
-    (recomplete--with-advice #'message
-      :override
-      (lambda (&rest args)
-        ;; Only check if non-null because this is a signal not to log at all.
-        (when message-log-max
-          (push (apply #'format-message args) temp-message-list)))
-      (unwind-protect
-        (progn
-          ,@body)
-        ;; Protected.
-        (setq ,message-list (append ,message-list (reverse temp-message-list)))))))
+  `(let ((temp-message-list (list)))
+     (recomplete--with-advice #'message
+         :override
+         (lambda (&rest args)
+           ;; Only check if non-null because this is a signal not to log at all.
+           (when message-log-max
+             (push (apply #'format-message args) temp-message-list)))
+       (unwind-protect
+           (progn
+             ,@body)
+         ;; Protected.
+         (setq ,message-list (append ,message-list (reverse temp-message-list)))))))
 
 (defun recomplete--rotate-list-by-elt-and-remove (seq elt)
   "Split SEQ at ELT, removing it, so the elements after it are positioned first."
   (let ((p (seq-position seq elt)))
     (cond
-      ((null p)
-        (seq-subseq seq 0))
-      ((zerop p)
-        (seq-subseq seq 1))
-      (t
-        (append (seq-subseq seq (1+ p)) (seq-subseq seq 0 p))))))
+     ((null p)
+      (seq-subseq seq 0))
+     ((zerop p)
+      (seq-subseq seq 1))
+     (t
+      (append (seq-subseq seq (1+ p)) (seq-subseq seq 0 p))))))
 
 (defun recomplete--rotate-list-by-elt (seq elt)
   "Split SEQ at ELT, so the elements after it are positioned first."
   (let ((p (seq-position seq elt)))
     (cond
-      ((null p)
-        (seq-subseq seq 0))
-      (t
-        (setq p (mod (1+ p) (length seq)))
-        (append (seq-subseq seq p) (seq-subseq seq 0 p))))))
+     ((null p)
+      (seq-subseq seq 0))
+     (t
+      (setq p (mod (1+ p) (length seq)))
+      (append (seq-subseq seq p) (seq-subseq seq 0 p))))))
 
 (defun recomplete--undo-next (list)
   "Get the next undo step in LIST.
@@ -165,34 +165,32 @@ Argument LIST compatible list `buffer-undo-list'."
 
   ;; Should always be true, harmless if it's not.
   (cond
-    ;; Continue with this chain.
-    ((alist-get 'is-first-post-command recomplete--alist)
-      (setf (alist-get 'is-first-post-command recomplete--alist) nil))
+   ;; Continue with this chain.
+   ((alist-get 'is-first-post-command recomplete--alist)
+    (setf (alist-get 'is-first-post-command recomplete--alist) nil))
 
-    ;; Reverse direction.
-    ((eq this-command 'keyboard-quit)
+   ;; Reverse direction.
+   ((eq this-command 'keyboard-quit)
 
-      ;; Toggle reverse direction.
-      (let ((cycle-reverse (not (alist-get 'cycle-reverse recomplete--alist))))
+    ;; Toggle reverse direction.
+    (let ((cycle-reverse (not (alist-get 'cycle-reverse recomplete--alist))))
 
-        ;; Re-display the message.
-        (let
-          (
-            (msg-prefix
-              (cond
-                (cycle-reverse
-                  "<")
-                (t
-                  ">")))
+      ;; Re-display the message.
+      (let ((msg-prefix
+             (cond
+              (cycle-reverse
+               "<")
+              (t
+               ">")))
             (msg-text (alist-get 'msg-text recomplete--alist)))
-          (message "%s%s" msg-prefix msg-text))
+        (message "%s%s" msg-prefix msg-text))
 
-        (setf (alist-get 'cycle-reverse recomplete--alist) cycle-reverse)))
+      (setf (alist-get 'cycle-reverse recomplete--alist) cycle-reverse)))
 
-    ;; Break the chain.
-    (t
-      (remove-hook 'post-command-hook 'recomplete--alist-clear-hook t)
-      (setq recomplete--alist nil))))
+   ;; Break the chain.
+   (t
+    (remove-hook 'post-command-hook 'recomplete--alist-clear-hook t)
+    (setq recomplete--alist nil))))
 
 
 ;; ---------------------------------------------------------------------------
@@ -205,14 +203,14 @@ Argument FN-CACHE stores the result for reuse."
 
     (unless result-choices
       (recomplete--with-advice #'ispell-command-loop
-        :override
-        (lambda (miss _guess _word start end)
-          (when miss
-            (setq result-choices miss)
-            (setq word-beg (marker-position start))
-            (setq word-end (marker-position end))
-            ;; Return the word would make the correction, we do this ourselves next.
-            nil))
+          :override
+          (lambda (miss _guess _word start end)
+            (when miss
+              (setq result-choices miss)
+              (setq word-beg (marker-position start))
+              (setq word-end (marker-position end))
+              ;; Return the word would make the correction, we do this ourselves next.
+              nil))
         (ispell-word))
 
       (when result-choices
@@ -240,31 +238,27 @@ Argument FN-CACHE stores the result for reuse."
         (setq word-beg (car word-range))
         (setq word-end (cdr word-range)))
 
-      (let*
-        (
-          (word-init (buffer-substring-no-properties word-beg word-end))
-          (word-split
-            (mapcar
-              'downcase
-              (split-string
-                (string-trim
-                  (replace-regexp-in-string
-                    "\\([[:lower:]]\\)\\([[:upper:]]\\)"
-                    "\\1_\\2"
-                    word-init)
-                  "_")
-                "[_\\-]"))))
+      (let* ((word-init (buffer-substring-no-properties word-beg word-end))
+             (word-split
+              (mapcar
+               'downcase
+               (split-string (string-trim (replace-regexp-in-string
+                                           "\\([[:lower:]]\\)\\([[:upper:]]\\)"
+                                           "\\1_\\2"
+                                           word-init)
+                                          "_")
+                             "[_\\-]"))))
 
         (push (string-join (mapcar #'capitalize word-split) "") result-choices)
 
         (cond
-          ;; Single word, just add lower-case.
-          ((null (cdr word-split))
-            (push (car word-split) result-choices))
-          ;; Multiple words.
-          (t
-            (dolist (ch (list ?- ?_))
-              (push (string-join word-split (char-to-string ch)) result-choices))))
+         ;; Single word, just add lower-case.
+         ((null (cdr word-split))
+          (push (car word-split) result-choices))
+         ;; Multiple words.
+         (t
+          (dolist (ch (list ?- ?_))
+            (push (string-join word-split (char-to-string ch)) result-choices))))
 
         ;; Exclude this word from the list of options (if it exists at all).
         (setq result-choices (recomplete--rotate-list-by-elt result-choices word-init))
@@ -293,13 +287,13 @@ Argument FN-CACHE stores the result for reuse."
 
           (let ((word-init (dabbrev--abbrev-at-point)))
             (setq word-beg
-              (progn
-                (search-backward word-init)
-                (point)))
+                  (progn
+                    (search-backward word-init)
+                    (point)))
             (setq word-end
-              (progn
-                (search-forward word-init)
-                (point)))
+                  (progn
+                    (search-forward word-init)
+                    (point)))
 
             (let ((ignore-case-p (dabbrev--ignore-case-p word-init)))
               (setq result-choices (dabbrev--find-all-expansions word-init ignore-case-p)))
@@ -310,7 +304,7 @@ Argument FN-CACHE stores the result for reuse."
 
             ;; Exclude this word from the list of options (if it exists at all).
             (setq result-choices
-              (recomplete--rotate-list-by-elt-and-remove result-choices word-init)))
+                  (recomplete--rotate-list-by-elt-and-remove result-choices word-init)))
 
           (setq fn-cache (list result-choices word-beg word-end)))))
 
@@ -327,12 +321,10 @@ Argument FN-CACHE stores the result for reuse."
 (defun recomplete-replace-in-region (str beg end)
   "Utility to replace region from BEG to END with STR.
 Return the region replaced."
-  (let
-    (
-      (len (length str))
-      (i-beg nil)
-      (i-end nil)
-      (i-end-ofs nil))
+  (let ((len (length str))
+        (i-beg nil)
+        (i-end nil)
+        (i-end-ofs nil))
 
     ;; Check for skip end.
     (let ((i 0))
@@ -340,10 +332,10 @@ Return the region replaced."
         (while (< i len-test)
           (let ((i-next (1+ i)))
             (cond
-              ((eq (aref str (- len i-next)) (char-after (- end i-next)))
-                (setq i i-next))
-              (t ;; Break.
-                (setq len-test i))))))
+             ((eq (aref str (- len i-next)) (char-after (- end i-next)))
+              (setq i i-next))
+             (t ;; Break.
+              (setq len-test i))))))
       (unless (zerop i)
         (setq i-end (- len i))
         (setq len (- len i))
@@ -355,10 +347,10 @@ Return the region replaced."
       (let ((len-test (min (- end beg) len)))
         (while (< i len-test)
           (cond
-            ((eq (aref str i) (char-after (+ beg i)))
-              (setq i (1+ i)))
-            (t ;; Break.
-              (setq len-test i)))))
+           ((eq (aref str i) (char-after (+ beg i)))
+            (setq i (1+ i)))
+           (t ;; Break.
+            (setq len-test i)))))
       (unless (zerop i)
         (setq i-beg i)
         (setq beg (+ beg i))))
@@ -397,15 +389,15 @@ step onto the next item)."
     (user-error "(re)complete: undo disabled for this buffer"))
 
   (let
-    ( ;; Initial values if not overwritten by the values in `recomplete--alist'.
-      (point-init (point))
-      (buffer-undo-list-init buffer-undo-list)
-      (pending-undo-list-init pending-undo-list)
-      (cycle-index (or cycle-index-init 0))
-      (cycle-reverse nil)
-      (fn-cache nil)
+      ( ;; Initial values if not overwritten by the values in `recomplete--alist'.
+       (point-init (point))
+       (buffer-undo-list-init buffer-undo-list)
+       (pending-undo-list-init pending-undo-list)
+       (cycle-index (or cycle-index-init 0))
+       (cycle-reverse nil)
+       (fn-cache nil)
 
-      (message-list (list)))
+       (message-list (list)))
 
     ;; Roll-back and cycle through corrections.
     (let ((alist recomplete--alist))
@@ -441,9 +433,9 @@ step onto the next item)."
         ;; Undo with strict checks so we know _exactly_ whats going on
         ;; and don't allow some unknown state to be entered.
         (let
-          ( ;; Skip the 'nil' car of the list.
-            (undo-data (cdr buffer-undo-list))
-            (undo-data-init (cdr buffer-undo-list-init)))
+            ( ;; Skip the 'nil' car of the list.
+             (undo-data (cdr buffer-undo-list))
+             (undo-data-init (cdr buffer-undo-list-init)))
 
 
           ;; It's possible the last action did not add an undo step.
@@ -461,15 +453,15 @@ step onto the next item)."
               (user-error "(re)complete: unexpected undo-state before undo, abort!"))
 
             (let
-              ( ;; Roll back the edit, override `this-command' so we have predictable undo behavior.
-                ;; Also so setting it doesn't overwrite the current `this-command'
-                ;; which is checked above as `last-command'.
-                (this-command nil)
-                ;; We never want to undo in region (unlikely, set just to be safe).
-                (undo-in-region nil)
-                ;; The "Undo" message is just noise, don't log it or display it.
-                (inhibit-message t)
-                (message-log-max nil))
+                ( ;; Roll back the edit, override `this-command' so we have predictable undo behavior.
+                 ;; Also so setting it doesn't overwrite the current `this-command'
+                 ;; which is checked above as `last-command'.
+                 (this-command nil)
+                 ;; We never want to undo in region (unlikely, set just to be safe).
+                 (undo-in-region nil)
+                 ;; The "Undo" message is just noise, don't log it or display it.
+                 (inhibit-message t)
+                 (message-log-max nil))
 
               (undo-only)
 
@@ -485,36 +477,32 @@ step onto the next item)."
 
         (goto-char point-init)))
 
-    (pcase-let
-      (
-        (`(,result-choices ,result-fn-cache)
-          ;; Store messages, only display failure, as we will typically show a word list.
-          ;; Without storing these in a list we get an unsightly flicker.
-          (recomplete--with-messages-as-list message-list
-            ;; Needed in case the operation does multiple undo pushes.
-            (recomplete--with-undo-amalgamate
-              (apply (symbol-function fn-symbol) (list cycle-index fn-cache))))))
+    (pcase-let ((`(,result-choices ,result-fn-cache)
+                 ;; Store messages, only display failure, as we will typically show a word list.
+                 ;; Without storing these in a list we get an unsightly flicker.
+                 (recomplete--with-messages-as-list message-list
+                   ;; Needed in case the operation does multiple undo pushes.
+                   (recomplete--with-undo-amalgamate
+                     (apply (symbol-function fn-symbol) (list cycle-index fn-cache))))))
 
       (cond
-        ((null result-choices)
-          ;; Log the message, since there was failure we might want to know why.
-          (dolist (message-text message-list)
-            (message "%s" message-text))
-          ;; Result, nothing happened!
-          nil)
+       ((null result-choices)
+        ;; Log the message, since there was failure we might want to know why.
+        (dolist (message-text message-list)
+          (message "%s" message-text))
+        ;; Result, nothing happened!
+        nil)
 
-        (t
-          ;; Set to wrap around.
-          (setq cycle-index (mod cycle-index (length result-choices)))
+       (t
+        ;; Set to wrap around.
+        (setq cycle-index (mod cycle-index (length result-choices)))
 
-          (let
-            (
-              (msg-prefix
-                (cond
-                  (cycle-reverse
-                    "<")
-                  (t
-                    ">")))
+        (let ((msg-prefix
+               (cond
+                (cycle-reverse
+                 "<")
+                (t
+                 ">")))
 
               ;; Notes on formatting output:
               ;; - Use double spaces as a separator even though it uses more room because:
@@ -522,78 +510,67 @@ step onto the next item)."
               ;;   - Some completions may contain spaces.
               ;; - Formatting ensures text doesn't *move* when the active item changes.
               (msg-text
-                (string-join
-                  (let ((iter-index 0))
-                    (mapcar
-                      (lambda (iter-word)
-                        (prog1
-                          (cond
-                            ((eq iter-index cycle-index)
-                              (format "[%s]" (propertize iter-word 'face 'match)))
-                            (t
-                              (format " %s " iter-word)))
-                          (setq iter-index (1+ iter-index))))
-                      result-choices))
-                  "")))
+               (string-join (let ((iter-index 0))
+                              (mapcar
+                               (lambda (iter-word)
+                                 (prog1 (cond
+                                         ((eq iter-index cycle-index)
+                                          (format "[%s]" (propertize iter-word 'face 'match)))
+                                         (t
+                                          (format " %s " iter-word)))
+                                   (setq iter-index (1+ iter-index))))
+                               result-choices))
+                            "")))
 
-            ;; Single line display.
-            (when recomplete-single-line-display
-              (with-current-buffer (window-buffer (minibuffer-window))
-                (let
-                  (
-                    (msg-width (string-width msg-text))
+          ;; Single line display.
+          (when recomplete-single-line-display
+            (with-current-buffer (window-buffer (minibuffer-window))
+              (let ((msg-width (string-width msg-text))
                     (display-width
-                      (- (window-body-width (minibuffer-window)) (length msg-prefix))))
-                  (when (> msg-width display-width)
-                    (let
-                      (
-                        (msg-start nil)
+                     (- (window-body-width (minibuffer-window)) (length msg-prefix))))
+                (when (> msg-width display-width)
+                  (let ((msg-start nil)
                         (msg-end nil)
                         (ellipsis "..."))
-                      (let*
-                        (
-                          (word-beg (next-property-change 0 msg-text))
-                          (word-end (next-property-change word-beg msg-text)))
-                        (setq msg-start
-                          (max
-                            0
-                            (min
-                              (- (/ (+ word-beg word-end) 2) (/ display-width 2))
-                              (- msg-width display-width))))
-                        (setq msg-end (min msg-width (+ msg-start display-width))))
+                    (let* ((word-beg (next-property-change 0 msg-text))
+                           (word-end (next-property-change word-beg msg-text)))
+                      (setq msg-start
+                            (max 0
+                                 (min (- (/ (+ word-beg word-end) 2) (/ display-width 2))
+                                      (- msg-width display-width))))
+                      (setq msg-end (min msg-width (+ msg-start display-width))))
 
-                      (setq msg-text
-                        (truncate-string-to-width msg-text msg-end msg-start 0 ellipsis))
+                    (setq msg-text
+                          (truncate-string-to-width msg-text msg-end msg-start 0 ellipsis))
 
-                      (unless (zerop msg-start)
-                        (setq msg-text
-                          (concat ellipsis (substring msg-text (length ellipsis)))))))))
-              ;; End single line display.
+                    (unless (zerop msg-start)
+                      (setq msg-text (concat ellipsis (substring msg-text (length ellipsis)))))))))
+            ;; End single line display.
 
-              ;; Run last so we can ensure it's the last text in the message buffer.
-              ;; Don't log because it's not useful to keep the selection.
-              (let ((message-log-max nil))
-                (message "%s%s" msg-prefix msg-text))
+            ;; Run last so we can ensure it's the last text in the message buffer.
+            ;; Don't log because it's not useful to keep the selection.
+            (let ((message-log-max nil))
+              (message "%s%s" msg-prefix msg-text))
 
-              ;; Set the state for redoing the correction.
-              (setq recomplete--alist
-                (list
-                  (cons 'buffer-undo-list buffer-undo-list-init)
-                  (cons 'pending-undo-list pending-undo-list-init)
-                  (cons 'point point-init)
-                  (cons 'cycle-index cycle-index)
-                  (cons 'cycle-reverse cycle-reverse)
-                  (cons 'fn-symbol fn-symbol)
-                  (cons 'fn-cache result-fn-cache)
-                  (cons 'is-first-post-command t)
-                  (cons 'msg-text msg-text)))
+            ;; Set the state for redoing the correction.
+            (setq recomplete--alist
+                  (list
+                   (cons 'buffer-undo-list buffer-undo-list-init)
+                   (cons 'pending-undo-list pending-undo-list-init)
+                   (cons 'point point-init)
+                   (cons 'cycle-index cycle-index)
+                   (cons 'cycle-reverse cycle-reverse)
+                   (cons 'fn-symbol fn-symbol)
+                   (cons 'fn-cache result-fn-cache)
+                   (cons 'is-first-post-command t)
+                   (cons 'msg-text msg-text)))
 
-              ;; Ensure a local hook, which removes it's self on the first non-successive call
-              ;; to a command that doesn't execute `recomplete-with-callback' with `fn-symbol'.
-              (add-hook 'post-command-hook 'recomplete--alist-clear-hook 0 t)))
+            ;; Ensure a local hook, which removes it's self on the first non-successive call
+            ;; to a command that doesn't execute `recomplete-with-callback' with `fn-symbol'.
+            (add-hook 'post-command-hook 'recomplete--alist-clear-hook 0 t)))
 
-          ;; Result, success.
-          t)))))
+        ;; Result, success.
+        t)))))
 
 ;; ISpell.
 ;;;###autoload
