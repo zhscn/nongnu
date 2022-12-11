@@ -43,10 +43,11 @@
 ;; ---------------------------------------------------------------------------
 ;; Custom Variables
 
-(defgroup idle-highlight nil "Highlight other occurrences of the word at point." :group 'faces)
+(defgroup idle-highlight nil
+  "Highlight other occurrences of the word at point."
+  :group 'faces)
 
-(defface idle-highlight
-  '((t (:inherit region)))
+(defface idle-highlight '((t (:inherit region)))
   "Face used to highlight other occurrences of the word at point.")
 
 (defcustom idle-highlight-exceptions nil
@@ -98,7 +99,8 @@ check this buffer.")
 ;; ---------------------------------------------------------------------------
 ;; Internal Variables
 
-(defvar-local idle-highlight--overlays nil "Buffer-local list of overlays.")
+(defvar-local idle-highlight--overlays nil
+  "Buffer-local list of overlays.")
 
 
 ;; ---------------------------------------------------------------------------
@@ -451,10 +453,10 @@ should be the result of `idle-highlight--word-at-point-args'."
       (idle-highlight--disable))))
 
 ;;;###autoload
-(define-globalized-minor-mode
-  global-idle-highlight-mode
+(define-globalized-minor-mode global-idle-highlight-mode
 
-  idle-highlight-mode idle-highlight--turn-on)
+  idle-highlight-mode
+  idle-highlight--turn-on)
 
 (provide 'idle-highlight-mode)
 ;;; idle-highlight-mode.el ends here
