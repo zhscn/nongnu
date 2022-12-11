@@ -495,8 +495,7 @@ Optional keywords in KEYWORDS.
 
               (when progress-message
                 (let ((message-log-max nil))
-                  (message
-                    "%s%.2f%%"
+                  (message "%s%.2f%%"
                     progress-message
                     (* 100.0 (/ (float count-complete) args-len))))))))
 
@@ -704,8 +703,7 @@ Argument BEG is only used to calculate the progress percentage."
 
                       (when diff-ansi-verbose-progress
                         (let ((message-log-max nil))
-                          (message
-                            "diff-ansi: %2d%% complete"
+                          (message "diff-ansi: %2d%% complete"
                             (min
                               (/ (* 100 (- disp-beg-next beg)) (- end-next beg))
                               ;; Never show 100 because there is work left to do,
