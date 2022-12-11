@@ -738,7 +738,7 @@ instance to edit a toot."
                             (length mastodon-toot--media-attachment-ids)))))
            (message "Something is wrong with your uploads. Wait for them to complete or try again."))
           ((and mastodon-toot--max-toot-chars
-                (> (length toot) mastodon-toot--max-toot-chars))
+                (> (mastodon-toot--count-toot-chars toot) mastodon-toot--max-toot-chars))
            (message "Looks like your toot is longer than that maximum allowed length."))
           ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
