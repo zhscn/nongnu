@@ -736,8 +736,7 @@ Store the result in TARGET-BUF when non-nil."
         (setq end (point))
 
         ;; Postpone activation until the timer can take it's self as an argument.
-        (diff-ansi--with-advice #'timer-activate
-          :override (lambda (&rest _) nil)
+        (diff-ansi--with-advice #'timer-activate :override (lambda (&rest _) nil)
           (setq diff-ansi--ansi-color-timer (run-at-time 0.0 0.001 nil))
           (timer-set-function
             diff-ansi--ansi-color-timer
@@ -765,7 +764,8 @@ Store the result in TARGET-BUF when non-nil."
     (with-current-buffer (or target-buf (current-buffer))
       (let ((inhibit-read-only t))
         (diff-ansi--with-temp-directory temp-dir
-          :prefix "diff-ansi"
+          :prefix
+          "diff-ansi"
           (with-temp-buffer
             ;; Use the temp buffer.
             (diff-ansi--call-process-pipe-chain
@@ -813,8 +813,7 @@ Store the result in TARGET-BUF when non-nil."
 
 This calls OLD-FN with ARGS."
   (let ((point-begin (point)))
-    (diff-ansi--with-advice #'magit-wash-sequence
-      :override (lambda (&rest _) nil)
+    (diff-ansi--with-advice #'magit-wash-sequence :override (lambda (&rest _) nil)
 
       (apply old-fn args)
 
