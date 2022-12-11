@@ -591,8 +591,7 @@ Optional keywords in KEYWORDS.
 
 (defun diff-ansi--ansi-color-apply-on-region-with-bg-str (black-color)
   "Create string that can be passed to a sub-process using BLACK-COLOR."
-  (format
-    "(progn %s %s %s %s %s)"
+  (format "(progn %s %s %s %s %s)"
     "(require 'ansi-color)"
     (format "(defconst diff-ansi--ansi-color-bg (list :background \"%s\" :extend t))" black-color)
     diff-ansi--code-block-for-multiprocess-defs
