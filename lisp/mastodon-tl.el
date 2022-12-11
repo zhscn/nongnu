@@ -1044,8 +1044,12 @@ message is a link which unhides/hides the main body."
                  'invisible
                  ;; check server setting to expand all spoilers:
                  (unless (eq t
-                             (mastodon-profile--get-preferences-pref
-                              'reading:expand:spoilers))
+                             ;; If something goes wrong reading prefs,
+                             ;; just return nil so CWs show by default.
+                             (condition-case nil
+                                 (mastodon-profile--get-preferences-pref
+                                  'reading:expand:spoilers)
+                               (error nil)))
                    t)
                  'mastodon-content-warning-body t))))
 
