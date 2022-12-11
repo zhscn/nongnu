@@ -74,8 +74,7 @@ Ignored when `doc-show-inline-face'
 does not have a user defined background color."
   :type 'float)
 
-(defface doc-show-inline-face
-  (list (list t :extend t))
+(defface doc-show-inline-face (list (list t :extend t))
   "Background for overlays.
 Note that the `background' is initialized using
 `doc-show-inline-face-background-highlight' unless it's customized.")
@@ -167,6 +166,7 @@ When unset, the :filter property from `doc-show-inline-mode-defaults' is used.")
 
 (defmacro doc-show-inline--with-advice (fn-orig where fn-advice &rest body)
   "Execute BODY with WHERE advice on FN-ORIG temporarily enabled."
+  (declare (indent 3))
   `
   (let ((fn-advice-var ,fn-advice))
     (unwind-protect
@@ -224,7 +224,8 @@ Where positive brighten and negative numbers darken."
   (let ((buf (get-buffer-create "*doc-show-inline-log*")))
     (set-text-properties 0 (length str) nil str)
     ;; (printf "%s%s\n" prefix str)
-    (with-current-buffer buf (insert prefix str "\n"))))
+    (with-current-buffer buf
+      (insert prefix str "\n"))))
 
 (defmacro doc-show-inline--log-fail (&rest args)
   "Log failure messages formatted with ARGS."
@@ -404,7 +405,8 @@ the point should not be moved by this function."
             (let ((ov (pop overlays-in-view)))
               (when (and (overlay-get ov 'doc-show-inline) (overlay-buffer ov))
                 (doc-show-inline--log-info
-                  "removing overlay in %S at point %d" (current-buffer)
+                  "removing overlay in %S at point %d"
+                  (current-buffer)
                   ;; Start & end are the same.
                   (overlay-start ov))
                 (delete-overlay ov)))))))
@@ -505,15 +507,12 @@ the point should not be moved by this function."
 Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
   ;; (printf "SYM: %S\n" sym)
   (let ((xref-list nil))
-    (doc-show-inline--with-advice #'xref--not-found-error
-      :override (lambda (_kind _input) nil)
-      (doc-show-inline--with-advice #'xref--show-defs
-        :override
+    (doc-show-inline--with-advice #'xref--not-found-error :override (lambda (_kind _input) nil)
+      (doc-show-inline--with-advice #'xref--show-defs :override
         (lambda (fetcher _display-action) (setq xref-list (funcall fetcher)))
         (let ((xref-prompt-for-identifier nil))
           ;; Needed to suppress `etags' from requesting a file.
-          (doc-show-inline--with-advice #'read-file-name
-            :override
+          (doc-show-inline--with-advice #'read-file-name :override
             (lambda (&rest _args)
               (doc-show-inline--log-info
                 "XREF lookup %S requested a file name for backend %S"
@@ -521,7 +520,8 @@ Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
                 xref-backend)
               ;; File that doesn't exist.
               (user-error "Doc-show-inline: ignoring request for file read"))
-            (with-demoted-errors "%S" (xref-find-definitions sym))))))
+            (with-demoted-errors "%S"
+              (xref-find-definitions sym))))))
     xref-list))
 
 (defun doc-show-inline--doc-from-xref (sym xref-list)
@@ -538,8 +538,7 @@ Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
     ;; only for the purpose of reading their comments.
     ;; `doc-show-inline-fontify-hook' can be used to enable features needed for comment extraction.
     (save-excursion
-      (doc-show-inline--with-advice #'run-mode-hooks
-        :override
+      (doc-show-inline--with-advice #'run-mode-hooks :override
         (lambda (_hooks)
           (with-demoted-errors "doc-show-inline-buffer-hook: %S"
             (run-hooks 'doc-show-inline-buffer-hook)))
@@ -710,8 +709,7 @@ XREF-BACKEND is the back-end used to find this symbol."
                 (xref-backend (xref-find-backend)))
 
               ;; Track buffers loaded.
-              (doc-show-inline--with-advice #'create-file-buffer
-                :around
+              (doc-show-inline--with-advice #'create-file-buffer :around
                 (lambda (fn-orig filename)
                   (let ((buf (funcall fn-orig filename)))
                     (when buf
@@ -757,8 +755,7 @@ XREF-BACKEND is the back-end used to find this symbol."
     (setq doc-show-inline--idle-overlays-debug-index
       (1+ doc-show-inline--idle-overlays-debug-index))
     (when
-      (>=
-        doc-show-inline--idle-overlays-debug-index
+      (>= doc-show-inline--idle-overlays-debug-index
         (length doc-show-inline--idle-overlays-debug-colors))
       (setq doc-show-inline--idle-overlays-debug-index 0))
     (let ((ov (make-overlay pos-beg pos-end)))
@@ -973,8 +970,7 @@ When IS-INTERACTIVE is true, use `doc-show-inline-idle-delay-init'."
     ;; When loading for the first time, postpone `timer-set-idle-time',
     ;; since `lsp-mode' may take some time to initialize.
     ;; Otherwise this can run immediately when started on an existing buffer.
-    (timer-set-idle-time
-      doc-show-inline--idle-timer
+    (timer-set-idle-time doc-show-inline--idle-timer
       (cond
         (is-interactive
           0.0)
