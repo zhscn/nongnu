@@ -703,8 +703,7 @@ Argument BEG is only used to calculate the progress percentage."
                       (when diff-ansi-verbose-progress
                         (let ((message-log-max nil))
                           (message "diff-ansi: %2d%% complete"
-                            (min
-                              (/ (* 100 (- disp-beg-next beg)) (- end-next beg))
+                            (min (/ (* 100 (- disp-beg-next beg)) (- end-next beg))
                               ;; Never show 100 because there is work left to do,
                               ;; actual completion will hide the message.
                               99)))))))))
