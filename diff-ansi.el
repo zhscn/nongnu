@@ -45,8 +45,7 @@
     (symbol :tag "Use `diff-ansi-tool-custom' command." custom)))
 
 ;; Note that this has it's values extracted and isn't used directly.
-(defface diff-ansi-default-face
-  (list (list t :foreground "black" :background "black"))
+(defface diff-ansi-default-face (list (list t :foreground "black" :background "black"))
   "Face used to render black color.")
 
 (defcustom diff-ansi-tool-custom nil
@@ -703,7 +702,8 @@ Argument BEG is only used to calculate the progress percentage."
                       (when diff-ansi-verbose-progress
                         (let ((message-log-max nil))
                           (message "diff-ansi: %2d%% complete"
-                            (min (/ (* 100 (- disp-beg-next beg)) (- end-next beg))
+                            (min
+                              (/ (* 100 (- disp-beg-next beg)) (- end-next beg))
                               ;; Never show 100 because there is work left to do,
                               ;; actual completion will hide the message.
                               99)))))))))
@@ -824,7 +824,8 @@ This calls OLD-FN with ARGS."
   "Enable the buffer local minor mode."
   (when diff-ansi-use-magit-revision-diff
     (require 'magit-diff)
-    (advice-add 'magit-insert-revision-diff
+    (advice-add
+      'magit-insert-revision-diff
       :around #'diff-ansi--magit-insert-revision-diff-advice-fn)))
 
 (defun diff-ansi--disable ()
