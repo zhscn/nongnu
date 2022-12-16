@@ -703,6 +703,8 @@ instance to edit a toot."
   (interactive)
   (let* ((edit-p (if mastodon-toot--edit-toot-id t nil))
          (toot (mastodon-toot--remove-docs))
+         (scheduled mastodon-toot--scheduled-for)
+         (scheduled-id mastodon-toot--scheduled-id)
          (endpoint
           (if edit-p
               ;; we are sending an edit:
@@ -713,14 +715,16 @@ instance to edit a toot."
                              mastodon-toot--content-warning)
                     (read-string "Warning: "
                                  mastodon-toot--content-warning-from-reply-or-redraft)))
-         (args-no-media `(("status" . ,toot)
-                          ("in_reply_to_id" . ,mastodon-toot--reply-to-id)
-                          ("visibility" . ,mastodon-toot--visibility)
-                          ("sensitive" . ,(when mastodon-toot--content-nsfw
-                                            (symbol-name t)))
-                          ("spoiler_text" . ,spoiler)
-                          ("language" . ,mastodon-toot--language)
-                          ("scheduled_at" . ,mastodon-toot--scheduled-for)))
+         (args-no-media (append `(("status" . ,toot)
+                                  ("in_reply_to_id" . ,mastodon-toot--reply-to-id)
+                                  ("visibility" . ,mastodon-toot--visibility)
+                                  ("sensitive" . ,(when mastodon-toot--content-nsfw
+                                                    (symbol-name t)))
+                                  ("spoiler_text" . ,spoiler)
+                                  ("language" . ,mastodon-toot--language))
+                                ; Pleroma instances can't handle null-valued
+                                ; scheduled_at args, so only add if non-nil
+                                (when scheduled `(("scheduled_at" . ,scheduled)))))
          (args-media (when mastodon-toot--media-attachments
                        (mastodon-http--build-array-params-alist
                         "media_ids[]"
@@ -733,9 +737,7 @@ instance to edit a toot."
                  (if mastodon-toot-poll
                      (append args-no-media args-poll)
                    args-no-media)))
-         (prev-window-config mastodon-toot-previous-window-config)
-         (scheduled mastodon-toot--scheduled-for)
-         (scheduled-id mastodon-toot--scheduled-id))
+         (prev-window-config mastodon-toot-previous-window-config))
     (cond ((and mastodon-toot--media-attachments
                 ;; make sure we have media args
                 ;; and the same num of ids as attachments
