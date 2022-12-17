@@ -137,6 +137,7 @@ When ASK is absent return nil."
   (let ((url (mastodon-auth--get-browser-login-url))
         authorization-code)
     (kill-new url)
+    (message url)
     (setq authorization-code
           (mastodon-auth--show-notice mastodon-auth--explanation
                                       "*mastodon-notice*"
