@@ -610,13 +610,19 @@ To use the downloaded emoji, run `mastodon-toot--enable-custom-emoji'."
       (unless (file-directory-p mastodon-custom-emoji-dir)
         (make-directory mastodon-custom-emoji-dir nil)) ; no add parent
       (mapc (lambda (x)
-              (url-copy-file (alist-get 'url x)
-                             (concat
-                              mastodon-custom-emoji-dir
-                              (alist-get 'shortcode x)
-                              "."
-                              (file-name-extension (alist-get 'url x)))
-                             t))
+              (let ((url (alist-get 'url x))
+                    (shortcode (alist-get 'shortcode x)))
+                ;; skip anything that contains unexpected characters
+                (when (and url shortcode
+                           (string-match-p "^[a-zA-Z0-9-_]*$" shortcode)
+                           (string-match-p "^[a-zA-Z]*$" (file-name-extension url)))
+                  (url-copy-file url
+                                 (concat
+                                  mastodon-custom-emoji-dir
+                                  shortcode
+                                  "."
+                                  (file-name-extension url))
+                                 t))))
             custom-emoji)
       (message "Custom emoji for %s downloaded to %s"
                mastodon-instance-url
