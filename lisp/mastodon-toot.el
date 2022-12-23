@@ -614,8 +614,8 @@ To use the downloaded emoji, run `mastodon-toot--enable-custom-emoji'."
                     (shortcode (alist-get 'shortcode x)))
                 ;; skip anything that contains unexpected characters
                 (when (and url shortcode
-                           (string-match-p "^[a-zA-Z0-9-_]*$" shortcode)
-                           (string-match-p "^[a-zA-Z]*$" (file-name-extension url)))
+                           (string-match-p "^[a-zA-Z0-9-_]+$" shortcode)
+                           (string-match-p "^[a-zA-Z]+$" (file-name-extension url)))
                   (url-copy-file url
                                  (concat
                                   mastodon-custom-emoji-dir
