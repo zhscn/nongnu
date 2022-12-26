@@ -56,9 +56,11 @@ Transfer-Encoding: chunked")
                 (username . "local")
                 (url . "")
                 (acct . "local"))])))
-
 (defconst mastodon-toot-no-mention
   '((mentions . [])))
+
+(defconst mastodon-toot--multi-mention-extracted
+  '("local" "federated@federated.social" "federated@federated.cafe"))
 
 (ert-deftest mastodon-toot--multi-mentions ()
   "Should build a correct mention string from the test toot data.
@@ -66,11 +68,21 @@ Transfer-Encoding: chunked")
 Even the local name \"local\" gets a domain name added."
   (let ((mastodon-auth--acct-alist '(("https://local.social". "null")))
         (mastodon-instance-url "https://local.social"))
-    (should (string=
+    (should (equal
              (mastodon-toot--mentions mastodon-toot--multi-mention)
-             "@local@local.social @federated@federated.social @federated@federated.cafe "))))
+             '("local" "federated@federated.social" "federated@federated.cafe")))))
 
-(ert-deftest mastodon-toot--multi-mentions-with-name ()
+(ert-deftest mastodon-toot--multi-mentions-to-string ()
+  "Should build a correct mention string from the test toot data.
+
+Even the local name \"local\" gets a domain name added."
+  (let ((mastodon-auth--acct-alist '(("https://local.social". "null")))
+        (mastodon-instance-url "https://local.social"))
+    (should (string=
+             (mastodon-toot--mentions-to-string mastodon-toot--multi-mention-extracted)
+             "@local@local.social @federated@federated.social @federated@federated.cafe"))))
+
+(ert-deftest mastodon-toot--multi-mentions-with-name-to-string ()
   "Should build a correct mention string omitting self.
 
 Here \"local\" is the user themselves and gets omitted from the
@@ -79,15 +91,24 @@ mention string."
          '(("https://local.social". "local")))
         (mastodon-instance-url "https://local.social"))
     (should (string=
-             (mastodon-toot--mentions mastodon-toot--multi-mention)
-             "@federated@federated.social @federated@federated.cafe "))))
+             (mastodon-toot--mentions-to-string mastodon-toot--multi-mention-extracted)
+             "@federated@federated.social @federated@federated.cafe"))))
+
+(ert-deftest mastodon-toot--no-mention-to-string ()
+  "Should return and empty string."
+  (let ((mastodon-auth--acct-alist
+         '(("https://local.social". "local")))
+        (mastodon-instance-url "https://local.social"))
+    (should (string=
+             (mastodon-toot--mentions-to-string nil)
+             ""))))
 
 (ert-deftest mastodon-toot--no-mention ()
-  "Should construct an empty mention string without mentions."
+  "Should construct an empty mention list without mentions."
   (let ((mastodon-auth--acct-alist
          '(("https://local.social". "null")))
         (mastodon-instance-url "https://local.social"))
-    (should (string= (mastodon-toot--mentions mastodon-toot-no-mention) ""))))
+    (should (equal (mastodon-toot--mentions mastodon-toot-no-mention) nil))))
 
 ;; TODO: test y-or-no-p with mastodon-toot--cancel
 (ert-deftest mastodon-toot--kill ()
