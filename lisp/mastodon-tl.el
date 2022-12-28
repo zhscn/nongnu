@@ -404,7 +404,8 @@ Used on initializing a timeline or thread."
   (interactive)
   (message "Loading local timeline...")
   (mastodon-tl--init
-   "local" "timelines/public?local=true" 'mastodon-tl--timeline))
+   "local" "timelines/public" 'mastodon-tl--timeline
+   nil '(("local" . "true"))))
 
 (defun mastodon-tl--get-tag-timeline ()
   "Prompt for tag and opens its timeline."
@@ -1404,10 +1405,12 @@ LINK-HEADER is the http Link header if present."
          (url (mastodon-http--api endpoint)))
     (mastodon-http--get-json url args)))
 
-(defun mastodon-tl--more-json-async (endpoint id callback &rest cbargs)
+(defun mastodon-tl--more-json-async (endpoint id &optional params callback &rest cbargs)
   "Return JSON for timeline ENDPOINT before ID.
-Then run CALLBACK with arguments CBARGS."
+Then run CALLBACK with arguments CBARGS
+PARAMS is used to send 'local=true' for local timeline."
   (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
+         (args (if params (push params args) args))
          (url (mastodon-http--api endpoint)))
     (apply 'mastodon-http--get-json-async url args callback cbargs)))
 
@@ -2552,7 +2555,7 @@ For use after e.g. deleting a toot."
          (mastodon-tl--get-home-timeline))
         ((equal (mastodon-tl--get-endpoint) "timelines/public")
          (mastodon-tl--get-federated-timeline))
-        ((equal (mastodon-tl--get-endpoint) "timelines/public?local=true")
+        ((equal (mastodon-tl--buffer-name) "*mastodon-local*")
          (mastodon-tl--get-local-timeline))
         ((equal (mastodon-tl--get-endpoint) "notifications")
          (mastodon-notifications-get))
@@ -2595,8 +2598,13 @@ when showing followers or accounts followed."
              (url (mastodon-tl--build-link-header-url next)))
         (mastodon-http--get-response-async url nil 'mastodon-tl--more* (current-buffer)
                                            (point) :headers))
-    (mastodon-tl--more-json-async (mastodon-tl--get-endpoint) (mastodon-tl--oldest-id)
-                                  'mastodon-tl--more* (current-buffer) (point))))
+    (mastodon-tl--more-json-async
+     (mastodon-tl--get-endpoint)
+     (mastodon-tl--oldest-id)
+     ;; local has same endpoint as federated:
+     (when (string= (mastodon-tl--buffer-name) "*mastodon-local*")
+       '("local" . "true"))
+     'mastodon-tl--more* (current-buffer) (point))))
 
 (defun mastodon-tl--more* (response buffer point-before &optional headers)
   "Append older toots to timeline, asynchronously.
@@ -2785,18 +2793,20 @@ from the start if it is nil."
   (when headers
     (split-string (alist-get "Link" headers nil nil 'equal) ", ")))
 
-(defun mastodon-tl--init (buffer-name endpoint update-function &optional headers)
+(defun mastodon-tl--init (buffer-name endpoint update-function &optional headers params)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT asynchronously.
 UPDATE-FUNCTION is used to recieve more toots.
 HEADERS means to also collect the response headers. Used for paginating
-favourites and bookmarks."
+favourites and bookmarks.
+PARAMS is any parameters to send with the request, currently only
+used to send 'local=true' for local timeline."
   (let ((url (mastodon-http--api endpoint))
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers
         (mastodon-http--get-response-async
-         url nil 'mastodon-tl--init* buffer endpoint update-function headers)
+         url params 'mastodon-tl--init* buffer endpoint update-function headers)
       (mastodon-http--get-json-async
-       url nil 'mastodon-tl--init* buffer endpoint update-function))))
+       url params 'mastodon-tl--init* buffer endpoint update-function))))
 
 (defun mastodon-tl--init* (response buffer endpoint update-function &optional headers)
   "Initialize BUFFER with timeline targeted by ENDPOINT.
