@@ -2283,15 +2283,6 @@ LANGS is an array parameters alist of languages to filer user's posts by."
    (mastodon-tl--do-user-action-and-response
     user-handle "follow" nil notify langs)))
 
-(defun mastodon-tl--account-locked-p (response)
-  "Return non-nil if RESPONSE states that the account acted upon is locked."
-  (let* ((json (with-current-buffer response (mastodon-http--process-json)))
-         (locked-p (alist-get 'requested json)))
-    ;; handle :json-false in response:
-    (if (eq 't locked-p)
-        t
-      nil)))
-
 (defun mastodon-tl--enable-notify-user-posts (user-handle)
   "Query for USER-HANDLE and enable notifications when they post."
   (interactive
@@ -2479,23 +2470,20 @@ ARGS is an alist of any parameters to send with the request."
     (mastodon-http--triage
      response
      (lambda ()
-       (let ((locked-p (mastodon-tl--account-locked-p response)))
-         (cond ((string-equal notify "true")
-                (message "Receiving notifications for user %s (@%s)!"
-                         name user-handle))
-               ((string-equal notify "false")
-                (message "Not receiving notifications for user %s (@%s)!"
-                         name user-handle))
-               ((or (string-equal action "mute")
-                    (string-equal action "unmute"))
-                (message "User %s (@%s) %sd!" name user-handle action))
-               ((assoc "languages[]" args #'equal)
-                (message "User %s filtered by language(s): %s" name
-                         (mapconcat #'cdr args " ")))
-               (locked-p
-                (message "Requested to follow user %s (@%s)" name user-handle))
-               ((eq notify nil)
-                (message "User %s (@%s) %sed!" name user-handle action))))))))
+       (cond ((string-equal notify "true")
+              (message "Receiving notifications for user %s (@%s)!"
+                       name user-handle))
+             ((string-equal notify "false")
+              (message "Not receiving notifications for user %s (@%s)!"
+                       name user-handle))
+             ((or (string-equal action "mute")
+                  (string-equal action "unmute"))
+              (message "User %s (@%s) %sd!" name user-handle action))
+             ((assoc "languages[]" args #'equal)
+              (message "User %s filtered by language(s): %s" name
+                       (mapconcat #'cdr args " ")))
+             ((eq notify nil)
+              (message "User %s (@%s) %sed!" name user-handle action)))))))
 
 ;; FOLLOW TAGS
 
