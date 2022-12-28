@@ -404,7 +404,8 @@ Used on initializing a timeline or thread."
   (interactive)
   (message "Loading local timeline...")
   (mastodon-tl--init
-   "local" "timelines/public?local=true" 'mastodon-tl--timeline))
+   "local" "timelines/public" 'mastodon-tl--timeline
+   nil '(("local" . "true"))))
 
 (defun mastodon-tl--get-tag-timeline ()
   "Prompt for tag and opens its timeline."
@@ -2552,7 +2553,7 @@ For use after e.g. deleting a toot."
          (mastodon-tl--get-home-timeline))
         ((equal (mastodon-tl--get-endpoint) "timelines/public")
          (mastodon-tl--get-federated-timeline))
-        ((equal (mastodon-tl--get-endpoint) "timelines/public?local=true")
+        ((equal (mastodon-tl--get-buffer-property 'buffer-name "*mastodon-local*"))
          (mastodon-tl--get-local-timeline))
         ((equal (mastodon-tl--get-endpoint) "notifications")
          (mastodon-notifications-get))
@@ -2785,7 +2786,7 @@ from the start if it is nil."
   (when headers
     (split-string (alist-get "Link" headers nil nil 'equal) ", ")))
 
-(defun mastodon-tl--init (buffer-name endpoint update-function &optional headers)
+(defun mastodon-tl--init (buffer-name endpoint update-function &optional headers params)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT asynchronously.
 UPDATE-FUNCTION is used to recieve more toots.
 HEADERS means to also collect the response headers. Used for paginating
@@ -2794,9 +2795,9 @@ favourites and bookmarks."
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers
         (mastodon-http--get-response-async
-         url nil 'mastodon-tl--init* buffer endpoint update-function headers)
+         url params 'mastodon-tl--init* buffer endpoint update-function headers)
       (mastodon-http--get-json-async
-       url nil 'mastodon-tl--init* buffer endpoint update-function))))
+       url params 'mastodon-tl--init* buffer endpoint update-function))))
 
 (defun mastodon-tl--init* (response buffer endpoint update-function &optional headers)
   "Initialize BUFFER with timeline targeted by ENDPOINT.
