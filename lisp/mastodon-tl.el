@@ -149,10 +149,23 @@ font settings do not support it."
   :type '(alist :key-type symbol :value-type string)
   :group 'mastodon-tl)
 
+(defcustom mastodon-tl-position-after-update nil
+  "Defines where `point' should be located after a timeline update.
+Valid values are:
+- nil            Top/bottom depending on timeline type
+- keep-point     Keep original position of point
+- last-old-toot  The last toot before the new ones"
+  :type '(choice (const :tag "Top/bottom depending on timeline type" nil)
+                 (const :tag "Keep original position of point" keep-point)
+                 (const :tag "The last toot before the new ones" last-old-toot)))
+
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
 
 If nil `(point-min)' is used instead.")
+
+(defvar-local mastodon-tl--after-update-marker nil
+  "Marker defining the position of point after the update is done.")
 
 (defvar mastodon-tl--display-media-p t
   "A boolean value stating whether to show media in timelines.")
@@ -2763,6 +2776,24 @@ from the start if it is nil."
                                #'mastodon-tl--update-timestamps-callback
                                buffer nil))))))))
 
+(defun mastodon-tl--set-after-update-marker ()
+  (if mastodon-tl-position-after-update
+      (let ((marker (make-marker)))
+        (set-marker marker
+                    (cond
+                     ((eq 'keep-point mastodon-tl-position-after-update)
+                      (point))
+                     ((eq 'last-old-toot mastodon-tl-position-after-update)
+                      (next-single-property-change
+                       (or mastodon-tl--update-point (point-min))
+                       'byline))
+                     (error "Unknown mastodon-tl-position-after-update value %S"
+                            mastodon-tl-position-after-update)))
+        ;; Make the marker advance if text gets inserted there.
+        (set-marker-insertion-type marker t)
+        (setq mastodon-tl--after-update-marker marker))
+    (setq mastodon-tl--after-update-marker nil)))
+
 (defun mastodon-tl--update ()
   "Update timeline with new toots."
   (interactive)
@@ -2772,8 +2803,11 @@ from the start if it is nil."
          (json (mastodon-tl--updated-json endpoint id)))
     (if json
         (let ((inhibit-read-only t))
+          (mastodon-tl--set-after-update-marker)
           (goto-char (or mastodon-tl--update-point (point-min)))
-          (funcall update-function json))
+          (funcall update-function json)
+          (when mastodon-tl--after-update-marker
+            (goto-char mastodon-tl--after-update-marker)))
       (message "nothing to update"))))
 
 (defun mastodon-tl--get-link-header-from-response (headers)
