@@ -1535,7 +1535,7 @@ ID is that of the toot to view."
                   (mastodon-mode)
                   (mastodon-tl--set-buffer-spec buffer
                                                 endpoint
-                                                nil)
+                                                #'mastodon-tl--thread)
                   (let ((inhibit-read-only t))
                     (mastodon-tl--timeline (alist-get 'ancestors context))
                     (goto-char (point-max))
@@ -2800,18 +2800,23 @@ from the start if it is nil."
   (interactive)
   (let* ((endpoint (mastodon-tl--get-endpoint))
          (update-function (mastodon-tl--get-update-function))
-         (id (mastodon-tl--newest-id))
-         (params (when (string= (mastodon-tl--buffer-name) "*mastodon-local*")
-                   '("local" . "true")))
-         (json (mastodon-tl--updated-json endpoint id params)))
-    (if json
-        (let ((inhibit-read-only t))
-          (mastodon-tl--set-after-update-marker)
-          (goto-char (or mastodon-tl--update-point (point-min)))
-          (funcall update-function json)
+         (thread-id (mastodon-tl--property 'toot-id)))
+    ;; update a thread, without calling `mastodon-tl--updated-json':
+    (if (string-suffix-p "context" (mastodon-tl--get-endpoint))
+        (funcall update-function thread-id)
+      ;; update other timelines:
+      (let* ((id (mastodon-tl--newest-id))
+             (params (when (string= (mastodon-tl--buffer-name) "*mastodon-local*")
+                       '("local" . "true")))
+             (json (mastodon-tl--updated-json endpoint id params)))
+        (if json
+            (let ((inhibit-read-only t))
+              (mastodon-tl--set-after-update-marker)
+              (goto-char (or mastodon-tl--update-point (point-min)))
+              (funcall update-function json))
           (when mastodon-tl--after-update-marker
             (goto-char mastodon-tl--after-update-marker)))
-      (message "nothing to update"))))
+        (message "nothing to update")))))
 
 (defun mastodon-tl--get-link-header-from-response (headers)
   "Get http Link header from list of http HEADERS."
