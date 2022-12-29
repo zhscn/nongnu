@@ -2788,8 +2788,9 @@ from the start if it is nil."
                       (next-single-property-change
                        (or mastodon-tl--update-point (point-min))
                        'byline))
-                     (error "Unknown mastodon-tl-position-after-update value %S"
-                            mastodon-tl-position-after-update)))
+                     (t
+                      (error "Unknown mastodon-tl-position-after-update value %S"
+                             mastodon-tl-position-after-update))))
         ;; Make the marker advance if text gets inserted there.
         (set-marker-insertion-type marker t)
         (setq mastodon-tl--after-update-marker marker))
