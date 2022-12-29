@@ -1430,7 +1430,8 @@ PARAMS is used to send 'local=true' for local timeline."
 ;; TODO
 ;; Look into the JSON returned here by Local
 (defun mastodon-tl--updated-json (endpoint id &optional params)
-  "Return JSON for timeline ENDPOINT since ID."
+  "Return JSON for timeline ENDPOINT since ID.
+PARAMS are any parameters to send with the request."
   (let* ((args `(("since_id" . ,(mastodon-tl--as-string id))))
          (args (if params (push params args) args))
          (url (mastodon-http--api endpoint)))
@@ -2579,7 +2580,7 @@ For use after e.g. deleting a toot."
     (concat url-base "&" param)))
 
 (defun mastodon-tl--use-link-header-p ()
-  "Return t if we are in a view that uses Link header pagination.
+  "Return t if we are in a view needing Link header pagination.
 Currently this includes favourites, bookmarks, and profile pages
 when showing followers or accounts followed."
   (let ((buf (buffer-name (current-buffer)))
