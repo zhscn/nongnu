@@ -149,10 +149,23 @@ font settings do not support it."
   :type '(alist :key-type symbol :value-type string)
   :group 'mastodon-tl)
 
+(defcustom mastodon-tl-position-after-update nil
+  "Defines where `point' should be located after a timeline update.
+Valid values are:
+- nil            Top/bottom depending on timeline type
+- keep-point     Keep original position of point
+- last-old-toot  The last toot before the new ones"
+  :type '(choice (const :tag "Top/bottom depending on timeline type" nil)
+                 (const :tag "Keep original position of point" keep-point)
+                 (const :tag "The last toot before the new ones" last-old-toot)))
+
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
 
 If nil `(point-min)' is used instead.")
+
+(defvar-local mastodon-tl--after-update-marker nil
+  "Marker defining the position of point after the update is done.")
 
 (defvar mastodon-tl--display-media-p t
   "A boolean value stating whether to show media in timelines.")
@@ -404,7 +417,8 @@ Used on initializing a timeline or thread."
   (interactive)
   (message "Loading local timeline...")
   (mastodon-tl--init
-   "local" "timelines/public?local=true" 'mastodon-tl--timeline))
+   "local" "timelines/public" 'mastodon-tl--timeline
+   nil '(("local" . "true"))))
 
 (defun mastodon-tl--get-tag-timeline ()
   "Prompt for tag and opens its timeline."
@@ -1044,8 +1058,12 @@ message is a link which unhides/hides the main body."
                  'invisible
                  ;; check server setting to expand all spoilers:
                  (unless (eq t
-                             (mastodon-profile--get-preferences-pref
-                              'reading:expand:spoilers))
+                             ;; If something goes wrong reading prefs,
+                             ;; just return nil so CWs show by default.
+                             (condition-case nil
+                                 (mastodon-profile--get-preferences-pref
+                                  'reading:expand:spoilers)
+                               (error nil)))
                    t)
                  'mastodon-content-warning-body t))))
 
@@ -1400,18 +1418,21 @@ LINK-HEADER is the http Link header if present."
          (url (mastodon-http--api endpoint)))
     (mastodon-http--get-json url args)))
 
-(defun mastodon-tl--more-json-async (endpoint id callback &rest cbargs)
+(defun mastodon-tl--more-json-async (endpoint id &optional params callback &rest cbargs)
   "Return JSON for timeline ENDPOINT before ID.
-Then run CALLBACK with arguments CBARGS."
+Then run CALLBACK with arguments CBARGS
+PARAMS is used to send 'local=true' for local timeline."
   (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
+         (args (if params (push params args) args))
          (url (mastodon-http--api endpoint)))
     (apply 'mastodon-http--get-json-async url args callback cbargs)))
 
 ;; TODO
 ;; Look into the JSON returned here by Local
-(defun mastodon-tl--updated-json (endpoint id)
+(defun mastodon-tl--updated-json (endpoint id &optional params)
   "Return JSON for timeline ENDPOINT since ID."
   (let* ((args `(("since_id" . ,(mastodon-tl--as-string id))))
+         (args (if params (push params args) args))
          (url (mastodon-http--api endpoint)))
     (mastodon-http--get-json url args)))
 
@@ -1514,7 +1535,7 @@ ID is that of the toot to view."
                   (mastodon-mode)
                   (mastodon-tl--set-buffer-spec buffer
                                                 endpoint
-                                                nil)
+                                                #'mastodon-tl--thread)
                   (let ((inhibit-read-only t))
                     (mastodon-tl--timeline (alist-get 'ancestors context))
                     (goto-char (point-max))
@@ -2536,7 +2557,7 @@ For use after e.g. deleting a toot."
          (mastodon-tl--get-home-timeline))
         ((equal (mastodon-tl--get-endpoint) "timelines/public")
          (mastodon-tl--get-federated-timeline))
-        ((equal (mastodon-tl--get-endpoint) "timelines/public?local=true")
+        ((equal (mastodon-tl--buffer-name) "*mastodon-local*")
          (mastodon-tl--get-local-timeline))
         ((equal (mastodon-tl--get-endpoint) "notifications")
          (mastodon-notifications-get))
@@ -2579,8 +2600,13 @@ when showing followers or accounts followed."
              (url (mastodon-tl--build-link-header-url next)))
         (mastodon-http--get-response-async url nil 'mastodon-tl--more* (current-buffer)
                                            (point) :headers))
-    (mastodon-tl--more-json-async (mastodon-tl--get-endpoint) (mastodon-tl--oldest-id)
-                                  'mastodon-tl--more* (current-buffer) (point))))
+    (mastodon-tl--more-json-async
+     (mastodon-tl--get-endpoint)
+     (mastodon-tl--oldest-id)
+     ;; local has same endpoint as federated:
+     (when (string= (mastodon-tl--buffer-name) "*mastodon-local*")
+       '("local" . "true"))
+     'mastodon-tl--more* (current-buffer) (point))))
 
 (defun mastodon-tl--more* (response buffer point-before &optional headers)
   "Append older toots to timeline, asynchronously.
@@ -2751,36 +2777,66 @@ from the start if it is nil."
                                #'mastodon-tl--update-timestamps-callback
                                buffer nil))))))))
 
+(defun mastodon-tl--set-after-update-marker ()
+  (if mastodon-tl-position-after-update
+      (let ((marker (make-marker)))
+        (set-marker marker
+                    (cond
+                     ((eq 'keep-point mastodon-tl-position-after-update)
+                      (point))
+                     ((eq 'last-old-toot mastodon-tl-position-after-update)
+                      (next-single-property-change
+                       (or mastodon-tl--update-point (point-min))
+                       'byline))
+                     (error "Unknown mastodon-tl-position-after-update value %S"
+                            mastodon-tl-position-after-update)))
+        ;; Make the marker advance if text gets inserted there.
+        (set-marker-insertion-type marker t)
+        (setq mastodon-tl--after-update-marker marker))
+    (setq mastodon-tl--after-update-marker nil)))
+
 (defun mastodon-tl--update ()
   "Update timeline with new toots."
   (interactive)
   (let* ((endpoint (mastodon-tl--get-endpoint))
          (update-function (mastodon-tl--get-update-function))
-         (id (mastodon-tl--newest-id))
-         (json (mastodon-tl--updated-json endpoint id)))
-    (if json
-        (let ((inhibit-read-only t))
-          (goto-char (or mastodon-tl--update-point (point-min)))
-          (funcall update-function json))
-      (message "nothing to update"))))
+         (thread-id (mastodon-tl--property 'toot-id)))
+    ;; update a thread, without calling `mastodon-tl--updated-json':
+    (if (string-suffix-p "context" (mastodon-tl--get-endpoint))
+        (funcall update-function thread-id)
+      ;; update other timelines:
+      (let* ((id (mastodon-tl--newest-id))
+             (params (when (string= (mastodon-tl--buffer-name) "*mastodon-local*")
+                       '("local" . "true")))
+             (json (mastodon-tl--updated-json endpoint id params)))
+        (if json
+            (let ((inhibit-read-only t))
+              (mastodon-tl--set-after-update-marker)
+              (goto-char (or mastodon-tl--update-point (point-min)))
+              (funcall update-function json)
+              (when mastodon-tl--after-update-marker
+                (goto-char mastodon-tl--after-update-marker))))
+        (message "nothing to update")))))
 
 (defun mastodon-tl--get-link-header-from-response (headers)
   "Get http Link header from list of http HEADERS."
   (when headers
     (split-string (alist-get "Link" headers nil nil 'equal) ", ")))
 
-(defun mastodon-tl--init (buffer-name endpoint update-function &optional headers)
+(defun mastodon-tl--init (buffer-name endpoint update-function &optional headers params)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT asynchronously.
 UPDATE-FUNCTION is used to recieve more toots.
 HEADERS means to also collect the response headers. Used for paginating
-favourites and bookmarks."
+favourites and bookmarks.
+PARAMS is any parameters to send with the request, currently only
+used to send 'local=true' for local timeline."
   (let ((url (mastodon-http--api endpoint))
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers
         (mastodon-http--get-response-async
-         url nil 'mastodon-tl--init* buffer endpoint update-function headers)
+         url params 'mastodon-tl--init* buffer endpoint update-function headers)
       (mastodon-http--get-json-async
-       url nil 'mastodon-tl--init* buffer endpoint update-function))))
+       url params 'mastodon-tl--init* buffer endpoint update-function))))
 
 (defun mastodon-tl--init* (response buffer endpoint update-function &optional headers)
   "Initialize BUFFER with timeline targeted by ENDPOINT.
@@ -2788,43 +2844,45 @@ UPDATE-FUNCTION is used to recieve more toots.
 RESPONSE is the data returned from the server by
 `mastodon-http--process-json', with arg HEADERS a cons cell of
 JSON and http headers, without it just the JSON."
-  (let* ((json (if headers (car response) response))
-         (headers (if headers (cdr response) nil))
-         (link-header (mastodon-tl--get-link-header-from-response headers)))
-    (with-output-to-temp-buffer buffer
-      (switch-to-buffer buffer)
-      ;; mastodon-mode wipes buffer-spec, so order must unforch be:
-      ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
-      ;; which means we cannot use buffer-spec for update-function
-      ;; unless we set it both before and after the others
-      (mastodon-tl--set-buffer-spec buffer
-                                    endpoint
-                                    update-function
-                                    link-header)
-      (setq
-       ;; Initialize with a minimal interval; we re-scan at least once
-       ;; every 5 minutes to catch any timestamps we may have missed
-       mastodon-tl--timestamp-next-update (time-add (current-time)
-                                                    (seconds-to-time 300)))
-      (funcall update-function json))
-    (mastodon-mode)
-    (with-current-buffer buffer
-      (mastodon-tl--set-buffer-spec buffer
-                                    endpoint
-                                    update-function
-                                    link-header)
-      (setq mastodon-tl--timestamp-update-timer
-            (when mastodon-tl--enable-relative-timestamps
-              (run-at-time (time-to-seconds
-                            (time-subtract mastodon-tl--timestamp-next-update
-                                           (current-time)))
-                           nil ;; don't repeat
-                           #'mastodon-tl--update-timestamps-callback
-                           (current-buffer)
-                           nil)))
-      (unless (string-prefix-p "accounts" endpoint)
-        ;; for everything save profiles
-        (mastodon-tl--goto-first-item)))))
+  (let ((json (if headers (car response) response)))
+    (if (not json) ; praying this is right here, else try "\n[]"
+	(message "Looks like nothing returned from endpoint: %s" endpoint)
+      (let* ((headers (if headers (cdr response) nil))
+             (link-header (mastodon-tl--get-link-header-from-response headers)))
+        (with-output-to-temp-buffer buffer
+          (switch-to-buffer buffer)
+          ;; mastodon-mode wipes buffer-spec, so order must unforch be:
+          ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
+          ;; which means we cannot use buffer-spec for update-function
+          ;; unless we set it both before and after the others
+          (mastodon-tl--set-buffer-spec buffer
+                                        endpoint
+                                        update-function
+                                        link-header)
+          (setq
+           ;; Initialize with a minimal interval; we re-scan at least once
+           ;; every 5 minutes to catch any timestamps we may have missed
+           mastodon-tl--timestamp-next-update (time-add (current-time)
+                                                        (seconds-to-time 300)))
+          (funcall update-function json))
+        (mastodon-mode)
+        (with-current-buffer buffer
+          (mastodon-tl--set-buffer-spec buffer
+                                        endpoint
+                                        update-function
+                                        link-header)
+          (setq mastodon-tl--timestamp-update-timer
+                (when mastodon-tl--enable-relative-timestamps
+                  (run-at-time (time-to-seconds
+                                (time-subtract mastodon-tl--timestamp-next-update
+                                               (current-time)))
+                               nil ;; don't repeat
+                               #'mastodon-tl--update-timestamps-callback
+                               (current-buffer)
+                               nil)))
+          (unless (string-prefix-p "accounts" endpoint)
+            ;; for everything save profiles
+            (mastodon-tl--goto-first-item)))))))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function &optional note-type)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.

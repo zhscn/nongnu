@@ -703,6 +703,8 @@ instance to edit a toot."
   (interactive)
   (let* ((edit-p (if mastodon-toot--edit-toot-id t nil))
          (toot (mastodon-toot--remove-docs))
+         (scheduled mastodon-toot--scheduled-for)
+         (scheduled-id mastodon-toot--scheduled-id)
          (endpoint
           (if edit-p
               ;; we are sending an edit:
@@ -713,14 +715,16 @@ instance to edit a toot."
                              mastodon-toot--content-warning)
                     (read-string "Warning: "
                                  mastodon-toot--content-warning-from-reply-or-redraft)))
-         (args-no-media `(("status" . ,toot)
-                          ("in_reply_to_id" . ,mastodon-toot--reply-to-id)
-                          ("visibility" . ,mastodon-toot--visibility)
-                          ("sensitive" . ,(when mastodon-toot--content-nsfw
-                                            (symbol-name t)))
-                          ("spoiler_text" . ,spoiler)
-                          ("language" . ,mastodon-toot--language)
-                          ("scheduled_at" . ,mastodon-toot--scheduled-for)))
+         (args-no-media (append `(("status" . ,toot)
+                                  ("in_reply_to_id" . ,mastodon-toot--reply-to-id)
+                                  ("visibility" . ,mastodon-toot--visibility)
+                                  ("sensitive" . ,(when mastodon-toot--content-nsfw
+                                                    (symbol-name t)))
+                                  ("spoiler_text" . ,spoiler)
+                                  ("language" . ,mastodon-toot--language))
+                                ; Pleroma instances can't handle null-valued
+                                ; scheduled_at args, so only add if non-nil
+                                (when scheduled `(("scheduled_at" . ,scheduled)))))
          (args-media (when mastodon-toot--media-attachments
                        (mastodon-http--build-array-params-alist
                         "media_ids[]"
@@ -733,9 +737,7 @@ instance to edit a toot."
                  (if mastodon-toot-poll
                      (append args-no-media args-poll)
                    args-no-media)))
-         (prev-window-config mastodon-toot-previous-window-config)
-         (scheduled mastodon-toot--scheduled-for)
-         (scheduled-id mastodon-toot--scheduled-id))
+         (prev-window-config mastodon-toot-previous-window-config))
     (cond ((and mastodon-toot--media-attachments
                 ;; make sure we have media args
                 ;; and the same num of ids as attachments
@@ -744,7 +746,7 @@ instance to edit a toot."
                             (length mastodon-toot--media-attachment-ids)))))
            (message "Something is wrong with your uploads. Wait for them to complete or try again."))
           ((and mastodon-toot--max-toot-chars
-                (> (length toot) mastodon-toot--max-toot-chars))
+                (> (mastodon-toot--count-toot-chars toot) mastodon-toot--max-toot-chars))
            (message "Looks like your toot is longer than that maximum allowed length."))
           ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
@@ -841,32 +843,41 @@ Buffer-local variable `mastodon-toot-previous-window-config' holds the config."
   (set-window-configuration (car config))
   (goto-char (cadr config)))
 
+(defun mastodon-toot--mentions-to-string (mentions)
+  "Applies mastodon-toot--process-local function to each mention,
+removes empty string (self) from result and joins the sequence with whitespace \" \"."
+  (mapconcat (lambda(mention) mention)
+	     (remove "" (mapcar (lambda(x) (mastodon-toot--process-local x))
+				mentions))
+	     " "))
+
 (defun mastodon-toot--process-local (acct)
   "Add domain to local ACCT and replace the curent user name with \"\".
 
-Mastodon requires the full user@domain, even in the case of local accts.
-eg. \"user\" -> \"user@local.social \" (when local.social is the domain of the
+Mastodon requires the full @user@domain, even in the case of local accts.
+eg. \"user\" -> \"@user@local.social\" (when local.social is the domain of the
 mastodon-instance-url).
 eg. \"yourusername\" -> \"\"
-eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
-  (cond ((string-match-p "@" acct) (concat "@" acct " ")) ; federated acct
+eg. \"feduser@fed.social\" -> \"@feduser@fed.social\"."
+  (cond ((string-match-p "@" acct) (concat "@" acct)) ; federated acct
         ((string= (mastodon-auth--user-acct) acct) "") ; your acct
         (t (concat "@" acct "@" ; local acct
-                   (cadr (split-string mastodon-instance-url "/" t)) " "))))
+                   (cadr (split-string mastodon-instance-url "/" t))))))
 
 (defun mastodon-toot--mentions (status)
-  "Extract mentions from STATUS and process them into a string."
+  "Extract mentions (not the reply-to author or booster) from STATUS.
+The mentioned users look like this:
+Local user (including the logged in): `username`.
+Federated user: `username@host.co`."
   (interactive)
   (let* ((boosted (mastodon-tl--field 'reblog status))
          (mentions
           (if boosted
-              (alist-get 'mentions (alist-get 'reblog status))
-            (alist-get 'mentions status))))
-    (mapconcat (lambda(x) (mastodon-toot--process-local
-                           (alist-get 'acct x)))
-               ;; reverse does not work on vectors in 24.5
-               (reverse (append mentions nil))
-               "")))
+	      (alist-get 'mentions (alist-get 'reblog status))
+	    (alist-get 'mentions status))))
+    ;; reverse does not work on vectors in 24.5
+    (mapcar (lambda(x) (alist-get 'acct x))
+	    (reverse mentions))))
 
 (defun mastodon-toot--get-bounds (regex)
   "Get bounds of tag or handle before point using REGEX."
@@ -887,10 +898,8 @@ eg. \"feduser@fed.social\" -> \"feduser@fed.social\"."
   "Search for a completion prefix from buffer positions START to END.
 Return a list of candidates.
 If TAGS, we search for tags, else we search for handles."
-  ;; FIXME: can we save the first two-letter search then only filter the
-  ;; resulting list?
-  ;; (or mastodon-toot-completions
-  ;; would work if we could null that var upon completion success
+  ;; we can't save the first two-letter search then only filter the
+  ;; resulting list, as max results returned is 40.
   (setq mastodon-toot-completions
         (if tags
             (let ((tags-list (mastodon-search--search-tags-query
@@ -970,26 +979,21 @@ text of the toot being replied to in the compose buffer."
     (mastodon-toot (when user
                      (if booster
                          (if (and (not (equal user booster))
-                                  (not (string-match booster mentions)))
+                                  (not (member booster mentions)))
                              ;; different booster, user and mentions:
-                             (concat (mastodon-toot--process-local user)
-                                     ;; "@" booster " "
-                                     (mastodon-toot--process-local booster)
-                                     mentions)
+			     (mastodon-toot--mentions-to-string (append (list user booster) mentions nil))
                            ;; booster is either user or in mentions:
-                           (if (not (string-match user mentions))
+                           (if (not (member user mentions))
                                ;; user not already in mentions:
-                               (concat (mastodon-toot--process-local user)
-                                       mentions)
+			       (mastodon-toot--mentions-to-string (append (list user) mentions nil))
                              ;; user already in mentions:
-                             mentions))
+                             (mastodon-toot--mentions-to-string (copy-sequence mentions))))
                        ;; ELSE no booster:
-                       (if (not (string-match user mentions))
+                       (if (not (member user mentions))
                            ;; user not in mentions:
-                           (concat (mastodon-toot--process-local user)
-                                   mentions)
+			   (mastodon-toot--mentions-to-string (append (list user) mentions nil))
                          ;; user in mentions already:
-                         mentions)))
+                         (mastodon-toot--mentions-to-string (copy-sequence mentions)))))
                    id
                    (or base-toot toot))))
 
