@@ -162,6 +162,11 @@ Valid values are:
 Must be an integer between 20 and 40 inclusive."
   :type '(string))
 
+(defcustom mastodon-tl--hide-replies nil
+  "Whether to hide replies from the timelines."
+  :group 'mastodon-tl
+  :type '(boolean :tag "Whether to hide replies from the timelines."))
+
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
 If nil `(point-min)' is used instead.")
@@ -1339,8 +1344,13 @@ in which case play first video or gif from current toot."
           (message "no moving image here?"))
       (message "no moving image here?"))))
 
+(defun mastodon-tl--is-reply (toot)
+  "Check if the TOOT is a reply to another one (and not boosted)."
+  (and (null (mastodon-tl--field 'in_reply_to_id toot))
+       (not (mastodon-tl--field 'rebloged toot))))
+
 (defun mastodon-tl--toot (toot &optional detailed-p)
-  "Formats TOOT and insertes it into the buffer.
+  "Formats TOOT and inserts it into the buffer.
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
   (mastodon-tl--insert-status
@@ -1356,8 +1366,12 @@ this just means displaying toot client."
    detailed-p))
 
 (defun mastodon-tl--timeline (toots)
-  "Display each toot in TOOTS."
-  (mapc 'mastodon-tl--toot toots)
+  "Display each toot in TOOTS.
+
+  This function removes replies if user required."
+  (mapc 'mastodon-tl--toot (if (mastodon-tl--hide-replies-p current-prefix-arg)
+			       (cl-remove-if-not #'mastodon-tl--is-reply toots)
+			     toots))
   (goto-char (point-min)))
 
 (defun mastodon-tl--get-update-function (&optional buffer)
@@ -1495,6 +1509,20 @@ A proper timeline excludes notifications, threads, and other toot
 buffers that aren't strictly mastodon timelines."
   (let ((timeline-buffers '(home federated local tag-timeline list-timeline profile-statuses)))
     (member (mastodon-tl--get-buffer-type) timeline-buffers)))
+
+(defun mastodon-tl--hide-replies-p (&optional prefix)
+  "Return non-nil if replies should be hidden in the timeline.
+We hide replies if user explictly set the
+`mastodon-tl--hide-replies' or used PREFIX combination to open a
+timeline."
+  (and
+   ;; Only hide replies if we are in a proper timeline
+   (mastodon-tl--timeline-proper-p)
+   (or
+    ;; User configured to hide replies
+    mastodon-tl--hide-replies
+    ;; Timeline called with C-u prefix
+    (equal '(4) prefix))))
 
 (defun mastodon-tl--more-json (endpoint id)
   "Return JSON for timeline ENDPOINT before ID."
