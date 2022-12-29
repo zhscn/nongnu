@@ -1429,9 +1429,10 @@ PARAMS is used to send 'local=true' for local timeline."
 
 ;; TODO
 ;; Look into the JSON returned here by Local
-(defun mastodon-tl--updated-json (endpoint id)
+(defun mastodon-tl--updated-json (endpoint id &optional params)
   "Return JSON for timeline ENDPOINT since ID."
   (let* ((args `(("since_id" . ,(mastodon-tl--as-string id))))
+         (args (if params (push params args) args))
          (url (mastodon-http--api endpoint)))
     (mastodon-http--get-json url args)))
 
@@ -2800,7 +2801,9 @@ from the start if it is nil."
   (let* ((endpoint (mastodon-tl--get-endpoint))
          (update-function (mastodon-tl--get-update-function))
          (id (mastodon-tl--newest-id))
-         (json (mastodon-tl--updated-json endpoint id)))
+         (params (when (string= (mastodon-tl--buffer-name) "*mastodon-local*")
+                   '("local" . "true")))
+         (json (mastodon-tl--updated-json endpoint id params)))
     (if json
         (let ((inhibit-read-only t))
           (mastodon-tl--set-after-update-marker)
