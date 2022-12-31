@@ -2779,6 +2779,9 @@ from the start if it is nil."
                                buffer nil))))))))
 
 (defun mastodon-tl--set-after-update-marker ()
+  "Set `mastodon-tl--after-update-marker' to the after-update location.
+This location is defined by a non-nil value of
+`mastodon-tl-position-after-update'."
   (if mastodon-tl-position-after-update
       (let ((marker (make-marker)))
         (set-marker marker
