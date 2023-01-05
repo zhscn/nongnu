@@ -183,10 +183,10 @@ Where positive brighten and negative numbers darken."
            (cons
             "#%02x%02x%02x"
             (mapcar
-             #'(lambda (n)
-                 ;; Shift by -8 to map the value returned by `color values':
-                 ;; 0..65535 to 0..255 for `#RRGGBB` string formatting.
-                 (ash (min 65535 (max 0 (truncate (+ (nth n value) factor-int)))) -8))
+             (lambda (n)
+               ;; Shift by -8 to map the value returned by `color values':
+               ;; 0..65535 to 0..255 for `#RRGGBB` string formatting.
+               (ash (min 65535 (max 0 (truncate (+ (nth n value) factor-int)))) -8))
              (number-sequence 0 2))))))
 
 (defun doc-show-inline--buffer-substring-with-overlay-props (pos-beg pos-end)
