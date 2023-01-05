@@ -153,9 +153,9 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
   "Return data associated with visual line mode or nil when none is found."
   ;; The checks are written so as not to require evil mode as a dependency.
   (when (and (fboundp 'evil-visual-state-p)
-             (funcall 'evil-visual-state-p)
+             (funcall #'evil-visual-state-p)
              (fboundp 'evil-visual-type)
-             (eq (funcall 'evil-visual-type) 'line)
+             (eq (funcall #'evil-visual-type) 'line)
              (boundp 'evil-visual-point))
     (let ((mark (symbol-value 'evil-visual-point)))
       (when (markerp mark)
@@ -273,7 +273,7 @@ Returns true when scrolling took place, otherwise nil."
             (setq scroll-timer
                   (run-with-timer
                    scroll-on-drag-delay nil
-                   #'(lambda () (funcall timer-update-fn timer-update-fn))))))
+                   (lambda () (funcall timer-update-fn timer-update-fn))))))
 
          ;; Stops calling 'timer-update-fn'.
          (timer-stop-fn
