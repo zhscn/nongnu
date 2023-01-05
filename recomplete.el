@@ -189,7 +189,7 @@ Argument LIST compatible list `buffer-undo-list'."
 
    ;; Break the chain.
    (t
-    (remove-hook 'post-command-hook 'recomplete--alist-clear-hook t)
+    (remove-hook 'post-command-hook #'recomplete--alist-clear-hook t)
     (setq recomplete--alist nil))))
 
 
@@ -202,7 +202,7 @@ Argument FN-CACHE stores the result for reuse."
   (pcase-let ((`(,result-choices ,word-beg ,word-end) (or fn-cache '(nil nil nil))))
 
     (unless result-choices
-      (recomplete--with-advice #'ispell-command-loop
+      (recomplete--with-advice 'ispell-command-loop
           :override
           (lambda (miss _guess _word start end)
             (when miss
@@ -241,7 +241,7 @@ Argument FN-CACHE stores the result for reuse."
       (let* ((word-init (buffer-substring-no-properties word-beg word-end))
              (word-split
               (mapcar
-               'downcase
+               #'downcase
                (split-string (string-trim (replace-regexp-in-string
                                            "\\([[:lower:]]\\)\\([[:upper:]]\\)"
                                            "\\1_\\2"
@@ -567,7 +567,7 @@ step onto the next item)."
 
             ;; Ensure a local hook, which removes it's self on the first non-successive call
             ;; to a command that doesn't execute `recomplete-with-callback' with `fn-symbol'.
-            (add-hook 'post-command-hook 'recomplete--alist-clear-hook 0 t)))
+            (add-hook 'post-command-hook #'recomplete--alist-clear-hook 0 t)))
 
         ;; Result, success.
         t)))))
