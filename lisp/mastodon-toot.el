@@ -285,7 +285,8 @@ modified.
 Remove MARKER if REMOVE is non-nil, otherwise add it."
   (let ((inhibit-read-only t)
         (bol (car byline-region))
-        (eol (cdr byline-region)))
+        (eol (cdr byline-region))
+        (at-byline-p (eq (get-text-property (point) 'byline) t)))
     (save-excursion
       (when remove
         (goto-char bol)
@@ -297,9 +298,10 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
         (goto-char bol)
         (insert (format "(%s) "
                         (propertize marker 'face 'success)))))
+    (when at-byline-p
     ;; leave point after the marker:
-    (unless remove
-      (mastodon-tl--goto-next-toot))))
+      (unless remove
+        (mastodon-tl--goto-next-toot)))))
 
 (defun mastodon-toot--action (action callback)
   "Take ACTION on toot at point, then execute CALLBACK.
