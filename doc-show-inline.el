@@ -191,11 +191,10 @@ Where positive brighten and negative numbers darken."
 
 (defun doc-show-inline--buffer-substring-with-overlay-props (pos-beg pos-end)
   "Return text between POS-BEG and POS-END including overlay properties."
-  (let
-      ( ;; Extract text and possible overlays.
-       (text (buffer-substring pos-beg pos-end))
-       (text-length (- pos-end pos-beg))
-       (overlays (overlays-in pos-beg pos-end)))
+  ;; Extract text and possible overlays.
+  (let ((text (buffer-substring pos-beg pos-end))
+        (text-length (- pos-end pos-beg))
+        (overlays (overlays-in pos-beg pos-end)))
     (while overlays
       (let ((ov (pop overlays)))
         (let ((face-prop (overlay-get ov 'face)))
@@ -261,8 +260,7 @@ the point should not be moved by this function."
      ;; forward declarations are mostly used to prevent warnings when these
      ;; structs are used as parameters.
      ;; So it makes sense to ignore them.
-     ( ;; Match: struct sym;
-      (and (string-match-p "^\\_<struct\\_>" prefix)
+     ((and (string-match-p "^\\_<struct\\_>" prefix)
            (equal ?\; (char-after (+ (point) (length sym)))))
       nil)
      ;; Including `typedef' rarely gains anything from in-lining doc-string
@@ -289,9 +287,8 @@ the point should not be moved by this function."
             (pos-beg-of-line (line-beginning-position)))
 
         (cond
-         (
-          ;; Ensure the comment is not a trailing comment of a previous line.
-          (not
+         ;; Ensure the comment is not a trailing comment of a previous line.
+         ((not
            (eq
             pos-beg-of-line
             (save-excursion
@@ -366,13 +363,12 @@ the point should not be moved by this function."
 (defun doc-show-inline--init-face-background-once ()
   "Ensure `doc-show-inline-face' has a background color."
   (when (eq 'unspecified (face-attribute 'doc-show-inline-face :background))
-    (let*
-        ( ;; Tint the color.
-         (default-color (face-attribute 'default :background))
-         (default-tint
-          (doc-show-inline--color-highlight
-           default-color
-           doc-show-inline-face-background-highlight)))
+    ;; Tint the color.
+    (let* ((default-color (face-attribute 'default :background))
+           (default-tint
+            (doc-show-inline--color-highlight
+             default-color
+             doc-show-inline-face-background-highlight)))
       ;; Ensure there is some change, otherwise tint in the opposite direction.
       (when (equal default-color default-tint)
         (setq default-tint
@@ -442,7 +438,7 @@ the point should not be moved by this function."
         (setq pair (car-safe alist))
         (setq alist (cdr-safe alist))
         (cond
-         ((atom pair)) ;; Skip anything not a cons.
+         ((atom pair)) ; Skip anything not a cons.
 
          ((imenu--subalist-p pair)
           (setq imstack (cons alist imstack))
@@ -453,7 +449,7 @@ the point should not be moved by this function."
                  (cond
                   ((markerp mark)
                    (marker-position mark))
-                  (t ;; Integer.
+                  (t ; Integer.
                    mark))))
 
             (unless (or (and pos-beg (<= pos pos-beg)) (and pos-end (>= pos pos-end)))
@@ -526,10 +522,11 @@ Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
                                         (run-hooks 'doc-show-inline-buffer-hook)))
 
         (dolist (item xref-list)
-          (let*
-              ( ;; This sets '(point)' which is OK in this case.
-               (marker (xref-location-marker (xref-item-location item)))
-               (buf (marker-buffer marker)))
+
+          (let* ((marker
+                  ;; This sets '(point)' which is OK in this case.
+                  (xref-location-marker (xref-item-location item)))
+                 (buf (marker-buffer marker)))
             ;; Ignore matches in the same buffer.
             ;; While it's possible doc-strings could be at another location within this buffer,
             ;; in practice, this is almost never done.
@@ -554,7 +551,7 @@ Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
                       (push text text-results))))))))))
 
     (cond
-     (text-results ;; Add a blank item so there is a trailing newline when joining.
+     (text-results ; Add a blank item so there is a trailing newline when joining.
       (let ((text (string-join (reverse (cons "" text-results)) "\n")))
         (add-face-text-property 0 (length text) 'doc-show-inline-face t text)
         text))
@@ -608,7 +605,7 @@ XREF-BACKEND is the back-end used to find this symbol."
      (current-buffer)
      pos
      doc-show-inline-filter))
-   (t ;; Symbol is valid and not filtered out.
+   (t ; Symbol is valid and not filtered out.
 
     (let ((text t))
       (when doc-show-inline--use-lookup-cache
@@ -675,14 +672,12 @@ XREF-BACKEND is the back-end used to find this symbol."
            (length points)
            (current-buffer))
           (when points
-            (let
-                ( ;; When loading buffers for introspection,
-                 ;; there is no need to add `doc-show-inline' there (harmless but not necessary).
-                 (doc-show-inline--inhibit-mode t)
-
-                 (temporary-buffers (list))
-
-                 (xref-backend (xref-find-backend)))
+            (let ((temporary-buffers (list))
+                  (xref-backend (xref-find-backend))
+                  ;; When loading buffers for introspection,
+                  ;; there is no need to add `doc-show-inline' there
+                  ;; (harmless but not necessary).
+                  (doc-show-inline--inhibit-mode t))
 
               ;; Track buffers loaded.
               (doc-show-inline--with-advice #'create-file-buffer :around
