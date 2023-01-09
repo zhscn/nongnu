@@ -334,7 +334,7 @@ Return the region replaced."
             (cond
              ((eq (aref str (- len i-next)) (char-after (- end i-next)))
               (setq i i-next))
-             (t ;; Break.
+             (t ; Break.
               (setq len-test i))))))
       (unless (zerop i)
         (setq i-end (- len i))
@@ -349,7 +349,7 @@ Return the region replaced."
           (cond
            ((eq (aref str i) (char-after (+ beg i)))
             (setq i (1+ i)))
-           (t ;; Break.
+           (t ; Break.
             (setq len-test i)))))
       (unless (zerop i)
         (setq i-beg i)
@@ -388,16 +388,16 @@ step onto the next item)."
   (when (eq buffer-undo-list t)
     (user-error "(re)complete: undo disabled for this buffer"))
 
-  (let
-      ( ;; Initial values if not overwritten by the values in `recomplete--alist'.
-       (point-init (point))
-       (buffer-undo-list-init buffer-undo-list)
-       (pending-undo-list-init pending-undo-list)
-       (cycle-index (or cycle-index-init 0))
-       (cycle-reverse nil)
-       (fn-cache nil)
+  (let ((buffer-undo-list-init buffer-undo-list)
+        (pending-undo-list-init pending-undo-list)
+        (cycle-index (or cycle-index-init 0))
+        (cycle-reverse nil)
+        (fn-cache nil)
 
-       (message-list (list)))
+        ;; Initial values if not overwritten by the values in `recomplete--alist'.
+        (point-init (point))
+
+        (message-list (list)))
 
     ;; Roll-back and cycle through corrections.
     (let ((alist recomplete--alist))
@@ -432,10 +432,8 @@ step onto the next item)."
 
         ;; Undo with strict checks so we know _exactly_ whats going on
         ;; and don't allow some unknown state to be entered.
-        (let
-            ( ;; Skip the 'nil' car of the list.
-             (undo-data (cdr buffer-undo-list))
-             (undo-data-init (cdr buffer-undo-list-init)))
+        (let ((undo-data (cdr buffer-undo-list)) ; Skip the 'nil' car of the list.
+              (undo-data-init (cdr buffer-undo-list-init)))
 
 
           ;; It's possible the last action did not add an undo step.
@@ -452,16 +450,15 @@ step onto the next item)."
             (unless (eq undo-data-init (recomplete--undo-next undo-data))
               (user-error "(re)complete: unexpected undo-state before undo, abort!"))
 
-            (let
-                ( ;; Roll back the edit, override `this-command' so we have predictable undo behavior.
-                 ;; Also so setting it doesn't overwrite the current `this-command'
-                 ;; which is checked above as `last-command'.
-                 (this-command nil)
-                 ;; We never want to undo in region (unlikely, set just to be safe).
-                 (undo-in-region nil)
-                 ;; The "Undo" message is just noise, don't log it or display it.
-                 (inhibit-message t)
-                 (message-log-max nil))
+            ;; Roll back the edit, override `this-command' so we have predictable undo behavior.
+            ;; Also so setting it doesn't overwrite the current `this-command'
+            ;; which is checked above as `last-command'.
+            (let ((this-command nil)
+                  ;; We never want to undo in region (unlikely, set just to be safe).
+                  (undo-in-region nil)
+                  ;; The "Undo" message is just noise, don't log it or display it.
+                  (inhibit-message t)
+                  (message-log-max nil))
 
               (undo-only)
 
