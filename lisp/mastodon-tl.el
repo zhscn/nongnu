@@ -1388,20 +1388,22 @@ Optionally get it for BUFFER."
 (defun mastodon-tl--link-header (&optional buffer)
   "Get the LINK HEADER stored in `mastodon-tl--buffer-spec'.
 Optionally get it for BUFFER."
-  (mastodon-tl--get-buffer-property 'link-header buffer))
+  (mastodon-tl--get-buffer-property 'link-header buffer :no-error))
 
 (defun mastodon-tl--update-params (&optional buffer)
   "Get the UPDATE PARAMS stored in `mastodon-tl--buffer-spec'.
 Optionally get it for BUFFER."
-  (mastodon-tl--get-buffer-property 'update-params buffer))
+  (mastodon-tl--get-buffer-property 'update-params buffer :no-error))
 
-(defun mastodon-tl--get-buffer-property (property &optional buffer)
-  "Get PROPERTY from `mastodon-tl--buffer-spec' in BUFFER or `current-buffer'."
+(defun mastodon-tl--get-buffer-property (property &optional buffer no-error)
+  "Get PROPERTY from `mastodon-tl--buffer-spec' in BUFFER or `current-buffer'.
+If NO-ERROR is non-nil, do not error when property is empty."
   (with-current-buffer  (or buffer (current-buffer))
-    ;; (or
-    (plist-get mastodon-tl--buffer-spec property)))
-    ;; (error "Mastodon-tl--buffer-spec is not defined for buffer %s"
-    ;; (or buffer (current-buffer))))))
+    (if no-error
+        (plist-get mastodon-tl--buffer-spec property)
+      (or (plist-get mastodon-tl--buffer-spec property)
+          (error "Mastodon-tl--buffer-spec is not defined for buffer %s"
+                 (or buffer (current-buffer)))))))
 
 (defun mastodon-tl--set-buffer-spec (buffer endpoint update-function
                                             &optional link-header update-params)
