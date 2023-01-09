@@ -214,17 +214,15 @@ Additional keyword arguments may also be passed in.
 - t: output is returned as a string.
 - string: output is written to file-name.
 - buffer: output is written to the buffer."
-  (let
-      ( ;; To check if this is the first time executing.
-       (is-first t)
+  (let ((is-first t)
 
-       ;; Keywords.
-       (output nil)
-       (input nil)
+        ;; Keywords.
+        (output nil)
+        (input nil)
 
-       ;; Iteration vars.
-       (buf-src nil)
-       (buf-dst nil))
+        ;; Iteration vars.
+        (buf-src nil)
+        (buf-dst nil))
 
     ;; Parse keywords.
     (let ((args-no-keywords nil))
@@ -238,8 +236,8 @@ Additional keyword arguments may also be passed in.
               (pcase arg-current
                 (:input
                  (cond
-                  ((null v)) ;; No input.
-                  ((eq v t)) ;; String input (standard input data).
+                  ((null v)) ; No input.
+                  ((eq v t)) ; String input (standard input data).
                   ((stringp v))
                   ((bufferp v)
                    (unless (buffer-live-p v)
@@ -249,8 +247,8 @@ Additional keyword arguments may also be passed in.
                  (setq input v))
                 (:output
                  (cond
-                  ((null output)) ;; No output.
-                  ((eq output t)) ;; String output (file path).
+                  ((null output)) ; No output.
+                  ((eq output t)) ; String output (file path).
                   ((stringp output)
                    (when (string-equal output "")
                      (error "Empty string used as file-path")))
@@ -370,13 +368,12 @@ Optional keywords in KEYWORDS.
 
 `:progress-message' STRING
   When set, show progress percentage."
-  (let
-      ( ;; Keyword arguments.
-       (idle nil)
-       (jobs nil)
-       (output nil)
-       (output-is-fn nil)
-       (progress-message nil))
+  ;; Keyword arguments.
+  (let ((idle nil)
+        (jobs nil)
+        (output nil)
+        (output-is-fn nil)
+        (progress-message nil))
 
     ;; Parse keywords.
     (while keywords
@@ -389,7 +386,7 @@ Optional keywords in KEYWORDS.
             (pcase arg-current
               (:idle
                (cond
-                ((null v)) ;; Ignore.
+                ((null v)) ; Ignore.
                 ((floatp v))
                 (t
                  (error "Argument :idle expected a float, not a %S" (type-of v))))
@@ -397,8 +394,8 @@ Optional keywords in KEYWORDS.
 
               (:jobs
                (cond
-                ((null v)) ;; Ignore.
-                ((eq v t)) ;; String output (result vector)
+                ((null v)) ; Ignore.
+                ((eq v t)) ; String output (result vector)
                 ((symbolp v))
                 (t
                  (error "Output expected nil, t or a symbol")))
@@ -406,8 +403,8 @@ Optional keywords in KEYWORDS.
 
               (:output
                (cond
-                ((null v)) ;; Ignore.
-                ((eq v t)) ;; String output (result vector)
+                ((null v)) ; Ignore.
+                ((eq v t)) ; String output (result vector)
                 ((functionp v)
                  (setq output-is-fn t))
                 (t
@@ -416,7 +413,7 @@ Optional keywords in KEYWORDS.
 
               (:progress-message
                (cond
-                ((null v)) ;; Ignore.
+                ((null v)) ; Ignore.
                 ((stringp v)
                  (setq output-is-fn t))
                 (t
@@ -438,7 +435,7 @@ Optional keywords in KEYWORDS.
     (unless jobs
       (setq jobs
             (cond
-             ((fboundp 'num-processors) ;; Emacs 29+
+             ((fboundp 'num-processors) ; Emacs 29+
               (* 2 (num-processors)))
              (t
               (or diff-ansi-multiprocess-jobs 64)))))
@@ -647,7 +644,7 @@ Argument BEG is only used to calculate the progress percentage."
                (disp-beg (car range))
                (disp-end
                 (min
-                 end ;; Clamp twice because `line-end-position' could exceed the value.
+                 end ; Clamp twice because `line-end-position' could exceed the value.
                  (save-excursion
                    (goto-char (min (+ disp-beg diff-ansi-chunks-size) end))
                    (line-end-position)))))
@@ -822,20 +819,19 @@ Optional keywords in ARGS.
 
 Return the buffer used to write data into on success."
 
+  ;; Keyword arguments.
+  (let ((create-buffer nil)
+        (preserve-point nil)
+        ;; End keyword arguments.
 
-  (let
-      ( ;; Keyword arguments.
-       (create-buffer nil)
-       (preserve-point nil)
+        ;; To update end after the buffer has been resized.
+        (end-trailing-chars (- (buffer-size) end))
 
-       ;; To update end after the buffer has been resized.
-       (end-trailing-chars (- (buffer-size) end))
-
-       ;; For `preserve-point'.
-       (lines-to-beg nil)
-       (lines-to-end nil)
-       ;; For `into-buffer'.
-       (target-buf nil))
+        ;; For `preserve-point'.
+        (lines-to-beg nil)
+        (lines-to-end nil)
+        ;; For `into-buffer'.
+        (target-buf nil))
 
     ;; Handle keyword arguments.
     (while args
@@ -848,16 +844,16 @@ Return the buffer used to write data into on success."
             (pcase arg-current
               (:create-buffer
                (cond
-                ((null v)) ;; No input.
-                ((eq v t)) ;; OK.
+                ((null v)) ; No input.
+                ((eq v t)) ; OK.
                 (t
                  (error "Expected `:create-buffer', to be nil or t")))
                (setq create-buffer v))
 
               (:preserve-point
                (cond
-                ((null v)) ;; No input.
-                ((eq v t)) ;; OK.
+                ((null v)) ; No input.
+                ((eq v t)) ; OK.
                 (t
                  (error "Expected `:preserve-point', to be nil or t")))
                (setq preserve-point v))
