@@ -943,4 +943,8 @@ Return the buffer used to write data into on success."
     (diff-ansi--disable))))
 
 (provide 'diff-ansi)
+;; Local Variables:
+;; fill-column: 99
+;; indent-tabs-mode: nil
+;; End:
 ;;; diff-ansi.el ends here
