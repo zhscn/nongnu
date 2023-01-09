@@ -36,8 +36,7 @@
 (defcustom diff-ansi-tool 'delta
   "Command to use for generating the diff."
   :type
-  '
-  (choice
+  '(choice
     (symbol :tag "Use `delta' command." delta)
     (symbol :tag "Use `diff-so-fancy' command." diff-so-fancy)
     (symbol :tag "Use `ydiff' command." ydiff)
@@ -74,8 +73,7 @@ This must take the diff content as the `standard-input'."
 (defcustom diff-ansi-method 'multiprocess
   "Convert ANSI escape sequences."
   :type
-  '
-  (choice
+  '(choice
     (symbol :tag "Convert immediately." immediate)
     (symbol :tag "Convert progressively (using a timer)." progressive)
     (symbol :tag "Convert using multiple sub-processes." multiprocess)))
@@ -109,33 +107,29 @@ It can be useful to show progress when viewing very large diffs."
   ;; - `diff-ansi--face-has-bg' is a bit heavy but necessary
   ;;   to ensure all faces have a black-background.
   ;; - A single `let' or `progn' is needed for the code to be properly quoted.
-  (quote
-    (progn
-      (defun diff-ansi--face-has-bg (face)
-        (when (and face (listp face))
-          (or
-            (plist-get face :background)
-            (diff-ansi--face-has-bg (car face))
-            (diff-ansi--face-has-bg (cdr-safe face)))))
+  (quote (progn
+           (defun diff-ansi--face-has-bg (face)
+             (when (and face (listp face))
+               (or (plist-get face :background)
+                   (diff-ansi--face-has-bg (car face))
+                   (diff-ansi--face-has-bg (cdr-safe face)))))
 
-      (defun diff-ansi--ansi-color-apply-text-property-face--local (beg end face)
-        (when face
-          (unless (diff-ansi--face-has-bg face)
-            (setq face
-              (cond
-                ((listp face)
-                  (list face diff-ansi--ansi-color-bg))
-                (t
-                  (cons face diff-ansi--ansi-color-bg)))))
-          (put-text-property beg end 'face face)))
+           (defun diff-ansi--ansi-color-apply-text-property-face--local (beg end face)
+             (when face
+               (unless (diff-ansi--face-has-bg face)
+                 (setq face
+                       (cond
+                        ((listp face)
+                         (list face diff-ansi--ansi-color-bg))
+                        (t
+                         (cons face diff-ansi--ansi-color-bg)))))
+               (put-text-property beg end 'face face)))
 
-      (defun diff-ansi--ansi-color-apply-on-region-with-bg-impl (beg end)
-        (let
-          (
-            (ansi-color-apply-face-function
-              #'diff-ansi--ansi-color-apply-text-property-face--local))
-          (put-text-property beg end 'face diff-ansi--ansi-color-bg)
-          (ansi-color-apply-on-region beg end))))))
+           (defun diff-ansi--ansi-color-apply-on-region-with-bg-impl (beg end)
+             (let ((ansi-color-apply-face-function
+                    #'diff-ansi--ansi-color-apply-text-property-face--local))
+               (put-text-property beg end 'face diff-ansi--ansi-color-bg)
+               (ansi-color-apply-on-region beg end))))))
 
 ;; Evaluate locally too.
 (eval diff-ansi--code-block-for-multiprocess-defs)
@@ -150,23 +144,21 @@ It can be useful to show progress when viewing very large diffs."
 (defmacro diff-ansi--with-advice (fn-orig where fn-advice &rest body)
   "Execute BODY with advice added WHERE.
 Argument FN-ADVICE temporarily added to FN-ORIG."
-  `
-  (let ((fn-advice-var ,fn-advice))
-    (unwind-protect
-      (progn
-        (advice-add ,fn-orig ,where fn-advice-var)
-        ,@body)
-      (advice-remove ,fn-orig fn-advice-var))))
+  `(let ((fn-advice-var ,fn-advice))
+     (unwind-protect
+         (progn
+           (advice-add ,fn-orig ,where fn-advice-var)
+           ,@body)
+       (advice-remove ,fn-orig fn-advice-var))))
 
 (defmacro diff-ansi--with-temp-echo-area (&rest body)
   "Run BODY with the message temporarily overwritten."
-  `
-  (let ((omessage (current-message)))
-    (unwind-protect
-      (progn
-        ,@body)
-      (let ((message-log-max nil))
-        (message omessage)))))
+  `(let ((omessage (current-message)))
+     (unwind-protect
+         (progn
+           ,@body)
+       (let ((message-log-max nil))
+         (message omessage)))))
 
 (defmacro diff-ansi--with-temp-directory (name &rest body)
   "Bind NAME to the name of a new temporary file and evaluate BODY.
@@ -183,12 +175,10 @@ The following keyword arguments are supported:
   (declare (indent 1) (debug (symbolp body)))
   (unless (symbolp name)
     (error "Expected name to be as symbol, found %S" (type-of name)))
-  (let
-    (
-      (keyw nil)
-      (prefix nil)
-      (suffix nil)
-      (extra-keywords nil))
+  (let ((keyw nil)
+        (prefix nil)
+        (suffix nil)
+        (extra-keywords nil))
     (while (keywordp (setq keyw (car body)))
       (setq body (cdr body))
       (pcase keyw
@@ -197,20 +187,16 @@ The following keyword arguments are supported:
         (_ (push keyw extra-keywords) (pop body))))
     (when extra-keywords
       (error "Invalid keywords: %s" (mapconcat #'symbol-name extra-keywords " ")))
-    (let
-      (
-        (temp-file (make-symbol "temp-file"))
-        (prefix (or prefix ""))
-        (suffix (or suffix "")))
-      `
-      (let*
-        (
-          (,temp-file (file-name-as-directory (make-temp-file ,prefix t ,suffix nil)))
-          (,name (file-name-as-directory ,temp-file)))
-        (unwind-protect
-          (progn
-            ,@body)
-          (ignore-errors (delete-directory ,temp-file :recursive)))))))
+    (let ((temp-file (make-symbol "temp-file"))
+          (prefix (or prefix ""))
+          (suffix (or suffix "")))
+      `(let* ((,temp-file (file-name-as-directory (make-temp-file ,prefix t ,suffix nil)))
+              (,name (file-name-as-directory ,temp-file)))
+         (unwind-protect
+             (progn
+               ,@body)
+           (ignore-errors
+             (delete-directory ,temp-file :recursive)))))))
 
 ;; See: https://emacs.stackexchange.com/a/70105/2418
 (defun diff-ansi--call-process-pipe-chain (&rest args)
@@ -229,61 +215,61 @@ Additional keyword arguments may also be passed in.
 - string: output is written to file-name.
 - buffer: output is written to the buffer."
   (let
-    ( ;; To check if this is the first time executing.
-      (is-first t)
+      ( ;; To check if this is the first time executing.
+       (is-first t)
 
-      ;; Keywords.
-      (output nil)
-      (input nil)
+       ;; Keywords.
+       (output nil)
+       (input nil)
 
-      ;; Iteration vars.
-      (buf-src nil)
-      (buf-dst nil))
+       ;; Iteration vars.
+       (buf-src nil)
+       (buf-dst nil))
 
     ;; Parse keywords.
     (let ((args-no-keywords nil))
       (while args
         (let ((arg-current (pop args)))
           (cond
-            ((keywordp arg-current)
-              (unless args
-                (error "Keyword argument %S has no value!" arg-current))
-              (let ((v (pop args)))
-                (pcase arg-current
-                  (:input
-                    (cond
-                      ((null v)) ;; No input.
-                      ((eq v t)) ;; String input (standard input data).
-                      ((stringp v))
-                      ((bufferp v)
-                        (unless (buffer-live-p v)
-                          (error "Input buffer is invalid %S" v)))
-                      (t
-                        (error "Input expected a buffer, string or nil")))
-                    (setq input v))
-                  (:output
-                    (cond
-                      ((null output)) ;; No output.
-                      ((eq output t)) ;; String output (file path).
-                      ((stringp output)
-                        (when (string-equal output "")
-                          (error "Empty string used as file-path")))
-                      ((bufferp output)
-                        (unless (buffer-live-p output)
-                          (error "Input buffer is invalid %S" output)))
+           ((keywordp arg-current)
+            (unless args
+              (error "Keyword argument %S has no value!" arg-current))
+            (let ((v (pop args)))
+              (pcase arg-current
+                (:input
+                 (cond
+                  ((null v)) ;; No input.
+                  ((eq v t)) ;; String input (standard input data).
+                  ((stringp v))
+                  ((bufferp v)
+                   (unless (buffer-live-p v)
+                     (error "Input buffer is invalid %S" v)))
+                  (t
+                   (error "Input expected a buffer, string or nil")))
+                 (setq input v))
+                (:output
+                 (cond
+                  ((null output)) ;; No output.
+                  ((eq output t)) ;; String output (file path).
+                  ((stringp output)
+                   (when (string-equal output "")
+                     (error "Empty string used as file-path")))
+                  ((bufferp output)
+                   (unless (buffer-live-p output)
+                     (error "Input buffer is invalid %S" output)))
 
-                      (t
-                        (error "Output expected a buffer, string or nil")))
-                    (setq output v))
+                  (t
+                   (error "Output expected a buffer, string or nil")))
+                 (setq output v))
 
-                  (_ (error "Unknown argument %S" arg-current)))))
-            ((listp arg-current)
-              (push arg-current args-no-keywords))
-            (t
-              (error
-                "Arguments must be keyword, value pairs or lists of strings, found %S = %S"
-                (type-of arg-current)
-                arg-current)))))
+                (_ (error "Unknown argument %S" arg-current)))))
+           ((listp arg-current)
+            (push arg-current args-no-keywords))
+           (t
+            (error
+             "Arguments must be keyword, value pairs or lists of strings, found %S = %S"
+             (type-of arg-current)
+             arg-current)))))
 
       (setq args (reverse args-no-keywords)))
 
@@ -297,39 +283,38 @@ Additional keyword arguments may also be passed in.
         ;; Loop over commands.
         (while args
           (let ((arg-current (pop args)))
-            (with-current-buffer buf-dst (erase-buffer))
-            (let*
-              (
-                (sentinel-called nil)
-                (proc
-                  (make-process
-                    :name "call-process-pipe-chain"
-                    :buffer
-                    (cond
+            (with-current-buffer buf-dst
+              (erase-buffer))
+            (let* ((sentinel-called nil)
+                   (proc
+                    (make-process
+                     :name "call-process-pipe-chain"
+                     :buffer
+                     (cond
                       ;; Last command, use output.
                       ((and (null args) (bufferp output))
-                        output)
+                       output)
                       (t
-                        buf-dst))
-                    ;; Write to the intermediate buffer or the final output.
-                    :connection-type 'pipe
-                    :command arg-current
-                    :sentinel (lambda (_proc _msg) (setq sentinel-called t)))))
+                       buf-dst))
+                     ;; Write to the intermediate buffer or the final output.
+                     :connection-type 'pipe
+                     :command arg-current
+                     :sentinel (lambda (_proc _msg) (setq sentinel-called t)))))
 
               (cond
-                ;; Initially, we can only use the input argument.
-                (is-first
-                  (cond
-                    ((null input))
-                    ((bufferp input)
-                      (with-current-buffer input
-                        (process-send-region proc (point-min) (point-max))))
-                    ((stringp input)
-                      (process-send-string proc input))))
-                (t
-                  (with-current-buffer buf-src
-                    (process-send-region proc (point-min) (point-max))
-                    (erase-buffer))))
+               ;; Initially, we can only use the input argument.
+               (is-first
+                (cond
+                 ((null input))
+                 ((bufferp input)
+                  (with-current-buffer input
+                    (process-send-region proc (point-min) (point-max))))
+                 ((stringp input)
+                  (process-send-string proc input))))
+               (t
+                (with-current-buffer buf-src
+                  (process-send-region proc (point-min) (point-max))
+                  (erase-buffer))))
 
               (process-send-eof proc)
               (while (not sentinel-called)
@@ -342,25 +327,26 @@ Additional keyword arguments may also be passed in.
 
             ;; Swap source/destination buffers.
             (setq buf-src
-              (prog1 buf-dst
-                (setq buf-dst buf-src)))
+                  (prog1 buf-dst
+                    (setq buf-dst buf-src)))
 
             (setq is-first nil)))
 
         ;; Return the result.
         (cond
-          ;; Ignore output.
-          ((null output))
-          ;; Already written into.
-          ((bufferp output))
-          ;; Write to the output as a file-path.
-          ((stringp output)
-            (with-current-buffer buf-src (write-region nil nil output nil 0)))
-          ;; Return the output as a string.
-          ((eq output t)
-            ;; Since the argument was swapped, extract from the 'source'.
-            (with-current-buffer buf-src
-              (buffer-substring-no-properties (point-min) (point-max)))))))))
+         ;; Ignore output.
+         ((null output))
+         ;; Already written into.
+         ((bufferp output))
+         ;; Write to the output as a file-path.
+         ((stringp output)
+          (with-current-buffer buf-src
+            (write-region nil nil output nil 0)))
+         ;; Return the output as a string.
+         ((eq output t)
+          ;; Since the argument was swapped, extract from the 'source'.
+          (with-current-buffer buf-src
+            (buffer-substring-no-properties (point-min) (point-max)))))))))
 
 (defun diff-ansi--call-process-parallel (args &rest keywords)
   "Return the result of commands in ARGS.
@@ -385,64 +371,64 @@ Optional keywords in KEYWORDS.
 `:progress-message' STRING
   When set, show progress percentage."
   (let
-    ( ;; Keyword arguments.
-      (idle nil)
-      (jobs nil)
-      (output nil)
-      (output-is-fn nil)
-      (progress-message nil))
+      ( ;; Keyword arguments.
+       (idle nil)
+       (jobs nil)
+       (output nil)
+       (output-is-fn nil)
+       (progress-message nil))
 
     ;; Parse keywords.
     (while keywords
       (let ((arg-current (pop keywords)))
         (cond
-          ((keywordp arg-current)
-            (unless keywords
-              (error "Keyword argument %S has no value!" arg-current))
-            (let ((v (pop keywords)))
-              (pcase arg-current
-                (:idle
-                  (cond
-                    ((null v)) ;; Ignore.
-                    ((floatp v))
-                    (t
-                      (error "Argument :idle expected a float, not a %S" (type-of v))))
-                  (setq idle v))
+         ((keywordp arg-current)
+          (unless keywords
+            (error "Keyword argument %S has no value!" arg-current))
+          (let ((v (pop keywords)))
+            (pcase arg-current
+              (:idle
+               (cond
+                ((null v)) ;; Ignore.
+                ((floatp v))
+                (t
+                 (error "Argument :idle expected a float, not a %S" (type-of v))))
+               (setq idle v))
 
-                (:jobs
-                  (cond
-                    ((null v)) ;; Ignore.
-                    ((eq v t)) ;; String output (result vector)
-                    ((symbolp v))
-                    (t
-                      (error "Output expected nil, t or a symbol")))
-                  (setq jobs v))
+              (:jobs
+               (cond
+                ((null v)) ;; Ignore.
+                ((eq v t)) ;; String output (result vector)
+                ((symbolp v))
+                (t
+                 (error "Output expected nil, t or a symbol")))
+               (setq jobs v))
 
-                (:output
-                  (cond
-                    ((null v)) ;; Ignore.
-                    ((eq v t)) ;; String output (result vector)
-                    ((functionp v)
-                      (setq output-is-fn t))
-                    (t
-                      (error "Output expected nil, t or a symbol, not a %S" (type-of v))))
-                  (setq output v))
+              (:output
+               (cond
+                ((null v)) ;; Ignore.
+                ((eq v t)) ;; String output (result vector)
+                ((functionp v)
+                 (setq output-is-fn t))
+                (t
+                 (error "Output expected nil, t or a symbol, not a %S" (type-of v))))
+               (setq output v))
 
-                (:progress-message
-                  (cond
-                    ((null v)) ;; Ignore.
-                    ((stringp v)
-                      (setq output-is-fn t))
-                    (t
-                      (error "Progress-message expected nil or string, not a %S" (type-of v))))
-                  (setq progress-message v))
+              (:progress-message
+               (cond
+                ((null v)) ;; Ignore.
+                ((stringp v)
+                 (setq output-is-fn t))
+                (t
+                 (error "Progress-message expected nil or string, not a %S" (type-of v))))
+               (setq progress-message v))
 
-                (_ (error "Unknown argument %S" arg-current)))))
-          (t
-            (error
-              "Optional arguments must be keyword, value pairs, found %S = %S"
-              (type-of arg-current)
-              arg-current)))))
+              (_ (error "Unknown argument %S" arg-current)))))
+         (t
+          (error
+           "Optional arguments must be keyword, value pairs, found %S = %S"
+           (type-of arg-current)
+           arg-current)))))
 
     ;; Set defaults when unset.
     (unless idle
@@ -451,68 +437,64 @@ Optional keywords in KEYWORDS.
     ;; TODO: detect.
     (unless jobs
       (setq jobs
-        (cond
-          ((fboundp 'num-processors) ;; Emacs 29+
-            (* 2 (num-processors)))
-          (t
-            (or diff-ansi-multiprocess-jobs 64)))))
+            (cond
+             ((fboundp 'num-processors) ;; Emacs 29+
+              (* 2 (num-processors)))
+             (t
+              (or diff-ansi-multiprocess-jobs 64)))))
 
-    (let*
-      (
-        (args-len (length args))
-        (results (make-vector args-len nil))
-        (procs (make-vector args-len nil))
-        (jobs-pending nil)
-        (count-complete 0)
-        (count-running 0)
-        (no-error t)
+    (let* ((args-len (length args))
+           (results (make-vector args-len nil))
+           (procs (make-vector args-len nil))
+           (jobs-pending nil)
+           (count-complete 0)
+           (count-running 0)
+           (no-error t)
 
-        (output-funcall-next 0)
+           (output-funcall-next 0)
 
-        (filter-job-fn
-          (lambda (proc str)
-            (let ((id (process-get proc :my-job-id)))
-              (aset results id (cons str (aref results id))))))
+           (filter-job-fn
+            (lambda (proc str)
+              (let ((id (process-get proc :my-job-id)))
+                (aset results id (cons str (aref results id))))))
 
-        (sentinel-job-fn
-          (lambda (proc _msg)
-            (let ((id (process-get proc :my-job-id)))
-              ;; Clear the process in the array so it's never touched again.
-              (aset procs id nil)
-              (let ((exit-code (process-exit-status proc)))
-                (unless (zerop exit-code)
-                  (setq no-error nil)
-                  (error "Command exited code=%d: %S" exit-code (aref args id))))
+           (sentinel-job-fn
+            (lambda (proc _msg)
+              (let ((id (process-get proc :my-job-id)))
+                ;; Clear the process in the array so it's never touched again.
+                (aset procs id nil)
+                (let ((exit-code (process-exit-status proc)))
+                  (unless (zerop exit-code)
+                    (setq no-error nil)
+                    (error "Command exited code=%d: %S" exit-code (aref args id))))
 
-              (delete-process proc)
+                (delete-process proc)
 
-              (setq count-complete (1+ count-complete))
-              (setq count-running (1- count-running))
-              (when output
-                (let ((str (mapconcat #'identity (reverse (aref results id)) "")))
-                  (aset results id str)))
+                (setq count-complete (1+ count-complete))
+                (setq count-running (1- count-running))
+                (when output
+                  (let ((str (mapconcat #'identity (reverse (aref results id)) "")))
+                    (aset results id str)))
 
-              (when progress-message
-                (let ((message-log-max nil))
-                  (message "%s%.2f%%"
-                    progress-message
-                    (* 100.0 (/ (float count-complete) args-len))))))))
+                (when progress-message
+                  (let ((message-log-max nil))
+                    (message "%s%.2f%%"
+                             progress-message
+                             (* 100.0 (/ (float count-complete) args-len))))))))
 
-        (start-job-fn
-          (lambda (i)
-            (setq count-running (1+ count-running))
-            (let
-              (
-                (proc
-                  (make-process
-                    :name (concat "call-process-parallel" (number-to-string i))
-                    ;; Write to the intermediate buffer or the final output.
-                    :connection-type 'pipe
-                    :command (aref args i)
-                    :filter filter-job-fn
-                    :sentinel sentinel-job-fn)))
+           (start-job-fn
+            (lambda (i)
+              (setq count-running (1+ count-running))
+              (let ((proc
+                     (make-process
+                      :name (concat "call-process-parallel" (number-to-string i))
+                      ;; Write to the intermediate buffer or the final output.
+                      :connection-type 'pipe
+                      :command (aref args i)
+                      :filter filter-job-fn
+                      :sentinel sentinel-job-fn)))
 
-              (process-put proc :my-job-id i)))))
+                (process-put proc :my-job-id i)))))
 
       ;; Convert `args' to a vector for fast indexing.
       (setq args (vconcat args))
@@ -524,35 +506,30 @@ Optional keywords in KEYWORDS.
 
       ;; Main loop to complete
       (diff-ansi--with-temp-echo-area
-        (while
-          (progn
-            ;; Run every time, important to run before exiting.
-            (when output-is-fn
-              (let
-                (
-                  (str nil)
-                  (is-modified nil))
-                (while
-                  (and
-                    (< output-funcall-next args-len)
-                    (stringp (setq str (aref results output-funcall-next))))
-                  ;; Overwrite with `t' (never to use again).
-                  (funcall output output-funcall-next str)
-                  (aset results output-funcall-next t)
-                  (setq output-funcall-next (1+ output-funcall-next))
-                  (setq is-modified t))
-                (when is-modified
+       (while (progn
+                ;; Run every time, important to run before exiting.
+                (when output-is-fn
+                  (let ((str nil)
+                        (is-modified nil))
+                    (while (and (< output-funcall-next args-len)
+                                (stringp (setq str (aref results output-funcall-next))))
+                      ;; Overwrite with `t' (never to use again).
+                      (funcall output output-funcall-next str)
+                      (aset results output-funcall-next t)
+                      (setq output-funcall-next (1+ output-funcall-next))
+                      (setq is-modified t))
+                    (when is-modified
 
-                  (redisplay))))
+                      (redisplay))))
 
-            ;; Check if exiting is needed.
-            (and no-error (not (eq count-complete args-len))))
+                ;; Check if exiting is needed.
+                (and no-error (not (eq count-complete args-len))))
 
-          ;; Fill the queue.
-          (while (and jobs-pending (< count-running jobs))
-            (funcall start-job-fn (pop jobs-pending)))
+         ;; Fill the queue.
+         (while (and jobs-pending (< count-running jobs))
+           (funcall start-job-fn (pop jobs-pending)))
 
-          (sleep-for idle)))
+         (sleep-for idle)))
 
       (unless no-error
         (dotimes (i args-len)
@@ -561,20 +538,20 @@ Optional keywords in KEYWORDS.
               (delete-process proc)))))
 
       (cond
-        ((eq output t)
-          results)
-        (t
-          nil)))))
+       ((eq output t)
+        results)
+       (t
+        nil)))))
 
 (defun diff-ansi--face-attr-to-hex-literal (face attr)
   "Return the HEX color from FACE and ATTR."
   (apply #'format
-    (cons
-      "#%02x%02x%02x"
-      (mapcar
-        ;; Shift by -8 to map the value returned by `color values':
-        ;; 0..65535 to 0..255 for `#RRGGBB` string formatting.
-        (lambda (n) (ash n -8)) (color-values (face-attribute face attr))))))
+         (cons
+          "#%02x%02x%02x"
+          (mapcar
+           ;; Shift by -8 to map the value returned by `color values':
+           ;; 0..65535 to 0..255 for `#RRGGBB` string formatting.
+           (lambda (n) (ash n -8)) (color-values (face-attribute face attr))))))
 
 
 ;; ---------------------------------------------------------------------------
@@ -583,19 +560,20 @@ Optional keywords in KEYWORDS.
 (defun diff-ansi--ansi-color-apply-on-region-with-bg (beg end)
   "Wrapper function for `ansi-color-apply-on-region', applying color in (BEG END)."
   (setq diff-ansi--ansi-color-bg
-    (list
-      :background (diff-ansi--face-attr-to-hex-literal 'diff-ansi-default-face :background)
-      :extend t))
+        (list
+         :background (diff-ansi--face-attr-to-hex-literal 'diff-ansi-default-face :background)
+         :extend t))
   (diff-ansi--ansi-color-apply-on-region-with-bg-impl beg end))
 
 (defun diff-ansi--ansi-color-apply-on-region-with-bg-str (black-color)
   "Create string that can be passed to a sub-process using BLACK-COLOR."
   (format "(progn %s %s %s %s %s)"
-    "(require 'ansi-color)"
-    (format "(defconst diff-ansi--ansi-color-bg (list :background \"%s\" :extend t))" black-color)
-    diff-ansi--code-block-for-multiprocess-defs
-    "(diff-ansi--ansi-color-apply-on-region-with-bg-impl (point-min) (point-max))"
-    "(prin1 (buffer-substring (point-min) (point-max)) #'external-debugging-output)"))
+          "(require 'ansi-color)"
+          (format "(defconst diff-ansi--ansi-color-bg (list :background \"%s\" :extend t))"
+                  black-color)
+          diff-ansi--code-block-for-multiprocess-defs
+          "(diff-ansi--ansi-color-apply-on-region-with-bg-impl (point-min) (point-max))"
+          "(prin1 (buffer-substring (point-min) (point-max)) #'external-debugging-output)"))
 
 
 ;; ---------------------------------------------------------------------------
@@ -605,19 +583,18 @@ Optional keywords in KEYWORDS.
   "Return the command to run delta."
   (pcase diff-ansi-tool
     ('delta
-      (append
-        (list
-          "delta"
-          (format "--width=%d" (window-body-width (get-buffer-window (current-buffer)))))
-        diff-ansi-extra-args-for-delta))
+     (append
+      (list
+       "delta"
+       (format "--width=%d" (window-body-width (get-buffer-window (current-buffer)))))
+      diff-ansi-extra-args-for-delta))
     ('diff-so-fancy (append (list "diff-so-fancy") diff-ansi-extra-args-for-diff-so-fancy))
     ('ydiff
-      (append
-        (list
-          "ydiff"
-          "--color=always"
-          (format "--width=%d" (/ (window-body-width (get-buffer-window (current-buffer)) 2))))
-        diff-ansi-extra-args-for-ydiff))
+     (append
+      (list
+       "ydiff" "--color=always"
+       (format "--width=%d" (/ (window-body-width (get-buffer-window (current-buffer)) 2))))
+      diff-ansi-extra-args-for-ydiff))
     ('custom diff-ansi-tool-custom)
     (_ (error "Unknown tool %S" diff-ansi-tool))))
 
@@ -628,10 +605,8 @@ Optional keywords in KEYWORDS.
 (defun diff-ansi--immediate-impl (beg end &optional target-buf)
   "Colorize the text between BEG and END immediately.
 Store the result in TARGET-BUF when non-nil."
-  (let
-    (
-      (diff-command (diff-ansi--command-preset-impl))
-      (diff-str (buffer-substring-no-properties beg end)))
+  (let ((diff-command (diff-ansi--command-preset-impl))
+        (diff-str (buffer-substring-no-properties beg end)))
 
     (unless target-buf
       (delete-region beg end)
@@ -660,65 +635,58 @@ Argument BEG is only used to calculate the progress percentage."
   (unless (input-pending-p)
     (with-current-buffer buf
       (cond
-        ((null diff-ansi--ansi-color-timer)
-          ;; Local variables may have been cleared,
-          ;; in this case use the timer passed in to this function.
-          (cancel-timer timer))
-        (t
-          (let*
-            (
-              (do-redisplay nil)
-              (inhibit-read-only t)
-              (end (cdr range))
-              (end-trailing-chars (- (buffer-size) end))
-              (disp-beg (car range))
-              (disp-end
+       ((null diff-ansi--ansi-color-timer)
+        ;; Local variables may have been cleared,
+        ;; in this case use the timer passed in to this function.
+        (cancel-timer timer))
+       (t
+        (let* ((do-redisplay nil)
+               (inhibit-read-only t)
+               (end (cdr range))
+               (end-trailing-chars (- (buffer-size) end))
+               (disp-beg (car range))
+               (disp-end
                 (min
-                  end ;; Clamp twice because `line-end-position' could exceed the value.
-                  (save-excursion
-                    (goto-char (min (+ disp-beg diff-ansi-chunks-size) end))
-                    (line-end-position)))))
-            (save-excursion
-              (cond
-                ((eq disp-beg disp-end)
-                  (when diff-ansi--ansi-color-timer
-                    (diff-ansi--ansi-color-timer-cancel)
-                    (when diff-ansi-verbose-progress
-                      (message nil))))
-                (t
-                  (let ((disp-end-mark (set-marker (make-marker) disp-end)))
-                    (diff-ansi--ansi-color-apply-on-region-with-bg disp-beg disp-end)
+                 end ;; Clamp twice because `line-end-position' could exceed the value.
+                 (save-excursion
+                   (goto-char (min (+ disp-beg diff-ansi-chunks-size) end))
+                   (line-end-position)))))
+          (save-excursion
+            (cond
+             ((eq disp-beg disp-end)
+              (when diff-ansi--ansi-color-timer
+                (diff-ansi--ansi-color-timer-cancel)
+                (when diff-ansi-verbose-progress
+                  (message nil))))
+             (t
+              (let ((disp-end-mark (set-marker (make-marker) disp-end)))
+                (diff-ansi--ansi-color-apply-on-region-with-bg disp-beg disp-end)
 
-                    (setq do-redisplay t)
-                    ;; Update the display start and actual end.
-                    (let
-                      (
-                        (disp-beg-next (marker-position disp-end-mark))
-                        (end-next (- (buffer-size) end-trailing-chars)))
+                (setq do-redisplay t)
+                ;; Update the display start and actual end.
+                (let ((disp-beg-next (marker-position disp-end-mark))
+                      (end-next (- (buffer-size) end-trailing-chars)))
 
-                      (setcar range disp-beg-next)
-                      (setcdr range end-next)
+                  (setcar range disp-beg-next)
+                  (setcdr range end-next)
 
-                      (when diff-ansi-verbose-progress
-                        (let ((message-log-max nil))
-                          (message "diff-ansi: %2d%% complete"
-                            (min
-                              (/ (* 100 (- disp-beg-next beg)) (- end-next beg))
-                              ;; Never show 100 because there is work left to do,
-                              ;; actual completion will hide the message.
-                              99)))))))))
+                  (when diff-ansi-verbose-progress
+                    (let ((message-log-max nil))
+                      (message "diff-ansi: %2d%% complete"
+                               (min (/ (* 100 (- disp-beg-next beg)) (- end-next beg))
+                                    ;; Never show 100 because there is work left to do,
+                                    ;; actual completion will hide the message.
+                                    99)))))))))
 
-            ;; Re-display outside the block that moves the cursor.
-            (when do-redisplay
-              (redisplay))))))))
+          ;; Re-display outside the block that moves the cursor.
+          (when do-redisplay
+            (redisplay))))))))
 
 (defun diff-ansi--progressive-impl (beg end &optional target-buf)
   "Colorize the text between BEG and END using a timer.
 Store the result in TARGET-BUF when non-nil."
-  (let
-    (
-      (diff-command (diff-ansi--command-preset-impl))
-      (diff-str (buffer-substring-no-properties beg end)))
+  (let ((diff-command (diff-ansi--command-preset-impl))
+        (diff-str (buffer-substring-no-properties beg end)))
 
     (unless target-buf
       (delete-region beg end)
@@ -736,11 +704,15 @@ Store the result in TARGET-BUF when non-nil."
 
         ;; Postpone activation until the timer can take it's self as an argument.
         (diff-ansi--with-advice #'timer-activate :override (lambda (&rest _) nil)
-          (setq diff-ansi--ansi-color-timer (run-at-time 0.0 0.001 nil))
-          (timer-set-function
-            diff-ansi--ansi-color-timer
-            #'diff-ansi-progressive-highlight-impl
-            (list (current-buffer) beg (cons beg end) diff-ansi--ansi-color-timer)))
+                                (setq diff-ansi--ansi-color-timer (run-at-time 0.0 0.001 nil))
+                                (timer-set-function
+                                 diff-ansi--ansi-color-timer
+                                 #'diff-ansi-progressive-highlight-impl
+                                 (list
+                                  (current-buffer)
+                                  beg
+                                  (cons beg end)
+                                  diff-ansi--ansi-color-timer)))
         (timer-activate diff-ansi--ansi-color-timer)))))
 
 
@@ -750,11 +722,9 @@ Store the result in TARGET-BUF when non-nil."
 (defun diff-ansi--multiprocess-impl (beg end &optional target-buf)
   "Colorize the text between BEG and END using multiple processes.
 Store the result in TARGET-BUF when non-nil."
-  (let
-    (
-      (diff-command (diff-ansi--command-preset-impl))
-      (diff-str (buffer-substring-no-properties beg end))
-      (per-chunk-args nil))
+  (let ((diff-command (diff-ansi--command-preset-impl))
+        (diff-str (buffer-substring-no-properties beg end))
+        (per-chunk-args nil))
 
     (unless target-buf
       (delete-region beg end)
@@ -768,21 +738,19 @@ Store the result in TARGET-BUF when non-nil."
           (with-temp-buffer
             ;; Use the temp buffer.
             (diff-ansi--call-process-pipe-chain
-              diff-command
-              :input diff-str
-              :output (current-buffer))
+             diff-command
+             :input diff-str
+             :output (current-buffer))
 
             (goto-char (point-min))
-            (let*
-              (
-                (black-color
-                  (diff-ansi--face-attr-to-hex-literal 'diff-ansi-default-face :background))
-                (emacs-bin (expand-file-name invocation-name invocation-directory))
-                (emacs-eval-arg (diff-ansi--ansi-color-apply-on-region-with-bg-str black-color))
+            (let* ((black-color
+                    (diff-ansi--face-attr-to-hex-literal 'diff-ansi-default-face :background))
+                   (emacs-bin (expand-file-name invocation-name invocation-directory))
+                   (emacs-eval-arg (diff-ansi--ansi-color-apply-on-region-with-bg-str black-color))
 
-                (point-prev (point))
-                ;; Index (for unique names.
-                (i 0))
+                   (point-prev (point))
+                   ;; Index (for unique names.
+                   (i 0))
               (while (not (eobp))
                 (setq point-prev (point))
                 (goto-char (min (+ (point) diff-ansi-chunks-size) (point-max)))
@@ -798,8 +766,8 @@ Store the result in TARGET-BUF when non-nil."
           ;; Out of the temp buffer.
           (setq beg (point))
           (diff-ansi--call-process-parallel per-chunk-args
-            :output (lambda (_i str) (insert (read str)))
-            :progress-message "Diff progress: ")
+                                            :output (lambda (_i str) (insert (read str)))
+                                            :progress-message "Diff progress: ")
           (setq end (point)))))))
 
 
@@ -814,19 +782,19 @@ This calls OLD-FN with ARGS."
   (let ((point-begin (point)))
     (diff-ansi--with-advice #'magit-wash-sequence :override (lambda (&rest _) nil)
 
-      (apply old-fn args)
+                            (apply old-fn args)
 
-      (with-demoted-errors "diff-ansi: %S"
-        ;; Don't do anything to the diff, it may cause problems.
-        (diff-ansi-region point-begin (point-max))))))
+                            (with-demoted-errors "diff-ansi: %S"
+                              ;; Don't do anything to the diff, it may cause problems.
+                              (diff-ansi-region point-begin (point-max))))))
 
 (defun diff-ansi--enable ()
   "Enable the buffer local minor mode."
   (when diff-ansi-use-magit-revision-diff
     (require 'magit-diff)
     (advice-add
-      'magit-insert-revision-diff
-      :around #'diff-ansi--magit-insert-revision-diff-advice-fn)))
+     'magit-insert-revision-diff
+     :around #'diff-ansi--magit-insert-revision-diff-advice-fn)))
 
 (defun diff-ansi--disable ()
   "Disable the buffer local minor mode."
@@ -856,49 +824,49 @@ Return the buffer used to write data into on success."
 
 
   (let
-    ( ;; Keyword arguments.
-      (create-buffer nil)
-      (preserve-point nil)
+      ( ;; Keyword arguments.
+       (create-buffer nil)
+       (preserve-point nil)
 
-      ;; To update end after the buffer has been resized.
-      (end-trailing-chars (- (buffer-size) end))
+       ;; To update end after the buffer has been resized.
+       (end-trailing-chars (- (buffer-size) end))
 
-      ;; For `preserve-point'.
-      (lines-to-beg nil)
-      (lines-to-end nil)
-      ;; For `into-buffer'.
-      (target-buf nil))
+       ;; For `preserve-point'.
+       (lines-to-beg nil)
+       (lines-to-end nil)
+       ;; For `into-buffer'.
+       (target-buf nil))
 
     ;; Handle keyword arguments.
     (while args
       (let ((arg-current (pop args)))
         (cond
-          ((keywordp arg-current)
-            (unless args
-              (error "Keyword argument %S has no value!" arg-current))
-            (let ((v (pop args)))
-              (pcase arg-current
-                (:create-buffer
-                  (cond
-                    ((null v)) ;; No input.
-                    ((eq v t)) ;; OK.
-                    (t
-                      (error "Expected `:create-buffer', to be nil or t")))
-                  (setq create-buffer v))
+         ((keywordp arg-current)
+          (unless args
+            (error "Keyword argument %S has no value!" arg-current))
+          (let ((v (pop args)))
+            (pcase arg-current
+              (:create-buffer
+               (cond
+                ((null v)) ;; No input.
+                ((eq v t)) ;; OK.
+                (t
+                 (error "Expected `:create-buffer', to be nil or t")))
+               (setq create-buffer v))
 
-                (:preserve-point
-                  (cond
-                    ((null v)) ;; No input.
-                    ((eq v t)) ;; OK.
-                    (t
-                      (error "Expected `:preserve-point', to be nil or t")))
-                  (setq preserve-point v))
-                (_ (error "Unknown argument %S" arg-current)))))
-          (t
-            (error
-              "All arguments must be keyword, value pairs, found %S = %S"
-              (type-of arg-current)
-              arg-current)))))
+              (:preserve-point
+               (cond
+                ((null v)) ;; No input.
+                ((eq v t)) ;; OK.
+                (t
+                 (error "Expected `:preserve-point', to be nil or t")))
+               (setq preserve-point v))
+              (_ (error "Unknown argument %S" arg-current)))))
+         (t
+          (error
+           "All arguments must be keyword, value pairs, found %S = %S"
+           (type-of arg-current)
+           arg-current)))))
 
     (when preserve-point
       (setq lines-to-beg (count-lines (point) beg))
@@ -922,14 +890,14 @@ Return the buffer used to write data into on success."
         (setq method 'immediate))
 
       (cond
-        ((eq method 'immediate)
-          (diff-ansi--immediate-impl beg end target-buf))
-        ((eq method 'progressive)
-          (diff-ansi--progressive-impl beg end target-buf))
-        ((eq method 'multiprocess)
-          (diff-ansi--multiprocess-impl beg end target-buf))
-        (t
-          (error "Unknown method: %S" method))))
+       ((eq method 'immediate)
+        (diff-ansi--immediate-impl beg end target-buf))
+       ((eq method 'progressive)
+        (diff-ansi--progressive-impl beg end target-buf))
+       ((eq method 'multiprocess)
+        (diff-ansi--multiprocess-impl beg end target-buf))
+       (t
+        (error "Unknown method: %S" method))))
 
     ;; Update end.
     (unless target-buf
@@ -942,25 +910,23 @@ Return the buffer used to write data into on success."
           (setq beg (point-min))
           (setq end (point-max)))
         (cond
-          ((zerop lines-to-beg)
-            (goto-char beg))
-          ((zerop lines-to-end)
-            (goto-char end))
-          (t
-            ;; Match the relative vertical offset.
-            (let*
-              (
-                (lines-total-after (count-lines beg end))
-                (factor (/ (float lines-total-after) (float (+ lines-to-beg lines-to-end)))))
-              (goto-char beg)
-              (forward-line (truncate (* lines-to-beg factor))))))))
+         ((zerop lines-to-beg)
+          (goto-char beg))
+         ((zerop lines-to-end)
+          (goto-char end))
+         (t
+          ;; Match the relative vertical offset.
+          (let* ((lines-total-after (count-lines beg end))
+                 (factor (/ (float lines-total-after) (float (+ lines-to-beg lines-to-end)))))
+            (goto-char beg)
+            (forward-line (truncate (* lines-to-beg factor))))))))
 
     (cond
-      (create-buffer
-        (set-buffer-modified-p nil)
-        target-buf)
-      (t
-        (current-buffer)))))
+     (create-buffer
+      (set-buffer-modified-p nil)
+      target-buf)
+     (t
+      (current-buffer)))))
 
 ;;;###autoload
 (defun diff-ansi-buffer ()
@@ -972,12 +938,13 @@ Return the buffer used to write data into on success."
 ;;;###autoload
 (define-minor-mode diff-ansi-mode
   "Enable `diff-ansi' integration."
-  :global nil
+  :global
+  nil
   (cond
-    (diff-ansi-mode
-      (diff-ansi--enable))
-    (t
-      (diff-ansi--disable))))
+   (diff-ansi-mode
+    (diff-ansi--enable))
+   (t
+    (diff-ansi--disable))))
 
 (provide 'diff-ansi)
 ;;; diff-ansi.el ends here
