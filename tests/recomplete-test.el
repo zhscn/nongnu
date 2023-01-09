@@ -123,4 +123,8 @@
 
 
 (provide 'recomplete-test)
+;; Local Variables:
+;; fill-column: 99
+;; indent-tabs-mode: nil
+;; End:
 ;;; recomplete-test.el ends here

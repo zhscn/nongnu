@@ -594,4 +594,8 @@ ARG is the offset to cycle, default is 1, -1 to cycle backwards."
   (recomplete-with-callback 'recomplete-impl-dabbrev arg))
 
 (provide 'recomplete)
+;; Local Variables:
+;; fill-column: 99
+;; indent-tabs-mode: nil
+;; End:
 ;;; recomplete.el ends here
