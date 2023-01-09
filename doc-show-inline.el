@@ -392,8 +392,7 @@ the point should not be moved by this function."
           (let ((ov (pop overlays-in-view)))
             (when (and (overlay-get ov 'doc-show-inline) (overlay-buffer ov))
               (doc-show-inline--log-info
-               "removing overlay in %S at point %d"
-               (current-buffer)
+               "removing overlay in %S at point %d" (current-buffer)
                ;; Start & end are the same.
                (overlay-start ov))
               (delete-overlay ov)))))))
