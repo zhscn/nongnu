@@ -964,4 +964,8 @@ When IS-INTERACTIVE is true, use `doc-show-inline-idle-delay-init'."
     (doc-show-inline--mode-disable))))
 
 (provide 'doc-show-inline)
+;; Local Variables:
+;; fill-column: 99
+;; indent-tabs-mode: nil
+;; End:
 ;;; doc-show-inline.el ends here
