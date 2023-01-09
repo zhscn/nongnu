@@ -111,12 +111,11 @@ Argument DELTA-PX The number of pixels to scroll (signed).
 Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
   (cond
    ((< delta-px 0)
-    (let*
-        ((scroll-px-prev (- char-height (window-vscroll nil t))) ;; flip.
-         (scroll-px-next (+ scroll-px-prev (- delta-px))) ;; flip.
-         (lines (/ scroll-px-next char-height))
-         (scroll-px (- scroll-px-next (* lines char-height)))
-         (lines-remainder 0))
+    (let* ((scroll-px-prev (- char-height (window-vscroll nil t))) ; flip.
+           (scroll-px-next (+ scroll-px-prev (- delta-px))) ; flip.
+           (lines (/ scroll-px-next char-height))
+           (scroll-px (- scroll-px-next (* lines char-height)))
+           (lines-remainder 0))
       (unless (zerop lines)
         ;; flip
         (setq lines-remainder
@@ -179,8 +178,9 @@ VISUAL-LINE-DATA is the result of `scroll-on-drag--evil-visual-line-data'."
 (defun scroll-on-drag--impl ()
   "Interactively scroll (typically on click event).
 Returns true when scrolling took place, otherwise nil."
-  (let* (
-         ;; Don't run unnecessary logic when scrolling.
+  (let* ((scroll-timer nil)
+
+         ; Don't run unnecessary logic when scrolling.
          (inhibit-point-motion-hooks t)
          ;; Only draw explicitly once all actions have been done.
          (inhibit-redisplay t)
@@ -194,8 +194,6 @@ Returns true when scrolling took place, otherwise nil."
          (has-scrolled nil)
          ;; Doesn't reset (so we can detect clicks).
          (has-scrolled-real nil)
-
-         (scroll-timer nil)
 
          ;; Cursor offset.
          (delta 0)
@@ -222,7 +220,8 @@ Returns true when scrolling took place, otherwise nil."
                        (- (window-body-height)
                           ;; When the point is at the window top,
                           ;; account for it being clamped while scrolling.
-                          (1+ (max scroll-margin (count-lines restore-window-start restore-point))))))
+                          (1+ (max scroll-margin
+                                   (count-lines restore-window-start restore-point))))))
                   (goto-char (point-max))
                   (forward-line (- lines))
                   (point))))))
@@ -260,11 +259,10 @@ Returns true when scrolling took place, otherwise nil."
                (copysign
                 ;; Clamp so converting to int won't fail.
                 (min 1e+18
-                     (*
-                      (expt
-                       (* f-abs scroll-on-drag-motion-scale)
-                       (+ 1.0 (* f-abs scroll-on-drag-motion-accelerate)))
-                      this-frame-char-height-as-float))
+                     (* (expt
+                         (* f-abs scroll-on-drag-motion-scale)
+                         (+ 1.0 (* f-abs scroll-on-drag-motion-accelerate)))
+                        this-frame-char-height-as-float))
                 f)))))
 
          ;; Calls 'timer-update-fn'.
