@@ -107,12 +107,10 @@ check this buffer.")
 (defun idle-highlight--faces-at-point (pos)
   "Add the named faces that the `read-face-name' or `face' property use.
 Argument POS return faces at this point."
-  (let
-      ( ;; List of faces to return.
-       (faces nil)
-       ;; NOTE: use `get-text-property' instead of `get-char-property' so overlays are excluded,
-       ;; since this causes overlays with `hl-line-mode' (for example) to mask keywords, see: #1.
-       (faceprop (or (get-text-property pos 'read-face-name) (get-text-property pos 'face))))
+  (let ((faces nil) ; List of faces to return.
+        ;; NOTE: use `get-text-property' instead of `get-char-property' so overlays are excluded,
+        ;; since this causes overlays with `hl-line-mode' (for example) to mask keywords, see: #1.
+        (faceprop (or (get-text-property pos 'read-face-name) (get-text-property pos 'face))))
     (cond
      ((facep faceprop)
       (push faceprop faces))
@@ -150,7 +148,7 @@ Where RANGES is an unordered list of (min . max) cons cells."
             (setcdr ranges-iter ranges-next)))))
       ranges))
 
-   (t ;; No need for complex logic single/empty lists.
+   (t ; No need for complex logic single/empty lists.
     ranges)))
 
 
@@ -184,7 +182,7 @@ Where RANGES is an unordered list of (min . max) cons cells."
                   ;; Break.
                   (setq faces-at-pos nil))))))))
       result))
-   (t ;; Default to true, if there are no exceptions.
+   (t ; Default to true, if there are no exceptions.
     t)))
 
 (defun idle-highlight--check-word (target)
@@ -273,12 +271,11 @@ should be the result of `idle-highlight--word-at-point-args'."
 (defun idle-highlight--time-callback-or-disable ()
   "Callback that run the repeat timer."
 
-  (let
-      ( ;; Ensure all other buffers are highlighted on request.
-       (is-mode-active (bound-and-true-p idle-highlight-mode))
-       (buf-current (current-buffer))
-       (dirty-buffer-list (list))
-       (force-all idle-highlight-visible-buffers))
+  ;; Ensure all other buffers are highlighted on request.
+  (let ((is-mode-active (bound-and-true-p idle-highlight-mode))
+        (buf-current (current-buffer))
+        (dirty-buffer-list (list))
+        (force-all idle-highlight-visible-buffers))
 
     ;; When this buffer is not in the mode, flush all other buffers.
     (cond
@@ -345,7 +342,7 @@ should be the result of `idle-highlight--word-at-point-args'."
       ;; Always keep the current buffer dirty
       ;; so navigating away from this buffer will refresh it.
       (setq idle-highlight--dirty t))
-     (t ;; Cancel the timer until the current buffer uses this mode again.
+     (t ; Cancel the timer until the current buffer uses this mode again.
       (idle-highlight--time-ensure nil)))))
 
 (defun idle-highlight--time-ensure (state)
