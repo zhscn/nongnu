@@ -1390,6 +1390,11 @@ Optionally get it for BUFFER."
 Optionally get it for BUFFER."
   (mastodon-tl--get-buffer-property 'link-header buffer))
 
+(defun mastodon-tl--update-params (&optional buffer)
+  "Get the UPDATE PARAMS stored in `mastodon-tl--buffer-spec'.
+Optionally get it for BUFFER."
+  (mastodon-tl--get-buffer-property 'update-params buffer))
+
 (defun mastodon-tl--get-buffer-property (property &optional buffer)
   "Get PROPERTY from `mastodon-tl--buffer-spec' in BUFFER or `current-buffer'."
   (with-current-buffer  (or buffer (current-buffer))
@@ -2607,7 +2612,7 @@ when showing followers or accounts followed."
     (mastodon-tl--more-json-async
      (mastodon-tl--get-endpoint)
      (mastodon-tl--oldest-id)
-     (mastodon-tl--get-buffer-property 'update-params)
+     (mastodon-tl--update-params)
      'mastodon-tl--more* (current-buffer) (point))))
 
 (defun mastodon-tl--more* (response buffer point-before &optional headers)
@@ -2812,7 +2817,7 @@ This location is defined by a non-nil value of
         (funcall update-function thread-id)
       ;; update other timelines:
       (let* ((id (mastodon-tl--newest-id))
-             (params (mastodon-tl--get-buffer-property 'update-params))
+             (params (mastodon-tl--update-params))
              (json (mastodon-tl--updated-json endpoint id params)))
         (if json
             (let ((inhibit-read-only t))
