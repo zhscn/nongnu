@@ -1398,9 +1398,10 @@ Optionally get it for BUFFER."
 (defun mastodon-tl--get-buffer-property (property &optional buffer)
   "Get PROPERTY from `mastodon-tl--buffer-spec' in BUFFER or `current-buffer'."
   (with-current-buffer  (or buffer (current-buffer))
-    (or (plist-get mastodon-tl--buffer-spec property)
-        (error "Mastodon-tl--buffer-spec is not defined for buffer %s"
-               (or buffer (current-buffer))))))
+    ;; (or
+    (plist-get mastodon-tl--buffer-spec property)))
+    ;; (error "Mastodon-tl--buffer-spec is not defined for buffer %s"
+    ;; (or buffer (current-buffer))))))
 
 (defun mastodon-tl--set-buffer-spec (buffer endpoint update-function
                                             &optional link-header update-params)
