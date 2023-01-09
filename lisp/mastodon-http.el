@@ -73,7 +73,6 @@
 
 (defun mastodon-http--url-retrieve-synchronously (url &optional silent)
   "Retrieve URL asynchronously.
-
 This is a thin abstraction over the system
 `url-retrieve-synchronously'.  Depending on which version of this
 is available we will call it with or without a timeout.
@@ -84,7 +83,6 @@ SILENT means don't message."
 
 (defun mastodon-http--triage (response success)
   "Determine if RESPONSE was successful. Call SUCCESS if successful.
-
 Message status and JSON error from RESPONSE if unsuccessful."
   (let ((status (with-current-buffer response
                   (mastodon-http--status))))
@@ -136,7 +134,6 @@ Used for API form data parameters that take an array."
 
 (defun mastodon-http--post (url &optional params headers unauthenticated-p)
   "POST synchronously to URL, optionally with PARAMS and HEADERS.
-
 Authorization header is included by default unless UNAUTHENTICATED-P is non-nil."
   (mastodon-http--authorized-request
    "POST"

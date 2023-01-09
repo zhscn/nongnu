@@ -113,7 +113,6 @@ Used for completion in toot compose buffer."
 
 (defcustom mastodon-toot--use-company-for-completion nil
   "Whether to enable company for completion.
-
 When non-nil, `company-mode' is enabled in the toot compose
 buffer, and mastodon completion backends are added to
 `company-capf'.
@@ -160,7 +159,6 @@ You need to install company yourself to use this."
 
 (defvar-local mastodon-toot--visibility nil
   "A string indicating the visibility of the toot being composed.
-
 Valid values are \"direct\", \"private\" (followers-only),
 \"unlisted\", and \"public\".
 
@@ -279,7 +277,6 @@ NO-TOOT means we are not calling from a toot buffer."
 
 (defun mastodon-toot--action-success (marker byline-region remove)
   "Insert/remove the text MARKER with 'success face in byline.
-
 BYLINE-REGION is a cons of start and end pos of the byline to be
 modified.
 Remove MARKER if REMOVE is non-nil, otherwise add it."
@@ -299,7 +296,7 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
         (insert (format "(%s) "
                         (propertize marker 'face 'success)))))
     (when at-byline-p
-    ;; leave point after the marker:
+      ;; leave point after the marker:
       (unless remove
         (mastodon-tl--goto-next-toot)))))
 
@@ -855,7 +852,6 @@ Remove empty string (self) from result and joins the sequence with whitespace."
 
 (defun mastodon-toot--process-local (acct)
   "Add domain to local ACCT and replace the curent user name with \"\".
-
 Mastodon requires the full @user@domain, even in the case of local accts.
 eg. \"user\" -> \"@user@local.social\" (when local.social is the domain of the
 mastodon-instance-url).

@@ -144,7 +144,6 @@ fKRJkmVZjAQwh78A6vCRWJE8K+8AAAAASUVORK5CYII=")
 (defun mastodon-media--process-image-response
     (status-plist marker image-options region-length url)
   "Callback function processing the url retrieve response for URL.
-
 STATUS-PLIST is the usual plist of status events as per `url-retrieve'.
 IMAGE-OPTIONS are the precomputed options to apply to the image.
 MARKER is the marker to where the response should be visible.
@@ -186,7 +185,6 @@ with the image."
 
 (defun mastodon-media--load-image-from-url (url media-type start region-length)
   "Take a URL and MEDIA-TYPE and load the image asynchronously.
-
 MEDIA-TYPE is a symbol and either 'avatar or 'media-link.
 START is the position where we start loading the image.
 REGION-LENGTH is the range from start to propertize."
@@ -199,8 +197,8 @@ REGION-LENGTH is the range from start to propertize."
                            `(:max-height ,mastodon-media--preview-max-height))))))
     (let ((buffer (current-buffer))
           (marker (copy-marker start))
-	      ;; Keep url.el from spamming us with messages about connecting to hosts:
-	      (url-show-status nil))
+	  ;; Keep url.el from spamming us with messages about connecting to hosts:
+	  (url-show-status nil))
       (condition-case nil
           ;; catch any errors in url-retrieve so as to not abort
           ;; whatever called us
@@ -226,7 +224,6 @@ REGION-LENGTH is the range from start to propertize."
 
 (defun mastodon-media--select-next-media-line (end-pos)
   "Find coordinates of the next media to load before END-POS.
-
 Returns the list of (`start' . `end', `media-symbol') points of
 that line and string found or nil no more media links were
 found."
@@ -249,7 +246,6 @@ found."
 
 (defun mastodon-media--valid-link-p (link)
   "Check if LINK is valid.
-
 Checks to make sure the missing string has not been returned."
   (and link
        (> (length link) 8)

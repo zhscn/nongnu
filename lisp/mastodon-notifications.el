@@ -244,7 +244,6 @@ Status notifications are given when
                                                    author-byline action-byline id
                                                    &optional base-toot)
   "Display the content and byline of timeline element TOOT.
-
 BODY will form the section of the toot above the byline.
 
 AUTHOR-BYLINE is an optional function for adding the author

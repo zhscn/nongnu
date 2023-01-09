@@ -103,7 +103,6 @@
 
 (defcustom mastodon-tl--enable-relative-timestamps t
   "Whether to show relative (to the current time) timestamps.
-
 This will require periodic updates of a timeline buffer to
 keep the timestamps current as time progresses."
   :group 'mastodon-tl
@@ -111,7 +110,6 @@ keep the timestamps current as time progresses."
 
 (defcustom mastodon-tl--enable-proportional-fonts nil
   "Nonnil to enable using proportional fonts when rendering HTML.
-
 By default fixed width fonts are used."
   :group 'mastodon-tl
   :type '(boolean :tag "Enable using proportional rather than fixed \
@@ -161,7 +159,6 @@ Valid values are:
 
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
-
 If nil `(point-min)' is used instead.")
 
 (defvar-local mastodon-tl--after-update-marker nil
@@ -185,7 +182,6 @@ If nil `(point-min)' is used instead.")
     (define-key map [follow-link] 'mouse-face)
     (keymap-canonicalize map))
   "The keymap for link-like things in buffer (except for shr.el generate links).
-
 This will make the region of text act like like a link with mouse
 highlighting, mouse click action tabbing to next/previous link
 etc.")
@@ -201,7 +197,6 @@ etc.")
     (define-key map [remap shr-browse-url] 'mastodon-url-lookup)
     (keymap-canonicalize map))
   "The keymap to be set for shr.el generated links that are not images.
-
 We need to override the keymap so tabbing will navigate to all
 types of mastodon links and not just shr.el-generated ones.")
 
@@ -224,7 +219,6 @@ types of mastodon links and not just shr.el-generated ones.")
     (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-at-point)
     (keymap-canonicalize map))
   "The keymap to be set for shr.el generated image links.
-
 We need to override the keymap so tabbing will navigate to all
 types of mastodon links and not just shr.el-generated ones.")
 
@@ -305,7 +299,6 @@ NAME is not part of the symbol table, '?' is returned."
 
 (defun mastodon-tl--next-tab-item ()
   "Move to the next interesting item.
-
 This could be the next toot, link, or image; whichever comes first.
 Don't move if nothing else to move to is found, i.e. near the end of the buffer.
 This also skips tab items in invisible text, i.e. hidden spoiler text."
@@ -326,7 +319,6 @@ This also skips tab items in invisible text, i.e. hidden spoiler text."
 
 (defun mastodon-tl--previous-tab-item ()
   "Move to the previous interesting item.
-
 This could be the previous toot, link, or image; whichever comes
 first. Don't move if nothing else to move to is found, i.e. near
 the start of the buffer. This also skips tab items in invisible
@@ -569,14 +561,12 @@ The result is added as an attachments property to author-byline."
 
 (defun mastodon-tl--field (field toot)
   "Return FIELD from TOOT.
-
 Return value from boosted content if available."
   (or (alist-get field (alist-get 'reblog toot))
       (alist-get field toot)))
 
 (defun mastodon-tl--relative-time-details (timestamp &optional current-time)
   "Return cons of (descriptive string . next change) for the TIMESTAMP.
-
 Use the optional CURRENT-TIME as the current time (only used for
 reliable testing).
 
@@ -631,7 +621,6 @@ TIMESTAMP is assumed to be in the past."
 
 (defun mastodon-tl--relative-time-description (timestamp &optional current-time)
   "Return a string with a human readable TIMESTAMP relative to the current time.
-
 Use the optional CURRENT-TIME as the current time (only used for
 reliable testing).
 
@@ -641,7 +630,6 @@ TIME-STAMP is assumed to be in the past."
 
 (defun mastodon-tl--byline (toot author-byline action-byline &optional detailed-p)
   "Generate byline for TOOT.
-
 AUTHOR-BYLINE is a function for adding the author portion of
 the byline that takes one variable.
 ACTION-BYLINE is a function for adding an action, such as boosting,
@@ -784,7 +772,6 @@ LETTER is a string, F for favourited, B for boosted, or K for bookmarked."
 
 (defun mastodon-tl--render-text (string &optional toot)
   "Return a propertized text rendering the given HTML string STRING.
-
 The contents comes from the given TOOT which is used in parsing
 links in the text. If TOOT is nil no parsing occurs."
   (when string ; handle rare empty notif server bug
@@ -896,7 +883,6 @@ Return nil if no matching element"
 
 (defun mastodon-tl--extract-userhandle-from-url (url buffer-text)
   "Return the user hande the URL points to or nil if it is not a profile link.
-
 BUFFER-TEXT is the text covered by the link with URL, for a user profile
 this should be of the form <at-sign><user id>, e.g. \"@Gargon\"."
   (let* ((parsed-url (url-generic-parse-url url))
@@ -912,7 +898,6 @@ this should be of the form <at-sign><user id>, e.g. \"@Gargon\"."
 
 (defun mastodon-tl--extract-hashtag-from-url (url instance-url)
   "Return the hashtag that URL points to or nil if URL is not a tag link.
-
 INSTANCE-URL is the url of the instance for the toot that the link
 came from (tag links always point to a page on the instance publishing
 the toot)."
@@ -963,7 +948,6 @@ the toot)."
 
 (defun mastodon-tl--make-link (string link-type)
   "Return a propertized version of STRING that will act like link.
-
 LINK-TYPE is the type of link to produce."
   (let ((help-text (cond
                     ((eq link-type 'content-warning)
@@ -1020,7 +1004,6 @@ Used for a mouse-click EVENT on a link."
 
 (defun mastodon-tl--has-spoiler (toot)
   "Check if the given TOOT has a spoiler text.
-
 Spoiler text should initially be shown only while the main
 content should be hidden."
   (let ((spoiler (mastodon-tl--field 'spoiler_text toot)))
@@ -1033,7 +1016,6 @@ content should be hidden."
 
 (defun mastodon-tl--spoiler (toot)
   "Render TOOT with spoiler message.
-
 This assumes TOOT is a toot with a spoiler message.
 The main body gets hidden and only the spoiler text and the
 content warning message are displayed. The content warning
@@ -1111,7 +1093,6 @@ message is a link which unhides/hides the main body."
 (defun mastodon-tl--propertize-img-str-or-url (str media-url full-remote-url type
                                                    help-echo &optional display face)
   "Propertize an media placeholder string \"[img]\" or media URL.
-
 STR is the string to propertize, MEDIA-URL is the preview link,
 FULL-REMOTE-URL is the link to the full resolution image on the
 server, TYPE is the media type.
@@ -1150,11 +1131,11 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
 (defun mastodon-tl--insert-status (toot body author-byline action-byline
                                         &optional id base-toot detailed-p)
   "Display the content and byline of timeline element TOOT.
-
 BODY will form the section of the toot above the byline.
 AUTHOR-BYLINE is an optional function for adding the author
 portion of the byline that takes one variable. By default it is
-`mastodon-tl--byline-author'
+`mastodon-tl--byline-author'.
+
 ACTION-BYLINE is also an optional function for adding an action,
 such as boosting favouriting and following to the byline. It also
 takes a single function. By default it is
@@ -1350,7 +1331,6 @@ in which case play first video or gif from current toot."
 
 (defun mastodon-tl--toot (toot &optional detailed-p)
   "Formats TOOT and insertes it into the buffer.
-
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
   (mastodon-tl--insert-status
@@ -1439,7 +1419,6 @@ PARAMS are any parameters to send with the request."
 
 (defun mastodon-tl--property (prop &optional backward)
   "Get property PROP for toot at point.
-
 Move forward (down) the timeline unless BACKWARD is non-nil."
   (or (get-text-property (point) prop)
       (save-excursion
@@ -1471,7 +1450,6 @@ Move forward (down) the timeline unless BACKWARD is non-nil."
 
 (defun mastodon-tl--toot-id (json)
   "Find approproiate toot id in JSON.
-
 If the toot has been boosted use the id found in the
 reblog portion of the toot.  Otherwise, use the body of
 the toot.  This is the same behaviour as the mastodon.social
@@ -2634,7 +2612,6 @@ HEADERS is the http headers returned in the response, if any."
 
 (defun mastodon-tl--find-property-range (property start-point &optional search-backwards)
   "Return `nil` if no such range is found.
-
 If PROPERTY is set at START-POINT returns a range around
 START-POINT otherwise before/after START-POINT.
 
@@ -2670,7 +2647,6 @@ before (non-nil) or after (nil)"
 (defun mastodon-tl--find-next-or-previous-property-range
     (property start-point search-backwards)
   "Find (start . end) property range after/before START-POINT.
-
 Does so while PROPERTY is set to a consistent value (different
 from the value at START-POINT if that is set).
 
@@ -2695,7 +2671,6 @@ START-POINT otherwise after START-POINT."
 
 (defun mastodon-tl--consider-timestamp-for-updates (timestamp)
   "Take note that TIMESTAMP is used in buffer and ajust timers as needed.
-
 This calculates the next time the text for TIMESTAMP will change
 and may adjust existing or future timer runs should that time
 before current plans to run the update function.
@@ -2725,7 +2700,6 @@ is a no-op."
 
 (defun mastodon-tl--update-timestamps-callback (buffer previous-marker)
   "Update the next few timestamp displays in BUFFER.
-
 Start searching for more timestamps from PREVIOUS-MARKER or
 from the start if it is nil."
   ;; only do things if the buffer hasn't been killed in the meantime
@@ -2891,7 +2865,6 @@ JSON and http headers, without it just the JSON."
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function &optional note-type)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
-
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously.
 Optional arg NOTE-TYPE means only get that type of note."

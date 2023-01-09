@@ -61,7 +61,6 @@
 (autoload 'mastodon-profile--make-author-buffer "mastodon-profile")
 (autoload 'mastodon-profile--show-user "mastodon-profile")
 (autoload 'mastodon-discover "mastodon-discover")
-
 (autoload 'mastodon-tl--block-user "mastodon-tl")
 (autoload 'mastodon-tl--unblock-user "mastodon-tl")
 (autoload 'mastodon-tl--mute-user "mastodon-tl")
@@ -107,7 +106,6 @@
 
 (defcustom mastodon-instance-url "https://mastodon.social"
   "Base URL for the Mastodon instance you want to be active.
-
 For example, if your mastodon username is
 \"example_user@social.instance.org\", and you want this account
 to be active, the value of this variable should be
@@ -123,7 +121,6 @@ changes to take effect."
 
 (defcustom mastodon-active-user nil
   "Username of the active user.
-
 For example, if your mastodon username is
 \"example_user@social.instance.org\", and you want this account
 to be active, the value of this variable should be
@@ -139,7 +136,6 @@ changes to take effect."
 
 (defcustom mastodon-toot-timestamp-format "%F %T"
   "Format to use for timestamps.
-
 For valid formatting options see `format-time-string`.
 The default value \"%F %T\" prints ISO8601-style YYYY-mm-dd HH:MM:SS.
 Use. e.g. \"%c\" for your locale's date and time format."
