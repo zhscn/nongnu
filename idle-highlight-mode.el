@@ -441,4 +441,8 @@ should be the result of `idle-highlight--word-at-point-args'."
   idle-highlight--turn-on)
 
 (provide 'idle-highlight-mode)
+;; Local Variables:
+;; fill-column: 99
+;; indent-tabs-mode: nil
+;; End:
 ;;; idle-highlight-mode.el ends here
