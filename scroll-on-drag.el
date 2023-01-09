@@ -494,5 +494,8 @@ Optional argument BODY Hello."
        ,@body)))
 
 (provide 'scroll-on-drag)
-
+;; Local Variables:
+;; fill-column: 99
+;; indent-tabs-mode: nil
+;; End:
 ;;; scroll-on-drag.el ends here
