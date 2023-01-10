@@ -227,7 +227,7 @@ You can download and use your instance's custom emoji
 
 *** Other commands and account settings:
 
-In addition to =mastodon=, the following functions are autoloaded and should
+In addition to =mastodon=, the following three functions are autoloaded and should
 work without first loading =mastodon.el=:
 - =mastodon-toot=: Compose new toot
 - =mastodon-notifications-get=: View all notifications
@@ -279,6 +279,12 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Completion style for mentions and tags
    - Enable custom emoji
    - Display toot being replied to
+
+*** Alternative timeline layout
+
+The incomparable Nicholas Rougier has written an alternative timeline layout for =mastodon.el=.
+
+The repo is at https://github.com/rougier/mastodon-alt.
 
 *** Live-updating timelines: =mastodon-async-mode=
 
