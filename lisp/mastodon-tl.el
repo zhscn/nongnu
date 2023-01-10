@@ -1368,29 +1368,38 @@ Optionally get it for BUFFER."
 (defun mastodon-tl--link-header (&optional buffer)
   "Get the LINK HEADER stored in `mastodon-tl--buffer-spec'.
 Optionally get it for BUFFER."
-  (mastodon-tl--get-buffer-property 'link-header buffer))
+  (mastodon-tl--get-buffer-property 'link-header buffer :no-error))
 
-(defun mastodon-tl--get-buffer-property (property &optional buffer)
-  "Get PROPERTY from `mastodon-tl--buffer-spec' in BUFFER or `current-buffer'."
+(defun mastodon-tl--update-params (&optional buffer)
+  "Get the UPDATE PARAMS stored in `mastodon-tl--buffer-spec'.
+Optionally get it for BUFFER."
+  (mastodon-tl--get-buffer-property 'update-params buffer :no-error))
+
+(defun mastodon-tl--get-buffer-property (property &optional buffer no-error)
+  "Get PROPERTY from `mastodon-tl--buffer-spec' in BUFFER or `current-buffer'.
+If NO-ERROR is non-nil, do not error when property is empty."
   (with-current-buffer  (or buffer (current-buffer))
-    (or (plist-get mastodon-tl--buffer-spec property)
-        (error "Mastodon-tl--buffer-spec is not defined for buffer %s"
-               (or buffer (current-buffer))))))
+    (if no-error
+        (plist-get mastodon-tl--buffer-spec property)
+      (or (plist-get mastodon-tl--buffer-spec property)
+          (error "Mastodon-tl--buffer-spec is not defined for buffer %s"
+                 (or buffer (current-buffer)))))))
 
 (defun mastodon-tl--set-buffer-spec (buffer endpoint update-function
-                                            &optional link-header)
+                                            &optional link-header update-params)
   "Set `mastodon-tl--buffer-spec' for the current buffer.
-
 BUFFER is buffer name, ENDPOINT is buffer's enpoint,
 UPDATE-FUNCTION is its update function.
-LINK-HEADER is the http Link header if present."
+LINK-HEADER is the http Link header if present.
+UPDATE-PARAMS is any http parameters needed for the update function."
   (setq mastodon-tl--buffer-spec
         `(account ,(cons mastodon-active-user
                          mastodon-instance-url)
                   buffer-name ,buffer
                   endpoint ,endpoint
                   update-function ,update-function
-                  link-header ,link-header)))
+                  link-header ,link-header
+                  update-params ,update-params)))
 
 (defun mastodon-tl--more-json (endpoint id)
   "Return JSON for timeline ENDPOINT before ID."
@@ -1400,10 +1409,11 @@ LINK-HEADER is the http Link header if present."
 
 (defun mastodon-tl--more-json-async (endpoint id &optional params callback &rest cbargs)
   "Return JSON for timeline ENDPOINT before ID.
-Then run CALLBACK with arguments CBARGS
-PARAMS is used to send 'local=true' for local timeline."
+Then run CALLBACK with arguments CBARGS.
+PARAMS is used to send any parameters needed to correctly update
+the current view."
   (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
-         (args (if params (push params args) args))
+         (args (if params (push (car args) params) args))
          (url (mastodon-http--api endpoint)))
     (apply 'mastodon-http--get-json-async url args callback cbargs)))
 
@@ -1411,9 +1421,10 @@ PARAMS is used to send 'local=true' for local timeline."
 ;; Look into the JSON returned here by Local
 (defun mastodon-tl--updated-json (endpoint id &optional params)
   "Return JSON for timeline ENDPOINT since ID.
-PARAMS are any parameters to send with the request."
+PARAMS is used to send any parameters needed to correctly update
+the current view."
   (let* ((args `(("since_id" . ,(mastodon-tl--as-string id))))
-         (args (if params (push params args) args))
+         (args (if params (push (car args) params) args))
          (url (mastodon-http--api endpoint)))
     (mastodon-http--get-json url args)))
 
@@ -2582,9 +2593,7 @@ when showing followers or accounts followed."
     (mastodon-tl--more-json-async
      (mastodon-tl--get-endpoint)
      (mastodon-tl--oldest-id)
-     ;; local has same endpoint as federated:
-     (when (string= (mastodon-tl--buffer-name) "*mastodon-local*")
-       '("local" . "true"))
+     (mastodon-tl--update-params)
      'mastodon-tl--more* (current-buffer) (point))))
 
 (defun mastodon-tl--more* (response buffer point-before &optional headers)
@@ -2785,8 +2794,7 @@ This location is defined by a non-nil value of
         (funcall update-function thread-id)
       ;; update other timelines:
       (let* ((id (mastodon-tl--newest-id))
-             (params (when (string= (mastodon-tl--buffer-name) "*mastodon-local*")
-                       '("local" . "true")))
+             (params (mastodon-tl--update-params))
              (json (mastodon-tl--updated-json endpoint id params)))
         (if json
             (let ((inhibit-read-only t))
@@ -2807,17 +2815,17 @@ This location is defined by a non-nil value of
 UPDATE-FUNCTION is used to recieve more toots.
 HEADERS means to also collect the response headers. Used for paginating
 favourites and bookmarks.
-PARAMS is any parameters to send with the request, currently only
-used to send 'local=true' for local timeline."
+PARAMS is any parameters to send with the request."
   (let ((url (mastodon-http--api endpoint))
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers
         (mastodon-http--get-response-async
-         url params 'mastodon-tl--init* buffer endpoint update-function headers)
+         url params 'mastodon-tl--init* buffer endpoint update-function headers params)
       (mastodon-http--get-json-async
-       url params 'mastodon-tl--init* buffer endpoint update-function))))
+       url params 'mastodon-tl--init* buffer endpoint update-function nil params))))
 
-(defun mastodon-tl--init* (response buffer endpoint update-function &optional headers)
+(defun mastodon-tl--init* (response buffer endpoint update-function
+                                    &optional headers update-params)
   "Initialize BUFFER with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to recieve more toots.
 RESPONSE is the data returned from the server by
@@ -2837,7 +2845,8 @@ JSON and http headers, without it just the JSON."
           (mastodon-tl--set-buffer-spec buffer
                                         endpoint
                                         update-function
-                                        link-header)
+                                        link-header
+                                        update-params)
           (setq
            ;; Initialize with a minimal interval; we re-scan at least once
            ;; every 5 minutes to catch any timestamps we may have missed
@@ -2849,7 +2858,8 @@ JSON and http headers, without it just the JSON."
           (mastodon-tl--set-buffer-spec buffer
                                         endpoint
                                         update-function
-                                        link-header)
+                                        link-header
+                                        update-params)
           (setq mastodon-tl--timestamp-update-timer
                 (when mastodon-tl--enable-relative-timestamps
                   (run-at-time (time-to-seconds
@@ -2872,11 +2882,8 @@ Optional arg NOTE-TYPE means only get that type of note."
                           (mastodon-notifications--filter-types-list note-type)))
          (args (when note-type (mastodon-http--build-array-params-alist
                                 "exclude_types[]" exclude-types)))
-         ;; (query-string (when note-type
-         ;; (mastodon-http--build-params-string args)))
-         ;; add note-type exclusions to endpoint so it works in `mastodon-tl--buffer-spec'
-         ;; that way `mastodon-tl--more' works seamlessly too:
-         ;; (endpoint (if note-type (concat endpoint "?" query-string) endpoint))
+         ;; NB: we now store 'update-params separately in `mastodon-tl--buffer-spec'
+         ;; and -http.el handles all conversion of params alists into query strings.
          (url (mastodon-http--api endpoint))
          (buffer (concat "*mastodon-" buffer-name "*"))
          (json (mastodon-http--get-json url args)))
@@ -2895,7 +2902,7 @@ Optional arg NOTE-TYPE means only get that type of note."
       (funcall update-function json))
     (mastodon-mode)
     (with-current-buffer buffer
-      (mastodon-tl--set-buffer-spec buffer endpoint update-function)
+      (mastodon-tl--set-buffer-spec buffer endpoint update-function nil args)
       (setq mastodon-tl--timestamp-update-timer
             (when mastodon-tl--enable-relative-timestamps
               (run-at-time (time-to-seconds
