@@ -1411,6 +1411,76 @@ UPDATE-PARAMS is any http parameters needed for the update function."
                   link-header ,link-header
                   update-params ,update-params)))
 
+(defun mastodon-tl--get-buffer-type ()
+  "Return a symbol descriptive of current mastodon buffer type.
+Should work in all mastodon buffers."
+  (cond (mastodon-toot-mode
+         'compose-toot)
+        ;; main timelines:
+        ((string= "timelines/home" (mastodon-tl--get-endpoint))
+         'home)
+        ((string= "timelines/public" (mastodon-tl--get-endpoint))
+         'federated)
+        ((string= "*mastodon-local*" (mastodon-tl--buffer-name))
+         'local)
+        ((string-prefix-p "timelines/tag/" (mastodon-tl--get-endpoint))
+         'tag-timeline)
+        ;; notifs:
+        ((string= "notifications" (mastodon-tl--get-endpoint))
+         'notifications)
+        ;; NB: check for mentions/filtering
+        ;; threads:
+        ((string-suffix-p "context" (mastodon-tl--get-endpoint))
+         'thread)
+        ;; profiles:
+        ((string-prefix-p "accounts" (mastodon-tl--get-endpoint))
+         (cond ; posts
+          ((string-suffix-p "statuses" (mastodon-tl--get-endpoint))
+           'profile-statuses)
+          ;; profile followers
+          ((string-suffix-p "followers" (mastodon-tl--get-endpoint))
+           'profile-followers)
+          ;; profile following
+          ((string-suffix-p "following" (mastodon-tl--get-endpoint))
+           'profile-following)))
+        ;; search
+        ((string-suffix-p "search" (mastodon-tl--get-endpoint))
+         'search)
+        ((string-suffix-p "trends" (mastodon-tl--get-endpoint))
+         'trending-tags)
+        ;; User's views:
+        ((string= "filters" (mastodon-tl--get-endpoint))
+         'filters)
+        ((string-prefix-p "lists" (mastodon-tl--get-endpoint))
+         'lists)
+        ((string= "suggestions" (mastodon-tl--get-endpoint))
+         'follow-suggestions)
+        ((string= "favourites" (mastodon-tl--get-endpoint))
+         'favourites)
+        ((string= "bookmarks" (mastodon-tl--get-endpoint))
+         'bookmarks)
+        ((string= "follow_requests" (mastodon-tl--get-endpoint))
+         'follow-requests)
+        ;; profile note
+        ((string-suffix-p "update-profile*" (mastodon-tl--buffer-name))
+         'update-profile-note)
+        ;; instance description
+        ((string= "instance" (mastodon-tl--get-endpoint))
+         'instance-description)))
+
+(defun mastodon-tl--has-toots-p ()
+  "Return non-nil if the current buffer contains toots.
+Return value is that of `member'.
+This is used to avoid running into trouble using functions that
+presume we are in a timline of toots or similar elements, such as
+`mastodon-tl--property'."
+  (let ((toot-buffers
+         '(home federated local tag-timeline notifications
+                thread profile-statuses search trending-tags bookmarks
+                favourites)))
+    ;; profile-followers profile following
+    (member (mastodon-tl--get-buffer-type) toot-buffers)))
+
 (defun mastodon-tl--more-json (endpoint id)
   "Return JSON for timeline ENDPOINT before ID."
   (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
