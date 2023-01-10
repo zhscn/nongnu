@@ -263,9 +263,6 @@ work without first loading =mastodon.el=:
 - =mastodon-profile--account-sensitive-toggle=: Toggle whether your posts are
   marked as sensitive (nsfw) by default.
 
-- =mastodon-toot--default-reply-visibility=: Set the default visibility for replies.
-  This visibility is used only when the original post has less restrictive visibility.
-
 *** Customization
 
 See =M-x customize-group RET mastodon= to view all customize options.
@@ -282,6 +279,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Completion style for mentions and tags
    - Enable custom emoji
    - Display toot being replied to
+   - Set default reply visibility
 
 *** Alternative timeline layout
 
