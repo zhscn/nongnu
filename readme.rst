@@ -34,7 +34,7 @@ Commands
 
 ``idle-highlight-mode``
    Enable idle highlight mode for this buffer.
-``global-idle-highlight-mode``
+``idle-highlight-global-mode``
    Enable idle highlight mode for all buffers.
 
 
@@ -66,15 +66,15 @@ Global Settings
    Apply the current highlighting to all visible buffers.
 ``idle-highlight-idle-time``: ``0.35``
    Delay before highlighting (in seconds).
-``global-idle-highlight-ignore-modes``: ``nil``
-   A list of modes that won't enable idle-highlight from ``global-idle-highlight-mode``.
+``idle-highlight-global-ignore-modes``: ``nil``
+   A list of modes that won't enable idle-highlight from ``idle-highlight-global-mode``.
 
 
 Buffer Local Settings
 ^^^^^^^^^^^^^^^^^^^^^
 
-``global-idle-highlight-ignore-buffer``
-   When not ``nil``, the buffer won't enable idle-highlight from ``global-idle-highlight-mode``.
+``idle-highlight-global-ignore-buffer``
+   When not ``nil``, the buffer won't enable idle-highlight from ``idle-highlight-global-mode``.
 
    This may also be a function that takes a single buffer argument,
    where returning ``nil`` will enable idle-highlight, anything else will not.
@@ -84,9 +84,9 @@ Buffer Local Settings
    .. code-block:: elisp
 
       (setq idle-highlight-ignore-modes (list 'org-mode))
-      (setq global-idle-highlight-ignore-buffer (lambda (buf) (buffer-local-value 'buffer-read-only buf)))
+      (setq idle-highlight-global-ignore-buffer (lambda (buf) (buffer-local-value 'buffer-read-only buf)))
 
-      (global-idle-highlight-mode)
+      (idle-highlight-global-mode)
 
 
 Installation

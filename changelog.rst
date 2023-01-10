@@ -1,5 +1,7 @@
-- In development (2022-01-20)
+- Version 1.1.4 (2023-01-10)
 
+  - Rename ``global-idle-highlight-mode`` to ``idle-highlight-global-mode`` and
+    ``global-idle-highlight-ignore-buffer`` to ``idle-highlight-global-ignore-buffer``.
   - Fix #2 use symbol instead of word bounds when scanning items to highlight.
   - Fix #1 font face detection when overlays were in use (such as ``hl-line-mode``).
   - Fix highlighting with multiple windows sharing one buffer.
