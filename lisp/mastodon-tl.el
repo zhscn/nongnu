@@ -157,6 +157,11 @@ Valid values are:
                  (const :tag "Keep original position of point" keep-point)
                  (const :tag "The last toot before the new ones" last-old-toot)))
 
+(defcustom mastodon-tl--timeline-posts-count "20"
+  "Number of posts to display when loading a timeline.
+Must be an integer between 20 and 40 inclusive."
+  :type '(string))
+
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
 If nil `(point-min)' is used instead.")
@@ -395,14 +400,16 @@ Used on initializing a timeline or thread."
   (interactive)
   (message "Loading federated timeline...")
   (mastodon-tl--init
-   "federated" "timelines/public" 'mastodon-tl--timeline))
+   "federated" "timelines/public" 'mastodon-tl--timeline nil
+   `(("limit" . ,mastodon-tl--timeline-posts-count))))
 
 (defun mastodon-tl--get-home-timeline ()
   "Opens home timeline."
   (interactive)
   (message "Loading home timeline...")
   (mastodon-tl--init
-   "home" "timelines/home" 'mastodon-tl--timeline))
+   "home" "timelines/home" 'mastodon-tl--timeline nil
+   `(("limit" . ,mastodon-tl--timeline-posts-count))))
 
 (defun mastodon-tl--get-local-timeline ()
   "Opens local timeline."
@@ -410,7 +417,8 @@ Used on initializing a timeline or thread."
   (message "Loading local timeline...")
   (mastodon-tl--init
    "local" "timelines/public" 'mastodon-tl--timeline
-   nil '(("local" . "true"))))
+   nil `(("local" . "true")
+         ("limit" . ,mastodon-tl--timeline-posts-count))))
 
 (defun mastodon-tl--get-tag-timeline ()
   "Prompt for tag and opens its timeline."
@@ -424,7 +432,9 @@ Used on initializing a timeline or thread."
 (defun mastodon-tl--show-tag-timeline (tag)
   "Opens a new buffer showing the timeline of posts with hastag TAG."
   (mastodon-tl--init
-   (concat "tag-" tag) (concat "timelines/tag/" tag) 'mastodon-tl--timeline))
+   (concat "tag-" tag) (concat "timelines/tag/" tag)
+   'mastodon-tl--timeline nil
+   `(("limit" . ,mastodon-tl--timeline-posts-count))))
 
 (defun mastodon-tl--message-help-echo ()
   "Call message on 'help-echo property at point.

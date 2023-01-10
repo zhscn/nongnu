@@ -269,6 +269,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
 
 - Timeline options:
    - Use proportional fonts
+   - Default number of posts displayed
    - Timestamp format
    - Relative timestamps
    - Display user avatars

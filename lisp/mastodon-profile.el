@@ -621,7 +621,8 @@ FIELDS means provide a fields vector fetched by other means."
 NO-REBLOGS means do not display boosts in statuses.
 HEADERS means also fetch link headers for pagination."
   (let* ((id (mastodon-profile--account-field account 'id))
-         (args (when no-reblogs '(("exclude_reblogs" . "t"))))
+         (args `(("limit" . ,mastodon-tl--timeline-posts-count)))
+         (args (if no-reblogs (push '("exclude_reblogs" . "t") args) args))
          (endpoint (format "accounts/%s/%s" id endpoint-type))
          (url (mastodon-http--api endpoint))
          (acct (mastodon-profile--account-field account 'acct))
