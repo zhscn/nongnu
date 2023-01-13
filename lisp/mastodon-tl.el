@@ -2821,7 +2821,8 @@ from the start if it is nil."
 (defun mastodon-tl--get-link-header-from-response (headers)
   "Get http Link header from list of http HEADERS."
   (when headers
-    (split-string (alist-get "Link" headers nil nil 'equal) ", ")))
+    ;; pleroma uses "link", so case-insensitive match required:
+    (split-string (alist-get "Link" headers nil nil 'cl-equalp) ", ")))
 
 (defun mastodon-tl--init (buffer-name endpoint update-function &optional headers params)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT asynchronously.
