@@ -359,6 +359,13 @@ PRs, issues, feature requests, and general feedback are very welcome!
 3. Run the tests and ensure that your code doesn't break any of them.
 4. Create a pull request referencing the issue created in step 1.
 
+*** coding style
+
+- This library uses an unconvential double dash (=--=) between file namespaces and function names, which contradicts normal Elisp style. This needs to be respected until the whole library is changed.
+- Use =aggressive-indent-mode= or similar to keep your code indented.
+- Single spaces end sentences in docstrings.
+- There's no need for a blank line after the first docstring line (one is added automatically when documentation is displayed).
+
 ** Supporting mastodon.el
 
 If you'd like to support continued development of =mastodon.el=, I accept
