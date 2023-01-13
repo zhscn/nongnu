@@ -644,10 +644,10 @@ Argument BEG is only used to calculate the progress percentage."
                (disp-beg (car range))
                (disp-end
                 (min
-                 end ; Clamp twice because `line-end-position' could exceed the value.
+                 end ; Clamp twice because `pos-eol' could exceed the value.
                  (save-excursion
                    (goto-char (min (+ disp-beg diff-ansi-chunks-size) end))
-                   (line-end-position)))))
+                   (pos-eol)))))
           (save-excursion
             (cond
              ((eq disp-beg disp-end)
