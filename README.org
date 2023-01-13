@@ -369,7 +369,7 @@ PRs, issues, feature requests, and general feedback are very welcome!
 ** Supporting mastodon.el
 
 If you'd like to support continued development of =mastodon.el=, I accept
-donations via paypal at martianhiatus [ at ] riseup [ dot ] net. If you would
+donations via paypal: https://paypal.me/martianh. If you would
 prefer a different payment method, write to me at that address and I can
 provide IBAN or other details.
 
