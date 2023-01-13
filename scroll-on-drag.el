@@ -212,10 +212,10 @@ Returns true when scrolling took place, otherwise nil."
            (scroll-on-drag-clamp
             (cond
              ((eq (window-end) (point-max))
-              (line-beginning-position))
+              (pos-bol))
              (t
               (save-excursion
-                (goto-char (line-beginning-position))
+                (goto-char (pos-bol))
                 (let ((lines
                        (- (window-body-height)
                           ;; When the point is at the window top,
@@ -246,7 +246,7 @@ Returns true when scrolling took place, otherwise nil."
            (scroll-on-drag-smooth
             (save-excursion
               (goto-char (point-max))
-              (line-beginning-position)))
+              (pos-bol)))
            (t
             0)))
 
@@ -334,7 +334,7 @@ Returns true when scrolling took place, otherwise nil."
                     (let ((scroll-pt
                            (cond
                             ((eq restore-point (point))
-                             (line-beginning-position))
+                             (pos-bol))
                             (t
                              (point)))))
                       (cond
@@ -376,7 +376,7 @@ Returns true when scrolling took place, otherwise nil."
          ;; when the cursor is partially outside the view.
          (scroll-consrtain-point-below-window-start-fn
           (lambda ()
-            (let ((lines-from-top (count-lines (window-start) (line-beginning-position))))
+            (let ((lines-from-top (count-lines (window-start) (pos-bol))))
               (when (> scroll-margin lines-from-top)
                 (forward-line (- scroll-margin lines-from-top))
                 (scroll-on-drag--force-redisplay-with-hooks))))))
