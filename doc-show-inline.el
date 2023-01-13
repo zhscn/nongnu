@@ -244,7 +244,7 @@ Where positive brighten and negative numbers darken."
 
 The point will be located over the symbol (typically at it's beginning),
 the point should not be moved by this function."
-  (let ((prefix (buffer-substring-no-properties (line-beginning-position) (point))))
+  (let ((prefix (buffer-substring-no-properties (pos-bol) (point))))
     (cond
      ;; Ignore defines, they never have external docs.
      ;; Removing will work, it just performs an unnecessary lookup.
@@ -278,13 +278,13 @@ the point should not be moved by this function."
   ;; There may be blank lines between the comment beginning,
   ;; include these since it's useful to display the the space to know if the comment
   ;; was directly above the text or not.
-  (let ((pos-end (max (point-min) (1- (line-beginning-position)))))
+  (let ((pos-end (max (point-min) (1- (pos-bol)))))
     ;; Move one character into the comment.
     (goto-char pos-end)
     (cond
      ((forward-comment -1)
       (let ((pos-beg (point))
-            (pos-beg-of-line (line-beginning-position)))
+            (pos-beg-of-line (pos-bol)))
 
         (cond
          ;; Ensure the comment is not a trailing comment of a previous line.
@@ -464,7 +464,7 @@ the point should not be moved by this function."
                   ;; position to this.
                   (setq sym (car pair))
                   (unless (looking-at-p (regexp-quote sym))
-                    ;; In most cases limiting by `line-end-position' is sufficient.
+                    ;; In most cases limiting by `pos-eol' is sufficient.
                     (save-match-data
                       (when (search-forward sym pos-end t)
                         (setq pos (- (point) (length sym)))))))
@@ -646,7 +646,7 @@ XREF-BACKEND is the back-end used to find this symbol."
          (length (or text "")))))
 
       (when text
-        (doc-show-inline--show-text (line-beginning-position) text))))))
+        (doc-show-inline--show-text (pos-bol) text))))))
 
 (defun doc-show-inline--idle-handle-pending-ranges ()
   "Handle all queued ranges."
