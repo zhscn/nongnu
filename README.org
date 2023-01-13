@@ -358,7 +358,7 @@ PRs, issues, feature requests, and general feedback are very welcome!
    (it probably does).
 4. Enable debug on error (=toggle-debug-on-error=), make the bug happen again,
    and copy the backtrace that appears.
-5. Open an issue here and explain what is going on.
+5. Open an issue here and explain what is going on. Provide your emacs version and what kind of server your account is on.
 
 *** Fixes and features
 
