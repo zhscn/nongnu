@@ -318,10 +318,10 @@ should be the result of `idle-highlight--word-at-point-args'."
                 (push (cons
                        (progn
                          (goto-char (max (point-min) (window-start win)))
-                         (line-beginning-position))
+                         (pos-bol))
                        (progn
                          (goto-char (min (point-max) (window-end win)))
-                         (line-end-position)))
+                         (pos-eol)))
                       idle-highlight--dirty)))))))
 
 
