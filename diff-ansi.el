@@ -751,7 +751,7 @@ Store the result in TARGET-BUF when non-nil."
               (while (not (eobp))
                 (setq point-prev (point))
                 (goto-char (min (+ (point) diff-ansi-chunks-size) (point-max)))
-                (end-of-line)
+                (goto-char (pos-eol))
 
                 (let ((output (concat temp-dir (number-to-string i))))
                   (write-region point-prev (point) output nil 0)
