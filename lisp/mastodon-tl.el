@@ -1485,6 +1485,13 @@ presume we are in a timline of toots or similar elements, such as
     ;; profile-followers profile following
     (member (mastodon-tl--get-buffer-type) toot-buffers)))
 
+(defun mastodon-tl--timeline-proper-p ()
+  "Return non-nil if the current buffer is a 'proper' timeline.
+A proper timeline excludes notifications, threads, and other toot
+buffers that aren't strictly mastodon timelines."
+  (let ((timeline-buffers '(home federated local tag-timeline profile-statuses)))
+    (member (mastodon-tl--get-buffer-type) timeline-buffers)))
+
 (defun mastodon-tl--more-json (endpoint id)
   "Return JSON for timeline ENDPOINT before ID."
   (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
