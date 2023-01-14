@@ -1425,6 +1425,8 @@ Should work in all mastodon buffers."
          'local)
         ((string-prefix-p "timelines/tag/" (mastodon-tl--get-endpoint))
          'tag-timeline)
+        ((string-prefix-p "timelines/list/" (mastodon-tl--get-endpoint))
+         'tag-timeline)
         ;; notifs:
         ((string= "notifications" (mastodon-tl--get-endpoint))
          'notifications)
@@ -1451,7 +1453,7 @@ Should work in all mastodon buffers."
         ;; User's views:
         ((string= "filters" (mastodon-tl--get-endpoint))
          'filters)
-        ((string-prefix-p "lists" (mastodon-tl--get-endpoint))
+        ((string= "lists" (mastodon-tl--get-endpoint))
          'lists)
         ((string= "suggestions" (mastodon-tl--get-endpoint))
          'follow-suggestions)
@@ -1461,9 +1463,11 @@ Should work in all mastodon buffers."
          'bookmarks)
         ((string= "follow_requests" (mastodon-tl--get-endpoint))
          'follow-requests)
+        ((string= "scheduled_statuses" (mastodon-tl--get-endpoint))
+         'scheduled-statuses)
         ;; profile note
         ((string-suffix-p "update-profile*" (mastodon-tl--buffer-name))
-         'update-profile-note)
+         'update-profile-note)        
         ;; instance description
         ((string= "instance" (mastodon-tl--get-endpoint))
          'instance-description)))
