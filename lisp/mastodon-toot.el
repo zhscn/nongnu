@@ -1362,7 +1362,6 @@ The default is given by `mastodon-toot--default-reply-visibility'."
   (unless (null reply-visibility)
     (let ((less-restrictive (member (intern mastodon-toot--default-reply-visibility)
 				    mastodon-toot-visibility-list)))
-      (insert (format "%s" reply-visibility))
       (if (member (intern reply-visibility) less-restrictive)
 	  mastodon-toot--default-reply-visibility reply-visibility))))
 
