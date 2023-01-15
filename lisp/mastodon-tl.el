@@ -1365,15 +1365,15 @@ this just means displaying toot client."
 Optionally get it for BUFFER."
   (mastodon-tl--get-buffer-property 'update-function buffer))
 
-(defun mastodon-tl--get-endpoint (&optional buffer)
+(defun mastodon-tl--get-endpoint (&optional buffer no-error)
   "Get the ENDPOINT stored in `mastodon-tl--buffer-spec'.
 Optionally set it for BUFFER."
-  (mastodon-tl--get-buffer-property 'endpoint buffer))
+  (mastodon-tl--get-buffer-property 'endpoint buffer no-error))
 
-(defun mastodon-tl--buffer-name (&optional buffer)
+(defun mastodon-tl--buffer-name (&optional buffer no-error)
   "Get the BUFFER-NAME stored in `mastodon-tl--buffer-spec'.
 Optionally get it for BUFFER."
-  (mastodon-tl--get-buffer-property 'buffer-name buffer))
+  (mastodon-tl--get-buffer-property 'buffer-name buffer no-error))
 
 (defun mastodon-tl--link-header (&optional buffer)
   "Get the LINK HEADER stored in `mastodon-tl--buffer-spec'.
@@ -1417,59 +1417,61 @@ Should work in all mastodon buffers."
   (cond (mastodon-toot-mode
          'compose-toot)
         ;; main timelines:
-        ((string= "timelines/home" (mastodon-tl--get-endpoint))
+        ((string= "timelines/home" (mastodon-tl--get-endpoint nil :no-error))
          'home)
-        ((string= "timelines/public" (mastodon-tl--get-endpoint))
-         'federated)
-        ((string= "*mastodon-local*" (mastodon-tl--buffer-name))
+        ((string= "*mastodon-local*" (mastodon-tl--buffer-name nil :no-error))
          'local)
-        ((string-prefix-p "timelines/tag/" (mastodon-tl--get-endpoint))
+        ((string= "timelines/public" (mastodon-tl--get-endpoint nil :no-error))
+         'federated)
+        ((string-prefix-p "timelines/tag/" (mastodon-tl--get-endpoint nil :no-error))
          'tag-timeline)
-        ((string-prefix-p "timelines/list/" (mastodon-tl--get-endpoint))
-         'tag-timeline)
+        ((string-prefix-p "timelines/list/" (mastodon-tl--get-endpoint nil :no-error))
+         'list-timeline)
         ;; notifs:
-        ((string= "notifications" (mastodon-tl--get-endpoint))
+        ((string-suffix-p "mentions*" (mastodon-tl--buffer-name nil :no-error))
+         'mentions)
+        ((string= "notifications" (mastodon-tl--get-endpoint nil :no-error))
          'notifications)
-        ;; NB: check for mentions/filtering
         ;; threads:
-        ((string-suffix-p "context" (mastodon-tl--get-endpoint))
+        ((string-suffix-p "context" (mastodon-tl--get-endpoint nil :no-error))
          'thread)
         ;; profiles:
-        ((string-prefix-p "accounts" (mastodon-tl--get-endpoint))
-         (cond ; posts
-          ((string-suffix-p "statuses" (mastodon-tl--get-endpoint))
+        ((string-prefix-p "accounts" (mastodon-tl--get-endpoint nil :no-error))
+         (cond
+          ;; profile note:
+          ((string-suffix-p "update-profile*" (mastodon-tl--buffer-name nil :no-error))
+           'update-profile-note)
+          ;; posts
+          ((string-suffix-p "statuses" (mastodon-tl--get-endpoint nil :no-error))
            'profile-statuses)
           ;; profile followers
-          ((string-suffix-p "followers" (mastodon-tl--get-endpoint))
+          ((string-suffix-p "followers" (mastodon-tl--get-endpoint nil :no-error))
            'profile-followers)
           ;; profile following
-          ((string-suffix-p "following" (mastodon-tl--get-endpoint))
+          ((string-suffix-p "following" (mastodon-tl--get-endpoint nil :no-error))
            'profile-following)))
         ;; search
-        ((string-suffix-p "search" (mastodon-tl--get-endpoint))
+        ((string-suffix-p "search" (mastodon-tl--get-endpoint nil :no-error))
          'search)
-        ((string-suffix-p "trends" (mastodon-tl--get-endpoint))
+        ((string-suffix-p "trends" (mastodon-tl--get-endpoint nil :no-error))
          'trending-tags)
         ;; User's views:
-        ((string= "filters" (mastodon-tl--get-endpoint))
+        ((string= "filters" (mastodon-tl--get-endpoint nil :no-error))
          'filters)
-        ((string= "lists" (mastodon-tl--get-endpoint))
-         'lists)
-        ((string= "suggestions" (mastodon-tl--get-endpoint))
+        ((string= "lists" (mastodon-tl--get-endpoint nil :no-error))
+         'lists-view)
+        ((string= "suggestions" (mastodon-tl--get-endpoint nil :no-error))
          'follow-suggestions)
-        ((string= "favourites" (mastodon-tl--get-endpoint))
+        ((string= "favourites" (mastodon-tl--get-endpoint nil :no-error))
          'favourites)
-        ((string= "bookmarks" (mastodon-tl--get-endpoint))
+        ((string= "bookmarks" (mastodon-tl--get-endpoint nil :no-error))
          'bookmarks)
-        ((string= "follow_requests" (mastodon-tl--get-endpoint))
+        ((string= "follow_requests" (mastodon-tl--get-endpoint nil :no-error))
          'follow-requests)
-        ((string= "scheduled_statuses" (mastodon-tl--get-endpoint))
+        ((string= "scheduled_statuses" (mastodon-tl--get-endpoint nil :no-error))
          'scheduled-statuses)
-        ;; profile note
-        ((string-suffix-p "update-profile*" (mastodon-tl--buffer-name))
-         'update-profile-note)        
         ;; instance description
-        ((string= "instance" (mastodon-tl--get-endpoint))
+        ((string= "instance" (mastodon-tl--get-endpoint nil :no-error))
          'instance-description)))
 
 (defun mastodon-tl--has-toots-p ()
