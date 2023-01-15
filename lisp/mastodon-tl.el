@@ -1414,65 +1414,67 @@ UPDATE-PARAMS is any http parameters needed for the update function."
 (defun mastodon-tl--get-buffer-type ()
   "Return a symbol descriptive of current mastodon buffer type.
 Should work in all mastodon buffers."
-  (cond (mastodon-toot-mode
-         'compose-toot)
-        ;; main timelines:
-        ((string= "timelines/home" (mastodon-tl--get-endpoint nil :no-error))
-         'home)
-        ((string= "*mastodon-local*" (mastodon-tl--buffer-name nil :no-error))
-         'local)
-        ((string= "timelines/public" (mastodon-tl--get-endpoint nil :no-error))
-         'federated)
-        ((string-prefix-p "timelines/tag/" (mastodon-tl--get-endpoint nil :no-error))
-         'tag-timeline)
-        ((string-prefix-p "timelines/list/" (mastodon-tl--get-endpoint nil :no-error))
-         'list-timeline)
-        ;; notifs:
-        ((string-suffix-p "mentions*" (mastodon-tl--buffer-name nil :no-error))
-         'mentions)
-        ((string= "notifications" (mastodon-tl--get-endpoint nil :no-error))
-         'notifications)
-        ;; threads:
-        ((string-suffix-p "context" (mastodon-tl--get-endpoint nil :no-error))
-         'thread)
-        ;; profiles:
-        ((string-prefix-p "accounts" (mastodon-tl--get-endpoint nil :no-error))
-         (cond
-          ;; profile note:
-          ((string-suffix-p "update-profile*" (mastodon-tl--buffer-name nil :no-error))
-           'update-profile-note)
-          ;; posts
-          ((string-suffix-p "statuses" (mastodon-tl--get-endpoint nil :no-error))
-           'profile-statuses)
-          ;; profile followers
-          ((string-suffix-p "followers" (mastodon-tl--get-endpoint nil :no-error))
-           'profile-followers)
-          ;; profile following
-          ((string-suffix-p "following" (mastodon-tl--get-endpoint nil :no-error))
-           'profile-following)))
-        ;; search
-        ((string-suffix-p "search" (mastodon-tl--get-endpoint nil :no-error))
-         'search)
-        ((string-suffix-p "trends" (mastodon-tl--get-endpoint nil :no-error))
-         'trending-tags)
-        ;; User's views:
-        ((string= "filters" (mastodon-tl--get-endpoint nil :no-error))
-         'filters)
-        ((string= "lists" (mastodon-tl--get-endpoint nil :no-error))
-         'lists-view)
-        ((string= "suggestions" (mastodon-tl--get-endpoint nil :no-error))
-         'follow-suggestions)
-        ((string= "favourites" (mastodon-tl--get-endpoint nil :no-error))
-         'favourites)
-        ((string= "bookmarks" (mastodon-tl--get-endpoint nil :no-error))
-         'bookmarks)
-        ((string= "follow_requests" (mastodon-tl--get-endpoint nil :no-error))
-         'follow-requests)
-        ((string= "scheduled_statuses" (mastodon-tl--get-endpoint nil :no-error))
-         'scheduled-statuses)
-        ;; instance description
-        ((string= "instance" (mastodon-tl--get-endpoint nil :no-error))
-         'instance-description)))
+  (let ((endpoint-fun (mastodon-tl--get-endpoint nil :no-error))
+        (buffer-name-fun (mastodon-tl--buffer-name nil :no-error)))
+    (cond (mastodon-toot-mode
+           'compose-toot)
+          ;; main timelines:
+          ((string= "timelines/home" endpoint-fun)
+           'home)
+          ((string= "*mastodon-local*" buffer-name-fun)
+           'local)
+          ((string= "timelines/public" endpoint-fun)
+           'federated)
+          ((string-prefix-p "timelines/tag/" endpoint-fun)
+           'tag-timeline)
+          ((string-prefix-p "timelines/list/" endpoint-fun)
+           'list-timeline)
+          ;; notifs:
+          ((string-suffix-p "mentions*" buffer-name-fun)
+           'mentions)
+          ((string= "notifications" endpoint-fun)
+           'notifications)
+          ;; threads:
+          ((string-suffix-p "context" endpoint-fun)
+           'thread)
+          ;; profiles:
+          ((string-prefix-p "accounts" endpoint-fun)
+           (cond
+            ;; profile note:
+            ((string-suffix-p "update-profile*" buffer-name-fun)
+             'update-profile-note)
+            ;; posts
+            ((string-suffix-p "statuses" endpoint-fun)
+             'profile-statuses)
+            ;; profile followers
+            ((string-suffix-p "followers" endpoint-fun)
+             'profile-followers)
+            ;; profile following
+            ((string-suffix-p "following" endpoint-fun)
+             'profile-following)))
+          ;; search
+          ((string-suffix-p "search" endpoint-fun)
+           'search)
+          ((string-suffix-p "trends" endpoint-fun)
+           'trending-tags)
+          ;; User's views:
+          ((string= "filters" endpoint-fun)
+           'filters)
+          ((string= "lists" endpoint-fun)
+           'lists-view)
+          ((string= "suggestions" endpoint-fun)
+           'follow-suggestions)
+          ((string= "favourites" endpoint-fun)
+           'favourites)
+          ((string= "bookmarks" endpoint-fun)
+           'bookmarks)
+          ((string= "follow_requests" endpoint-fun)
+           'follow-requests)
+          ((string= "scheduled_statuses" endpoint-fun)
+           'scheduled-statuses)
+          ;; instance description
+          ((string= "instance" endpoint-fun)
+           'instance-description))))
 
 (defun mastodon-tl--has-toots-p ()
   "Return non-nil if the current buffer contains toots.
