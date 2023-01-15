@@ -1365,15 +1365,15 @@ this just means displaying toot client."
 Optionally get it for BUFFER."
   (mastodon-tl--get-buffer-property 'update-function buffer))
 
-(defun mastodon-tl--get-endpoint (&optional buffer)
+(defun mastodon-tl--get-endpoint (&optional buffer no-error)
   "Get the ENDPOINT stored in `mastodon-tl--buffer-spec'.
 Optionally set it for BUFFER."
-  (mastodon-tl--get-buffer-property 'endpoint buffer))
+  (mastodon-tl--get-buffer-property 'endpoint buffer no-error))
 
-(defun mastodon-tl--buffer-name (&optional buffer)
+(defun mastodon-tl--buffer-name (&optional buffer no-error)
   "Get the BUFFER-NAME stored in `mastodon-tl--buffer-spec'.
 Optionally get it for BUFFER."
-  (mastodon-tl--get-buffer-property 'buffer-name buffer))
+  (mastodon-tl--get-buffer-property 'buffer-name buffer no-error))
 
 (defun mastodon-tl--link-header (&optional buffer)
   "Get the LINK HEADER stored in `mastodon-tl--buffer-spec'.
@@ -1410,6 +1410,89 @@ UPDATE-PARAMS is any http parameters needed for the update function."
                   update-function ,update-function
                   link-header ,link-header
                   update-params ,update-params)))
+
+(defun mastodon-tl--get-buffer-type ()
+  "Return a symbol descriptive of current mastodon buffer type.
+Should work in all mastodon buffers."
+  (cond (mastodon-toot-mode
+         'compose-toot)
+        ;; main timelines:
+        ((string= "timelines/home" (mastodon-tl--get-endpoint nil :no-error))
+         'home)
+        ((string= "*mastodon-local*" (mastodon-tl--buffer-name nil :no-error))
+         'local)
+        ((string= "timelines/public" (mastodon-tl--get-endpoint nil :no-error))
+         'federated)
+        ((string-prefix-p "timelines/tag/" (mastodon-tl--get-endpoint nil :no-error))
+         'tag-timeline)
+        ((string-prefix-p "timelines/list/" (mastodon-tl--get-endpoint nil :no-error))
+         'list-timeline)
+        ;; notifs:
+        ((string-suffix-p "mentions*" (mastodon-tl--buffer-name nil :no-error))
+         'mentions)
+        ((string= "notifications" (mastodon-tl--get-endpoint nil :no-error))
+         'notifications)
+        ;; threads:
+        ((string-suffix-p "context" (mastodon-tl--get-endpoint nil :no-error))
+         'thread)
+        ;; profiles:
+        ((string-prefix-p "accounts" (mastodon-tl--get-endpoint nil :no-error))
+         (cond
+          ;; profile note:
+          ((string-suffix-p "update-profile*" (mastodon-tl--buffer-name nil :no-error))
+           'update-profile-note)
+          ;; posts
+          ((string-suffix-p "statuses" (mastodon-tl--get-endpoint nil :no-error))
+           'profile-statuses)
+          ;; profile followers
+          ((string-suffix-p "followers" (mastodon-tl--get-endpoint nil :no-error))
+           'profile-followers)
+          ;; profile following
+          ((string-suffix-p "following" (mastodon-tl--get-endpoint nil :no-error))
+           'profile-following)))
+        ;; search
+        ((string-suffix-p "search" (mastodon-tl--get-endpoint nil :no-error))
+         'search)
+        ((string-suffix-p "trends" (mastodon-tl--get-endpoint nil :no-error))
+         'trending-tags)
+        ;; User's views:
+        ((string= "filters" (mastodon-tl--get-endpoint nil :no-error))
+         'filters)
+        ((string= "lists" (mastodon-tl--get-endpoint nil :no-error))
+         'lists-view)
+        ((string= "suggestions" (mastodon-tl--get-endpoint nil :no-error))
+         'follow-suggestions)
+        ((string= "favourites" (mastodon-tl--get-endpoint nil :no-error))
+         'favourites)
+        ((string= "bookmarks" (mastodon-tl--get-endpoint nil :no-error))
+         'bookmarks)
+        ((string= "follow_requests" (mastodon-tl--get-endpoint nil :no-error))
+         'follow-requests)
+        ((string= "scheduled_statuses" (mastodon-tl--get-endpoint nil :no-error))
+         'scheduled-statuses)
+        ;; instance description
+        ((string= "instance" (mastodon-tl--get-endpoint nil :no-error))
+         'instance-description)))
+
+(defun mastodon-tl--has-toots-p ()
+  "Return non-nil if the current buffer contains toots.
+Return value is that of `member'.
+This is used to avoid running into trouble using functions that
+presume we are in a timline of toots or similar elements, such as
+`mastodon-tl--property'."
+  (let ((toot-buffers
+         '(home federated local tag-timeline notifications
+                thread profile-statuses search trending-tags bookmarks
+                favourites)))
+    ;; profile-followers profile following
+    (member (mastodon-tl--get-buffer-type) toot-buffers)))
+
+(defun mastodon-tl--timeline-proper-p ()
+  "Return non-nil if the current buffer is a 'proper' timeline.
+A proper timeline excludes notifications, threads, and other toot
+buffers that aren't strictly mastodon timelines."
+  (let ((timeline-buffers '(home federated local tag-timeline profile-statuses)))
+    (member (mastodon-tl--get-buffer-type) timeline-buffers)))
 
 (defun mastodon-tl--more-json (endpoint id)
   "Return JSON for timeline ENDPOINT before ID."
@@ -2159,9 +2242,6 @@ INSTANCE is an instance domain name."
        (let ((buf (get-buffer-create "*mastodon-instance*")))
          (with-current-buffer buf
            (switch-to-buffer-other-window buf)
-           (mastodon-tl--set-buffer-spec (buffer-name buf)
-                                         "instance"
-                                         nil)
            (let ((inhibit-read-only t))
              (erase-buffer)
              (special-mode)
@@ -2179,6 +2259,9 @@ INSTANCE is an instance domain name."
                            (assoc 'stats response))))
              (mastodon-tl--print-json-keys response)
              (mastodon-mode)
+             (mastodon-tl--set-buffer-spec (buffer-name buf)
+                                           "instance"
+                                           nil)
              (goto-char (point-min)))))))))
 
 (defun mastodon-tl--format-key (el pad)
