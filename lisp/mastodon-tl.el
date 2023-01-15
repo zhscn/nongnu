@@ -2210,61 +2210,73 @@ USER means to show the instance details for the logged in user.
 BRIEF means to show fewer details.
 INSTANCE is an instance domain name."
   (interactive)
-  (mastodon-tl--do-if-toot
-   (let* ((profile-p (get-text-property (point) 'profile-json))
-          (toot (if profile-p
-                    (mastodon-tl--property 'profile-json) ; profile may have 0 toots
-                  (mastodon-tl--property 'toot-json)))
-          (reblog (alist-get 'reblog toot))
-          (account (or (alist-get 'account reblog)
-                       (alist-get 'account toot)))
-          (url (if profile-p
-                   (alist-get 'url toot) ; profile
-                 (alist-get 'url account)))
-          (username (if profile-p
-                        (alist-get 'username toot) ;; profile
-                      (alist-get 'username account)))
-          (instance (if instance
-                        (concat "https://" instance)
-                      ;; pleroma URL is https://instance.com/users/username
-                      (if (string-suffix-p "users/" (url-basepath url))
-                          (string-remove-suffix "/users/"
-                                                (url-basepath url))
-                        ;; mastodon:
-                        (string-remove-suffix (concat "/@" username)
-                                              url))))
-          (response (mastodon-http--get-json
-                     (if user
-                         (mastodon-http--api "instance")
-                       (concat instance "/api/v1/instance"))
-                     nil ; params
-                     nil ; silent
-                     :vector)))
-     (when response
-       (let ((buf (get-buffer-create "*mastodon-instance*")))
-         (with-current-buffer buf
-           (switch-to-buffer-other-window buf)
-           (let ((inhibit-read-only t))
-             (erase-buffer)
-             (special-mode)
-             (when brief
-               (setq response
-                     (list (assoc 'uri response)
-                           (assoc 'title response)
-                           (assoc 'short_description response)
-                           (assoc 'email response)
-                           (cons 'contact_account
-                                 (list
-                                  (assoc 'username
-                                         (assoc 'contact_account response))))
-                           (assoc 'rules response)
-                           (assoc 'stats response))))
-             (mastodon-tl--print-json-keys response)
-             (mastodon-mode)
-             (mastodon-tl--set-buffer-spec (buffer-name buf)
-                                           "instance"
-                                           nil)
-             (goto-char (point-min)))))))))
+  (if user
+      (let ((response (mastodon-http--get-json
+                       (mastodon-http--api "instance")
+                       nil ; params
+                       nil ; silent
+                       :vector)))
+        (mastodon-tl--instance-response-fun response brief))
+    (mastodon-tl--do-if-toot
+     (let* ((profile-p (get-text-property (point) 'profile-json))
+            (toot (if profile-p
+                      (mastodon-tl--property 'profile-json) ; profile may have 0 toots
+                    (mastodon-tl--property 'toot-json)))
+            (reblog (alist-get 'reblog toot))
+            (account (or (alist-get 'account reblog)
+                         (alist-get 'account toot)))
+            (url (if profile-p
+                     (alist-get 'url toot) ; profile
+                   (alist-get 'url account)))
+            (username (if profile-p
+                          (alist-get 'username toot) ;; profile
+                        (alist-get 'username account)))
+            (instance (if instance
+                          (concat "https://" instance)
+                        ;; pleroma URL is https://instance.com/users/username
+                        (if (string-suffix-p "users/" (url-basepath url))
+                            (string-remove-suffix "/users/"
+                                                  (url-basepath url))
+                          ;; mastodon:
+                          (string-remove-suffix (concat "/@" username)
+                                                url))))
+            (response (mastodon-http--get-json
+                       (if user
+                           (mastodon-http--api "instance")
+                         (concat instance "/api/v1/instance"))
+                       nil ; params
+                       nil ; silent
+                       :vector)))
+       (mastodon-tl--instance-response-fun response brief)))))
+
+(defun mastodon-tl--instance-response-fun (response brief)
+  "Display instance description RESPONSE in a new buffer.
+BRIEF means to show fewer details."
+  (when response
+    (let ((buf (get-buffer-create "*mastodon-instance*")))
+      (with-current-buffer buf
+        (switch-to-buffer-other-window buf)
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (special-mode)
+          (when brief
+            (setq response
+                  (list (assoc 'uri response)
+                        (assoc 'title response)
+                        (assoc 'short_description response)
+                        (assoc 'email response)
+                        (cons 'contact_account
+                              (list
+                               (assoc 'username
+                                      (assoc 'contact_account response))))
+                        (assoc 'rules response)
+                        (assoc 'stats response))))
+          (mastodon-tl--print-json-keys response)
+          (mastodon-mode)
+          (mastodon-tl--set-buffer-spec (buffer-name buf)
+                                        "instance"
+                                        nil)
+          (goto-char (point-min)))))))
 
 (defun mastodon-tl--format-key (el pad)
   "Format a key of element EL, a cons, with PAD padding."
