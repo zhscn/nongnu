@@ -406,7 +406,8 @@ Used on initializing a timeline or thread."
   (message "Loading federated timeline...")
   (mastodon-tl--init
    "federated" "timelines/public" 'mastodon-tl--timeline nil
-   `(("limit" . ,mastodon-tl--timeline-posts-count))))
+   `(("limit" . ,mastodon-tl--timeline-posts-count))
+   (when current-prefix-arg t)))
 
 (defun mastodon-tl--get-home-timeline ()
   "Opens home timeline."
@@ -414,7 +415,8 @@ Used on initializing a timeline or thread."
   (message "Loading home timeline...")
   (mastodon-tl--init
    "home" "timelines/home" 'mastodon-tl--timeline nil
-   `(("limit" . ,mastodon-tl--timeline-posts-count))))
+   `(("limit" . ,mastodon-tl--timeline-posts-count))
+   (when current-prefix-arg t)))
 
 (defun mastodon-tl--get-local-timeline ()
   "Opens local timeline."
@@ -423,7 +425,8 @@ Used on initializing a timeline or thread."
   (mastodon-tl--init
    "local" "timelines/public" 'mastodon-tl--timeline
    nil `(("local" . "true")
-         ("limit" . ,mastodon-tl--timeline-posts-count))))
+         ("limit" . ,mastodon-tl--timeline-posts-count))
+   (when current-prefix-arg t)))
 
 (defun mastodon-tl--get-tag-timeline ()
   "Prompt for tag and opens its timeline."
@@ -1367,11 +1370,14 @@ this just means displaying toot client."
 
 (defun mastodon-tl--timeline (toots)
   "Display each toot in TOOTS.
-
-  This function removes replies if user required."
-  (mapc 'mastodon-tl--toot (if (mastodon-tl--hide-replies-p current-prefix-arg)
-			       (cl-remove-if-not #'mastodon-tl--is-reply toots)
-			     toots))
+This function removes replies if user required."
+  (mapc 'mastodon-tl--toot
+        (if (or ; we were called via --more*:
+             (mastodon-tl--get-buffer-property 'hide-replies nil :no-error)
+             ;; loading a tl with a prefix arg:
+             (mastodon-tl--hide-replies-p current-prefix-arg))
+	    (cl-remove-if-not #'mastodon-tl--is-reply toots)
+	  toots))
   (goto-char (point-min)))
 
 (defun mastodon-tl--get-update-function (&optional buffer)
@@ -1410,7 +1416,8 @@ If NO-ERROR is non-nil, do not error when property is empty."
                  (or buffer (current-buffer)))))))
 
 (defun mastodon-tl--set-buffer-spec (buffer endpoint update-function
-                                            &optional link-header update-params)
+                                            &optional link-header update-params
+                                            hide-replies)
   "Set `mastodon-tl--buffer-spec' for the current buffer.
 BUFFER is buffer name, ENDPOINT is buffer's enpoint,
 UPDATE-FUNCTION is its update function.
@@ -1423,7 +1430,8 @@ UPDATE-PARAMS is any http parameters needed for the update function."
                   endpoint ,endpoint
                   update-function ,update-function
                   link-header ,link-header
-                  update-params ,update-params)))
+                  update-params ,update-params
+                  hide-replies ,hide-replies)))
 
 (defun mastodon-tl--get-buffer-type ()
   "Return a symbol descriptive of current mastodon buffer type.
@@ -2946,7 +2954,8 @@ This location is defined by a non-nil value of
     ;; pleroma uses "link", so case-insensitive match required:
     (split-string (alist-get "Link" headers nil nil 'cl-equalp) ", ")))
 
-(defun mastodon-tl--init (buffer-name endpoint update-function &optional headers params)
+(defun mastodon-tl--init (buffer-name endpoint update-function
+                                      &optional headers params hide-replies)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT asynchronously.
 UPDATE-FUNCTION is used to recieve more toots.
 HEADERS means to also collect the response headers. Used for paginating
@@ -2955,13 +2964,15 @@ PARAMS is any parameters to send with the request."
   (let ((url (mastodon-http--api endpoint))
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers
-        (mastodon-http--get-response-async
-         url params 'mastodon-tl--init* buffer endpoint update-function headers params)
-      (mastodon-http--get-json-async
-       url params 'mastodon-tl--init* buffer endpoint update-function nil params))))
+        (mastodon-http--get-response-async url params
+                                           'mastodon-tl--init* buffer endpoint update-function
+                                           headers params hide-replies)
+      (mastodon-http--get-json-async url params
+                                     'mastodon-tl--init* buffer endpoint update-function nil
+                                     params hide-replies))))
 
 (defun mastodon-tl--init* (response buffer endpoint update-function
-                                    &optional headers update-params)
+                                    &optional headers update-params hide-replies)
   "Initialize BUFFER with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to recieve more toots.
 RESPONSE is the data returned from the server by
@@ -2982,7 +2993,8 @@ JSON and http headers, without it just the JSON."
                                         endpoint
                                         update-function
                                         link-header
-                                        update-params)
+                                        update-params
+                                        hide-replies)
           (setq
            ;; Initialize with a minimal interval; we re-scan at least once
            ;; every 5 minutes to catch any timestamps we may have missed
@@ -2995,7 +3007,8 @@ JSON and http headers, without it just the JSON."
                                         endpoint
                                         update-function
                                         link-header
-                                        update-params)
+                                        update-params
+                                        hide-replies)
           (setq mastodon-tl--timestamp-update-timer
                 (when mastodon-tl--enable-relative-timestamps
                   (run-at-time (time-to-seconds
