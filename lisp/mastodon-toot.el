@@ -710,12 +710,11 @@ If media items have been attached and uploaded with
 If `mastodon-toot--edit-toot-id' is non-nil, PUT contents to
 instance to edit a toot."
   (interactive)
-  (let* ((edit-p (if mastodon-toot--edit-toot-id t nil))
-         (toot (mastodon-toot--remove-docs))
+  (let* ((toot (mastodon-toot--remove-docs))
          (scheduled mastodon-toot--scheduled-for)
          (scheduled-id mastodon-toot--scheduled-id)
          (endpoint
-          (if edit-p
+          (if mastodon-toot--edit-toot-id
               ;; we are sending an edit:
               (mastodon-http--api (format "statuses/%s"
                                           mastodon-toot--edit-toot-id))
@@ -731,8 +730,8 @@ instance to edit a toot."
                                                     (symbol-name t)))
                                   ("spoiler_text" . ,spoiler)
                                   ("language" . ,mastodon-toot--language))
-                                ; Pleroma instances can't handle null-valued
-                                ; scheduled_at args, so only add if non-nil
+                                        ; Pleroma instances can't handle null-valued
+                                        ; scheduled_at args, so only add if non-nil
                                 (when scheduled `(("scheduled_at" . ,scheduled)))))
          (args-media (when mastodon-toot--media-attachments
                        (mastodon-http--build-array-params-alist
@@ -760,7 +759,7 @@ instance to edit a toot."
           ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
           (t
-           (let ((response (if edit-p
+           (let ((response (if mastodon-toot--edit-toot-id
                                ;; we are sending an edit:
                                (mastodon-http--put endpoint args)
                              (mastodon-http--post endpoint args))))
