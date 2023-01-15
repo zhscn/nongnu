@@ -1493,7 +1493,7 @@ presume we are in a timline of toots or similar elements, such as
   "Return non-nil if the current buffer is a 'proper' timeline.
 A proper timeline excludes notifications, threads, and other toot
 buffers that aren't strictly mastodon timelines."
-  (let ((timeline-buffers '(home federated local tag-timeline profile-statuses)))
+  (let ((timeline-buffers '(home federated local tag-timeline list-timeline profile-statuses)))
     (member (mastodon-tl--get-buffer-type) timeline-buffers)))
 
 (defun mastodon-tl--more-json (endpoint id)
