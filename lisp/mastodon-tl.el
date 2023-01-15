@@ -2240,9 +2240,6 @@ INSTANCE is an instance domain name."
        (let ((buf (get-buffer-create "*mastodon-instance*")))
          (with-current-buffer buf
            (switch-to-buffer-other-window buf)
-           (mastodon-tl--set-buffer-spec (buffer-name buf)
-                                         "instance"
-                                         nil)
            (let ((inhibit-read-only t))
              (erase-buffer)
              (special-mode)
@@ -2260,6 +2257,9 @@ INSTANCE is an instance domain name."
                            (assoc 'stats response))))
              (mastodon-tl--print-json-keys response)
              (mastodon-mode)
+             (mastodon-tl--set-buffer-spec (buffer-name buf)
+                                           "instance"
+                                           nil)
              (goto-char (point-min)))))))))
 
 (defun mastodon-tl--format-key (el pad)
