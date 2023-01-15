@@ -94,7 +94,7 @@ QUERY is the string to search."
       (mastodon-mode)
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (mastodon-tl--set-buffer-spec buffer
+        (mastodon-tl--set-buffer-spec (buffer-name buffer)
                                       "api/v1/trends"
                                       nil)
         ;; hashtag results:
