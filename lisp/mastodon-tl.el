@@ -1437,6 +1437,8 @@ Should work in all mastodon buffers."
           ;; threads:
           ((string-suffix-p "context" endpoint-fun)
            'thread)
+          ((string-prefix-p "statuses" endpoint-fun)
+           'single-status)
           ;; profiles:
           ((string-prefix-p "accounts" endpoint-fun)
            (cond
