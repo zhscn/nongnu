@@ -206,6 +206,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
       (define-key map (kbd "a") #'mastodon-toot--translate-toot-text))
     (define-key map (kbd "s") #'mastodon-tl--view-scheduled-toots)
     (define-key map (kbd "M-C-q") #'mastodon-kill-all-buffers)
+    (define-key map (kbd ";") #'mastodon-tl--view-instance-description)
     map)
   "Keymap for `mastodon-mode'.")
 

@@ -91,7 +91,8 @@
                        ("G" "View follow suggestions" mastodon-tl--get-follow-suggestions)
                        ("I" "View filters" mastodon-tl--view-filters)
                        ("X" "View lists" mastodon-tl--view-lists)
-                       ("s" "View scheduled toots" mastodon-tl--view-scheduled-toots))
+                       ("s" "View scheduled toots" mastodon-tl--view-scheduled-toots)
+                       (";" "View instance description" mastodon-tl--view-instance-description))
                       ("Users"
                        ("W" "Follow" mastodon-tl--follow-user)
                        ("C-S-W" "Unfollow" mastodon-tl--unfollow-user)
