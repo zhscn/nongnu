@@ -599,8 +599,7 @@ Optional keywords in KEYWORDS.
     ('delta
      (append
       (list
-       "delta"
-       (format "--width=%d" (window-body-width (get-buffer-window (current-buffer)))))
+       "delta" (format "--width=%d" (window-body-width (get-buffer-window (current-buffer)))))
       diff-ansi-extra-args-for-delta))
     ('diff-so-fancy (append (list "diff-so-fancy") diff-ansi-extra-args-for-diff-so-fancy))
     ('ydiff
@@ -720,8 +719,7 @@ Store the result in TARGET-BUF when non-nil."
         (diff-ansi--with-advice #'timer-activate :override (lambda (&rest _) nil)
                                 (setq diff-ansi--ansi-color-timer (run-at-time 0.0 0.001 nil))
                                 (timer-set-function
-                                 diff-ansi--ansi-color-timer
-                                 #'diff-ansi-progressive-highlight-impl
+                                 diff-ansi--ansi-color-timer #'diff-ansi-progressive-highlight-impl
                                  (list
                                   (current-buffer)
                                   beg
