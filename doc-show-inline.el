@@ -215,12 +215,11 @@ Where positive brighten and negative numbers darken."
       (let ((ov (pop overlays)))
         (let ((face-prop (overlay-get ov 'face)))
           (when face-prop
-            (add-face-text-property
-             (max (- (overlay-start ov) pos-beg) 0)
-             (min (- (overlay-end ov) pos-beg) text-length)
-             face-prop
-             t
-             text)))))
+            (add-face-text-property (max (- (overlay-start ov) pos-beg) 0)
+                                    (min (- (overlay-end ov) pos-beg) text-length)
+                                    face-prop
+                                    t
+                                    text)))))
     text))
 
 
