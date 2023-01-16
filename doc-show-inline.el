@@ -383,14 +383,12 @@ the point should not be moved by this function."
     (let* ((default-color (face-attribute 'default :background))
            (default-tint
             (doc-show-inline--color-highlight
-             default-color
-             doc-show-inline-face-background-highlight)))
+             default-color doc-show-inline-face-background-highlight)))
       ;; Ensure there is some change, otherwise tint in the opposite direction.
       (when (equal default-color default-tint)
         (setq default-tint
               (doc-show-inline--color-highlight
-               default-color
-               (- doc-show-inline-face-background-highlight))))
+               default-color (- doc-show-inline-face-background-highlight))))
       (set-face-attribute 'doc-show-inline-face nil :background default-tint))))
 
 (defun doc-show-inline--overlays-remove (&optional pos-beg pos-end)
@@ -751,8 +749,7 @@ XREF-BACKEND is the back-end used to find this symbol."
        (list
         :background
         (nth
-         doc-show-inline--idle-overlays-debug-index
-         doc-show-inline--idle-overlays-debug-colors)
+         doc-show-inline--idle-overlays-debug-index doc-show-inline--idle-overlays-debug-colors)
         :extend t)))))
 
 (defun doc-show-inline--timer-callback-or-disable (this-timer buf)
@@ -799,9 +796,7 @@ XREF-BACKEND is the back-end used to find this symbol."
             ;; ensuring it is only disabled on successful completion.
             ;; Pass a nil function here, set the function & arguments below.
             (run-with-idle-timer
-             doc-show-inline-idle-delay
-             t
-             #'doc-show-inline--timer-callback-or-disable))
+             doc-show-inline-idle-delay t #'doc-show-inline--timer-callback-or-disable))
 
       (timer-set-function doc-show-inline--idle-timer #'doc-show-inline--timer-callback-or-disable
                           (list
