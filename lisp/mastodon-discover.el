@@ -70,7 +70,7 @@
                        ("E" "View edits of (your) toot" mastodon-toot--view-toot-edits)
                        ("i" "Pin/Unpin (your) toot" mastodon-toot--pin-toot-toggle)
                        ("P" "View user profile" mastodon-profile--show-user)
-                       ("s" "Translate toot at point" mastodon-toot--translate-toot-text)
+                       ("a" "Translate toot at point" mastodon-toot--translate-toot-text)
                        ("T" "View thread" mastodon-tl--thread)
                        ("v" "Vote on poll" mastodon-tl--poll-vote))
                       ("Views"
@@ -90,7 +90,8 @@
                        ("R" "View follow requests" mastodon-profile--view-follow-requests)
                        ("G" "View follow suggestions" mastodon-tl--get-follow-suggestions)
                        ("I" "View filters" mastodon-tl--view-filters)
-                       ("X" "View lists" mastodon-tl--view-lists))
+                       ("X" "View lists" mastodon-tl--view-lists)
+                       ("s" "View scheduled toots" mastodon-tl--view-scheduled-toots))
                       ("Users"
                        ("W" "Follow" mastodon-tl--follow-user)
                        ("C-S-W" "Unfollow" mastodon-tl--unfollow-user)
