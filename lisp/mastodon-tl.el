@@ -1474,7 +1474,9 @@ Should work in all mastodon buffers."
            'scheduled-statuses)
           ;; instance description
           ((string= "instance" endpoint-fun)
-           'instance-description))))
+           'instance-description)
+          ((string= "*mastodon-toot-edits*" buffer-name-fun)
+           'toot-edits))))
 
 (defun mastodon-tl--has-toots-p ()
   "Return non-nil if the current buffer contains toots.
