@@ -325,10 +325,7 @@ Returns true when scrolling took place, otherwise nil."
                  ;; Smooth-Scrolling.
                  (scroll-on-drag-smooth
                   (scroll-on-drag--scroll-by-pixels
-                   this-window
-                   this-frame-char-height
-                   delta-scaled
-                   t)
+                   this-window this-frame-char-height delta-scaled t)
                   (when (>= (point) point-of-last-line)
                     (set-window-vscroll this-window 0 t))
                   (setq do-draw t))
