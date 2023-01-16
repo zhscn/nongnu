@@ -204,6 +204,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "E") #'mastodon-toot--view-toot-edits)
     (when (require 'lingva nil :no-error)
       (define-key map (kbd "s") #'mastodon-toot--translate-toot-text))
+    (define-key map (kbd "M-C-q") #'mastodon-kill-all-buffers)
     map)
   "Keymap for `mastodon-mode'.")
 
@@ -344,6 +345,20 @@ not, just browse the URL in the normal fashion."
           (string-match "^/p/[[:alpha:]]+/[[:digit:]]+$" query)
           (string-match "^/[[:alpha:]]+$" query)
           (string-match "^/u/[[:alpha:]]+$" query)))))
+
+(defun mastodon-live-buffers ()
+  "Return a list of open mastodon buffers.
+Calls `mastodon-tl--get-buffer-type', which see."
+  (cl-loop for x in (buffer-list)
+           when (with-current-buffer x (mastodon-tl--get-buffer-type))
+           collect (get-buffer x)))
+
+(defun mastodon-kill-all-buffers ()
+  "Kill any and all open mastodon buffers, hopefully."
+  (interactive)
+  (let ((mastodon-buffers (mastodon-live-buffers)))
+    (cl-loop for x in mastodon-buffers
+             do (kill-buffer x))))
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook (lambda ()
