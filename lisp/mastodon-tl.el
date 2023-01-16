@@ -1883,7 +1883,7 @@ a: add account to this list, r: remove account from this list"
   "Return the list of followers of the logged in account."
   (let* ((id (mastodon-auth--get-account-id))
          (url (mastodon-http--api (format "accounts/%s/following" id))))
-    (mastodon-http--get-json url)))
+    (mastodon-http--get-json url '(("limit" . "80"))))) ; max 80 accounts
 
 (defun mastodon-tl--add-account-to-list-at-point ()
   "Prompt for account and add to list at point."
