@@ -793,9 +793,9 @@ instance to edit a toot."
              (toot-language (alist-get 'language toot))
              (reply-id (alist-get 'in_reply_to_id toot)))
         (when (y-or-n-p "Edit this toot? ")
-          (mastodon-toot--compose-buffer)
+          (mastodon-toot--compose-buffer nil reply-id nil content :edit)
           (goto-char (point-max))
-          (insert content)
+          ;; (insert content)
           ;; adopt reply-to-id, visibility, CW, and language:
           (mastodon-toot--set-toot-properties reply-id toot-visibility
                                               source-cw toot-language)
@@ -1543,15 +1543,17 @@ Added to `after-change-functions'."
 ;; NB: now that we have toot drafts, to ensure offline composing remains
 ;; possible, avoid any direct requests here:
 (defun mastodon-toot--compose-buffer (&optional reply-to-user
-                                                reply-to-id reply-json initial-text)
+                                                reply-to-id reply-json initial-text
+                                                edit)
   "Create a new buffer to capture text for a new toot.
 If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set the `mastodon-toot--reply-to-id' var.
 REPLY-JSON is the full JSON of the toot being replied to.
 INITIAL-TEXT is used by `mastodon-toot-insert-draft-toot' to add
 a draft into the buffer."
-  (let* ((buffer-exists (get-buffer "*new toot*"))
-         (buffer (or buffer-exists (get-buffer-create "*new toot*")))
+  (let* ((buffer-name (if edit "*edit toot*" "*new toot*"))
+         (buffer-exists (get-buffer buffer-name))
+         (buffer (or buffer-exists (get-buffer-create buffer-name)))
          (inhibit-read-only t)
          (reply-text (alist-get 'content reply-json))
          (previous-window-config (list (current-window-configuration)

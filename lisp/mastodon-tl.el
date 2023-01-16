@@ -1417,7 +1417,10 @@ Should work in all mastodon buffers."
   (let ((endpoint-fun (mastodon-tl--get-endpoint nil :no-error))
         (buffer-name-fun (mastodon-tl--buffer-name nil :no-error)))
     (cond (mastodon-toot-mode
-           'compose-toot)
+           ;; composing/editing:
+           (if (string= "*edit toot*" (buffer-name))
+               'edit-toot
+             'new-toot))
           ;; main timelines:
           ((string= "timelines/home" endpoint-fun)
            'home)
