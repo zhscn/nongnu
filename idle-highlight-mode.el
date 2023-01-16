@@ -104,9 +104,7 @@ See documentation for `skip-syntax-forward', nil to ignore."
   :type '(repeat symbol))
 
 (define-obsolete-variable-alias
-  'global-idle-highlight-ignore-buffer
-  'idle-highlight-global-ignore-buffer
-  "1.1.4")
+  'global-idle-highlight-ignore-buffer 'idle-highlight-global-ignore-buffer "1.1.4")
 
 (defvar-local idle-highlight-global-ignore-buffer nil
   "When non-nil, the global mode will not be enabled for this buffer.
