@@ -740,11 +740,8 @@ HEADERS means also fetch link headers for pagination."
 
 (defun mastodon-profile--format-joined-date-string (joined)
   "Format a human-readable Joined string from timestamp JOINED."
-  (let ((joined-ts (ts-parse joined)))
-    (format "Joined %s" (concat (ts-month-name joined-ts)
-                                " "
-                                (number-to-string
-                                 (ts-year joined-ts))))))
+  (format-time-string "Joined: %d %B %Y"
+                      (parse-iso8601-time-string joined)))
 
 (defun mastodon-profile--get-toot-author ()
   "Open profile of author of toot under point.
