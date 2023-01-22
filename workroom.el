@@ -1,6 +1,6 @@
 ;;; workroom.el --- Named rooms for work without irrelevant distracting buffers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Akib Azmain Turja.
+;; Copyright (C) 2022, 2023 Akib Azmain Turja.
 
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Version: 2.2.5
