@@ -238,6 +238,9 @@ If you invoke the command @command{workroom-switch-to-buffer} or
 the command @command{workroom-list-buffers}, you'll see that only the
 @samp{*scratch*} buffer is available.
 
+To use some other buffer as the first member of your new workrooms,
+change @code{workroom-default-buffer-name} to that buffer's name.
+
 @node Buffer Management
 @cindex buffer management
 @cindex managing buffers
@@ -348,6 +351,10 @@ which the target view belongs to) first.
 After you switch, you'll get a scratch buffer on your view.  If you
 don't switch to another room (by giving prefix argument), you'll see
 that the buffers are the same.
+
+To use some other buffer as the first buffer of the newly created
+views, change @code{workroom-default-buffer-name} to that buffer's
+name.
 
 @node Killing View
 @cindex killing view

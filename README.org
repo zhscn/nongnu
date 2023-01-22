@@ -85,3 +85,6 @@ If you want to completely automate managing workroom buffer list,
 check out the docstrings of ~workroom-buffer-manager-function~,
 ~workroom-set-buffer-manager-function~ and
 ~workroom-buffer-manager-data~.
+
+There's a Info manual available with more information, which can be
+accessed with =C-h i m Workroom=, also available [[https://elpa.nongnu.org/nongnu-devel/doc/workroom.html][here on the internet]].
