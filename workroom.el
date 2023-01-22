@@ -139,6 +139,10 @@ name can be manually changed with `workroom-rename'."
   "Name of the default view."
   :type 'string)
 
+(defcustom workroom-default-buffer-name "*scratch*"
+  "Name of the buffer used as the default fallback buffer."
+  :type 'string)
+
 (defcustom workroom-buffer-handler-alist
   '((bookmark :encoder workroom-encode-buffer-bookmark
               :decoder workroom-decode-buffer-bookmark))
@@ -678,14 +682,17 @@ If WRITABLE, return a writable object."
                    (when (stringp buffer)
                      (setq writable t))
                    ;; If the buffer shown in the window is dead,
-                   ;; replace it with the `*scratch*' buffer, with the
+                   ;; replace it with the fallback buffer, with the
                    ;; point at the very beginning.
                    (unless (buffer-live-p (get-buffer buffer))
-                     (let ((scratch (get-buffer-create "*scratch*")))
-                       (with-current-buffer scratch
+                     (let ((fallback (get-buffer-create
+                                      workroom-default-buffer-name)))
+                       (with-current-buffer fallback
                          ;; Change buffer.
                          (setf (car (alist-get 'buffer (cdr entry)))
-                               (if writable "*scratch*" scratch))
+                               (if writable
+                                   (buffer-name fallback)
+                                 fallback))
                          ;; Set point.
                          (setf (alist-get
                                 'point
@@ -703,7 +710,7 @@ If WRITABLE, return a writable object."
                                    (point-min)
                                  (copy-marker (point-min))))))))
                  ;; Remove references to dead buffers with
-                 ;; `*scratch*'.
+                 ;; the fallback buffer.
                  (let ((prev (alist-get 'prev-buffers (cdr entry))))
                    (setf
                     (alist-get 'prev-buffers (cdr entry))
@@ -711,14 +718,15 @@ If WRITABLE, return a writable object."
                      (lambda (entry)
                        (if (buffer-live-p (get-buffer (car entry)))
                            entry
-                         (let ((scratch (get-buffer-create
-                                         "*scratch*")))
-                           (with-current-buffer scratch
+                         (let ((fallback
+                                (get-buffer-create
+                                 workroom-default-buffer-name)))
+                           (with-current-buffer fallback
                              (if writable
-                                 (list "*scratch*" (point-min)
-                                       (point-min))
+                                 (list (buffer-name fallback)
+                                       (point-min) (point-min))
                                (list
-                                scratch
+                                fallback
                                 (copy-marker (point-min))
                                 (copy-marker
                                  (point-min)
@@ -730,9 +738,12 @@ If WRITABLE, return a writable object."
                           (lambda (buffer)
                             (if (buffer-live-p (get-buffer buffer))
                                 buffer
-                              (let ((buffer (get-buffer-create
-                                             "*scratch*")))
-                                (if writable "*scratch*" buffer))))
+                              (let ((buffer
+                                     (get-buffer-create
+                                      workroom-default-buffer-name)))
+                                (if writable
+                                    (buffer-name buffer)
+                                  buffer))))
                           next))))
                entry)
               ;; Recurse.
@@ -745,7 +756,7 @@ If WRITABLE, return a writable object."
     (unless workroom--dont-clear-new-view
       (delete-other-windows)
       (set-window-dedicated-p (selected-window) nil)
-      (switch-to-buffer "*scratch*"))))
+      (switch-to-buffer workroom-default-buffer-name))))
 
 (defun workroom--barf-unless-enabled ()
   "Signal `user-error' unless Workroom mode is enabled."
@@ -1249,9 +1260,11 @@ ACTION and ARGS are also described there."
   (pcase (cons action args)
     ('(:initialize)
      (setf (workroom-buffer-manager-data room)
-           (list (if (fboundp 'get-scratch-buffer-create)
-                     (get-scratch-buffer-create)
-                   (get-buffer-create "*scratch*")))))
+           (list
+            (if (and (equal workroom-default-buffer-name "*scratch*")
+                     (fboundp 'get-scratch-buffer-create))
+                (get-scratch-buffer-create)
+              (get-buffer-create workroom-default-buffer-name)))))
     ('(:list-buffers)
      (workroom-buffer-manager-data room))
     (`(:add-buffer ,buffer)
