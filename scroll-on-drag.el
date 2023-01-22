@@ -72,6 +72,13 @@
   "Scroll the window under the mouse cursor (instead of the current active window)."
   :type 'boolean)
 
+(defcustom scroll-on-drag-mode-line-format nil
+  "The `mode-line-format' to use or nil to leave the `mode-line-format' unchanged.
+
+This can be useful to use a simplified or event disabling the mode-line
+while scrolling, as a complex mode-line can interfere with smooth scrolling."
+  :type '(choice (const nil) string))
+
 (defcustom scroll-on-drag-pre-hook nil
   "List of functions to be called when `scroll-on-drag' starts."
   :type 'hook)
@@ -476,14 +483,25 @@ This requires a separate code path to run pre/post logic."
      (t
       (scroll-on-drag--impl)))))
 
+(defun scroll-on-drag--impl-with-mode-line-format ()
+  "Call `mode-line-format' with mode-line override."
+
+  (cond
+   (scroll-on-drag-mode-line-format
+    (prog1 (let ((mode-line-format scroll-on-drag-mode-line-format))
+             (scroll-on-drag--impl-with-evil-mode-workaround))
+      (force-mode-line-update)))
+   (t
+    (scroll-on-drag--impl-with-evil-mode-workaround))))
+
 (defun scroll-on-drag--impl-with-window (scroll-win)
   "Scroll on drag function that takes an optional SCROLL-WIN."
   (cond
    (scroll-win
     (with-selected-window scroll-win
-      (scroll-on-drag--impl-with-evil-mode-workaround)))
+      (scroll-on-drag--impl-with-mode-line-format)))
    (t
-    (scroll-on-drag--impl-with-evil-mode-workaround))))
+    (scroll-on-drag--impl-with-mode-line-format))))
 
 (defun scroll-on-drag (&optional event)
   "Main scroll on drag function.

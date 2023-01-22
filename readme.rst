@@ -93,3 +93,7 @@ While the defaults seem to work well, these values can be customized.
 ``scroll-on-drag-follow-mouse``
    When non-nil, scroll the window under the mouse cursor (even when it's not active)
    returning focus on completion.
+``scroll-on-drag-mode-line-format``: nil
+   When non-nil, use this value for the ``mode-line-format`` while scrolling.
+   This can be used to temporarily override the mode-line while scrolling.
+   It can also help to avoid overly complex mode-lines from slowing down scrolling.
