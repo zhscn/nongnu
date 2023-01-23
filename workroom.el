@@ -1265,7 +1265,7 @@ ACTION and ARGS are also described there."
                 (get-scratch-buffer-create)
               (get-buffer-create workroom-default-buffer-name)))))
     ('(:list-buffers)
-     (workroom-buffer-manager-data room))
+     (copy-sequence (workroom-buffer-manager-data room)))
     (`(:add-buffer ,buffer)
      (push buffer (workroom-buffer-manager-data room)))
     (`(:remove-buffer ,buffer)
