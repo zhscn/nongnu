@@ -1261,8 +1261,7 @@ ACTION and ARGS are also described there."
     ('(:initialize)
      (setf (workroom-buffer-manager-data room)
            (list
-            (if (and (equal workroom-default-buffer-name "*scratch*")
-                     (fboundp 'get-scratch-buffer-create))
+            (if (equal workroom-default-buffer-name "*scratch*")
                 (get-scratch-buffer-create)
               (get-buffer-create workroom-default-buffer-name)))))
     ('(:list-buffers)
