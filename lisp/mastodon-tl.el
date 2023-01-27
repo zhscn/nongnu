@@ -2758,7 +2758,12 @@ HEADERS is the http headers returned in the response, if any."
              (headers (if headers (cdr response) nil))
              (link-header (mastodon-tl--get-link-header-from-response headers)))
         (goto-char (point-max))
-        (funcall (mastodon-tl--get-update-function) json)
+        (if (eq (mastodon-tl--get-buffer-type) 'thread)
+            ;; if thread view, call --thread with parent ID
+            (progn (goto-char (point-min))
+                   (mastodon-tl--goto-next-toot)
+                   (funcall (mastodon-tl--get-update-function)))
+          (funcall (mastodon-tl--get-update-function) json))
         (goto-char point-before)
         ;; update buffer spec to new link-header:
         ;; (other values should just remain as they were)
