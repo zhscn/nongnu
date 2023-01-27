@@ -204,8 +204,18 @@ Callback to `mastodon-http--get-response-async', usually
             (buffer-substring-no-properties (point) (point-max))
             'utf-8)))
       (kill-buffer)
-      (unless (or (string-empty-p json-string) (null json-string))
-        `(,(json-read-from-string json-string) . ,headers)))))
+      ;; (unless (or (string-empty-p json-string) (null json-string))
+      (cond ((or (string-empty-p json-string) (null json-string))
+             nil)
+            ;; if we don't have json, maybe we have a plain string error
+            ;; message (misskey works like this for instance, but there are
+            ;; probably less dunce ways to do this):
+            ;; FIXME: friendica at least sends plain html if endpoint not found.
+            ((not (or (string-prefix-p "\n{" json-string)
+                      (string-prefix-p "\n[" json-string)))
+             (error "%s" json-string))
+            (t
+             `(,(json-read-from-string json-string) . ,headers))))))
 
 (defun mastodon-http--process-headers ()
   "Return an alist of http response headers."
