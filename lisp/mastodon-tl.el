@@ -1392,12 +1392,14 @@ Optionally get it for BUFFER."
 
 (defun mastodon-tl--get-endpoint (&optional buffer no-error)
   "Get the ENDPOINT stored in `mastodon-tl--buffer-spec'.
-Optionally set it for BUFFER."
+Optionally set it for BUFFER.
+NO-ERROR means to fail silently."
   (mastodon-tl--get-buffer-property 'endpoint buffer no-error))
 
 (defun mastodon-tl--buffer-name (&optional buffer no-error)
   "Get the BUFFER-NAME stored in `mastodon-tl--buffer-spec'.
-Optionally get it for BUFFER."
+Optionally get it for BUFFER.
+NO-ERROR means to fail silently."
   (mastodon-tl--get-buffer-property 'buffer-name buffer no-error))
 
 (defun mastodon-tl--link-header (&optional buffer)
@@ -1427,7 +1429,8 @@ If NO-ERROR is non-nil, do not error when property is empty."
 BUFFER is buffer name, ENDPOINT is buffer's enpoint,
 UPDATE-FUNCTION is its update function.
 LINK-HEADER is the http Link header if present.
-UPDATE-PARAMS is any http parameters needed for the update function."
+UPDATE-PARAMS is any http parameters needed for the update function.
+HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
   (setq mastodon-tl--buffer-spec
         `(account ,(cons mastodon-active-user
                          mastodon-instance-url)
@@ -1639,7 +1642,7 @@ are displayed by default. Call this if you subsequently want to
 view all branches of a thread."
   (interactive)
   (if (not (eq (mastodon-tl--get-buffer-type) 'thread))
-      (error "You need to be viewing a thread to call this.")
+      (error "You need to be viewing a thread to call this")
     (goto-char (point-min))
     (let ((id (mastodon-tl--property 'base-toot-id)))
       (mastodon-tl--thread id))))
@@ -3001,7 +3004,8 @@ This location is defined by a non-nil value of
 UPDATE-FUNCTION is used to recieve more toots.
 HEADERS means to also collect the response headers. Used for paginating
 favourites and bookmarks.
-PARAMS is any parameters to send with the request."
+PARAMS is any parameters to send with the request.
+HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
   (let ((url (mastodon-http--api endpoint))
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers

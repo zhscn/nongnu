@@ -359,7 +359,7 @@ TYPE is a symbol, either 'favourite or 'boost."
           (error "You can't %s favourites" action-string))
          ((and (equal "private" visibility)
                (equal type 'boost))
-          (error "You can't boost private toots."))
+          (error "You can't boost private toots"))
          (t
           (mastodon-toot--action
            action
@@ -1586,7 +1586,8 @@ If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set the `mastodon-toot--reply-to-id' var.
 REPLY-JSON is the full JSON of the toot being replied to.
 INITIAL-TEXT is used by `mastodon-toot-insert-draft-toot' to add
-a draft into the buffer."
+a draft into the buffer.
+EDIT means we are editing an existing toot, not composing a new one."
   (let* ((buffer-name (if edit "*edit toot*" "*new toot*"))
          (buffer-exists (get-buffer buffer-name))
          (buffer (or buffer-exists (get-buffer-create buffer-name)))

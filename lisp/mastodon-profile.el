@@ -363,7 +363,7 @@ Ask for confirmation if length > 500 characters."
       (mastodon-profile--user-profile-send-updated-do url note))))
 
 (defun mastodon-profile--user-profile-send-updated-do (url note)
-  "Send PATCH request with the updated profile note."
+  "Send PATCH request with the updated profile NOTE to URL."
   (let ((response (mastodon-http--patch url `(("note" . ,note)))))
     (mastodon-http--triage response
                            (lambda () (message "Profile note updated!")))))
