@@ -131,6 +131,8 @@ not contain =:client_id= and =:client_secret=.
 | =O=              | View own profile                                                          |
 | =U=              | update your profile bio note                                              |
 | =;=              | view instance description for toot at point                               |
+| =,=              | view favouriters of toot at point                                         |
+| =.=              | view boosters of toot at point                                            |
 |----------------+---------------------------------------------------------------------------|
 |                | *Other views*                                                               |
 | =S=              | search (posts, users, tags) (NB: only posts you have interacted with)     |
