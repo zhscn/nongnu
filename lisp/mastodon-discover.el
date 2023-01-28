@@ -72,7 +72,9 @@
                        ("P" "View user profile" mastodon-profile--show-user)
                        ("a" "Translate toot at point" mastodon-toot--translate-toot-text)
                        ("T" "View thread" mastodon-tl--thread)
-                       ("v" "Vote on poll" mastodon-tl--poll-vote))
+                       ("v" "Vote on poll" mastodon-tl--poll-vote)
+                       ("," "View toot's favouriters" mastodon-toot--list-toot-favouriters)
+                       ("." "View toot's boosters" mastodon-toot--list-toot-boosters))
                       ("Views"
                        ("h/?" "View mode help/keybindings" describe-mode)
                        ("#" "Tag search" mastodon-tl--get-tag-timeline)
