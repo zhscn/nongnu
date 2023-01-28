@@ -111,7 +111,7 @@ not contain =:client_id= and =:client_secret=.
 | Key            | Action                                                                    |
 |----------------+---------------------------------------------------------------------------|
 |                | *Help*                                                                      |
-| =?=              | Open context menu if =discover= is available                                |
+| =?=              | Show discover menu of all bindings, if =discover= is available              |
 |----------------+---------------------------------------------------------------------------|
 |                | *Timeline actions*                                                          |
 | =n=              | Go to next item (toot, notification)                                      |
@@ -124,12 +124,13 @@ not contain =:client_id= and =:client_secret=.
 | =N=              | Open notifications timeline                                               |
 | =@=              | Open mentions-only notifications timeline                                 |
 | =u=              | Update current timeline                                                   |
-| =T=              | Open thread for toot under =point=                                          |
+| =T=              | Open thread for toot at point                                             |
 | =#=              | Prompt for tag and open its timeline                                      |
-| =A=              | Open author profile of toot under =point=                                   |
-| =P=              | Open profile of user attached to toot under =point=                         |
+| =A=              | Open author profile of toot at point                                      |
+| =P=              | Open profile of user attached to toot at point                            |
 | =O=              | View own profile                                                          |
 | =U=              | update your profile bio note                                              |
+| =;=              | view instance description for toot at point                               |
 |----------------+---------------------------------------------------------------------------|
 |                | *Other views*                                                               |
 | =S=              | search (posts, users, tags) (NB: only posts you have interacted with)     |
@@ -241,6 +242,9 @@ work without first loading =mastodon.el=:
   instance.
 
 
+- =mastodon-tl--add-toot-account-at-point-to-list=: Add the account of the toot at point to a list.
+
+
 - =mastodon-tl--follow-tag=: Follow a tag (works like following a user)
 - =mastodon-tl--unfollow-tag=: Unfollow a tag
 - =mastodon-tl--list-followed-tags=: View a list of tags you're following.
@@ -274,6 +278,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Display user avatars
    - Avatar image height
    - Enable image caching
+   - Hide replies in timelines
 
 - Compose options:
    - Completion style for mentions and tags
