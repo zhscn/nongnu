@@ -342,7 +342,9 @@ TYPE is a symbol, either 'favourite or 'boost."
          (msg (if boosted "unboosted" "boosted"))
          (action-string (if boost-p "boost" "favourite"))
          (remove (if boost-p (when boosted t) (when faved t)))
-         (toot-type (alist-get 'type (mastodon-tl--property 'toot-json))))
+         (toot-type (alist-get 'type (mastodon-tl--property 'toot-json)))
+         (visibility (mastodon-tl--field 'visibility
+                                         (mastodon-tl--property 'toot-json))))
     (if byline-region
         (cond ;; actually there's nothing wrong with faving/boosting own toots!
          ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
@@ -354,7 +356,10 @@ TYPE is a symbol, either 'favourite or 'boost."
           (error "You can't %s boosts" action-string))
          ((and (equal "favourite" toot-type)
                (not (string= (mastodon-tl--get-endpoint) "notifications")))
-          (error "Your can't %s favourites" action-string))
+          (error "You can't %s favourites" action-string))
+         ((and (equal "private" visibility)
+               (equal type 'boost))
+          (error "You can't boost private toots."))
          (t
           (mastodon-toot--action
            action
