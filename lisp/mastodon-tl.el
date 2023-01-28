@@ -1372,12 +1372,15 @@ this just means displaying toot client."
   "Display each toot in TOOTS.
 This function removes replies if user required."
   (mapc 'mastodon-tl--toot
-        (if (or ; we were called via --more*:
-             (mastodon-tl--get-buffer-property 'hide-replies nil :no-error)
-             ;; loading a tl with a prefix arg:
-             (mastodon-tl--hide-replies-p current-prefix-arg))
-	    (cl-remove-if-not #'mastodon-tl--is-reply toots)
-	  toots))
+        ;; hack to *not* filter replies on profiles:
+        (if (eq (mastodon-tl--get-buffer-type) 'profile-statuses)
+            toots
+          (if (or ; we were called via --more*:
+               (mastodon-tl--get-buffer-property 'hide-replies nil :no-error)
+               ;; loading a tl with a prefix arg:
+               (mastodon-tl--hide-replies-p current-prefix-arg))
+	      (cl-remove-if-not #'mastodon-tl--is-reply toots)
+	    toots)))
   (goto-char (point-min)))
 
 (defun mastodon-tl--get-update-function (&optional buffer)
