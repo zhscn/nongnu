@@ -163,7 +163,9 @@ Must be an integer between 20 and 40 inclusive."
   :type '(string))
 
 (defcustom mastodon-tl--hide-replies nil
-  "Whether to hide replies from the timelines."
+  "Whether to hide replies from the timelines.
+Note that you can hide replies on a one-off basis by loading a
+timeline with a simple prefix argument, `C-u'."
   :group 'mastodon-tl
   :type '(boolean :tag "Whether to hide replies from the timelines."))
 
