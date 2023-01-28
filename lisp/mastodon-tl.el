@@ -1630,6 +1630,18 @@ ID is that of the toot to view."
         (let ((inhibit-read-only t))
           (mastodon-tl--toot toot :detailed-p))))))
 
+(defun mastodon-tl--view-whole-thread ()
+  "From a thread view, view entire thread.
+If you load a thread from a toot, only the branches containing
+are displayed by default. Call this if you subsequently want to
+view all branches of a thread."
+  (interactive)
+  (if (not (eq (mastodon-tl--get-buffer-type) 'thread))
+      (error "You need to be viewing a thread to call this.")
+    (goto-char (point-min))
+    (let ((id (mastodon-tl--property 'base-toot-id)))
+      (mastodon-tl--thread id))))
+
 (defun mastodon-tl--thread (&optional id)
   "Open thread buffer for toot at point or with ID."
   ;; NB: this is called by `mastodon-url-lookup', which means it must work
