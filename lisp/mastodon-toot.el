@@ -441,18 +441,21 @@ With FAVOURITE, list favouriters, else list boosters."
          (url (mastodon-http--api
                (format "statuses/%s/%s" base-toot endpoint)))
          (params '(("limit" . "80")))
-         (json (mastodon-http--get-json url params))
-         (handles (mapcar (lambda (x) (alist-get 'acct x)) json))
-         (type-string (if favourite "Favouriters" "Boosters")))
-    (if (not handles)
-        (error "Looks like this toot has no %s" type-string)
-      (let ((choice
-             (completing-read
-              (format "%s (enter to view profile): " type-string)
-              handles
-              nil
-              t)))
-        (mastodon-profile--show-user choice)))))
+         (json (mastodon-http--get-json url params)))
+    (if (eq (caar json) 'error)
+        (error "%s (Status does not exist or is private)"
+               (alist-get 'error json))
+      (let ((handles (mapcar (lambda (x) (alist-get 'acct x)) json))
+            (type-string (if favourite "Favouriters" "Boosters")))
+        (if (not handles)
+            (error "Looks like this toot has no %s" type-string)
+          (let ((choice
+                 (completing-read
+                  (format "%s (enter to view profile): " type-string)
+                  handles
+                  nil
+                  t)))
+            (mastodon-profile--show-user choice)))))))
 
 (defun mastodon-toot--copy-toot-url ()
   "Copy URL of toot at point.
