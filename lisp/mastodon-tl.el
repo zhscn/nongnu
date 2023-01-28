@@ -1938,9 +1938,12 @@ a: add account to this list, r: remove account from this list"
 If ID is provided, use that list.
 If ACCOUNT-ID and HANDLE are provided use them rather than prompting."
   (interactive)
-  (let* ((list-name (if id
+  (let* ((list-prompt (if handle
+                          (format "Add %s to list: " handle)
+                        "Add account to list: "))
+         (list-name (if id
                         (get-text-property (point) 'list-name)
-                      (completing-read "Add account to list: "
+                      (completing-read list-prompt
                                        (mastodon-tl--get-lists-names) nil t)))
          (list-id (or id (mastodon-tl--get-list-id list-name)))
          (followings (mastodon-tl--get-users-followings))
@@ -1957,6 +1960,15 @@ If ACCOUNT-ID and HANDLE are provided use them rather than prompting."
     (mastodon-tl--list-action-triage
      response
      (message "%s added to list %s!" account list-name))))
+
+(defun mastodon-tl--add-toot-account-at-point-to-list ()
+  "Prompt for a list, and add the account of the toot at point to it."
+  (interactive)
+  (let* ((toot (mastodon-tl--property 'toot-json))
+         (account (mastodon-tl--field 'account toot))
+         (account-id (mastodon-tl--field 'id account))
+         (handle (mastodon-tl--field 'acct account)))
+    (mastodon-tl--add-account-to-list nil account-id handle)))
 
 (defun mastodon-tl--remove-account-from-list-at-point ()
   "Prompt for account and remove from list at point."
