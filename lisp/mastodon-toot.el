@@ -423,6 +423,37 @@ TYPE is a symbol, either 'favourite or 'boost."
              (message (format "%s #%s" message id)))))
       (message (format "Nothing to %s here?!?" action)))))
 
+(defun mastodon-toot--list-toot-boosters ()
+  "List the boosters of toot at point."
+  (interactive)
+  (mastodon-toot--list-toot-boosters-or-favers))
+
+(defun mastodon-toot--list-toot-favouriters ()
+  "List the favouriters of toot at point."
+  (interactive)
+  (mastodon-toot--list-toot-boosters-or-favers :favourite))
+
+(defun mastodon-toot--list-toot-boosters-or-favers (&optional favourite)
+  "List the favouriters or boosters of toot at point.
+With FAVOURITE, list favouriters, else list boosters."
+  (let* ((base-toot (mastodon-tl--property 'base-toot-id))
+         (endpoint (if favourite "favourited_by" "reblogged_by"))
+         (url (mastodon-http--api
+               (format "statuses/%s/%s" base-toot endpoint)))
+         (params '(("limit" . "80")))
+         (json (mastodon-http--get-json url params))
+         (handles (mapcar (lambda (x) (alist-get 'acct x)) json))
+         (type-string (if favourite "Favouriters" "Boosters")))
+    (if (not handles)
+        (error "Looks like this toot has no %s" type-string)
+      (let ((choice
+             (completing-read
+              (format "%s (enter to view profile): " type-string)
+              handles
+              nil
+              t)))
+        (mastodon-profile--show-user choice)))))
+
 (defun mastodon-toot--copy-toot-url ()
   "Copy URL of toot at point.
 If the toot is a fave/boost notification, copy the URLof the
