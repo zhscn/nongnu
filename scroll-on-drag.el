@@ -46,7 +46,9 @@
 
 (defcustom scroll-on-drag-style 'line-by-pixel
   "The the method scrolling is calculated."
-  :type '(choice (const :tag "Line" line) (const :tag "Line-By-Pixel" line-by-pixel)))
+  :type
+  '(choice (const :tag "Line" line)
+           (const :tag "Line-By-Pixel" line-by-pixel)))
 
 (defcustom scroll-on-drag-delay 0.01
   "Idle time between scroll updates (in seconds)."
@@ -529,5 +531,6 @@ Optional argument BODY Hello."
 ;; Local Variables:
 ;; fill-column: 99
 ;; indent-tabs-mode: nil
+;; elisp-autofmt-format-quoted: nil
 ;; End:
 ;;; scroll-on-drag.el ends here
