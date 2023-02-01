@@ -53,12 +53,11 @@
 (defcustom diff-ansi-tool 'delta
   "Command to use for generating the diff."
   :type
-  '(choice
-    (symbol :tag "Use `delta' command." delta)
-    (symbol :tag "Use `diff-so-fancy' command." diff-so-fancy)
-    (symbol :tag "Use `ydiff' command." ydiff)
+  '(choice (symbol :tag "Use `delta' command." delta)
+           (symbol :tag "Use `diff-so-fancy' command." diff-so-fancy)
+           (symbol :tag "Use `ydiff' command." ydiff)
 
-    (symbol :tag "Use `diff-ansi-tool-custom' command." custom)))
+           (symbol :tag "Use `diff-ansi-tool-custom' command." custom)))
 
 ;; Note that this has it's values extracted and isn't used directly.
 (defface diff-ansi-default-face (list (list t :foreground "black" :background "black"))
@@ -90,10 +89,9 @@ This must take the diff content as the `standard-input'."
 (defcustom diff-ansi-method 'multiprocess
   "Convert ANSI escape sequences."
   :type
-  '(choice
-    (symbol :tag "Convert immediately." immediate)
-    (symbol :tag "Convert progressively (using a timer)." progressive)
-    (symbol :tag "Convert using multiple sub-processes." multiprocess)))
+  '(choice (symbol :tag "Convert immediately." immediate)
+           (symbol :tag "Convert progressively (using a timer)." progressive)
+           (symbol :tag "Convert using multiple sub-processes." multiprocess)))
 
 (defcustom diff-ansi-chunks-size 16384
   "Number of characters to process at once.
@@ -961,5 +959,6 @@ Return the buffer used to write data into on success."
 ;; Local Variables:
 ;; fill-column: 99
 ;; indent-tabs-mode: nil
+;; elisp-autofmt-format-quoted: nil
 ;; End:
 ;;; diff-ansi.el ends here
