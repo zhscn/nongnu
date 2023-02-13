@@ -430,12 +430,13 @@ Used on initializing a timeline or thread."
          ("limit" . ,mastodon-tl--timeline-posts-count))
    (when current-prefix-arg t)))
 
-(defun mastodon-tl--get-tag-timeline ()
-  "Prompt for tag and opens its timeline."
+(defun mastodon-tl--get-tag-timeline (&optional tag)
+  "Prompt for tag and opens its timeline.
+Optionally load TAG timeline directly."
   (interactive)
   (let* ((word (or (word-at-point) ""))
-         (input (read-string (format "Load timeline for tag (%s): " word)))
-         (tag (if (string-empty-p input) word input)))
+         (input (or tag (read-string (format "Load timeline for tag (%s): " word))))
+         (tag (or tag (if (string-empty-p input) word input))))
     (message "Loading timeline for #%s..." tag)
     (mastodon-tl--show-tag-timeline tag)))
 
@@ -2696,7 +2697,7 @@ If TAG provided, follow it."
 
 (defun mastodon-tl--unfollow-tag (&optional tag)
   "Prompt for a followed tag, and unfollow it.
-If TAG if provided, unfollow it."
+If TAG is provided, unfollow it."
   (interactive)
   (let* ((followed-tags-json (unless tag (mastodon-tl--followed-tags)))
          (tags (unless tag (mapcar (lambda (x)
@@ -2711,15 +2712,14 @@ If TAG if provided, unfollow it."
                              (message "tag #%s unfollowed!" tag)))))
 
 (defun mastodon-tl--list-followed-tags ()
-  "List tags followed. If user choses one, display its JSON."
+  "List followed tags. View timeline of tag user choses."
   (interactive)
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
          (tags (mapcar (lambda (x)
                          (alist-get 'name x))
                        followed-tags-json))
          (tag (completing-read "Tag: " tags)))
-    (message (prin1-to-string
-              (mastodon-tl--get-tag-json tag)))))
+    (mastodon-tl--get-tag-timeline tag)))
 
 ;; TODO: add this to new posts in some cases, e.g. in thread view.
 (defun mastodon-tl--reload-timeline-or-profile ()
