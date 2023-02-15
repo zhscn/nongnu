@@ -308,6 +308,10 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
     (when at-byline-p
       ;; leave point after the marker:
       (unless remove
+        ;; if point is inside the byline, back up first so
+        ;; we don't move to the following toot:
+        (beginning-of-line)
+        (previous-line)
         (mastodon-tl--goto-next-toot)))))
 
 (defun mastodon-toot--action (action callback)
