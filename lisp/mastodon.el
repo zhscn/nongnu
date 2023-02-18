@@ -96,6 +96,7 @@
 (autoload 'mastodon-toot--view-toot-history "mastodon-tl")
 (autoload 'mastodon-tl--init-sync "mastodon-tl")
 (autoload 'mastodon-notifications--timeline "mastodon-notifications")
+(autoload 'mastodon-search--trending-tags "mastodon-search")
 
 (defvar mastodon-notifications--map)
 
