@@ -2781,7 +2781,7 @@ when showing followers or accounts followed."
       ;; link-header: can't build a URL with --more-json-async, endpoint/id:
       ;; ensure we have a "next" type here, otherwise the CAR will be the
       ;; "prev" type!
-      (let (link-header (mastodon-tl--link-header))
+      (let ((link-header (mastodon-tl--link-header)))
         (if (> 2 (length link-header))
             (error "No next page")
           (let* ((next (car link-header))
