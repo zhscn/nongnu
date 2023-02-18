@@ -2994,8 +2994,8 @@ This location is defined by a non-nil value of
 
 (defun mastodon-tl--get-link-header-from-response (headers)
   "Get http Link header from list of http HEADERS."
-  (when headers
-    ;; pleroma uses "link", so case-insensitive match required:
+  ;; pleroma uses "link", so case-insensitive match required:
+  (when (alist-get "Link" headers nil nil 'cl-equalp)
     (split-string (alist-get "Link" headers nil nil 'cl-equalp) ", ")))
 
 (defun mastodon-tl--init (buffer-name endpoint update-function
