@@ -221,7 +221,9 @@ Handle any errors from the server."
    'acct
    (mastodon-http--get-json
     (mastodon-http--api
-     "accounts/verify_credentials"))))
+     "accounts/verify_credentials")
+    nil
+    :silent)))
 
 (defun mastodon-auth--get-account-id ()
   "Request user credentials and return an account name."
