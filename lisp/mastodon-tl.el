@@ -1474,8 +1474,12 @@ Should work in all mastodon buffers."
           ((string-prefix-p "statuses" endpoint-fun)
            'single-status)
           ;; profiles:
-          ((string-prefix-p "accounts" endpoint-fun)
+          ((mastodon-tl--profile-buffer-p)
            (cond
+            ;; own profile:
+            ((equal (mastodon-tl--buffer-name)
+                    (concat "*mastodon-" (mastodon-auth--get-account-name) "-statuses*"))
+             'own-profile)
             ;; profile note:
             ((string-suffix-p "update-profile*" buffer-name-fun)
              'update-profile-note)
@@ -1488,6 +1492,8 @@ Should work in all mastodon buffers."
             ;; profile following
             ((string-suffix-p "following" endpoint-fun)
              'profile-following)))
+          ((string= "preferences" endpoint-fun)
+           'preferences)
           ;; search
           ((string-suffix-p "search" endpoint-fun)
            'search)
@@ -1497,7 +1503,7 @@ Should work in all mastodon buffers."
           ((string= "filters" endpoint-fun)
            'filters)
           ((string= "lists" endpoint-fun)
-           'lists-view)
+           'lists)
           ((string= "suggestions" endpoint-fun)
            'follow-suggestions)
           ((string= "favourites" endpoint-fun)
@@ -1514,11 +1520,20 @@ Should work in all mastodon buffers."
           ((string= "*mastodon-toot-edits*" buffer-name-fun)
            'toot-edits))))
 
+(defun mastodon-tl--buffer-type-eq (type)
+  "Return t if current buffer type is equal to symbol TYPE."
+  (eq (mastodon-tl--get-buffer-type) type))
+
+(defun mastodon-tl--profile-buffer-p ()
+  "Return t if current buffer is a profile buffer of any kind.
+This includes the update profile note buffer, but not the preferences one."
+  (string-prefix-p "accounts" (mastodon-tl--get-endpoint nil :no-error)))
+
 (defun mastodon-tl--has-toots-p ()
   "Return non-nil if the current buffer contains toots.
 Return value is that of `member'.
 This is used to avoid running into trouble using functions that
-presume we are in a timline of toots or similar elements, such as
+presume we are in a timeline of toots or similar elements, such as
 `mastodon-tl--property'."
   (let ((toot-buffers
          '(home federated local tag-timeline notifications
@@ -1819,8 +1834,7 @@ If ID is provided, use that list."
                                (let* ((json (mastodon-http--process-json))
                                       (name-new (alist-get 'title json)))
                                  (message "list %s edited to %s!" name-old name-new)))
-                             (when (equal (buffer-name (current-buffer))
-                                          "*mastodon-lists*")
+                             (when (mastodon-tl--buffer-type-eq 'lists)
                                (mastodon-tl--view-lists))))))
 
 (defun mastodon-tl--view-timeline-list-at-point ()
@@ -2022,8 +2036,7 @@ If ID is provided, use that list."
   "Call `mastodon-http--triage' on RESPONSE and display MESSAGE."
   (mastodon-http--triage response
                          (lambda ()
-                           (when (equal (buffer-name (current-buffer))
-                                        "*mastodon-lists*")
+                           (when (mastodon-tl--buffer-type-eq 'lists)
                              (mastodon-tl--view-lists))
                            message)))
 
@@ -2169,8 +2182,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
                            (lambda ()
                              (message "Filter created for %s!" word)
                              ;; reload if we are in filters view:
-                             (when (string= (mastodon-tl--get-endpoint)
-                                            "filters")
+                             (when (mastodon-tl--buffer-type-eq 'filters)
                                (mastodon-tl--view-filters))))))
 
 (defun mastodon-tl--view-filters ()
@@ -2257,7 +2269,7 @@ RESPONSE is the JSON returned by the server."
 (defmacro mastodon-tl--do-if-toot (&rest body)
   "Execute BODY if we have a toot or user at point."
   (declare (debug t))
-  `(if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
+  `(if (and (not (mastodon-tl--profile-buffer-p))
             (not (mastodon-tl--property 'toot-json)))
        (message "Looks like there's no toot or user at point?")
      ,@body))
@@ -2568,19 +2580,19 @@ LANGS is the accumulated array param alist if we re-run recursively."
   "Get the list of user-handles for ACTION from the current toot."
   (mastodon-tl--do-if-toot
    (let ((user-handles
-          (cond ((or (equal (buffer-name) "*mastodon-follow-suggestions*")
+          (cond ((or (mastodon-tl--buffer-type-eq 'follow-suggestions)
                      ;; follow suggests / search / foll requests compat:
-                     (string-prefix-p "*mastodon-search" (buffer-name))
-                     (equal (buffer-name) "*mastodon-follow-requests*")
+                     (mastodon-tl--buffer-type-eq 'search)
+                     (mastodon-tl--buffer-type-eq 'follow-requests)
                      ;; profile view follows/followers compat:
                      ;; but not for profile statuses:
                      ;; fetch 'toot-json:
-                     (and (string-prefix-p "accounts" (mastodon-tl--get-endpoint))
-                          (not (string-suffix-p "statuses" (mastodon-tl--get-endpoint)))))
+                     (mastodon-tl--buffer-type-eq 'profile-followers)
+                     (mastodon-tl--buffer-type-eq 'profile-following))
                  (list (alist-get 'acct (get-text-property (point) 'toot-json))))
                 ;; profile view, no toots, point on profile note, ie. 'profile-json:
                 ;; needed for e.g. gup.pe groups which show no toots publically:
-                ((and (string-prefix-p "accounts" (mastodon-tl--get-endpoint))
+                ((and (mastodon-tl--profile-buffer-p)
                       (get-text-property (point) 'profile-json))
                  (list (alist-get 'acct (get-text-property (point) 'profile-json))))
                 ;; avoid tl--property here because it calls next-toot
@@ -2626,7 +2638,7 @@ LANGS is an array parameters alist of languages to filer user's posts by."
                       (mastodon-profile--search-account-by-handle
                        user-handle)
                     ;; if profile view, use 'profile-json as status:
-                    (if (string-prefix-p "accounts" (mastodon-tl--get-endpoint))
+                    (if (mastodon-tl--profile-buffer-p)
                         (mastodon-profile--lookup-account-in-status
                          user-handle (get-text-property (point) 'profile-json))
                       ;; if muting/blocking, we select from handles in current status
@@ -2725,16 +2737,15 @@ If TAG is provided, unfollow it."
 (defun mastodon-tl--reload-timeline-or-profile ()
   "Reload the current timeline or profile page.
 For use after e.g. deleting a toot."
-  (cond ((equal (mastodon-tl--get-endpoint) "timelines/home")
+  (cond ((mastodon-tl--buffer-type-eq 'home)
          (mastodon-tl--get-home-timeline))
-        ((equal (mastodon-tl--get-endpoint) "timelines/public")
+        ((mastodon-tl--buffer-type-eq 'federated)
          (mastodon-tl--get-federated-timeline))
-        ((equal (mastodon-tl--buffer-name) "*mastodon-local*")
+        ((mastodon-tl--buffer-type-eq 'local)
          (mastodon-tl--get-local-timeline))
-        ((equal (mastodon-tl--get-endpoint) "notifications")
+        ((mastodon-tl--buffer-type-eq 'notifications)
          (mastodon-notifications-get))
-        ((equal (mastodon-tl--buffer-name)
-                (concat "*mastodon-" (mastodon-auth--get-account-name) "-statuses*"))
+        ((mastodon-tl--buffer-type-eq 'own-profile)
          (mastodon-profile--my-profile))
         ((save-match-data
            (string-match
@@ -2754,12 +2765,10 @@ For use after e.g. deleting a toot."
   "Return t if we are in a view needing Link header pagination.
 Currently this includes favourites, bookmarks, and profile pages
 when showing followers or accounts followed."
-  (let ((buf (buffer-name (current-buffer)))
-        (endpoint (mastodon-tl--get-endpoint)))
-    (or (member buf '("*mastodon-favourites*" "*mastodon-bookmarks*"))
-        (and (string-prefix-p "accounts" endpoint)
-             (or (string-suffix-p "followers" endpoint)
-                 (string-suffix-p "following" endpoint))))))
+  (or (mastodon-tl--buffer-type-eq 'favourites)
+      (mastodon-tl--buffer-type-eq 'bookmarks)
+      (mastodon-tl--buffer-type-eq 'profile-followers)
+      (mastodon-tl--buffer-type-eq 'profile-following)))
 
 (defun mastodon-tl--more ()
   "Append older toots to timeline, asynchronously."
@@ -2977,7 +2986,7 @@ This location is defined by a non-nil value of
          (update-function (mastodon-tl--get-update-function))
          (thread-id (mastodon-tl--property 'toot-id)))
     ;; update a thread, without calling `mastodon-tl--updated-json':
-    (if (string-suffix-p "context" (mastodon-tl--get-endpoint))
+    (if (mastodon-tl--buffer-type-eq 'thread)
         (funcall update-function thread-id)
       ;; update other timelines:
       (let* ((id (mastodon-tl--newest-id))
@@ -3063,8 +3072,7 @@ JSON and http headers, without it just the JSON."
                                #'mastodon-tl--update-timestamps-callback
                                (current-buffer)
                                nil)))
-          (unless (string-prefix-p "accounts" endpoint)
-            ;; for everything save profiles
+          (unless (mastodon-tl--profile-buffer-p)
             (mastodon-tl--goto-first-item)))))))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function &optional note-type)
@@ -3106,9 +3114,7 @@ Optional arg NOTE-TYPE means only get that type of note."
                            #'mastodon-tl--update-timestamps-callback
                            (current-buffer)
                            nil)))
-      (when ;(and (not (equal json '[]))
-          ;; for everything save profiles:
-          (not (string-prefix-p "accounts" endpoint))
+      (unless (mastodon-tl--profile-buffer-p)
         (mastodon-tl--goto-first-item)))
     buffer))
 

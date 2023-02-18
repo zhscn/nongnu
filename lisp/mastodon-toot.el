@@ -77,7 +77,6 @@
 (autoload 'mastodon-tl--render-text "mastodon-tl")
 (autoload 'mastodon-profile--fetch-server-account-settings-maybe "mastodon-profile")
 (autoload 'mastodon-http--build-array-params-alist "mastodon-http")
-(autoload 'mastodon-tl--get-endpoint "mastodon-tl")
 (autoload 'mastodon-http--put "mastodon-http")
 (autoload 'mastodon-tl--symbol "mastodon-tl")
 (autoload 'mastodon-tl--view-scheduled-toots "mastodon-tl")
@@ -356,10 +355,10 @@ TYPE is a symbol, either 'favourite or 'boost."
          ;; & nothing wrong with faving/boosting own toots from notifs:
          ;; this boosts/faves the base toot, not the notif status
          ((and (equal "reblog" toot-type)
-               (not (string= (mastodon-tl--get-endpoint) "notifications")))
+               (not (mastodon-tl--buffer-type-eq 'notifications)))
           (error "You can't %s boosts" action-string))
          ((and (equal "favourite" toot-type)
-               (not (string= (mastodon-tl--get-endpoint) "notifications")))
+               (not (mastodon-tl--buffer-type-eq 'notifications)))
           (error "You can't %s favourites" action-string))
          ((and (equal "private" visibility)
                (equal type 'boost))
@@ -1581,7 +1580,7 @@ Added to `after-change-functions'."
 
 (defun mastodon-toot--compose-buffer-p ()
   "Return t if compose buffer is current."
-  (equal (buffer-name (current-buffer)) "*new toot*"))
+  (mastodon-tl--buffer-type-eq 'new-toot))
 
 ;; NB: now that we have toot drafts, to ensure offline composing remains
 ;; possible, avoid any direct requests here:
