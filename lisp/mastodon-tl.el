@@ -1444,7 +1444,10 @@ HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
 
 (defun mastodon-tl--get-buffer-type ()
   "Return a symbol descriptive of current mastodon buffer type.
-Should work in all mastodon buffers."
+Should work in all mastodon buffers.
+Note that for many buffers, this requires `mastodon-tl--buffer-spec'
+to be set. It is set for almost all buffers, but you still have to
+call this function after it is set or use something else."
   (let ((endpoint-fun (mastodon-tl--get-endpoint nil :no-error))
         (buffer-name-fun (mastodon-tl--buffer-name nil :no-error)))
     (cond (mastodon-toot-mode
