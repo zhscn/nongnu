@@ -2779,16 +2779,21 @@ when showing followers or accounts followed."
   (message "Loading older toots...")
   (if (mastodon-tl--use-link-header-p)
       ;; link-header: can't build a URL with --more-json-async, endpoint/id:
-      (let* ((next (car (mastodon-tl--link-header)))
-             ;;(prev (cadr (mastodon-tl--link-header)))
-             (url (mastodon-tl--build-link-header-url next)))
-        (mastodon-http--get-response-async url nil 'mastodon-tl--more* (current-buffer)
-                                           (point) :headers))
-    (mastodon-tl--more-json-async
-     (mastodon-tl--get-endpoint)
-     (mastodon-tl--oldest-id)
-     (mastodon-tl--update-params)
-     'mastodon-tl--more* (current-buffer) (point))))
+      ;; ensure we have a "next" type here, otherwise the CAR will be the
+      ;; "prev type!"
+      (let (link-header (mastodon-tl--link-header))
+        (if (> 2 (length link-header))
+            (error "No next page")
+          (let* ((next (car link-header))
+                 ;;(prev (cadr (mastodon-tl--link-header)))
+                 (url (mastodon-tl--build-link-header-url next)))
+            (mastodon-http--get-response-async url nil 'mastodon-tl--more* (current-buffer)
+                                               (point) :headers))
+          (mastodon-tl--more-json-async
+           (mastodon-tl--get-endpoint)
+           (mastodon-tl--oldest-id)
+           (mastodon-tl--update-params)
+           'mastodon-tl--more* (current-buffer) (point))))))
 
 (defun mastodon-tl--more* (response buffer point-before &optional headers)
   "Append older toots to timeline, asynchronously.
@@ -3006,9 +3011,9 @@ This location is defined by a non-nil value of
 
 (defun mastodon-tl--get-link-header-from-response (headers)
   "Get http Link header from list of http HEADERS."
-  (when headers
-    ;; pleroma uses "link", so case-insensitive match required:
-    (split-string (alist-get "Link" headers nil nil 'cl-equalp) ", ")))
+  ;; pleroma uses "link", so case-insensitive match required:
+  (when-let ((link-headers (alist-get "Link" headers nil nil 'cl-equalp)))
+    (split-string link-headers ", ")))
 
 (defun mastodon-tl--init (buffer-name endpoint update-function
                                       &optional headers params hide-replies)
