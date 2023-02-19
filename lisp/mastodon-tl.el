@@ -87,6 +87,7 @@
 (autoload 'mastodon-toot--iso-to-human "mastodon-toot")
 
 (defvar mastodon-toot--visibility)
+(defvar mastodon-toot-mode)
 (defvar mastodon-active-user)
 
 (when (require 'mpv nil :no-error)

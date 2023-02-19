@@ -78,6 +78,9 @@
 (autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
 (autoload 'mastodon-tl--symbol "mastodon-tl")
 (autoload 'mastodon-auth--get-account-id "mastodon-auth")
+(autoload 'mastodon-tl--profile-buffer-p "mastodon tl")
+(autoload 'mastodon-tl--buffer-type-eq "mastodon tl")
+(autoload 'mastodon-toot--count-toot-chars "mastodon-toot")
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
@@ -86,6 +89,7 @@
 (defvar mastodon-toot--max-toot-chars)
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot--content-nsfw)
+(defvar mastodon-tl--timeline-posts-count)
 
 (defvar-local mastodon-profile--account nil
   "The data for the account being described in the current profile buffer.")

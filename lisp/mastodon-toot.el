@@ -41,7 +41,6 @@
 
 (require 'cl-lib)
 (require 'persist)
-
 (require 'mastodon-iso)
 
 (defvar mastodon-instance-url)
@@ -83,6 +82,9 @@
 (autoload 'mastodon-tl--cancel-scheduled-toot "mastodon-toot")
 (autoload 'org-read-date "org")
 (autoload 'iso8601-parse "iso8601")
+(autoload 'mastodon-tl--buffer-type-eq "mastodon-tl")
+(autoload 'mastodon-profile--show-user "mastodon-profile")
+(autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -310,7 +312,7 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
         ;; if point is inside the byline, back up first so
         ;; we don't move to the following toot:
         (beginning-of-line)
-        (previous-line)
+        (forward-line -1)
         (mastodon-tl--goto-next-toot)))))
 
 (defun mastodon-toot--action (action callback)
