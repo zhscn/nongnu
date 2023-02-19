@@ -169,15 +169,14 @@ NO-REBLOGS means do not display boosts in statuses."
 (defun mastodon-profile--account-view-cycle ()
   "Cycle through profile view: toots, followers, and following."
   (interactive)
-  (let ((endpoint (plist-get mastodon-tl--buffer-spec 'endpoint)))
-    (cond ((string-suffix-p "statuses" endpoint)
-           (mastodon-profile--open-followers))
-          ((string-suffix-p "followers" endpoint)
-           (mastodon-profile--open-following))
-          ((string-suffix-p "following" endpoint)
-           (mastodon-profile--open-statuses-no-reblogs))
-          (t
-           (mastodon-profile--make-author-buffer mastodon-profile--account)))))
+  (cond ((mastodon-tl--buffer-type-eq 'profile-statuses)
+         (mastodon-profile--open-followers))
+        ((mastodon-tl--buffer-type-eq 'profile-followers)
+         (mastodon-profile--open-following))
+        ((mastodon-tl--buffer-type-eq 'profile-following)
+         (mastodon-profile--open-statuses-no-reblogs))
+        (t
+         (mastodon-profile--make-author-buffer mastodon-profile--account))))
 
 (defun mastodon-profile--open-statuses-no-reblogs ()
   "Open a profile buffer showing statuses without reblogs."
@@ -761,7 +760,7 @@ IMG_TYPE is the JSON key from the account data."
   "Query for USER-HANDLE from current status and show that user's profile."
   (interactive
    (list
-    (if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
+    (if (and (not (mastodon-tl--profile-buffer-p))
              (not (get-text-property (point) 'toot-json)))
         (message "Looks like there's no toot or user at point?")
       (let ((user-handles (mastodon-profile--extract-users-handles

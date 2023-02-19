@@ -1733,7 +1733,7 @@ Note that you can only (un)mute threads you have posted in."
   "Mute a thread.
 If UNMUTE, unmute it."
   (let ((endpoint (mastodon-tl--get-endpoint)))
-    (if (string-suffix-p "context" endpoint) ; thread view
+    (if (mastodon-tl--buffer-type-eq 'thread)
         (let* ((id
                 (save-match-data
                   (string-match "statuses/\\(?2:[[:digit:]]+\\)/context"
