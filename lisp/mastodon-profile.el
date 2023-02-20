@@ -39,6 +39,7 @@
 (require 'cl-lib)
 (require 'persist)
 (require 'ts)
+(require 'parse-time)
 
 (autoload 'mastodon-http--api "mastodon-http.el")
 (autoload 'mastodon-http--get-json "mastodon-http.el")
