@@ -97,6 +97,8 @@
 (autoload 'mastodon-tl--init-sync "mastodon-tl")
 (autoload 'mastodon-notifications--timeline "mastodon-notifications")
 (autoload 'mastodon-search--trending-tags "mastodon-search")
+(autoload 'mastodon-tl--view-instance-description "mastodon-tl")
+(autoload 'mastodon-tl--get-buffer-type "mastodon-tl")
 
 (defvar mastodon-notifications--map)
 
