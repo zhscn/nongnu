@@ -368,6 +368,17 @@ Calls `mastodon-tl--get-buffer-type', which see."
     (cl-loop for x in mastodon-buffers
              do (kill-buffer x))))
 
+(defun mastodon-switch-to-buffer ()
+  "Switch to a live mastodon buffer."
+  (interactive)
+  (let* ((bufs (mastodon-live-buffers))
+         (buf-names (mapcar (lambda (buf)
+                              (buffer-name buf))
+                            bufs))
+         (choice (completing-read "Switch to mastodon buffer: "
+                                  buf-names)))
+    (switch-to-buffer choice)))
+
 ;;;###autoload
 (add-hook 'mastodon-mode-hook (lambda ()
                                 (when (require 'emojify nil :noerror)
