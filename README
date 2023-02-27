@@ -1,5 +1,12 @@
 Vcomplete - Visual completions
 
+NOTE: Emacs 29 includes (alternative implementations of) most features
+of this package, with the only big omission being the live updating of
+the completion list buffer.  I have recently decided to stop using
+this specific feature, and so I've also decided to stop using and
+developing this package.  It is pretty much complete and bug free AFAIK
+(except for a few minor issues with the live updating mechanism).
+
 Vcomplete provides a minor mode which highlights the completion at
 point the completion list buffer and (optionally) automatically
 updates it.
