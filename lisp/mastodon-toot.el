@@ -902,8 +902,8 @@ Buffer-local variable `mastodon-toot-previous-window-config' holds the config."
 (defun mastodon-toot--mentions-to-string (mentions)
   "Apply `mastodon-toot--process-local' function to each mention in MENTIONS.
 Remove empty string (self) from result and joins the sequence with whitespace."
-  (mapconcat (lambda(mention) mention)
-	     (remove "" (mapcar (lambda(x) (mastodon-toot--process-local x))
+  (mapconcat (lambda (mention) mention)
+	     (remove "" (mapcar (lambda (x) (mastodon-toot--process-local x))
 				mentions))
 	     " "))
 
