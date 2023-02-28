@@ -167,12 +167,13 @@ not contain =:client_id= and =:client_secret=.
 |----------------+---------------------------------------------------------------------------|
 |                | *Notifications view*                                                        |
 | =a=, =j=           | accept/reject follow request                                              |
-| =c=              | clear notification at point                                               |
+| =C-k=            | clear notification at point                                               |
 |                | see =mastodon-notifications--get-*= functions for filtered views            |
 |----------------+---------------------------------------------------------------------------|
 |                | *Quitting*                                                                  |
 | =q=              | Quit mastodon buffer, leave window open                                   |
 | =Q=              | Quit mastodon buffer and kill window                                      |
+| =C-M-q=          | Quit and kill all mastodon buffers                                        |
 |----------------+---------------------------------------------------------------------------|
 
 **** Toot byline legend
