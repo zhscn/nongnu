@@ -39,6 +39,7 @@
 (require 'cl-lib)
 (require 'persist)
 (require 'ts)
+(require 'parse-time)
 
 (autoload 'mastodon-http--api "mastodon-http.el")
 (autoload 'mastodon-http--get-json "mastodon-http.el")
@@ -78,6 +79,9 @@
 (autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
 (autoload 'mastodon-tl--symbol "mastodon-tl")
 (autoload 'mastodon-auth--get-account-id "mastodon-auth")
+(autoload 'mastodon-tl--profile-buffer-p "mastodon tl")
+(autoload 'mastodon-tl--buffer-type-eq "mastodon tl")
+(autoload 'mastodon-toot--count-toot-chars "mastodon-toot")
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
@@ -86,6 +90,7 @@
 (defvar mastodon-toot--max-toot-chars)
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot--content-nsfw)
+(defvar mastodon-tl--timeline-posts-count)
 
 (defvar-local mastodon-profile--account nil
   "The data for the account being described in the current profile buffer.")
@@ -169,15 +174,14 @@ NO-REBLOGS means do not display boosts in statuses."
 (defun mastodon-profile--account-view-cycle ()
   "Cycle through profile view: toots, followers, and following."
   (interactive)
-  (let ((endpoint (plist-get mastodon-tl--buffer-spec 'endpoint)))
-    (cond ((string-suffix-p "statuses" endpoint)
-           (mastodon-profile--open-followers))
-          ((string-suffix-p "followers" endpoint)
-           (mastodon-profile--open-following))
-          ((string-suffix-p "following" endpoint)
-           (mastodon-profile--open-statuses-no-reblogs))
-          (t
-           (mastodon-profile--make-author-buffer mastodon-profile--account)))))
+  (cond ((mastodon-tl--buffer-type-eq 'profile-statuses)
+         (mastodon-profile--open-followers))
+        ((mastodon-tl--buffer-type-eq 'profile-followers)
+         (mastodon-profile--open-following))
+        ((mastodon-tl--buffer-type-eq 'profile-following)
+         (mastodon-profile--open-statuses-no-reblogs))
+        (t
+         (mastodon-profile--make-author-buffer mastodon-profile--account))))
 
 (defun mastodon-profile--open-statuses-no-reblogs ()
   "Open a profile buffer showing statuses without reblogs."
@@ -363,7 +367,7 @@ Ask for confirmation if length > 500 characters."
       (mastodon-profile--user-profile-send-updated-do url note))))
 
 (defun mastodon-profile--user-profile-send-updated-do (url note)
-  "Send PATCH request with the updated profile note."
+  "Send PATCH request with the updated profile NOTE to URL."
   (let ((response (mastodon-http--patch url `(("note" . ,note)))))
     (mastodon-http--triage response
                            (lambda () (message "Profile note updated!")))))
@@ -621,7 +625,8 @@ FIELDS means provide a fields vector fetched by other means."
 NO-REBLOGS means do not display boosts in statuses.
 HEADERS means also fetch link headers for pagination."
   (let* ((id (mastodon-profile--account-field account 'id))
-         (args (when no-reblogs '(("exclude_reblogs" . "t"))))
+         (args `(("limit" . ,mastodon-tl--timeline-posts-count)))
+         (args (if no-reblogs (push '("exclude_reblogs" . "t") args) args))
          (endpoint (format "accounts/%s/%s" id endpoint-type))
          (url (mastodon-http--api endpoint))
          (acct (mastodon-profile--account-field account 'acct))
@@ -739,11 +744,8 @@ HEADERS means also fetch link headers for pagination."
 
 (defun mastodon-profile--format-joined-date-string (joined)
   "Format a human-readable Joined string from timestamp JOINED."
-  (let ((joined-ts (ts-parse joined)))
-    (format "Joined %s" (concat (ts-month-name joined-ts)
-                                " "
-                                (number-to-string
-                                 (ts-year joined-ts))))))
+  (format-time-string "Joined: %d %B %Y"
+                      (parse-iso8601-time-string joined)))
 
 (defun mastodon-profile--get-toot-author ()
   "Open profile of author of toot under point.
@@ -763,7 +765,7 @@ IMG_TYPE is the JSON key from the account data."
   "Query for USER-HANDLE from current status and show that user's profile."
   (interactive
    (list
-    (if (and (not (string-prefix-p "accounts" (mastodon-tl--get-endpoint))) ;profile view
+    (if (and (not (mastodon-tl--profile-buffer-p))
              (not (get-text-property (point) 'toot-json)))
         (message "Looks like there's no toot or user at point?")
       (let ((user-handles (mastodon-profile--extract-users-handles

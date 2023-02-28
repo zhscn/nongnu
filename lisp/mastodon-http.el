@@ -73,7 +73,6 @@
 
 (defun mastodon-http--url-retrieve-synchronously (url &optional silent)
   "Retrieve URL asynchronously.
-
 This is a thin abstraction over the system
 `url-retrieve-synchronously'.  Depending on which version of this
 is available we will call it with or without a timeout.
@@ -84,7 +83,6 @@ SILENT means don't message."
 
 (defun mastodon-http--triage (response success)
   "Determine if RESPONSE was successful. Call SUCCESS if successful.
-
 Message status and JSON error from RESPONSE if unsuccessful."
   (let ((status (with-current-buffer response
                   (mastodon-http--status))))
@@ -136,7 +134,6 @@ Used for API form data parameters that take an array."
 
 (defun mastodon-http--post (url &optional params headers unauthenticated-p)
   "POST synchronously to URL, optionally with PARAMS and HEADERS.
-
 Authorization header is included by default unless UNAUTHENTICATED-P is non-nil."
   (mastodon-http--authorized-request
    "POST"
@@ -207,8 +204,18 @@ Callback to `mastodon-http--get-response-async', usually
             (buffer-substring-no-properties (point) (point-max))
             'utf-8)))
       (kill-buffer)
-      (unless (or (string-empty-p json-string) (null json-string))
-        `(,(json-read-from-string json-string) . ,headers)))))
+      ;; (unless (or (string-empty-p json-string) (null json-string))
+      (cond ((or (string-empty-p json-string) (null json-string))
+             nil)
+            ;; if we don't have json, maybe we have a plain string error
+            ;; message (misskey works like this for instance, but there are
+            ;; probably less dunce ways to do this):
+            ;; FIXME: friendica at least sends plain html if endpoint not found.
+            ((not (or (string-prefix-p "\n{" json-string)
+                      (string-prefix-p "\n[" json-string)))
+             (error "%s" json-string))
+            (t
+             `(,(json-read-from-string json-string) . ,headers))))))
 
 (defun mastodon-http--process-headers ()
   "Return an alist of http response headers."

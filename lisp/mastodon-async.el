@@ -131,7 +131,6 @@
 
 (defun mastodon-async--mastodon (endpoint timeline name filter)
   "Make sure that the previous async process has been closed.
-
 Then start an async stream at ENDPOINT filtering toots
 using FILTER.
 TIMELINE is a specific target, such as federated or home.
@@ -157,7 +156,6 @@ NAME is the center portion of the buffer name for
 
 (defun mastodon-async--set-http-buffer (buffer http-buffer)
   "Initialize for BUFFER a local variable `mastodon-async--http-buffer'.
-
 HTTP-BUFFER is the initializing value. Use this funcion if HTTP-BUFFER
 is not known when `mastodon-async--setup-buffer' is called."
   (with-current-buffer (get-buffer-create buffer)
@@ -178,7 +176,6 @@ is not known when `mastodon-async--setup-buffer' is called."
 
 (defun mastodon-async--setup-http (http-buffer name)
   "Add local variables to HTTP-BUFFER.
-
 NAME is used to generate the display buffer and the queue."
   (let ((queue-name (concat " *mastodon-async-queue-" name "-"
                             mastodon-instance-url "*"))
@@ -200,7 +197,6 @@ NAME is used to generate the display buffer and the queue."
 
 (defun mastodon-async--setup-buffer (http-buffer name endpoint)
   "Set up the buffer timeline like `mastodon-tl--init'.
-
 HTTP-BUFFER the name of the http-buffer, if unknown, set to...
 NAME is the name of the stream for the buffer name.
 ENDPOINT is the endpoint for the stream and timeline."
@@ -334,7 +330,6 @@ NAME is used for the queue and display buffer."
 
 (defun mastodon-async--cycle-queue (string)
   "Append the most recent STRING from http buffer to queue buffer.
-
 Then determine if a full message has been recived.  If so return it.
 Full messages are seperated by two newlines"
   (with-current-buffer mastodon-async--queue
@@ -350,7 +345,6 @@ Full messages are seperated by two newlines"
 
 (defun mastodon-async--http-layer (proc data)
   "Passes PROC and DATA to ‘url-http-generic-filter’.
-
 It then processes its output."
   (with-current-buffer (process-buffer proc)
     (let ((start (max 1 (- (point-max) 2))))

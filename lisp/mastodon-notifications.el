@@ -85,7 +85,7 @@
          (copy-keymap mastodon-mode-map)))
     (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
     (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
-    (define-key map (kbd "c") #'mastodon-notifications--clear-current)
+    (define-key map (kbd "C-k") #'mastodon-notifications--clear-current)
     (keymap-canonicalize map))
   "Keymap for viewing notifications.")
 
@@ -244,7 +244,6 @@ Status notifications are given when
                                                    author-byline action-byline id
                                                    &optional base-toot)
   "Display the content and byline of timeline element TOOT.
-
 BODY will form the section of the toot above the byline.
 
 AUTHOR-BYLINE is an optional function for adding the author

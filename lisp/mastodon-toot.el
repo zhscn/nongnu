@@ -41,7 +41,6 @@
 
 (require 'cl-lib)
 (require 'persist)
-
 (require 'mastodon-iso)
 
 (defvar mastodon-instance-url)
@@ -77,13 +76,15 @@
 (autoload 'mastodon-tl--render-text "mastodon-tl")
 (autoload 'mastodon-profile--fetch-server-account-settings-maybe "mastodon-profile")
 (autoload 'mastodon-http--build-array-params-alist "mastodon-http")
-(autoload 'mastodon-tl--get-endpoint "mastodon-tl")
 (autoload 'mastodon-http--put "mastodon-http")
 (autoload 'mastodon-tl--symbol "mastodon-tl")
 (autoload 'mastodon-tl--view-scheduled-toots "mastodon-tl")
 (autoload 'mastodon-tl--cancel-scheduled-toot "mastodon-toot")
 (autoload 'org-read-date "org")
 (autoload 'iso8601-parse "iso8601")
+(autoload 'mastodon-tl--buffer-type-eq "mastodon-tl")
+(autoload 'mastodon-profile--show-user "mastodon-profile")
+(autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -113,7 +114,6 @@ Used for completion in toot compose buffer."
 
 (defcustom mastodon-toot--use-company-for-completion nil
   "Whether to enable company for completion.
-
 When non-nil, `company-mode' is enabled in the toot compose
 buffer, and mastodon completion backends are added to
 `company-capf'.
@@ -140,6 +140,16 @@ You need to install company yourself to use this."
   :group 'mastodon-toot
   :type 'integer)
 
+(defcustom mastodon-toot--default-reply-visibility "public"
+  "Default visibility settings when replying.
+If the original toot visibility is different we use the more restricted one."
+  :group 'mastodon-toot
+  :type '(choice
+         (const :tag "public" "public")
+         (const :tag "unlisted" "unlisted")
+         (const :tag "followers only" "private")
+         (const :tag "direct" "direct")))
+
 (defcustom mastodon-toot--enable-custom-instance-emoji nil
   "Whether to enable your instance's custom emoji by default."
   :group 'mastodon-toot
@@ -160,7 +170,6 @@ You need to install company yourself to use this."
 
 (defvar-local mastodon-toot--visibility nil
   "A string indicating the visibility of the toot being composed.
-
 Valid values are \"direct\", \"private\" (followers-only),
 \"unlisted\", and \"public\".
 
@@ -279,13 +288,13 @@ NO-TOOT means we are not calling from a toot buffer."
 
 (defun mastodon-toot--action-success (marker byline-region remove)
   "Insert/remove the text MARKER with 'success face in byline.
-
 BYLINE-REGION is a cons of start and end pos of the byline to be
 modified.
 Remove MARKER if REMOVE is non-nil, otherwise add it."
   (let ((inhibit-read-only t)
         (bol (car byline-region))
-        (eol (cdr byline-region)))
+        (eol (cdr byline-region))
+        (at-byline-p (eq (get-text-property (point) 'byline) t)))
     (save-excursion
       (when remove
         (goto-char bol)
@@ -297,9 +306,14 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
         (goto-char bol)
         (insert (format "(%s) "
                         (propertize marker 'face 'success)))))
-    ;; leave point after the marker:
-    (unless remove
-      (mastodon-tl--goto-next-toot))))
+    (when at-byline-p
+      ;; leave point after the marker:
+      (unless remove
+        ;; if point is inside the byline, back up first so
+        ;; we don't move to the following toot:
+        (beginning-of-line)
+        (forward-line -1)
+        (mastodon-tl--goto-next-toot)))))
 
 (defun mastodon-toot--action (action callback)
   "Take ACTION on toot at point, then execute CALLBACK.
@@ -333,7 +347,9 @@ TYPE is a symbol, either 'favourite or 'boost."
          (msg (if boosted "unboosted" "boosted"))
          (action-string (if boost-p "boost" "favourite"))
          (remove (if boost-p (when boosted t) (when faved t)))
-         (toot-type (alist-get 'type (mastodon-tl--property 'toot-json))))
+         (toot-type (alist-get 'type (mastodon-tl--property 'toot-json)))
+         (visibility (mastodon-tl--field 'visibility
+                                         (mastodon-tl--property 'toot-json))))
     (if byline-region
         (cond ;; actually there's nothing wrong with faving/boosting own toots!
          ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
@@ -341,11 +357,14 @@ TYPE is a symbol, either 'favourite or 'boost."
          ;; & nothing wrong with faving/boosting own toots from notifs:
          ;; this boosts/faves the base toot, not the notif status
          ((and (equal "reblog" toot-type)
-               (not (string= (mastodon-tl--get-endpoint) "notifications")))
+               (not (mastodon-tl--buffer-type-eq 'notifications)))
           (error "You can't %s boosts" action-string))
          ((and (equal "favourite" toot-type)
-               (not (string= (mastodon-tl--get-endpoint) "notifications")))
-          (error "Your can't %s favourites" action-string))
+               (not (mastodon-tl--buffer-type-eq 'notifications)))
+          (error "You can't %s favourites" action-string))
+         ((and (equal "private" visibility)
+               (equal type 'boost))
+          (error "You can't boost private toots"))
          (t
           (mastodon-toot--action
            action
@@ -408,6 +427,40 @@ TYPE is a symbol, either 'favourite or 'boost."
               byline-region remove)
              (message (format "%s #%s" message id)))))
       (message (format "Nothing to %s here?!?" action)))))
+
+(defun mastodon-toot--list-toot-boosters ()
+  "List the boosters of toot at point."
+  (interactive)
+  (mastodon-toot--list-toot-boosters-or-favers))
+
+(defun mastodon-toot--list-toot-favouriters ()
+  "List the favouriters of toot at point."
+  (interactive)
+  (mastodon-toot--list-toot-boosters-or-favers :favourite))
+
+(defun mastodon-toot--list-toot-boosters-or-favers (&optional favourite)
+  "List the favouriters or boosters of toot at point.
+With FAVOURITE, list favouriters, else list boosters."
+  (let* ((base-toot (mastodon-tl--property 'base-toot-id))
+         (endpoint (if favourite "favourited_by" "reblogged_by"))
+         (url (mastodon-http--api
+               (format "statuses/%s/%s" base-toot endpoint)))
+         (params '(("limit" . "80")))
+         (json (mastodon-http--get-json url params)))
+    (if (eq (caar json) 'error)
+        (error "%s (Status does not exist or is private)"
+               (alist-get 'error json))
+      (let ((handles (mapcar (lambda (x) (alist-get 'acct x)) json))
+            (type-string (if favourite "Favouriters" "Boosters")))
+        (if (not handles)
+            (error "Looks like this toot has no %s" type-string)
+          (let ((choice
+                 (completing-read
+                  (format "%s (enter to view profile): " type-string)
+                  handles
+                  nil
+                  t)))
+            (mastodon-profile--show-user choice)))))))
 
 (defun mastodon-toot--copy-toot-url ()
   "Copy URL of toot at point.
@@ -701,12 +754,11 @@ If media items have been attached and uploaded with
 If `mastodon-toot--edit-toot-id' is non-nil, PUT contents to
 instance to edit a toot."
   (interactive)
-  (let* ((edit-p (if mastodon-toot--edit-toot-id t nil))
-         (toot (mastodon-toot--remove-docs))
+  (let* ((toot (mastodon-toot--remove-docs))
          (scheduled mastodon-toot--scheduled-for)
          (scheduled-id mastodon-toot--scheduled-id)
          (endpoint
-          (if edit-p
+          (if mastodon-toot--edit-toot-id
               ;; we are sending an edit:
               (mastodon-http--api (format "statuses/%s"
                                           mastodon-toot--edit-toot-id))
@@ -722,8 +774,8 @@ instance to edit a toot."
                                                     (symbol-name t)))
                                   ("spoiler_text" . ,spoiler)
                                   ("language" . ,mastodon-toot--language))
-                                ; Pleroma instances can't handle null-valued
-                                ; scheduled_at args, so only add if non-nil
+                                ;; Pleroma instances can't handle null-valued
+                                ;; scheduled_at args, so only add if non-nil
                                 (when scheduled `(("scheduled_at" . ,scheduled)))))
          (args-media (when mastodon-toot--media-attachments
                        (mastodon-http--build-array-params-alist
@@ -751,7 +803,7 @@ instance to edit a toot."
           ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
           (t
-           (let ((response (if edit-p
+           (let ((response (if mastodon-toot--edit-toot-id
                                ;; we are sending an edit:
                                (mastodon-http--put endpoint args)
                              (mastodon-http--post endpoint args))))
@@ -785,9 +837,9 @@ instance to edit a toot."
              (toot-language (alist-get 'language toot))
              (reply-id (alist-get 'in_reply_to_id toot)))
         (when (y-or-n-p "Edit this toot? ")
-          (mastodon-toot--compose-buffer)
+          (mastodon-toot--compose-buffer nil reply-id nil content :edit)
           (goto-char (point-max))
-          (insert content)
+          ;; (insert content)
           ;; adopt reply-to-id, visibility, CW, and language:
           (mastodon-toot--set-toot-properties reply-id toot-visibility
                                               source-cw toot-language)
@@ -807,7 +859,8 @@ instance to edit a toot."
 (defun mastodon-toot--view-toot-edits ()
   "View editing history of the toot at point in a popup buffer."
   (interactive)
-  (let ((history (mastodon-tl--property 'edit-history)))
+  (let ((id (mastodon-tl--property 'base-toot-id))
+        (history (mastodon-tl--property 'edit-history)))
     (with-current-buffer (get-buffer-create "*mastodon-toot-edits*")
       (let ((inhibit-read-only t))
         (special-mode)
@@ -828,7 +881,10 @@ instance to edit a toot."
                      (format "Edits to toot by %s:"
                              (alist-get 'username
                                         (alist-get 'account (car history))))
-                     'face font-lock-comment-face))))))
+                     'face font-lock-comment-face))
+        (mastodon-tl--set-buffer-spec (buffer-name (current-buffer))
+                                      (format "statuses/%s/history" id)
+                                      nil)))))
 
 (defun mastodon-toot--insert-toot-iter (it)
   "Insert iteration IT of toot."
@@ -844,16 +900,15 @@ Buffer-local variable `mastodon-toot-previous-window-config' holds the config."
   (goto-char (cadr config)))
 
 (defun mastodon-toot--mentions-to-string (mentions)
-  "Applies mastodon-toot--process-local function to each mention,
-removes empty string (self) from result and joins the sequence with whitespace \" \"."
-  (mapconcat (lambda(mention) mention)
-	     (remove "" (mapcar (lambda(x) (mastodon-toot--process-local x))
+  "Apply `mastodon-toot--process-local' function to each mention in MENTIONS.
+Remove empty string (self) from result and joins the sequence with whitespace."
+  (mapconcat (lambda (mention) mention)
+	     (remove "" (mapcar (lambda (x) (mastodon-toot--process-local x))
 				mentions))
 	     " "))
 
 (defun mastodon-toot--process-local (acct)
   "Add domain to local ACCT and replace the curent user name with \"\".
-
 Mastodon requires the full @user@domain, even in the case of local accts.
 eg. \"user\" -> \"@user@local.social\" (when local.social is the domain of the
 mastodon-instance-url).
@@ -1348,11 +1403,22 @@ REPLY-TEXT is the text of the toot being replied to."
       'read-only "Edit your message below."
       'toot-post-header t))))
 
+(defun mastodon-toot--most-restrictive-visibility (reply-visibility)
+  "Return REPLY-VISIBILITY or default visibility, whichever is more restrictive.
+The default is given by `mastodon-toot--default-reply-visibility'."
+  (unless (null reply-visibility)
+    (let ((less-restrictive (member (intern mastodon-toot--default-reply-visibility)
+				    mastodon-toot-visibility-list)))
+      (if (member (intern reply-visibility) less-restrictive)
+	  mastodon-toot--default-reply-visibility reply-visibility))))
+
 (defun mastodon-toot--setup-as-reply (reply-to-user reply-to-id reply-json)
   "If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set `mastodon-toot--reply-to-id'.
 REPLY-JSON is the full JSON of the toot being replied to."
-  (let ((reply-visibility (alist-get 'visibility reply-json))
+  (let ((reply-visibility
+	 (mastodon-toot--most-restrictive-visibility
+	  (alist-get 'visibility reply-json)))
         (reply-cw (alist-get 'spoiler_text reply-json)))
     (when reply-to-user
       (insert (format "%s " reply-to-user))
@@ -1516,20 +1582,23 @@ Added to `after-change-functions'."
 
 (defun mastodon-toot--compose-buffer-p ()
   "Return t if compose buffer is current."
-  (equal (buffer-name (current-buffer)) "*new toot*"))
+  (mastodon-tl--buffer-type-eq 'new-toot))
 
 ;; NB: now that we have toot drafts, to ensure offline composing remains
 ;; possible, avoid any direct requests here:
 (defun mastodon-toot--compose-buffer (&optional reply-to-user
-                                                reply-to-id reply-json initial-text)
+                                                reply-to-id reply-json initial-text
+                                                edit)
   "Create a new buffer to capture text for a new toot.
 If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set the `mastodon-toot--reply-to-id' var.
 REPLY-JSON is the full JSON of the toot being replied to.
 INITIAL-TEXT is used by `mastodon-toot-insert-draft-toot' to add
-a draft into the buffer."
-  (let* ((buffer-exists (get-buffer "*new toot*"))
-         (buffer (or buffer-exists (get-buffer-create "*new toot*")))
+a draft into the buffer.
+EDIT means we are editing an existing toot, not composing a new one."
+  (let* ((buffer-name (if edit "*edit toot*" "*new toot*"))
+         (buffer-exists (get-buffer buffer-name))
+         (buffer (or buffer-exists (get-buffer-create buffer-name)))
          (inhibit-read-only t)
          (reply-text (alist-get 'content reply-json))
          (previous-window-config (list (current-window-configuration)

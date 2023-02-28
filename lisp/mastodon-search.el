@@ -94,7 +94,7 @@ QUERY is the string to search."
       (mastodon-mode)
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (mastodon-tl--set-buffer-spec buffer
+        (mastodon-tl--set-buffer-spec (buffer-name buffer)
                                       "api/v1/trends"
                                       nil)
         ;; hashtag results:
@@ -230,13 +230,11 @@ user's profile note. This is also called by
 
 (defun mastodon-search--get-id-from-status (status)
   "Fetch the id from a STATUS returned by a search call to the server.
-
 We use this to fetch the complete status from the server."
   (alist-get 'id status))
 
 (defun mastodon-search--fetch-full-status-from-id (id)
   "Fetch the full status with id ID from the server.
-
 This allows us to access the full account etc. details and to
 render them properly."
   (let* ((url (concat mastodon-instance-url "/api/v1/statuses/" (mastodon-tl--as-string id)))

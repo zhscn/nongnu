@@ -61,7 +61,6 @@
 (autoload 'mastodon-profile--make-author-buffer "mastodon-profile")
 (autoload 'mastodon-profile--show-user "mastodon-profile")
 (autoload 'mastodon-discover "mastodon-discover")
-
 (autoload 'mastodon-tl--block-user "mastodon-tl")
 (autoload 'mastodon-tl--unblock-user "mastodon-tl")
 (autoload 'mastodon-tl--mute-user "mastodon-tl")
@@ -98,6 +97,9 @@
 (autoload 'mastodon-toot--view-toot-history "mastodon-tl")
 (autoload 'mastodon-tl--init-sync "mastodon-tl")
 (autoload 'mastodon-notifications--timeline "mastodon-notifications")
+(autoload 'mastodon-search--trending-tags "mastodon-search")
+(autoload 'mastodon-tl--view-instance-description "mastodon-tl")
+(autoload 'mastodon-tl--get-buffer-type "mastodon-tl")
 
 (defvar mastodon-notifications--map)
 
@@ -108,7 +110,6 @@
 
 (defcustom mastodon-instance-url "https://mastodon.social"
   "Base URL for the Mastodon instance you want to be active.
-
 For example, if your mastodon username is
 \"example_user@social.instance.org\", and you want this account
 to be active, the value of this variable should be
@@ -124,7 +125,6 @@ changes to take effect."
 
 (defcustom mastodon-active-user nil
   "Username of the active user.
-
 For example, if your mastodon username is
 \"example_user@social.instance.org\", and you want this account
 to be active, the value of this variable should be
@@ -140,7 +140,6 @@ changes to take effect."
 
 (defcustom mastodon-toot-timestamp-format "%F %T"
   "Format to use for timestamps.
-
 For valid formatting options see `format-time-string`.
 The default value \"%F %T\" prints ISO8601-style YYYY-mm-dd HH:MM:SS.
 Use. e.g. \"%c\" for your locale's date and time format."
@@ -207,8 +206,14 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "@") #'mastodon-notifications--get-mentions)
     (define-key map (kbd "e") #'mastodon-toot--edit-toot-at-point)
     (define-key map (kbd "E") #'mastodon-toot--view-toot-edits)
+    (define-key map (kbd "l") #'recenter-top-bottom)
     (when (require 'lingva nil :no-error)
-      (define-key map (kbd "s") #'mastodon-toot--translate-toot-text))
+      (define-key map (kbd "a") #'mastodon-toot--translate-toot-text))
+    (define-key map (kbd "s") #'mastodon-tl--view-scheduled-toots)
+    (define-key map (kbd "M-C-q") #'mastodon-kill-all-buffers)
+    (define-key map (kbd ";") #'mastodon-tl--view-instance-description)
+    (define-key map (kbd ",") #'mastodon-toot--list-toot-favouriters)
+    (define-key map (kbd ".") #'mastodon-toot--list-toot-boosters)
     map)
   "Keymap for `mastodon-mode'.")
 
@@ -349,6 +354,31 @@ not, just browse the URL in the normal fashion."
           (string-match "^/p/[[:alpha:]]+/[[:digit:]]+$" query)
           (string-match "^/[[:alpha:]]+$" query)
           (string-match "^/u/[[:alpha:]]+$" query)))))
+
+(defun mastodon-live-buffers ()
+  "Return a list of open mastodon buffers.
+Calls `mastodon-tl--get-buffer-type', which see."
+  (cl-loop for x in (buffer-list)
+           when (with-current-buffer x (mastodon-tl--get-buffer-type))
+           collect (get-buffer x)))
+
+(defun mastodon-kill-all-buffers ()
+  "Kill any and all open mastodon buffers, hopefully."
+  (interactive)
+  (let ((mastodon-buffers (mastodon-live-buffers)))
+    (cl-loop for x in mastodon-buffers
+             do (kill-buffer x))))
+
+(defun mastodon-switch-to-buffer ()
+  "Switch to a live mastodon buffer."
+  (interactive)
+  (let* ((bufs (mastodon-live-buffers))
+         (buf-names (mapcar (lambda (buf)
+                              (buffer-name buf))
+                            bufs))
+         (choice (completing-read "Switch to mastodon buffer: "
+                                  buf-names)))
+    (switch-to-buffer choice)))
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook (lambda ()
