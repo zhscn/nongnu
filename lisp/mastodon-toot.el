@@ -774,8 +774,8 @@ instance to edit a toot."
                                                     (symbol-name t)))
                                   ("spoiler_text" . ,spoiler)
                                   ("language" . ,mastodon-toot--language))
-                                        ; Pleroma instances can't handle null-valued
-                                        ; scheduled_at args, so only add if non-nil
+                                ;; Pleroma instances can't handle null-valued
+                                ;; scheduled_at args, so only add if non-nil
                                 (when scheduled `(("scheduled_at" . ,scheduled)))))
          (args-media (when mastodon-toot--media-attachments
                        (mastodon-http--build-array-params-alist
