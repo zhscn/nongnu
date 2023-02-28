@@ -933,7 +933,7 @@ Federated user: `username@host.co`."
     ;; reverse does not work on vectors in 24.5
     (mapcar (lambda(x) (alist-get 'acct x))
 	    (reverse mentions))))
-    
+
 (defun mastodon-toot--get-bounds (regex)
   "Get bounds of tag or handle before point using REGEX."
   ;; needed because # and @ are not part of any existing thing at point
