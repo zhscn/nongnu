@@ -252,6 +252,9 @@ work without first loading =mastodon.el=:
 - =mastodon-tl--list-followed-tags=: View a list of tags you're following.
 
 
+- =mastodon-switch-to-buffer=: switch between mastodon buffers.
+
+
 - =mastodon-profile--update-display-name=: Update the display name for your
   account.
 - =mastodon-profile--update-user-profile-note=: Update your bio note.
