@@ -2789,12 +2789,12 @@ when showing followers or accounts followed."
                  ;;(prev (cadr (mastodon-tl--link-header)))
                  (url (mastodon-tl--build-link-header-url next)))
             (mastodon-http--get-response-async url nil 'mastodon-tl--more* (current-buffer)
-                                               (point) :headers))
-          (mastodon-tl--more-json-async
-           (mastodon-tl--get-endpoint)
-           (mastodon-tl--oldest-id)
-           (mastodon-tl--update-params)
-           'mastodon-tl--more* (current-buffer) (point))))))
+                                               (point) :headers))))
+    (mastodon-tl--more-json-async
+     (mastodon-tl--get-endpoint)
+     (mastodon-tl--oldest-id)
+     (mastodon-tl--update-params)
+     'mastodon-tl--more* (current-buffer) (point))))
 
 (defun mastodon-tl--more* (response buffer point-before &optional headers)
   "Append older toots to timeline, asynchronously.
