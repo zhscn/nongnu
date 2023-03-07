@@ -211,6 +211,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "s") #'mastodon-tl--view-scheduled-toots)
     (define-key map (kbd "M-C-q") #'mastodon-kill-all-buffers)
     (define-key map (kbd ";") #'mastodon-tl--view-instance-description)
+    (define-key map (kbd ":") #'mastodon-tl--list-followed-tags)
     (define-key map (kbd ",") #'mastodon-toot--list-toot-favouriters)
     (define-key map (kbd ".") #'mastodon-toot--list-toot-boosters)
     map)
