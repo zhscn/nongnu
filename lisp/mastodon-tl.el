@@ -1646,14 +1646,15 @@ ID is that of the toot to view."
                 (mastodon-http--api (concat "statuses/" id)))))
     (if (equal (caar toot) 'error)
         (message "Error: %s" (cdar toot))
-      (with-output-to-temp-buffer buffer
-        (switch-to-buffer buffer)
-        (mastodon-mode)
-        (mastodon-tl--set-buffer-spec buffer
-                                      (format "statuses/%s" id)
-                                      nil)
+      (with-current-buffer (get-buffer-create buffer)
         (let ((inhibit-read-only t))
-          (mastodon-tl--toot toot :detailed-p))))))
+          (switch-to-buffer buffer)
+          (mastodon-mode)
+          (mastodon-tl--set-buffer-spec buffer
+                                        (format "statuses/%s" id)
+                                        nil)
+          (let ((inhibit-read-only t))
+            (mastodon-tl--toot toot :detailed-p)))))))
 
 (defun mastodon-tl--view-whole-thread ()
   "From a thread view, view entire thread.
@@ -1698,13 +1699,13 @@ view all branches of a thread."
                  0)
               ;; if we have a thread:
               (progn
-                (with-output-to-temp-buffer buffer
-                  (switch-to-buffer buffer)
-                  (mastodon-mode)
-                  (mastodon-tl--set-buffer-spec buffer
-                                                endpoint
-                                                #'mastodon-tl--thread)
+                (with-current-buffer (get-buffer-create buffer)
                   (let ((inhibit-read-only t))
+                    (switch-to-buffer buffer)
+                    (mastodon-mode)
+                    (mastodon-tl--set-buffer-spec buffer
+                                                  endpoint
+                                                  #'mastodon-tl--thread)
                     (mastodon-tl--timeline (alist-get 'ancestors context))
                     (goto-char (point-max))
                     (move-marker marker (point))
@@ -1716,7 +1717,6 @@ view all branches of a thread."
                 (mastodon-tl--goto-next-toot))
             ;; else just print the lone toot:
             (mastodon-tl--single-toot id)))))))
-
 
 (defun mastodon-tl--mute-thread ()
   "Mute the thread displayed in the current buffer.
@@ -3048,43 +3048,43 @@ JSON and http headers, without it just the JSON."
 	(message "Looks like nothing returned from endpoint: %s" endpoint)
       (let* ((headers (if headers (cdr response) nil))
              (link-header (mastodon-tl--get-link-header-from-response headers)))
-        (with-output-to-temp-buffer buffer
-          (switch-to-buffer buffer)
-          ;; mastodon-mode wipes buffer-spec, so order must unforch be:
-          ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
-          ;; which means we cannot use buffer-spec for update-function
-          ;; unless we set it both before and after the others
-          (mastodon-tl--set-buffer-spec buffer
-                                        endpoint
-                                        update-function
-                                        link-header
-                                        update-params
-                                        hide-replies)
-          (setq
-           ;; Initialize with a minimal interval; we re-scan at least once
-           ;; every 5 minutes to catch any timestamps we may have missed
-           mastodon-tl--timestamp-next-update (time-add (current-time)
-                                                        (seconds-to-time 300)))
-          (funcall update-function json))
-        (mastodon-mode)
-        (with-current-buffer buffer
-          (mastodon-tl--set-buffer-spec buffer
-                                        endpoint
-                                        update-function
-                                        link-header
-                                        update-params
-                                        hide-replies)
-          (setq mastodon-tl--timestamp-update-timer
-                (when mastodon-tl--enable-relative-timestamps
-                  (run-at-time (time-to-seconds
-                                (time-subtract mastodon-tl--timestamp-next-update
-                                               (current-time)))
-                               nil ;; don't repeat
-                               #'mastodon-tl--update-timestamps-callback
-                               (current-buffer)
-                               nil)))
-          (unless (mastodon-tl--profile-buffer-p)
-            (mastodon-tl--goto-first-item)))))))
+        (with-current-buffer (get-buffer-create buffer)
+          (let ((inhibit-read-only t))
+            (switch-to-buffer buffer)
+            ;; mastodon-mode wipes buffer-spec, so order must unforch be:
+            ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
+            ;; which means we cannot use buffer-spec for update-function
+            ;; unless we set it both before and after the others
+            (mastodon-tl--set-buffer-spec buffer
+                                          endpoint
+                                          update-function
+                                          link-header
+                                          update-params
+                                          hide-replies)
+            (setq
+             ;; Initialize with a minimal interval; we re-scan at least once
+             ;; every 5 minutes to catch any timestamps we may have missed
+             mastodon-tl--timestamp-next-update (time-add (current-time)
+                                                          (seconds-to-time 300)))
+            (funcall update-function json)
+            (mastodon-mode)
+            (mastodon-tl--set-buffer-spec buffer
+                                          endpoint
+                                          update-function
+                                          link-header
+                                          update-params
+                                          hide-replies)
+            (setq mastodon-tl--timestamp-update-timer
+                  (when mastodon-tl--enable-relative-timestamps
+                    (run-at-time (time-to-seconds
+                                  (time-subtract mastodon-tl--timestamp-next-update
+                                                 (current-time)))
+                                 nil ;; don't repeat
+                                 #'mastodon-tl--update-timestamps-callback
+                                 (current-buffer)
+                                 nil)))
+            (unless (mastodon-tl--profile-buffer-p)
+              (mastodon-tl--goto-first-item))))))))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function &optional note-type)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
@@ -3100,34 +3100,34 @@ Optional arg NOTE-TYPE means only get that type of note."
          (url (mastodon-http--api endpoint))
          (buffer (concat "*mastodon-" buffer-name "*"))
          (json (mastodon-http--get-json url args)))
-    (with-output-to-temp-buffer buffer
-      (switch-to-buffer buffer)
-      ;; mastodon-mode wipes buffer-spec, so order must unforch be:
-      ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
-      ;; which means we cannot use buffer-spec for update-function
-      ;; unless we set it both before and after the others
-      (mastodon-tl--set-buffer-spec buffer endpoint update-function)
-      (setq
-       ;; Initialize with a minimal interval; we re-scan at least once
-       ;; every 5 minutes to catch any timestamps we may have missed
-       mastodon-tl--timestamp-next-update (time-add (current-time)
-                                                    (seconds-to-time 300)))
-      (funcall update-function json))
-    (mastodon-mode)
-    (with-current-buffer buffer
-      (mastodon-tl--set-buffer-spec buffer endpoint update-function nil args)
-      (setq mastodon-tl--timestamp-update-timer
-            (when mastodon-tl--enable-relative-timestamps
-              (run-at-time (time-to-seconds
-                            (time-subtract mastodon-tl--timestamp-next-update
-                                           (current-time)))
-                           nil ;; don't repeat
-                           #'mastodon-tl--update-timestamps-callback
-                           (current-buffer)
-                           nil)))
-      (unless (mastodon-tl--profile-buffer-p)
-        (mastodon-tl--goto-first-item)))
-    buffer))
+    (with-current-buffer (get-buffer-create buffer)
+      (let ((inhibit-read-only t))
+        (switch-to-buffer buffer)
+        ;; mastodon-mode wipes buffer-spec, so order must unforch be:
+        ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
+        ;; which means we cannot use buffer-spec for update-function
+        ;; unless we set it both before and after the others
+        (mastodon-tl--set-buffer-spec buffer endpoint update-function)
+        (setq
+         ;; Initialize with a minimal interval; we re-scan at least once
+         ;; every 5 minutes to catch any timestamps we may have missed
+         mastodon-tl--timestamp-next-update (time-add (current-time)
+                                                      (seconds-to-time 300)))
+        (funcall update-function json)
+        (mastodon-mode)
+        (mastodon-tl--set-buffer-spec buffer endpoint update-function nil args)
+        (setq mastodon-tl--timestamp-update-timer
+              (when mastodon-tl--enable-relative-timestamps
+                (run-at-time (time-to-seconds
+                              (time-subtract mastodon-tl--timestamp-next-update
+                                             (current-time)))
+                             nil ;; don't repeat
+                             #'mastodon-tl--update-timestamps-callback
+                             (current-buffer)
+                             nil)))
+        (unless (mastodon-tl--profile-buffer-p)
+          (mastodon-tl--goto-first-item)))
+      buffer)))
 
 (provide 'mastodon-tl)
 ;;; mastodon-tl.el ends here
