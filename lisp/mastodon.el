@@ -294,7 +294,8 @@ BUFFER-NAME is added to \"*mastodon-\" to create the buffer name."
        "notifications"
        'mastodon-notifications--timeline
        type)
-      (use-local-map mastodon-notifications--map))))
+      (with-current-buffer buffer
+        (use-local-map mastodon-notifications--map)))))
 
 ;; URL lookup: should be available even if `mastodon.el' not loaded:
 
