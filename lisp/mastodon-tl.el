@@ -2339,15 +2339,15 @@ INSTANCE is an instance domain name."
                        nil ; params
                        nil ; silent
                        :vector)))
-       (mastodon-tl--instance-response-fun response brief)))))
+       (mastodon-tl--instance-response-fun response brief instance)))))
 
 (defun mastodon-tl--instance-response-fun (response brief instance)
   "Display instance description RESPONSE in a new buffer.
 BRIEF means to show fewer details."
   (when response
-    (let ((domain (url-file-nondirectory instance))
-          (buf (get-buffer-create
-                (format "*mastodon-instance-%s*" domain))))
+    (let* ((domain (url-file-nondirectory instance))
+           (buf (get-buffer-create
+                 (format "*mastodon-instance-%s*" domain))))
       (with-current-buffer buf
         (switch-to-buffer-other-window buf)
         (let ((inhibit-read-only t))
