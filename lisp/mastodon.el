@@ -283,8 +283,9 @@ If REPLY-JSON is the json of the toot being replied to."
 Optionally only print notifications of type TYPE, a string.
 BUFFER-NAME is added to \"*mastodon-\" to create the buffer name."
   (interactive)
-  (let ((buffer (or (concat "*mastodon-" buffer-name "*")
-                    "*mastodon-notifications*")))
+  (let ((buffer (if buffer-name
+                    (concat "*mastodon-" buffer-name "*")
+                  "*mastodon-notifications*")))
     (if (get-buffer buffer)
         (progn (switch-to-buffer buffer)
                (mastodon-tl--update))
