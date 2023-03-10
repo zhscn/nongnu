@@ -658,89 +658,90 @@ HEADERS means also fetch link headers for pagination."
          (fields (mastodon-profile--fields-get account))
          (pinned (mastodon-profile--get-statuses-pinned account))
          (joined (mastodon-profile--account-field account 'created_at)))
-    (with-output-to-temp-buffer buffer
-      (switch-to-buffer buffer)
-      (mastodon-mode)
-      (mastodon-profile-mode)
-      (setq mastodon-profile--account account)
-      (mastodon-tl--set-buffer-spec buffer
-                                    endpoint
-                                    update-function
-                                    link-header)
-      (let* ((inhibit-read-only t)
-             (is-statuses (string= endpoint-type "statuses"))
-             (is-followers (string= endpoint-type "followers"))
-             (is-following (string= endpoint-type "following"))
-             (endpoint-name (cond
-                             (is-statuses "     TOOTS   ")
-                             (is-followers "  FOLLOWERS  ")
-                             (is-following "  FOLLOWING  "))))
-        (insert
-         (propertize
-          (concat
-           "\n"
-           (mastodon-profile--image-from-account account 'avatar_static)
-           (mastodon-profile--image-from-account account 'header_static)
-           "\n"
-           (propertize (mastodon-profile--account-field
-                        account 'display_name)
-                       'face 'mastodon-display-name-face)
-           "\n"
-           (propertize (concat "@" acct)
-                       'face 'default)
-           (if (equal locked t)
-               (concat " " (mastodon-tl--symbol 'locked))
-             "")
-           "\n ------------\n"
-           ;; profile note:
-           ;; account here to enable tab-stops in profile note
-           (mastodon-tl--render-text note account)
-           ;; meta fields:
-           (if fields
-               (concat "\n"
-                       (mastodon-tl--set-face
-                        (mastodon-profile--fields-insert fields)
-                        'success))
-             "")
-           "\n"
-           ;; Joined date:
+    (with-current-buffer (get-buffer-create buffer)
+      (let ((inhibit-read-only t))
+        (switch-to-buffer buffer)
+        (mastodon-mode)
+        (mastodon-profile-mode)
+        (setq mastodon-profile--account account)
+        (mastodon-tl--set-buffer-spec buffer
+                                      endpoint
+                                      update-function
+                                      link-header)
+        (let* ((inhibit-read-only t)
+               (is-statuses (string= endpoint-type "statuses"))
+               (is-followers (string= endpoint-type "followers"))
+               (is-following (string= endpoint-type "following"))
+               (endpoint-name (cond
+                               (is-statuses "     TOOTS   ")
+                               (is-followers "  FOLLOWERS  ")
+                               (is-following "  FOLLOWING  "))))
+          (insert
            (propertize
-            (mastodon-profile--format-joined-date-string joined)
-            'face 'success)
-           "\n\n")
-          'profile-json account)
-         ;; insert counts
-         (mastodon-tl--set-face
-          (concat " ------------\n"
-                  " TOOTS: " toots-count " | "
-                  "FOLLOWERS: " followers-count " | "
-                  "FOLLOWING: " following-count "\n"
-                  " ------------\n\n")
-          'success)
-         ;; insert relationship (follows)
-         (if followsp
-             (mastodon-tl--set-face
-              (concat (if (equal follows-you 't)
-                          " | FOLLOWS YOU")
-                      (if (equal followed-by-you 't)
-                          " | FOLLOWED BY YOU")
-                      "\n\n")
-              'success)
-           "") ; if no followsp we still need str-or-char-p for insert
-         ;; insert endpoint
-         (mastodon-tl--set-face
-          (concat " ------------\n"
-                  endpoint-name "\n"
-                  " ------------\n")
-          'success))
-        (setq mastodon-tl--update-point (point))
-        (mastodon-media--inline-images (point-min) (point))
-        ;; insert pinned toots first
-        (when (and pinned (equal endpoint-type "statuses"))
-          (mastodon-profile--insert-statuses-pinned pinned)
-          (setq mastodon-tl--update-point (point))) ;updates to follow pinned toots
-        (funcall update-function json)))
-    (goto-char (point-min))))
+            (concat
+             "\n"
+             (mastodon-profile--image-from-account account 'avatar_static)
+             (mastodon-profile--image-from-account account 'header_static)
+             "\n"
+             (propertize (mastodon-profile--account-field
+                          account 'display_name)
+                         'face 'mastodon-display-name-face)
+             "\n"
+             (propertize (concat "@" acct)
+                         'face 'default)
+             (if (equal locked t)
+                 (concat " " (mastodon-tl--symbol 'locked))
+               "")
+             "\n ------------\n"
+             ;; profile note:
+             ;; account here to enable tab-stops in profile note
+             (mastodon-tl--render-text note account)
+             ;; meta fields:
+             (if fields
+                 (concat "\n"
+                         (mastodon-tl--set-face
+                          (mastodon-profile--fields-insert fields)
+                          'success))
+               "")
+             "\n"
+             ;; Joined date:
+             (propertize
+              (mastodon-profile--format-joined-date-string joined)
+              'face 'success)
+             "\n\n")
+            'profile-json account)
+           ;; insert counts
+           (mastodon-tl--set-face
+            (concat " ------------\n"
+                    " TOOTS: " toots-count " | "
+                    "FOLLOWERS: " followers-count " | "
+                    "FOLLOWING: " following-count "\n"
+                    " ------------\n\n")
+            'success)
+           ;; insert relationship (follows)
+           (if followsp
+               (mastodon-tl--set-face
+                (concat (if (equal follows-you 't)
+                            " | FOLLOWS YOU")
+                        (if (equal followed-by-you 't)
+                            " | FOLLOWED BY YOU")
+                        "\n\n")
+                'success)
+             "") ; if no followsp we still need str-or-char-p for insert
+           ;; insert endpoint
+           (mastodon-tl--set-face
+            (concat " ------------\n"
+                    endpoint-name "\n"
+                    " ------------\n")
+            'success))
+          (setq mastodon-tl--update-point (point))
+          (mastodon-media--inline-images (point-min) (point))
+          ;; insert pinned toots first
+          (when (and pinned (equal endpoint-type "statuses"))
+            (mastodon-profile--insert-statuses-pinned pinned)
+            (setq mastodon-tl--update-point (point))) ;updates to follow pinned toots
+          (funcall update-function json)))
+      (goto-char (point-min)))))
 
 (defun mastodon-profile--format-joined-date-string (joined)
   "Format a human-readable Joined string from timestamp JOINED."

@@ -1654,6 +1654,11 @@ EDIT means we are editing an existing toot, not composing a new one."
 ;;;###autoload
 (add-hook 'mastodon-toot-mode-hook #'mastodon-profile--fetch-server-account-settings-maybe)
 
+;; disable auto-fill-mode:
+(add-hook 'mastodon-toot-mode-hook
+          (lambda ()
+            (auto-fill-mode -1)))
+
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."
   :group 'mastodon-toot

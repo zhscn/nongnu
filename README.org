@@ -190,7 +190,7 @@ not contain =:client_id= and =:client_secret=.
 
 =M-x mastodon-toot= (or =t= from a mastodon.el buffer).
 
-Pops a new buffer/window in =mastodon-toot= minor mode. Enter the
+Pops a new buffer/window in =text-mode= and =mastodon-toot= minor mode. Enter the
 contents of your toot here. =C-c C-c= sends the toot. =C-c C-k= cancels.
 Both actions kill the buffer and window.
 
@@ -202,6 +202,17 @@ Server's max toot length, and attachment previews, are shown.
 
 You can download and use your instance's custom emoji
 (=mastodon-toot--download-custom-emoji=, =mastodon-toot--enable-custom-emoji=).
+
+The compose buffer uses =text-mode= so any configuration you have for that mode
+will be enabled. If any of your existing config conflicts with =mastodon-toot=,
+you can disable it in the =mastodon-toot-mode-hook=. For example, the default
+value of that hook is as follows:
+
+#+begin_src emacs-lisp
+(add-hook 'mastodon-toot-mode-hook
+          (lambda ()
+              (auto-fill-mode -1)))
+#+end_src
 
 **** Keybindings
 
