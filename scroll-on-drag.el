@@ -255,7 +255,20 @@ Returns true when scrolling took place, otherwise nil."
             nil)))
 
          ;; Restore indent (lost when scrolling).
-         (restore-column (current-column))
+         (this-column (current-column))
+         ;; Restore column (may be nil.)
+         (restore-column
+          (or goal-column
+              (cond
+               ((and temporary-goal-column
+                     (memq last-command (list 'next-line 'previous-line 'line-move)))
+                (cond
+                 ((consp temporary-goal-column)
+                  (car temporary-goal-column))
+                 (t
+                  temporary-goal-column)))
+               (t
+                nil))))
 
          (mouse-y-fn
           (cond
@@ -457,8 +470,14 @@ Returns true when scrolling took place, otherwise nil."
       (setq has-scrolled nil))
 
     ;; Restore indent level if possible.
-    (when (and has-scrolled (> restore-column 0))
-      (move-to-column restore-column))
+    (when has-scrolled
+      (unless restore-column
+        (setq temporary-goal-column this-column)
+        (setq restore-column this-column))
+      (when (> restore-column 0)
+        (move-to-column restore-column))
+      ;; Needed so `temporary-goal-column' is respected in the future.
+      (setq this-command 'line-move))
 
     (when has-scrolled-real
       (let ((inhibit-redisplay nil))
