@@ -755,10 +755,10 @@ If toot is a boost, opens the profile of the booster."
   (mastodon-profile--make-author-buffer
    (alist-get 'account (mastodon-profile--toot-json))))
 
-(defun mastodon-profile--image-from-account (account img_type)
+(defun mastodon-profile--image-from-account (account img-type)
   "Return a avatar image from ACCOUNT.
 IMG_TYPE is the JSON key from the account data."
-  (let ((img (alist-get img_type account)))
+  (let ((img (alist-get img-type account)))
     (unless (equal img "/avatars/original/missing.png")
       (mastodon-media--get-media-link-rendering img))))
 

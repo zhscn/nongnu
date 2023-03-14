@@ -1274,9 +1274,7 @@ this just means displaying toot client."
                                      (alist-get 'title x))
                                    options))
            (options-number-seq (number-sequence 1 (length options)))
-           (options-numbers (mapcar (lambda(x)
-                                      (number-to-string x))
-                                    options-number-seq))
+           (options-numbers (mapcar #'number-to-string options-number-seq))
            (options-alist (cl-mapcar 'cons options-numbers options-titles))
            ;; we display both option number and the option title
            ;; but also store both as cons cell as cdr, as we need it below
@@ -2084,9 +2082,7 @@ If ID, just return that toot."
             (mastodon-tl--set-face
              "[n/p - prev/next\n r - reschedule\n e/RET - edit toot\n c - cancel]\n\n"
              'font-lock-comment-face))
-    (mapc (lambda (x)
-            (mastodon-tl--insert-scheduled-toot x))
-          scheduleds)
+    (mapc #'mastodon-tl--insert-scheduled-toot scheduleds)
     (goto-char (point-min))
     (when json
       (mastodon-tl--goto-next-toot))))

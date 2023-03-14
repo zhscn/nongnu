@@ -520,12 +520,12 @@ Uses `lingva.el'."
          (msg-y-or-n (if pinned-p "Unpin" "Pin")))
     (if (not pinnable-p)
         (message "You can only pin your own toots.")
-      (if (y-or-n-p (format "%s this toot? " msg-y-or-n))
-          (mastodon-toot--action action
-                                 (lambda ()
-                                   (when mastodon-tl--buffer-spec
-                                     (mastodon-tl--reload-timeline-or-profile))
-                                   (message "Toot %s!" msg)))))))
+      (when (y-or-n-p (format "%s this toot? " msg-y-or-n))
+        (mastodon-toot--action action
+                               (lambda ()
+                                 (when mastodon-tl--buffer-spec
+                                   (mastodon-tl--reload-timeline-or-profile))
+                                 (message "Toot %s!" msg)))))))
 
 (defun mastodon-toot--delete-toot ()
   "Delete user's toot at point synchronously."
@@ -546,22 +546,22 @@ NO-REDRAFT means delete toot only."
          (reply-id (alist-get 'in_reply_to_id toot)))
     (if (not (mastodon-toot--own-toot-p toot))
         (message "You can only delete (and redraft) your own toots.")
-      (if (y-or-n-p (if no-redraft
-                        (format "Delete this toot? ")
-                      (format "Delete and redraft this toot? ")))
-          (let* ((response (mastodon-http--delete url)))
-            (mastodon-http--triage
-             response
-             (lambda ()
-               (if no-redraft
-                   (progn
-                     (when mastodon-tl--buffer-spec
-                       (mastodon-tl--reload-timeline-or-profile))
-                     (message "Toot deleted!"))
-                 (mastodon-toot--redraft response
-                                         reply-id
-                                         toot-visibility
-                                         toot-cw)))))))))
+      (when (y-or-n-p (if no-redraft
+                          (format "Delete this toot? ")
+                        (format "Delete and redraft this toot? ")))
+        (let* ((response (mastodon-http--delete url)))
+          (mastodon-http--triage
+           response
+           (lambda ()
+             (if no-redraft
+                 (progn
+                   (when mastodon-tl--buffer-spec
+                     (mastodon-tl--reload-timeline-or-profile))
+                   (message "Toot deleted!"))
+               (mastodon-toot--redraft response
+                                       reply-id
+                                       toot-visibility
+                                       toot-cw)))))))))
 
 (defun mastodon-toot--set-cw (&optional cw)
   "Set content warning to CW if it is non-nil."
@@ -903,9 +903,8 @@ Buffer-local variable `mastodon-toot-previous-window-config' holds the config."
   "Apply `mastodon-toot--process-local' function to each mention in MENTIONS.
 Remove empty string (self) from result and joins the sequence with whitespace."
   (mapconcat (lambda (mention) mention)
-	     (remove "" (mapcar (lambda (x) (mastodon-toot--process-local x))
-				mentions))
-	     " "))
+	     (remove "" (mapcar #'mastodon-toot--process-local mentions))
+             " "))
 
 (defun mastodon-toot--process-local (acct)
   "Add domain to local ACCT and replace the curent user name with \"\".
