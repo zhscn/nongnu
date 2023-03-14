@@ -1900,7 +1900,8 @@ If ID is provided, delete that list."
   (mastodon-tl--init-sync "lists"
                           "lists"
                           'mastodon-tl--insert-lists)
-  (use-local-map mastodon-tl--view-lists-keymap))
+  (with-current-buffer "*mastodon-lists*"
+    (use-local-map mastodon-tl--view-lists-keymap)))
 
 (defun mastodon-tl--insert-lists (_json)
   "Insert the user's lists from JSON."
@@ -2191,7 +2192,8 @@ Prompt for a context, must be a list containting at least one of \"home\",
   (mastodon-tl--init-sync "filters"
                           "filters"
                           'mastodon-tl--insert-filters)
-  (use-local-map mastodon-tl--view-filters-keymap))
+  (with-current-buffer "*mastodon-filters*"
+    (use-local-map mastodon-tl--view-filters-keymap)))
 
 (defun mastodon-tl--insert-filters (json)
   "Insert the user's current filters.
@@ -2253,7 +2255,8 @@ JSON is what is returned by by the server."
   (mastodon-tl--init-sync "follow-suggestions"
                           "suggestions"
                           'mastodon-tl--insert-follow-suggestions)
-  (use-local-map mastodon-tl--follow-suggestions-map))
+  (with-current-buffer "*mastodon-follow-suggestions*"
+    (use-local-map mastodon-tl--follow-suggestions-map)))
 
 (defun mastodon-tl--insert-follow-suggestions (response)
   "Insert follow suggestions into buffer.

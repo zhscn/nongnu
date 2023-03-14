@@ -238,8 +238,9 @@ NO-REBLOGS means do not display boosts in statuses."
   (mastodon-tl--init-sync "follow-requests"
                           "follow_requests"
                           'mastodon-profile--insert-follow-requests)
-  (use-local-map mastodon-profile--view-follow-requests-keymap)
-  (mastodon-tl--goto-first-item))
+  (mastodon-tl--goto-first-item)
+  (with-current-buffer "*mastodon-follow-requests*"
+    (use-local-map mastodon-profile--view-follow-requests-keymap)))
 
 (defun mastodon-profile--insert-follow-requests (json)
   "Insert the user's current follow requests.
