@@ -651,11 +651,14 @@ HEADERS means also fetch link headers for pagination."
                        (mastodon-profile--account-field
                         account 'statuses_count)))
          (relationships (mastodon-profile--relationships-get id))
+         (requested-you (when (not (seq-empty-p relationships))
+                          (alist-get 'requested_by relationships)))
          (followed-by-you (when (not (seq-empty-p relationships))
                             (alist-get 'following relationships)))
          (follows-you (when (not (seq-empty-p relationships))
                         (alist-get 'followed_by relationships)))
-         (followsp (or (equal follows-you 't) (equal followed-by-you 't)))
+         (followsp (or (equal follows-you 't) (equal followed-by-you 't)
+                       (equal requested-you 't)))
          (fields (mastodon-profile--fields-get account))
          (pinned (mastodon-profile--get-statuses-pinned account))
          (joined (mastodon-profile--account-field account 'created_at)))
@@ -722,10 +725,12 @@ HEADERS means also fetch link headers for pagination."
            ;; insert relationship (follows)
            (if followsp
                (mastodon-tl--set-face
-                (concat (if (equal follows-you 't)
-                            " | FOLLOWS YOU")
-                        (if (equal followed-by-you 't)
-                            " | FOLLOWED BY YOU")
+                (concat (when (equal follows-you 't)
+                          " | FOLLOWS YOU")
+                        (when (equal followed-by-you 't)
+                          " | FOLLOWED BY YOU")
+                        (when (equal requested-you 't)
+                          " | REQUESTED TO FOLLOW YOU")
                         "\n\n")
                 'success)
              "") ; if no followsp we still need str-or-char-p for insert
