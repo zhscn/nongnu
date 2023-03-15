@@ -1,4 +1,4 @@
-;;; macrostep.el --- interactive macro expander  -*- lexical-binding: t; -*-
+;;; macrostep.el --- Interactive macro expander  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2015 Jon Oddie
 
