@@ -948,7 +948,6 @@ Currently limited to 100 handles. If not found, try
          (id (alist-get choice handles nil nil 'equal)))
     (mastodon-profile--remove-user-from-followers id)))
 
-;; TODO: display any existing note
 (defun mastodon-profile--add-private-note-to-account ()
   "Add a private note to an account.
 Can be called from a profile page or normal timeline.
@@ -958,9 +957,10 @@ Send an empty note to clear an existing one."
    'mastodon-profile--post-private-note-to-account
    "add a note to"))
 
-(defun mastodon-profile--post-private-note-to-account (id handle)
+(defun mastodon-profile--post-private-note-to-account (id handle note-old)
   "POST a private note onto an account ID with user HANDLE on the server."
-  (let* ((note (read-string (format "Add private note to account %s: " handle)))
+  (let* ((note (read-string (format "Add private note to account %s: " handle)
+                            note-old))
          (params `(("comment" . ,note)))
          (url (mastodon-http--api (format "accounts/%s/note" id)))
          (response (mastodon-http--post url params)))
@@ -998,11 +998,13 @@ ACTION-FUN does the adding or viewing, MESSAGE is a prompt for
                       profile-json
                     (mastodon-profile--search-account-by-handle handle)))
          (id (alist-get 'id account))
-         (relationships (when view (mastodon-profile--relationships-get id)))
-         (note (when view (alist-get 'note relationships))))
+         (relationships (mastodon-profile--relationships-get id))
+         (note (alist-get 'note relationships)))
     (if view
-        (funcall action-fun note)
-      (funcall action-fun id handle))))
+        (if (string-empty-p note)
+            (message "No private note for %s" handle)
+          (funcall action-fun note))
+      (funcall action-fun id handle note))))
 
 (provide 'mastodon-profile)
 ;;; mastodon-profile.el ends here
