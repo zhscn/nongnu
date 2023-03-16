@@ -665,6 +665,7 @@ HEADERS means also fetch link headers for pagination."
     (with-current-buffer (get-buffer-create buffer)
       (let ((inhibit-read-only t))
         (switch-to-buffer buffer)
+        (erase-buffer)
         (mastodon-mode)
         (mastodon-profile-mode)
         (setq mastodon-profile--account account)
