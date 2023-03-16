@@ -2309,8 +2309,7 @@ INSTANCE is an instance domain name."
                        :vector)))
         (mastodon-tl--instance-response-fun response brief))
     (mastodon-tl--do-if-toot
-     (let* ((profile-p (get-text-property (point) 'profile-json))
-            (toot (if profile-p
+     (let* ((toot (if (mastodon-tl--profile-buffer-p)
                       (mastodon-tl--property 'profile-json) ; profile may have 0 toots
                     (mastodon-tl--property 'toot-json)))
             (reblog (alist-get 'reblog toot))
