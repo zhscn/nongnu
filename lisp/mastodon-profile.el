@@ -948,28 +948,19 @@ Currently limited to 100 handles. If not found, try
          (id (alist-get choice handles nil nil 'equal)))
     (mastodon-profile--remove-user-from-followers id)))
 
+;; TODO: display any existing note
 (defun mastodon-profile--add-private-note-to-account ()
   "Add a private note to an account.
 Can be called from a profile page or normal timeline.
 Send an empty note to clear an existing one."
   (interactive)
-  (let* ((profile-json (when (mastodon-tl--profile-buffer-p)
-                         (save-excursion
-                           (goto-char (point-min))
-                           (or (mastodon-tl--property 'profile-json)
-                               (error "No profile data found")))))
-         (handle (if (mastodon-tl--profile-buffer-p)
-                     (alist-get 'acct profile-json)
-                   (mastodon-tl--interactive-user-handles-get "add a note to")))
-         (account (if (mastodon-tl--profile-buffer-p)
-                      profile-json
-                    (mastodon-profile--search-account-by-handle handle)))
-         (id (alist-get 'id account)))
-    (mastodon-profile--post-private-note-to-account id handle)))
+  (mastodon-profile--add-or-view-private-note
+   'mastodon-profile--post-private-note-to-account
+   "add a note to"))
 
 (defun mastodon-profile--post-private-note-to-account (id handle)
-  "POST a private NOTE onto an account ID on the server."
-  (let* ((note (read-string "Add private note to account %s: "))
+  "POST a private note onto an account ID with user HANDLE on the server."
+  (let* ((note (read-string (format "Add private note to account %s: " handle)))
          (params `(("comment" . ,note)))
          (url (mastodon-http--api (format "accounts/%s/note" id)))
          (response (mastodon-http--post url params)))
@@ -978,21 +969,40 @@ Send an empty note to clear an existing one."
                              (message "Private note on %s added!" handle)))))
 
 (defun mastodon-profile--view-account-private-note ()
-  "Display the private note about a user.
-Must be called from the user's profile page."
+  "Display the private note about a user."
   (interactive)
-  (if (not (mastodon-tl--profile-buffer-p))
-      (message "Not in a profile buffer.")
-    (let* ((profile-json (save-excursion
+  (mastodon-profile--add-or-view-private-note
+   'mastodon-profile--display-private-note
+   "view private note of"
+   :view))
+
+(defun mastodon-profile--display-private-note (note)
+  "Display private NOTE in a temporary buffer."
+  (with-output-to-temp-buffer "*mastodon-profile-private-note*"
+    (let ((inhibit-read-only t))
+      (princ note))))
+
+(defun mastodon-profile--add-or-view-private-note (action-fun &optional message view)
+  "Add or view a private note for an account.
+ACTION-FUN does the adding or viewing, MESSAGE is a prompt for
+`mastodon-tl--interactive-user-handles-get', VIEW is a flag."
+  (let* ((profile-json (when (mastodon-tl--profile-buffer-p)
+                         (save-excursion
                            (goto-char (point-min))
                            (or (mastodon-tl--property 'profile-json)
-                               (error "No profile data found"))))
-           (id (alist-get 'id profile-json))
-           (relationships (mastodon-profile--relationships-get id))
-           (note (alist-get 'note relationships)))
-      (with-output-to-temp-buffer "*mastodon-profile-private-note*"
-        (let ((inhibit-read-only t))
-          (princ note))))))
+                               (error "No profile data found")))))
+         (handle (if (mastodon-tl--profile-buffer-p)
+                     (alist-get 'acct profile-json)
+                   (mastodon-tl--interactive-user-handles-get message)))
+         (account (if (mastodon-tl--profile-buffer-p)
+                      profile-json
+                    (mastodon-profile--search-account-by-handle handle)))
+         (id (alist-get 'id account))
+         (relationships (when view (mastodon-profile--relationships-get id)))
+         (note (when view (alist-get 'note relationships))))
+    (if view
+        (funcall action-fun note)
+      (funcall action-fun id handle))))
 
 (provide 'mastodon-profile)
 ;;; mastodon-profile.el ends here
