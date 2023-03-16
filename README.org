@@ -259,6 +259,9 @@ work without first loading =mastodon.el=:
 - =mastodon-tl--add-toot-account-at-point-to-list=: Add the account of the toot at point to a list.
 
 
+- =mastodon-tl--dm-user=: Send a direct message to one of the users at point.
+
+
 - =mastodon-tl--follow-tag=: Follow a tag (works like following a user)
 - =mastodon-tl--unfollow-tag=: Unfollow a tag
 - =mastodon-tl--list-followed-tags=: View a list of tags you're following.
