@@ -1059,16 +1059,18 @@ text of the toot being replied to in the compose buffer."
 (defun mastodon-toot--change-visibility ()
   "Change the current visibility to the next valid value."
   (interactive)
-  (setq mastodon-toot--visibility
-        (cond ((string= mastodon-toot--visibility "public")
-               "unlisted")
-              ((string= mastodon-toot--visibility "unlisted")
-               "private")
-              ((string= mastodon-toot--visibility "private")
-               "direct")
-              (t
-               "public")))
-  (mastodon-toot--update-status-fields))
+  (if (mastodon-tl--buffer-type-eq 'edit-toot)
+      (message "You can't change visibility when editing toots.")
+    (setq mastodon-toot--visibility
+          (cond ((string= mastodon-toot--visibility "public")
+                 "unlisted")
+                ((string= mastodon-toot--visibility "unlisted")
+                 "private")
+                ((string= mastodon-toot--visibility "private")
+                 "direct")
+                (t
+                 "public")))
+    (mastodon-toot--update-status-fields)))
 
 (defun mastodon-toot--clear-all-attachments ()
   "Remove all attachments from a toot draft."
@@ -1230,34 +1232,36 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
   ;; original idea by christian tietze, thanks!
   ;; https://codeberg.org/martianh/mastodon.el/issues/285
   (interactive)
-  (let* ((id (when reschedule (get-text-property (point) 'id)))
-         (ts (when reschedule
-               (alist-get 'scheduled_at
-                          (get-text-property (point) 'scheduled-json))))
-         (time-value
-          (org-read-date t t nil "Schedule toot:"
-                         ;; default to scheduled timestamp if already set:
-                         (mastodon-toot--iso-to-org
-                          ;; we are rescheduling without editing:
-                          (or ts
-                              ;; we are maybe editing the scheduled toot:
-                              mastodon-toot--scheduled-for))))
-         (iso8601-str (format-time-string "%FT%T%z" time-value))
-         (msg-str (format-time-string "%d-%m-%y at %H:%M[%z]" time-value)))
-    (if (not reschedule)
-        (progn
-          (setq-local mastodon-toot--scheduled-for iso8601-str)
-          (message (format "Toot scheduled for %s." msg-str)))
-      (let* ((args (when reschedule `(("scheduled_at" . ,iso8601-str))))
-             (url (when reschedule (mastodon-http--api
-                                    (format "scheduled_statuses/%s" id))))
-             (response (mastodon-http--put url args)))
-        (mastodon-http--triage response
-                               (lambda ()
-                                 ;; reschedule means we are in scheduled toots view:
-                                 (mastodon-tl--view-scheduled-toots)
-                                 (message
-                                  (format "Toot rescheduled for %s." msg-str))))))))
+  (if (mastodon-tl--buffer-type-eq 'edit-toot)
+      (message "You can't schedule toots you're editing.")
+    (let* ((id (when reschedule (get-text-property (point) 'id)))
+           (ts (when reschedule
+                 (alist-get 'scheduled_at
+                            (get-text-property (point) 'scheduled-json))))
+           (time-value
+            (org-read-date t t nil "Schedule toot:"
+                           ;; default to scheduled timestamp if already set:
+                           (mastodon-toot--iso-to-org
+                            ;; we are rescheduling without editing:
+                            (or ts
+                                ;; we are maybe editing the scheduled toot:
+                                mastodon-toot--scheduled-for))))
+           (iso8601-str (format-time-string "%FT%T%z" time-value))
+           (msg-str (format-time-string "%d-%m-%y at %H:%M[%z]" time-value)))
+      (if (not reschedule)
+          (progn
+            (setq-local mastodon-toot--scheduled-for iso8601-str)
+            (message (format "Toot scheduled for %s." msg-str)))
+        (let* ((args (when reschedule `(("scheduled_at" . ,iso8601-str))))
+               (url (when reschedule (mastodon-http--api
+                                      (format "scheduled_statuses/%s" id))))
+               (response (mastodon-http--put url args)))
+          (mastodon-http--triage response
+                                 (lambda ()
+                                   ;; reschedule means we are in scheduled toots view:
+                                   (mastodon-tl--view-scheduled-toots)
+                                   (message
+                                    (format "Toot rescheduled for %s." msg-str)))))))))
 
 (defun mastodon-toot--iso-to-human (ts)
   "Format an ISO8601 timestamp TS to be more human-readable."
