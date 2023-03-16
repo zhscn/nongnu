@@ -727,16 +727,6 @@ to `emojify-user-emojis', and the emoji data is updated."
                                                          (point-min))))
     (buffer-substring (cdr header-region) (point-max))))
 
-(defun mastodon-toot--set-visibility (visibility)
-  "Set the visiblity of the next toot to VISIBILITY."
-  (interactive
-   (list (completing-read "Visiblity: " '("public"
-                                          "unlisted"
-                                          "private"
-                                          "direct"))))
-  (setq mastodon-toot--visibility visibility)
-  (message "Visibility set to %s" visibility))
-
 (defun mastodon-toot--build-poll-params ()
   "Return an alist of parameters for POSTing a poll status."
   (append
