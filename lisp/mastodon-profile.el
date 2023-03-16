@@ -947,5 +947,51 @@ Currently limited to 100 handles. If not found, try
          (id (alist-get choice handles nil nil 'equal)))
     (mastodon-profile--remove-user-from-followers id)))
 
+(defun mastodon-profile--add-private-note-to-account ()
+  "Add a private note to an account.
+Can be called from a profile page or normal timeline.
+Send an empty note to clear an existing one."
+  (interactive)
+  (let* ((profile-json (when (mastodon-tl--profile-buffer-p)
+                         (save-excursion
+                           (goto-char (point-min))
+                           (or (mastodon-tl--property 'profile-json)
+                               (error "No profile data found")))))
+         (handle (if (mastodon-tl--profile-buffer-p)
+                     (alist-get 'acct profile-json)
+                   (mastodon-tl--interactive-user-handles-get "add a note to")))
+         (account (if (mastodon-tl--profile-buffer-p)
+                      profile-json
+                    (mastodon-profile--search-account-by-handle handle)))
+         (id (alist-get 'id account)))
+    (mastodon-profile--post-private-note-to-account id handle)))
+
+(defun mastodon-profile--post-private-note-to-account (id handle)
+  "POST a private NOTE onto an account ID on the server."
+  (let* ((note (read-string "Add private note to account %s: "))
+         (params `(("comment" . ,note)))
+         (url (mastodon-http--api (format "accounts/%s/note" id)))
+         (response (mastodon-http--post url params)))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (message "Private note on %s added!" handle)))))
+
+(defun mastodon-profile--view-account-private-note ()
+  "Display the private note about a user.
+Must be called from the user's profile page."
+  (interactive)
+  (if (not (mastodon-tl--profile-buffer-p))
+      (message "Not in a profile buffer.")
+    (let* ((profile-json (save-excursion
+                           (goto-char (point-min))
+                           (or (mastodon-tl--property 'profile-json)
+                               (error "No profile data found"))))
+           (id (alist-get 'id profile-json))
+           (relationships (mastodon-profile--relationships-get id))
+           (note (alist-get 'note relationships)))
+      (with-output-to-temp-buffer "*mastodon-profile-private-note*"
+        (let ((inhibit-read-only t))
+          (princ note))))))
+
 (provide 'mastodon-profile)
 ;;; mastodon-profile.el ends here
