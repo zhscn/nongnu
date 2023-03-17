@@ -1,4 +1,4 @@
-;;; mastodon-tl.el --- HTTP request/response functions for mastodon.el  -*- lexical-binding: t -*-
+;;; mastodon-tl.el --- timeline functions for mastodon.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2019 Johnson Denen
 ;; Copyright (C) 2020-2022 Marty Hiatt
@@ -29,6 +29,7 @@
 ;;; Commentary:
 
 ;; mastodon-tl.el provides timeline functions.
+;; Also provides list, filters, follow suggestions, etc. view functions.
 
 ;;; Code:
 
@@ -38,7 +39,6 @@
 (require 'time-date)
 (require 'cl-lib)
 (require 'mastodon-iso)
-
 (require 'mpv nil :no-error)
 
 (autoload 'mastodon-auth--get-account-name "mastodon-auth")
@@ -97,6 +97,9 @@
 (defvar shr-use-fonts)  ;; declare it since Emacs24 didn't have this
 (defvar mastodon-mode-map)
 
+
+;;; CUSTOMIZES
+
 (defgroup mastodon-tl nil
   "Timelines in Mastodon."
   :prefix "mastodon-tl-"
@@ -122,9 +125,6 @@ Only has an effect when `mastodon-tl--display-media-p' is set to
 nil."
   :group 'mastodon-tl
   :type 'boolean)
-
-(defvar-local mastodon-tl--buffer-spec nil
-  "A unique identifier and functions for each Mastodon buffer.")
 
 (defcustom mastodon-tl--show-avatars nil
   "Whether to enable display of user avatars in timelines."
@@ -170,6 +170,12 @@ timeline with a simple prefix argument, `C-u'."
   :group 'mastodon-tl
   :type '(boolean :tag "Whether to hide replies from the timelines."))
 
+
+;;; VARIABLES
+
+(defvar-local mastodon-tl--buffer-spec nil
+  "A unique identifier and functions for each Mastodon buffer.")
+
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
 If nil `(point-min)' is used instead.")
@@ -186,7 +192,8 @@ If nil `(point-min)' is used instead.")
 (defvar-local mastodon-tl--timestamp-update-timer nil
   "The timer that, when set will scan the buffer to update the timestamps.")
 
-;; KEYMAPS
+
+;;; KEYMAPS
 
 (defvar mastodon-tl--link-keymap
   (let ((map (make-sparse-keymap)))
@@ -298,17 +305,8 @@ types of mastodon links and not just shr.el-generated ones.")
   "The keymap to be set for the author byline.
 It is active where point is placed by `mastodon-tl--goto-next-toot.'")
 
-(defun mastodon-tl--symbol (name)
-  "Return the unicode symbol (as a string) corresponding to NAME.
-If symbol is not displayable, an ASCII equivalent is returned. If
-NAME is not part of the symbol table, '?' is returned."
-  (if-let* ((symbol (alist-get name mastodon-tl--symbols)))
-      (if (char-displayable-p (string-to-char (car symbol)))
-          (car symbol)
-        (cdr symbol))
-    "?"))
-
-;; NAV
+
+;;; NAV
 
 (defun mastodon-tl--next-tab-item ()
   "Move to the next interesting item.
@@ -320,7 +318,6 @@ This also skips tab items in invisible text, i.e. hidden spoiler text."
         (search-pos (point)))
     (while (and (setq next-range (mastodon-tl--find-next-or-previous-property-range
                                   'mastodon-tab-stop search-pos nil))
-
                 (get-text-property (car next-range) 'invisible)
                 (setq search-pos (1+ (cdr next-range))))
       ;; do nothing, all the action in in the while condition
@@ -350,11 +347,9 @@ text, i.e. hidden spoiler text."
       (goto-char (car next-range))
       (message "%s" (get-text-property (point) 'help-echo)))))
 
-
 (defun mastodon-tl--goto-toot-pos (find-pos refresh &optional pos)
   "Search for toot with FIND-POS.
 If search returns nil, execute REFRESH function.
-
 Optionally start from POS."
   (let* ((npos (funcall find-pos
                         (or pos (point))
@@ -401,7 +396,8 @@ Used on initializing a timeline or thread."
   (mastodon-tl--goto-toot-pos 'previous-single-property-change
                               'previous-line))
 
-;; TIMELINES
+
+;;; TIMELINES
 
 (defun mastodon-tl--get-federated-timeline ()
   "Opens federated timeline."
@@ -448,6 +444,9 @@ Optionally load TAG timeline directly."
    'mastodon-tl--timeline nil
    `(("limit" . ,mastodon-tl--timeline-posts-count))))
 
+
+;;; BYLINES, etc.
+
 (defun mastodon-tl--message-help-echo ()
   "Call message on 'help-echo property at point.
 Do so if type of status at poins is not follow_request/follow."
@@ -459,12 +458,6 @@ Do so if type of status at poins is not follow_request/follow."
       (unless (or (string= type "follow_request")
                   (string= type "follow")) ; no counts for these
         (message "%s" (get-text-property (point) 'help-echo))))))
-
-(defun mastodon-tl--remove-html (toot)
-  "Remove unrendered tags from TOOT."
-  (let* ((t1 (replace-regexp-in-string "<\/p>" "\n\n" toot))
-         (t2 (replace-regexp-in-string "<\/?span>" "" t1)))
-    (replace-regexp-in-string "<span class=\"h-card\">" "" t2)))
 
 (defun mastodon-tl--byline-author (toot &optional avatar)
   "Propertize author of TOOT.
@@ -507,12 +500,12 @@ With arg AVATAR, include the account's avatar image."
      (propertize (concat "@" handle)
                  'face 'mastodon-handle-face
                  'mouse-face 'highlight
-		 'mastodon-tab-stop 'user-handle
+		         'mastodon-tab-stop 'user-handle
                  'account account
-		 'shr-url profile-url
-		 'keymap mastodon-tl--link-keymap
+		         'shr-url profile-url
+		         'keymap mastodon-tl--link-keymap
                  'mastodon-handle (concat "@" handle)
-		 'help-echo (concat "Browse user profile of @" handle))
+		         'help-echo (concat "Browse user profile of @" handle))
      ")")))
 
 (defun mastodon-tl--format-faves-count (toot)
@@ -581,74 +574,20 @@ The result is added as an attachments property to author-byline."
        " "
        (mastodon-tl--byline-author reblog)))))
 
-(defun mastodon-tl--field (field toot)
-  "Return FIELD from TOOT.
-Return value from boosted content if available."
-  (or (alist-get field (alist-get 'reblog toot))
-      (alist-get field toot)))
-
-(defun mastodon-tl--relative-time-details (timestamp &optional current-time)
-  "Return cons of (descriptive string . next change) for the TIMESTAMP.
-Use the optional CURRENT-TIME as the current time (only used for
-reliable testing).
-
-The descriptive string is a human readable version relative to
-the current time while the next change timestamp give the first
-time that this description will change in the future.
-
-TIMESTAMP is assumed to be in the past."
-  (let* ((now (or current-time (current-time)))
-         (time-difference (time-subtract now timestamp))
-         (seconds-difference (float-time time-difference))
-         (regular-response
-          (lambda (seconds-difference multiplier unit-name)
-            (let ((n (floor (+ 0.5 (/ seconds-difference multiplier)))))
-              (cons (format "%d %ss ago" n unit-name)
-                    (* (+ 0.5 n) multiplier)))))
-         (relative-result
-          (cond
-           ((< seconds-difference 60)
-            (cons "just now"
-                  60))
-           ((< seconds-difference (* 1.5 60))
-            (cons "1 minute ago"
-                  90)) ;; at 90 secs
-           ((< seconds-difference (* 60 59.5))
-            (funcall regular-response seconds-difference 60 "minute"))
-           ((< seconds-difference (* 1.5 60 60))
-            (cons "1 hour ago"
-                  (* 60 90))) ;; at 90 minutes
-           ((< seconds-difference (* 60 60 23.5))
-            (funcall regular-response seconds-difference (* 60 60) "hour"))
-           ((< seconds-difference (* 1.5 60 60 24))
-            (cons "1 day ago"
-                  (* 1.5 60 60 24))) ;; at a day and a half
-           ((< seconds-difference (* 60 60 24 6.5))
-            (funcall regular-response seconds-difference (* 60 60 24) "day"))
-           ((< seconds-difference (* 1.5 60 60 24 7))
-            (cons "1 week ago"
-                  (* 1.5 60 60 24 7))) ;; a week and a half
-           ((< seconds-difference (* 60 60 24 7 52))
-            (if (= 52 (floor (+ 0.5 (/ seconds-difference 60 60 24 7))))
-                (cons "52 weeks ago"
-                      (* 60 60 24 7 52))
-              (funcall regular-response seconds-difference (* 60 60 24 7) "week")))
-           ((< seconds-difference (* 1.5 60 60 24 365))
-            (cons "1 year ago"
-                  (* 60 60 24 365 1.5))) ;; a year and a half
-           (t
-            (funcall regular-response seconds-difference (* 60 60 24 365.25) "year")))))
-    (cons (car relative-result)
-          (time-add timestamp (seconds-to-time (cdr relative-result))))))
-
-(defun mastodon-tl--relative-time-description (timestamp &optional current-time)
-  "Return a string with a human readable TIMESTAMP relative to the current time.
-Use the optional CURRENT-TIME as the current time (only used for
-reliable testing).
-
-E.g. this could return something like \"1 min ago\", \"yesterday\", etc.
-TIME-STAMP is assumed to be in the past."
-  (car (mastodon-tl--relative-time-details timestamp current-time)))
+(defun mastodon-tl--format-faved-or-boosted-byline (letter)
+  "Format the byline marker for a boosted or favourited status.
+LETTER is a string, F for favourited, B for boosted, or K for bookmarked."
+  (let ((help-string (cond ((equal letter "F")
+                            "favourited")
+                           ((equal letter "B")
+                            "boosted")
+                           ((equal letter (or "🔖" "K"))
+                            "bookmarked"))))
+    (format "(%s) "
+            (propertize letter 'face 'mastodon-boost-fave-face
+                        ;; emojify breaks this for 🔖:
+                        'help-echo (format "You have %s this status."
+                                           help-string)))))
 
 (defun mastodon-tl--byline (toot author-byline action-byline &optional detailed-p)
   "Generate byline for TOOT.
@@ -657,7 +596,6 @@ the byline that takes one variable.
 ACTION-BYLINE is a function for adding an action, such as boosting,
 favouriting and following to the byline. It also takes a single function.
 By default it is `mastodon-tl--byline-boosted'.
-
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
   (let* ((created-time
@@ -734,10 +672,10 @@ this just means displaying toot client."
                           'face 'mastodon-display-name-face
                           'follow-link t
                           'mouse-face 'highlight
-		          'mastodon-tab-stop 'shr-url
-		          'shr-url app-url
+		                  'mastodon-tab-stop 'shr-url
+		                  'shr-url app-url
                           'help-echo app-url
-		          'keymap mastodon-tl--shr-map-replacement)))))
+		                  'keymap mastodon-tl--shr-map-replacement)))))
        (if edited-time
            (concat
             " "
@@ -761,36 +699,71 @@ this just means displaying toot client."
                       (mastodon-toot--get-toot-edits (alist-get 'id toot)))
       'byline       t))))
 
-(defun mastodon-tl--format-edit-timestamp (timestamp)
-  "Convert edit TIMESTAMP into a descriptive string."
-  (let ((parsed (ts-human-duration
-                 (ts-diff (ts-now) (ts-parse timestamp)))))
-    (cond ((> (plist-get parsed :days) 0)
-           (format "%s days ago" (plist-get parsed :days) (plist-get parsed :hours)))
-          ((> (plist-get parsed :hours) 0)
-           (format "%s hours ago" (plist-get parsed :hours) (plist-get parsed :minutes)))
-          ((> (plist-get parsed :minutes) 0)
-           (format "%s minutes ago" (plist-get parsed :minutes)))
-          (t ;; we failed to guess:
-           (format "%s days, %s hours, %s minutes ago"
-                   (plist-get parsed :days)
-                   (plist-get parsed :hours)
-                   (plist-get parsed :minutes))))))
+
+;;; TIMESTAMPS
 
-(defun mastodon-tl--format-faved-or-boosted-byline (letter)
-  "Format the byline marker for a boosted or favourited status.
-LETTER is a string, F for favourited, B for boosted, or K for bookmarked."
-  (let ((help-string (cond ((equal letter "F")
-                            "favourited")
-                           ((equal letter "B")
-                            "boosted")
-                           ((equal letter (or "🔖" "K"))
-                            "bookmarked"))))
-    (format "(%s) "
-            (propertize letter 'face 'mastodon-boost-fave-face
-                        ;; emojify breaks this for 🔖:
-                        'help-echo (format "You have %s this status."
-                                           help-string)))))
+(defun mastodon-tl--relative-time-details (timestamp &optional current-time)
+  "Return cons of (descriptive string . next change) for the TIMESTAMP.
+Use the optional CURRENT-TIME as the current time (only used for
+reliable testing).
+The descriptive string is a human readable version relative to
+the current time while the next change timestamp give the first
+time that this description will change in the future.
+TIMESTAMP is assumed to be in the past."
+  (let* ((now (or current-time (current-time)))
+         (time-difference (time-subtract now timestamp))
+         (seconds-difference (float-time time-difference))
+         (regular-response
+          (lambda (seconds-difference multiplier unit-name)
+            (let ((n (floor (+ 0.5 (/ seconds-difference multiplier)))))
+              (cons (format "%d %ss ago" n unit-name)
+                    (* (+ 0.5 n) multiplier)))))
+         (relative-result
+          (cond
+           ((< seconds-difference 60)
+            (cons "just now"
+                  60))
+           ((< seconds-difference (* 1.5 60))
+            (cons "1 minute ago"
+                  90)) ;; at 90 secs
+           ((< seconds-difference (* 60 59.5))
+            (funcall regular-response seconds-difference 60 "minute"))
+           ((< seconds-difference (* 1.5 60 60))
+            (cons "1 hour ago"
+                  (* 60 90))) ;; at 90 minutes
+           ((< seconds-difference (* 60 60 23.5))
+            (funcall regular-response seconds-difference (* 60 60) "hour"))
+           ((< seconds-difference (* 1.5 60 60 24))
+            (cons "1 day ago"
+                  (* 1.5 60 60 24))) ;; at a day and a half
+           ((< seconds-difference (* 60 60 24 6.5))
+            (funcall regular-response seconds-difference (* 60 60 24) "day"))
+           ((< seconds-difference (* 1.5 60 60 24 7))
+            (cons "1 week ago"
+                  (* 1.5 60 60 24 7))) ;; a week and a half
+           ((< seconds-difference (* 60 60 24 7 52))
+            (if (= 52 (floor (+ 0.5 (/ seconds-difference 60 60 24 7))))
+                (cons "52 weeks ago"
+                      (* 60 60 24 7 52))
+              (funcall regular-response seconds-difference (* 60 60 24 7) "week")))
+           ((< seconds-difference (* 1.5 60 60 24 365))
+            (cons "1 year ago"
+                  (* 60 60 24 365 1.5))) ;; a year and a half
+           (t
+            (funcall regular-response seconds-difference (* 60 60 24 365.25) "year")))))
+    (cons (car relative-result)
+          (time-add timestamp (seconds-to-time (cdr relative-result))))))
+
+(defun mastodon-tl--relative-time-description (timestamp &optional current-time)
+  "Return a string with a human readable TIMESTAMP relative to the current time.
+Use the optional CURRENT-TIME as the current time (only used for
+reliable testing).
+E.g. this could return something like \"1 min ago\", \"yesterday\", etc.
+TIME-STAMP is assumed to be in the past."
+  (car (mastodon-tl--relative-time-details timestamp current-time)))
+
+
+;;; RENDERING HTML, LINKS, HASHTAGS, HANDLES
 
 (defun mastodon-tl--render-text (string &optional toot)
   "Return a propertized text rendering the given HTML string STRING.
@@ -933,40 +906,8 @@ the toot)."
    ;; If nothing matches we assume it is not a hashtag link:
    (t nil)))
 
-(defun mastodon-tl--set-face (string face)
-  "Return the propertized STRING with the face property set to FACE."
-  (propertize string 'face face))
-
-(defun mastodon-tl--toggle-spoiler-text (position)
-  "Toggle the visibility of the spoiler text at/after POSITION."
-  (let ((inhibit-read-only t)
-        (spoiler-text-region (mastodon-tl--find-property-range
-                              'mastodon-content-warning-body position nil)))
-    (if (not spoiler-text-region)
-        (message "No spoiler text here")
-      (add-text-properties (car spoiler-text-region) (cdr spoiler-text-region)
-                           (list 'invisible
-                                 (not (get-text-property (car spoiler-text-region)
-                                                         'invisible)))))))
-
-(defun mastodon-tl--toggle-spoiler-text-in-toot ()
-  "Toggle the visibility of the spoiler text in the current toot."
-  (interactive)
-  (let* ((toot-range (or (mastodon-tl--find-property-range
-                          'toot-json (point))
-                         (mastodon-tl--find-property-range
-                          'toot-json (point) t)))
-         (spoiler-range (when toot-range
-                          (mastodon-tl--find-property-range
-                           'mastodon-content-warning-body
-                           (car toot-range)))))
-    (cond ((null toot-range)
-           (message "No toot here"))
-          ((or (null spoiler-range)
-               (> (car spoiler-range) (cdr toot-range)))
-           (message "No content warning text here"))
-          (t
-           (mastodon-tl--toggle-spoiler-text (car spoiler-range))))))
+
+;;; HYPERLINKS
 
 (defun mastodon-tl--make-link (string link-type)
   "Return a propertized version of STRING that will act like link.
@@ -1024,12 +965,46 @@ Used for a mouse-click EVENT on a link."
   (interactive "e")
   (mastodon-tl--do-link-action-at-point (posn-point (event-end event))))
 
+
+;;; CONTENT WARNINGS
+
 (defun mastodon-tl--has-spoiler (toot)
   "Check if the given TOOT has a spoiler text.
 Spoiler text should initially be shown only while the main
 content should be hidden."
   (let ((spoiler (mastodon-tl--field 'spoiler_text toot)))
     (and spoiler (> (length spoiler) 0))))
+
+(defun mastodon-tl--toggle-spoiler-text (position)
+  "Toggle the visibility of the spoiler text at/after POSITION."
+  (let ((inhibit-read-only t)
+        (spoiler-text-region (mastodon-tl--find-property-range
+                              'mastodon-content-warning-body position nil)))
+    (if (not spoiler-text-region)
+        (message "No spoiler text here")
+      (add-text-properties (car spoiler-text-region) (cdr spoiler-text-region)
+                           (list 'invisible
+                                 (not (get-text-property (car spoiler-text-region)
+                                                         'invisible)))))))
+
+(defun mastodon-tl--toggle-spoiler-text-in-toot ()
+  "Toggle the visibility of the spoiler text in the current toot."
+  (interactive)
+  (let* ((toot-range (or (mastodon-tl--find-property-range
+                          'toot-json (point))
+                         (mastodon-tl--find-property-range
+                          'toot-json (point) t)))
+         (spoiler-range (when toot-range
+                          (mastodon-tl--find-property-range
+                           'mastodon-content-warning-body
+                           (car toot-range)))))
+    (cond ((null toot-range)
+           (message "No toot here"))
+          ((or (null spoiler-range)
+               (> (car spoiler-range) (cdr toot-range)))
+           (message "No content warning text here"))
+          (t
+           (mastodon-tl--toggle-spoiler-text (car spoiler-range))))))
 
 (defun mastodon-tl--clean-tabs-and-nl (string)
   "Remove tabs and newlines from STRING."
@@ -1070,6 +1045,9 @@ message is a link which unhides/hides the main body."
                                (error nil)))
                    t)
                  'mastodon-content-warning-body t))))
+
+
+;;; MEDIA
 
 (defun mastodon-tl--media (toot)
   "Retrieve a media attachment link for TOOT if one exists."
@@ -1136,6 +1114,9 @@ HELP-ECHO, DISPLAY, and FACE are the text properties to add."
                              help-echo
                            (concat help-echo "\nC-RET: play " type " with mpv"))))
 
+
+;;; INSERT TOOTS
+
 (defun mastodon-tl--content (toot)
   "Retrieve text content from TOOT.
 Runs `mastodon-tl--render-text' and fetches poll or media."
@@ -1157,17 +1138,14 @@ BODY will form the section of the toot above the byline.
 AUTHOR-BYLINE is an optional function for adding the author
 portion of the byline that takes one variable. By default it is
 `mastodon-tl--byline-author'.
-
 ACTION-BYLINE is also an optional function for adding an action,
 such as boosting favouriting and following to the byline. It also
 takes a single function. By default it is
 `mastodon-tl--byline-boosted'.
-
 ID is that of the status if it is a notification, which is
 attached as a `toot-id' property if provided. If the
 status is a favourite or boost notification, BASE-TOOT is the
 JSON of the toot responded to.
-
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
   (let ((start-pos (point)))
@@ -1190,6 +1168,9 @@ this just means displaying toot client."
      "\n")
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
+
+
+;; POLLS
 
 (defun mastodon-tl--get-poll (toot)
   "If TOOT includes a poll, return it as a formatted string."
@@ -1306,6 +1287,9 @@ this just means displaying toot client."
                                (message "You voted for option %s: %s!"
                                         (car option) (cdr option)))))))
 
+
+;; VIDEOS / MPV
+
 (defun mastodon-tl--find-first-video-in-attachments ()
   "Return the first media attachment that is a moving image."
   (let ((attachments (mastodon-tl--property 'attachments))
@@ -1349,6 +1333,9 @@ in which case play first video or gif from current toot."
           (message "no moving image here?"))
       (message "no moving image here?"))))
 
+
+;; INSERT TOOTS
+
 (defun mastodon-tl--is-reply (toot)
   "Check if the TOOT is a reply to another one (and not boosted)."
   (and (null (mastodon-tl--field 'in_reply_to_id toot))
@@ -1381,9 +1368,12 @@ This function removes replies if user required."
                (mastodon-tl--get-buffer-property 'hide-replies nil :no-error)
                ;; loading a tl with a prefix arg:
                (mastodon-tl--hide-replies-p current-prefix-arg))
-	      (cl-remove-if-not #'mastodon-tl--is-reply toots)
-	    toots)))
+	          (cl-remove-if-not #'mastodon-tl--is-reply toots)
+	        toots)))
   (goto-char (point-min)))
+
+
+;;; BUFFER SPEC
 
 (defun mastodon-tl--get-update-function (&optional buffer)
   "Get the UPDATE-FUNCTION stored in `mastodon-tl--buffer-spec'.
@@ -1440,6 +1430,9 @@ HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
                   link-header ,link-header
                   update-params ,update-params
                   hide-replies ,hide-replies)))
+
+
+;;; BUFFERS
 
 (defun mastodon-tl--get-buffer-type ()
   "Return a symbol descriptive of current mastodon buffer type.
@@ -1565,32 +1558,34 @@ timeline."
     ;; Timeline called with C-u prefix
     (equal '(4) prefix))))
 
-(defun mastodon-tl--more-json (endpoint id)
-  "Return JSON for timeline ENDPOINT before ID."
-  (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
-         (url (mastodon-http--api endpoint)))
-    (mastodon-http--get-json url args)))
+
+;;; UTILITIES
 
-(defun mastodon-tl--more-json-async (endpoint id &optional params callback &rest cbargs)
-  "Return JSON for timeline ENDPOINT before ID.
-Then run CALLBACK with arguments CBARGS.
-PARAMS is used to send any parameters needed to correctly update
-the current view."
-  (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
-         (args (if params (push (car args) params) args))
-         (url (mastodon-http--api endpoint)))
-    (apply 'mastodon-http--get-json-async url args callback cbargs)))
+(defun mastodon-tl--symbol (name)
+  "Return the unicode symbol (as a string) corresponding to NAME.
+If symbol is not displayable, an ASCII equivalent is returned. If
+NAME is not part of the symbol table, '?' is returned."
+  (if-let* ((symbol (alist-get name mastodon-tl--symbols)))
+      (if (char-displayable-p (string-to-char (car symbol)))
+          (car symbol)
+        (cdr symbol))
+    "?"))
 
-;; TODO
-;; Look into the JSON returned here by Local
-(defun mastodon-tl--updated-json (endpoint id &optional params)
-  "Return JSON for timeline ENDPOINT since ID.
-PARAMS is used to send any parameters needed to correctly update
-the current view."
-  (let* ((args `(("since_id" . ,(mastodon-tl--as-string id))))
-         (args (if params (push (car args) params) args))
-         (url (mastodon-http--api endpoint)))
-    (mastodon-http--get-json url args)))
+(defun mastodon-tl--set-face (string face)
+  "Return the propertized STRING with the face property set to FACE."
+  (propertize string 'face face))
+
+(defun mastodon-tl--field (field toot)
+  "Return FIELD from TOOT.
+Return value from boosted content if available."
+  (or (alist-get field (alist-get 'reblog toot))
+      (alist-get field toot)))
+
+(defun mastodon-tl--remove-html (toot)
+  "Remove unrendered tags from TOOT."
+  (let* ((t1 (replace-regexp-in-string "<\/p>" "\n\n" toot))
+         (t2 (replace-regexp-in-string "<\/?span>" "" t1)))
+    (replace-regexp-in-string "<span class=\"h-card\">" "" t2)))
 
 (defun mastodon-tl--property (prop &optional backward)
   "Get property PROP for toot at point.
@@ -1633,6 +1628,7 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
+
 ;;; THREADS
 
 (defun mastodon-tl--single-toot (id)
@@ -1774,6 +1770,7 @@ ID is that of the post the context is currently displayed for."
     (or (member (mastodon-auth--get-account-id) a-ids)
         (member (mastodon-auth--get-account-id) d-ids))))
 
+
 ;;; LISTS
 
 (defun mastodon-tl--get-users-lists ()
@@ -2048,6 +2045,7 @@ If ID is provided, use that list."
   (let* ((url (mastodon-http--api (format "lists/%s/accounts" list-id))))
     (mastodon-http--get-json url)))
 
+
 ;;; SCHEDULED TOOTS
 
 (defun mastodon-tl--get-scheduled-toots (&optional id)
@@ -2151,6 +2149,7 @@ NO-CONFIRM means there is no ask or message, there is only do."
     (mastodon-toot--set-toot-properties reply-id visibility cw
                                         lang scheduled id)))
 
+
 ;;; FILTERS
 
 (defun mastodon-tl--create-filter ()
@@ -2247,6 +2246,7 @@ JSON is what is returned by by the server."
                                           (mastodon-tl--view-filters)
                                           (message "Filter for \"%s\" deleted!" phrase)))))))
 
+
 ;;; FOLLOW SUGGESTIONS
 
 (defun mastodon-tl--get-follow-suggestions ()
@@ -2269,14 +2269,7 @@ RESPONSE is the JSON returned by the server."
   (mastodon-search--insert-users-propertized response :note)
   (goto-char (point-min)))
 
-(defmacro mastodon-tl--do-if-toot (&rest body)
-  "Execute BODY if we have a toot or user at point."
-  (declare (debug t))
-  `(if (and (not (mastodon-tl--profile-buffer-p))
-            (not (mastodon-tl--property 'toot-json)))
-       (message "Looks like there's no toot or user at point?")
-     ,@body))
-
+
 ;;; INSTANCES
 
 (defun mastodon-tl--view-own-instance (&optional brief)
@@ -2471,7 +2464,16 @@ IND is the optional indentation level to print at."
         "\n"
       "")))
 
+
 ;;; FOLLOW/BLOCK/MUTE, ETC
+
+(defmacro mastodon-tl--do-if-toot (&rest body)
+  "Execute BODY if we have a toot or user at point."
+  (declare (debug t))
+  `(if (and (not (mastodon-tl--profile-buffer-p))
+            (not (mastodon-tl--property 'toot-json)))
+       (message "Looks like there's no toot or user at point?")
+     ,@body))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify langs)
   "Query for USER-HANDLE from current status and follow that user.
@@ -2688,6 +2690,7 @@ ARGS is an alist of any parameters to send with the request."
              ((eq notify nil)
               (message "User %s (@%s) %sed!" name user-handle action)))))))
 
+
 ;; FOLLOW TAGS
 
 (defun mastodon-tl--get-tag-json (tag)
@@ -2737,6 +2740,36 @@ If TAG is provided, unfollow it."
          (tag (completing-read "Tag: " tags)))
     (mastodon-tl--get-tag-timeline tag)))
 
+
+;;; UPDATING, etc.
+
+(defun mastodon-tl--more-json (endpoint id)
+  "Return JSON for timeline ENDPOINT before ID."
+  (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
+         (url (mastodon-http--api endpoint)))
+    (mastodon-http--get-json url args)))
+
+(defun mastodon-tl--more-json-async (endpoint id &optional params callback &rest cbargs)
+  "Return JSON for timeline ENDPOINT before ID.
+Then run CALLBACK with arguments CBARGS.
+PARAMS is used to send any parameters needed to correctly update
+the current view."
+  (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
+         (args (if params (push (car args) params) args))
+         (url (mastodon-http--api endpoint)))
+    (apply 'mastodon-http--get-json-async url args callback cbargs)))
+
+;; TODO
+;; Look into the JSON returned here by Local
+(defun mastodon-tl--updated-json (endpoint id &optional params)
+  "Return JSON for timeline ENDPOINT since ID.
+PARAMS is used to send any parameters needed to correctly update
+the current view."
+  (let* ((args `(("since_id" . ,(mastodon-tl--as-string id))))
+         (args (if params (push (car args) params) args))
+         (url (mastodon-http--api endpoint)))
+    (mastodon-http--get-json url args)))
+
 ;; TODO: add this to new posts in some cases, e.g. in thread view.
 (defun mastodon-tl--reload-timeline-or-profile ()
   "Reload the current timeline or profile page.
@@ -2773,6 +2806,12 @@ when showing followers or accounts followed."
       (mastodon-tl--buffer-type-eq 'bookmarks)
       (mastodon-tl--buffer-type-eq 'profile-followers)
       (mastodon-tl--buffer-type-eq 'profile-following)))
+
+(defun mastodon-tl--get-link-header-from-response (headers)
+  "Get http Link header from list of http HEADERS."
+  ;; pleroma uses "link", so case-insensitive match required:
+  (when-let ((link-headers (alist-get "Link" headers nil nil 'cl-equalp)))
+    (split-string link-headers ", ")))
 
 (defun mastodon-tl--more ()
   "Append older toots to timeline, asynchronously."
@@ -2828,7 +2867,6 @@ HEADERS is the http headers returned in the response, if any."
   "Return `nil` if no such range is found.
 If PROPERTY is set at START-POINT returns a range around
 START-POINT otherwise before/after START-POINT.
-
 SEARCH-BACKWARDS determines whether we pick point
 before (non-nil) or after (nil)"
   (if (get-text-property start-point property)
@@ -2863,9 +2901,7 @@ before (non-nil) or after (nil)"
   "Find (start . end) property range after/before START-POINT.
 Does so while PROPERTY is set to a consistent value (different
 from the value at START-POINT if that is set).
-
 Return nil if no such range exists.
-
 If SEARCH-BACKWARDS is non-nil it find a region before
 START-POINT otherwise after START-POINT."
   (if (get-text-property start-point property)
@@ -2888,15 +2924,13 @@ START-POINT otherwise after START-POINT."
 This calculates the next time the text for TIMESTAMP will change
 and may adjust existing or future timer runs should that time
 before current plans to run the update function.
-
 The adjustment is only made if it is significantly (a few
 seconds) before the currently scheduled time. This helps reduce
 the number of occasions where we schedule an update only to
 schedule the next one on completion to be within a few seconds.
-
-If relative timestamps are
-disabled (`mastodon-tl--enable-relative-timestamps` is nil) this
-is a no-op."
+If relative timestamps are disabled (i.e. if
+`mastodon-tl--enable-relative-timestamps' is nil), this is a
+no-op."
   (when mastodon-tl--enable-relative-timestamps
     (let ((this-update (cdr (mastodon-tl--relative-time-details timestamp))))
       (when (time-less-p this-update
@@ -3010,11 +3044,8 @@ This location is defined by a non-nil value of
                 (goto-char mastodon-tl--after-update-marker))))
         (message "nothing to update")))))
 
-(defun mastodon-tl--get-link-header-from-response (headers)
-  "Get http Link header from list of http HEADERS."
-  ;; pleroma uses "link", so case-insensitive match required:
-  (when-let ((link-headers (alist-get "Link" headers nil nil 'cl-equalp)))
-    (split-string link-headers ", ")))
+
+;;; LOADING TIMELINES
 
 (defun mastodon-tl--init (buffer-name endpoint update-function
                                       &optional headers params hide-replies)
@@ -3043,7 +3074,7 @@ RESPONSE is the data returned from the server by
 JSON and http headers, without it just the JSON."
   (let ((json (if headers (car response) response)))
     (if (not json) ; praying this is right here, else try "\n[]"
-	(message "Looks like nothing returned from endpoint: %s" endpoint)
+	    (message "Looks like nothing returned from endpoint: %s" endpoint)
       (let* ((headers (if headers (cdr response) nil))
              (link-header (mastodon-tl--get-link-header-from-response headers)))
         (with-current-buffer (get-buffer-create buffer)
