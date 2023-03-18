@@ -485,7 +485,9 @@ JSON is the data returned by the server."
   (interactive)
   (mastodon-tl--init-sync "scheduled-toots"
                           "scheduled_statuses"
-                          'mastodon-views--insert-scheduled-toots))
+                          'mastodon-views--insert-scheduled-toots)
+  (with-current-buffer "*mastodon-scheduled-toots*"
+    (use-local-map mastodon-views--scheduled-map)))
 
 (defun mastodon-views--insert-scheduled-toots (json)
   "Insert the user's scheduled toots, from JSON."
