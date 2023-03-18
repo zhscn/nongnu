@@ -1,4 +1,4 @@
-;;; mastodon-async.el --- Client for Mastodon -*- lexical-binding: t -*-
+;;; mastodon-async.el --- async streaming functions for mastodon.el -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017 Alex J. Griffith
 ;; Author: Alex J. Griffith <griffitaj@gmail.com>
