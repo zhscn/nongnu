@@ -372,9 +372,7 @@ Calls `mastodon-tl--get-buffer-type', which see."
   "Switch to a live mastodon buffer."
   (interactive)
   (let* ((bufs (mastodon-live-buffers))
-         (buf-names (mapcar (lambda (buf)
-                              (buffer-name buf))
-                            bufs))
+         (buf-names (mapcar #'buffer-name bufs))
          (choice (completing-read "Switch to mastodon buffer: "
                                   buf-names)))
     (switch-to-buffer choice)))
