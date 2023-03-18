@@ -75,6 +75,7 @@
 (autoload 'mastodon-tl--find-property-range "mastodon-tl")
 (autoload 'mastodon-tl--find-property-range "mastodon-tl")
 (autoload 'mastodon-tl--goto-next-toot "mastodon-tl")
+(autoload 'mastodon-tl--map-get-accts "mastodon-views")
 (autoload 'mastodon-tl--property "mastodon-tl")
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (autoload 'mastodon-tl--render-text "mastodon-tl")
@@ -450,7 +451,7 @@ With FAVOURITE, list favouriters, else list boosters."
     (if (eq (caar json) 'error)
         (error "%s (Status does not exist or is private)"
                (alist-get 'error json))
-      (let ((handles (mapcar (lambda (x) (alist-get 'acct x)) json))
+      (let ((handles (mastodon-tl--map-get-accts json))
             (type-string (if favourite "Favouriters" "Boosters")))
         (if (not handles)
             (error "Looks like this toot has no %s" type-string)
@@ -920,8 +921,7 @@ Federated user: `username@host.co`."
 	      (alist-get 'mentions (alist-get 'reblog status))
 	    (alist-get 'mentions status))))
     ;; reverse does not work on vectors in 24.5
-    (mapcar (lambda(x) (alist-get 'acct x))
-	    (reverse mentions))))
+    (mastodon-tl--map-get-accts (reverse mentions))))
 
 (defun mastodon-toot--get-bounds (regex)
   "Get bounds of tag or handle before point using REGEX."

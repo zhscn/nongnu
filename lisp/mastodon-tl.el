@@ -1504,6 +1504,13 @@ timeline."
 
 ;;; UTILITIES
 
+;; consider having this return an id / acct alist
+(defun mastodon-tl--map-get-accts (alist)
+  "Return a list of handles from ALIST."
+  (mapcar (lambda (x)
+            (alist-get 'acct x))
+          alist))
+
 (defun mastodon-tl--symbol (name)
   "Return the unicode symbol (as a string) corresponding to NAME.
 If symbol is not displayable, an ASCII equivalent is returned. If
@@ -1872,9 +1879,7 @@ Action must be either \"unblock\" or \"unmute\"."
                           "mutes")))
          (url (mastodon-http--api endpoint))
          (json (mastodon-http--get-json url))
-         (accts (mapcar (lambda (user)
-                          (alist-get 'acct user))
-                        json)))
+         (accts (mastodon-tl--map-get-accts json)))
     (when accts
       (completing-read (format "Handle of user to %s: " action)
                        accts
