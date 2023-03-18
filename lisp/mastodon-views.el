@@ -660,7 +660,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
          (phrase (get-text-property (point) 'phrase))
          (url (mastodon-http--api
                (format "filters/%s" filter-id))))
-    (if (equal nil filter-id)
+    (if (null phrase)
         (error "No filter at point?")
       (when (y-or-n-p (format "Delete this filter? ")))
       (let ((response (mastodon-http--delete url)))
