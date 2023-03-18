@@ -1,4 +1,4 @@
-;;; mastodon-tl.el --- timeline functions for mastodon.el  -*- lexical-binding: t -*-
+;;; mastodon-tl.el --- Timeline functions for mastodon.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2019 Johnson Denen
 ;; Copyright (C) 2020-2022 Marty Hiatt
