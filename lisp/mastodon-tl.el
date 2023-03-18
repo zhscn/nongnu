@@ -1505,6 +1505,14 @@ Key is a symbol, as with `alist-get'."
             (alist-get key x))
           alist))
 
+(defun mastodon-tl-map-alist-to-alist (key1 key2 alist)
+  "From ALIST, return an alist consisting of (val1 . val2) elements.
+Values are accessed by `alist-get', using KEY1 and KEY2."
+  (mapcar (lambda (x)
+            (cons (alist-get key1 x)
+                  (alist-get key2 x)))
+          alist))
+
 (defun mastodon-tl--symbol (name)
   "Return the unicode symbol (as a string) corresponding to NAME.
 If symbol is not displayable, an ASCII equivalent is returned. If

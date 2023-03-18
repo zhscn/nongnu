@@ -540,10 +540,7 @@ FIELDS means provide a fields vector fetched by other means."
   (let ((fields (or fields
                     (mastodon-profile--account-field account 'fields))))
     (when fields
-      (mapcar (lambda (el)
-                (cons (alist-get 'name el)
-                      (alist-get 'value el)))
-              fields))))
+      (mastodon-tl-map-alist-to-alist 'name 'value fields))))
 
 (defun mastodon-profile--fields-insert (fields)
   "Format and insert field pairs (a.k.a profile metadata) in FIELDS."
@@ -891,11 +888,7 @@ Currently limited to 100 handles. If not found, try
          (url (mastodon-http--api endpoint))
          (response (mastodon-http--get-json url
                                             `(("limit" . "100"))))
-         (handles (mapcar (lambda (x)
-                            (cons
-                             (alist-get 'acct x)
-                             (alist-get 'id x)))
-                          response))
+         (handles (mastodon-tl-map-alist-to-alist 'acct 'id response))
          (choice (completing-read "Remove from followers: "
                                   handles))
          (id (alist-get choice handles nil nil 'equal)))
