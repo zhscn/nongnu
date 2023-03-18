@@ -938,15 +938,19 @@ NOTE-OLD is the text of any existing note."
     (let ((inhibit-read-only t))
       (princ note))))
 
+(defun mastodon-profile--grab-profile-json ()
+  "Return the profile-json property if we are in a profile buffer."
+  (when (mastodon-tl--profile-buffer-p)
+    (save-excursion
+      (goto-char (point-min))
+      (or (mastodon-tl--property 'profile-json)
+          (error "No profile data found")))))
+
 (defun mastodon-profile--add-or-view-private-note (action-fun &optional message view)
   "Add or view a private note for an account.
 ACTION-FUN does the adding or viewing, MESSAGE is a prompt for
 `mastodon-tl--interactive-user-handles-get', VIEW is a flag."
-  (let* ((profile-json (when (mastodon-tl--profile-buffer-p)
-                         (save-excursion
-                           (goto-char (point-min))
-                           (or (mastodon-tl--property 'profile-json)
-                               (error "No profile data found")))))
+  (let* ((profile-json (mastodon-profile--grab-profile-json))
          (handle (if (mastodon-tl--profile-buffer-p)
                      (alist-get 'acct profile-json)
                    (mastodon-tl--interactive-user-handles-get message)))
@@ -961,6 +965,34 @@ ACTION-FUN does the adding or viewing, MESSAGE is a prompt for
             (message "No private note for %s" handle)
           (funcall action-fun note))
       (funcall action-fun id handle note))))
+
+(defun mastodon-profile--show-familiar-followers ()
+  "Show a list of familiar followers.
+Familiar followers are accounts that you follow, and that follow
+the given account."
+  (interactive)
+  (let* ((profile-json (mastodon-profile--grab-profile-json))
+         (handle
+          (if (mastodon-tl--profile-buffer-p)
+              (alist-get 'acct profile-json)
+            (mastodon-tl--interactive-user-handles-get "show familiar followers of")))
+         (account (if (mastodon-tl--profile-buffer-p)
+                      profile-json
+                    (mastodon-profile--search-account-by-handle handle)))
+         (id (alist-get 'id account)))
+    (mastodon-profile--get-familiar-followers id)))
+
+(defun mastodon-profile--get-familiar-followers (id)
+  "Return JSON data of familiar followers for account ID."
+  ;; the server can handle multiple IDs, but for now we just handle one.
+  (let* ((params `(("id" . ,id)))
+         (url (mastodon-http--api "accounts/familiar_followers"))
+         (json (mastodon-http--get-json url params))
+         (accounts (alist-get 'accounts (car json))) ; first id result
+         (handles (mastodon-tl--map-get-accts accounts))
+         (choice (completing-read "Show profile of user: "
+                                  handles)))
+    (mastodon-profile--show-user choice)))
 
 (provide 'mastodon-profile)
 ;;; mastodon-profile.el ends here

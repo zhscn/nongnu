@@ -266,6 +266,9 @@ work without first loading =mastodon.el=:
 - =mastodon-profile--view-account-private-note=: View a private note on a user’s account.
 
 
+- =mastodon-profile--show-familiar-followers=: Show a list of “familiar followers” for a given account. Familiar followers are accounts that you follow, and that follow the account.
+
+
 - =mastodon-tl--follow-tag=: Follow a tag (works like following a user)
 - =mastodon-tl--unfollow-tag=: Unfollow a tag
 - =mastodon-tl--list-followed-tags=: View a list of tags you're following.
