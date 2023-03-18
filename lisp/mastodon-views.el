@@ -684,7 +684,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
                (format "filters/%s" filter-id))))
     (if (null phrase)
         (error "No filter at point?")
-      (when (y-or-n-p (format "Delete this filter? ")))
+      (when (y-or-n-p (format "Delete filter %s? " phrase)))
       (let ((response (mastodon-http--delete url)))
         (mastodon-http--triage response (lambda ()
                                           (mastodon-views--view-filters)
