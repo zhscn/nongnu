@@ -105,6 +105,8 @@
 
 (defvar mastodon-views--list-name-keymap
   (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
+    (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
     (define-key map (kbd "<return>") 'mastodon-views--view-timeline-list-at-point)
     (define-key map (kbd "d") 'mastodon-views--delete-list-at-point)
     (define-key map (kbd "a") 'mastodon-views--add-account-to-list-at-point)
@@ -115,6 +117,8 @@
 
 (defvar mastodon-views--scheduled-map
   (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
+    (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
     (define-key map (kbd "r") 'mastodon-views--reschedule-toot)
     (define-key map (kbd "c") 'mastodon-views--cancel-scheduled-toot)
     (define-key map (kbd "e") 'mastodon-views--edit-scheduled-as-new)
