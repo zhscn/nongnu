@@ -223,16 +223,16 @@ send.")
 
 (defvar mastodon-toot-handle-regex
   (concat
-   ;; preceding space or bol [boundary doesn't work with @]
-   "\\([\n\t ]\\|^\\)"
+   ;; preceding bracket, space or bol [boundary doesn't work with @]
+   "\\([(\n\t ]\\|^\\)"
    "\\(?2:@[1-9a-zA-Z._-]+" ; a handle
    "\\(@[^ \n\t]*\\)?\\)" ; with poss domain, * = allow only @
    "\\b"))
 
 (defvar mastodon-toot-tag-regex
   (concat
-   ;; preceding space or bol [boundary doesn't work with #]
-   "\\([\n\t ]\\|^\\)"
+   ;; preceding bracket, space or bol [boundary doesn't work with #]
+   "\\([(\n\t ]\\|^\\)"
    "\\(?2:#[1-9a-zA-Z_]+\\)" ; tag
    "\\b")) ; boundary
 
