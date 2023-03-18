@@ -68,6 +68,17 @@
 
 ;;; KEYMAPS
 
+;; copy `mastodon-mode-map' if possible, as then all timeline functions are
+;; available. this is helpful because if a minor view is the only buffer left
+;; open, calling `mastodon' will switch to it, but then we will be unable to
+;; switch to timlines without closing the minor view.
+
+;; copying the mode map however means we need to avoid/unbind/override any
+;; functions that might cause interfere with the minor view.
+
+;; this is not redundant, as while the buffer -init function calls
+;; `mastodon-mode', it gets overridden in some but not all cases.
+
 (defvar mastodon-views--view-filters-keymap
   (let ((map
          (copy-keymap mastodon-mode-map)))
@@ -116,7 +127,9 @@
   "Keymap for when point is on list name.")
 
 (defvar mastodon-views--scheduled-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map ;(make-sparse-keymap)))
+         (copy-keymap mastodon-mode-map)))
+    ;; (let ((map (make-sparse-keymap)))
     (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
     (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
     (define-key map (kbd "r") 'mastodon-views--reschedule-toot)
