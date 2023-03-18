@@ -82,6 +82,7 @@
 (autoload 'mastodon-tl--profile-buffer-p "mastodon tl")
 (autoload 'mastodon-tl--buffer-type-eq "mastodon tl")
 (autoload 'mastodon-toot--count-toot-chars "mastodon-toot")
+(autoload 'mastodon-tl--interactive-user-handles-get "mastodon-tl")
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
@@ -764,7 +765,7 @@ If toot is a boost, opens the profile of the booster."
 
 (defun mastodon-profile--image-from-account (account img-type)
   "Return a avatar image from ACCOUNT.
-IMG_TYPE is the JSON key from the account data."
+IMG-TYPE is the JSON key from the account data."
   (let ((img (alist-get img-type account)))
     (unless (equal img "/avatars/original/missing.png")
       (mastodon-media--get-media-link-rendering img))))
@@ -958,7 +959,8 @@ Send an empty note to clear an existing one."
    "add a note to"))
 
 (defun mastodon-profile--post-private-note-to-account (id handle note-old)
-  "POST a private note onto an account ID with user HANDLE on the server."
+  "POST a private note onto an account ID with user HANDLE on the server.
+NOTE-OLD is the text of any existing note."
   (let* ((note (read-string (format "Add private note to account %s: " handle)
                             note-old))
          (params `(("comment" . ,note)))
