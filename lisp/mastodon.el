@@ -344,7 +344,7 @@ not, just browse the URL in the normal fashion."
     (save-match-data
       (or (string-match "^/@[^/]+$" query)
           (string-match "^/@[^/]+/[[:digit:]]+$" query)
-          (string-match "^/users/[[:alnum:]]+$" query)
+          (string-match "^/user[s]?/[[:alnum:]]+$" query)
           (string-match "^/notice/[[:alnum:]]+$" query)
           (string-match "^/objects/[-a-f0-9]+$" query)
           (string-match "^/notes/[a-z0-9]+$" query)
