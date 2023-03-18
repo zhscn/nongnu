@@ -31,16 +31,16 @@
 ;;; Code:
 (require 'json)
 
-(autoload 'mastodon-http--get-json "mastodon-http")
-(autoload 'mastodon-tl--as-string "mastodon-tl")
-(autoload 'mastodon-mode "mastodon")
-(autoload 'mastodon-tl--set-face "mastodon-tl")
-(autoload 'mastodon-tl--render-text "mastodon-tl")
-(autoload 'mastodon-tl--as-string "mastodon-tl")
 (autoload 'mastodon-auth--access-token "mastodon-auth")
-(autoload 'mastodon-http--get-search-json "mastodon-http")
 (autoload 'mastodon-http--api "mastodon-http")
+(autoload 'mastodon-http--get-json "mastodon-http")
+(autoload 'mastodon-http--get-search-json "mastodon-http")
+(autoload 'mastodon-mode "mastodon")
+(autoload 'mastodon-tl--as-string "mastodon-tl")
+(autoload 'mastodon-tl--as-string "mastodon-tl")
+(autoload 'mastodon-tl--render-text "mastodon-tl")
 (autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
+(autoload 'mastodon-tl--set-face "mastodon-tl")
 
 (defvar mastodon-toot--completion-style-for-mentions)
 (defvar mastodon-instance-url)

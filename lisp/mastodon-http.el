@@ -43,7 +43,6 @@
 (autoload 'mastodon-auth--access-token "mastodon-auth")
 (autoload 'mastodon-toot--update-status-fields "mastodon-toot")
 
-
 (defvar mastodon-http--api-version "v1")
 
 (defconst mastodon-http--timeout 15
