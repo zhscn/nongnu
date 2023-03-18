@@ -489,9 +489,7 @@ image media from the byline."
 (defun mastodon-tl--get-media-types (toot)
   "Return a list of the media attachment types of the TOOT at point."
   (let* ((attachments (mastodon-tl--field 'media_attachments toot)))
-    (mapcar (lambda (x)
-              (alist-get 'type x))
-            attachments)))
+    (mastodon-tl--map-alist 'type attachments)))
 
 (defun mastodon-tl--get-attachments-for-byline (toot)
   "Return a list of attachment URLs and types for TOOT.
@@ -1124,9 +1122,7 @@ this just means displaying toot client."
          (voters-count (mastodon-tl--field 'voters_count poll))
          (vote-count (mastodon-tl--field 'votes_count poll))
          (options (mastodon-tl--field 'options poll))
-         (option-titles (mapcar (lambda (x)
-                                  (alist-get 'title x))
-                                options))
+         (option-titles (mastodon-tl--map-alist 'title options))
          (longest-option (car (sort option-titles
                                     (lambda (x y)
                                       (> (length x)
@@ -1194,9 +1190,7 @@ this just means displaying toot client."
            (poll (or (alist-get 'poll reblog)
                      (mastodon-tl--field 'poll toot)))
            (options (mastodon-tl--field 'options poll))
-           (options-titles (mapcar (lambda (x)
-                                     (alist-get 'title x))
-                                   options))
+           (options-titles (mastodon-tl--map-alist 'title options))
            (options-number-seq (number-sequence 1 (length options)))
            (options-numbers (mapcar #'number-to-string options-number-seq))
            (options-alist (cl-mapcar 'cons options-numbers options-titles))
@@ -1504,11 +1498,11 @@ timeline."
 
 ;;; UTILITIES
 
-;; consider having this return an id / acct alist
-(defun mastodon-tl--map-get-accts (alist)
-  "Return a list of handles from ALIST."
+(defun mastodon-tl--map-alist (key alist)
+  "Return a list of values extracted from ALIST with KEY.
+Key is a symbol, as with `alist-get'."
   (mapcar (lambda (x)
-            (alist-get 'acct x))
+            (alist-get key x))
           alist))
 
 (defun mastodon-tl--symbol (name)
@@ -1973,9 +1967,8 @@ If TAG provided, follow it."
 If TAG is provided, unfollow it."
   (interactive)
   (let* ((followed-tags-json (unless tag (mastodon-tl--followed-tags)))
-         (tags (unless tag (mapcar (lambda (x)
-                                     (alist-get 'name x))
-                                   followed-tags-json)))
+         (tags (unless tag
+                 (mastodon-tl--map-alist 'name followed-tags-json)))
          (tag (or tag (completing-read "Unfollow tag: "
                                        tags)))
          (url (mastodon-http--api (format "tags/%s/unfollow" tag)))
@@ -1988,9 +1981,7 @@ If TAG is provided, unfollow it."
   "List followed tags. View timeline of tag user choses."
   (interactive)
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
-         (tags (mapcar (lambda (x)
-                         (alist-get 'name x))
-                       followed-tags-json))
+         (tags (mastodon-tl--map-alist 'name followed-tags-json))
          (tag (completing-read "Tag: " tags)))
     (mastodon-tl--get-tag-timeline tag)))
 

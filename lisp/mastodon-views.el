@@ -219,9 +219,7 @@ provides the JSON data."
 (defun mastodon-views--print-list-set (lists)
   "Print each account plus a separator for each list in LISTS."
   (let ((lists-names
-         (mapcar (lambda (x)
-                   (alist-get 'title x))
-                 lists)))
+         (mastodon-tl--map-alist 'title lists)))
     (mapc (lambda (x)
             (mastodon-views--print-list-accounts x)
             (insert (propertize " ------------\n\n"
@@ -266,9 +264,7 @@ a: add account to this list, r: remove account from this list"
 (defun mastodon-views--get-lists-names ()
   "Return a list of the user's lists' names."
   (let ((lists (mastodon-views--get-users-lists)))
-    (mapcar (lambda (x)
-              (alist-get 'title x))
-            lists)))
+    (mastodon-tl--map-alist 'title lists)))
 
 (defun mastodon-views--get-list-by-name (name)
   "Return the list data for list with NAME."

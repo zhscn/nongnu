@@ -70,7 +70,7 @@
 (autoload 'mastodon-tl--init "mastodon-tl.el")
 (autoload 'mastodon-tl--init-sync "mastodon-tl")
 (autoload 'mastodon-tl--interactive-user-handles-get "mastodon-tl")
-(autoload 'mastodon-tl--map-get-accts "mastodon-views")
+(autoload 'mastodon-tl--map-alist "mastodon-tl")
 (autoload 'mastodon-tl--profile-buffer-p "mastodon tl")
 (autoload 'mastodon-tl--property "mastodon-tl.el")
 (autoload 'mastodon-tl--render-text "mastodon-tl.el")
@@ -827,9 +827,7 @@ These include the author, author of reblogged entries and any user mentioned."
          'list
          (list (alist-get 'acct this-account))
          (mastodon-profile--extract-users-handles reblog)
-         (mapcar (lambda (mention)
-                   (alist-get 'acct mention))
-                 mentions)))))))
+         (mastodon-tl--map-alist 'acct mentions)))))))
 
 (defun mastodon-profile--lookup-account-in-status (handle status)
   "Return account for HANDLE using hints in STATUS if possible."
@@ -989,10 +987,12 @@ the given account."
          (url (mastodon-http--api "accounts/familiar_followers"))
          (json (mastodon-http--get-json url params))
          (accounts (alist-get 'accounts (car json))) ; first id result
-         (handles (mastodon-tl--map-get-accts accounts))
-         (choice (completing-read "Show profile of user: "
-                                  handles)))
-    (mastodon-profile--show-user choice)))
+         (handles (mastodon-tl--map-alist 'acct accounts)))
+    (if (null handles)
+        (message "Looks like there are no familiar followers for this account")
+      (let ((choice (completing-read "Show profile of user: "
+                                     handles)))
+        (mastodon-profile--show-user choice)))))
 
 (provide 'mastodon-profile)
 ;;; mastodon-profile.el ends here
