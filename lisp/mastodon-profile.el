@@ -73,7 +73,7 @@
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
 (autoload 'mastodon-tl--get-endpoint "mastodon-tl.el")
 (autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
-(autoload 'mastodon-tl--add-account-to-list "mastodon-tl")
+(autoload 'mastodon-views--add-account-to-list "mastodon-views")
 (autoload 'mastodon-http--get-response "mastodon-http")
 (autoload 'mastodon-tl--get-link-header-from-response "mastodon-tl")
 (autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
@@ -106,23 +106,6 @@
     (define-key map (kbd "C-c C-c") #'mastodon-profile--account-view-cycle)
     map)
   "Keymap for `mastodon-profile-mode'.")
-
-(defvar mastodon-profile--view-follow-requests-keymap
-  (let ((map ;(make-sparse-keymap)))
-         (copy-keymap mastodon-mode-map)))
-    ;; make reject binding match the binding in notifs view
-    ;; 'r' is then reserved for replying, even tho it is not avail
-    ;; in foll-reqs view
-    (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
-    (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
-    (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
-    (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
-    (define-key map (kbd "g") #'mastodon-profile--view-follow-requests)
-    ;; (define-key map (kbd "t") #'mastodon-toot)
-    ;; (define-key map (kbd "q") #'kill-current-buffer)
-    ;; (define-key map (kbd "Q") #'kill-buffer-and-window)
-    map)
-  "Keymap for viewing follow requests.")
 
 (define-minor-mode mastodon-profile-mode
   "Toggle mastodon profile minor mode.
@@ -233,36 +216,6 @@ NO-REBLOGS means do not display boosts in statuses."
                      'mastodon-tl--timeline
                      :headers))
 
-(defun mastodon-profile--view-follow-requests ()
-  "Open a new buffer displaying the user's follow requests."
-  (interactive)
-  (mastodon-tl--init-sync "follow-requests"
-                          "follow_requests"
-                          'mastodon-profile--insert-follow-requests)
-  (mastodon-tl--goto-first-item)
-  (with-current-buffer "*mastodon-follow-requests*"
-    (use-local-map mastodon-profile--view-follow-requests-keymap)))
-
-(defun mastodon-profile--insert-follow-requests (json)
-  "Insert the user's current follow requests.
-JSON is the data returned by the server."
-  (insert (mastodon-tl--set-face
-           (concat "\n ------------\n"
-                   " FOLLOW REQUESTS\n"
-                   " ------------\n\n")
-           'success)
-          (mastodon-tl--set-face
-           "[a/r - accept/reject request at point\n n/p - go to next/prev request]\n\n"
-           'font-lock-comment-face))
-  (if (seq-empty-p json)
-      (insert (propertize
-               "Looks like you have no follow requests for now."
-               'face font-lock-comment-face
-               'byline t
-               'toot-id "0"))
-    (mastodon-search--insert-users-propertized json :note)))
-;; (mastodon-profile--add-author-bylines json)))
-
 (defun mastodon-profile--add-account-to-list ()
   "Add account of current profile buffer to a list."
   (interactive)
@@ -270,7 +223,7 @@ JSON is the data returned by the server."
     (let* ((profile mastodon-profile--account)
            (id (alist-get 'id profile))
            (handle (alist-get 'acct profile)))
-      (mastodon-tl--add-account-to-list nil id handle))))
+      (mastodon-views--add-account-to-list nil id handle))))
 
 ;;; ACCOUNT PREFERENCES
 

@@ -78,8 +78,8 @@
 (autoload 'mastodon-http--build-array-params-alist "mastodon-http")
 (autoload 'mastodon-http--put "mastodon-http")
 (autoload 'mastodon-tl--symbol "mastodon-tl")
-(autoload 'mastodon-tl--view-scheduled-toots "mastodon-tl")
-(autoload 'mastodon-tl--cancel-scheduled-toot "mastodon-toot")
+(autoload 'mastodon-views--view-scheduled-toots "mastodon-views")
+(autoload 'mastodon-views--cancel-scheduled-toot "mastodon-views")
 (autoload 'org-read-date "org")
 (autoload 'iso8601-parse "iso8601")
 (autoload 'mastodon-tl--buffer-type-eq "mastodon-tl")
@@ -805,7 +805,7 @@ instance to edit a toot."
                                         (message "Toot toot!"))
                                       ;; cancel scheduled toot if we were editing it:
                                       (when scheduled-id
-                                        (mastodon-tl--cancel-scheduled-toot
+                                        (mastodon-views--cancel-scheduled-toot
                                          scheduled-id :no-confirm))
                                       (mastodon-toot--restore-previous-window-config
                                        prev-window-config))))))))
@@ -1263,7 +1263,7 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
                (mastodon-http--triage response
                                       (lambda ()
                                         ;; reschedule means we are in scheduled toots view:
-                                        (mastodon-tl--view-scheduled-toots)
+                                        (mastodon-views--view-scheduled-toots)
                                         (message
                                          (format "Toot rescheduled for %s." msg-str))))))))))
 

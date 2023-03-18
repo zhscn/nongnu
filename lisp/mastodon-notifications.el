@@ -50,7 +50,7 @@
 (autoload 'mastodon-tl--spoiler "mastodon-tl.el")
 (autoload 'mastodon-tl--toot-id "mastodon-tl.el")
 (autoload 'mastodon-http--get-params-async-json "mastodon-http.el")
-(autoload 'mastodon-profile--view-follow-requests "mastodon-profile.el")
+(autoload 'mastodon-views--view-follow-requests "mastodon-views")
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (autoload 'mastodon-tl--update "mastodon-tl")
 (autoload 'mastodon-notifications-get "mastodon")
@@ -126,7 +126,7 @@ follow-requests view."
                   (mastodon-http--triage response
                                          (lambda ()
                                            (if f-reqs-view-p
-                                               (mastodon-profile--view-follow-requests)
+                                               (mastodon-views--view-follow-requests)
                                              (mastodon-notifications-get))
                                            (message "Follow request of %s (@%s) %s!"
                                                     name handle (if reject
