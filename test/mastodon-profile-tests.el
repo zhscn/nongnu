@@ -54,7 +54,7 @@
     (fields . [])))
 
 (defconst gargon-statuses-json
-  `[((id . "123456789012345678")
+  `(((id . "123456789012345678")
      (created_at . "2021-11-11T11:11:11.111Z")
      (in_reply_to_id)
      (in_reply_to_account_id)
@@ -112,7 +112,7 @@
      (tags . [])
      (emojis . [])
      (card)
-     (poll))])
+     (poll))))
 
 (ert-deftest mastodon-profile--add-author-bylines ()
   "Should correctly format short infos about one account.
