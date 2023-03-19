@@ -227,18 +227,19 @@ Where RANGES is an unordered list of (min . max) cons cells."
 Argument VISIBLE-RANGES is a list of (min . max) ranges to highlight."
   (idle-highlight--unhighlight)
   (save-excursion
-    (let ((target-regexp (concat "\\_<" (regexp-quote target) "\\_>")))
-      (pcase-dolist (`(,beg . ,end) visible-ranges)
-        (goto-char beg)
-        (while (re-search-forward target-regexp end t)
-          (let ((match-beg (match-beginning 0))
-                (match-end (match-end 0)))
-            (unless (and idle-highlight-exclude-point
-                         (eq target-beg match-beg)
-                         (eq target-end match-end))
-              (let ((ov (make-overlay match-beg match-end)))
-                (overlay-put ov 'face 'idle-highlight)
-                (push ov idle-highlight--overlays)))))))))
+    (save-match-data
+      (let ((target-regexp (concat "\\_<" (regexp-quote target) "\\_>")))
+        (pcase-dolist (`(,beg . ,end) visible-ranges)
+          (goto-char beg)
+          (while (re-search-forward target-regexp end t)
+            (let ((match-beg (match-beginning 0))
+                  (match-end (match-end 0)))
+              (unless (and idle-highlight-exclude-point
+                           (eq target-beg match-beg)
+                           (eq target-end match-end))
+                (let ((ov (make-overlay match-beg match-end)))
+                  (overlay-put ov 'face 'idle-highlight)
+                  (push ov idle-highlight--overlays))))))))))
 
 (defun idle-highlight--word-at-point-args ()
   "Return arguments for `idle-highlight--highlight'."

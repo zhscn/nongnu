@@ -1,3 +1,8 @@
+
+- In development.
+
+  - Fix missing call to ``save-match-data``.
+
 - Version 1.1.4 (2023-01-10)
 
   - Rename ``global-idle-highlight-mode`` to ``idle-highlight-global-mode`` and
