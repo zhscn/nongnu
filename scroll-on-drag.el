@@ -174,6 +174,10 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
     (run-hooks 'scroll-on-drag-redisplay-hook)
     (redisplay)))
 
+
+;; ---------------------------------------------------------------------------
+;; Internal Evil Workaround
+
 (defun scroll-on-drag--evil-visual-line-data ()
   "Return data associated with visual line mode or nil when none is found."
   ;; The checks are written so as not to require evil mode as a dependency.
@@ -196,6 +200,38 @@ VISUAL-LINE-DATA is the result of `scroll-on-drag--evil-visual-line-data'."
          (goto-char (marker-position ,visual-line-data))
          ,@body)
      (set-marker ,visual-line-data (point))))
+
+
+;; ---------------------------------------------------------------------------
+;; Internal Target Column Functions
+
+(defun scroll-on-drag--goal-column-setup ()
+  "Initialize `goal-column'.
+The result should be passed to `scroll-on-drag--goal-column-restore'."
+  (cons
+   (current-column)
+   (or goal-column
+       (cond
+        ((and temporary-goal-column
+              (memq last-command (list 'next-line 'previous-line 'line-move)))
+         (cond
+          ((consp temporary-goal-column)
+           (car temporary-goal-column))
+          (t
+           temporary-goal-column)))
+        (t
+         nil)))))
+
+(defun scroll-on-drag--goal-column-restore (data)
+  "Restore the goal column from DATA."
+  (pcase-let ((`(,this-column . ,restore-column) data))
+    (unless restore-column
+      (setq temporary-goal-column this-column)
+      (setq restore-column this-column))
+    (when (> restore-column 0)
+      (move-to-column restore-column))
+    ;; Needed so `temporary-goal-column' is respected in the future.
+    (setq this-command 'line-move)))
 
 
 ;; ---------------------------------------------------------------------------
@@ -254,21 +290,8 @@ Returns true when scrolling took place, otherwise nil."
            (t
             nil)))
 
-         ;; Restore indent (lost when scrolling).
-         (this-column (current-column))
-         ;; Restore column (may be nil.)
-         (restore-column
-          (or goal-column
-              (cond
-               ((and temporary-goal-column
-                     (memq last-command (list 'next-line 'previous-line 'line-move)))
-                (cond
-                 ((consp temporary-goal-column)
-                  (car temporary-goal-column))
-                 (t
-                  temporary-goal-column)))
-               (t
-                nil))))
+         ;; Restore column.
+         (goal-column-data (scroll-on-drag--goal-column-setup))
 
          (mouse-y-fn
           (cond
@@ -471,13 +494,7 @@ Returns true when scrolling took place, otherwise nil."
 
     ;; Restore indent level if possible.
     (when has-scrolled
-      (unless restore-column
-        (setq temporary-goal-column this-column)
-        (setq restore-column this-column))
-      (when (> restore-column 0)
-        (move-to-column restore-column))
-      ;; Needed so `temporary-goal-column' is respected in the future.
-      (setq this-command 'line-move))
+      (scroll-on-drag--goal-column-restore goal-column-data))
 
     (when has-scrolled-real
       (let ((inhibit-redisplay nil))
