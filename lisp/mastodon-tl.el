@@ -1505,7 +1505,7 @@ Key is a symbol, as with `alist-get'."
             (alist-get key x))
           alist))
 
-(defun mastodon-tl-map-alist-to-alist (key1 key2 alist)
+(defun mastodon-tl--map-alist-vals-to-alist (key1 key2 alist)
   "From ALIST, return an alist consisting of (val1 . val2) elements.
 Values are accessed by `alist-get', using KEY1 and KEY2."
   (mapcar (lambda (x)

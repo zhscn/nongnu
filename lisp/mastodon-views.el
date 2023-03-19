@@ -398,7 +398,7 @@ If ACCOUNT-ID and HANDLE are provided use them rather than prompting."
                                        (mastodon-views--get-lists-names) nil t)))
          (list-id (or id (mastodon-views--get-list-id list-name)))
          (followings (mastodon-views--get-users-followings))
-         (handles (mastodon-tl-map-alist-to-alist 'acct 'id followings))
+         (handles (mastodon-tl--map-alist-vals-to-alist 'acct 'id followings))
          (account (or handle (completing-read "Account to add: "
                                               handles nil t)))
          (account-id (or account-id (alist-get account handles nil nil 'equal)))
@@ -434,7 +434,7 @@ If ID is provided, use that list."
                                        (mastodon-views--get-lists-names) nil t)))
          (list-id (or id (mastodon-views--get-list-id list-name)))
          (accounts (mastodon-views--accounts-in-list list-id))
-         (handles (mastodon-tl-map-alist-to-alist 'acct 'id accounts))
+         (handles (mastodon-tl--map-alist-vals-to-alist 'acct 'id accounts))
          (account (completing-read "Account to remove: "
                                    handles nil t))
          (account-id (alist-get account handles nil nil 'equal))
