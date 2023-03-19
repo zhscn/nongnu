@@ -3,6 +3,9 @@
 Change Log
 ##########
 
+- 2023-03-19
+  - Exclude commands from evil-mode repeat.
+
 - 2022-11-20
   - Fix use with ``eglot``.
 

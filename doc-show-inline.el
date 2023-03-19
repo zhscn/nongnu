@@ -162,6 +162,9 @@ When unset, the :filter property from `doc-show-inline-mode-defaults' is used.")
 
 (defvar-local doc-show-inline--idle-timer nil)
 
+;; List of interactive commands.
+(defconst doc-show-inline--commands (list 'doc-show-inline-buffer 'doc-show-inline-mode))
+
 
 ;; ---------------------------------------------------------------------------
 ;; Idle Overlay (Package Development / Debugging Only)
@@ -972,6 +975,17 @@ When IS-INTERACTIVE is true, use `doc-show-inline-idle-delay-init'."
       (doc-show-inline--mode-enable (called-interactively-p 'interactive))))
    (t
     (doc-show-inline--mode-disable))))
+
+;; Evil Mode (setup if in use).
+;;
+;; Don't let these commands repeat as they are for the UI, not editor.
+;;
+;; Notes:
+;; - Package lint complains about using this command,
+;;   however it's needed to avoid issues with `evil-mode'.
+(declare-function evil-declare-not-repeat "ext:evil-common")
+(with-eval-after-load 'evil
+  (mapc #'evil-declare-not-repeat doc-show-inline--commands))
 
 (provide 'doc-show-inline)
 ;; Local Variables:
