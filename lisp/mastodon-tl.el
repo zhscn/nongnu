@@ -1705,6 +1705,14 @@ If UNMUTE, unmute it."
                                              (message "Thread unmuted!")
                                            (message "Thread muted!")))))))))))
 
+
+(defun mastodon-tl--map-account-id-from-toot (statuses)
+  "Return a list of the account IDs of the author of each toot in STATUSES."
+  (mapcar (lambda (status)
+            (alist-get 'id
+                       (alist-get 'account status)))
+          statuses))
+
 (defun mastodon-tl--user-in-thread-p (id)
   "Return non-nil if the logged-in user has posted to the current thread.
 ID is that of the post the context is currently displayed for."
@@ -1713,14 +1721,8 @@ ID is that of the post the context is currently displayed for."
                         nil :silent))
          (ancestors (alist-get 'ancestors context-json))
          (descendants (alist-get 'descendants context-json))
-         (a-ids (mapcar (lambda (status)
-                          (alist-get 'id
-                                     (alist-get 'account status)))
-                        ancestors))
-         (d-ids (mapcar (lambda (status)
-                          (alist-get 'id
-                                     (alist-get 'account status)))
-                        descendants)))
+         (a-ids (mastodon-tl--map-account-id-from-toot a-ids ancestors))
+         (d-ids (mastodon-tl--map-account-id-from-toot a-ids descendants)))
     (or (member (mastodon-auth--get-account-id) a-ids)
         (member (mastodon-auth--get-account-id) d-ids))))
 
