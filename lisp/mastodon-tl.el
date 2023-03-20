@@ -1594,6 +1594,7 @@ ID is that of the toot to view."
         (message "Error: %s" (cdar toot))
       (with-current-buffer (get-buffer-create buffer)
         (let ((inhibit-read-only t))
+          (erase-buffer)
           (switch-to-buffer buffer)
           (mastodon-mode)
           (mastodon-tl--set-buffer-spec buffer
@@ -1648,6 +1649,7 @@ view all branches of a thread."
                 (with-current-buffer (get-buffer-create buffer)
                   (let ((inhibit-read-only t))
                     (switch-to-buffer buffer)
+                    (erase-buffer)
                     (mastodon-mode)
                     (mastodon-tl--set-buffer-spec buffer
                                                   endpoint
@@ -2327,6 +2329,7 @@ JSON and http headers, without it just the JSON."
              (link-header (mastodon-tl--get-link-header-from-response headers)))
         (with-current-buffer (get-buffer-create buffer)
           (let ((inhibit-read-only t))
+            (erase-buffer)
             (switch-to-buffer buffer)
             ;; mastodon-mode wipes buffer-spec, so order must unforch be:
             ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
@@ -2379,6 +2382,7 @@ Optional arg NOTE-TYPE means only get that type of note."
          (json (mastodon-http--get-json url args)))
     (with-current-buffer (get-buffer-create buffer)
       (let ((inhibit-read-only t))
+        (erase-buffer)
         (switch-to-buffer buffer)
         ;; mastodon-mode wipes buffer-spec, so order must unforch be:
         ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
