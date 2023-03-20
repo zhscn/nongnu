@@ -101,7 +101,7 @@
 (defvar mastodon-views--follow-suggestions-map
   (let ((map
          (copy-keymap mastodon-views-map)))
-    (define-key map (kbd "g") 'mastodon-views--get-follow-suggestions)
+    (define-key map (kbd "g") 'mastodon-views--view-follow-suggestions)
     (keymap-canonicalize map))
   "Keymap for viewing follow suggestions.")
 
@@ -676,7 +676,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
 
 ;;; FOLLOW SUGGESTIONS
 
-(defun mastodon-views--get-follow-suggestions ()
+(defun mastodon-views--view-follow-suggestions ()
   "Display a buffer of suggested accounts to follow."
   (interactive)
   (mastodon-tl--init-sync "follow-suggestions"
