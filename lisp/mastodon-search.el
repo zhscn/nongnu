@@ -45,8 +45,6 @@
 (defvar mastodon-toot--completion-style-for-mentions)
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--link-keymap)
-(defvar mastodon-http--timeout)
-(defvar mastodon-toot--enable-completion-for-mentions)
 
 ;; functions for completion of mentions in mastodon-toot
 

@@ -68,7 +68,6 @@
 (autoload 'mastodon-tl--goto-next-toot "mastodon-tl.el")
 (autoload 'mastodon-tl--goto-prev-item "mastodon-tl")
 (autoload 'mastodon-tl--init "mastodon-tl.el")
-(autoload 'mastodon-tl--init-sync "mastodon-tl")
 (autoload 'mastodon-tl--interactive-user-handles-get "mastodon-tl")
 (autoload 'mastodon-tl--map-alist "mastodon-tl")
 (autoload 'mastodon-tl--profile-buffer-p "mastodon tl")
@@ -84,11 +83,9 @@
 (autoload 'mastodon-toot--count-toot-chars "mastodon-toot")
 (autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
 (autoload 'mastodon-views--add-account-to-list "mastodon-views")
+(autoload 'mastodon-tl--map-alist-vals-to-alist "mastodon-tl")
 
-(defvar mastodon-instance-url)
-(defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--update-point)
-(defvar mastodon-mode-map)
 (defvar mastodon-toot--max-toot-chars)
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot--content-nsfw)
@@ -350,6 +347,7 @@ This is done after changing the setting on the server."
   (setq mastodon-profile-account-settings
         (plist-put mastodon-profile-account-settings pref val)))
 
+;; used in toot.el
 (defun mastodon-profile--fetch-server-account-settings-maybe ()
   "Fetch account settings from the server.
 Only do so if `mastodon-profile-account-settings' is nil."
@@ -491,6 +489,7 @@ Returns the results as an alist."
   "Limit string X to 255 chars max."
   (if (> (length x) 255) (substring x 0 255) x))
 
+;; used in tl.el
 (defun mastodon-profile--get-preferences-pref (pref)
   "Fetch PREF from the endpoint \"/preferences\".
 This endpoint only holds a few preferences. For others, see

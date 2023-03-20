@@ -38,7 +38,6 @@
 (require 'cl-lib)
 (require 'mastodon-http)
 
-(defvar mastodon-profile--account)
 (defvar mastodon-mode-map)
 
 (autoload 'mastodon-mode "mastodon")
@@ -64,6 +63,8 @@
 (autoload 'mastodon-toot--set-toot-properties "mastodon-toot")
 (autoload 'mastodon-search--propertize-user "mastodon-search")
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
+(autoload 'mastodon-tl--map-alist "mastodon-tl")
+(autoload 'mastodon-tl--map-alist-vals-to-alist "mastodon-tl")
 
 
 ;;; KEYMAPS

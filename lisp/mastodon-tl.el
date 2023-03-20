@@ -1949,11 +1949,6 @@ ARGS is an alist of any parameters to send with the request."
 
 ;; FOLLOW TAGS
 
-(defun mastodon-tl--get-tag-json (tag)
-  "Return JSON data about TAG."
-  (let ((url (mastodon-http--api (format "tags/%s" tag))))
-    (mastodon-http--get-json url)))
-
 (defun mastodon-tl--follow-tag (&optional tag)
   "Prompt for a tag and follow it.
 If TAG provided, follow it."
