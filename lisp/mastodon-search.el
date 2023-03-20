@@ -184,7 +184,7 @@ user's profile note. This is also called by
 		         'help-echo (concat "Browse user profile of @" (cadr user)))
              " : \n"
              (if note
-                 (mastodon-tl--render-text (cadddr user) nil)
+                 (mastodon-tl--render-text (cadddr user) acct)
                "")
              "\n")
      'toot-json acct))) ; so named for compat w other processing functions
