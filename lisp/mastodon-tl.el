@@ -1721,8 +1721,8 @@ ID is that of the post the context is currently displayed for."
                         nil :silent))
          (ancestors (alist-get 'ancestors context-json))
          (descendants (alist-get 'descendants context-json))
-         (a-ids (mastodon-tl--map-account-id-from-toot a-ids ancestors))
-         (d-ids (mastodon-tl--map-account-id-from-toot a-ids descendants)))
+         (a-ids (mastodon-tl--map-account-id-from-toot ancestors))
+         (d-ids (mastodon-tl--map-account-id-from-toot descendants)))
     (or (member (mastodon-auth--get-account-id) a-ids)
         (member (mastodon-auth--get-account-id) d-ids))))
 
