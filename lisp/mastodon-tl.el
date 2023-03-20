@@ -1885,7 +1885,7 @@ Action must be either \"unblock\" or \"unmute\"."
                           "mutes")))
          (url (mastodon-http--api endpoint))
          (json (mastodon-http--get-json url))
-         (accts (mastodon-tl--map-get-accts json)))
+         (accts (mastodon-tl--map-alist 'acct json)))
     (when accts
       (completing-read (format "Handle of user to %s: " action)
                        accts
