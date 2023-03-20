@@ -395,7 +395,7 @@ TYPE is a symbol, either 'favourite or 'boost."
   (mastodon-toot--toggle-boost-or-favourite 'favourite))
 
 ;; TODO maybe refactor into boost/fave fun
-(defun mastodon-toot--bookmark-toot-toggle ()
+(defun mastodon-toot--toggle-bookmark ()
   "Bookmark or unbookmark toot at point."
   (interactive)
   (let* ( ;(toot (mastodon-tl--property 'toot-json))

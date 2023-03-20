@@ -53,7 +53,7 @@
                        ("b" "Boost" mastodon-toot--boost)
                        ("f" "Favourite" mastodon-toot--favourite)
                        ("c" "Toggle hidden text (CW)" mastodon-tl--toggle-spoiler-text-in-toot)
-                       ("k" "Bookmark toot" mastodon-toot--bookmark-toot-toggle)
+                       ("k" "Bookmark toot" mastodon-toot--toggle-bookmark)
                        ("v" "Vote on poll" mastodon-tl--poll-vote)
                        ("n" "Next" mastodon-tl--goto-next-toot)
                        ("p" "Prev" mastodon-tl--goto-prev-toot)

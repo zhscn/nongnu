@@ -169,6 +169,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "b") #'mastodon-toot--toggle-boost)
     (define-key map (kbd "c") #'mastodon-tl--toggle-spoiler-text-in-toot)
     (define-key map (kbd "f") #'mastodon-toot--toggle-favourite)
+    (define-key map (kbd "k") #'mastodon-toot--toggle-bookmark)
     (define-key map (kbd "r") #'mastodon-toot--reply)
     ;; this is now duplicated by 'g', cd remove/use for else:
     (define-key map (kbd "u") #'mastodon-tl--update)
@@ -194,7 +195,6 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "R") #'mastodon-views--view-follow-requests)
     (define-key map (kbd "U") #'mastodon-profile--update-user-profile-note)
     (define-key map (kbd "v") #'mastodon-tl--poll-vote)
-    (define-key map (kbd "k") #'mastodon-toot--bookmark-toot-toggle)
     (define-key map (kbd "K") #'mastodon-profile--view-bookmarks)
     (define-key map (kbd "I") #'mastodon-views--view-filters)
     (define-key map (kbd "G") #'mastodon-views--get-follow-suggestions)
