@@ -80,13 +80,19 @@
 ;; this is not redundant, as while the buffer -init function calls
 ;; `mastodon-mode', it gets overridden in some but not all cases.
 
-(defvar mastodon-views--view-filters-keymap
+(defvar mastodon-views-map
   (let ((map
          (copy-keymap mastodon-mode-map)))
-    (define-key map (kbd "d") 'mastodon-views--delete-filter)
-    (define-key map (kbd "c") 'mastodon-views--create-filter)
     (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
     (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
+    (keymap-canonicalize map))
+  "Base keymap for minor mastodon views.")
+
+(defvar mastodon-views--view-filters-keymap
+  (let ((map
+         (copy-keymap mastodon-views-map)))
+    (define-key map (kbd "d") 'mastodon-views--delete-filter)
+    (define-key map (kbd "c") 'mastodon-views--create-filter)
     (define-key map (kbd "TAB") 'mastodon-tl--goto-next-item)
     (define-key map (kbd "g") 'mastodon-views--view-filters)
     (keymap-canonicalize map))
@@ -94,31 +100,25 @@
 
 (defvar mastodon-views--follow-suggestions-map
   (let ((map
-         (copy-keymap mastodon-mode-map)))
-    (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
-    (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
+         (copy-keymap mastodon-views-map)))
     (define-key map (kbd "g") 'mastodon-views--get-follow-suggestions)
     (keymap-canonicalize map))
   "Keymap for viewing follow suggestions.")
 
 (defvar mastodon-views--view-lists-keymap
-  (let ((map ;(make-sparse-keymap)))
-         (copy-keymap mastodon-mode-map)))
+  (let ((map
+         (copy-keymap mastodon-views-map)))
     (define-key map (kbd "D") 'mastodon-views--delete-list)
     (define-key map (kbd "C") 'mastodon-views--create-list)
     (define-key map (kbd "A") 'mastodon-views--add-account-to-list)
     (define-key map (kbd "R") 'mastodon-views--remove-account-from-list)
     (define-key map (kbd "E") 'mastodon-views--edit-list)
-    (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
-    (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
     (define-key map (kbd "g") 'mastodon-views--view-lists)
     (keymap-canonicalize map))
   "Keymap for viewing lists.")
 
 (defvar mastodon-views--list-name-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
-    (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
     (define-key map (kbd "<return>") 'mastodon-views--view-timeline-list-at-point)
     (define-key map (kbd "d") 'mastodon-views--delete-list-at-point)
     (define-key map (kbd "a") 'mastodon-views--add-account-to-list-at-point)
@@ -129,10 +129,7 @@
 
 (defvar mastodon-views--scheduled-map
   (let ((map ;(make-sparse-keymap)))
-         (copy-keymap mastodon-mode-map)))
-    ;; (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
-    (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
+         (copy-keymap mastodon-views-map)))
     (define-key map (kbd "r") 'mastodon-views--reschedule-toot)
     (define-key map (kbd "c") 'mastodon-views--cancel-scheduled-toot)
     (define-key map (kbd "e") 'mastodon-views--edit-scheduled-as-new)
@@ -142,18 +139,13 @@
 
 (defvar mastodon-views--view-follow-requests-keymap
   (let ((map ;(make-sparse-keymap)))
-         (copy-keymap mastodon-mode-map)))
+         (copy-keymap mastodon-views-map)))
     ;; make reject binding match the binding in notifs view
     ;; 'r' is then reserved for replying, even tho it is not avail
     ;; in foll-reqs view
     (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
     (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
-    (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
-    (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
     (define-key map (kbd "g") #'mastodon-views--view-follow-requests)
-    ;; (define-key map (kbd "t") #'mastodon-toot)
-    ;; (define-key map (kbd "q") #'kill-current-buffer)
-    ;; (define-key map (kbd "Q") #'kill-buffer-and-window)
     map)
   "Keymap for viewing follow requests.")
 
