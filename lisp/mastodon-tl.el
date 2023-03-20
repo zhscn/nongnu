@@ -2408,6 +2408,7 @@ Optional arg NOTE-TYPE means only get that type of note."
                              (current-buffer)
                              nil)))
         (unless (mastodon-tl--profile-buffer-p)
+          ;; FIXME: this breaks test (because test has empty buffer)
           (mastodon-tl--goto-first-item)))
       buffer)))
 
