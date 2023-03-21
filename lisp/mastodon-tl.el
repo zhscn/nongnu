@@ -67,6 +67,7 @@
 (autoload 'mastodon-profile--lookup-account-in-status "mastodon-profile")
 (autoload 'mastodon-profile--make-author-buffer "mastodon-profile")
 (autoload 'mastodon-profile--my-profile "mastodon-profile")
+(autoload 'mastodon-profile--profile-json "mastodon-profile")
 (autoload 'mastodon-profile--search-account-by-handle "mastodon-profile")
 (autoload 'mastodon-profile--toot-json "mastodon-profile")
 (autoload 'mastodon-profile--view-author-profile "mastodon-profile")
@@ -268,7 +269,7 @@ This also skips tab items in invisible text, i.e. hidden spoiler text."
     (if (null next-range)
         (message "Nothing else here.")
       (goto-char (car next-range))
-      (message "%s" (get-text-property (point) 'help-echo)))))
+      (message "%s" (mastodon-tl--property 'help-echo :no-move)))))
 
 (defun mastodon-tl--previous-tab-item ()
   "Move to the previous interesting item.
@@ -288,7 +289,7 @@ text, i.e. hidden spoiler text."
     (if (null next-range)
         (message "Nothing else before this.")
       (goto-char (car next-range))
-      (message "%s" (get-text-property (point) 'help-echo)))))
+      (message "%s" (mastodon-tl--property 'help-echo :no-move)))))
 
 (defun mastodon-tl--goto-toot-pos (find-pos refresh &optional pos)
   "Search for toot with FIND-POS.
@@ -395,12 +396,12 @@ Optionally load TAG timeline directly."
 Do so if type of status at poins is not follow_request/follow."
   (let ((type (alist-get
                'type
-               (get-text-property (point) 'toot-json)))
-        (echo (get-text-property (point) 'help-echo)))
+               (mastodon-tl--property 'toot-json :no-move)))
+        (echo (mastodon-tl--property 'help-echo :no-move)))
     (when echo ; not for followers/following in profile
       (unless (or (string= type "follow_request")
                   (string= type "follow")) ; no counts for these
-        (message "%s" (get-text-property (point) 'help-echo))))))
+        (message "%s" (mastodon-tl--property 'help-echo :no-move))))))
 
 (defun mastodon-tl--byline-author (toot &optional avatar)
   "Propertize author of TOOT.
@@ -1256,11 +1257,11 @@ in which case play first video or gif from current toot."
               ;; point in byline:
               url
               ;; point in toot:
-              (get-text-property (point) 'image-url)))
+              (mastodon-tl--property 'image-url :no-move)))
         (type (or ;; in byline:
                type
                ;; point in toot:
-               (mastodon-tl--property 'mastodon-media-type))))
+               (mastodon-tl--property 'mastodon-media-type :no-move))))
     (if url
         (if (or (equal type "gifv")
                 (equal type "video"))
@@ -1541,7 +1542,8 @@ Return value from boosted content if available."
 
 (defun mastodon-tl--property (prop &optional no-move backward)
   "Get property PROP for toot at point.
-Move forward (down) the timeline unless BACKWARD is non-nil."
+Move forward (down) the timeline unless NO-MOVE is non-nil.
+BACKWARD means move backward (up) the timeline."
   (if no-move
       (get-text-property (point) prop)
     (or (get-text-property (point) prop)
@@ -1856,14 +1858,13 @@ LANGS is the accumulated array param alist if we re-run recursively."
                      ;; fetch 'toot-json:
                      (mastodon-tl--buffer-type-eq 'profile-followers)
                      (mastodon-tl--buffer-type-eq 'profile-following))
-                 (list (alist-get 'acct (get-text-property (point) 'toot-json))))
-                ;; profile view, no toots, point on profile note, ie. 'profile-json:
+                 (list (alist-get 'acct
+                                  (mastodon-tl--property 'toot-json :no-move))))
+                ;; profile view, no toots
                 ;; needed for e.g. gup.pe groups which show no toots publically:
-                ((and (mastodon-tl--profile-buffer-p)
-                      (get-text-property (point) 'profile-json))
-                 (list (alist-get 'acct (get-text-property (point) 'profile-json))))
-                ;; avoid tl--property here because it calls next-toot
-                ;; which breaks non-toot buffers like foll reqs etc.:
+                ((mastodon-tl--profile-buffer-p)
+                 (list (alist-get 'acct
+                                  (mastodon-profile--profile-json))))
                 (t
                  (mastodon-profile--extract-users-handles
                   (mastodon-profile--toot-json))))))
@@ -1905,7 +1906,7 @@ LANGS is an array parameters alist of languages to filer user's posts by."
                     ;; if profile view, use 'profile-json as status:
                     (if (mastodon-tl--profile-buffer-p)
                         (mastodon-profile--lookup-account-in-status
-                         user-handle (get-text-property (point) 'profile-json))
+                         user-handle (mastodon-profile--profile-json))
                       ;; if muting/blocking, we select from handles in current status
                       (mastodon-profile--lookup-account-in-status
                        user-handle (mastodon-profile--toot-json)))))

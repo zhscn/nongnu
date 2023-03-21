@@ -714,7 +714,7 @@ IMG-TYPE is the JSON key from the account data."
   (interactive
    (list
     (if (and (not (mastodon-tl--profile-buffer-p))
-             (not (get-text-property (point) 'toot-json)))
+             (not (mastodon-tl--property 'toot-json :no-move)))
         (message "Looks like there's no toot or user at point?")
       (let ((user-handles (mastodon-profile--extract-users-handles
                            (mastodon-profile--toot-json))))
@@ -725,7 +725,7 @@ IMG-TYPE is the JSON key from the account data."
   (if (not (or
             ;; own profile has no need for toot-json test:
             (equal user-handle (mastodon-auth--get-account-name))
-            (get-text-property (point) 'toot-json)))
+            (mastodon-tl--property 'toot-json :no-move)))
       (message "Looks like there's no toot or user at point?")
     (let ((account (mastodon-profile--lookup-account-in-status
                     user-handle (mastodon-profile--toot-json))))
@@ -839,7 +839,7 @@ These include the author, author of reblogged entries and any user mentioned."
   "Remove a user from your followers.
 Optionally provide the ID of the account to remove."
   (interactive)
-  (let* ((account (unless id (get-text-property (point) 'toot-json)))
+  (let* ((account (unless id (mastodon-tl--property 'toot-json :no-move)))
          (id (or id (alist-get 'id account)))
          (handle (if account
                      (alist-get 'acct account)

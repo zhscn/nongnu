@@ -309,7 +309,7 @@ not, just browse the URL in the normal fashion."
   (interactive)
   (let* ((query (or query-url
                     (thing-at-point-url-at-point)
-                    (get-text-property (point) 'shr-url)
+                    (mastodon-tl--property 'shr-url :no-move)
                     (read-string "Lookup URL: "))))
     (if (not (mastodon--masto-url-p query))
         ;; this doesn't work as shr-browse-url doesn't take a url arg

@@ -295,7 +295,7 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
   (let ((inhibit-read-only t)
         (bol (car byline-region))
         (eol (cdr byline-region))
-        (at-byline-p (eq (get-text-property (point) 'byline) t)))
+        (at-byline-p (eq (mastodon-tl--property 'byline :no-move) t)))
     (save-excursion
       (when remove
         (goto-char bol)
@@ -1008,10 +1008,9 @@ Customize `mastodon-toot-display-orig-in-reply-buffer' to display
 text of the toot being replied to in the compose buffer."
   (interactive)
   (let* ((toot (mastodon-tl--property 'toot-json))
-         ;; NB: we cannot use mastodon-tl--property for 'base-toot
-         ;; because if it doesn't have one, it is fetched from next toot!
-         ;; we also cannot use --field because we need to get a different property first
-         (base-toot (get-text-property (point) 'base-toot)) ; for new notifs handling
+         ;; no-move arg for base toot, because if it doesn't have one, it is
+         ;; fetched from next toot!
+         (base-toot (mastodon-tl--property 'base-toot :no-move)) ; for new notifs handling
          (id (mastodon-tl--as-string (mastodon-tl--field 'id (or base-toot toot))))
          (account (mastodon-tl--field 'account toot))
          (user (alist-get 'acct account))
@@ -1238,10 +1237,10 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
                   (mastodon-tl--buffer-type-eq 'scheduled-statuses)))
          (message "You can only schedule toots from the compose toot buffer or the scheduled toots view."))
         (t
-         (let* ((id (when reschedule (get-text-property (point) 'id)))
+         (let* ((id (when reschedule (mastodon-tl--property 'id :no-move)))
                 (ts (when reschedule
                       (alist-get 'scheduled_at
-                                 (get-text-property (point) 'scheduled-json))))
+                                 (mastodon-tl--property 'scheduled-json :no-move))))
                 (time-value
                  (org-read-date t t nil "Schedule toot:"
                                 ;; default to scheduled timestamp if already set:
