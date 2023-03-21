@@ -1601,7 +1601,7 @@ BACKWARD means move backward (up) the timeline."
   "Return toot-id from the bottom of the buffer."
   (save-excursion
     (goto-char (point-max))
-    (mastodon-tl--property 'toot-id t)))
+    (mastodon-tl--property 'toot-id nil :backward)))
 
 (defun mastodon-tl--as-string (numeric)
   "Convert NUMERIC to string."
