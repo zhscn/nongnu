@@ -570,7 +570,11 @@ HEADERS means also fetch link headers for pagination."
          (endpoint (format "accounts/%s/%s" id endpoint-type))
          (url (mastodon-http--api endpoint))
          (acct (mastodon-profile--account-field account 'acct))
-         (buffer (concat "*mastodon-" acct "-" endpoint-type  "*"))
+         (buffer (concat "*mastodon-" acct "-"
+                         (if no-reblogs
+                             (concat endpoint-type "-no-boosts")
+                           endpoint-type)
+                         "*"))
          (response (if headers
                        (mastodon-http--get-response url args)
                      (mastodon-http--get-json url args)))
@@ -617,7 +621,9 @@ HEADERS means also fetch link headers for pagination."
                (is-followers (string= endpoint-type "followers"))
                (is-following (string= endpoint-type "following"))
                (endpoint-name (cond
-                               (is-statuses "     TOOTS   ")
+                               (is-statuses (if no-reblogs
+                                                "     TOOTS (no boosts)"
+                                              "     TOOTS   "))
                                (is-followers "  FOLLOWERS  ")
                                (is-following "  FOLLOWING  "))))
           (insert
