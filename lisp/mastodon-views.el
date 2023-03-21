@@ -69,7 +69,7 @@
 
 ;;; KEYMAPS
 
-;; copy `mastodon-mode-map' if possible, as then all timeline functions are
+;; we copy `mastodon-mode-map', as then all timeline functions are
 ;; available. this is helpful because if a minor view is the only buffer left
 ;; open, calling `mastodon' will switch to it, but then we will be unable to
 ;; switch to timlines without closing the minor view.
@@ -81,65 +81,65 @@
 ;; `mastodon-mode', it gets overridden in some but not all cases.
 
 (defvar mastodon-views-map
-  (let ((map
-         (copy-keymap mastodon-mode-map)))
-    (define-key map (kbd "n") 'mastodon-tl--goto-next-item)
-    (define-key map (kbd "p") 'mastodon-tl--goto-prev-item)
-    (keymap-canonicalize map))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map mastodon-mode-map)
+    (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
+    (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
+    map)
   "Base keymap for minor mastodon views.")
 
 (defvar mastodon-views--view-filters-keymap
-  (let ((map
-         (copy-keymap mastodon-views-map)))
-    (define-key map (kbd "d") 'mastodon-views--delete-filter)
-    (define-key map (kbd "c") 'mastodon-views--create-filter)
-    (define-key map (kbd "TAB") 'mastodon-tl--goto-next-item)
-    (define-key map (kbd "g") 'mastodon-views--view-filters)
-    (keymap-canonicalize map))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map mastodon-views-map)
+    (define-key map (kbd "d") #'mastodon-views--delete-filter)
+    (define-key map (kbd "c") #'mastodon-views--create-filter)
+    (define-key map (kbd "TAB") #'mastodon-tl--goto-next-item)
+    (define-key map (kbd "g") #'mastodon-views--view-filters)
+    map)
   "Keymap for viewing filters.")
 
 (defvar mastodon-views--follow-suggestions-map
-  (let ((map
-         (copy-keymap mastodon-views-map)))
-    (define-key map (kbd "g") 'mastodon-views--view-follow-suggestions)
-    (keymap-canonicalize map))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map mastodon-views-map)
+    (define-key map (kbd "g") #'mastodon-views--view-follow-suggestions)
+    map)
   "Keymap for viewing follow suggestions.")
 
 (defvar mastodon-views--view-lists-keymap
-  (let ((map
-         (copy-keymap mastodon-views-map)))
-    (define-key map (kbd "D") 'mastodon-views--delete-list)
-    (define-key map (kbd "C") 'mastodon-views--create-list)
-    (define-key map (kbd "A") 'mastodon-views--add-account-to-list)
-    (define-key map (kbd "R") 'mastodon-views--remove-account-from-list)
-    (define-key map (kbd "E") 'mastodon-views--edit-list)
-    (define-key map (kbd "g") 'mastodon-views--view-lists)
-    (keymap-canonicalize map))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map mastodon-views-map)
+    (define-key map (kbd "D") #'mastodon-views--delete-list)
+    (define-key map (kbd "C") #'mastodon-views--create-list)
+    (define-key map (kbd "A") #'mastodon-views--add-account-to-list)
+    (define-key map (kbd "R") #'mastodon-views--remove-account-from-list)
+    (define-key map (kbd "E") #'mastodon-views--edit-list)
+    (define-key map (kbd "g") #'mastodon-views--view-lists)
+    map)
   "Keymap for viewing lists.")
 
 (defvar mastodon-views--list-name-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<return>") 'mastodon-views--view-timeline-list-at-point)
-    (define-key map (kbd "d") 'mastodon-views--delete-list-at-point)
-    (define-key map (kbd "a") 'mastodon-views--add-account-to-list-at-point)
-    (define-key map (kbd "r") 'mastodon-views--remove-account-from-list-at-point)
-    (define-key map (kbd "e") 'mastodon-views--edit-list-at-point)
-    (keymap-canonicalize map))
+    (define-key map (kbd "RET") #'mastodon-views--view-timeline-list-at-point)
+    (define-key map (kbd "d") #'mastodon-views--delete-list-at-point)
+    (define-key map (kbd "a") #'mastodon-views--add-account-to-list-at-point)
+    (define-key map (kbd "r") #'mastodon-views--remove-account-from-list-at-point)
+    (define-key map (kbd "e") #'mastodon-views--edit-list-at-point)
+    map)
   "Keymap for when point is on list name.")
 
 (defvar mastodon-views--scheduled-map
-  (let ((map ;(make-sparse-keymap)))
-         (copy-keymap mastodon-views-map)))
-    (define-key map (kbd "r") 'mastodon-views--reschedule-toot)
-    (define-key map (kbd "c") 'mastodon-views--cancel-scheduled-toot)
-    (define-key map (kbd "e") 'mastodon-views--edit-scheduled-as-new)
-    (define-key map (kbd "<return>") 'mastodon-views--edit-scheduled-as-new)
-    (keymap-canonicalize map))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map mastodon-views-map)
+    (define-key map (kbd "r") #'mastodon-views--reschedule-toot)
+    (define-key map (kbd "c") #'mastodon-views--cancel-scheduled-toot)
+    (define-key map (kbd "e") #'mastodon-views--edit-scheduled-as-new)
+    (define-key map (kbd "RET") #'mastodon-views--edit-scheduled-as-new)
+    map)
   "Keymap for when point is on a scheduled toot.")
 
 (defvar mastodon-views--view-follow-requests-keymap
-  (let ((map ;(make-sparse-keymap)))
-         (copy-keymap mastodon-views-map)))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map mastodon-views-map)
     ;; make reject binding match the binding in notifs view
     ;; 'r' is then reserved for replying, even tho it is not avail
     ;; in foll-reqs view

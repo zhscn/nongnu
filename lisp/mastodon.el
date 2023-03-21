@@ -116,7 +116,6 @@ be \"example_user\".
 
 After setting these variables you should restart Emacs for these
 changes to take effect."
-  :group 'mastodon
   :type 'string)
 
 (defcustom mastodon-active-user nil
@@ -131,7 +130,6 @@ should be \"https://social.instance.org\".
 
 After setting these variables you should restart Emacs for these
 changes to take effect."
-  :group 'mastodon
   :type 'string)
 
 (defcustom mastodon-toot-timestamp-format "%F %T"
@@ -139,7 +137,6 @@ changes to take effect."
 For valid formatting options see `format-time-string`.
 The default value \"%F %T\" prints ISO8601-style YYYY-mm-dd HH:MM:SS.
 Use. e.g. \"%c\" for your locale's date and time format."
-  :group 'mastodon
   :type 'string)
 
 (defvar mastodon-mode-map

@@ -258,7 +258,7 @@ NO-REBLOGS means do not display boosts in statuses."
                                             'display nil)
                                 "/500 characters")
                         'read-only t
-                        'face 'font-lock-comment-face
+                        'face font-lock-comment-face
                         'note-header t)
             "\n")
     (make-local-variable 'after-change-functions)
@@ -317,7 +317,7 @@ Ask for confirmation if length > 500 characters."
 (defun mastodon-profile--update-preference (pref val &optional source)
   "Update account PREF erence to setting VAL.
 Both args are strings.
-SOURCE means that the preference is in the 'source' part of the account JSON."
+SOURCE means that the preference is in the `source' part of the account JSON."
   (let* ((url (mastodon-http--api "accounts/update_credentials"))
          (pref-formatted (if source (concat "source[" pref "]") pref))
          (response (mastodon-http--patch url `((,pref-formatted . ,val)))))
@@ -744,7 +744,7 @@ IMG-TYPE is the JSON key from the account data."
 
 (defun mastodon-profile--account-field (account field)
   "Return FIELD from the ACCOUNT.
-FIELD is used to identify regions under 'account"
+FIELD is used to identify regions under `account'."
   (cdr (assoc field account)))
 
 (defun mastodon-profile--add-author-bylines (tootv)
@@ -806,7 +806,7 @@ These include the author, author of reblogged entries and any user mentioned."
 	  (reblog (or (alist-get 'reblog (alist-get 'status status))
                       (alist-get 'reblog status))))
       (seq-filter
-       'stringp
+       #'stringp
        (seq-uniq
         (seq-concatenate
          'list

@@ -1,6 +1,8 @@
 ;;; mastodon-auth-test.el --- Tests for mastodon-auth.el  -*- lexical-binding: nil -*-
 
 (require 'el-mock)
+(require 'mastodon)
+(require 'mastodon-auth)
 
 (ert-deftest mastodon-auth--handle-token-response--good ()
   "Should extract the access token from a good response."
@@ -29,7 +31,7 @@
       `(error ,(format "Mastodon-auth--access-token: invalid_grant: %s" error-message))
       (condition-case error
           (mastodon-auth--handle-token-response
-           `(:error "invalid_grant" :error_description ,error-message))
+           `(:error "Invalid_grant" :error_description ,error-message))
         (t error))))))
 
 (ert-deftest mastodon-auth--get-token ()

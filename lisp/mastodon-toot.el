@@ -33,11 +33,11 @@
 ;;; Code:
 (eval-when-compile (require 'subr-x))
 
-(when (require 'emojify nil :noerror)
-  (declare-function emojify-insert-emoji "emojify")
-  (declare-function emojify-set-emoji-data "emojify")
-  (defvar emojify-emojis-dir)
-  (defvar emojify-user-emojis))
+(require 'emojify nil :noerror)
+(declare-function emojify-insert-emoji "emojify")
+(declare-function emojify-set-emoji-data "emojify")
+(defvar emojify-emojis-dir)
+(defvar emojify-user-emojis)
 
 (require 'cl-lib)
 (require 'persist)
@@ -99,18 +99,15 @@
 
 (defcustom mastodon-toot--default-media-directory "~/"
   "The default directory when prompting for a media file to upload."
-  :group 'mastodon-toot
   :type 'string)
 
 (defcustom mastodon-toot--attachment-height 80
   "Height of the attached images preview in the toot draft buffer."
-  :group 'mastodon-toot
   :type 'integer)
 
 (defcustom mastodon-toot--enable-completion t
   "Whether to enable completion of mentions and hashtags.
 Used for completion in toot compose buffer."
-  :group 'mastodon-toot
   :type 'boolean)
 
 (defcustom mastodon-toot--use-company-for-completion nil
@@ -120,12 +117,10 @@ buffer, and mastodon completion backends are added to
 `company-capf'.
 
 You need to install company yourself to use this."
-  :group 'mastodon-toot
   :type 'boolean)
 
 (defcustom mastodon-toot--completion-style-for-mentions "all"
   "The company completion style to use for mentions."
-  :group 'mastodon-toot
   :type '(choice
           (const :tag "off" nil)
           (const :tag "following only" "following")
@@ -133,27 +128,23 @@ You need to install company yourself to use this."
 
 (defcustom mastodon-toot-display-orig-in-reply-buffer nil
   "Display a copy of the toot replied to in the compose buffer."
-  :group 'mastodon-toot
   :type 'boolean)
 
 (defcustom mastodon-toot-orig-in-reply-length 160
   "Length to crop toot replied to in the compose buffer to."
-  :group 'mastodon-toot
   :type 'integer)
 
 (defcustom mastodon-toot--default-reply-visibility "public"
   "Default visibility settings when replying.
 If the original toot visibility is different we use the more restricted one."
-  :group 'mastodon-toot
   :type '(choice
-         (const :tag "public" "public")
-         (const :tag "unlisted" "unlisted")
-         (const :tag "followers only" "private")
-         (const :tag "direct" "direct")))
+          (const :tag "public" "public")
+          (const :tag "unlisted" "unlisted")
+          (const :tag "followers only" "private")
+          (const :tag "direct" "direct")))
 
 (defcustom mastodon-toot--enable-custom-instance-emoji nil
   "Whether to enable your instance's custom emoji by default."
-  :group 'mastodon-toot
   :type 'boolean)
 
 (defvar-local mastodon-toot--content-warning nil
@@ -288,7 +279,7 @@ NO-TOOT means we are not calling from a toot buffer."
         (mastodon-toot--update-status-fields)))))
 
 (defun mastodon-toot--action-success (marker byline-region remove)
-  "Insert/remove the text MARKER with 'success face in byline.
+  "Insert/remove the text MARKER with `success' face in byline.
 BYLINE-REGION is a cons of start and end pos of the byline to be
 modified.
 Remove MARKER if REMOVE is non-nil, otherwise add it."
@@ -330,7 +321,7 @@ boosting, or bookmarking toots."
 
 (defun mastodon-toot--toggle-boost-or-favourite (type)
   "Toggle boost or favourite of toot at `point'.
-TYPE is a symbol, either 'favourite or 'boost."
+TYPE is a symbol, either `favourite' or `boost.'"
   (interactive)
   (let* ((boost-p (equal type 'boost))
          (has-id (mastodon-tl--property 'base-toot-id))
@@ -861,7 +852,7 @@ instance to edit a toot."
                   (insert (propertize (if (= count 1)
                                           (format "%s [original]:\n" count)
                                         (format "%s:\n" count))
-                                      'face 'font-lock-comment-face)
+                                      'face font-lock-comment-face)
                           (mastodon-toot--insert-toot-iter x)
                           "\n")
                   (cl-incf count))
@@ -1342,7 +1333,7 @@ LONGEST is the length of the longest binding."
            (mastodon-toot--format-kbinds kbinds))))
     (concat
      " Compose a new toot here. The following keybindings are available:"
-     (mapconcat 'identity
+     (mapconcat #'identity
                 (mastodon-toot--formatted-kbinds-pairs
                  (mastodon-toot--format-kbinds kbinds)
                  longest-kbind)
@@ -1383,7 +1374,7 @@ REPLY-TEXT is the text of the toot being replied to."
        (propertize "None                  "
                    'toot-attachments t)
        "\n")
-      'face 'font-lock-comment-face
+      'face font-lock-comment-face
       'read-only "Edit your message below."
       'toot-post-header t)
      (if reply-text
@@ -1395,7 +1386,7 @@ REPLY-TEXT is the text of the toot being replied to."
      (propertize
       (concat divider "\n")
       'rear-nonsticky t
-      'face 'font-lock-comment-face
+      'face font-lock-comment-face
       'read-only "Edit your message below."
       'toot-post-header t))))
 
@@ -1629,7 +1620,7 @@ EDIT means we are editing an existing toot, not composing a new one."
       ;; company
       (when (and mastodon-toot--use-company-for-completion
                  (require 'company nil :no-error))
-        (declare-function 'company-mode-on "company")
+        (declare-function company-mode-on "company")
         (set (make-local-variable 'company-backends)
              (add-to-list 'company-backends 'company-capf))
         (company-mode-on)))
@@ -1657,7 +1648,6 @@ EDIT means we are editing an existing toot, not composing a new one."
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."
-  :group 'mastodon-toot
   :keymap mastodon-toot-mode-map
   :global nil)
 

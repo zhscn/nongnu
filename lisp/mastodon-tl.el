@@ -64,6 +64,7 @@
 (autoload 'mastodon-profile--account-from-id "mastodon-profile")
 (autoload 'mastodon-profile--extract-users-handles "mastodon-profile")
 (autoload 'mastodon-profile--get-preferences-pref "mastodon-profile")
+(autoload 'mastodon-profile--get-toot-author "mastodon-profile")
 (autoload 'mastodon-profile--lookup-account-in-status "mastodon-profile")
 (autoload 'mastodon-profile--make-author-buffer "mastodon-profile")
 (autoload 'mastodon-profile--my-profile "mastodon-profile")
@@ -107,13 +108,11 @@
   "Whether to show relative (to the current time) timestamps.
 This will require periodic updates of a timeline buffer to
 keep the timestamps current as time progresses."
-  :group 'mastodon-tl
   :type '(boolean :tag "Enable relative timestamps and background updater task"))
 
 (defcustom mastodon-tl--enable-proportional-fonts nil
   "Nonnil to enable using proportional fonts when rendering HTML.
 By default fixed width fonts are used."
-  :group 'mastodon-tl
   :type '(boolean :tag "Enable using proportional rather than fixed \
 width fonts when rendering HTML text"))
 
@@ -121,18 +120,15 @@ width fonts when rendering HTML text"))
   "Display an image's caption rather than URL.
 Only has an effect when `mastodon-tl--display-media-p' is set to
 nil."
-  :group 'mastodon-tl
   :type 'boolean)
 
 (defcustom mastodon-tl--show-avatars nil
   "Whether to enable display of user avatars in timelines."
-  :group 'mastodon-tl
   :type '(boolean :tag "Whether to display user avatars in timelines"))
 
 (defcustom mastodon-tl--show-stats t
   "Whether to show toot stats (faves, boosts, replies counts)."
-  :type 'bool
-  :group 'mastodon-tl)
+  :type 'bool)
 
 (defcustom mastodon-tl--symbols
   '((reply     . ("💬" . "R"))
@@ -148,8 +144,7 @@ nil."
   "A set of symbols (and fallback strings) to be used in timeline.
 If a symbol does not look right (tofu), it means your
 font settings do not support it."
-  :type '(alist :key-type symbol :value-type string)
-  :group 'mastodon-tl)
+  :type '(alist :key-type symbol :value-type string))
 
 (defcustom mastodon-tl-position-after-update nil
   "Defines where `point' should be located after a timeline update.
@@ -170,7 +165,6 @@ Must be an integer between 20 and 40 inclusive."
   "Whether to hide replies from the timelines.
 Note that you can hide replies on a one-off basis by loading a
 timeline with a simple prefix argument, `C-u'."
-  :group 'mastodon-tl
   :type '(boolean :tag "Whether to hide replies from the timelines."))
 
 
@@ -203,44 +197,46 @@ If nil `(point-min)' is used instead.")
     (define-key map [return] 'mastodon-tl--do-link-action-at-point)
     (define-key map [mouse-2] 'mastodon-tl--do-link-action)
     (define-key map [follow-link] 'mouse-face)
-    (keymap-canonicalize map))
+    map)
   "The keymap for link-like things in buffer (except for shr.el generate links).
 This will make the region of text act like like a link with mouse
 highlighting, mouse click action tabbing to next/previous link
 etc.")
 
 (defvar mastodon-tl--shr-map-replacement
-  (let ((map (copy-keymap shr-map)))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map shr-map)
     ;; Replace the move to next/previous link bindings with our
     ;; version that knows about more types of links.
-    (define-key map [remap shr-next-link] 'mastodon-tl--next-tab-item)
-    (define-key map [remap shr-previous-link] 'mastodon-tl--previous-tab-item)
+    (define-key map [remap shr-next-link] #'mastodon-tl--next-tab-item)
+    (define-key map [remap shr-previous-link] #'mastodon-tl--previous-tab-item)
     ;; keep new my-profile binding; shr 'O' doesn't work here anyway
-    (define-key map (kbd "O") 'mastodon-profile--my-profile)
-    (define-key map [remap shr-browse-url] 'mastodon-url-lookup)
-    (keymap-canonicalize map))
+    (define-key map (kbd "O") #'mastodon-profile--my-profile)
+    (define-key map [remap shr-browse-url] #'mastodon-url-lookup)
+    map)
   "The keymap to be set for shr.el generated links that are not images.
 We need to override the keymap so tabbing will navigate to all
 types of mastodon links and not just shr.el-generated ones.")
 
 (defvar mastodon-tl--shr-image-map-replacement
-  (let ((map (copy-keymap (if (boundp 'shr-image-map)
-                              shr-image-map
-                            shr-map))))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map (if (boundp 'shr-image-map)
+                               shr-image-map
+                             shr-map))
     ;; Replace the move to next/previous link bindings with our
     ;; version that knows about more types of links.
-    (define-key map [remap shr-next-link] 'mastodon-tl--next-tab-item)
-    (define-key map [remap shr-previous-link] 'mastodon-tl--previous-tab-item)
+    (define-key map [remap shr-next-link] #'mastodon-tl--next-tab-item)
+    (define-key map [remap shr-previous-link] #'mastodon-tl--previous-tab-item)
     ;; browse-url loads the preview only, we want browse-image
     ;; on RET to browse full sized image URL
-    (define-key map [remap shr-browse-url] 'shr-browse-image)
+    (define-key map [remap shr-browse-url] #'shr-browse-image)
     ;; remove shr's u binding, as it the maybe-probe-and-copy-url
     ;; is already bound to w also
-    (define-key map (kbd "u") 'mastodon-tl--update)
+    (define-key map (kbd "u") #'mastodon-tl--update)
     ;; keep new my-profile binding; shr 'O' doesn't work here anyway
-    (define-key map (kbd "O") 'mastodon-profile--my-profile)
-    (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-at-point)
-    (keymap-canonicalize map))
+    (define-key map (kbd "O") #'mastodon-profile--my-profile)
+    (define-key map (kbd "<C-return>") #'mastodon-tl--mpv-play-video-at-point)
+    map)
   "The keymap to be set for shr.el generated image links.
 We need to override the keymap so tabbing will navigate to all
 types of mastodon links and not just shr.el-generated ones.")
@@ -248,9 +244,9 @@ types of mastodon links and not just shr.el-generated ones.")
 (defvar mastodon-tl--byline-link-keymap
   (when (require 'mpv nil :no-error)
     (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "<C-return>") 'mastodon-tl--mpv-play-video-from-byline)
-      (define-key map (kbd "<return>") 'mastodon-profile--get-toot-author)
-      (keymap-canonicalize map)))
+      (define-key map (kbd "<C-return>") #'mastodon-tl--mpv-play-video-from-byline)
+      (define-key map (kbd "RET") #'mastodon-profile--get-toot-author)
+      map))
   "The keymap to be set for the author byline.
 It is active where point is placed by `mastodon-tl--goto-next-toot.'")
 
@@ -397,7 +393,7 @@ Optionally load TAG timeline directly."
 ;;; BYLINES, etc.
 
 (defun mastodon-tl--message-help-echo ()
-  "Call message on 'help-echo property at point.
+  "Call message on `help-echo' property at point.
 Do so if type of status at poins is not follow_request/follow."
   (let ((type (alist-get
                'type
@@ -626,7 +622,7 @@ this just means displaying toot client."
             (propertize
              (format-time-string mastodon-toot-timestamp-format
                                  edited-parsed)
-             'face 'font-lock-comment-face
+             'face font-lock-comment-face
              'timestamp edited-parsed
              'display (if mastodon-tl--enable-relative-timestamps
                           (mastodon-tl--relative-time-description edited-parsed)
@@ -870,7 +866,7 @@ LINK-TYPE is the type of link to produce."
 
 (defun mastodon-tl--do-link-action-at-point (position)
   "Do the action of the link at POSITION.
-Used for hitting <return> on a given link."
+Used for hitting RET on a given link."
   (interactive "d")
   (let ((link-type (get-text-property position 'mastodon-tab-stop)))
     (cond ((eq link-type 'content-warning)
@@ -1149,18 +1145,18 @@ To disable showing the stats, customize
                                   'favourited-p favourited
                                   'favourites-field t
                                   'favourites-count favourites-count
-                                  'face 'font-lock-comment-face)
-                      (propertize " | " 'face 'font-lock-comment-face)
+                                  'face font-lock-comment-face)
+                      (propertize " | " 'face font-lock-comment-face)
                       (propertize boosts
                                   'boosted-p boosted
                                   'boosts-field t
                                   'boosts-count boosts-count
-                                  'face 'font-lock-comment-face)
-                      (propertize " | " 'face 'font-lock-comment-face)
+                                  'face font-lock-comment-face)
+                      (propertize " | " 'face font-lock-comment-face)
                       (propertize replies
                                   'replies-field t
                                   'replies-count replies-count
-                                  'face 'font-lock-comment-face)))
+                                  'face font-lock-comment-face)))
              (status (concat
                       (propertize " " 'display `(space :align-to (- right ,(+ (length status) 7))))
                       status)))
@@ -1249,7 +1245,7 @@ To disable showing the stats, customize
            (options-titles (mastodon-tl--map-alist 'title options))
            (options-number-seq (number-sequence 1 (length options)))
            (options-numbers (mapcar #'number-to-string options-number-seq))
-           (options-alist (cl-mapcar 'cons options-numbers options-titles))
+           (options-alist (cl-mapcar #'cons options-numbers options-titles))
            ;; we display both option number and the option title
            ;; but also store both as cons cell as cdr, as we need it below
            (candidates (mapcar (lambda (cell)
@@ -1335,7 +1331,7 @@ in which case play first video or gif from current toot."
        (not (mastodon-tl--field 'rebloged toot))))
 
 (defun mastodon-tl--toot (toot &optional detailed-p)
-  "Formats TOOT and inserts it into the buffer.
+  "Format TOOT and insert it into the buffer.
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
   (mastodon-tl--insert-status
@@ -1353,7 +1349,7 @@ this just means displaying toot client."
 (defun mastodon-tl--timeline (toots)
   "Display each toot in TOOTS.
 This function removes replies if user required."
-  (mapc 'mastodon-tl--toot
+  (mapc #'mastodon-tl--toot
         ;; hack to *not* filter replies on profiles:
         (if (eq (mastodon-tl--get-buffer-type) 'profile-statuses)
             toots
@@ -2051,7 +2047,7 @@ the current view."
   (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
          (args (if params (push (car args) params) args))
          (url (mastodon-http--api endpoint)))
-    (apply 'mastodon-http--get-json-async url args callback cbargs)))
+    (apply #'mastodon-http--get-json-async url args callback cbargs)))
 
 ;; TODO
 ;; Look into the JSON returned here by Local
