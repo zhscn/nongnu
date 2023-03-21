@@ -414,8 +414,6 @@ With arg AVATAR, include the account's avatar image."
                  (alist-get 'username account)))
          (profile-url (alist-get 'url account))
          (avatar-url (alist-get 'avatar account)))
-    ;; TODO: Once we have a view for a user (e.g. their posts
-    ;; timeline) make this a tab-stop and attach an action
     (concat
      ;; avatar insertion moved up to `mastodon-tl--byline' by default in order
      ;; to be outside of text prop 'byline t. arg avatar is used by
@@ -464,8 +462,9 @@ Used when point is at the start of a byline, i.e. where
            (alist-get 'status toot) ; notifications timeline
            ;; fol-req notif, has 'type
            ;; placed before boosts coz fol-reqs have a (useless) reblog entry:
-           ;; TODO: cd also test for notifs buffer before we do this to be sure
-           (when (alist-get 'type toot)
+           (when (and (or (mastodon-tl--buffer-type-eq 'notifications)
+                          (mastodon-tl--buffer-type-eq 'mentions))
+                      (alist-get 'type toot))
              toot)
            (alist-get 'reblog toot) ; boosts
            toot)) ; everything else
@@ -591,8 +590,6 @@ this just means displaying toot client."
               (concat " " (mastodon-tl--symbol 'private))))
        (funcall action-byline toot)
        " "
-       ;; TODO: Once we have a view for toot (responses etc.) make
-       ;; this a tab stop and attach an action.
        (propertize
         (format-time-string mastodon-toot-timestamp-format parsed-time)
         'timestamp parsed-time
@@ -1217,8 +1214,6 @@ To disable showing the stats, customize
 
 (defun mastodon-tl--format-poll-expiry (timestamp)
   "Convert poll expiry TIMESTAMP into a descriptive string."
-  ;; TODO: this bugged when a timestamp was in the past
-  ;; despite the poll not being listed as expired
   (let ((parsed (ts-human-duration
                  (ts-diff (ts-parse timestamp) (ts-now)))))
     (cond ((> (plist-get parsed :days) 0)
@@ -2049,8 +2044,6 @@ the current view."
          (url (mastodon-http--api endpoint)))
     (apply #'mastodon-http--get-json-async url args callback cbargs)))
 
-;; TODO
-;; Look into the JSON returned here by Local
 (defun mastodon-tl--updated-json (endpoint id &optional params)
   "Return JSON for timeline ENDPOINT since ID.
 PARAMS is used to send any parameters needed to correctly update
