@@ -31,7 +31,7 @@
       `(error ,(format "Mastodon-auth--access-token: invalid_grant: %s" error-message))
       (condition-case error
           (mastodon-auth--handle-token-response
-           `(:error "Invalid_grant" :error_description ,error-message))
+           `(:error "invalid_grant" :error_description ,error-message))
         (t error))))))
 
 (ert-deftest mastodon-auth--get-token ()
