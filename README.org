@@ -360,6 +360,9 @@ to your translator function as its text argument. Here's what
           (message "No toot to translate?"))))
 #+end_src
 
+*** bookmarks and =mastodon.el=
+=mastodon.el= doesn’t currently implement its own bookmark record and handler, which means that emacs bookmarks will not work as is. Until we implement them, you can get bookmarks going immediately by using [[https://github.com/emacsmirror/emacswiki.org/blob/master/bookmark%2b.el][bookmark+.el]].
+
 ** Dependencies
 
 Hard dependencies (should all install with =mastodon.el=):
