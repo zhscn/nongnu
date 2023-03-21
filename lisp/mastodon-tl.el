@@ -1425,7 +1425,7 @@ Note that for many buffers, this requires `mastodon-tl--buffer-spec'
 to be set. It is set for almost all buffers, but you still have to
 call this function after it is set or use something else."
   (let ((endpoint-fun (mastodon-tl--get-endpoint nil :no-error))
-        (buffer-name-fun (mastodon-tl--buffer-name nil :no-error)))
+        (buffer-name (mastodon-tl--buffer-name nil :no-error)))
     (cond (mastodon-toot-mode
            ;; composing/editing:
            (if (string= "*edit toot*" (buffer-name))
@@ -1434,7 +1434,7 @@ call this function after it is set or use something else."
           ;; main timelines:
           ((string= "timelines/home" endpoint-fun)
            'home)
-          ((string= "*mastodon-local*" buffer-name-fun)
+          ((string= "*mastodon-local*" buffer-name)
            'local)
           ((string= "timelines/public" endpoint-fun)
            'federated)
@@ -1443,7 +1443,7 @@ call this function after it is set or use something else."
           ((string-prefix-p "timelines/list/" endpoint-fun)
            'list-timeline)
           ;; notifs:
-          ((string-suffix-p "mentions*" buffer-name-fun)
+          ((string-suffix-p "mentions*" buffer-name)
            'mentions)
           ((string= "notifications" endpoint-fun)
            'notifications)
@@ -1456,13 +1456,17 @@ call this function after it is set or use something else."
           ((mastodon-tl--profile-buffer-p)
            (cond
             ;; own profile:
-            ((equal (mastodon-tl--buffer-name)
-                    (concat "*mastodon-" (mastodon-auth--get-account-name) "-statuses*"))
-             'own-profile)
+            ;; perhaps not needed, and needlessly confusing,
+            ;; e.g. for `mastodon-profile--account-view-cycle':
+            ;; ((equal (mastodon-tl--buffer-name)
+            ;; (concat "*mastodon-" (mastodon-auth--get-account-name) "-statuses*"))
+            ;; 'own-profile-statuses)
             ;; profile note:
-            ((string-suffix-p "update-profile*" buffer-name-fun)
+            ((string-suffix-p "update-profile*" buffer-name)
              'update-profile-note)
-            ;; posts
+            ;; posts inc. boosts:
+            ((string-suffix-p "no-boosts*" buffer-name)
+             'profile-statuses-no-boosts)
             ((string-suffix-p "statuses" endpoint-fun)
              'profile-statuses)
             ;; profile followers
@@ -1496,7 +1500,7 @@ call this function after it is set or use something else."
           ;; instance description
           ((string= "instance" endpoint-fun)
            'instance-description)
-          ((string= "*mastodon-toot-edits*" buffer-name-fun)
+          ((string= "*mastodon-toot-edits*" buffer-name)
            'toot-edits))))
 
 (defun mastodon-tl--buffer-type-eq (type)

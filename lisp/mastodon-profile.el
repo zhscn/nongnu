@@ -142,15 +142,15 @@ NO-REBLOGS means do not display boosts in statuses."
 
 ;; TODO: we shd just load all views' data then switch coz this is slow af:
 (defun mastodon-profile--account-view-cycle ()
-  "Cycle through profile view: toots, followers, and following."
+  "Cycle through profile view: toots, toot sans boosts, followers, and following."
   (interactive)
   (cond ((mastodon-tl--buffer-type-eq 'profile-statuses)
+         (mastodon-profile--open-statuses-no-reblogs))
+        ((mastodon-tl--buffer-type-eq 'profile-statuses-no-boosts)
          (mastodon-profile--open-followers))
         ((mastodon-tl--buffer-type-eq 'profile-followers)
          (mastodon-profile--open-following))
         ((mastodon-tl--buffer-type-eq 'profile-following)
-         (mastodon-profile--open-statuses-no-reblogs))
-        (t
          (mastodon-profile--make-author-buffer mastodon-profile--account))))
 
 (defun mastodon-profile--open-statuses-no-reblogs ()
