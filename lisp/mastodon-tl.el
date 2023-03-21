@@ -632,7 +632,7 @@ this just means displaying toot client."
                         edited-parsed)))
          "")
        (propertize "\n  ------------" 'face 'default)
-       (mastodon-tl--toot-status toot)
+       (mastodon-tl--toot-stats toot)
        "\n")
       'favourited-p faved
       'boosted-p    boosted
@@ -1126,7 +1126,7 @@ If no TOOT is given, the one at point is considered."
     (unless (member type '("follow" "follow_request"))
       toot)))
 
-(defun mastodon-tl--toot-status (toot)
+(defun mastodon-tl--toot-stats (toot)
   "Return a right aligned string (using display align-to).
 String is filled with TOOT statistics (boosts, favs, replies).
 When the TOOT is a reblog (boost), statistics from reblogged
