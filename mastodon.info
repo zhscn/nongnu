@@ -41,6 +41,7 @@ Usage
 * Alternative timeline layout::
 * Live-updating timelines mastodon-async-mode::
 * Translating toots::
+* bookmarks and ‘mastodon.el’: bookmarks and mastodonel.
 
 Contributing
 
@@ -163,6 +164,7 @@ File: mastodon.info,  Node: Usage,  Next: Dependencies,  Prev: Installation,  Up
 * Alternative timeline layout::
 * Live-updating timelines mastodon-async-mode::
 * Translating toots::
+* bookmarks and ‘mastodon.el’: bookmarks and mastodonel.
 
 
 File: mastodon.info,  Node: Logging in to your instance,  Next: Timelines,  Up: Usage
@@ -420,6 +422,7 @@ See ‘M-x customize-group RET mastodon’ to view all customize options.
         • Avatar image height
         • Enable image caching
         • Hide replies in timelines
+        • Show toot stats in byline
 
    • Compose options:
         • Completion style for mentions and tags
@@ -457,7 +460,7 @@ Then you can view a timeline with one of the commands that begin with
 ‘mastodon-async--stream-’.
 
 
-File: mastodon.info,  Node: Translating toots,  Prev: Live-updating timelines mastodon-async-mode,  Up: Usage
+File: mastodon.info,  Node: Translating toots,  Next: bookmarks and mastodonel,  Prev: Live-updating timelines mastodon-async-mode,  Up: Usage
 
 1.2.8 Translating toots
 -----------------------
@@ -482,6 +485,18 @@ looks like:
            (if toot
                (lingva-translate nil (mastodon-tl--content toot))
              (message "No toot to translate?"))))
+
+
+File: mastodon.info,  Node: bookmarks and mastodonel,  Prev: Translating toots,  Up: Usage
+
+1.2.9 bookmarks and ‘mastodon.el’
+---------------------------------
+
+‘mastodon.el’ doesn’t currently implement its own bookmark record and
+handler, which means that emacs bookmarks will not work as is.  Until we
+implement them, you can get bookmarks going immediately by using
+bookmark+.el
+(https://github.com/emacsmirror/emacswiki.org/blob/master/bookmark%2b.el).
 
 
 File: mastodon.info,  Node: Dependencies,  Next: Network compatibility,  Prev: Usage,  Up: README
@@ -610,32 +625,33 @@ File: mastodon.info,  Node: Contributors,  Prev: Supporting mastodonel,  Up: REA
 
 Tag Table:
 Node: Top210
-Node: README850
-Node: Installation1249
-Node: MELPA1785
-Node: Emoji2153
-Node: Discover2485
-Node: Usage3037
-Node: Logging in to your instance3386
-Node: Timelines4383
-Ref: Keybindings4858
-Ref: Toot byline legend8976
-Node: Composing toots9248
-Ref: Keybindings (1)10825
-Ref: Draft toots11343
-Node: Other commands and account settings11814
-Node: Customization14637
-Node: Alternative timeline layout15385
-Node: Live-updating timelines mastodon-async-mode15762
-Node: Translating toots16598
-Node: Dependencies17737
-Node: Network compatibility18329
-Node: Contributing18815
-Node: Bug reports19104
-Node: Fixes and features20010
-Node: Coding style20493
-Node: Supporting mastodonel21117
-Node: Contributors21639
+Node: README911
+Node: Installation1310
+Node: MELPA1846
+Node: Emoji2214
+Node: Discover2546
+Node: Usage3098
+Node: Logging in to your instance3508
+Node: Timelines4505
+Ref: Keybindings4980
+Ref: Toot byline legend9098
+Node: Composing toots9370
+Ref: Keybindings (1)10947
+Ref: Draft toots11465
+Node: Other commands and account settings11936
+Node: Customization14759
+Node: Alternative timeline layout15545
+Node: Live-updating timelines mastodon-async-mode15922
+Node: Translating toots16758
+Node: bookmarks and mastodonel17930
+Node: Dependencies18400
+Node: Network compatibility18992
+Node: Contributing19478
+Node: Bug reports19767
+Node: Fixes and features20673
+Node: Coding style21156
+Node: Supporting mastodonel21780
+Node: Contributors22302
 
 End Tag Table
 

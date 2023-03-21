@@ -55,6 +55,7 @@ Usage
 * Alternative timeline layout::
 * Live-updating timelines @samp{mastodon-async-mode}::
 * Translating toots::
+* bookmarks and @samp{mastodon.el}: bookmarks and @samp{mastodonel}. 
 
 Contributing
 
@@ -165,6 +166,7 @@ Or, with @samp{use-package}:
 * Alternative timeline layout::
 * Live-updating timelines @samp{mastodon-async-mode}::
 * Translating toots::
+* bookmarks and @samp{mastodon.el}: bookmarks and @samp{mastodonel}. 
 @end menu
 
 @node Logging in to your instance
@@ -547,6 +549,8 @@ Avatar image height
 Enable image caching
 @item
 Hide replies in timelines
+@item
+Show toot stats in byline
 @end itemize
 
 @item
@@ -607,6 +611,11 @@ to your translator function as its text argument. Here's what
           (lingva-translate nil (mastodon-tl--content toot))
         (message "No toot to translate?"))))
 @end lisp
+
+@node bookmarks and @samp{mastodonel}
+@subsection bookmarks and @samp{mastodon.el}
+
+@samp{mastodon.el} doesn’t currently implement its own bookmark record and handler, which means that emacs bookmarks will not work as is. Until we implement them, you can get bookmarks going immediately by using @uref{https://github.com/emacsmirror/emacswiki.org/blob/master/bookmark%2b.el, bookmark+.el}.
 
 @node Dependencies
 @section Dependencies
