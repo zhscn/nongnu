@@ -38,7 +38,6 @@
 (require 'seq)
 (require 'cl-lib)
 (require 'persist)
-(require 'ts)
 (require 'parse-time)
 
 (autoload 'mastodon-auth--get-account-id "mastodon-auth")
@@ -691,7 +690,9 @@ HEADERS means also fetch link headers for pagination."
       (goto-char (point-min)))))
 
 (defun mastodon-profile--format-joined-date-string (joined)
-  "Format a human-readable Joined string from timestamp JOINED."
+  "Format a human-readable Joined string from timestamp JOINED.
+JOINED is the `created_at' field in profile account JSON, and of
+the format \"2000-01-31T00:00:00.000Z\"."
   (format-time-string "Joined: %d %B %Y"
                       (parse-iso8601-time-string joined)))
 
