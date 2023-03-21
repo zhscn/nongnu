@@ -310,6 +310,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Avatar image height
    - Enable image caching
    - Hide replies in timelines
+   - Show toot stats in byline
 
 - Compose options:
    - Completion style for mentions and tags
