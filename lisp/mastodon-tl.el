@@ -1517,19 +1517,6 @@ call this function after it is set or use something else."
 This includes the update profile note buffer, but not the preferences one."
   (string-prefix-p "accounts" (mastodon-tl--get-endpoint nil :no-error)))
 
-(defun mastodon-tl--has-toots-p ()
-  "Return non-nil if the current buffer contains toots.
-Return value is that of `member'.
-This is used to avoid running into trouble using functions that
-presume we are in a timeline of toots or similar elements, such as
-`mastodon-tl--property'."
-  (let ((toot-buffers
-         '(home federated local tag-timeline notifications
-                thread profile-statuses search trending-tags bookmarks
-                favourites)))
-    ;; profile-followers profile following
-    (member (mastodon-tl--get-buffer-type) toot-buffers)))
-
 (defun mastodon-tl--timeline-proper-p ()
   "Return non-nil if the current buffer is a 'proper' timeline.
 A proper timeline excludes notifications, threads, and other toot
