@@ -129,6 +129,11 @@ nil."
   :group 'mastodon-tl
   :type '(boolean :tag "Whether to display user avatars in timelines"))
 
+(defcustom mastodon-tl--show-stats t
+  "Whether to show toot stats (faves, boosts, replies counts)."
+  :type 'bool
+  :group 'mastodon-tl)
+
 (defcustom mastodon-tl--symbols
   '((reply     . ("💬" . "R"))
     (boost     . ("🔁" . "B"))
@@ -438,26 +443,25 @@ With arg AVATAR, include the account's avatar image."
                  ;; we don't have a tl--buffer-spec yet:
                  (unless (or (string-suffix-p "-followers*" (buffer-name))
                              (string-suffix-p "-following*" (buffer-name)))
-                   ;; (mastodon-tl--get-endpoint)))
-                   (mastodon-tl--format-faves-count toot)))
+                   (mastodon-tl--format-byline-help-echo toot)))
      " ("
      (propertize (concat "@" handle)
                  'face 'mastodon-handle-face
                  'mouse-face 'highlight
-		 'mastodon-tab-stop 'user-handle
+	         'mastodon-tab-stop 'user-handle
                  'account account
-		 'shr-url profile-url
-		 'keymap mastodon-tl--link-keymap
+	         'shr-url profile-url
+	         'keymap mastodon-tl--link-keymap
                  'mastodon-handle (concat "@" handle)
-		 'help-echo (concat "Browse user profile of @" handle))
+	         'help-echo (concat "Browse user profile of @" handle))
      ")")))
 
-(defun mastodon-tl--format-faves-count (toot)
-  "Format a favourites, boosts, replies count for a TOOT.
-Used as a help-echo when point is at the start of a byline, i.e.
-where `mastodon-tl--goto-next-toot' leaves point. Also displays a
-toot's media types and optionally the binding to play moving
-image media from the byline."
+(defun mastodon-tl--format-byline-help-echo (toot)
+  "Format a help-echo for byline of TOOT.
+Displays a toot's media types and optionally the binding to play
+moving image media from the byline.
+Used when point is at the start of a byline, i.e. where
+`mastodon-tl--goto-next-toot' leaves point."
   (let* ((toot-to-count
           (or
            ;; simply praying this order works
@@ -473,19 +477,15 @@ image media from the byline."
                         (string= (alist-get 'type toot-to-count) "follow_request"))))
     (unless fol-req-p
       (let* ((media-types (mastodon-tl--get-media-types toot))
-             (format-faves (format "%s faves | %s boosts | %s replies"
-                                   (alist-get 'favourites_count toot-to-count)
-                                   (alist-get 'reblogs_count toot-to-count)
-                                   (alist-get 'replies_count toot-to-count)))
              (format-media (when media-types
-                             (format " | media: %s"
+                             (format "media: %s"
                                      (mapconcat #'identity media-types " "))))
              (format-media-binding (when (and (or
                                                (member "video" media-types)
                                                (member "gifv" media-types))
                                               (require 'mpv nil :no-error))
                                      (format " | C-RET to view with mpv"))))
-        (format "%s" (concat format-faves format-media format-media-binding))))))
+        (format "%s" (concat format-media format-media-binding))))))
 
 (defun mastodon-tl--get-media-types (toot)
   "Return a list of the media attachment types of the TOOT at point."
@@ -632,7 +632,9 @@ this just means displaying toot client."
                           (mastodon-tl--relative-time-description edited-parsed)
                         edited-parsed)))
          "")
-       (propertize "\n  ------------\n" 'face 'default))
+       (propertize "\n  ------------" 'face 'default)
+       (mastodon-tl--toot-stats toot)
+       "\n")
       'favourited-p faved
       'boosted-p    boosted
       'bookmarked-p bookmarked
@@ -1110,6 +1112,59 @@ this just means displaying toot client."
      "\n")
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
+
+;; from mastodon-alt.el:
+(defun mastodon-tl--toot-for-stats (&optional toot)
+  "Return the TOOT on which we want to extract stats.
+If no TOOT is given, the one at point is considered."
+  (let* ((original-toot (or toot (get-text-property (point) 'toot-json)))
+         (toot (or (alist-get 'status original-toot)
+                   (when (alist-get 'type original-toot)
+                     original-toot)
+                   (alist-get 'reblog original-toot)
+                   original-toot))
+         (type (alist-get 'type (or toot))))
+    (unless (member type '("follow" "follow_request"))
+      toot)))
+
+(defun mastodon-tl--toot-stats (toot)
+  "Return a right aligned string (using display align-to).
+String is filled with TOOT statistics (boosts, favs, replies).
+When the TOOT is a reblog (boost), statistics from reblogged
+toots are returned.
+To disable showing the stats, customize
+`mastodon-tl--show-stats'."
+  (when mastodon-tl--show-stats
+    (when-let ((toot (mastodon-tl--toot-for-stats toot)))
+      (let* ((favourites-count (alist-get 'favourites_count toot))
+             (favourited (equal 't (alist-get 'favourited toot)))
+             (boosts-count (alist-get 'reblogs_count toot))
+             (boosted (equal 't (alist-get 'reblogged toot)))
+             (replies-count (alist-get 'replies_count toot))
+             (favourites (format "%s %s" favourites-count (mastodon-tl--symbol 'favourite)))
+             (boosts (format "%s %s" boosts-count (mastodon-tl--symbol 'boost)))
+             (replies (format "%s %s" replies-count (mastodon-tl--symbol 'reply)))
+             (status (concat
+                      (propertize favourites
+                                  'favourited-p favourited
+                                  'favourites-field t
+                                  'favourites-count favourites-count
+                                  'face 'font-lock-comment-face)
+                      (propertize " | " 'face 'font-lock-comment-face)
+                      (propertize boosts
+                                  'boosted-p boosted
+                                  'boosts-field t
+                                  'boosts-count boosts-count
+                                  'face 'font-lock-comment-face)
+                      (propertize " | " 'face 'font-lock-comment-face)
+                      (propertize replies
+                                  'replies-field t
+                                  'replies-count replies-count
+                                  'face 'font-lock-comment-face)))
+             (status (concat
+                      (propertize " " 'display `(space :align-to (- right ,(+ (length status) 7))))
+                      status)))
+        status))))
 
 
 ;; POLLS
