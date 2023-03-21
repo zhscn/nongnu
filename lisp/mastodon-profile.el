@@ -133,11 +133,6 @@ contains")
 (defun mastodon-profile--toot-json ()
   "Get the next toot-json."
   (interactive)
-  ;; NB: we cannot add
-  ;; (or (mastodon-tl--property 'profile-json)
-  ;; here because it searches forward endlessly
-  ;; TODO: it would be nice to be able to do so tho
-  ;; or handle --property failing
   (mastodon-tl--property 'toot-json))
 
 (defun mastodon-profile--make-author-buffer (account &optional no-reblogs)
@@ -922,19 +917,19 @@ NOTE-OLD is the text of any existing note."
     (let ((inhibit-read-only t))
       (princ note))))
 
-(defun mastodon-profile--grab-profile-json ()
+(defun mastodon-profile--profile-json ()
   "Return the profile-json property if we are in a profile buffer."
   (when (mastodon-tl--profile-buffer-p)
     (save-excursion
       (goto-char (point-min))
-      (or (mastodon-tl--property 'profile-json)
+      (or (mastodon-tl--property 'profile-json :no-move)
           (error "No profile data found")))))
 
 (defun mastodon-profile--add-or-view-private-note (action-fun &optional message view)
   "Add or view a private note for an account.
 ACTION-FUN does the adding or viewing, MESSAGE is a prompt for
 `mastodon-tl--interactive-user-handles-get', VIEW is a flag."
-  (let* ((profile-json (mastodon-profile--grab-profile-json))
+  (let* ((profile-json (mastodon-profile--profile-json))
          (handle (if (mastodon-tl--profile-buffer-p)
                      (alist-get 'acct profile-json)
                    (mastodon-tl--interactive-user-handles-get message)))
@@ -955,7 +950,7 @@ ACTION-FUN does the adding or viewing, MESSAGE is a prompt for
 Familiar followers are accounts that you follow, and that follow
 the given account."
   (interactive)
-  (let* ((profile-json (mastodon-profile--grab-profile-json))
+  (let* ((profile-json (mastodon-profile--profile-json))
          (handle
           (if (mastodon-tl--profile-buffer-p)
               (alist-get 'acct profile-json)

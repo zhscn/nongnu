@@ -1539,15 +1539,17 @@ Return value from boosted content if available."
          (t2 (replace-regexp-in-string "<\/?span>" "" t1)))
     (replace-regexp-in-string "<span class=\"h-card\">" "" t2)))
 
-(defun mastodon-tl--property (prop &optional backward)
+(defun mastodon-tl--property (prop &optional no-move backward)
   "Get property PROP for toot at point.
 Move forward (down) the timeline unless BACKWARD is non-nil."
-  (or (get-text-property (point) prop)
-      (save-excursion
-        (if backward
-            (mastodon-tl--goto-prev-toot)
-          (mastodon-tl--goto-next-toot))
-        (get-text-property (point) prop))))
+  (if no-move
+      (get-text-property (point) prop)
+    (or (get-text-property (point) prop)
+        (save-excursion
+          (if backward
+              (mastodon-tl--goto-prev-toot)
+            (mastodon-tl--goto-next-toot))
+          (get-text-property (point) prop)))))
 
 (defun mastodon-tl--newest-id ()
   "Return toot-id from the top of the buffer."
@@ -1617,12 +1619,9 @@ view all branches of a thread."
 
 (defun mastodon-tl--thread (&optional id)
   "Open thread buffer for toot at point or with ID."
-  ;; NB: this is called by `mastodon-url-lookup', which means it must work
-  ;; without `mastodon-tl--buffer-spec' being set!
-  ;; so avoid calls to `mastodon-tl--property' and friends
   (interactive)
-  (let* ((id (or id (get-text-property (point) 'base-toot-id)))
-         (type (mastodon-tl--field 'type (get-text-property (point) 'toot-json))))
+  (let* ((id (or id (mastodon-tl--property 'base-toot-id :no-move)))
+         (type (mastodon-tl--field 'type (mastodon-tl--property 'toot-json :no-move))))
     (if (or (string= type "follow_request")
             (string= type "follow")) ; no can thread these
         (error "No thread")
