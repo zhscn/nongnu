@@ -118,8 +118,8 @@ not contain =:client_id= and =:client_secret=.
 | =?=              | Show discover menu of all bindings, if =discover= is available              |
 |----------------+---------------------------------------------------------------------------|
 |                | *Timeline actions*                                                          |
-| =n=              | Go to next item (toot, notification)                                      |
-| =p=              | Go to previous item (toot, notification)                                  |
+| =n=              | Go to next item (toot, notification, user)                                |
+| =p=              | Go to previous item (toot, notification, user)                            |
 | =M-n=/=<tab>=    | Go to the next interesting thing that has an action                       |
 | =M-p=/=<S-tab>=  | Go to the previous interesting thing that has an action                   |
 | =F=              | Open federated timeline                                                   |
@@ -135,18 +135,20 @@ not contain =:client_id= and =:client_secret=.
 | =O=              | View own profile                                                          |
 | =U=              | update your profile bio note                                              |
 | =;=              | view instance description for toot at point                               |
+| =:=              | view your list of followed tags and load its timeline                     |
 | =,=              | view favouriters of toot at point                                         |
 | =.=              | view boosters of toot at point                                            |
+| =/=              | switch between mastodon buffers                                           |
 |----------------+---------------------------------------------------------------------------|
 |                | *Other views*                                                               |
-| =S=              | search (posts, users, tags) (NB: only posts you have interacted with)     |
+| =s=              | search (posts, users, tags) (NB: only posts you have interacted with)     |
 | =I=, =c=, =d=        | view, create, and delete filters                                          |
 | =R=, =a=, =j=        | view/accept/reject follow requests                                        |
 | =G=              | view follow suggestions                                                   |
 | =V=              | view your favourited toots                                                |
 | =K=              | view bookmarked toots                                                     |
 | =X=              | view/edit/create/delete lists                                             |
-| =s=              | view your scheduled toots                                                 |
+| =S=              | view your scheduled toots                                                 |
 |----------------+---------------------------------------------------------------------------|
 |                | *Toot actions*                                                              |
 | =t=              | Compose a new toot                                                        |
@@ -166,7 +168,7 @@ not contain =:client_id= and =:client_secret=.
 | (=S-C-=) =W=, =M=, =B= | (un)follow, (un)mute, (un)block author of toot at point                   |
 |----------------+---------------------------------------------------------------------------|
 |                | *Profile view*                                                              |
-| =C-c C-c=        | cycle between statuses, followers, following, and statuses without boosts |
+| =C-c C-c=        | cycle between statuses, statuses without boosts, followers, and following |
 |                | =mastodon-profile--account-account-to-list= (see lists view)                |
 |----------------+---------------------------------------------------------------------------|
 |                | *Notifications view*                                                        |
