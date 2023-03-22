@@ -733,7 +733,12 @@ INSTANCE is an instance domain name."
         (mastodon-views--instance-response-fun response brief instance))
     (mastodon-tl--do-if-toot
      (let* ((toot (if (mastodon-tl--profile-buffer-p)
-                      (mastodon-tl--property 'profile-json) ; profile may have 0 toots
+                      ;; we may be on profile itself:
+                      (or (mastodon-tl--property 'profile-json)
+                          ;; or on profile account listings, which use toot-json:
+                          ;; or just toots:
+                          (mastodon-tl--property 'toot-json))
+                    ;; normal timeline:
                     (mastodon-tl--property 'toot-json)))
             (reblog (alist-get 'reblog toot))
             (account (or (alist-get 'account reblog)
