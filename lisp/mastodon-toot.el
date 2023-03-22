@@ -71,6 +71,7 @@
 (autoload 'mastodon-tl--as-string "mastodon-tl")
 (autoload 'mastodon-tl--buffer-type-eq "mastodon-tl")
 (autoload 'mastodon-tl--clean-tabs-and-nl "mastodon-tl")
+(autoload 'mastodon-tl--do-if-toot-strict "mastodon-tl")
 (autoload 'mastodon-tl--field "mastodon-tl")
 (autoload 'mastodon-tl--find-property-range "mastodon-tl")
 (autoload 'mastodon-tl--find-property-range "mastodon-tl")
@@ -323,57 +324,51 @@ boosting, or bookmarking toots."
   "Toggle boost or favourite of toot at `point'.
 TYPE is a symbol, either `favourite' or `boost.'"
   (interactive)
-  (let* ((boost-p (equal type 'boost))
-         (has-id (mastodon-tl--property 'base-toot-id))
-         (byline-region (when has-id
-                          (mastodon-tl--find-property-range 'byline (point))))
-         (id (when byline-region
-               (mastodon-tl--as-string (mastodon-tl--property 'base-toot-id))))
-         (boosted (when byline-region
-                    (get-text-property (car byline-region) 'boosted-p)))
-         (faved (when byline-region
-                  (get-text-property (car byline-region) 'favourited-p)))
-         (action (if boost-p
-                     (if boosted "unreblog" "reblog")
-                   (if faved "unfavourite" "favourite")))
-         (msg (if boosted "unboosted" "boosted"))
-         (action-string (if boost-p "boost" "favourite"))
-         (remove (if boost-p (when boosted t) (when faved t)))
-         (toot-type (alist-get 'type (mastodon-tl--property 'toot-json)))
-         (visibility (mastodon-tl--field 'visibility
-                                         (mastodon-tl--property 'toot-json))))
-    (if byline-region
-        (cond ;; actually there's nothing wrong with faving/boosting own toots!
-         ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
-         ;;(error "You can't %s your own toots" action-string))
-         ;; & nothing wrong with faving/boosting own toots from notifs:
-         ;; this boosts/faves the base toot, not the notif status
-         ((and (equal "reblog" toot-type)
-               (not (mastodon-tl--buffer-type-eq 'notifications)))
-          (error "You can't %s boosts" action-string))
-         ((and (equal "favourite" toot-type)
-               (not (mastodon-tl--buffer-type-eq 'notifications)))
-          (error "You can't %s favourites" action-string))
-         ((and (equal "private" visibility)
-               (equal type 'boost))
-          (error "You can't boost private toots"))
-         (t
-          (mastodon-toot--action
-           action
-           (lambda ()
-             (let ((inhibit-read-only t))
-               (add-text-properties (car byline-region)
-                                    (cdr byline-region)
-                                    (if boost-p
-                                        (list 'boosted-p (not boosted))
-                                      (list 'favourited-p (not faved))))
-               (mastodon-toot--action-success
-                (if boost-p
-                    (mastodon-tl--symbol 'boost)
-                  (mastodon-tl--symbol 'favourite))
-                byline-region remove))
-             (message (format "%s #%s" (if boost-p msg action) id))))))
-      (message (format "Nothing to %s here?!?" action-string)))))
+  (mastodon-tl--do-if-toot-strict
+   (let* ((boost-p (equal type 'boost))
+          (has-id (mastodon-tl--property 'base-toot-id))
+          (byline-region (when has-id
+                           (mastodon-tl--find-property-range 'byline (point))))
+          (id (when byline-region
+                (mastodon-tl--as-string (mastodon-tl--property 'base-toot-id))))
+          (boosted (when byline-region
+                     (get-text-property (car byline-region) 'boosted-p)))
+          (faved (when byline-region
+                   (get-text-property (car byline-region) 'favourited-p)))
+          (action (if boost-p
+                      (if boosted "unreblog" "reblog")
+                    (if faved "unfavourite" "favourite")))
+          (msg (if boosted "unboosted" "boosted"))
+          (action-string (if boost-p "boost" "favourite"))
+          (remove (if boost-p (when boosted t) (when faved t)))
+          (toot-type (alist-get 'type (mastodon-tl--property 'toot-json)))
+          (visibility (mastodon-tl--field 'visibility
+                                          (mastodon-tl--property 'toot-json))))
+     (if byline-region
+         (cond ;; actually there's nothing wrong with faving/boosting own toots!
+          ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
+          ;;(error "You can't %s your own toots" action-string))
+          ;; & nothing wrong with faving/boosting own toots from notifs:
+          ;; this boosts/faves the base toot, not the notif status
+          ((and (equal "reblog" toot-type)
+                (not (mastodon-tl--buffer-type-eq 'notifications)))
+           (error "You can't %s boosts" action-string))
+          ((and (equal "favourite" toot-type)
+                (not (mastodon-tl--buffer-type-eq 'notifications)))
+           (error "You can't %s favourites" action-string))
+          ((and (equal "private" visibility)
+                (equal type 'boost))
+           (error "You can't boost private toots"))
+          (t
+           (mastodon-toot--action
+            action
+            (lambda ()
+              (let ((inhibit-read-only t))
+                (add-text-properties (car byline-region)
+                                     (cdr byline-region)
+                                     (if boost-p
+                                         (list 'boosted-p (not boosted))
+                                       (list 'favourited-p (not faved))))
                 (mastodon-toot--update-stats-on-action type remove)
                 (mastodon-toot--action-success
                  (if boost-p
@@ -428,36 +423,37 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
 (defun mastodon-toot--toggle-bookmark ()
   "Bookmark or unbookmark toot at point."
   (interactive)
-  (let* ( ;(toot (mastodon-tl--property 'toot-json))
-         (id (mastodon-tl--property 'base-toot-id))
-         ;; (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
-         (bookmarked-p (mastodon-tl--property 'bookmarked-p))
-         (prompt (if bookmarked-p
-                     (format "Toot already bookmarked. Remove? ")
-                   (format "Bookmark this toot? ")))
-         (byline-region
-          (when id
-            (mastodon-tl--find-property-range 'byline (point))))
-         (action (if bookmarked-p "unbookmark" "bookmark"))
-         (bookmark-str (mastodon-tl--symbol 'bookmark))
-         (message (if bookmarked-p
-                      "Bookmark removed!"
-                    "Toot bookmarked!"))
-         (remove (when bookmarked-p t)))
-    (if byline-region
-        (when (y-or-n-p prompt)
-          (mastodon-toot--action
-           action
-           (lambda ()
-             (let ((inhibit-read-only t))
-               (add-text-properties (car byline-region)
-                                    (cdr byline-region)
-                                    (list 'bookmarked-p (not bookmarked-p))))
-             (mastodon-toot--action-success
-              bookmark-str
-              byline-region remove)
-             (message (format "%s #%s" message id)))))
-      (message (format "Nothing to %s here?!?" action)))))
+  (mastodon-tl--do-if-toot-strict
+   (let* ( ;(toot (mastodon-tl--property 'toot-json))
+          (id (mastodon-tl--property 'base-toot-id))
+          ;; (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
+          (bookmarked-p (mastodon-tl--property 'bookmarked-p))
+          (prompt (if bookmarked-p
+                      (format "Toot already bookmarked. Remove? ")
+                    (format "Bookmark this toot? ")))
+          (byline-region
+           (when id
+             (mastodon-tl--find-property-range 'byline (point))))
+          (action (if bookmarked-p "unbookmark" "bookmark"))
+          (bookmark-str (mastodon-tl--symbol 'bookmark))
+          (message (if bookmarked-p
+                       "Bookmark removed!"
+                     "Toot bookmarked!"))
+          (remove (when bookmarked-p t)))
+     (if byline-region
+         (when (y-or-n-p prompt)
+           (mastodon-toot--action
+            action
+            (lambda ()
+              (let ((inhibit-read-only t))
+                (add-text-properties (car byline-region)
+                                     (cdr byline-region)
+                                     (list 'bookmarked-p (not bookmarked-p))))
+              (mastodon-toot--action-success
+               bookmark-str
+               byline-region remove)
+              (message (format "%s #%s" message id)))))
+       (message (format "Nothing to %s here?!?" action))))))
 
 (defun mastodon-toot--list-toot-boosters ()
   "List the boosters of toot at point."
@@ -472,26 +468,27 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
 (defun mastodon-toot--list-toot-boosters-or-favers (&optional favourite)
   "List the favouriters or boosters of toot at point.
 With FAVOURITE, list favouriters, else list boosters."
-  (let* ((base-toot (mastodon-tl--property 'base-toot-id))
-         (endpoint (if favourite "favourited_by" "reblogged_by"))
-         (url (mastodon-http--api
-               (format "statuses/%s/%s" base-toot endpoint)))
-         (params '(("limit" . "80")))
-         (json (mastodon-http--get-json url params)))
-    (if (eq (caar json) 'error)
-        (error "%s (Status does not exist or is private)"
-               (alist-get 'error json))
-      (let ((handles (mastodon-tl--map-alist 'acct json))
-            (type-string (if favourite "Favouriters" "Boosters")))
-        (if (not handles)
-            (error "Looks like this toot has no %s" type-string)
-          (let ((choice
-                 (completing-read
-                  (format "%s (enter to view profile): " type-string)
-                  handles
-                  nil
-                  t)))
-            (mastodon-profile--show-user choice)))))))
+  (mastodon-tl--do-if-toot-strict
+   (let* ((base-toot (mastodon-tl--property 'base-toot-id))
+          (endpoint (if favourite "favourited_by" "reblogged_by"))
+          (url (mastodon-http--api
+                (format "statuses/%s/%s" base-toot endpoint)))
+          (params '(("limit" . "80")))
+          (json (mastodon-http--get-json url params)))
+     (if (eq (caar json) 'error)
+         (error "%s (Status does not exist or is private)"
+                (alist-get 'error json))
+       (let ((handles (mastodon-tl--map-alist 'acct json))
+             (type-string (if favourite "Favouriters" "Boosters")))
+         (if (not handles)
+             (error "Looks like this toot has no %s" type-string)
+           (let ((choice
+                  (completing-read
+                   (format "%s (enter to view profile): " type-string)
+                   handles
+                   nil
+                   t)))
+             (mastodon-profile--show-user choice))))))))
 
 (defun mastodon-toot--copy-toot-url ()
   "Copy URL of toot at point.
@@ -1037,38 +1034,39 @@ If TAGS, we search for tags, else we search for handles."
 Customize `mastodon-toot-display-orig-in-reply-buffer' to display
 text of the toot being replied to in the compose buffer."
   (interactive)
-  (let* ((toot (mastodon-tl--property 'toot-json))
-         ;; no-move arg for base toot, because if it doesn't have one, it is
-         ;; fetched from next toot!
-         (base-toot (mastodon-tl--property 'base-toot :no-move)) ; for new notifs handling
-         (id (mastodon-tl--as-string (mastodon-tl--field 'id (or base-toot toot))))
-         (account (mastodon-tl--field 'account toot))
-         (user (alist-get 'acct account))
-         (mentions (mastodon-toot--mentions (or base-toot toot)))
-         (boosted (mastodon-tl--field 'reblog (or base-toot toot)))
-         (booster (when boosted
-                    (alist-get 'acct
-                               (alist-get 'account toot)))))
-    (mastodon-toot (when user
-                     (if booster
-                         (if (and (not (equal user booster))
-                                  (not (member booster mentions)))
-                             ;; different booster, user and mentions:
-			     (mastodon-toot--mentions-to-string (append (list user booster) mentions nil))
-                           ;; booster is either user or in mentions:
-                           (if (not (member user mentions))
-                               ;; user not already in mentions:
-			       (mastodon-toot--mentions-to-string (append (list user) mentions nil))
-                             ;; user already in mentions:
-                             (mastodon-toot--mentions-to-string (copy-sequence mentions))))
-                       ;; ELSE no booster:
-                       (if (not (member user mentions))
-                           ;; user not in mentions:
-			   (mastodon-toot--mentions-to-string (append (list user) mentions nil))
-                         ;; user in mentions already:
-                         (mastodon-toot--mentions-to-string (copy-sequence mentions)))))
-                   id
-                   (or base-toot toot))))
+  (mastodon-tl--do-if-toot-strict
+   (let* ((toot (mastodon-tl--property 'toot-json))
+          ;; no-move arg for base toot, because if it doesn't have one, it is
+          ;; fetched from next toot!
+          (base-toot (mastodon-tl--property 'base-toot :no-move)) ; for new notifs handling
+          (id (mastodon-tl--as-string (mastodon-tl--field 'id (or base-toot toot))))
+          (account (mastodon-tl--field 'account toot))
+          (user (alist-get 'acct account))
+          (mentions (mastodon-toot--mentions (or base-toot toot)))
+          (boosted (mastodon-tl--field 'reblog (or base-toot toot)))
+          (booster (when boosted
+                     (alist-get 'acct
+                                (alist-get 'account toot)))))
+     (mastodon-toot (when user
+                      (if booster
+                          (if (and (not (equal user booster))
+                                   (not (member booster mentions)))
+                              ;; different booster, user and mentions:
+			      (mastodon-toot--mentions-to-string (append (list user booster) mentions nil))
+                            ;; booster is either user or in mentions:
+                            (if (not (member user mentions))
+                                ;; user not already in mentions:
+			        (mastodon-toot--mentions-to-string (append (list user) mentions nil))
+                              ;; user already in mentions:
+                              (mastodon-toot--mentions-to-string (copy-sequence mentions))))
+                        ;; ELSE no booster:
+                        (if (not (member user mentions))
+                            ;; user not in mentions:
+			    (mastodon-toot--mentions-to-string (append (list user) mentions nil))
+                          ;; user in mentions already:
+                          (mastodon-toot--mentions-to-string (copy-sequence mentions)))))
+                    id
+                    (or base-toot toot)))))
 
 (defun mastodon-toot--toggle-warning ()
   "Toggle `mastodon-toot--content-warning'."

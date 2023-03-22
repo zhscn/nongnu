@@ -1771,8 +1771,15 @@ ID is that of the post the context is currently displayed for."
   "Execute BODY if we have a toot or user at point."
   (declare (debug t))
   `(if (and (not (mastodon-tl--profile-buffer-p))
-            (not (mastodon-tl--property 'toot-json)))
+            (not (mastodon-tl--property 'toot-json))) ; includes user listings
        (message "Looks like there's no toot or user at point?")
+     ,@body))
+
+(defmacro mastodon-tl--do-if-toot-strict (&rest body)
+  "Execute BODY if we have a toot, and only a toot, at point."
+  (declare (debug t))
+  `(if (not (mastodon-tl--property 'toot-id :no-move))
+       (message "Looks like there's no toot at point?")
      ,@body))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify langs)
