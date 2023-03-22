@@ -374,6 +374,45 @@ TYPE is a symbol, either `favourite' or `boost.'"
                 byline-region remove))
              (message (format "%s #%s" (if boost-p msg action) id))))))
       (message (format "Nothing to %s here?!?" action-string)))))
+                (mastodon-toot--update-stats-on-action type remove)
+                (mastodon-toot--action-success
+                 (if boost-p
+                     (mastodon-tl--symbol 'boost)
+                   (mastodon-tl--symbol 'favourite))
+                 byline-region remove))
+              (message (format "%s #%s" (if boost-p msg action) id))))))
+       (message (format "Nothing to %s here?!?" action-string))))))
+
+(defun mastodon-toot--inc-or-dec (count subtract)
+  "If SUBTRACT, decrement COUNT, else increment."
+  (if subtract
+      (1- count)
+    (1+ count)))
+
+(defun mastodon-toot--update-stats-on-action (action &optional subtract)
+  "Increment the toot stats display upon ACTION.
+ACTION is a symbol, either `favourite' or `boost'.
+SUBTRACT means we are un-favouriting or unboosting, so we decrement."
+  (let* ((count-prop (if (eq action 'favourite)
+                         'favourites-count
+                       'boosts-count))
+         (count-prop-range (mastodon-tl--find-property-range count-prop (point)))
+         (count (get-text-property (car count-prop-range) count-prop))
+         (inhibit-read-only 1))
+    ;; TODO another way to implement this would be to async fetch counts again
+    ;;  and re-display from count-properties
+    (add-text-properties
+     (car count-prop-range)
+     (cdr count-prop-range)
+     (list 'display ; update the display prop:
+           (concat
+            (number-to-string
+             (mastodon-toot--inc-or-dec count subtract))
+            " ")
+           ;; update the count prop
+           ;; we rely on this for any subsequent actions:
+           count-prop
+           (mastodon-toot--inc-or-dec count subtract)))))
 
 (defun mastodon-toot--toggle-boost ()
   "Boost/unboost toot at `point'."
