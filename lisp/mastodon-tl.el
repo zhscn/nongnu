@@ -1748,7 +1748,6 @@ If UNMUTE, unmute it."
                                              (message "Thread unmuted!")
                                            (message "Thread muted!")))))))))))
 
-
 (defun mastodon-tl--map-account-id-from-toot (statuses)
   "Return a list of the account IDs of the author of each toot in STATUSES."
   (mapcar (lambda (status)
