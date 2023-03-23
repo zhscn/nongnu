@@ -400,10 +400,8 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
      (car count-prop-range)
      (cdr count-prop-range)
      (list 'display ; update the display prop:
-           (concat
-            (number-to-string
-             (mastodon-toot--inc-or-dec count subtract))
-            " ")
+           (number-to-string
+            (mastodon-toot--inc-or-dec count subtract))
            ;; update the count prop
            ;; we rely on this for any subsequent actions:
            count-prop
