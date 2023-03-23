@@ -2037,8 +2037,10 @@ If TAG is provided, unfollow it."
   (interactive)
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
          (tags (mastodon-tl--map-alist 'name followed-tags-json))
-         (tag (completing-read "Tag: " tags)))
-    (mastodon-tl--get-tag-timeline tag)))
+         (tag (completing-read "Tag: " tags nil)))
+    (if (null tag)
+        (message "You have to follow some tags first.")
+      (mastodon-tl--get-tag-timeline tag))))
 
 
 ;;; UPDATING, etc.
