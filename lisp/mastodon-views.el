@@ -743,10 +743,14 @@ INSTANCE is an instance domain name."
             (reblog (alist-get 'reblog toot))
             (account (or (alist-get 'account reblog)
                          (alist-get 'account toot)))
-            (url (if (mastodon-tl--profile-buffer-p)
+            ;; we can't use --profile-buffer-p as our test here because we may
+            ;; be looking at toots/boosts/users in a profile buffer
+            ;; profile-json works as a defacto test for if point is on the
+            ;; profile details at the top of a profile buffer.
+            (url (if (mastodon-tl--property 'profile-json)
                      (alist-get 'url toot) ; profile
                    (alist-get 'url account)))
-            (username (if (mastodon-tl--profile-buffer-p)
+            (username (if (mastodon-tl--property 'profile-json)
                           (alist-get 'username toot) ;; profile
                         (alist-get 'username account)))
             (instance (if instance
