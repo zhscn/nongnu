@@ -163,10 +163,10 @@ This function is used as the update-function to
 provides the JSON data."
   (erase-buffer)
   (insert (mastodon-tl--set-face
-           (concat "\n ------------\n "
+           (concat "\n " mastodon-tl--horiz-bar "\n "
                    (upcase view-name)
-                   "\n"
-                   " ------------\n\n")
+                   "\n "
+                   mastodon-tl--horiz-bar "\n\n")
            'success)
           (if bindings-string
               (mastodon-tl--set-face
@@ -215,7 +215,7 @@ provides the JSON data."
          (mastodon-tl--map-alist 'title lists)))
     (mapc (lambda (x)
             (mastodon-views--print-list-accounts x)
-            (insert (propertize " ------------\n\n"
+            (insert (propertize (concat " " mastodon-tl--horiz-bar "\n\n")
                                 'face 'success)))
           lists-names)))
 
