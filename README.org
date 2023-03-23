@@ -135,7 +135,7 @@ not contain =:client_id= and =:client_secret=.
 | =O=              | View own profile                                                          |
 | =U=              | update your profile bio note                                              |
 | =;=              | view instance description for toot at point                               |
-| =:=              | view your list of followed tags and load its timeline                     |
+| =:=              | view followed tags and load a tag timeline                                |
 | =,=              | view favouriters of toot at point                                         |
 | =.=              | view boosters of toot at point                                            |
 | =/=              | switch between mastodon buffers                                           |
