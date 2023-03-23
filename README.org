@@ -1,3 +1,7 @@
+#+TEXINFO_DIR_CATEGORY: Emacs
+#+TEXINFO_DIR_TITLE: Mastodon: (mastodon).
+#+TEXINFO_DIR_DESC: Client for Mastodon on ActivityPub networks.
+
 @@html: <a href="https://melpa.org/#/mastodon"><img alt="MELPA" src="https://melpa.org/packages/mastodon-badge.svg"/></a>@@
 
 @@html: <a href="https://ci.codeberg.org/martianh/mastodon.el"><img alt="Build Status" src="https://ci.codeberg.org/api/badges/martianh/mastodon.el/status.svg"></a>@@
@@ -114,8 +118,8 @@ not contain =:client_id= and =:client_secret=.
 | =?=              | Show discover menu of all bindings, if =discover= is available              |
 |----------------+---------------------------------------------------------------------------|
 |                | *Timeline actions*                                                          |
-| =n=              | Go to next item (toot, notification)                                      |
-| =p=              | Go to previous item (toot, notification)                                  |
+| =n=              | Go to next item (toot, notification, user)                                |
+| =p=              | Go to previous item (toot, notification, user)                            |
 | =M-n=/=<tab>=    | Go to the next interesting thing that has an action                       |
 | =M-p=/=<S-tab>=  | Go to the previous interesting thing that has an action                   |
 | =F=              | Open federated timeline                                                   |
@@ -131,18 +135,20 @@ not contain =:client_id= and =:client_secret=.
 | =O=              | View own profile                                                          |
 | =U=              | update your profile bio note                                              |
 | =;=              | view instance description for toot at point                               |
+| =:=              | view followed tags and load a tag timeline                                |
 | =,=              | view favouriters of toot at point                                         |
 | =.=              | view boosters of toot at point                                            |
+| =/=              | switch between mastodon buffers                                           |
 |----------------+---------------------------------------------------------------------------|
 |                | *Other views*                                                               |
-| =S=              | search (posts, users, tags) (NB: only posts you have interacted with)     |
+| =s=              | search (posts, users, tags) (NB: only posts you have interacted with)     |
 | =I=, =c=, =d=        | view, create, and delete filters                                          |
 | =R=, =a=, =j=        | view/accept/reject follow requests                                        |
 | =G=              | view follow suggestions                                                   |
 | =V=              | view your favourited toots                                                |
 | =K=              | view bookmarked toots                                                     |
 | =X=              | view/edit/create/delete lists                                             |
-| =s=              | view your scheduled toots                                                 |
+| =S=              | view your scheduled toots                                                 |
 |----------------+---------------------------------------------------------------------------|
 |                | *Toot actions*                                                              |
 | =t=              | Compose a new toot                                                        |
@@ -162,7 +168,7 @@ not contain =:client_id= and =:client_secret=.
 | (=S-C-=) =W=, =M=, =B= | (un)follow, (un)mute, (un)block author of toot at point                   |
 |----------------+---------------------------------------------------------------------------|
 |                | *Profile view*                                                              |
-| =C-c C-c=        | cycle between statuses, followers, following, and statuses without boosts |
+| =C-c C-c=        | cycle between statuses, statuses without boosts, followers, and following |
 |                | =mastodon-profile--account-account-to-list= (see lists view)                |
 |----------------+---------------------------------------------------------------------------|
 |                | *Notifications view*                                                        |
@@ -259,6 +265,16 @@ work without first loading =mastodon.el=:
 - =mastodon-tl--add-toot-account-at-point-to-list=: Add the account of the toot at point to a list.
 
 
+- =mastodon-tl--dm-user=: Send a direct message to one of the users at point.
+
+
+- =mastodon-profile--add-private-note-to-account=: Add a private note to another user’s account.
+- =mastodon-profile--view-account-private-note=: View a private note on a user’s account.
+
+
+- =mastodon-profile--show-familiar-followers=: Show a list of “familiar followers” for a given account. Familiar followers are accounts that you follow, and that follow the account.
+
+
 - =mastodon-tl--follow-tag=: Follow a tag (works like following a user)
 - =mastodon-tl--unfollow-tag=: Unfollow a tag
 - =mastodon-tl--list-followed-tags=: View a list of tags you're following.
@@ -296,6 +312,7 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Avatar image height
    - Enable image caching
    - Hide replies in timelines
+   - Show toot stats in byline
 
 - Compose options:
    - Completion style for mentions and tags
@@ -344,6 +361,9 @@ to your translator function as its text argument. Here's what
             (lingva-translate nil (mastodon-tl--content toot))
           (message "No toot to translate?"))))
 #+end_src
+
+*** bookmarks and =mastodon.el=
+=mastodon.el= doesn’t currently implement its own bookmark record and handler, which means that emacs bookmarks will not work as is. Until we implement them, you can get bookmarks going immediately by using [[https://github.com/emacsmirror/emacswiki.org/blob/master/bookmark%2b.el][bookmark+.el]].
 
 ** Dependencies
 

@@ -37,9 +37,9 @@
 
 (defvar mastodon-instance-url)
 (defvar mastodon-active-user)
+
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--post "mastodon-http")
-
 
 (defcustom mastodon-client--token-file (concat user-emacs-directory "mastodon.plstore")
   "File path where Mastodon access tokens are stored."

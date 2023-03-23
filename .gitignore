@@ -10,3 +10,8 @@ stubfile.plstore
 *~
 dist/
 /mastodon.org
+
+# ELPA-generted files
+/mastodon-pkg.el
+/mastodon-autoloads.el
+/lisp/mastodon-autoloads.el

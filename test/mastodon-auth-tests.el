@@ -1,6 +1,8 @@
 ;;; mastodon-auth-test.el --- Tests for mastodon-auth.el  -*- lexical-binding: nil -*-
 
 (require 'el-mock)
+(require 'mastodon)
+(require 'mastodon-auth)
 
 (ert-deftest mastodon-auth--handle-token-response--good ()
   "Should extract the access token from a good response."

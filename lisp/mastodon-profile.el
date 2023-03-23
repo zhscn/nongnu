@@ -38,55 +38,47 @@
 (require 'seq)
 (require 'cl-lib)
 (require 'persist)
-(require 'ts)
 (require 'parse-time)
 
+(autoload 'mastodon-auth--get-account-id "mastodon-auth")
+(autoload 'mastodon-auth--get-account-name "mastodon-auth.el")
 (autoload 'mastodon-http--api "mastodon-http.el")
 (autoload 'mastodon-http--get-json "mastodon-http.el")
+(autoload 'mastodon-http--get-json-async "mastodon-http.el")
+(autoload 'mastodon-http--get-response "mastodon-http")
+(autoload 'mastodon-http--patch "mastodon-http")
+(autoload 'mastodon-http--patch-json "mastodon-http")
 (autoload 'mastodon-http--post "mastodon-http.el")
 (autoload 'mastodon-http--triage "mastodon-http.el")
-(autoload 'mastodon-auth--get-account-name "mastodon-auth.el")
-(autoload 'mastodon-http--get-json-async "mastodon-http.el")
 (autoload 'mastodon-media--get-media-link-rendering "mastodon-media.el")
 (autoload 'mastodon-media--inline-images "mastodon-media.el")
 (autoload 'mastodon-mode "mastodon.el")
-(autoload 'mastodon-tl--byline-author "mastodon-tl.el")
-(autoload 'mastodon-tl--goto-next-toot "mastodon-tl.el")
-(autoload 'mastodon-tl--property "mastodon-tl.el")
-(autoload 'mastodon-tl--find-property-range "mastodon-tl.el")
-(autoload 'mastodon-tl--render-text "mastodon-tl.el")
-(autoload 'mastodon-tl--set-face "mastodon-tl.el")
-(autoload 'mastodon-tl--timeline "mastodon-tl.el")
-(autoload 'mastodon-tl--as-string "mastodon-tl.el")
-(autoload 'mastodon-tl--toot-id "mastodon-tl")
-(autoload 'mastodon-tl--toot "mastodon-tl")
-(autoload 'mastodon-tl--init "mastodon-tl.el")
-(autoload 'mastodon-tl--init-sync "mastodon-tl")
-(autoload 'mastodon-http--patch "mastodon-http")
-(autoload 'mastodon-http--patch-json "mastodon-http")
-(autoload 'mastodon-notifications--follow-request-reject "mastodon-notifications")
 (autoload 'mastodon-notifications--follow-request-accept "mastodon-notifications")
-(autoload 'mastodon-tl--goto-next-item "mastodon-tl")
-(autoload 'mastodon-tl--goto-prev-item "mastodon-tl")
-(autoload 'mastodon-tl--goto-first-item "mastodon-tl")
-(autoload 'mastodon-toot "mastodon")
+(autoload 'mastodon-notifications--follow-request-reject "mastodon-notifications")
 (autoload 'mastodon-search--insert-users-propertized "mastodon-search")
-(autoload 'mastodon-tl--get-endpoint "mastodon-tl.el")
-(autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
-(autoload 'mastodon-tl--add-account-to-list "mastodon-tl")
-(autoload 'mastodon-http--get-response "mastodon-http")
-(autoload 'mastodon-tl--get-link-header-from-response "mastodon-tl")
-(autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
-(autoload 'mastodon-tl--symbol "mastodon-tl")
-(autoload 'mastodon-auth--get-account-id "mastodon-auth")
-(autoload 'mastodon-tl--profile-buffer-p "mastodon tl")
+(autoload 'mastodon-tl--as-string "mastodon-tl.el")
 (autoload 'mastodon-tl--buffer-type-eq "mastodon tl")
+(autoload 'mastodon-tl--byline-author "mastodon-tl.el")
+(autoload 'mastodon-tl--find-property-range "mastodon-tl.el")
+(autoload 'mastodon-tl--get-link-header-from-response "mastodon-tl")
+(autoload 'mastodon-tl--init "mastodon-tl.el")
+(autoload 'mastodon-tl--interactive-user-handles-get "mastodon-tl")
+(autoload 'mastodon-tl--map-alist "mastodon-tl")
+(autoload 'mastodon-tl--map-alist-vals-to-alist "mastodon-tl")
+(autoload 'mastodon-tl--profile-buffer-p "mastodon tl")
+(autoload 'mastodon-tl--property "mastodon-tl.el")
+(autoload 'mastodon-tl--render-text "mastodon-tl.el")
+(autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
+(autoload 'mastodon-tl--set-face "mastodon-tl.el")
+(autoload 'mastodon-tl--symbol "mastodon-tl")
+(autoload 'mastodon-tl--timeline "mastodon-tl.el")
+(autoload 'mastodon-tl--toot "mastodon-tl")
+(autoload 'mastodon-tl--toot-id "mastodon-tl")
 (autoload 'mastodon-toot--count-toot-chars "mastodon-toot")
+(autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
+(autoload 'mastodon-views--add-account-to-list "mastodon-views")
 
-(defvar mastodon-instance-url)
-(defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--update-point)
-(defvar mastodon-mode-map)
 (defvar mastodon-toot--max-toot-chars)
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot--content-nsfw)
@@ -105,23 +97,6 @@
     (define-key map (kbd "C-c C-c") #'mastodon-profile--account-view-cycle)
     map)
   "Keymap for `mastodon-profile-mode'.")
-
-(defvar mastodon-profile--view-follow-requests-keymap
-  (let ((map ;(make-sparse-keymap)))
-         (copy-keymap mastodon-mode-map)))
-    ;; make reject binding match the binding in notifs view
-    ;; 'r' is then reserved for replying, even tho it is not avail
-    ;; in foll-reqs view
-    (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
-    (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
-    (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
-    (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
-    (define-key map (kbd "g") #'mastodon-profile--view-follow-requests)
-    ;; (define-key map (kbd "t") #'mastodon-toot)
-    ;; (define-key map (kbd "q") #'kill-current-buffer)
-    ;; (define-key map (kbd "Q") #'kill-buffer-and-window)
-    map)
-  "Keymap for viewing follow requests.")
 
 (define-minor-mode mastodon-profile-mode
   "Toggle mastodon profile minor mode.
@@ -157,11 +132,6 @@ contains")
 (defun mastodon-profile--toot-json ()
   "Get the next toot-json."
   (interactive)
-  ;; NB: we cannot add
-  ;; (or (mastodon-tl--property 'profile-json)
-  ;; here because it searches forward endlessly
-  ;; TODO: it would be nice to be able to do so tho
-  ;; or handle --property failing
   (mastodon-tl--property 'toot-json))
 
 (defun mastodon-profile--make-author-buffer (account &optional no-reblogs)
@@ -172,15 +142,15 @@ NO-REBLOGS means do not display boosts in statuses."
 
 ;; TODO: we shd just load all views' data then switch coz this is slow af:
 (defun mastodon-profile--account-view-cycle ()
-  "Cycle through profile view: toots, followers, and following."
+  "Cycle through profile view: toots, toot sans boosts, followers, and following."
   (interactive)
   (cond ((mastodon-tl--buffer-type-eq 'profile-statuses)
+         (mastodon-profile--open-statuses-no-reblogs))
+        ((mastodon-tl--buffer-type-eq 'profile-statuses-no-boosts)
          (mastodon-profile--open-followers))
         ((mastodon-tl--buffer-type-eq 'profile-followers)
          (mastodon-profile--open-following))
         ((mastodon-tl--buffer-type-eq 'profile-following)
-         (mastodon-profile--open-statuses-no-reblogs))
-        (t
          (mastodon-profile--make-author-buffer mastodon-profile--account))))
 
 (defun mastodon-profile--open-statuses-no-reblogs ()
@@ -232,35 +202,6 @@ NO-REBLOGS means do not display boosts in statuses."
                      'mastodon-tl--timeline
                      :headers))
 
-(defun mastodon-profile--view-follow-requests ()
-  "Open a new buffer displaying the user's follow requests."
-  (interactive)
-  (mastodon-tl--init-sync "follow-requests"
-                          "follow_requests"
-                          'mastodon-profile--insert-follow-requests)
-  (use-local-map mastodon-profile--view-follow-requests-keymap)
-  (mastodon-tl--goto-first-item))
-
-(defun mastodon-profile--insert-follow-requests (json)
-  "Insert the user's current follow requests.
-JSON is the data returned by the server."
-  (insert (mastodon-tl--set-face
-           (concat "\n ------------\n"
-                   " FOLLOW REQUESTS\n"
-                   " ------------\n\n")
-           'success)
-          (mastodon-tl--set-face
-           "[a/r - accept/reject request at point\n n/p - go to next/prev request]\n\n"
-           'font-lock-comment-face))
-  (if (seq-empty-p json)
-      (insert (propertize
-               "Looks like you have no follow requests for now."
-               'face font-lock-comment-face
-               'byline t
-               'toot-id "0"))
-    (mastodon-search--insert-users-propertized json :note)))
-;; (mastodon-profile--add-author-bylines json)))
-
 (defun mastodon-profile--add-account-to-list ()
   "Add account of current profile buffer to a list."
   (interactive)
@@ -268,7 +209,7 @@ JSON is the data returned by the server."
     (let* ((profile mastodon-profile--account)
            (id (alist-get 'id profile))
            (handle (alist-get 'acct profile)))
-      (mastodon-tl--add-account-to-list nil id handle))))
+      (mastodon-views--add-account-to-list nil id handle))))
 
 ;;; ACCOUNT PREFERENCES
 
@@ -316,7 +257,7 @@ JSON is the data returned by the server."
                                             'display nil)
                                 "/500 characters")
                         'read-only t
-                        'face 'font-lock-comment-face
+                        'face font-lock-comment-face
                         'note-header t)
             "\n")
     (make-local-variable 'after-change-functions)
@@ -375,7 +316,7 @@ Ask for confirmation if length > 500 characters."
 (defun mastodon-profile--update-preference (pref val &optional source)
   "Update account PREF erence to setting VAL.
 Both args are strings.
-SOURCE means that the preference is in the 'source' part of the account JSON."
+SOURCE means that the preference is in the `source' part of the account JSON."
   (let* ((url (mastodon-http--api "accounts/update_credentials"))
          (pref-formatted (if source (concat "source[" pref "]") pref))
          (response (mastodon-http--patch url `((,pref-formatted . ,val)))))
@@ -394,6 +335,7 @@ This is done after changing the setting on the server."
   (setq mastodon-profile-account-settings
         (plist-put mastodon-profile-account-settings pref val)))
 
+;; used in toot.el
 (defun mastodon-profile--fetch-server-account-settings-maybe ()
   "Fetch account settings from the server.
 Only do so if `mastodon-profile-account-settings' is nil."
@@ -535,6 +477,7 @@ Returns the results as an alist."
   "Limit string X to 255 chars max."
   (if (> (length x) 255) (substring x 0 255) x))
 
+;; used in tl.el
 (defun mastodon-profile--get-preferences-pref (pref)
   "Fetch PREF from the endpoint \"/preferences\".
 This endpoint only holds a few preferences. For others, see
@@ -584,10 +527,7 @@ FIELDS means provide a fields vector fetched by other means."
   (let ((fields (or fields
                     (mastodon-profile--account-field account 'fields))))
     (when fields
-      (mapcar (lambda (el)
-                (cons (alist-get 'name el)
-                      (alist-get 'value el)))
-              fields))))
+      (mastodon-tl--map-alist-vals-to-alist 'name 'value fields))))
 
 (defun mastodon-profile--fields-insert (fields)
   "Format and insert field pairs (a.k.a profile metadata) in FIELDS."
@@ -630,7 +570,11 @@ HEADERS means also fetch link headers for pagination."
          (endpoint (format "accounts/%s/%s" id endpoint-type))
          (url (mastodon-http--api endpoint))
          (acct (mastodon-profile--account-field account 'acct))
-         (buffer (concat "*mastodon-" acct "-" endpoint-type  "*"))
+         (buffer (concat "*mastodon-" acct "-"
+                         (if no-reblogs
+                             (concat endpoint-type "-no-boosts")
+                           endpoint-type)
+                         "*"))
          (response (if headers
                        (mastodon-http--get-response url args)
                      (mastodon-http--get-json url args)))
@@ -650,17 +594,21 @@ HEADERS means also fetch link headers for pagination."
                        (mastodon-profile--account-field
                         account 'statuses_count)))
          (relationships (mastodon-profile--relationships-get id))
+         (requested-you (when (not (seq-empty-p relationships))
+                          (alist-get 'requested_by relationships)))
          (followed-by-you (when (not (seq-empty-p relationships))
                             (alist-get 'following relationships)))
          (follows-you (when (not (seq-empty-p relationships))
                         (alist-get 'followed_by relationships)))
-         (followsp (or (equal follows-you 't) (equal followed-by-you 't)))
+         (followsp (or (equal follows-you 't) (equal followed-by-you 't)
+                       (equal requested-you 't)))
          (fields (mastodon-profile--fields-get account))
          (pinned (mastodon-profile--get-statuses-pinned account))
          (joined (mastodon-profile--account-field account 'created_at)))
     (with-current-buffer (get-buffer-create buffer)
       (let ((inhibit-read-only t))
         (switch-to-buffer buffer)
+        (erase-buffer)
         (mastodon-mode)
         (mastodon-profile-mode)
         (setq mastodon-profile--account account)
@@ -673,7 +621,9 @@ HEADERS means also fetch link headers for pagination."
                (is-followers (string= endpoint-type "followers"))
                (is-following (string= endpoint-type "following"))
                (endpoint-name (cond
-                               (is-statuses "     TOOTS   ")
+                               (is-statuses (if no-reblogs
+                                                "  TOOTS (no boosts)"
+                                              "    TOOTS    "))
                                (is-followers "  FOLLOWERS  ")
                                (is-following "  FOLLOWING  "))))
           (insert
@@ -721,10 +671,12 @@ HEADERS means also fetch link headers for pagination."
            ;; insert relationship (follows)
            (if followsp
                (mastodon-tl--set-face
-                (concat (if (equal follows-you 't)
-                            " | FOLLOWS YOU")
-                        (if (equal followed-by-you 't)
-                            " | FOLLOWED BY YOU")
+                (concat (when (equal follows-you 't)
+                          " | FOLLOWS YOU")
+                        (when (equal followed-by-you 't)
+                          " | FOLLOWED BY YOU")
+                        (when (equal requested-you 't)
+                          " | REQUESTED TO FOLLOW YOU")
                         "\n\n")
                 'success)
              "") ; if no followsp we still need str-or-char-p for insert
@@ -744,7 +696,9 @@ HEADERS means also fetch link headers for pagination."
       (goto-char (point-min)))))
 
 (defun mastodon-profile--format-joined-date-string (joined)
-  "Format a human-readable Joined string from timestamp JOINED."
+  "Format a human-readable Joined string from timestamp JOINED.
+JOINED is the `created_at' field in profile account JSON, and of
+the format \"2000-01-31T00:00:00.000Z\"."
   (format-time-string "Joined: %d %B %Y"
                       (parse-iso8601-time-string joined)))
 
@@ -755,10 +709,10 @@ If toot is a boost, opens the profile of the booster."
   (mastodon-profile--make-author-buffer
    (alist-get 'account (mastodon-profile--toot-json))))
 
-(defun mastodon-profile--image-from-account (account img_type)
+(defun mastodon-profile--image-from-account (account img-type)
   "Return a avatar image from ACCOUNT.
-IMG_TYPE is the JSON key from the account data."
-  (let ((img (alist-get img_type account)))
+IMG-TYPE is the JSON key from the account data."
+  (let ((img (alist-get img-type account)))
     (unless (equal img "/avatars/original/missing.png")
       (mastodon-media--get-media-link-rendering img))))
 
@@ -767,7 +721,7 @@ IMG_TYPE is the JSON key from the account data."
   (interactive
    (list
     (if (and (not (mastodon-tl--profile-buffer-p))
-             (not (get-text-property (point) 'toot-json)))
+             (not (mastodon-tl--property 'toot-json :no-move)))
         (message "Looks like there's no toot or user at point?")
       (let ((user-handles (mastodon-profile--extract-users-handles
                            (mastodon-profile--toot-json))))
@@ -778,7 +732,7 @@ IMG_TYPE is the JSON key from the account data."
   (if (not (or
             ;; own profile has no need for toot-json test:
             (equal user-handle (mastodon-auth--get-account-name))
-            (get-text-property (point) 'toot-json)))
+            (mastodon-tl--property 'toot-json :no-move)))
       (message "Looks like there's no toot or user at point?")
     (let ((account (mastodon-profile--lookup-account-in-status
                     user-handle (mastodon-profile--toot-json))))
@@ -797,7 +751,7 @@ IMG_TYPE is the JSON key from the account data."
 
 (defun mastodon-profile--account-field (account field)
   "Return FIELD from the ACCOUNT.
-FIELD is used to identify regions under 'account"
+FIELD is used to identify regions under `account'."
   (cdr (assoc field account)))
 
 (defun mastodon-profile--add-author-bylines (tootv)
@@ -859,15 +813,13 @@ These include the author, author of reblogged entries and any user mentioned."
 	  (reblog (or (alist-get 'reblog (alist-get 'status status))
                       (alist-get 'reblog status))))
       (seq-filter
-       'stringp
+       #'stringp
        (seq-uniq
         (seq-concatenate
          'list
          (list (alist-get 'acct this-account))
          (mastodon-profile--extract-users-handles reblog)
-         (mapcar (lambda (mention)
-                   (alist-get 'acct mention))
-                 mentions)))))))
+         (mastodon-tl--map-alist 'acct mentions)))))))
 
 (defun mastodon-profile--lookup-account-in-status (handle status)
   "Return account for HANDLE using hints in STATUS if possible."
@@ -894,7 +846,7 @@ These include the author, author of reblogged entries and any user mentioned."
   "Remove a user from your followers.
 Optionally provide the ID of the account to remove."
   (interactive)
-  (let* ((account (unless id (get-text-property (point) 'toot-json)))
+  (let* ((account (unless id (mastodon-tl--property 'toot-json :no-move)))
          (id (or id (alist-get 'id account)))
          (handle (if account
                      (alist-get 'acct account)
@@ -931,15 +883,104 @@ Currently limited to 100 handles. If not found, try
          (url (mastodon-http--api endpoint))
          (response (mastodon-http--get-json url
                                             `(("limit" . "100"))))
-         (handles (mapcar (lambda (x)
-                            (cons
-                             (alist-get 'acct x)
-                             (alist-get 'id x)))
-                          response))
+         (handles (mastodon-tl--map-alist-vals-to-alist 'acct 'id response))
          (choice (completing-read "Remove from followers: "
                                   handles))
          (id (alist-get choice handles nil nil 'equal)))
     (mastodon-profile--remove-user-from-followers id)))
+
+(defun mastodon-profile--add-private-note-to-account ()
+  "Add a private note to an account.
+Can be called from a profile page or normal timeline.
+Send an empty note to clear an existing one."
+  (interactive)
+  (mastodon-profile--add-or-view-private-note
+   'mastodon-profile--post-private-note-to-account
+   "add a note to"))
+
+(defun mastodon-profile--post-private-note-to-account (id handle note-old)
+  "POST a private note onto an account ID with user HANDLE on the server.
+NOTE-OLD is the text of any existing note."
+  (let* ((note (read-string (format "Add private note to account %s: " handle)
+                            note-old))
+         (params `(("comment" . ,note)))
+         (url (mastodon-http--api (format "accounts/%s/note" id)))
+         (response (mastodon-http--post url params)))
+    (mastodon-http--triage response
+                           (lambda ()
+                             (message "Private note on %s added!" handle)))))
+
+(defun mastodon-profile--view-account-private-note ()
+  "Display the private note about a user."
+  (interactive)
+  (mastodon-profile--add-or-view-private-note
+   'mastodon-profile--display-private-note
+   "view private note of"
+   :view))
+
+(defun mastodon-profile--display-private-note (note)
+  "Display private NOTE in a temporary buffer."
+  (with-output-to-temp-buffer "*mastodon-profile-private-note*"
+    (let ((inhibit-read-only t))
+      (princ note))))
+
+(defun mastodon-profile--profile-json ()
+  "Return the profile-json property if we are in a profile buffer."
+  (when (mastodon-tl--profile-buffer-p)
+    (save-excursion
+      (goto-char (point-min))
+      (or (mastodon-tl--property 'profile-json :no-move)
+          (error "No profile data found")))))
+
+(defun mastodon-profile--add-or-view-private-note (action-fun &optional message view)
+  "Add or view a private note for an account.
+ACTION-FUN does the adding or viewing, MESSAGE is a prompt for
+`mastodon-tl--interactive-user-handles-get', VIEW is a flag."
+  (let* ((profile-json (mastodon-profile--profile-json))
+         (handle (if (mastodon-tl--profile-buffer-p)
+                     (alist-get 'acct profile-json)
+                   (mastodon-tl--interactive-user-handles-get message)))
+         (account (if (mastodon-tl--profile-buffer-p)
+                      profile-json
+                    (mastodon-profile--search-account-by-handle handle)))
+         (id (alist-get 'id account))
+         (relationships (mastodon-profile--relationships-get id))
+         (note (alist-get 'note relationships)))
+    (if view
+        (if (string-empty-p note)
+            (message "No private note for %s" handle)
+          (funcall action-fun note))
+      (funcall action-fun id handle note))))
+
+(defun mastodon-profile--show-familiar-followers ()
+  "Show a list of familiar followers.
+Familiar followers are accounts that you follow, and that follow
+the given account."
+  (interactive)
+  (let* ((profile-json (mastodon-profile--profile-json))
+         (handle
+          (if (mastodon-tl--profile-buffer-p)
+              (alist-get 'acct profile-json)
+            (mastodon-tl--interactive-user-handles-get "show familiar followers of")))
+         (account (if (mastodon-tl--profile-buffer-p)
+                      profile-json
+                    (mastodon-profile--search-account-by-handle handle)))
+         (id (alist-get 'id account)))
+    (mastodon-profile--get-familiar-followers id)))
+
+(defun mastodon-profile--get-familiar-followers (id)
+  "Return JSON data of familiar followers for account ID."
+  ;; the server can handle multiple IDs, but for now we just handle one.
+  (let* ((params `(("id" . ,id)))
+         (url (mastodon-http--api "accounts/familiar_followers"))
+         (json (mastodon-http--get-json url params))
+         (accounts (alist-get 'accounts (car json))) ; first id result
+         (handles (mastodon-tl--map-alist 'acct accounts)))
+    (if (null handles)
+        (message "Looks like there are no familiar followers for this account")
+      (let ((choice (completing-read "Show profile of user: "
+                                     handles)))
+        (mastodon-profile--show-user choice)))))
 
 (provide 'mastodon-profile)
 ;;; mastodon-profile.el ends here

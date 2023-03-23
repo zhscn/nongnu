@@ -31,22 +31,20 @@
 ;;; Code:
 (require 'json)
 
-(autoload 'mastodon-http--get-json "mastodon-http")
-(autoload 'mastodon-tl--as-string "mastodon-tl")
-(autoload 'mastodon-mode "mastodon")
-(autoload 'mastodon-tl--set-face "mastodon-tl")
-(autoload 'mastodon-tl--render-text "mastodon-tl")
-(autoload 'mastodon-tl--as-string "mastodon-tl")
 (autoload 'mastodon-auth--access-token "mastodon-auth")
-(autoload 'mastodon-http--get-search-json "mastodon-http")
 (autoload 'mastodon-http--api "mastodon-http")
+(autoload 'mastodon-http--get-json "mastodon-http")
+(autoload 'mastodon-http--get-search-json "mastodon-http")
+(autoload 'mastodon-mode "mastodon")
+(autoload 'mastodon-tl--as-string "mastodon-tl")
+(autoload 'mastodon-tl--as-string "mastodon-tl")
+(autoload 'mastodon-tl--render-text "mastodon-tl")
 (autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
+(autoload 'mastodon-tl--set-face "mastodon-tl")
 
 (defvar mastodon-toot--completion-style-for-mentions)
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--link-keymap)
-(defvar mastodon-http--timeout)
-(defvar mastodon-toot--enable-completion-for-mentions)
 
 ;; functions for completion of mentions in mastodon-toot
 
@@ -123,7 +121,7 @@ QUERY is the string to search."
                             tags))
          ;; (status-list (mapcar #'mastodon-search--get-status-info
          ;; statuses))
-         (status-ids-list (mapcar 'mastodon-search--get-id-from-status
+         (status-ids-list (mapcar #'mastodon-search--get-id-from-status
                                   statuses))
          (toots-list-json (mapcar #'mastodon-search--fetch-full-status-from-id
                                   status-ids-list)))
@@ -155,7 +153,7 @@ QUERY is the string to search."
                          " STATUSES\n"
                          " ------------\n")
                  'success))
-        (mapc 'mastodon-tl--toot toots-list-json)
+        (mapc #'mastodon-tl--toot toots-list-json)
         (goto-char (point-min))))))
 
 (defun mastodon-search--insert-users-propertized (json &optional note)
@@ -186,7 +184,7 @@ user's profile note. This is also called by
 		         'help-echo (concat "Browse user profile of @" (cadr user)))
              " : \n"
              (if note
-                 (mastodon-tl--render-text (cadddr user) nil)
+                 (mastodon-tl--render-text (cadddr user) acct)
                "")
              "\n")
      'toot-json acct))) ; so named for compat w other processing functions

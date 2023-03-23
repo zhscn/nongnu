@@ -307,15 +307,16 @@ Strict-Transport-Security: max-age=31536000
         (timestamp (cdr (assoc 'created_at mastodon-tl-test-base-toot))))
     (with-mock
       (mock (date-to-time timestamp) => '(22782 21551))
+      (mock (mastodon-tl--toot-stats mastodon-tl-test-base-toot) => "")
       (mock (format-time-string mastodon-toot-timestamp-format '(22782 21551)) => "2999-99-99 00:11:22")
 
       (let ((byline (mastodon-tl--byline mastodon-tl-test-base-toot
                                          'mastodon-tl--byline-author
                                          'mastodon-tl--byline-boosted))
-	        (handle-location 20))
+	    (handle-location 20))
         (should (string= (substring-no-properties
-			              byline)
-			             "Account 42 (@acct42@example.space) 2999-99-99 00:11:22
+			  byline)
+			 "Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
 "))
         (should (eq (get-text-property handle-location 'mastodon-tab-stop byline)
@@ -332,6 +333,7 @@ Strict-Transport-Security: max-age=31536000
     (with-mock
       (stub create-image => '(image "fake data"))
       (mock (date-to-time timestamp) => '(22782 21551))
+      (mock (mastodon-tl--toot-stats mastodon-tl-test-base-toot) => "")
       (mock (format-time-string mastodon-toot-timestamp-format '(22782 21551)) => "2999-99-99 00:11:22")
 
       (should (string= (substring-no-properties
@@ -348,15 +350,16 @@ Strict-Transport-Security: max-age=31536000
          (toot (cons '(reblogged . t) mastodon-tl-test-base-toot))
          (timestamp (cdr (assoc 'created_at toot))))
     (with-mock
-     (mock (date-to-time timestamp) => '(22782 21551))
-     (mock (mastodon-tl--symbol 'boost) => "B")
-     (mock (format-time-string mastodon-toot-timestamp-format '(22782 21551)) => "2999-99-99 00:11:22")
+      (mock (date-to-time timestamp) => '(22782 21551))
+      (mock (mastodon-tl--symbol 'boost) => "B")
+      (mock (mastodon-tl--toot-stats toot) => "")
+      (mock (format-time-string mastodon-toot-timestamp-format '(22782 21551)) => "2999-99-99 00:11:22")
 
-     (should (string= (substring-no-properties
-                       (mastodon-tl--byline toot
-                                            'mastodon-tl--byline-author
-                                            'mastodon-tl--byline-boosted))
-                      "(B) Account 42 (@acct42@example.space) 2999-99-99 00:11:22
+      (should (string= (substring-no-properties
+                        (mastodon-tl--byline toot
+                                             'mastodon-tl--byline-author
+                                             'mastodon-tl--byline-boosted))
+                       "(B) Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
 ")))))
 
@@ -366,15 +369,16 @@ Strict-Transport-Security: max-age=31536000
          (toot (cons '(favourited . t) mastodon-tl-test-base-toot))
          (timestamp (cdr (assoc 'created_at toot))))
     (with-mock
-     (mock (mastodon-tl--symbol 'favourite) => "F")
-     (mock (date-to-time timestamp) => '(22782 21551))
-     (mock (format-time-string mastodon-toot-timestamp-format '(22782 21551)) => "2999-99-99 00:11:22")
+      (mock (mastodon-tl--symbol 'favourite) => "F")
+      (mock (date-to-time timestamp) => '(22782 21551))
+      (mock (mastodon-tl--toot-stats toot) => "")
+      (mock (format-time-string mastodon-toot-timestamp-format '(22782 21551)) => "2999-99-99 00:11:22")
 
-     (should (string= (substring-no-properties
-                       (mastodon-tl--byline toot
-                                            'mastodon-tl--byline-author
-                                            'mastodon-tl--byline-boosted))
-                      "(F) Account 42 (@acct42@example.space) 2999-99-99 00:11:22
+      (should (string= (substring-no-properties
+                        (mastodon-tl--byline toot
+                                             'mastodon-tl--byline-author
+                                             'mastodon-tl--byline-boosted))
+                       "(F) Account 42 (@acct42@example.space) 2999-99-99 00:11:22
   ------------
 ")))))
 
@@ -385,6 +389,7 @@ Strict-Transport-Security: max-age=31536000
          (toot `((favourited . t) (reblogged . t) ,@mastodon-tl-test-base-toot))
          (timestamp (cdr (assoc 'created_at toot))))
     (with-mock
+      (mock (mastodon-tl--toot-stats toot) => "")
       (mock (date-to-time timestamp) => '(22782 21551))
       ;; FIXME this mock refuses to recognise our different args
       ;; (mock (mastodon-tl--symbol 'favourite) => "F")
@@ -413,22 +418,23 @@ Strict-Transport-Security: max-age=31536000
       (mock (date-to-time timestamp) => '(1 2))
       (mock (format-time-string mastodon-toot-timestamp-format '(1 2)) => "reblogging time")
       (mock (date-to-time original-timestamp) => '(3 4))
+      (mock (mastodon-tl--toot-stats toot) => "")
       (mock (format-time-string mastodon-toot-timestamp-format '(3 4)) => "original time")
 
       (let ((byline (mastodon-tl--byline toot
-					                     'mastodon-tl--byline-author
-					                     'mastodon-tl--byline-boosted))
-	        (handle1-location 20)
-	        (handle2-location 65))
+					 'mastodon-tl--byline-author
+					 'mastodon-tl--byline-boosted))
+	    (handle1-location 20)
+	    (handle2-location 65))
         (should (string= (substring-no-properties byline)
-			             "Account 42 (@acct42@example.space)
+			 "Account 42 (@acct42@example.space)
   Boosted Account 43 (@acct43@example.space) original time
   ------------
 "))
         (should (eq (get-text-property handle1-location 'mastodon-tab-stop byline)
                     'user-handle))
         (should (equal (get-text-property handle1-location 'help-echo byline)
-		               "Browse user profile of @acct42@example.space"))
+		       "Browse user profile of @acct42@example.space"))
         (should (eq (get-text-property handle2-location 'mastodon-tab-stop byline)
                     'user-handle))
         (should (equal (get-text-property handle2-location 'help-echo byline)
@@ -449,6 +455,7 @@ Strict-Transport-Security: max-age=31536000
       (mock (format-time-string mastodon-toot-timestamp-format '(1 2)) => "reblogging time")
       (mock (date-to-time original-timestamp) => '(3 4))
       (mock (format-time-string mastodon-toot-timestamp-format '(3 4)) => "original time")
+      (mock (mastodon-tl--toot-stats toot) => "")
 
       (should (string= (substring-no-properties
                         (mastodon-tl--byline toot
@@ -474,6 +481,7 @@ Strict-Transport-Security: max-age=31536000
       ;; (mock (mastodon-tl--symbol 'favourite) => "F")
       ;; (mock (mastodon-tl--symbol 'boost) => "B")
       (mock (mastodon-tl--symbol *) => "?")
+      (mock (mastodon-tl--toot-stats toot) => "")
       (mock (format-time-string mastodon-toot-timestamp-format '(1 2)) => "reblogging time")
       (mock (date-to-time original-timestamp) => '(3 4))
       (mock (format-time-string mastodon-toot-timestamp-format '(3 4)) => "original time")
