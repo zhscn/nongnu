@@ -224,9 +224,9 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @item 
 @tab @strong{Timeline actions}
 @item @samp{n}
-@tab Go to next item (toot, notification)
+@tab Go to next item (toot, notification, user)
 @item @samp{p}
-@tab Go to previous item (toot, notification)
+@tab Go to previous item (toot, notification, user)
 @item @samp{M-n=/=<tab>}
 @tab Go to the next interesting thing that has an action
 @item @samp{M-p=/=<S-tab>}
@@ -257,13 +257,17 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @tab update your profile bio note
 @item @samp{;}
 @tab view instance description for toot at point
+@item @samp{:}
+@tab view followed tags and load a tag timeline
 @item @samp{,}
 @tab view favouriters of toot at point
 @item @samp{.}
 @tab view boosters of toot at point
+@item @samp{/}
+@tab switch between mastodon buffers
 @item 
 @tab @strong{Other views}
-@item @samp{S}
+@item @samp{s}
 @tab search (posts, users, tags) (NB: only posts you have interacted with)
 @item @samp{I}, @samp{c}, @samp{d}
 @tab view, create, and delete filters
@@ -277,7 +281,7 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @tab view bookmarked toots
 @item @samp{X}
 @tab view/edit/create/delete lists
-@item @samp{s}
+@item @samp{S}
 @tab view your scheduled toots
 @item 
 @tab @strong{Toot actions}
@@ -314,7 +318,7 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @item 
 @tab @strong{Profile view}
 @item @samp{C-c C-c}
-@tab cycle between statuses, followers, following, and statuses without boosts
+@tab cycle between statuses, statuses without boosts, followers, and following
 @item 
 @tab @samp{mastodon-profile--account-account-to-list} (see lists view)
 @item 
@@ -712,7 +716,7 @@ There's no need for a blank line after the first docstring line (one is added au
 @section Supporting @samp{mastodon.el}
 
 If you'd like to support continued development of @samp{mastodon.el}, I accept
-donations via paypal: @uref{https://paypal.me/martianh, paypal.me/martianh}. If you would
+donations via paypal: @uref{https://paypal.me/martianh, https://paypal.me/martianh}. If you would
 prefer a different payment method, write to me at that address and I can
 provide IBAN or other details.
 
