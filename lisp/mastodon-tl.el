@@ -626,7 +626,9 @@ this just means displaying toot client."
                         edited-parsed)))
          "")
        (propertize "\n  ------------" 'face 'default)
-       (mastodon-tl--toot-stats toot)
+       (if mastodon-tl--show-stats
+           (mastodon-tl--toot-stats toot)
+         "")
        "\n")
       'favourited-p faved
       'boosted-p    boosted
@@ -1127,41 +1129,40 @@ When the TOOT is a reblog (boost), statistics from reblogged
 toots are returned.
 To disable showing the stats, customize
 `mastodon-tl--show-stats'."
-  (when mastodon-tl--show-stats
-    (when-let ((toot (mastodon-tl--toot-for-stats toot)))
-      (let* ((favourites-count (alist-get 'favourites_count toot))
-             (favourited (equal 't (alist-get 'favourited toot)))
-             (faves-prop (propertize (format "%s" favourites-count)
-                                     'favourites-count favourites-count))
-             (boosts-count (alist-get 'reblogs_count toot))
-             (boosted (equal 't (alist-get 'reblogged toot)))
-             (boosts-prop (propertize (format "%s" boosts-count)
-                                      'boosts-count boosts-count))
-             (replies-count (alist-get 'replies_count toot))
-             (favourites (format "%s %s" faves-prop ;favourites-count
-                                 (mastodon-tl--symbol 'favourite)))
-             (boosts (format "%s %s" boosts-prop ;boosts-count
-                             (mastodon-tl--symbol 'boost)))
-             (replies (format "%s %s" replies-count (mastodon-tl--symbol 'reply)))
-             (status (concat
-                      (propertize favourites
-                                  'favourited-p favourited
-                                  'favourites-field t
-                                  'face font-lock-comment-face)
-                      (propertize " | " 'face font-lock-comment-face)
-                      (propertize boosts
-                                  'boosted-p boosted
-                                  'boosts-field t
-                                  'face font-lock-comment-face)
-                      (propertize " | " 'face font-lock-comment-face)
-                      (propertize replies
-                                  'replies-field t
-                                  'replies-count replies-count
-                                  'face font-lock-comment-face)))
-             (status (concat
-                      (propertize " " 'display `(space :align-to (- right ,(+ (length status) 7))))
-                      status)))
-        status))))
+  (when-let ((toot (mastodon-tl--toot-for-stats toot)))
+    (let* ((favourites-count (alist-get 'favourites_count toot))
+           (favourited (equal 't (alist-get 'favourited toot)))
+           (faves-prop (propertize (format "%s" favourites-count)
+                                   'favourites-count favourites-count))
+           (boosts-count (alist-get 'reblogs_count toot))
+           (boosted (equal 't (alist-get 'reblogged toot)))
+           (boosts-prop (propertize (format "%s" boosts-count)
+                                    'boosts-count boosts-count))
+           (replies-count (alist-get 'replies_count toot))
+           (favourites (format "%s %s" faves-prop ;favourites-count
+                               (mastodon-tl--symbol 'favourite)))
+           (boosts (format "%s %s" boosts-prop ;boosts-count
+                           (mastodon-tl--symbol 'boost)))
+           (replies (format "%s %s" replies-count (mastodon-tl--symbol 'reply)))
+           (status (concat
+                    (propertize favourites
+                                'favourited-p favourited
+                                'favourites-field t
+                                'face font-lock-comment-face)
+                    (propertize " | " 'face font-lock-comment-face)
+                    (propertize boosts
+                                'boosted-p boosted
+                                'boosts-field t
+                                'face font-lock-comment-face)
+                    (propertize " | " 'face font-lock-comment-face)
+                    (propertize replies
+                                'replies-field t
+                                'replies-count replies-count
+                                'face font-lock-comment-face)))
+           (status (concat
+                    (propertize " " 'display `(space :align-to (- right ,(+ (length status) 7))))
+                    status)))
+      status)))
 
 
 ;; POLLS
