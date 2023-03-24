@@ -754,15 +754,20 @@ INSTANCE is an instance domain name."
             (username (if (mastodon-tl--property 'profile-json)
                           (alist-get 'username toot) ;; profile
                         (alist-get 'username account)))
-            (instance (if instance
-                          (concat "https://" instance)
-                        ;; pleroma URL is https://instance.com/users/username
-                        (if (string-suffix-p "users/" (url-basepath url))
-                            (string-remove-suffix "/users/"
-                                                  (url-basepath url))
-                          ;; mastodon:
-                          (string-remove-suffix (concat "/@" username)
-                                                url))))
+            (instance (cond (instance
+                             (concat "https://" instance))
+                            ;; pleroma URL is https://instance.com/users/username
+                            ((string-suffix-p "users/" (url-basepath url))
+                             (string-remove-suffix "/users/"
+                                                   (url-basepath url)))
+                            ;; friendica is https://instance.com/profile/user
+                            ((string-suffix-p "profile/" (url-basepath url))
+                             (string-remove-suffix "/profile/"
+                                                   (url-basepath url)))
+                            ;; mastodon:
+                            (t
+                             (string-remove-suffix (concat "/@" username)
+                                                   url))))
             (response (mastodon-http--get-json
                        (if user
                            (mastodon-http--api "instance")
