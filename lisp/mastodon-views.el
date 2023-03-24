@@ -718,6 +718,25 @@ BRIEF means show fewer details."
   (interactive)
   (mastodon-views--view-instance-description nil :brief))
 
+(defun mastodon-views--get-instance-url (url username &optional instance)
+  "Return an instance base url from a user account URL.
+USERNAME is the name to cull.
+If INSTANCE is given, use that."
+  (cond (instance
+         (concat "https://" instance))
+        ;; pleroma URL is https://instance.com/users/username
+        ((string-suffix-p "users/" (url-basepath url))
+         (string-remove-suffix "/users/"
+                               (url-basepath url)))
+        ;; friendica is https://instance.com/profile/user
+        ((string-suffix-p "profile/" (url-basepath url))
+         (string-remove-suffix "/profile/"
+                               (url-basepath url)))
+        ;; mastodon is https://instance.com/@user
+        (t
+         (string-remove-suffix (concat "/@" username)
+                               url))))
+
 (defun mastodon-views--view-instance-description (&optional user brief instance)
   "View the details of the instance the current post's author is on.
 USER means to show the instance details for the logged in user.
@@ -754,20 +773,7 @@ INSTANCE is an instance domain name."
             (username (if (mastodon-tl--property 'profile-json)
                           (alist-get 'username toot) ;; profile
                         (alist-get 'username account)))
-            (instance (cond (instance
-                             (concat "https://" instance))
-                            ;; pleroma URL is https://instance.com/users/username
-                            ((string-suffix-p "users/" (url-basepath url))
-                             (string-remove-suffix "/users/"
-                                                   (url-basepath url)))
-                            ;; friendica is https://instance.com/profile/user
-                            ((string-suffix-p "profile/" (url-basepath url))
-                             (string-remove-suffix "/profile/"
-                                                   (url-basepath url)))
-                            ;; mastodon:
-                            (t
-                             (string-remove-suffix (concat "/@" username)
-                                                   url))))
+            (instance (mastodon-views--get-instance-url url username instance))
             (response (mastodon-http--get-json
                        (if user
                            (mastodon-http--api "instance")
