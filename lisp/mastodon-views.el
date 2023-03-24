@@ -163,10 +163,10 @@ This function is used as the update-function to
 provides the JSON data."
   (erase-buffer)
   (insert (mastodon-tl--set-face
-           (concat "\n ------------\n "
+           (concat "\n " mastodon-tl--horiz-bar "\n "
                    (upcase view-name)
-                   "\n"
-                   " ------------\n\n")
+                   "\n "
+                   mastodon-tl--horiz-bar "\n\n")
            'success)
           (if bindings-string
               (mastodon-tl--set-face
@@ -215,7 +215,7 @@ provides the JSON data."
          (mastodon-tl--map-alist 'title lists)))
     (mapc (lambda (x)
             (mastodon-views--print-list-accounts x)
-            (insert (propertize " ------------\n\n"
+            (insert (propertize (concat " " mastodon-tl--horiz-bar "\n\n")
                                 'face 'success)))
           lists-names)))
 
@@ -733,22 +733,23 @@ INSTANCE is an instance domain name."
         (mastodon-views--instance-response-fun response brief instance))
     (mastodon-tl--do-if-toot
      (let* ((toot (if (mastodon-tl--profile-buffer-p)
-                      ;; we may be on profile itself:
+                      ;; we may be on profile description itself:
                       (or (mastodon-tl--property 'profile-json)
                           ;; or on profile account listings, which use toot-json:
                           ;; or just toots:
                           (mastodon-tl--property 'toot-json))
-                    ;; normal timeline:
+                    ;; normal timeline/account listing:
                     (mastodon-tl--property 'toot-json)))
             (reblog (alist-get 'reblog toot))
             (account (or (alist-get 'account reblog)
-                         (alist-get 'account toot)))
+                         (alist-get 'account toot)
+                         toot)) ; else `toot' is already an account listing.
             ;; we can't use --profile-buffer-p as our test here because we may
-            ;; be looking at toots/boosts/users in a profile buffer
+            ;; be looking at toots/boosts/users in a profile buffer.
             ;; profile-json works as a defacto test for if point is on the
             ;; profile details at the top of a profile buffer.
             (url (if (mastodon-tl--property 'profile-json)
-                     (alist-get 'url toot) ; profile
+                     (alist-get 'url toot) ; profile description
                    (alist-get 'url account)))
             (username (if (mastodon-tl--property 'profile-json)
                           (alist-get 'username toot) ;; profile
