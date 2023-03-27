@@ -2086,7 +2086,7 @@ For use after e.g. deleting a toot."
         ((mastodon-tl--buffer-type-eq 'local)
          (mastodon-tl--get-local-timeline))
         ((mastodon-tl--buffer-type-eq 'notifications)
-         (mastodon-notifications-get))
+         (mastodon-notifications-get nil nil :force))
         ((mastodon-tl--buffer-type-eq 'own-profile)
          (mastodon-profile--my-profile))
         ((save-match-data

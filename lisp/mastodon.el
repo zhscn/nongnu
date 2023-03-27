@@ -275,15 +275,18 @@ If REPLY-JSON is the json of the toot being replied to."
   (mastodon-toot--compose-buffer user reply-to-id reply-json))
 
 ;;;###autoload
-(defun mastodon-notifications-get (&optional type buffer-name)
+(defun mastodon-notifications-get (&optional type buffer-name force)
   "Display NOTIFICATIONS in buffer.
 Optionally only print notifications of type TYPE, a string.
-BUFFER-NAME is added to \"*mastodon-\" to create the buffer name."
+BUFFER-NAME is added to \"*mastodon-\" to create the buffer name.
+FORCE means do not try to update an existing buffer, but fetch
+from the server and load anew."
   (interactive)
   (let ((buffer (if buffer-name
                     (concat "*mastodon-" buffer-name "*")
                   "*mastodon-notifications*")))
-    (if (get-buffer buffer)
+    (if (and (not force)
+             (get-buffer buffer))
         (progn (switch-to-buffer buffer)
                (mastodon-tl--update))
       (message "Loading your notifications...")
