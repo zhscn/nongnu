@@ -39,6 +39,9 @@
 (require 'mastodon-iso)
 (require 'mpv nil :no-error)
 
+(autoload 'mastodon-mode "mastodon")
+(autoload 'mastodon-notifications-get "mastodon")
+(autoload 'mastodon-url-lookup "mastodon")
 (autoload 'mastodon-auth--get-account-id "mastodon-auth")
 (autoload 'mastodon-auth--get-account-name "mastodon-auth")
 (autoload 'mastodon-http--api "mastodon-http")
@@ -55,10 +58,8 @@
 (autoload 'mastodon-media--get-avatar-rendering "mastodon-media")
 (autoload 'mastodon-media--get-media-link-rendering "mastodon-media")
 (autoload 'mastodon-media--inline-images "mastodon-media")
-(autoload 'mastodon-mode "mastodon")
 (autoload 'mastodon-notifications--filter-types-list "mastodon-notifications")
-(autoload 'mastodon-notifications-get "mastodon-notifications"
-  "Display NOTIFICATIONS in buffer." t) ; interactive
+(autoload 'mastodon-notifications--get-mentions "mastodon-notifications")
 (autoload 'mastodon-profile--account-field "mastodon-profile")
 (autoload 'mastodon-profile--account-from-id "mastodon-profile")
 (autoload 'mastodon-profile--extract-users-handles "mastodon-profile")
@@ -67,6 +68,7 @@
 (autoload 'mastodon-profile--lookup-account-in-status "mastodon-profile")
 (autoload 'mastodon-profile--make-author-buffer "mastodon-profile")
 (autoload 'mastodon-profile--my-profile "mastodon-profile")
+(autoload 'mastodon-profile--open-statuses-no-reblogs "mastodon-profile")
 (autoload 'mastodon-profile--profile-json "mastodon-profile")
 (autoload 'mastodon-profile--search-account-by-handle "mastodon-profile")
 (autoload 'mastodon-profile--toot-json "mastodon-profile")
@@ -82,7 +84,6 @@
 (autoload 'mastodon-toot--schedule-toot "mastodon-toot")
 (autoload 'mastodon-toot--set-toot-properties "mastodon-toot")
 (autoload 'mastodon-toot--update-status-fields "mastodon-toot")
-(autoload 'mastodon-url-lookup "mastodon")
 
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot-mode)
