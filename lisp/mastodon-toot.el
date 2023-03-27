@@ -773,11 +773,12 @@ instance to edit a toot."
   (let* ((toot (mastodon-toot--remove-docs))
          (scheduled mastodon-toot--scheduled-for)
          (scheduled-id mastodon-toot--scheduled-id)
+         (edit-id mastodon-toot--edit-toot-id)
          (endpoint
-          (if mastodon-toot--edit-toot-id
+          (if edit-id
               ;; we are sending an edit:
               (mastodon-http--api (format "statuses/%s"
-                                          mastodon-toot--edit-toot-id))
+                                          edit-id))
             (mastodon-http--api "statuses")))
          (spoiler (when (and (not (mastodon-toot--empty-p))
                              mastodon-toot--content-warning)
@@ -819,22 +820,25 @@ instance to edit a toot."
           ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
           (t
-           (let ((response (if mastodon-toot--edit-toot-id
+           (let ((response (if edit-id
                                ;; we are sending an edit:
                                (mastodon-http--put endpoint args)
                              (mastodon-http--post endpoint args))))
-             (mastodon-http--triage response
-                                    (lambda ()
-                                      (mastodon-toot--kill)
-                                      (if scheduled
-                                          (message "Toot scheduled!")
-                                        (message "Toot toot!"))
-                                      ;; cancel scheduled toot if we were editing it:
-                                      (when scheduled-id
-                                        (mastodon-views--cancel-scheduled-toot
-                                         scheduled-id :no-confirm))
-                                      (mastodon-toot--restore-previous-window-config
-                                       prev-window-config))))))))
+             (mastodon-http--triage
+              response
+              (lambda ()
+                (mastodon-toot--kill)
+                (if scheduled
+                    (message "Toot scheduled!")
+                  (message "Toot toot!"))
+                ;; cancel scheduled toot if we were editing it:
+                (when scheduled-id
+                  (mastodon-views--cancel-scheduled-toot
+                   scheduled-id :no-confirm))
+                (mastodon-toot--restore-previous-window-config prev-window-config)
+                (when edit-id
+                  (let ((pos (marker-position (cadr prev-window-config))))
+                    (mastodon-tl--reload-timeline-or-profile pos))))))))))
 
 ;; EDITING TOOTS:
 

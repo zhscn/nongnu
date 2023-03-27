@@ -2075,25 +2075,36 @@ the current view."
     (mastodon-http--get-json url args)))
 
 ;; TODO: add this to new posts in some cases, e.g. in thread view.
-(defun mastodon-tl--reload-timeline-or-profile ()
+(defun mastodon-tl--reload-timeline-or-profile (&optional pos)
   "Reload the current timeline or profile page.
-For use after e.g. deleting a toot."
-  (cond ((mastodon-tl--buffer-type-eq 'home)
-         (mastodon-tl--get-home-timeline))
-        ((mastodon-tl--buffer-type-eq 'federated)
-         (mastodon-tl--get-federated-timeline))
-        ((mastodon-tl--buffer-type-eq 'local)
-         (mastodon-tl--get-local-timeline))
-        ((mastodon-tl--buffer-type-eq 'notifications)
-         (mastodon-notifications-get nil nil :force))
-        ((mastodon-tl--buffer-type-eq 'own-profile)
-         (mastodon-profile--my-profile))
-        ((save-match-data
-           (string-match
-            "statuses/\\(?2:[[:digit:]]+\\)/context"
-            (mastodon-tl--get-endpoint))
-           (mastodon-tl--thread
-            (match-string 2 (mastodon-tl--get-endpoint)))))))
+For use after e.g. deleting a toot.
+POS is a number, where point will be placed."
+  (let ((type (mastodon-tl--get-buffer-type)))
+    (cond ((eq type 'home)
+           (mastodon-tl--get-home-timeline))
+          ((eq type 'federated)
+           (mastodon-tl--get-federated-timeline))
+          ((eq type 'local)
+           (mastodon-tl--get-local-timeline))
+          ((eq type 'mentions)
+           (mastodon-notifications--get-mentions))
+          ((eq type 'notifications)
+           (mastodon-notifications-get nil nil :force))
+          ((eq type 'profile-statuses-no-boosts)
+           (mastodon-profile--open-statuses-no-reblogs))
+          ((eq type 'profile-statuses)
+           (mastodon-profile--my-profile))
+          ((eq type 'thread)
+           (save-match-data
+             (let ((endpoint (mastodon-tl--get-endpoint)))
+               (string-match
+                "statuses/\\(?2:[[:digit:]]+\\)/context"
+                endpoint)
+               (mastodon-tl--thread
+                (match-string 2 endpoint))))))
+    ;; TODO: sends point to POS, which was where point was in buffer before reload. This is very rough; we may have removed an item (deleted a toot, cleared a notif), so the buffer will be smaller, point will end up past where we were, etc.
+    (when pos
+      (goto-char pos))))
 
 (defun mastodon-tl--build-link-header-url (str)
   "Return a URL from STR, an http Link header."
