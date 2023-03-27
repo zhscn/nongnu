@@ -2105,7 +2105,8 @@ POS is a number, where point will be placed."
                 (match-string 2 endpoint))))))
     ;; TODO: sends point to POS, which was where point was in buffer before reload. This is very rough; we may have removed an item (deleted a toot, cleared a notif), so the buffer will be smaller, point will end up past where we were, etc.
     (when pos
-      (goto-char pos))))
+      (goto-char pos)
+      (mastodon-tl--goto-prev-item))))
 
 (defun mastodon-tl--build-link-header-url (str)
   "Return a URL from STR, an http Link header."
