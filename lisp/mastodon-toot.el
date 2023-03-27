@@ -568,7 +568,8 @@ NO-REDRAFT means delete toot only."
          (url (mastodon-http--api (format "statuses/%s" id)))
          (toot-cw (alist-get 'spoiler_text toot))
          (toot-visibility (alist-get 'visibility toot))
-         (reply-id (alist-get 'in_reply_to_id toot)))
+         (reply-id (alist-get 'in_reply_to_id toot))
+         (pos (point)))
     (if (not (mastodon-toot--own-toot-p toot))
         (message "You can only delete (and redraft) your own toots.")
       (when (y-or-n-p (if no-redraft
@@ -581,7 +582,7 @@ NO-REDRAFT means delete toot only."
              (if no-redraft
                  (progn
                    (when mastodon-tl--buffer-spec
-                     (mastodon-tl--reload-timeline-or-profile))
+                     (mastodon-tl--reload-timeline-or-profile pos))
                    (message "Toot deleted!"))
                (mastodon-toot--redraft response
                                        reply-id
