@@ -459,7 +459,7 @@ If ID is provided, use that list."
 JSON is the data returned by the server."
   (mastodon-views--minor-view
    "follow requests"
-   "a/r - accept/reject request at point\n n/p - go to next/prev request"
+   "a/j - accept/reject request at point\n n/p - go to next/prev request"
    #'mastodon-views--insert-users-propertized-note
    json))
 
