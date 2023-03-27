@@ -2346,8 +2346,8 @@ This location is defined by a non-nil value of
               (goto-char (or mastodon-tl--update-point (point-min)))
               (funcall update-function json)
               (when mastodon-tl--after-update-marker
-                (goto-char mastodon-tl--after-update-marker))))
-        (message "nothing to update")))))
+                (goto-char mastodon-tl--after-update-marker)))
+          (message "nothing to update"))))))
 
 
 ;;; LOADING TIMELINES
