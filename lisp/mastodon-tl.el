@@ -1920,13 +1920,16 @@ LANGS is the accumulated array param alist if we re-run recursively."
                 (t
                  (mastodon-profile--extract-users-handles
                   (mastodon-profile--toot-json))))))
-     (completing-read (if (or (equal action "disable")
-                              (equal action "enable"))
-                          (format "%s notifications when user posts: " action)
-                        (format "Handle of user to %s: " action))
-                      user-handles
-                      nil ; predicate
-                      'confirm))))
+     ;; return immediately if only 1 handle:
+     (if (eq 1 (length user-handles))
+         (car user-handles)
+       (completing-read (if (or (equal action "disable")
+                                (equal action "enable"))
+                            (format "%s notifications when user posts: " action)
+                          (format "Handle of user to %s: " action))
+                        user-handles
+                        nil ; predicate
+                        'confirm)))))
 
 (defun mastodon-tl--interactive-blocks-or-mutes-list-get (action)
   "Fetch the list of accounts for ACTION from the server.
