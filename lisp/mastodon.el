@@ -63,7 +63,6 @@
 (autoload 'mastodon-profile--view-favourites "mastodon-profile")
 (autoload 'mastodon-search--search-query "mastodon-search")
 (autoload 'mastodon-search--trending-tags "mastodon-search")
-(autoload 'mastodon-search--trending-tags "mastodon-search")
 (autoload 'mastodon-tl--block-user "mastodon-tl")
 (autoload 'mastodon-tl--follow-user "mastodon-tl")
 (autoload 'mastodon-tl--get-buffer-type "mastodon-tl")
