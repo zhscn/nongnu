@@ -122,7 +122,6 @@ PRINT-FUN is the function used to print the data from the response."
         (mastodon-tl--set-buffer-spec (buffer-name buffer)
                                       (format "api/v1/trends/%s" type)
                                       nil)
-        ;; hashtag results:
         (insert (mastodon-tl--set-face
                  (concat "\n " mastodon-tl--horiz-bar "\n"
                          (upcase (format " TRENDING %s\n" type))
