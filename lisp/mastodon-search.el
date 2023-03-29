@@ -59,7 +59,6 @@
 (defun mastodon-search--search-accounts-query (query)
   "Prompt for a search QUERY and return accounts synchronously.
 Returns a nested list containing user handle, display name, and URL."
-  (interactive "sSearch mastodon for: ")
   (let* ((url (mastodon-http--api "accounts/search"))
          (response (if (equal mastodon-toot--completion-style-for-mentions "following")
                        (mastodon-http--get-json url `(("q" . ,query) ("following" . "true")) :silent)
@@ -71,7 +70,6 @@ Returns a nested list containing user handle, display name, and URL."
 (defun mastodon-search--search-tags-query (query)
   "Return an alist containing tag strings plus their URLs.
 QUERY is the string to search."
-  (interactive "sSearch for hashtag: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
          (params `(("q" . ,query)
                    ("type" . "hashtags")))
