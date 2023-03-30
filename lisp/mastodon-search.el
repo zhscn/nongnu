@@ -104,7 +104,11 @@ TYPE is a string, either tags, statuses, or links.
 PRINT-FUN is the function used to print the data from the response."
   (let* ((url (mastodon-http--api
                (format "trends/%s" type)))
-         (response (mastodon-http--get-json url))
+         ;; max for statuses = 40, for others = 20
+         (params (if (equal type "statuses")
+                     `(("limit" . "40"))
+                   `(("limit" . "20")) ))
+         (response (mastodon-http--get-json url params))
          (data (cond ((equal type "tags")
                       (mapcar #'mastodon-search--get-hashtag-info
                               response))
@@ -127,7 +131,9 @@ PRINT-FUN is the function used to print the data from the response."
                          (upcase (format " TRENDING %s\n" type))
                          " " mastodon-tl--horiz-bar "\n\n")
                  'success))
-        (funcall print-fun data)))))
+        (funcall print-fun data)
+        (unless (equal type "statuses")
+          (goto-char (point-min))))))
 
 ;; functions for mastodon search
 
