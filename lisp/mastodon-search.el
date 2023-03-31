@@ -133,7 +133,7 @@ PRINT-FUN is the function used to print the data from the response."
                  'success))
         (funcall print-fun data)
         (unless (equal type "statuses")
-          (goto-char (point-min))))))
+          (goto-char (point-min)))))))
 
 ;; functions for mastodon search
 
