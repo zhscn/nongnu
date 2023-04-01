@@ -153,7 +153,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     ;; navigation between timelines
     (define-key map (kbd "#") #'mastodon-tl--get-tag-timeline)
     (define-key map (kbd ":") #'mastodon-tl--list-followed-tags)
-    (define-key map (kbd "M-:") #'mastodon-tl--followed-tags-timeline)
+    (define-key map (kbd "C-:") #'mastodon-tl--followed-tags-timeline)
     (define-key map (kbd "A") #'mastodon-profile--get-toot-author)
     (define-key map (kbd "F") #'mastodon-tl--get-federated-timeline)
     (define-key map (kbd "H") #'mastodon-tl--get-home-timeline)
