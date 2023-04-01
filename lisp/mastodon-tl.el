@@ -348,33 +348,41 @@ Used on initializing a timeline or thread."
 
 ;;; TIMELINES
 
-(defun mastodon-tl--get-federated-timeline ()
-  "Opens federated timeline."
+(defun mastodon-tl--get-federated-timeline (&optional local)
+  "Open federated timeline.
+If LOCAL, get only local timeline.
+With a single prefix arg (C-u), hide-replies.
+With a double prefix arg (C-u C-u), only show posts with media."
   (interactive)
   (message "Loading federated timeline...")
   (mastodon-tl--init
-   "federated" "timelines/public" 'mastodon-tl--timeline nil
-   `(("limit" . ,mastodon-tl--timeline-posts-count))
-   (when current-prefix-arg t)))
+   (if local "local" "federated")
+   "timelines/public" 'mastodon-tl--timeline nil
+   `(("limit" . ,mastodon-tl--timeline-posts-count)
+     ,(when (eq (car current-prefix-arg) 16)
+        '("only_media" . "true"))
+     ,(when local
+        '("local" . "true")))
+   (when (eq (car current-prefix-arg) 4) t)))
 
 (defun mastodon-tl--get-home-timeline ()
-  "Opens home timeline."
+  "Open home timeline.
+With a single prefix arg (C-u), hide-replies."
   (interactive)
-  (message "Loading home timeline...")
-  (mastodon-tl--init
-   "home" "timelines/home" 'mastodon-tl--timeline nil
-   `(("limit" . ,mastodon-tl--timeline-posts-count))
-   (when current-prefix-arg t)))
+  (let ((params ))
+    (message "Loading home timeline...")
+    (mastodon-tl--init
+     "home" "timelines/home" 'mastodon-tl--timeline nil
+     `(("limit" . ,mastodon-tl--timeline-posts-count))
+     (when (eq (car current-prefix-arg) 4) t))))
 
 (defun mastodon-tl--get-local-timeline ()
-  "Opens local timeline."
+  "Open local timeline.
+With a single prefix arg (C-u), hide-replies.
+With a double prefix arg (C-u C-u), only show posts with media."
   (interactive)
   (message "Loading local timeline...")
-  (mastodon-tl--init
-   "local" "timelines/public" 'mastodon-tl--timeline
-   nil `(("local" . "true")
-         ("limit" . ,mastodon-tl--timeline-posts-count))
-   (when current-prefix-arg t)))
+  (mastodon-tl--get-federated-timeline :local))
 
 (defun mastodon-tl--get-tag-timeline (&optional tag)
   "Prompt for tag and opens its timeline.
