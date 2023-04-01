@@ -1490,8 +1490,13 @@ call this function after it is set or use something else."
           ;; search
           ((string-suffix-p "search" endpoint-fun)
            'search)
-          ((string-suffix-p "trends" endpoint-fun)
+          ;; trends
+          ((equal "api/v1/trends/statuses" endpoint-fun)
+           'trending-statuses)
+          ((equal "api/v1/trends/tags" endpoint-fun)
            'trending-tags)
+          ((equal "api/v1/trends/links" endpoint-fun)
+           'trending-links)
           ;; User's views:
           ((string= "filters" endpoint-fun)
            'filters)
