@@ -400,6 +400,7 @@ With a double PREFIX arg, limit results to your own instance."
 
 (defun mastodon-tl--show-tag-timeline (&optional prefix tag)
   "Opens a new buffer showing the timeline of posts with hastag TAG.
+If TAG is a list, show a timeline for all tags.
 With a single PREFIX arg, only show posts with media.
 With a double PREFIX arg, limit results to your own instance."
   (let ((params
@@ -409,12 +410,17 @@ With a double PREFIX arg, limit results to your own instance."
       (push '("only_media" . "true") params))
     (when (eq prefix 16)
       (push '("local" . "true") params))
-    (mastodon-tl--init (concat "tag-" tag)
-                       (concat "timelines/tag/" tag)
+    (when (listp tag)
+      (let ((list (mastodon-http--build-array-params-alist "any[]" (cdr tag))))
+        (while list
+          (push (pop list) params))))
+    (mastodon-tl--init (concat "tag-" (if (listp tag) "followed-tags" tag))
+                       (concat "timelines/tag/" (if (listp tag)
+                                                    ;; endpoint needs to be /tag/:sometag
+                                                    (car tag) tag))
                        'mastodon-tl--timeline
                        nil
                        params)))
-
 
 
 ;;; BYLINES, etc.
@@ -899,7 +905,7 @@ Used for hitting RET on a given link."
     (cond ((eq link-type 'content-warning)
            (mastodon-tl--toggle-spoiler-text position))
           ((eq link-type 'hashtag)
-           (mastodon-tl--show-tag-timeline (get-text-property position 'mastodon-tag)))
+           (mastodon-tl--show-tag-timeline nil (get-text-property position 'mastodon-tag)))
           ;; 'account / 'account-id is not set for mentions, only bylines
           ((eq link-type 'user-handle)
            (let ((account-json (get-text-property position 'account))
@@ -2077,6 +2083,14 @@ If TAG is provided, unfollow it."
     (if (null tag)
         (message "You have to follow some tags first.")
       (mastodon-tl--get-tag-timeline nil tag))))
+
+(defun mastodon-tl--followed-tags-timeline ()
+  "Open a timeline of all your followed tags."
+  (interactive)
+  (let* ((followed-tags-json (mastodon-tl--followed-tags))
+         (tags (mastodon-tl--map-alist 'name followed-tags-json)))
+    (mastodon-tl--show-tag-timeline nil tags)))
+
 
 
 ;;; UPDATING, etc.
