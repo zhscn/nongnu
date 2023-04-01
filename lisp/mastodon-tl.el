@@ -2074,22 +2074,24 @@ If TAG is provided, unfollow it."
                            (lambda ()
                              (message "tag #%s unfollowed!" tag)))))
 
-(defun mastodon-tl--list-followed-tags ()
-  "List followed tags. View timeline of tag user choses."
-  (interactive)
+(defun mastodon-tl--list-followed-tags (&optional prefix)
+  "List followed tags. View timeline of tag user choses.
+Prefix is sent to `mastodon-tl--get-tag-timeline', which see."
+  (interactive "p")
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
          (tags (mastodon-tl--map-alist 'name followed-tags-json))
          (tag (completing-read "Tag: " tags nil)))
     (if (null tag)
         (message "You have to follow some tags first.")
-      (mastodon-tl--get-tag-timeline nil tag))))
+      (mastodon-tl--get-tag-timeline prefix tag))))
 
-(defun mastodon-tl--followed-tags-timeline ()
-  "Open a timeline of all your followed tags."
-  (interactive)
+(defun mastodon-tl--followed-tags-timeline (&optional prefix)
+  "Open a timeline of all your followed tags.
+Prefix is sent to `mastodon-tl--show-tag-timeline', which see."
+  (interactive "p")
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
          (tags (mastodon-tl--map-alist 'name followed-tags-json)))
-    (mastodon-tl--show-tag-timeline nil tags)))
+    (mastodon-tl--show-tag-timeline prefix tags)))
 
 
 
