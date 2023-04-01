@@ -386,22 +386,35 @@ With a double PREFIX arg, only show posts with media."
   (message "Loading local timeline...")
   (mastodon-tl--get-federated-timeline prefix :local))
 
-(defun mastodon-tl--get-tag-timeline (&optional tag)
+(defun mastodon-tl--get-tag-timeline (&optional prefix tag)
   "Prompt for tag and opens its timeline.
-Optionally load TAG timeline directly."
-  (interactive)
+Optionally load TAG timeline directly.
+With a single PREFIX arg, only show posts with media.
+With a double PREFIX arg, limit results to your own instance."
+  (interactive "p")
   (let* ((word (or (word-at-point) ""))
          (input (or tag (read-string (format "Load timeline for tag (%s): " word))))
          (tag (or tag (if (string-empty-p input) word input))))
     (message "Loading timeline for #%s..." tag)
-    (mastodon-tl--show-tag-timeline tag)))
+    (mastodon-tl--show-tag-timeline prefix tag)))
 
-(defun mastodon-tl--show-tag-timeline (tag)
-  "Opens a new buffer showing the timeline of posts with hastag TAG."
-  (mastodon-tl--init
-   (concat "tag-" tag) (concat "timelines/tag/" tag)
-   'mastodon-tl--timeline nil
-   `(("limit" . ,mastodon-tl--timeline-posts-count))))
+(defun mastodon-tl--show-tag-timeline (&optional prefix tag)
+  "Opens a new buffer showing the timeline of posts with hastag TAG.
+With a single PREFIX arg, only show posts with media.
+With a double PREFIX arg, limit results to your own instance."
+  (let ((params
+         `(("limit" . ,mastodon-tl--timeline-posts-count))))
+    ;; avoid adding 'nil' to our params alist:
+    (when (eq prefix 4)
+      (push '("only_media" . "true") params))
+    (when (eq prefix 16)
+      (push '("local" . "true") params))
+    (mastodon-tl--init (concat "tag-" tag)
+                       (concat "timelines/tag/" tag)
+                       'mastodon-tl--timeline
+                       nil
+                       params)))
+
 
 
 ;;; BYLINES, etc.
@@ -2063,7 +2076,7 @@ If TAG is provided, unfollow it."
          (tag (completing-read "Tag: " tags nil)))
     (if (null tag)
         (message "You have to follow some tags first.")
-      (mastodon-tl--get-tag-timeline tag))))
+      (mastodon-tl--get-tag-timeline nil tag))))
 
 
 ;;; UPDATING, etc.
