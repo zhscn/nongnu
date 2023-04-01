@@ -348,41 +348,43 @@ Used on initializing a timeline or thread."
 
 ;;; TIMELINES
 
-(defun mastodon-tl--get-federated-timeline (&optional local)
+(defun mastodon-tl--get-federated-timeline (&optional prefix local)
   "Open federated timeline.
 If LOCAL, get only local timeline.
-With a single prefix arg (C-u), hide-replies.
-With a double prefix arg (C-u C-u), only show posts with media."
-  (interactive)
-  (message "Loading federated timeline...")
-  (mastodon-tl--init
-   (if local "local" "federated")
-   "timelines/public" 'mastodon-tl--timeline nil
-   `(("limit" . ,mastodon-tl--timeline-posts-count)
-     ,(when (eq (car current-prefix-arg) 16)
-        '("only_media" . "true"))
-     ,(when local
-        '("local" . "true")))
-   (when (eq (car current-prefix-arg) 4) t)))
-
-(defun mastodon-tl--get-home-timeline ()
-  "Open home timeline.
-With a single prefix arg (C-u), hide-replies."
-  (interactive)
-  (let ((params ))
-    (message "Loading home timeline...")
+With a single PREFIX arg, hide-replies.
+With a double PREFIX arg, only show posts with media."
+  (interactive "p")
+  (let ((params
+         `(("limit" . ,mastodon-tl--timeline-posts-count))))
+    ;; avoid adding 'nil' to our params alist:
+    (when (eq prefix 16)
+      (push '("only_media" . "true") params))
+    (when local
+      (push '("local" . "true") params))
+    (message "Loading federated timeline...")
     (mastodon-tl--init
-     "home" "timelines/home" 'mastodon-tl--timeline nil
-     `(("limit" . ,mastodon-tl--timeline-posts-count))
-     (when (eq (car current-prefix-arg) 4) t))))
+     (if local "local" "federated")
+     "timelines/public" 'mastodon-tl--timeline nil
+     params
+     (when (eq prefix 4) t))))
 
-(defun mastodon-tl--get-local-timeline ()
+(defun mastodon-tl--get-home-timeline (&optional arg)
+  "Open home timeline.
+With a single prefix ARG, hide replies."
+  (interactive "p")
+  (message "Loading home timeline...")
+  (mastodon-tl--init
+   "home" "timelines/home" 'mastodon-tl--timeline nil
+   `(("limit" . ,mastodon-tl--timeline-posts-count))
+   (when (eq arg 4) t)))
+
+(defun mastodon-tl--get-local-timeline (&optional prefix)
   "Open local timeline.
-With a single prefix arg (C-u), hide-replies.
-With a double prefix arg (C-u C-u), only show posts with media."
-  (interactive)
+With a single PREFIX arg, hide-replies.
+With a double PREFIX arg, only show posts with media."
+  (interactive "p")
   (message "Loading local timeline...")
-  (mastodon-tl--get-federated-timeline :local))
+  (mastodon-tl--get-federated-timeline prefix :local))
 
 (defun mastodon-tl--get-tag-timeline (&optional tag)
   "Prompt for tag and opens its timeline.
