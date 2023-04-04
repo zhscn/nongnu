@@ -811,7 +811,9 @@ INSTANCE is the instance were are working with."
                         (assoc 'rules response)
                         (assoc 'stats response))))
           (mastodon-views--print-json-keys response)
-          (mastodon-mode)
+          ;; (mastodon-mode) ; breaks our 'q' binding that avoids leaving
+          ;; split window
+          (setq mastodon-account--data account)
           (mastodon-tl--set-buffer-spec (buffer-name buf)
                                         "instance"
                                         nil)
