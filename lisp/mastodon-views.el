@@ -747,10 +747,14 @@ INSTANCE is an instance domain name."
             ;; be looking at toots/boosts/users in a profile buffer.
             ;; profile-json works as a defacto test for if point is on the
             ;; profile details at the top of a profile buffer.
-            (url (if (mastodon-tl--property 'profile-json)
+            (url (if (and (mastodon-tl--profile-buffer-p)
+                          ;; only call this in profile buffers:
+                          (mastodon-tl--property 'profile-json))
                      (alist-get 'url toot) ; profile description
                    (alist-get 'url account)))
-            (username (if (mastodon-tl--property 'profile-json)
+            (username (if (and (mastodon-tl--profile-buffer-p)
+                               ;; only call this in profile buffers:
+                               (mastodon-tl--property 'profile-json))
                           (alist-get 'username toot) ;; profile
                         (alist-get 'username account)))
             (instance (cond (instance
