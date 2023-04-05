@@ -568,7 +568,8 @@ NO-REDRAFT means delete toot only."
          (url (mastodon-http--api (format "statuses/%s" id)))
          (toot-cw (alist-get 'spoiler_text toot))
          (toot-visibility (alist-get 'visibility toot))
-         (reply-id (alist-get 'in_reply_to_id toot)))
+         (reply-id (alist-get 'in_reply_to_id toot))
+         (pos (point)))
     (if (not (mastodon-toot--own-toot-p toot))
         (message "You can only delete (and redraft) your own toots.")
       (when (y-or-n-p (if no-redraft
@@ -581,7 +582,7 @@ NO-REDRAFT means delete toot only."
              (if no-redraft
                  (progn
                    (when mastodon-tl--buffer-spec
-                     (mastodon-tl--reload-timeline-or-profile))
+                     (mastodon-tl--reload-timeline-or-profile pos))
                    (message "Toot deleted!"))
                (mastodon-toot--redraft response
                                        reply-id
@@ -773,11 +774,12 @@ instance to edit a toot."
   (let* ((toot (mastodon-toot--remove-docs))
          (scheduled mastodon-toot--scheduled-for)
          (scheduled-id mastodon-toot--scheduled-id)
+         (edit-id mastodon-toot--edit-toot-id)
          (endpoint
-          (if mastodon-toot--edit-toot-id
+          (if edit-id
               ;; we are sending an edit:
               (mastodon-http--api (format "statuses/%s"
-                                          mastodon-toot--edit-toot-id))
+                                          edit-id))
             (mastodon-http--api "statuses")))
          (spoiler (when (and (not (mastodon-toot--empty-p))
                              mastodon-toot--content-warning)
@@ -819,22 +821,25 @@ instance to edit a toot."
           ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
           (t
-           (let ((response (if mastodon-toot--edit-toot-id
+           (let ((response (if edit-id
                                ;; we are sending an edit:
                                (mastodon-http--put endpoint args)
                              (mastodon-http--post endpoint args))))
-             (mastodon-http--triage response
-                                    (lambda ()
-                                      (mastodon-toot--kill)
-                                      (if scheduled
-                                          (message "Toot scheduled!")
-                                        (message "Toot toot!"))
-                                      ;; cancel scheduled toot if we were editing it:
-                                      (when scheduled-id
-                                        (mastodon-views--cancel-scheduled-toot
-                                         scheduled-id :no-confirm))
-                                      (mastodon-toot--restore-previous-window-config
-                                       prev-window-config))))))))
+             (mastodon-http--triage
+              response
+              (lambda ()
+                (mastodon-toot--kill)
+                (if scheduled
+                    (message "Toot scheduled!")
+                  (message "Toot toot!"))
+                ;; cancel scheduled toot if we were editing it:
+                (when scheduled-id
+                  (mastodon-views--cancel-scheduled-toot
+                   scheduled-id :no-confirm))
+                (mastodon-toot--restore-previous-window-config prev-window-config)
+                (when edit-id
+                  (let ((pos (marker-position (cadr prev-window-config))))
+                    (mastodon-tl--reload-timeline-or-profile pos))))))))))
 
 ;; EDITING TOOTS:
 
@@ -1609,7 +1614,8 @@ Added to `after-change-functions'."
 
 (defun mastodon-toot--compose-buffer-p ()
   "Return t if compose buffer is current."
-  (mastodon-tl--buffer-type-eq 'new-toot))
+  (or (mastodon-tl--buffer-type-eq 'edit-toot)
+      (mastodon-tl--buffer-type-eq 'new-toot)))
 
 ;; NB: now that we have toot drafts, to ensure offline composing remains
 ;; possible, avoid any direct requests here:

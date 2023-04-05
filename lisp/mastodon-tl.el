@@ -39,6 +39,9 @@
 (require 'mastodon-iso)
 (require 'mpv nil :no-error)
 
+(autoload 'mastodon-mode "mastodon")
+(autoload 'mastodon-notifications-get "mastodon")
+(autoload 'mastodon-url-lookup "mastodon")
 (autoload 'mastodon-auth--get-account-id "mastodon-auth")
 (autoload 'mastodon-auth--get-account-name "mastodon-auth")
 (autoload 'mastodon-http--api "mastodon-http")
@@ -55,10 +58,8 @@
 (autoload 'mastodon-media--get-avatar-rendering "mastodon-media")
 (autoload 'mastodon-media--get-media-link-rendering "mastodon-media")
 (autoload 'mastodon-media--inline-images "mastodon-media")
-(autoload 'mastodon-mode "mastodon")
 (autoload 'mastodon-notifications--filter-types-list "mastodon-notifications")
-(autoload 'mastodon-notifications-get "mastodon-notifications"
-  "Display NOTIFICATIONS in buffer." t) ; interactive
+(autoload 'mastodon-notifications--get-mentions "mastodon-notifications")
 (autoload 'mastodon-profile--account-field "mastodon-profile")
 (autoload 'mastodon-profile--account-from-id "mastodon-profile")
 (autoload 'mastodon-profile--extract-users-handles "mastodon-profile")
@@ -67,6 +68,7 @@
 (autoload 'mastodon-profile--lookup-account-in-status "mastodon-profile")
 (autoload 'mastodon-profile--make-author-buffer "mastodon-profile")
 (autoload 'mastodon-profile--my-profile "mastodon-profile")
+(autoload 'mastodon-profile--open-statuses-no-reblogs "mastodon-profile")
 (autoload 'mastodon-profile--profile-json "mastodon-profile")
 (autoload 'mastodon-profile--search-account-by-handle "mastodon-profile")
 (autoload 'mastodon-profile--toot-json "mastodon-profile")
@@ -82,7 +84,6 @@
 (autoload 'mastodon-toot--schedule-toot "mastodon-toot")
 (autoload 'mastodon-toot--set-toot-properties "mastodon-toot")
 (autoload 'mastodon-toot--update-status-fields "mastodon-toot")
-(autoload 'mastodon-url-lookup "mastodon")
 
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot-mode)
@@ -347,50 +348,79 @@ Used on initializing a timeline or thread."
 
 ;;; TIMELINES
 
-(defun mastodon-tl--get-federated-timeline ()
-  "Opens federated timeline."
-  (interactive)
-  (message "Loading federated timeline...")
-  (mastodon-tl--init
-   "federated" "timelines/public" 'mastodon-tl--timeline nil
-   `(("limit" . ,mastodon-tl--timeline-posts-count))
-   (when current-prefix-arg t)))
+(defun mastodon-tl--get-federated-timeline (&optional prefix local)
+  "Open federated timeline.
+If LOCAL, get only local timeline.
+With a single PREFIX arg, hide-replies.
+With a double PREFIX arg, only show posts with media."
+  (interactive "p")
+  (let ((params
+         `(("limit" . ,mastodon-tl--timeline-posts-count))))
+    ;; avoid adding 'nil' to our params alist:
+    (when (eq prefix 16)
+      (push '("only_media" . "true") params))
+    (when local
+      (push '("local" . "true") params))
+    (message "Loading federated timeline...")
+    (mastodon-tl--init
+     (if local "local" "federated")
+     "timelines/public" 'mastodon-tl--timeline nil
+     params
+     (when (eq prefix 4) t))))
 
-(defun mastodon-tl--get-home-timeline ()
-  "Opens home timeline."
-  (interactive)
+(defun mastodon-tl--get-home-timeline (&optional arg)
+  "Open home timeline.
+With a single prefix ARG, hide replies."
+  (interactive "p")
   (message "Loading home timeline...")
   (mastodon-tl--init
    "home" "timelines/home" 'mastodon-tl--timeline nil
    `(("limit" . ,mastodon-tl--timeline-posts-count))
-   (when current-prefix-arg t)))
+   (when (eq arg 4) t)))
 
-(defun mastodon-tl--get-local-timeline ()
-  "Opens local timeline."
-  (interactive)
+(defun mastodon-tl--get-local-timeline (&optional prefix)
+  "Open local timeline.
+With a single PREFIX arg, hide-replies.
+With a double PREFIX arg, only show posts with media."
+  (interactive "p")
   (message "Loading local timeline...")
-  (mastodon-tl--init
-   "local" "timelines/public" 'mastodon-tl--timeline
-   nil `(("local" . "true")
-         ("limit" . ,mastodon-tl--timeline-posts-count))
-   (when current-prefix-arg t)))
+  (mastodon-tl--get-federated-timeline prefix :local))
 
-(defun mastodon-tl--get-tag-timeline (&optional tag)
+(defun mastodon-tl--get-tag-timeline (&optional prefix tag)
   "Prompt for tag and opens its timeline.
-Optionally load TAG timeline directly."
-  (interactive)
+Optionally load TAG timeline directly.
+With a single PREFIX arg, only show posts with media.
+With a double PREFIX arg, limit results to your own instance."
+  (interactive "p")
   (let* ((word (or (word-at-point) ""))
          (input (or tag (read-string (format "Load timeline for tag (%s): " word))))
          (tag (or tag (if (string-empty-p input) word input))))
     (message "Loading timeline for #%s..." tag)
-    (mastodon-tl--show-tag-timeline tag)))
+    (mastodon-tl--show-tag-timeline prefix tag)))
 
-(defun mastodon-tl--show-tag-timeline (tag)
-  "Opens a new buffer showing the timeline of posts with hastag TAG."
-  (mastodon-tl--init
-   (concat "tag-" tag) (concat "timelines/tag/" tag)
-   'mastodon-tl--timeline nil
-   `(("limit" . ,mastodon-tl--timeline-posts-count))))
+(defun mastodon-tl--show-tag-timeline (&optional prefix tag)
+  "Opens a new buffer showing the timeline of posts with hastag TAG.
+If TAG is a list, show a timeline for all tags.
+With a single PREFIX arg, only show posts with media.
+With a double PREFIX arg, limit results to your own instance."
+  (let ((params
+         `(("limit" . ,mastodon-tl--timeline-posts-count))))
+    ;; avoid adding 'nil' to our params alist:
+    (when (eq prefix 4)
+      (push '("only_media" . "true") params))
+    (when (eq prefix 16)
+      (push '("local" . "true") params))
+    (when (listp tag)
+      (let ((list (mastodon-http--build-array-params-alist "any[]" (cdr tag))))
+        (while list
+          (push (pop list) params))))
+    (mastodon-tl--init (concat "tag-" (if (listp tag) "followed-tags" tag))
+                       (concat "timelines/tag/" (if (listp tag)
+                                                    ;; endpoint needs to be /tag/:sometag
+                                                    (car tag) tag))
+                       'mastodon-tl--timeline
+                       nil
+                       params)))
 
 
 ;;; BYLINES, etc.
@@ -875,7 +905,7 @@ Used for hitting RET on a given link."
     (cond ((eq link-type 'content-warning)
            (mastodon-tl--toggle-spoiler-text position))
           ((eq link-type 'hashtag)
-           (mastodon-tl--show-tag-timeline (get-text-property position 'mastodon-tag)))
+           (mastodon-tl--show-tag-timeline nil (get-text-property position 'mastodon-tag)))
           ;; 'account / 'account-id is not set for mentions, only bylines
           ((eq link-type 'user-handle)
            (let ((account-json (get-text-property position 'account))
@@ -2044,15 +2074,25 @@ If TAG is provided, unfollow it."
                            (lambda ()
                              (message "tag #%s unfollowed!" tag)))))
 
-(defun mastodon-tl--list-followed-tags ()
-  "List followed tags. View timeline of tag user choses."
-  (interactive)
+(defun mastodon-tl--list-followed-tags (&optional prefix)
+  "List followed tags. View timeline of tag user choses.
+Prefix is sent to `mastodon-tl--get-tag-timeline', which see."
+  (interactive "p")
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
          (tags (mastodon-tl--map-alist 'name followed-tags-json))
          (tag (completing-read "Tag: " tags nil)))
     (if (null tag)
         (message "You have to follow some tags first.")
-      (mastodon-tl--get-tag-timeline tag))))
+      (mastodon-tl--get-tag-timeline prefix tag))))
+
+(defun mastodon-tl--followed-tags-timeline (&optional prefix)
+  "Open a timeline of all your followed tags.
+Prefix is sent to `mastodon-tl--show-tag-timeline', which see."
+  (interactive "p")
+  (let* ((followed-tags-json (mastodon-tl--followed-tags))
+         (tags (mastodon-tl--map-alist 'name followed-tags-json)))
+    (mastodon-tl--show-tag-timeline prefix tags)))
+
 
 
 ;;; UPDATING, etc.
@@ -2083,25 +2123,37 @@ the current view."
     (mastodon-http--get-json url args)))
 
 ;; TODO: add this to new posts in some cases, e.g. in thread view.
-(defun mastodon-tl--reload-timeline-or-profile ()
+(defun mastodon-tl--reload-timeline-or-profile (&optional pos)
   "Reload the current timeline or profile page.
-For use after e.g. deleting a toot."
-  (cond ((mastodon-tl--buffer-type-eq 'home)
-         (mastodon-tl--get-home-timeline))
-        ((mastodon-tl--buffer-type-eq 'federated)
-         (mastodon-tl--get-federated-timeline))
-        ((mastodon-tl--buffer-type-eq 'local)
-         (mastodon-tl--get-local-timeline))
-        ((mastodon-tl--buffer-type-eq 'notifications)
-         (mastodon-notifications-get))
-        ((mastodon-tl--buffer-type-eq 'own-profile)
-         (mastodon-profile--my-profile))
-        ((save-match-data
-           (string-match
-            "statuses/\\(?2:[[:digit:]]+\\)/context"
-            (mastodon-tl--get-endpoint))
-           (mastodon-tl--thread
-            (match-string 2 (mastodon-tl--get-endpoint)))))))
+For use after e.g. deleting a toot.
+POS is a number, where point will be placed."
+  (let ((type (mastodon-tl--get-buffer-type)))
+    (cond ((eq type 'home)
+           (mastodon-tl--get-home-timeline))
+          ((eq type 'federated)
+           (mastodon-tl--get-federated-timeline))
+          ((eq type 'local)
+           (mastodon-tl--get-local-timeline))
+          ((eq type 'mentions)
+           (mastodon-notifications--get-mentions))
+          ((eq type 'notifications)
+           (mastodon-notifications-get nil nil :force))
+          ((eq type 'profile-statuses-no-boosts)
+           (mastodon-profile--open-statuses-no-reblogs))
+          ((eq type 'profile-statuses)
+           (mastodon-profile--my-profile))
+          ((eq type 'thread)
+           (save-match-data
+             (let ((endpoint (mastodon-tl--get-endpoint)))
+               (string-match
+                "statuses/\\(?2:[[:digit:]]+\\)/context"
+                endpoint)
+               (mastodon-tl--thread
+                (match-string 2 endpoint))))))
+    ;; TODO: sends point to POS, which was where point was in buffer before reload. This is very rough; we may have removed an item (deleted a toot, cleared a notif), so the buffer will be smaller, point will end up past where we were, etc.
+    (when pos
+      (goto-char pos)
+      (mastodon-tl--goto-prev-item))))
 
 (defun mastodon-tl--build-link-header-url (str)
   "Return a URL from STR, an http Link header."
@@ -2353,8 +2405,8 @@ This location is defined by a non-nil value of
               (goto-char (or mastodon-tl--update-point (point-min)))
               (funcall update-function json)
               (when mastodon-tl--after-update-marker
-                (goto-char mastodon-tl--after-update-marker))))
-        (message "nothing to update")))))
+                (goto-char mastodon-tl--after-update-marker)))
+          (message "nothing to update"))))))
 
 
 ;;; LOADING TIMELINES

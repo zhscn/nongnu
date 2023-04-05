@@ -76,7 +76,7 @@
     ("Posted a poll" . "that has now ended")
     ("Requested to follow" . "you")
     ("Posted" . "a post")
-    ("Edited" . "a post"))
+    ("Edited" . "a post from"))
   "Alist of subjects for notification types.")
 
 (defvar mastodon-notifications--map
@@ -126,7 +126,7 @@ follow-requests view."
                                          (lambda ()
                                            (if f-reqs-view-p
                                                (mastodon-views--view-follow-requests)
-                                             (mastodon-notifications-get))
+                                             (mastodon-tl--reload-timeline-or-profile))
                                            (message "Follow request of %s (@%s) %s!"
                                                     name handle (if reject
                                                                     "rejected"

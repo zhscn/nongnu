@@ -325,7 +325,10 @@ If ID is provided, use that list."
          (endpoint (format "timelines/list/%s" id))
          (name (mastodon-views--get-list-name id))
          (buffer-name (format "list-%s" name)))
-    (mastodon-tl--init buffer-name endpoint 'mastodon-tl--timeline)))
+    (mastodon-tl--init buffer-name endpoint
+                       'mastodon-tl--timeline
+                       nil
+                       `(("limit" . ,mastodon-tl--timeline-posts-count)))))
 
 (defun mastodon-views--create-list ()
   "Create a new list.
@@ -458,7 +461,7 @@ If ID is provided, use that list."
 JSON is the data returned by the server."
   (mastodon-views--minor-view
    "follow requests"
-   "a/r - accept/reject request at point\n n/p - go to next/prev request"
+   "a/j - accept/reject request at point\n n/p - go to next/prev request"
    #'mastodon-views--insert-users-propertized-note
    json))
 
@@ -717,6 +720,25 @@ BRIEF means show fewer details."
   (interactive)
   (mastodon-views--view-instance-description nil :brief))
 
+(defun mastodon-views--get-instance-url (url username &optional instance)
+  "Return an instance base url from a user account URL.
+USERNAME is the name to cull.
+If INSTANCE is given, use that."
+  (cond (instance
+         (concat "https://" instance))
+        ;; pleroma URL is https://instance.com/users/username
+        ((string-suffix-p "users/" (url-basepath url))
+         (string-remove-suffix "/users/"
+                               (url-basepath url)))
+        ;; friendica is https://instance.com/profile/user
+        ((string-suffix-p "profile/" (url-basepath url))
+         (string-remove-suffix "/profile/"
+                               (url-basepath url)))
+        ;; mastodon is https://instance.com/@user
+        (t
+         (string-remove-suffix (concat "/@" username)
+                               url))))
+
 (defun mastodon-views--view-instance-description (&optional user brief instance)
   "View the details of the instance the current post's author is on.
 USER means to show the instance details for the logged in user.
@@ -757,20 +779,7 @@ INSTANCE is an instance domain name."
                                (mastodon-tl--property 'profile-json))
                           (alist-get 'username toot) ;; profile
                         (alist-get 'username account)))
-            (instance (cond (instance
-                             (concat "https://" instance))
-                            ;; pleroma URL is https://instance.com/users/username
-                            ((string-suffix-p "users/" (url-basepath url))
-                             (string-remove-suffix "/users/"
-                                                   (url-basepath url)))
-                            ;; friendica is https://instance.com/profile/user
-                            ((string-suffix-p "profile/" (url-basepath url))
-                             (string-remove-suffix "/profile/"
-                                                   (url-basepath url)))
-                            ;; mastodon:
-                            (t
-                             (string-remove-suffix (concat "/@" username)
-                                                   url))))
+            (instance (mastodon-views--get-instance-url url username instance))
             (response (mastodon-http--get-json
                        (if user
                            (mastodon-http--api "instance")
@@ -806,7 +815,9 @@ INSTANCE is the instance were are working with."
                         (assoc 'rules response)
                         (assoc 'stats response))))
           (mastodon-views--print-json-keys response)
-          (mastodon-mode)
+          ;; (mastodon-mode) ; breaks our 'q' binding that avoids leaving
+          ;; split window
+          (setq mastodon-account--data account)
           (mastodon-tl--set-buffer-spec (buffer-name buf)
                                         "instance"
                                         nil)

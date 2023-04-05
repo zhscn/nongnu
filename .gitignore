@@ -15,3 +15,6 @@ dist/
 /mastodon-pkg.el
 /mastodon-autoloads.el
 /lisp/mastodon-autoloads.el
+
+# ELSA files
+/lisp/.elsa/
