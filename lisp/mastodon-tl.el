@@ -1665,6 +1665,10 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
+(defun mastodon-tl--toot-or-base (json)
+  "Return the base toot or just the toot from toot JSON."
+  (or (alist-get 'reblog json) json))
+
 
 ;;; THREADS
 
@@ -2093,6 +2097,67 @@ Prefix is sent to `mastodon-tl--show-tag-timeline', which see."
          (tags (mastodon-tl--map-alist 'name followed-tags-json)))
     (mastodon-tl--show-tag-timeline prefix tags)))
 
+(defun mastodon-tl--instance-rules ()
+  "Return the rules of the user's instance."
+  (let ((url (mastodon-http--api "instance/rules")))
+    (mastodon-http--get-json url nil :silent)))
+
+(defun mastodon-tl--report-to-mods ()
+  ""
+  (interactive)
+  (when (y-or-n-p (format "report author of toot at point?"))
+    (let* ((url (mastodon-http--api "reports"))
+           (toot (mastodon-tl--toot-or-base
+                  (mastodon-tl--property 'toot-json)))
+           (account (alist-get 'account toot))
+           (handle (alist-get 'acct account))
+           (account-id (mastodon-profile--account-field account 'id))
+           (comment (read-string "Add comment [optional]: "))
+           (toot-id (when (y-or-n-p "Also report status at point?")
+                      (mastodon-tl--toot-id toot))) ; base toot if poss
+           (forward-p (when (y-or-n-p "Forward to remote admin?") "true"))
+           (rules (when (y-or-n-p "Cite a rule broken? ")
+                    (mastodon-tl--read-rules-ids)))
+           (cat (unless rules (if (y-or-n-p "Spam? ") "spam" "other")))
+           (params `(("account_id" . ,account-id)
+                     ,(when comment
+                        `("comment" . ,comment))
+                     ,(when toot-id
+                        `("status_ids[]" . ,toot-id))
+                     ,(when forward-p
+                        `("forward" . ,forward-p))
+                     ,(when cat
+                        `("category" . ,cat)))))
+      (when rules
+        (let ((alist
+               (mastodon-http--build-array-params-alist "rule_ids[]" rules)))
+          (mapc (lambda (x)
+                  (push x params))
+                alist)))
+      ;; FIXME: the above approach adds nils to your params.
+      (setq params (delete nil params))
+      (message "%s" (prin1-to-string params))
+      (let ((response ;; (mastodon-http--post-async url params)))
+             ;; (mastodon-http--triage response
+             ;;                        (lambda (response)
+             ;;                          (message "User %s reported!" handle)))
+             ;; )))
+             ))))))
+
+(defun mastodon-tl--read-rules-ids ()
+  "Prompt for a list of instance rules and return a list of selected ids."
+  (let* ((rules (mastodon-tl--instance-rules))
+         (alist (mapcar (lambda (x)
+                          (cons (alist-get 'text x)
+                                (alist-get 'id x)))
+                        rules))
+         (crm-separator (string-replace "," "|" crm-default-separator))
+         (choices (completing-read-multiple
+                   "rules [TAB for options, | to separate]: "
+                   alist nil :match)))
+    (mapcar (lambda (x)
+              (alist-get x alist nil nil 'equal))
+            choices)))
 
 
 ;;; UPDATING, etc.
