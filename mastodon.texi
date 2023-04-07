@@ -214,7 +214,7 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @anchor{Keybindings}Keybindings
 
 
-@multitable {aaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@multitable {aaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem Key
 @tab Action
 @item 
@@ -232,11 +232,11 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @item @samp{M-p=/=<S-tab>}
 @tab Go to the previous interesting thing that has an action
 @item @samp{F}
-@tab Open federated timeline
+@tab Open federated timeline (1 prefix arg: hide-replies, 2 prefix args: media only)
 @item @samp{H}
-@tab Open home timeline
+@tab Open home timeline  (1 prefix arg: hide-replies)
 @item @samp{L}
-@tab Open local timeline
+@tab Open local timeline (1 prefix arg: hide-replies, 2 prefix args: media only)
 @item @samp{N}
 @tab Open notifications timeline
 @item @samp{@@}
@@ -259,6 +259,8 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @tab view instance description for toot at point
 @item @samp{:}
 @tab view followed tags and load a tag timeline
+@item @samp{C-:}
+@tab view timeline of all followed tags
 @item @samp{,}
 @tab view favouriters of toot at point
 @item @samp{.}
@@ -457,6 +459,8 @@ that the author of the toot at point is on.
 @item
 @samp{mastodon-search--trending-tags}: View a list of trending hashtags on your
 instance.
+@item
+@samp{mastodon-search--trending-statuses}: View a list of trending statuses on your instance.
 @end itemize
 
 
