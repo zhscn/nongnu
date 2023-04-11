@@ -188,8 +188,8 @@ not contain =:client_id= and =:client_secret=.
 |---------------+------------------------|
 | Marker        | Meaning                |
 |---------------+------------------------|
-| =(B)=           | I boosted this toot    |
-| =(F)=           | I favourited this toot |
+| =(🔁)= (or =(B)=) | I boosted this toot    |
+| =(⭐)= (or =(F)=) | I favourited this toot |
 | =(🔖)= (or (=K=)) | I bookmarked this toot |
 |---------------+------------------------|
 
