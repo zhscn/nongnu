@@ -414,7 +414,9 @@ With a double PREFIX arg, limit results to your own instance."
       (let ((list (mastodon-http--build-array-params-alist "any[]" (cdr tag))))
         (while list
           (push (pop list) params))))
-    (mastodon-tl--init (concat "tag-" (if (listp tag) "followed-tags" tag))
+    (mastodon-tl--init (if (listp tag)
+                           "tags-multiple"
+                         (concat "tag-" tag))
                        (concat "timelines/tag/" (if (listp tag)
                                                     ;; endpoint needs to be /tag/:sometag
                                                     (car tag) tag))
@@ -2093,6 +2095,16 @@ Prefix is sent to `mastodon-tl--show-tag-timeline', which see."
          (tags (mastodon-tl--map-alist 'name followed-tags-json)))
     (mastodon-tl--show-tag-timeline prefix tags)))
 
+(defun mastodon-tl--some-followed-tags-timeline (&optional prefix)
+  "Prompt for some tags, and open a timeline for them.
+The suggestions are from followed tags, but any other tags are also allowed."
+  (interactive "p")
+  (let* ((followed-tags-json (mastodon-tl--followed-tags))
+         (tags (mastodon-tl--map-alist 'name followed-tags-json))
+         (selection (completing-read-multiple
+                     "Tags' timelines to view [TAB to view, comma to separate]: "
+                     tags)))
+    (mastodon-tl--show-tag-timeline prefix selection)))
 
 
 ;;; UPDATING, etc.
