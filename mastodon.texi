@@ -348,9 +348,9 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @multitable {aaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaa}
 @headitem Marker
 @tab Meaning
-@item @samp{(B)}
+@item @samp{(🔁)} (or @samp{(B)})
 @tab I boosted this toot
-@item @samp{(F)}
+@item @samp{(⭐)} (or @samp{(F)})
 @tab I favourited this toot
 @item @samp{(🔖)} (or (@samp{K}))
 @tab I bookmarked this toot
@@ -497,6 +497,10 @@ instance.
 @samp{mastodon-tl--unfollow-tag}: Unfollow a tag
 @item
 @samp{mastodon-tl--list-followed-tags}: View a list of tags you're following.
+@item
+@samp{mastodon-tl--followed-tags-timeline}: View a timeline of all your followed tags.
+@item
+@samp{mastodon-tl--some-followed-tags-timleine}: View a timeline of multiple tags, from your followed tags or any other.
 @end itemize
 
 

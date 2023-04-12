@@ -278,8 +278,10 @@ your ‘mastodon-token-file’ does not contain ‘:client_id’ and
 
      Marker             Meaning
      --------------------------------------------
-     ‘(B)’              I boosted this toot
-     ‘(F)’              I favourited this toot
+     ‘(🔁)’ (or          I boosted this toot
+     ‘(B)’)
+     ‘(⭐)’ (or          I favourited this toot
+     ‘(F)’)
      ‘(🔖)’ (or          I bookmarked this toot
      (‘K’))
 
@@ -389,6 +391,10 @@ and should work without first loading ‘mastodon.el’:
    • ‘mastodon-tl--unfollow-tag’: Unfollow a tag
    • ‘mastodon-tl--list-followed-tags’: View a list of tags you’re
      following.
+   • ‘mastodon-tl--followed-tags-timeline’: View a timeline of all your
+     followed tags.
+   • ‘mastodon-tl--some-followed-tags-timleine’: View a timeline of
+     multiple tags, from your followed tags or any other.
 
    • ‘mastodon-switch-to-buffer’: switch between mastodon buffers.
 
@@ -640,23 +646,23 @@ Node: Logging in to your instance3508
 Node: Timelines4505
 Ref: Keybindings4980
 Ref: Toot byline legend9469
-Node: Composing toots9741
-Ref: Keybindings (1)11318
-Ref: Draft toots11836
-Node: Other commands and account settings12307
-Node: Customization15235
-Node: Alternative timeline layout16021
-Node: Live-updating timelines mastodon-async-mode16398
-Node: Translating toots17234
-Node: bookmarks and mastodonel18406
-Node: Dependencies18876
-Node: Network compatibility19468
-Node: Contributing19954
-Node: Bug reports20243
-Node: Fixes and features21149
-Node: Coding style21632
-Node: Supporting mastodonel22256
-Node: Contributors22786
+Node: Composing toots9778
+Ref: Keybindings (1)11355
+Ref: Draft toots11873
+Node: Other commands and account settings12344
+Node: Customization15502
+Node: Alternative timeline layout16288
+Node: Live-updating timelines mastodon-async-mode16665
+Node: Translating toots17501
+Node: bookmarks and mastodonel18673
+Node: Dependencies19143
+Node: Network compatibility19735
+Node: Contributing20221
+Node: Bug reports20510
+Node: Fixes and features21416
+Node: Coding style21899
+Node: Supporting mastodonel22523
+Node: Contributors23053
 
 End Tag Table
 
