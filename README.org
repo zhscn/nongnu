@@ -188,8 +188,8 @@ not contain =:client_id= and =:client_secret=.
 |---------------+------------------------|
 | Marker        | Meaning                |
 |---------------+------------------------|
-| =(B)=           | I boosted this toot    |
-| =(F)=           | I favourited this toot |
+| =(🔁)= (or =(B)=) | I boosted this toot    |
+| =(⭐)= (or =(F)=) | I favourited this toot |
 | =(🔖)= (or (=K=)) | I bookmarked this toot |
 |---------------+------------------------|
 
@@ -280,6 +280,8 @@ work without first loading =mastodon.el=:
 - =mastodon-tl--follow-tag=: Follow a tag (works like following a user)
 - =mastodon-tl--unfollow-tag=: Unfollow a tag
 - =mastodon-tl--list-followed-tags=: View a list of tags you're following.
+- =mastodon-tl--followed-tags-timeline=: View a timeline of all your followed tags.
+- =mastodon-tl--some-followed-tags-timleine=: View a timeline of multiple tags, from your followed tags or any other.
 
 
 - =mastodon-switch-to-buffer=: switch between mastodon buffers.
