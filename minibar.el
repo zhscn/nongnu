@@ -271,8 +271,8 @@ time when it was recorded.")
                  (if (>=
                       temp
                       minibar-module-temperature-very-high-threshold)
-                     'minibar-module-temperature-high-face
-                   'minibar-module-temperature-very-high-face))
+                     'minibar-module-temperature-very-high-face
+                   'minibar-module-temperature-high-face))
               str))))
       (current-time))))
   (car minibar--module-temperature-cache))
