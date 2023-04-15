@@ -2103,7 +2103,8 @@ Prefix is sent to `mastodon-tl--show-tag-timeline', which see."
     (mastodon-http--get-json url nil :silent)))
 
 (defun mastodon-tl--report-to-mods ()
-  ""
+  "Report the author of the toot at point to your instance moderators.
+Optionally report the toot at point, optionally add a comment, optionally cite rules that have been broken, optionally forward the report to the remove admin, optionally report the account for spam."
   (interactive)
   (when (y-or-n-p (format "report author of toot at point?"))
     (let* ((url (mastodon-http--api "reports"))
@@ -2136,13 +2137,11 @@ Prefix is sent to `mastodon-tl--show-tag-timeline', which see."
                 alist)))
       ;; FIXME: the above approach adds nils to your params.
       (setq params (delete nil params))
-      (message "%s" (prin1-to-string params))
-      (let ((response ;; (mastodon-http--post-async url params)))
-             ;; (mastodon-http--triage response
-             ;;                        (lambda (response)
-             ;;                          (message "User %s reported!" handle)))
-             ;; )))
-             ))))))
+      ;; (message "%s" (prin1-to-string params))
+      (let ((response (mastodon-http--post-async url params)))
+        (mastodon-http--triage response
+                               (lambda (response)
+                                 (message "User %s reported!" handle)))))))
 
 (defun mastodon-tl--read-rules-ids ()
   "Prompt for a list of instance rules and return a list of selected ids."
