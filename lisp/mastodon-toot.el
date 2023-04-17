@@ -996,7 +996,12 @@ If TAGS, we search for tags, else we search for handles."
             ;; only search when necessary:
             (completion-table-dynamic
              (lambda (_)
-               (mastodon-toot--fetch-completion-candidates start end)))
+               ;; Interruptible candidate computation
+               ;; suggestion from minad (d mendler), thanks!
+               (let ((result
+                      (while-no-input
+                        (mastodon-toot--fetch-completion-candidates start end))))
+                 (and (consp result) result))))
             :exclusive 'no
             :annotation-function
             (lambda (candidate)
@@ -1015,7 +1020,12 @@ If TAGS, we search for tags, else we search for handles."
             ;; only search when necessary:
             (completion-table-dynamic
              (lambda (_)
-               (mastodon-toot--fetch-completion-candidates start end :tags)))
+               ;; Interruptible candidate computation
+               ;; suggestion from minad (d mendler), thanks!
+               (let ((result
+                      (while-no-input
+                        (mastodon-toot--fetch-completion-candidates start end :tags))))
+                 (and (consp result) result))))
             :exclusive 'no
             :annotation-function
             (lambda (candidate)
