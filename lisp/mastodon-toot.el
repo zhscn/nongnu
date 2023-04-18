@@ -764,6 +764,13 @@ to `emojify-user-emojis', and the emoji data is updated."
    `(("poll[multiple]" . ,(symbol-name (plist-get mastodon-toot-poll :multi))))
    `(("poll[hide_totals]" . ,(symbol-name (plist-get mastodon-toot-poll :hide))))))
 
+(defun mastodon-toot--read-cw-string ()
+  "Read a content warning from the minibuffer."
+  (when (and (not (mastodon-toot--empty-p))
+             mastodon-toot--content-warning)
+    (read-string "Warning: "
+                 mastodon-toot--content-warning-from-reply-or-redraft)))
+
 (defun mastodon-toot--send ()
   "POST contents of new-toot buffer to Mastodon instance and kill buffer.
 If media items have been attached and uploaded with
@@ -781,16 +788,13 @@ instance to edit a toot."
               (mastodon-http--api (format "statuses/%s"
                                           edit-id))
             (mastodon-http--api "statuses")))
-         (spoiler (when (and (not (mastodon-toot--empty-p))
-                             mastodon-toot--content-warning)
-                    (read-string "Warning: "
-                                 mastodon-toot--content-warning-from-reply-or-redraft)))
+         (cw (mastodon-toot--read-cw-string))
          (args-no-media (append `(("status" . ,toot)
                                   ("in_reply_to_id" . ,mastodon-toot--reply-to-id)
                                   ("visibility" . ,mastodon-toot--visibility)
                                   ("sensitive" . ,(when mastodon-toot--content-nsfw
                                                     (symbol-name t)))
-                                  ("spoiler_text" . ,spoiler)
+                                  ("spoiler_text" . ,cw)
                                   ("language" . ,mastodon-toot--language))
                                 ;; Pleroma instances can't handle null-valued
                                 ;; scheduled_at args, so only add if non-nil
@@ -816,8 +820,8 @@ instance to edit a toot."
                             (length mastodon-toot--media-attachment-ids)))))
            (message "Something is wrong with your uploads. Wait for them to complete or try again."))
           ((and mastodon-toot--max-toot-chars
-                (> (mastodon-toot--count-toot-chars toot) mastodon-toot--max-toot-chars))
-           (message "Looks like your toot is longer than that maximum allowed length."))
+                (> (mastodon-toot--count-toot-chars toot cw) mastodon-toot--max-toot-chars))
+           (message "Looks like your toot (inc. CW) is longer than that maximum allowed length."))
           ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
           (t
@@ -1536,7 +1540,7 @@ REPLY-JSON is the full JSON of the toot being replied to."
                            (list 'invisible (not mastodon-toot--content-warning)
                                  'face 'mastodon-cw-face)))))
 
-(defun mastodon-toot--count-toot-chars (toot-string)
+(defun mastodon-toot--count-toot-chars (toot-string &optional cw)
   "Count the characters in TOOT-STRING.
 URLs always = 23, and domain names of handles are not counted.
 This is how mastodon does it."
@@ -1554,7 +1558,8 @@ This is how mastodon does it."
                                           "\\b")
                                   nil t)
       (replace-match (match-string 2))) ; replace with handle only
-    (length (buffer-substring (point-min) (point-max)))))
+    (+ (length cw)
+       (length (buffer-substring (point-min) (point-max))))))
 
 (defun mastodon-toot--save-toot-text (&rest _args)
   "Save the current toot text in `mastodon-toot-current-toot-text'.
