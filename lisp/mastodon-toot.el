@@ -828,6 +828,7 @@ instance to edit a toot."
              (mastodon-http--triage
               response
               (lambda ()
+                (setq masto-poll-toot-response response)
                 (mastodon-toot--kill)
                 (if scheduled
                     (message "Toot scheduled!")
@@ -1234,8 +1235,18 @@ MAX is the maximum number set by their instance."
 (defun mastodon-toot--read-poll-options (count length)
   "Read a list of options for poll with COUNT options.
 LENGTH is the maximum character length allowed for a poll option."
-  (cl-loop for x from 1 to count
-           collect (read-string (format "Poll option [%s/%s] [max %s chars]: " x count length))))
+  (let* ((choices
+          (cl-loop for x from 1 to count
+                   collect (read-string
+                            (format "Poll option [%s/%s] [max %s chars]: "
+                                    x count length))))
+         (longest (cl-reduce #'max (mapcar #'length choices))))
+    (if (> longest length)
+        (progn
+          (message "looks like you went over the max length. Try again.")
+          (sleep-for 2)
+          (mastodon-toot--read-poll-options count length))
+      choices)))
 
 (defun mastodon-toot--read-poll-expiry ()
   "Prompt for a poll expiry time."
