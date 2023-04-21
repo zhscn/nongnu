@@ -1146,27 +1146,24 @@ correct value for following, as well as notifications enabled or disabled."
 (ert-deftest mastodon-tl--report-to-mods-params-alist ()
   ""
   (with-temp-buffer
-    (let ((toot mastodon-tl-test-base-toot))
+    (let* ((toot mastodon-tl-test-base-toot)
+           (account (alist-get 'account toot)))
       (with-mock
-        (mock (mastodon-http--api "reports") => "https://instance.url/api/v1/reports")
-        (mock (mastodon-tl--toot-or-base
-               (mastodon-tl--property 'toot-json :no-move))
-              => mastodon-tl-test-base-toot)
+        ;; no longer needed after our refactor
+        ;; (mock (mastodon-http--api "reports") => "https://instance.url/api/v1/reports")
+        ;; (mock (mastodon-tl--toot-or-base
+        ;; (mastodon-tl--property 'toot-json :no-move))
+        ;; => mastodon-tl-test-base-toot)
         (mock (read-string "Add comment [optional]: ") => "Dummy complaint")
-
         (stub y-or-n-p => nil) ; no to all
-        (should (equal (mastodon-tl--report-params)
+        (should (equal (mastodon-tl--report-params account toot)
                        '(("account_id" . 42)
                          ("comment" . "Dummy complaint")
                          ("category" . "other"))))
         (with-mock
           (stub y-or-n-p => t) ; yes to all
           (mock (mastodon-tl--read-rules-ids) => '(1 2 3))
-          ;; (mock (y-or-n-p "Also report status at point? ") => t)
-          ;; (mock (y-or-n-p "Forward to remote admin? ") => nil)
-          ;; (mock (y-or-n-p "Cite a rule broken? ") => nil)
-          ;; (mock (y-or-n-p "Spam? ") => nil)
-          (should (equal (mastodon-tl--report-params)
+          (should (equal (mastodon-tl--report-params account toot)
                          '(("rule_ids[]" . 3)
                            ("rule_ids[]" . 2)
                            ("rule_ids[]" . 1)
@@ -1219,10 +1216,11 @@ correct value for following, as well as notifications enabled or disabled."
 
 (ert-deftest mastodon-tl--read-rules ()
   "Should return a list of string numbers based on `mastodon-tl--test-instance-rules'"
-  (with-mock
-    (stub mastodon-tl--instance-rules => mastodon-tl--test-instance-rules)
-    (stub completing-read-multiple => '("We do not accept homophobia."
-                                        "We do not accept harassment."
-                                        "We also do not accept hate speech."))
-    (should (equal '("2" "5" "6")
-                   (mastodon-tl--read-rules-ids)))))
+  (let ((crm-separator "[ 	]*,[ 	]*"))
+    (with-mock
+     (stub mastodon-tl--instance-rules => mastodon-tl--test-instance-rules)
+     (stub completing-read-multiple => '("We do not accept homophobia."
+                                         "We do not accept harassment."
+                                         "We also do not accept hate speech."))
+     (should (equal '("2" "5" "6")
+                    (mastodon-tl--read-rules-ids))))))
