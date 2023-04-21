@@ -83,6 +83,7 @@
 (autoload 'mastodon-tl--unblock-user "mastodon-tl")
 (autoload 'mastodon-tl--unfollow-user "mastodon-tl")
 (autoload 'mastodon-tl--unmute-user "mastodon-tl")
+(autoload 'mastodon-tl--report-to-mods "mastodon-tl")
 (autoload 'mastodon-tl--update "mastodon-tl")
 (autoload 'mastodon-toot--edit-toot-at-point "mastodon-toot")
 (when (require 'lingva nil :no-error)
@@ -200,6 +201,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "C-S-B") #'mastodon-tl--unblock-user)
     (define-key map (kbd "M") #'mastodon-tl--mute-user)
     (define-key map (kbd "C-S-M") #'mastodon-tl--unmute-user)
+    (define-key map (kbd "Z") #'mastodon-tl--report-to-mods)
     ;; own profile
     (define-key map (kbd "O") #'mastodon-profile--my-profile)
     (define-key map (kbd "U") #'mastodon-profile--update-user-profile-note)
