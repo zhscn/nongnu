@@ -2116,16 +2116,24 @@ Prefix is sent to `mastodon-tl--show-tag-timeline', which see."
          (forward-p (when (y-or-n-p "Forward to remote admin? ") "true"))
          (rules (when (y-or-n-p "Cite a rule broken? ")
                   (mastodon-tl--read-rules-ids)))
-         (cat (unless rules (if (y-or-n-p "Spam? ") "spam" "other")))
-         (params `(("account_id" . ,account-id)
-                   ,(when comment
-                      `("comment" . ,comment))
-                   ,(when toot-id
-                      `("status_ids[]" . ,toot-id))
-                   ,(when forward-p
-                      `("forward" . ,forward-p))
-                   ,(when cat
-                      `("category" . ,cat)))))
+         (cat (unless rules (if (y-or-n-p "Spam? ") "spam" "other"))))
+    (mastodon-tl--report-build-params account-id comment toot-id
+                                      forward-p cat rules)))
+
+(defun mastodon-tl--report-build-params
+    (account-id comment toot-id forward-p cat &optional rules)
+  "Build the parameters alist based on user responses.
+ACCOUNT-ID, COMMENT, TOOD-ID, FORWARD-P, CAT, and RULES are all from
+`mastodon-tl--report-params', which see."
+  (let ((params `(("account_id" . ,account-id)
+                  ,(when comment
+                     `("comment" . ,comment))
+                  ,(when toot-id
+                     `("status_ids[]" . ,toot-id))
+                  ,(when forward-p
+                     `("forward" . ,forward-p))
+                  ,(when cat
+                     `("category" . ,cat)))))
     (when rules
       (let ((alist
              (mastodon-http--build-array-params-alist "rule_ids[]" rules)))

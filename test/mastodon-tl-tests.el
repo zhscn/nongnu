@@ -1155,3 +1155,45 @@ correct value for following, as well as notifications enabled or disabled."
                            ("comment" . "Dummy complaint")
                            ("status_ids[]" . 61208)
                            ("forward" . "true")))))))))
+
+(ert-deftest mastodon-tl--report-build-params ()
+  ""
+  (should (equal
+           (mastodon-tl--report-build-params 42 "Dummy complaint"
+                                             61208 "true" nil '(1 2 3))
+           '(("rule_ids[]" . 3)
+             ("rule_ids[]" . 2)
+             ("rule_ids[]" . 1)
+             ("account_id" . 42)
+             ("comment" . "Dummy complaint")
+             ("status_ids[]" . 61208)
+             ("forward" . "true"))))
+  (should (equal
+           (mastodon-tl--report-build-params 42 "Dummy complaint"
+                                             nil "true" nil nil)
+           '(("account_id" . 42)
+             ("comment" . "Dummy complaint")
+             ("forward" . "true"))))
+  (should (equal
+           (mastodon-tl--report-build-params 42 "Dummy complaint"
+                                             61208 "true" "spam" nil)
+           '(("account_id" . 42)
+             ("comment" . "Dummy complaint")
+             ("status_ids[]" . 61208)
+             ("forward" . "true")
+             ("category" . "spam"))))
+  (should (equal
+           (mastodon-tl--report-build-params 42 "Dummy complaint"
+                                             61208 "true" "other" nil)
+           '(("account_id" . 42)
+             ("comment" . "Dummy complaint")
+             ("status_ids[]" . 61208)
+             ("forward" . "true")
+             ("category" . "other"))))
+  (should (equal
+           (mastodon-tl--report-build-params 42 "Dummy complaint"
+                                             61208 nil "spam" nil)
+           '(("account_id" . 42)
+             ("comment" . "Dummy complaint")
+             ("status_ids[]" . 61208)
+             ("category" . "spam")))))
