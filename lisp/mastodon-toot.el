@@ -217,7 +217,7 @@ send.")
   (concat
    ;; preceding bracket, space or bol [boundary doesn't work with @]
    "\\([(\n\t ]\\|^\\)"
-   "\\(?2:@[1-9a-zA-Z._-]+" ; a handle
+   "\\(?2:@[0-9a-zA-Z._-]+" ; a handle
    "\\(@[^ \n\t]*\\)?\\)" ; with poss domain, * = allow only @
    "\\b"))
 
@@ -225,7 +225,7 @@ send.")
   (concat
    ;; preceding bracket, space or bol [boundary doesn't work with #]
    "\\([(\n\t ]\\|^\\)"
-   "\\(?2:#[1-9a-zA-Z_]+\\)" ; tag
+   "\\(?2:#[0-9a-zA-Z_]+\\)" ; tag
    "\\b")) ; boundary
 
 (defvar mastodon-toot-mode-map
