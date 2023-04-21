@@ -4,6 +4,25 @@
 (require 'cl-macs)
 (require 'el-mock)
 
+(defconst mastodon-tl--test-instance-rules
+  ;; brief ones calqued off todon.nl
+  '(((id . "1")
+     (text . "We do not accept racism."))
+    ((id . "2")
+     (text . "We do not accept homophobia."))
+    ((id . "3")
+     (text . "We do not accept sexism."))
+    ((id . "4")
+     (text . "We do not accept ableism."))
+    ((id . "5")
+     (text . "We do not accept harassment."))
+    ((id . "6")
+     (text . "We also do not accept hate speech."))
+    ((id . "7")
+     (text . "We do not accept abuse of minors."))
+    ((id . "8")
+     (text . "We do not accept glorification of violence."))))
+
 (defconst mastodon-tl-test-base-toot
   '((id . 61208)
     (created_at . "2017-04-24T19:01:02.000Z")
@@ -1197,3 +1216,13 @@ correct value for following, as well as notifications enabled or disabled."
              ("comment" . "Dummy complaint")
              ("status_ids[]" . 61208)
              ("category" . "spam")))))
+
+(ert-deftest mastodon-tl--read-rules ()
+  "Should return a list of string numbers based on `mastodon-tl--test-instance-rules'"
+  (with-mock
+    (stub mastodon-tl--instance-rules => mastodon-tl--test-instance-rules)
+    (stub completing-read-multiple => '("We do not accept homophobia."
+                                        "We do not accept harassment."
+                                        "We also do not accept hate speech."))
+    (should (equal '("2" "5" "6")
+                   (mastodon-tl--read-rules-ids)))))
