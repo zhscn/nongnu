@@ -2146,18 +2146,19 @@ Optionally report the toot at point, add a comment, cite rules
 that have been broken, forward the report to the remove admin,
 report the account for spam."
   (interactive)
-  (when (y-or-n-p "Report author of toot at point?")
-    (let* ((url (mastodon-http--api "reports"))
-           (toot (mastodon-tl--toot-or-base
-                  (mastodon-tl--property 'toot-json :no-move)))
-           (account (alist-get 'account toot))
-           (handle (alist-get 'acct account))
-           (params (mastodon-tl--report-params account toot))
-           (response (mastodon-http--post url params)))
-      ;; (setq masto-report-response response)
-      (mastodon-http--triage response
-                             (lambda ()
-                               (message "User %s reported!" handle))))))
+  (mastodon-tl--do-if-toot
+   (when (y-or-n-p "Report author of toot at point?")
+     (let* ((url (mastodon-http--api "reports"))
+            (toot (mastodon-tl--toot-or-base
+                   (mastodon-tl--property 'toot-json :no-move)))
+            (account (alist-get 'account toot))
+            (handle (alist-get 'acct account))
+            (params (mastodon-tl--report-params account toot))
+            (response (mastodon-http--post url params)))
+       ;; (setq masto-report-response response)
+       (mastodon-http--triage response
+                              (lambda ()
+                                (message "User %s reported!" handle)))))))
 
 (defvar crm-separator)
 
