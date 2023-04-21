@@ -2102,46 +2102,53 @@ Prefix is sent to `mastodon-tl--show-tag-timeline', which see."
   (let ((url (mastodon-http--api "instance/rules")))
     (mastodon-http--get-json url nil :silent)))
 
+(defun mastodon-tl--report-params ()
+  "Query user and return report params alist."
+  (let* ((url (mastodon-http--api "reports"))
+         (toot (mastodon-tl--toot-or-base
+                (mastodon-tl--property 'toot-json :no-move)))
+         (account (alist-get 'account toot))
+         (handle (alist-get 'acct account))
+         (account-id (mastodon-profile--account-field account 'id))
+         (comment (read-string "Add comment [optional]: "))
+         (toot-id (when (y-or-n-p "Also report status at point? ")
+                    (mastodon-tl--toot-id toot))) ; base toot if poss
+         (forward-p (when (y-or-n-p "Forward to remote admin? ") "true"))
+         (rules (when (y-or-n-p "Cite a rule broken? ")
+                  (mastodon-tl--read-rules-ids)))
+         (cat (unless rules (if (y-or-n-p "Spam? ") "spam" "other")))
+         (params `(("account_id" . ,account-id)
+                   ,(when comment
+                      `("comment" . ,comment))
+                   ,(when toot-id
+                      `("status_ids[]" . ,toot-id))
+                   ,(when forward-p
+                      `("forward" . ,forward-p))
+                   ,(when cat
+                      `("category" . ,cat)))))
+    (when rules
+      (let ((alist
+             (mastodon-http--build-array-params-alist "rule_ids[]" rules)))
+        (mapc (lambda (x)
+                (push x params))
+              alist)))
+    ;; FIXME: the above approach adds nils to your params.
+    (setq params (delete nil params))
+    params))
+
 (defun mastodon-tl--report-to-mods ()
   "Report the author of the toot at point to your instance moderators.
-Optionally report the toot at point, optionally add a comment, optionally cite rules that have been broken, optionally forward the report to the remove admin, optionally report the account for spam."
+Optionally report the toot at point, add a comment, cite rules
+that have been broken, forward the report to the remove admin,
+report the account for spam."
   (interactive)
-  (when (y-or-n-p (format "report author of toot at point?"))
+  (when (y-or-n-p "Report author of toot at point?")
     (let* ((url (mastodon-http--api "reports"))
-           (toot (mastodon-tl--toot-or-base
-                  (mastodon-tl--property 'toot-json)))
-           (account (alist-get 'account toot))
-           (handle (alist-get 'acct account))
-           (account-id (mastodon-profile--account-field account 'id))
-           (comment (read-string "Add comment [optional]: "))
-           (toot-id (when (y-or-n-p "Also report status at point?")
-                      (mastodon-tl--toot-id toot))) ; base toot if poss
-           (forward-p (when (y-or-n-p "Forward to remote admin?") "true"))
-           (rules (when (y-or-n-p "Cite a rule broken? ")
-                    (mastodon-tl--read-rules-ids)))
-           (cat (unless rules (if (y-or-n-p "Spam? ") "spam" "other")))
-           (params `(("account_id" . ,account-id)
-                     ,(when comment
-                        `("comment" . ,comment))
-                     ,(when toot-id
-                        `("status_ids[]" . ,toot-id))
-                     ,(when forward-p
-                        `("forward" . ,forward-p))
-                     ,(when cat
-                        `("category" . ,cat)))))
-      (when rules
-        (let ((alist
-               (mastodon-http--build-array-params-alist "rule_ids[]" rules)))
-          (mapc (lambda (x)
-                  (push x params))
-                alist)))
-      ;; FIXME: the above approach adds nils to your params.
-      (setq params (delete nil params))
-      ;; (message "%s" (prin1-to-string params))
-      (let ((response (mastodon-http--post-async url params)))
-        (mastodon-http--triage response
-                               (lambda (response)
-                                 (message "User %s reported!" handle)))))))
+           (params (mastodon-tl--report-params))
+           (response (mastodon-http--post-async url params)))
+      (mastodon-http--triage response
+                             (lambda (response)
+                               (message "User %s reported!" handle))))))
 
 (defun mastodon-tl--read-rules-ids ()
   "Prompt for a list of instance rules and return a list of selected ids."

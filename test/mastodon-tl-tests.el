@@ -1073,53 +1073,85 @@ correct value for following, as well as notifications enabled or disabled."
       (let ((response-buffer-true (current-buffer)))
         (insert mastodon-tl--follow-notify-true-response)
         (with-mock
-          (mock (mastodon-http--post url-follow-only nil)
-                => response-buffer-true)
-          (should
-           (equal
-            (mastodon-tl--do-user-action-function url-follow-only
-                                                  user-name
-                                                  user-handle
-                                                  "follow")
-            "User some-user (@some-user@instance.url) followed!"))
-          (mock (mastodon-http--post url-mute nil)
-                => response-buffer-true)
-          (should
-           (equal
-            (mastodon-tl--do-user-action-function url-mute
-                                                  user-name
-                                                  user-handle
-                                                  "mute")
-            "User some-user (@some-user@instance.url) muted!"))
-          (mock (mastodon-http--post url-block nil)
-                => response-buffer-true)
-          (should
-           (equal
-            (mastodon-tl--do-user-action-function url-block
-                                                  user-name
-                                                  user-handle
-                                                  "block")
-            "User some-user (@some-user@instance.url) blocked!")))
+         (mock (mastodon-http--post url-follow-only nil)
+               => response-buffer-true)
+         (should
+          (equal
+           (mastodon-tl--do-user-action-function url-follow-only
+                                                 user-name
+                                                 user-handle
+                                                 "follow")
+           "User some-user (@some-user@instance.url) followed!"))
+         (mock (mastodon-http--post url-mute nil)
+               => response-buffer-true)
+         (should
+          (equal
+           (mastodon-tl--do-user-action-function url-mute
+                                                 user-name
+                                                 user-handle
+                                                 "mute")
+           "User some-user (@some-user@instance.url) muted!"))
+         (mock (mastodon-http--post url-block nil)
+               => response-buffer-true)
+         (should
+          (equal
+           (mastodon-tl--do-user-action-function url-block
+                                                 user-name
+                                                 user-handle
+                                                 "block")
+           "User some-user (@some-user@instance.url) blocked!")))
         (with-mock
-          (mock (mastodon-http--post url-true nil) => response-buffer-true)
-          (should
-           (equal
-            (mastodon-tl--do-user-action-function url-true
-                                                  user-name
-                                                  user-handle
-                                                  "follow"
-                                                  "true")
-            "Receiving notifications for user some-user (@some-user@instance.url)!")))))
+         (mock (mastodon-http--post url-true nil) => response-buffer-true)
+         (should
+          (equal
+           (mastodon-tl--do-user-action-function url-true
+                                                 user-name
+                                                 user-handle
+                                                 "follow"
+                                                 "true")
+           "Receiving notifications for user some-user (@some-user@instance.url)!")))))
     (with-temp-buffer
       (let ((response-buffer-false (current-buffer)))
         (insert mastodon-tl--follow-notify-false-response)
         (with-mock
-          (mock (mastodon-http--post url-false nil) => response-buffer-false)
-          (should
-           (equal
-            (mastodon-tl--do-user-action-function url-false
-                                                  user-name
-                                                  user-handle
-                                                  "follow"
-                                                  "false")
-            "Not receiving notifications for user some-user (@some-user@instance.url)!")))))))
+         (mock (mastodon-http--post url-false nil) => response-buffer-false)
+         (should
+          (equal
+           (mastodon-tl--do-user-action-function url-false
+                                                 user-name
+                                                 user-handle
+                                                 "follow"
+                                                 "false")
+           "Not receiving notifications for user some-user (@some-user@instance.url)!")))))))
+
+(ert-deftest mastodon-tl--report-to-mods-params-alist ()
+  ""
+  (with-temp-buffer
+    (let ((toot mastodon-tl-test-base-toot))
+      (with-mock
+        (mock (mastodon-http--api "reports") => "https://instance.url/api/v1/reports")
+        (mock (mastodon-tl--toot-or-base
+               (mastodon-tl--property 'toot-json :no-move))
+              => mastodon-tl-test-base-toot)
+        (mock (read-string "Add comment [optional]: ") => "Dummy complaint")
+
+        (stub y-or-n-p => nil) ; no to all
+        (should (equal (mastodon-tl--report-params)
+                       '(("account_id" . 42)
+                         ("comment" . "Dummy complaint")
+                         ("category" . "other"))))
+        (with-mock
+          (stub y-or-n-p => t) ; yes to all
+          (mock (mastodon-tl--read-rules-ids) => '(1 2 3))
+          ;; (mock (y-or-n-p "Also report status at point? ") => t)
+          ;; (mock (y-or-n-p "Forward to remote admin? ") => nil)
+          ;; (mock (y-or-n-p "Cite a rule broken? ") => nil)
+          ;; (mock (y-or-n-p "Spam? ") => nil)
+          (should (equal (mastodon-tl--report-params)
+                         '(("rule_ids[]" . 3)
+                           ("rule_ids[]" . 2)
+                           ("rule_ids[]" . 1)
+                           ("account_id" . 42)
+                           ("comment" . "Dummy complaint")
+                           ("status_ids[]" . 61208)
+                           ("forward" . "true")))))))))
