@@ -228,6 +228,13 @@ send.")
    "\\(?2:#[0-9a-zA-Z_]+\\)" ; tag
    "\\b")) ; boundary
 
+(defvar mastodon-toot-url-regex
+  ;; adapted from ffap-url-regexp
+  (concat
+   "\\(?2:\\(news\\(post\\)?:\\|mailto:\\|file:\\|\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://\\)" ; uri prefix
+   "[^ \n\t]*\\)" ; any old thing that's, i.e. we allow invalid/unwise chars
+   "\\b")) ; boundary
+
 (defvar mastodon-toot-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-toot--send)
@@ -1627,6 +1634,9 @@ Added to `after-change-functions'."
                                       (cdr header-region))
       (mastodon-toot--propertize-item mastodon-toot-handle-regex
                                       'mastodon-display-name-face
+                                      (cdr header-region))
+      (mastodon-toot--propertize-item mastodon-toot-url-regex
+                                      'link
                                       (cdr header-region)))))
 
 (defun mastodon-toot--propertize-item (regex face start)
