@@ -1667,6 +1667,10 @@ webapp"
         (reblog (alist-get 'reblog json)))
     (if reblog (alist-get 'id reblog) id)))
 
+(defun mastodon-tl--toot-or-base (json)
+  "Return the base toot or just the toot from toot JSON."
+  (or (alist-get 'reblog json) json))
+
 
 ;;; THREADS
 
@@ -2078,7 +2082,7 @@ If TAG is provided, unfollow it."
 
 (defun mastodon-tl--list-followed-tags (&optional prefix)
   "List followed tags. View timeline of tag user choses.
-Prefix is sent to `mastodon-tl--get-tag-timeline', which see."
+PREFIX is sent to `mastodon-tl--get-tag-timeline', which see."
   (interactive "p")
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
          (tags (mastodon-tl--map-alist 'name followed-tags-json))
@@ -2089,7 +2093,7 @@ Prefix is sent to `mastodon-tl--get-tag-timeline', which see."
 
 (defun mastodon-tl--followed-tags-timeline (&optional prefix)
   "Open a timeline of all your followed tags.
-Prefix is sent to `mastodon-tl--show-tag-timeline', which see."
+PREFIX is sent to `mastodon-tl--show-tag-timeline', which see."
   (interactive "p")
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
          (tags (mastodon-tl--map-alist 'name followed-tags-json)))
@@ -2105,6 +2109,86 @@ The suggestions are from followed tags, but any other tags are also allowed."
                      "Tags' timelines to view [TAB to view, comma to separate]: "
                      tags)))
     (mastodon-tl--show-tag-timeline prefix selection)))
+
+(defun mastodon-tl--instance-rules ()
+  "Return the rules of the user's instance."
+  (let ((url (mastodon-http--api "instance/rules")))
+    (mastodon-http--get-json url nil :silent)))
+
+(defun mastodon-tl--report-params (account toot)
+  "Query user and return report params alist.
+ACCOUNT and TOOT are the data to use."
+  (let* ((account-id (mastodon-profile--account-field account 'id))
+         (comment (read-string "Add comment [optional]: "))
+         (toot-id (when (y-or-n-p "Also report status at point? ")
+                    (mastodon-tl--toot-id toot))) ; base toot if poss
+         (forward-p (when (y-or-n-p "Forward to remote admin? ") "true"))
+         (rules (when (y-or-n-p "Cite a rule broken? ")
+                  (mastodon-tl--read-rules-ids)))
+         (cat (unless rules (if (y-or-n-p "Spam? ") "spam" "other"))))
+    (mastodon-tl--report-build-params account-id comment toot-id
+                                      forward-p cat rules)))
+
+(defun mastodon-tl--report-build-params
+    (account-id comment toot-id forward-p cat &optional rules)
+  "Build the parameters alist based on user responses.
+ACCOUNT-ID, COMMENT, TOOT-ID, FORWARD-P, CAT, and RULES are all from
+`mastodon-tl--report-params', which see."
+  (let ((params `(("account_id" . ,account-id)
+                  ,(when comment
+                     `("comment" . ,comment))
+                  ,(when toot-id
+                     `("status_ids[]" . ,toot-id))
+                  ,(when forward-p
+                     `("forward" . ,forward-p))
+                  ,(when cat
+                     `("category" . ,cat)))))
+    (when rules
+      (let ((alist
+             (mastodon-http--build-array-params-alist "rule_ids[]" rules)))
+        (mapc (lambda (x)
+                (push x params))
+              alist)))
+    ;; FIXME: the above approach adds nils to your params.
+    (setq params (delete nil params))
+    params))
+
+(defun mastodon-tl--report-to-mods ()
+  "Report the author of the toot at point to your instance moderators.
+Optionally report the toot at point, add a comment, cite rules
+that have been broken, forward the report to the remove admin,
+report the account for spam."
+  (interactive)
+  (mastodon-tl--do-if-toot
+   (when (y-or-n-p "Report author of toot at point?")
+     (let* ((url (mastodon-http--api "reports"))
+            (toot (mastodon-tl--toot-or-base
+                   (mastodon-tl--property 'toot-json :no-move)))
+            (account (alist-get 'account toot))
+            (handle (alist-get 'acct account))
+            (params (mastodon-tl--report-params account toot))
+            (response (mastodon-http--post url params)))
+       ;; (setq masto-report-response response)
+       (mastodon-http--triage response
+                              (lambda ()
+                                (message "User %s reported!" handle)))))))
+
+(defvar crm-separator)
+
+(defun mastodon-tl--read-rules-ids ()
+  "Prompt for a list of instance rules and return a list of selected ids."
+  (let* ((rules (mastodon-tl--instance-rules))
+         (alist (mapcar (lambda (x)
+                          (cons (alist-get 'text x)
+                                (alist-get 'id x)))
+                        rules))
+         (crm-separator (replace-regexp-in-string "," "|" crm-separator))
+         (choices (completing-read-multiple
+                   "rules [TAB for options, | to separate]: "
+                   alist nil :match)))
+    (mapcar (lambda (x)
+              (alist-get x alist nil nil 'equal))
+            choices)))
 
 
 ;;; UPDATING, etc.
