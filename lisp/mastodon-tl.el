@@ -2178,13 +2178,16 @@ report the account for spam."
 
 (defvar crm-separator)
 
+(defun mastodon-tl--map-rules-alist (rules)
+  (mapcar (lambda (x)
+            (let-alist x
+              `(,.text . ,.id)))
+          rules))
+
 (defun mastodon-tl--read-rules-ids ()
   "Prompt for a list of instance rules and return a list of selected ids."
   (let* ((rules (mastodon-tl--instance-rules))
-         (alist (mapcar (lambda (x)
-                          (cons (alist-get 'text x)
-                                (alist-get 'id x)))
-                        rules))
+         (alist (mastodon-tl--map-rules-alist rules))
          (crm-separator (replace-regexp-in-string "," "|" crm-separator))
          (choices (completing-read-multiple
                    "rules [TAB for options, | to separate]: "
