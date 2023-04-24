@@ -2110,6 +2110,9 @@ The suggestions are from followed tags, but any other tags are also allowed."
                      tags)))
     (mastodon-tl--show-tag-timeline prefix selection)))
 
+
+;;; REPORT TO MODERATORS
+
 (defun mastodon-tl--instance-rules ()
   "Return the rules of the user's instance."
   (let ((url (mastodon-http--api "instance/rules")))
