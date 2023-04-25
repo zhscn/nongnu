@@ -1,4 +1,4 @@
-;;; mastodon.el --- Client for Mastodon and compatible fediverse services  -*- lexical-binding: t -*-
+;;; mastodon.el --- Client for fediverse services that implement the Mastodon API  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2019 Johnson Denen
 ;; Copyright (C) 2020-2022 Marty Hiatt
@@ -29,8 +29,7 @@
 
 ;;; Commentary:
 
-;; mastodon.el is an Emacs client for Mastodon <https://github.com/mastodon/mastodon>,
-;; the federated microblogging social network. It also works with Pleroma instances and other services that implement the Mastodon API.
+;; mastodon.el is a client for fediverse services that implement the Mastodon API. See <https://github.com/mastodon/mastodon>.
 ;; See the readme file at https://codeberg.org/martianh/mastodon.el for set up and usage details.
 
 ;;; Code:
