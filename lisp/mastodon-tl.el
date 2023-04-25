@@ -1095,7 +1095,7 @@ HELP-ECHO, DISPLAY, and FACE are the text properties to add."
   "Retrieve text content from TOOT.
 Runs `mastodon-tl--render-text' and fetches poll or media."
   (let-alist toot
-    (concat (mastodon-tl--render-text .content toot)
+    (concat (mastodon-tl--render-text (or .reblog.content .content toot))
             (when (or .reblog.poll .poll)
               (mastodon-tl--get-poll toot))
             (mastodon-tl--media toot))))
