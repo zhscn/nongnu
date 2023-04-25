@@ -9,7 +9,7 @@
 * README
 
 =mastodon.el= is an Emacs client for the AcitivityPub social networks that
-implement the Mastodon API. For info see https://joinmastodon.org/.
+implement the Mastodon API. For info see [[https://joinmastodon.org/][joinmastodon.org]].
 
 ** Installation
 
@@ -328,11 +328,11 @@ See =M-x customize-group RET mastodon= to view all customize options.
 
 The incomparable Nicholas Rougier has written an alternative timeline layout for =mastodon.el=.
 
-The repo is at https://github.com/rougier/mastodon-alt.
+The repo is at [[https://github.com/rougier/mastodon-alt][mastodon-alt]].
 
 *** Live-updating timelines: =mastodon-async-mode=
 
-(code taken from https://github.com/alexjgriffith/mastodon-future.el.)
+(code taken from [[https://github.com/alexjgriffith/mastodon-future.el][mastodon-future]].)
 
 Works for federated, local, and home timelines and for notifications. It's a
 little touchy, one thing to avoid is trying to load a timeline more than once
@@ -346,7 +346,7 @@ view a timeline with one of the commands that begin with
 *** Translating toots
 
 You can translate toots with =mastodon-toot--translate-toot-text= (=a= in a timeline). At the moment
-this requires [[https://codeberg.org/martianh/lingva.el][lingva.el]], a little interface I wrote to https://lingva.ml, to
+this requires [[https://codeberg.org/martianh/lingva.el][lingva.el]], a little interface I wrote to [[https://lingva.ml][lingva.ml]], to
 be installed to work.
 
 You could easily modify the simple function to use your Emacs translator of
@@ -372,7 +372,7 @@ to your translator function as its text argument. Here's what
 ** Dependencies
 
 Hard dependencies (should all install with =mastodon.el=):
-- =request= (for uploading attachments), https://github.com/tkf/emacs-request
+- =request= (for uploading attachments), [[https://github.com/tkf/emacs-request][emacs-request]]
 - =persist= for storing some settings across sessions
 - =ts= for poll relative expiry times
 
@@ -422,7 +422,7 @@ PRs, issues, feature requests, and general feedback are very welcome!
 ** Supporting =mastodon.el=
 
 If you'd like to support continued development of =mastodon.el=, I accept
-donations via paypal: [[https://paypal.me/martianh][https://paypal.me/martianh]]. If you would
+donations via paypal: [[https://paypal.me/martianh][paypal.me/martianh]]. If you would
 prefer a different payment method, write to me at that address and I can
 provide IBAN or other details.
 
