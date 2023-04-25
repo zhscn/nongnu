@@ -534,13 +534,10 @@ Used when point is at the start of a byline, i.e. where
 The result is added as an attachments property to author-byline."
   (let ((media-attachments (mastodon-tl--field 'media_attachments toot)))
     (mapcar
-     (lambda (attachement)
-       (let ((remote-url
-              (or (alist-get 'remote_url attachement)
-                  ;; fallback b/c notifications don't have remote_url
-                  (alist-get 'url attachement)))
-             (type (alist-get 'type attachement)))
-         `(:url ,remote-url :type ,type)))
+     (lambda (attachment)
+       (let-alist attachment
+         `(:url ,(or .remote_url .url) ; fallback for notifications
+                :type ,.type)))
      media-attachments)))
 
 (defun mastodon-tl--byline-boosted (toot)
