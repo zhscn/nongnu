@@ -1060,26 +1060,27 @@ text of the toot being replied to in the compose buffer."
           (booster (when boosted
                      (alist-get 'acct
                                 (alist-get 'account toot)))))
-     (mastodon-toot (when user
-                      (if booster
-                          (if (and (not (equal user booster))
-                                   (not (member booster mentions)))
-                              ;; different booster, user and mentions:
-			      (mastodon-toot--mentions-to-string (append (list user booster) mentions nil))
-                            ;; booster is either user or in mentions:
-                            (if (not (member user mentions))
-                                ;; user not already in mentions:
-			        (mastodon-toot--mentions-to-string (append (list user) mentions nil))
-                              ;; user already in mentions:
-                              (mastodon-toot--mentions-to-string (copy-sequence mentions))))
-                        ;; ELSE no booster:
-                        (if (not (member user mentions))
-                            ;; user not in mentions:
-			    (mastodon-toot--mentions-to-string (append (list user) mentions nil))
-                          ;; user in mentions already:
-                          (mastodon-toot--mentions-to-string (copy-sequence mentions)))))
-                    id
-                    (or base-toot toot)))))
+     (mastodon-toot
+      (when user
+        (if booster
+            (if (and (not (equal user booster))
+                     (not (member booster mentions)))
+                ;; different booster, user and mentions:
+		(mastodon-toot--mentions-to-string (append (list user booster) mentions nil))
+              ;; booster is either user or in mentions:
+              (if (not (member user mentions))
+                  ;; user not already in mentions:
+		  (mastodon-toot--mentions-to-string (append (list user) mentions nil))
+                ;; user already in mentions:
+                (mastodon-toot--mentions-to-string (copy-sequence mentions))))
+          ;; ELSE no booster:
+          (if (not (member user mentions))
+              ;; user not in mentions:
+	      (mastodon-toot--mentions-to-string (append (list user) mentions nil))
+            ;; user in mentions already:
+            (mastodon-toot--mentions-to-string (copy-sequence mentions)))))
+      id
+      (or base-toot toot)))))
 
 (defun mastodon-toot--toggle-warning ()
   "Toggle `mastodon-toot--content-warning'."
@@ -1436,6 +1437,8 @@ REPLY-TEXT is the text of the toot being replied to."
          (propertize (truncate-string-to-width
                       (mastodon-tl--render-text reply-text)
                       mastodon-toot-orig-in-reply-length)
+                     'read-only "Edit your message below."
+                     'toot-post-header t
                      'face '(variable-pitch :foreground "#7c6f64"))
        "")
      (propertize
@@ -1463,7 +1466,8 @@ REPLY-JSON is the full JSON of the toot being replied to."
 	  (alist-get 'visibility reply-json)))
         (reply-cw (alist-get 'spoiler_text reply-json)))
     (when reply-to-user
-      (insert (format "%s " reply-to-user))
+      (when (> (length reply-to-user) 0) ; self is "" unforch
+        (insert (format "%s " reply-to-user)))
       (setq mastodon-toot--reply-to-id reply-to-id)
       (unless (equal mastodon-toot--visibility reply-visibility)
         (setq mastodon-toot--visibility reply-visibility))
@@ -1643,7 +1647,9 @@ EDIT means we are editing an existing toot, not composing a new one."
          (buffer-exists (get-buffer buffer-name))
          (buffer (or buffer-exists (get-buffer-create buffer-name)))
          (inhibit-read-only t)
-         (reply-text (alist-get 'content reply-json))
+         (reply-text (alist-get 'content
+                                (or (alist-get 'reblog reply-json)
+                                    reply-json)))
          (previous-window-config (list (current-window-configuration)
                                        (point-marker))))
     (switch-to-buffer-other-window buffer)
