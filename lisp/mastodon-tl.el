@@ -453,13 +453,7 @@ Do so if type of status at poins is not follow_request/follow."
 (defun mastodon-tl--byline-author (toot &optional avatar)
   "Propertize author of TOOT.
 With arg AVATAR, include the account's avatar image."
-  (let* ((account (alist-get 'account toot))
-         (handle (alist-get 'acct account))
-         (name (if (not (string-empty-p (alist-get 'display_name account)))
-                   (alist-get 'display_name account)
-                 (alist-get 'username account)))
-         (profile-url (alist-get 'url account))
-         (avatar-url (alist-get 'avatar account)))
+  (let-alist toot
     (concat
      ;; avatar insertion moved up to `mastodon-tl--byline' by default in order
      ;; to be outside of text prop 'byline t. arg avatar is used by
@@ -470,8 +464,10 @@ With arg AVATAR, include the account's avatar image."
                 (if (version< emacs-version "27.1")
                     (image-type-available-p 'imagemagick)
                   (image-transforms-p)))
-       (mastodon-media--get-avatar-rendering avatar-url))
-     (propertize name
+       (mastodon-media--get-avatar-rendering .account.avatar))
+     (propertize (if (not (string-empty-p .account.display_name))
+                     .account.display_name
+                   .account.username)
                  'face 'mastodon-display-name-face
                  ;; enable playing of videos when point is on byline:
                  'attachments (mastodon-tl--get-attachments-for-byline toot)
@@ -485,15 +481,15 @@ With arg AVATAR, include the account's avatar image."
                              (string-suffix-p "-following*" (buffer-name)))
                    (mastodon-tl--format-byline-help-echo toot)))
      " ("
-     (propertize (concat "@" handle)
+     (propertize (concat "@" .account.acct)
                  'face 'mastodon-handle-face
                  'mouse-face 'highlight
 	         'mastodon-tab-stop 'user-handle
-                 'account account
-	         'shr-url profile-url
+                 'account .account
+	         'shr-url .account.url
 	         'keymap mastodon-tl--link-keymap
-                 'mastodon-handle (concat "@" handle)
-	         'help-echo (concat "Browse user profile of @" handle))
+                 'mastodon-handle (concat "@" .account.acct)
+	         'help-echo (concat "Browse user profile of @" .account.acct))
      ")")))
 
 (defun mastodon-tl--format-byline-help-echo (toot)
