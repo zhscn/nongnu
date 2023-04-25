@@ -893,26 +893,20 @@ IND is the optional indentation level to print at."
 
 (defun mastodon-views--print-instance-rules-or-fields (alist)
   "Print ALIST of instance rules or contact account or emoji fields."
-  (let ((key   (cond ((alist-get 'id alist)
-                      'id)
-                     ((alist-get 'name alist)
-                      'name)
-                     ((alist-get 'shortcode alist)
-                      'shortcode)))
-        (value (cond ((alist-get 'id alist)
-                      'text)
-                     ((alist-get 'value alist)
-                      'value)
-                     ((alist-get 'url alist)
-                      'url))))
+  (let ((key (or (alist-get 'id alist)
+                 (alist-get 'name alist)
+                 (alist-get 'shortcode alist)))
+        (value (or (alist-get 'text alist)
+                   (alist-get 'value alist)
+                   (alist-get 'url alist))))
     (indent-to 4)
     (insert
      (format "%-5s: "
-             (propertize (alist-get key alist)
-                         'face '(:underline t)))
-     (mastodon-views--newline-if-long (alist-get value alist))
+             (propertize key)
+             'face '(:underline t))
+     (mastodon-views--newline-if-long value)
      (format "%s" (mastodon-tl--render-text
-                   (alist-get value alist)))
+                   value))
      "\n")))
 
 (defun mastodon-views--newline-if-long (el)
