@@ -1813,9 +1813,8 @@ If the toot has been boosted use the id found in the
 reblog portion of the toot.  Otherwise, use the body of
 the toot.  This is the same behaviour as the mastodon.social
 webapp"
-  (let ((id (alist-get 'id json))
-        (reblog (alist-get 'reblog json)))
-    (if reblog (alist-get 'id reblog) id)))
+  (let-alist json
+    (if .reblog .reblog.id .id)))
 
 (defun mastodon-tl--toot-or-base (json)
   "Return the base toot or just the toot from toot JSON."
