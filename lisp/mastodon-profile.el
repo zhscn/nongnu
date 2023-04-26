@@ -724,6 +724,7 @@ IMG-TYPE is the JSON key from the account data."
   (if (not (or
             ;; own profile has no need for toot-json test:
             (equal user-handle (mastodon-auth--get-account-name))
+            (mastodon-tl--profile-buffer-p)
             (mastodon-tl--property 'toot-json :no-move)))
       (message "Looks like there's no toot or user at point?")
     (let ((account (mastodon-profile--lookup-account-in-status
