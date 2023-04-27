@@ -536,8 +536,8 @@ The result is added as an attachments property to author-byline."
     (mapcar
      (lambda (attachment)
        (let-alist attachment
-         `(:url ,(or .remote_url .url) ; fallback for notifications
-                :type ,.type)))
+         (list :url (or .remote_url .url) ; fallback for notifications
+               :type .type)))
      media-attachments)))
 
 (defun mastodon-tl--byline-boosted (toot)
