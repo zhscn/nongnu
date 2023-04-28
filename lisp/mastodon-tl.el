@@ -140,7 +140,8 @@ nil."
     (locked    . ("🔒" . "[locked]"))
     (private   . ("🔒" . "[followers]"))
     (direct    . ("✉" . "[direct]"))
-    (edited    . ("✍" . "[edited]")))
+    (edited    . ("✍" . "[edited]"))
+    (replied   . ("⬇" . "[replied]")))
   "A set of symbols (and fallback strings) to be used in timeline.
 If a symbol does not look right (tofu), it means your
 font settings do not support it."
@@ -1264,8 +1265,20 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
        (mastodon-tl--get-poll toot))
      (mastodon-tl--media toot))))
 
+(defun mastodon-tl--prev-toot-id ()
+  (let ((prev-pos (1- (save-excursion
+                        (previous-single-property-change
+                         (point)
+                         'base-toot-id)))))
+    (get-text-property prev-pos 'base-toot-id)))
+
+(defun mastodon-tl--after-reply-status (reply-to-id)
+  ""
+  (let ((prev-id (mastodon-tl--prev-toot-id)))
+    (string= reply-to-id prev-id)))
+
 (defun mastodon-tl--insert-status (toot body author-byline action-byline
-                                        &optional id base-toot detailed-p)
+                                        &optional id base-toot detailed-p thread)
   "Display the content and byline of timeline element TOOT.
 BODY will form the section of the toot above the byline.
 AUTHOR-BYLINE is an optional function for adding the author
@@ -1281,13 +1294,21 @@ status is a favourite or boost notification, BASE-TOOT is the
 JSON of the toot responded to.
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
-  (let ((start-pos (point)))
+  (let* ((start-pos (point))
+         (reply-to-id (alist-get 'in_reply_to_id toot))
+         (after-reply-status-p
+          (when (and thread reply-to-id)
+            (mastodon-tl--after-reply-status reply-to-id))))
     (insert
      (propertize
-      (concat "\n"
-              body
-              " \n"
-              (mastodon-tl--byline toot author-byline action-byline detailed-p))
+      (concat
+       (if (and after-reply-status-p thread)
+           (concat (mastodon-tl--symbol 'replied)
+                   "\n")
+         "")
+       body
+       " \n"
+       (mastodon-tl--byline toot author-byline action-byline detailed-p))
       'toot-id      (or id ; notification's own id
                         (alist-get 'id toot)) ; toot id
       'base-toot-id (mastodon-tl--toot-id
@@ -1363,7 +1384,7 @@ To disable showing the stats, customize
   (and (null (mastodon-tl--field 'in_reply_to_id toot))
        (not (mastodon-tl--field 'rebloged toot))))
 
-(defun mastodon-tl--toot (toot &optional detailed-p)
+(defun mastodon-tl--toot (toot &optional detailed-p thread)
   "Format TOOT and insert it into the buffer.
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
@@ -1377,12 +1398,14 @@ this just means displaying toot client."
    'mastodon-tl--byline-boosted
    nil
    nil
-   detailed-p))
+   detailed-p
+   thread))
 
-(defun mastodon-tl--timeline (toots)
+(defun mastodon-tl--timeline (toots &optional thread)
   "Display each toot in TOOTS.
 This function removes replies if user required."
-  (mapc #'mastodon-tl--toot
+  (mapc (lambda (toot)
+          (mastodon-tl--toot toot nil thread))
         ;; hack to *not* filter replies on profiles:
         (if (eq (mastodon-tl--get-buffer-type) 'profile-statuses)
             toots
@@ -1739,12 +1762,14 @@ view all branches of a thread."
                     (mastodon-tl--set-buffer-spec buffer
                                                   endpoint
                                                   #'mastodon-tl--thread)
-                    (mastodon-tl--timeline (alist-get 'ancestors context))
+                    (mastodon-tl--timeline (alist-get 'ancestors context)
+                                           :thread)
                     (goto-char (point-max))
                     (move-marker marker (point))
                     ;; print re-fetched toot:
-                    (mastodon-tl--toot toot :detailed-p)
-                    (mastodon-tl--timeline (alist-get 'descendants context))
+                    (mastodon-tl--toot toot :detailed-p :thread)
+                    (mastodon-tl--timeline (alist-get 'descendants context)
+                                           :thread)
                     ;; put point at the toot: 
                     (goto-char (marker-position marker))
                     (mastodon-tl--goto-next-toot))))
