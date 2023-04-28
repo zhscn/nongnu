@@ -1266,6 +1266,7 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
      (mastodon-tl--media toot))))
 
 (defun mastodon-tl--prev-toot-id ()
+  "Return the id of the last toot inserted into the buffer."
   (let ((prev-pos (1- (save-excursion
                         (previous-single-property-change
                          (point)
@@ -1273,7 +1274,7 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
     (get-text-property prev-pos 'base-toot-id)))
 
 (defun mastodon-tl--after-reply-status (reply-to-id)
-  ""
+  "T if REPLY-TO-ID is equal to that of the last toot inserted in the bufer."
   (let ((prev-id (mastodon-tl--prev-toot-id)))
     (string= reply-to-id prev-id)))
 
@@ -1293,7 +1294,8 @@ attached as a `toot-id' property if provided. If the
 status is a favourite or boost notification, BASE-TOOT is the
 JSON of the toot responded to.
 DETAILED-P means display more detailed info. For now
-this just means displaying toot client."
+this just means displaying toot client.
+THREAD means the status will be displayed in a thread view."
   (let* ((start-pos (point))
          (reply-to-id (alist-get 'in_reply_to_id toot))
          (after-reply-status-p
@@ -1387,7 +1389,8 @@ To disable showing the stats, customize
 (defun mastodon-tl--toot (toot &optional detailed-p thread)
   "Format TOOT and insert it into the buffer.
 DETAILED-P means display more detailed info. For now
-this just means displaying toot client."
+this just means displaying toot client.
+THREAD means the status will be displayed in a thread view."
   (mastodon-tl--insert-status
    toot
    (mastodon-tl--clean-tabs-and-nl
@@ -1403,7 +1406,8 @@ this just means displaying toot client."
 
 (defun mastodon-tl--timeline (toots &optional thread)
   "Display each toot in TOOTS.
-This function removes replies if user required."
+This function removes replies if user required.
+THREAD means the status will be displayed in a thread view."
   (mapc (lambda (toot)
           (mastodon-tl--toot toot nil thread))
         ;; hack to *not* filter replies on profiles:
@@ -1770,7 +1774,7 @@ view all branches of a thread."
                     (mastodon-tl--toot toot :detailed-p :thread)
                     (mastodon-tl--timeline (alist-get 'descendants context)
                                            :thread)
-                    ;; put point at the toot: 
+                    ;; put point at the toot:
                     (goto-char (marker-position marker))
                     (mastodon-tl--goto-next-toot))))
             ;; else just print the lone toot:
@@ -2123,7 +2127,8 @@ PREFIX is sent to `mastodon-tl--show-tag-timeline', which see."
 
 (defun mastodon-tl--some-followed-tags-timeline (&optional prefix)
   "Prompt for some tags, and open a timeline for them.
-The suggestions are from followed tags, but any other tags are also allowed."
+The suggestions are from followed tags, but any other tags are also allowed.
+PREFIX us sent to `mastodon-tl--show-tag-timeline', which see."
   (interactive "p")
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
          (tags (mastodon-tl--map-alist 'name followed-tags-json))
