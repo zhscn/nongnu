@@ -1723,8 +1723,7 @@ view all branches of a thread."
                (mastodon-http--api (concat "statuses/" id))
                nil
                :silent))
-             (context (mastodon-http--get-json url nil :silent))
-             (marker (make-marker)))
+             (context (mastodon-http--get-json url nil :silent)))
         (if (equal (caar toot) 'error)
             (message "Error: %s" (cdar toot))
           (when (member (alist-get 'type toot) '("reblog" "favourite"))
@@ -1735,7 +1734,8 @@ view all branches of a thread."
               ;; if we have a thread:
               (progn
                 (with-current-buffer (get-buffer-create buffer)
-                  (let ((inhibit-read-only t))
+                  (let ((inhibit-read-only t)
+                        (marker (make-marker)))
                     (switch-to-buffer buffer)
                     (erase-buffer)
                     (mastodon-mode)
@@ -1747,10 +1747,10 @@ view all branches of a thread."
                     (move-marker marker (point))
                     ;; print re-fetched toot:
                     (mastodon-tl--toot toot :detailed-p)
-                    (mastodon-tl--timeline (alist-get 'descendants context))))
-                ;; put point at the toot:
-                (goto-char (marker-position marker))
-                (mastodon-tl--goto-next-toot))
+                    (mastodon-tl--timeline (alist-get 'descendants context))
+                    ;; put point at the toot: 
+                    (goto-char (marker-position marker))
+                    (mastodon-tl--goto-next-toot))))
             ;; else just print the lone toot:
             (mastodon-tl--single-toot id)))))))
 
