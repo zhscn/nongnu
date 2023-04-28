@@ -1308,6 +1308,10 @@ THREAD means the status will be displayed in a thread view."
            (concat (mastodon-tl--symbol 'replied)
                    "\n")
          "")
+       ;; (if (and after-reply-status-p thread)
+       ;; (propertize body
+       ;; 'line-prefix "|")
+       ;; body)
        body
        " \n"
        (mastodon-tl--byline toot author-byline action-byline detailed-p))
