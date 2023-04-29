@@ -147,6 +147,12 @@ If the original toot visibility is different we use the more restricted one."
   "Whether to enable your instance's custom emoji by default."
   :type 'boolean)
 
+(defcustom mastodon-toot--enable-proportional-fonts-compose-buffer nil
+  "Nonnil to enable using proportional fonts in the compose buffer.
+By default fixed width fonts are used."
+  :type '(boolean :tag "Enable using proportional rather than fixed \
+width fonts"))
+
 (defvar-local mastodon-toot--content-warning nil
   "A flag whether the toot should be marked with a content warning.")
 
@@ -1452,7 +1458,7 @@ REPLY-TEXT is the text of the toot being replied to."
        (propertize "None                  "
                    'toot-attachments t)
        "\n")
-      'face font-lock-comment-face
+      'face 'mastodon-toot-docs-face
       'read-only "Edit your message below."
       'toot-post-header t)
      (if reply-text
@@ -1461,12 +1467,12 @@ REPLY-TEXT is the text of the toot being replied to."
                       mastodon-toot-orig-in-reply-length)
                      'read-only "Edit your message below."
                      'toot-post-header t
-                     'face '(variable-pitch :foreground "#7c6f64"))
+                      'face 'mastodon-toot-docs-reply-text-face)
        "")
      (propertize
       (concat divider "\n")
       'rear-nonsticky t
-      'face font-lock-comment-face
+      'face 'mastodon-toot-docs-face
       'read-only "Edit your message below."
       'toot-post-header t))))
 
@@ -1680,6 +1686,8 @@ EDIT means we are editing an existing toot, not composing a new one."
                                        (point-marker))))
     (switch-to-buffer-other-window buffer)
     (text-mode)
+    (when mastodon-toot--enable-proportional-fonts-compose-buffer
+      (variable-pitch-mode))
     (mastodon-toot-mode t)
     (setq mastodon-toot--visibility
           (or (plist-get mastodon-profile-account-settings 'privacy)
@@ -1737,6 +1745,14 @@ EDIT means we are editing an existing toot, not composing a new one."
 (add-hook 'mastodon-toot-mode-hook
           (lambda ()
             (auto-fill-mode -1)))
+
+;; scale fixed-pitch docs relative to any possible variable pitch scaling set:
+(add-hook 'mastodon-toot-mode-hook
+          (lambda ()
+            (when mastodon-toot--enable-proportional-fonts-compose-buffer
+              (let ((height (/ 1 (face-attribute 'variable-pitch :height))))
+                (set-face-attribute 'mastodon-toot-docs-face nil
+                                    :height height)))))
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."
