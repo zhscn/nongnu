@@ -141,7 +141,8 @@ nil."
     (private   . ("🔒" . "[followers]"))
     (direct    . ("✉" . "[direct]"))
     (edited    . ("✍" . "[edited]"))
-    (replied   . ("⬇" . "[replied]")))
+    (replied   . ("⬇" . "↓"))
+    (reply-bar . ("┃" . "|")))
   "A set of symbols (and fallback strings) to be used in timeline.
 If a symbol does not look right (tofu), it means your
 font settings do not support it."
@@ -750,7 +751,7 @@ links in the text. If TOOT is nil no parsing occurs."
       (insert string)
       (let ((shr-use-fonts mastodon-tl--enable-proportional-fonts)
             (shr-width (when mastodon-tl--enable-proportional-fonts
-                         (- (window-width) 1))))
+                         (- (window-width) 3))))
         (shr-render-region (point-min) (point-max)))
       ;; Make all links a tab stop recognized by our own logic, make things point
       ;; to our own logic (e.g. hashtags), and update keymaps where needed:
@@ -1308,11 +1309,13 @@ THREAD means the status will be displayed in a thread view."
            (concat (mastodon-tl--symbol 'replied)
                    "\n")
          "")
-       ;; (if (and after-reply-status-p thread)
-       ;; (propertize body
-       ;; 'line-prefix "|")
-       ;; body)
-       body
+       (if (and after-reply-status-p thread)
+           (let ((bar (mastodon-tl--symbol 'reply-bar)))
+             (propertize body
+                         'line-prefix bar
+                         'wrap-prefix bar))
+         body)
+       ;; body
        " \n"
        (mastodon-tl--byline toot author-byline action-byline detailed-p))
       'toot-id      (or id ; notification's own id
