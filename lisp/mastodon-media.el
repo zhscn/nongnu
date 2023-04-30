@@ -174,7 +174,12 @@ with the image."
                     ;; it; we already have set a default image when we
                     ;; added the tag.
                     (put-text-property marker (+ marker region-length)
-                                       'display image))
+                                       'display image)
+                    (when (not (equal "image"
+                                      (get-text-property marker 'mastodon-media-type)))
+                      (let ((ov (make-overlay marker (+ marker region-length)
+                                              (marker-buffer marker))))
+                        (overlay-put ov 'after-string " ▶"))))
                   ;; We are done with the marker; release it:
                   (set-marker marker nil)))
               (kill-buffer url-buffer)))))))
