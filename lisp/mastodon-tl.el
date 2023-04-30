@@ -1038,8 +1038,7 @@ message is a link which unhides/hides the main body."
 
 (defun mastodon-tl--media-attachment (media-attachment)
   "Return a propertized string for MEDIA-ATTACHMENT."
-  (let* ((preview-url
-          (alist-get 'preview_url media-attachment))
+  (let* ((preview-url (alist-get 'preview_url media-attachment))
          (remote-url
           (or (alist-get 'remote_url media-attachment)
               ;; fallback b/c notifications don't have remote_url
@@ -1056,19 +1055,19 @@ message is a link which unhides/hides the main body."
         (mastodon-media--get-media-link-rendering
          preview-url remote-url type caption) ; 2nd arg for shr-browse-url
       ;; return URL/caption:
-      (concat
-       (mastodon-tl--propertize-img-str-or-url
-        (concat "Media:: " preview-url) ;; string
-        preview-url remote-url type caption
-        display-str ;; display
-        ;; FIXME: shr-link underlining is awful for captions with
-        ;; newlines, as the underlining runs to the edge of the
-        ;; frame even if the text doesn'
-        'shr-link)
-       "\n"))))
+      (concat (mastodon-tl--propertize-img-str-or-url
+               (concat "Media:: " preview-url) ;; string
+               preview-url remote-url type caption
+               display-str ;; display
+               ;; FIXME: shr-link underlining is awful for captions with
+               ;; newlines, as the underlining runs to the edge of the
+               ;; frame even if the text doesn'
+               'shr-link)
+              "\n"))))
 
-(defun mastodon-tl--propertize-img-str-or-url (str media-url full-remote-url type
-                                                   help-echo &optional display face)
+(defun mastodon-tl--propertize-img-str-or-url (str media-url full-remote-url
+                                                   type help-echo
+                                                   &optional display face)
   "Propertize an media placeholder string \"[img]\" or media URL.
 STR is the string to propertize, MEDIA-URL is the preview link,
 FULL-REMOTE-URL is the link to the full resolution image on the
