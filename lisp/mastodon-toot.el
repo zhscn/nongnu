@@ -1560,7 +1560,8 @@ REPLY-JSON is the full JSON of the toot being replied to."
 (defun mastodon-toot--count-toot-chars (toot-string &optional cw)
   "Count the characters in TOOT-STRING.
 URLs always = 23, and domain names of handles are not counted.
-This is how mastodon does it."
+This is how mastodon does it.
+CW is the content warning, which contributes to the character count."
   (with-temp-buffer
     (switch-to-buffer (current-buffer))
     (insert toot-string)
