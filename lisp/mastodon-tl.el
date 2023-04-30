@@ -1305,6 +1305,7 @@ THREAD means the status will be displayed in a thread view."
     (insert
      (propertize
       (concat
+       "\n"
        (if (and after-reply-status-p thread)
            (concat (mastodon-tl--symbol 'replied)
                    "\n")
