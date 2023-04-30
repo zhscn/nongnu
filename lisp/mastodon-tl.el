@@ -2317,7 +2317,6 @@ when showing followers or accounts followed."
 
 (defun mastodon-tl--more ()
   "Append older toots to timeline, asynchronously."
-  (interactive)
   (message "Loading older toots...")
   (if (mastodon-tl--use-link-header-p)
       ;; link-header: can't build a URL with --more-json-async, endpoint/id:

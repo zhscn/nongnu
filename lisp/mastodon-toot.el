@@ -335,7 +335,6 @@ boosting, or bookmarking toots."
 (defun mastodon-toot--toggle-boost-or-favourite (type)
   "Toggle boost or favourite of toot at `point'.
 TYPE is a symbol, either `favourite' or `boost.'"
-  (interactive)
   (mastodon-tl--do-if-toot-strict
    (let* ((boost-p (equal type 'boost))
           (has-id (mastodon-tl--property 'base-toot-id))
