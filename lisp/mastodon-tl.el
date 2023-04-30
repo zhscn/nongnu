@@ -1745,7 +1745,7 @@ view all branches of a thread."
                     ;; print re-fetched toot:
                     (mastodon-tl--toot toot :detailed-p)
                     (mastodon-tl--timeline (alist-get 'descendants context))
-                    ;; put point at the toot: 
+                    ;; put point at the toot:
                     (goto-char (marker-position marker))
                     (mastodon-tl--goto-next-toot))))
             ;; else just print the lone toot:

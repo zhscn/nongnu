@@ -140,6 +140,7 @@ not contain =:client_id= and =:client_secret=.
 | =,=              | view favouriters of toot at point                                               |
 | =.=              | view boosters of toot at point                                                  |
 | =/=              | switch between mastodon buffers                                                 |
+| =Z=              | report user/toot at point to instances moderators                               |
 |----------------+---------------------------------------------------------------------------------|
 |                | *Other views*                                                                     |
 | =s=              | search (posts, users, tags) (NB: only posts you have interacted with)           |

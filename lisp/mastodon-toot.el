@@ -839,7 +839,6 @@ instance to edit a toot."
              (mastodon-http--triage
               response
               (lambda ()
-                (setq masto-poll-toot-response response)
                 (mastodon-toot--kill)
                 (if scheduled
                     (message "Toot scheduled!")
