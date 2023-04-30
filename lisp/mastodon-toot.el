@@ -219,14 +219,14 @@ send.")
    "\\([(\n\t ]\\|^\\)"
    "\\(?2:@[0-9a-zA-Z._-]+" ; a handle
    "\\(@[^ \n\t]*\\)?\\)" ; with poss domain, * = allow only @
-   "\\b"))
+   "\\(\\b\\|'\\)")) ; boundary or ' char
 
 (defvar mastodon-toot-tag-regex
   (concat
    ;; preceding bracket, space or bol [boundary doesn't work with #]
    "\\([(\n\t ]\\|^\\)"
    "\\(?2:#[0-9a-zA-Z_]+\\)" ; tag
-   "\\b")) ; boundary
+   "\\(\\b\\|'\\)")) ; boundary or ' char
 
 (defvar mastodon-toot-url-regex
   ;; adapted from ffap-url-regexp
