@@ -14,12 +14,18 @@ ORG_EVAL2 = --funcall org-texinfo-export-to-info
 
 ## ################################################################
 
-.PHONY: clean
+.PHONY: infoclean tests testsclean
 
 all: $(PKG).info dir
 
-clean:
+infoclean:
 	rm -f $(PKG).org $(PKG).texi $(PKG).info dir
+
+tests:
+	cask emacs -batch -load test/ert-helper.el -f ert-run-tests-batch-and-exit
+
+testsclean:
+	rm -f stubfile.plstore~
 
 ## ################################################################
 

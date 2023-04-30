@@ -191,7 +191,9 @@ user's profile note. This is also called by
 `mastodon-tl--get-follow-suggestions' and
 `mastodon-profile--insert-follow-requests'."
   (mapc (lambda (acct)
-          (insert (mastodon-search--propertize-user acct note)))
+          (insert (concat (mastodon-search--propertize-user acct note)
+                          mastodon-tl--horiz-bar
+                          "\n\n")))
         json))
 
 (defun mastodon-search--propertize-user (acct &optional note)

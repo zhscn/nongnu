@@ -76,10 +76,25 @@ Strict-Transport-Security: max-age=31536000
   (let ((response-buffer
          (get-buffer-create "mastodon-http--triage-buffer")))
     (with-current-buffer response-buffer
-        (erase-buffer)
+      (erase-buffer)
       (insert mastodon-http--example-400))
     (should (equal (mastodon-http--triage
                     response-buffer
                     (lambda ()
                       (message "success call")))
                    "Error 444: some unhappy complaint"))))
+
+(ert-deftest mastodon-http-params-build ()
+  "Should correctly format parameters from an alist."
+  (let ((params '(("q" . "test")
+                  ("foo" . "bar"))))
+    (should (string= (mastodon-http--build-params-string params)
+                     "q=test&foo=bar"))))
+
+(ert-deftest mastodon-http-params-array-build ()
+  "Should correctly format parameters from an alist."
+  (let ((array '("option" "option2"))
+        (param-str "poll[x][]"))
+    (should (equal (mastodon-http--build-array-params-alist param-str array)
+                   '(("poll[x][]" . "option")
+                     ("poll[x][]" . "option2"))))))

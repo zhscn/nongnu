@@ -219,13 +219,20 @@ send.")
    "\\([(\n\t ]\\|^\\)"
    "\\(?2:@[0-9a-zA-Z._-]+" ; a handle
    "\\(@[^ \n\t]*\\)?\\)" ; with poss domain, * = allow only @
-   "\\b"))
+   "\\(\\b\\|'\\)")) ; boundary or ' char
 
 (defvar mastodon-toot-tag-regex
   (concat
    ;; preceding bracket, space or bol [boundary doesn't work with #]
    "\\([(\n\t ]\\|^\\)"
    "\\(?2:#[0-9a-zA-Z_]+\\)" ; tag
+   "\\(\\b\\|'\\)")) ; boundary or ' char
+
+(defvar mastodon-toot-url-regex
+  ;; adapted from ffap-url-regexp
+  (concat
+   "\\(?2:\\(news\\(post\\)?:\\|mailto:\\|file:\\|\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://\\)" ; uri prefix
+   "[^ \n\t]*\\)" ; any old thing that's, i.e. we allow invalid/unwise chars
    "\\b")) ; boundary
 
 (defvar mastodon-toot-mode-map
@@ -764,6 +771,13 @@ to `emojify-user-emojis', and the emoji data is updated."
    `(("poll[multiple]" . ,(symbol-name (plist-get mastodon-toot-poll :multi))))
    `(("poll[hide_totals]" . ,(symbol-name (plist-get mastodon-toot-poll :hide))))))
 
+(defun mastodon-toot--read-cw-string ()
+  "Read a content warning from the minibuffer."
+  (when (and (not (mastodon-toot--empty-p))
+             mastodon-toot--content-warning)
+    (read-string "Warning: "
+                 mastodon-toot--content-warning-from-reply-or-redraft)))
+
 (defun mastodon-toot--send ()
   "POST contents of new-toot buffer to Mastodon instance and kill buffer.
 If media items have been attached and uploaded with
@@ -781,16 +795,13 @@ instance to edit a toot."
               (mastodon-http--api (format "statuses/%s"
                                           edit-id))
             (mastodon-http--api "statuses")))
-         (spoiler (when (and (not (mastodon-toot--empty-p))
-                             mastodon-toot--content-warning)
-                    (read-string "Warning: "
-                                 mastodon-toot--content-warning-from-reply-or-redraft)))
+         (cw (mastodon-toot--read-cw-string))
          (args-no-media (append `(("status" . ,toot)
                                   ("in_reply_to_id" . ,mastodon-toot--reply-to-id)
                                   ("visibility" . ,mastodon-toot--visibility)
                                   ("sensitive" . ,(when mastodon-toot--content-nsfw
                                                     (symbol-name t)))
-                                  ("spoiler_text" . ,spoiler)
+                                  ("spoiler_text" . ,cw)
                                   ("language" . ,mastodon-toot--language))
                                 ;; Pleroma instances can't handle null-valued
                                 ;; scheduled_at args, so only add if non-nil
@@ -816,8 +827,8 @@ instance to edit a toot."
                             (length mastodon-toot--media-attachment-ids)))))
            (message "Something is wrong with your uploads. Wait for them to complete or try again."))
           ((and mastodon-toot--max-toot-chars
-                (> (mastodon-toot--count-toot-chars toot) mastodon-toot--max-toot-chars))
-           (message "Looks like your toot is longer than that maximum allowed length."))
+                (> (mastodon-toot--count-toot-chars toot cw) mastodon-toot--max-toot-chars))
+           (message "Looks like your toot (inc. CW) is longer than that maximum allowed length."))
           ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
           (t
@@ -944,7 +955,6 @@ eg. \"feduser@fed.social\" -> \"@feduser@fed.social\"."
 The mentioned users look like this:
 Local user (including the logged in): `username`.
 Federated user: `username@host.co`."
-  (interactive)
   (let* ((boosted (mastodon-tl--field 'reblog status))
          (mentions
           (if boosted
@@ -1235,8 +1245,18 @@ MAX is the maximum number set by their instance."
 (defun mastodon-toot--read-poll-options (count length)
   "Read a list of options for poll with COUNT options.
 LENGTH is the maximum character length allowed for a poll option."
-  (cl-loop for x from 1 to count
-           collect (read-string (format "Poll option [%s/%s] [max %s chars]: " x count length))))
+  (let* ((choices
+          (cl-loop for x from 1 to count
+                   collect (read-string
+                            (format "Poll option [%s/%s] [max %s chars]: "
+                                    x count length))))
+         (longest (cl-reduce #'max (mapcar #'length choices))))
+    (if (> longest length)
+        (progn
+          (message "looks like you went over the max length. Try again.")
+          (sleep-for 2)
+          (mastodon-toot--read-poll-options count length))
+      choices)))
 
 (defun mastodon-toot--read-poll-expiry ()
   "Prompt for a poll expiry time."
@@ -1434,12 +1454,14 @@ REPLY-TEXT is the text of the toot being replied to."
       'read-only "Edit your message below."
       'toot-post-header t)
      (if reply-text
-         (propertize (truncate-string-to-width
-                      (mastodon-tl--render-text reply-text)
-                      mastodon-toot-orig-in-reply-length)
-                     'read-only "Edit your message below."
-                     'toot-post-header t
-                     'face '(variable-pitch :foreground "#7c6f64"))
+         (concat
+          (propertize (truncate-string-to-width
+                       (mastodon-tl--render-text reply-text)
+                       mastodon-toot-orig-in-reply-length)
+                      'read-only "Edit your message below."
+                      'toot-post-header t
+                      'face '(variable-pitch :foreground "#7c6f64"))
+          "\n")
        "")
      (propertize
       (concat divider "\n")
@@ -1529,7 +1551,7 @@ REPLY-JSON is the full JSON of the toot being replied to."
                            (list 'invisible (not mastodon-toot--content-warning)
                                  'face 'mastodon-cw-face)))))
 
-(defun mastodon-toot--count-toot-chars (toot-string)
+(defun mastodon-toot--count-toot-chars (toot-string &optional cw)
   "Count the characters in TOOT-STRING.
 URLs always = 23, and domain names of handles are not counted.
 This is how mastodon does it."
@@ -1547,7 +1569,8 @@ This is how mastodon does it."
                                           "\\b")
                                   nil t)
       (replace-match (match-string 2))) ; replace with handle only
-    (length (buffer-substring (point-min) (point-max)))))
+    (+ (length cw)
+       (length (buffer-substring (point-min) (point-max))))))
 
 (defun mastodon-toot--save-toot-text (&rest _args)
   "Save the current toot text in `mastodon-toot-current-toot-text'.
@@ -1615,6 +1638,9 @@ Added to `after-change-functions'."
                                       (cdr header-region))
       (mastodon-toot--propertize-item mastodon-toot-handle-regex
                                       'mastodon-display-name-face
+                                      (cdr header-region))
+      (mastodon-toot--propertize-item mastodon-toot-url-regex
+                                      'link
                                       (cdr header-region)))))
 
 (defun mastodon-toot--propertize-item (regex face start)
