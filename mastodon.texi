@@ -70,7 +70,7 @@ Contributing
 @chapter README
 
 @samp{mastodon.el} is an Emacs client for the AcitivityPub social networks that
-implement the Mastodon API@. For info see @uref{https://joinmastodon.org/}.
+implement the Mastodon API@. For info see @uref{https://joinmastodon.org/, joinmastodon.org}.
 
 @menu
 * Installation::
@@ -267,6 +267,8 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @tab view boosters of toot at point
 @item @samp{/}
 @tab switch between mastodon buffers
+@item @samp{Z}
+@tab report user/toot at point to instances moderators
 @item 
 @tab @strong{Other views}
 @item @samp{s}
@@ -348,9 +350,9 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @multitable {aaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaa}
 @headitem Marker
 @tab Meaning
-@item @samp{(B)}
+@item @samp{(🔁)} (or @samp{(B)})
 @tab I boosted this toot
-@item @samp{(F)}
+@item @samp{(⭐)} (or @samp{(F)})
 @tab I favourited this toot
 @item @samp{(🔖)} (or (@samp{K}))
 @tab I bookmarked this toot
@@ -497,6 +499,10 @@ instance.
 @samp{mastodon-tl--unfollow-tag}: Unfollow a tag
 @item
 @samp{mastodon-tl--list-followed-tags}: View a list of tags you're following.
+@item
+@samp{mastodon-tl--followed-tags-timeline}: View a timeline of all your followed tags.
+@item
+@samp{mastodon-tl--some-followed-tags-timleine}: View a timeline of multiple tags, from your followed tags or any other.
 @end itemize
 
 
@@ -580,12 +586,12 @@ Set default reply visibility
 
 The incomparable Nicholas Rougier has written an alternative timeline layout for @samp{mastodon.el}.
 
-The repo is at @uref{https://github.com/rougier/mastodon-alt}.
+The repo is at @uref{https://github.com/rougier/mastodon-alt, mastodon-alt}.
 
 @node Live-updating timelines @samp{mastodon-async-mode}
 @subsection Live-updating timelines: @samp{mastodon-async-mode}
 
-(code taken from @uref{https://github.com/alexjgriffith/mastodon-future.el}.)
+(code taken from @uref{https://github.com/alexjgriffith/mastodon-future.el, mastodon-future}.)
 
 Works for federated, local, and home timelines and for notifications. It's a
 little touchy, one thing to avoid is trying to load a timeline more than once
@@ -600,7 +606,7 @@ view a timeline with one of the commands that begin with
 @subsection Translating toots
 
 You can translate toots with @samp{mastodon-toot--translate-toot-text} (@samp{a} in a timeline). At the moment
-this requires @uref{https://codeberg.org/martianh/lingva.el, lingva.el}, a little interface I wrote to @uref{https://lingva.ml}, to
+this requires @uref{https://codeberg.org/martianh/lingva.el, lingva.el}, a little interface I wrote to @uref{https://lingva.ml, lingva.ml}, to
 be installed to work.
 
 You could easily modify the simple function to use your Emacs translator of
@@ -631,7 +637,7 @@ to your translator function as its text argument. Here's what
 Hard dependencies (should all install with @samp{mastodon.el}):
 @itemize
 @item
-@samp{request} (for uploading attachments), @uref{https://github.com/tkf/emacs-request}
+@samp{request} (for uploading attachments), @uref{https://github.com/tkf/emacs-request, emacs-request}
 @item
 @samp{persist} for storing some settings across sessions
 @item
@@ -720,7 +726,7 @@ There's no need for a blank line after the first docstring line (one is added au
 @section Supporting @samp{mastodon.el}
 
 If you'd like to support continued development of @samp{mastodon.el}, I accept
-donations via paypal: @uref{https://paypal.me/martianh, https://paypal.me/martianh}. If you would
+donations via paypal: @uref{https://paypal.me/martianh, paypal.me/martianh}. If you would
 prefer a different payment method, write to me at that address and I can
 provide IBAN or other details.
 
