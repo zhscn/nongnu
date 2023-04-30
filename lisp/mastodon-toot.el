@@ -956,7 +956,6 @@ eg. \"feduser@fed.social\" -> \"@feduser@fed.social\"."
 The mentioned users look like this:
 Local user (including the logged in): `username`.
 Federated user: `username@host.co`."
-  (interactive)
   (let* ((boosted (mastodon-tl--field 'reblog status))
          (mentions
           (if boosted
