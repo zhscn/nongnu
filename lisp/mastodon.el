@@ -241,6 +241,20 @@ Use. e.g. \"%c\" for your locale's date and time format."
   '((t :inherit success))
   "Face used for content warning.")
 
+(defface mastodon-toot-docs-face
+  `((t :inherit font-lock-comment-face
+       :height 1.0
+       :family ,(face-attribute 'default :family)))
+  "Face used for documentation in toot compose buffer.
+If `mastodon-tl--enable-proportional-fonts' is changed,
+mastodon.el needs to be re-loaded for this to be correctly set.")
+
+(defface mastodon-toot-docs-reply-text-face
+  `((t :inherit font-lock-comment-face
+       :family ,(face-attribute 'variable-pitch :family)))
+  "Face used for reply text in toot compose buffer.
+See `mastodon-toot-display-orig-in-reply-buffer'.")
+
 ;;;###autoload
 (defun mastodon ()
   "Connect Mastodon client to `mastodon-instance-url' instance."
