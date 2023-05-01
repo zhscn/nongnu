@@ -643,7 +643,13 @@ Store the result in TARGET-BUF when non-nil."
 (defun diff-ansi-progressive-highlight-impl (buf beg range timer)
   "Callback to update colors for BUF in RANGE for TIMER.
 Argument BEG is only used to calculate the progress percentage."
-  (unless (input-pending-p)
+  (cond
+   ((not (buffer-live-p buf))
+    ;; The buffer was closed (most likely by the user) while the timer was running,  cancel it.
+    (cancel-timer timer))
+   ((input-pending-p)
+    nil)
+   (t
     (with-current-buffer buf
       (cond
        ((null diff-ansi--ansi-color-timer)
@@ -691,7 +697,7 @@ Argument BEG is only used to calculate the progress percentage."
 
           ;; Re-display outside the block that moves the cursor.
           (when do-redisplay
-            (redisplay))))))))
+            (redisplay)))))))))
 
 (defun diff-ansi--progressive-impl (beg end &optional target-buf)
   "Colorize the text between BEG and END using a timer.
