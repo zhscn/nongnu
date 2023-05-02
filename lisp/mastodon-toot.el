@@ -505,7 +505,7 @@ With FAVOURITE, list favouriters, else list boosters."
 
 (defun mastodon-toot--copy-toot-url ()
   "Copy URL of toot at point.
-If the toot is a fave/boost notification, copy the URLof the
+If the toot is a fave/boost notification, copy the URL of the
 base toot."
   (interactive)
   (let* ((toot (or (mastodon-tl--property 'base-toot)
