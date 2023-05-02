@@ -1235,7 +1235,7 @@ To disable showing the stats, customize
                       ""))
                'face 'font-lock-comment-face)
               (let ((str (if (eq .poll.expired :json-false)
-                             (mastodon-tl--format-poll-expiry expiry)
+                             (mastodon-tl--format-poll-expiry .poll.expires_at)
                            "Poll expired.")))
                 (propertize str 'face 'font-lock-comment-face))
               "\n"))))
