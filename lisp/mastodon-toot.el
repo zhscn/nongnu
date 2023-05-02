@@ -356,37 +356,41 @@ TYPE is a symbol, either `favourite' or `boost.'"
           (visibility (mastodon-tl--field 'visibility
                                           (mastodon-tl--property 'toot-json))))
      (if byline-region
-         (cond ;; actually there's nothing wrong with faving/boosting own toots!
-          ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
-          ;;(error "You can't %s your own toots" action-string))
-          ;; & nothing wrong with faving/boosting own toots from notifs:
-          ;; this boosts/faves the base toot, not the notif status
-          ((and (equal "reblog" toot-type)
-                (not (mastodon-tl--buffer-type-eq 'notifications)))
-           (error "You can't %s boosts" action-string))
-          ((and (equal "favourite" toot-type)
-                (not (mastodon-tl--buffer-type-eq 'notifications)))
-           (error "You can't %s favourites" action-string))
-          ((and (equal "private" visibility)
-                (equal type 'boost))
-           (error "You can't boost private toots"))
-          (t
-           (mastodon-toot--action
-            action
-            (lambda ()
-              (let ((inhibit-read-only t))
-                (add-text-properties (car byline-region)
-                                     (cdr byline-region)
-                                     (if boost-p
-                                         (list 'boosted-p (not boosted))
-                                       (list 'favourited-p (not faved))))
-                (mastodon-toot--update-stats-on-action type remove)
-                (mastodon-toot--action-success
-                 (if boost-p
-                     (mastodon-tl--symbol 'boost)
-                   (mastodon-tl--symbol 'favourite))
-                 byline-region remove))
-              (message (format "%s #%s" (if boost-p msg action) id))))))
+         (if (and (or (equal visibility "direct")
+                      (equal visibility "unlisted"))
+                  boost-p)
+             (message "You cant boost posts with visibility: %s" visibility)
+           (cond ;; actually there's nothing wrong with faving/boosting own toots!
+            ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
+            ;;(error "You can't %s your own toots" action-string))
+            ;; & nothing wrong with faving/boosting own toots from notifs:
+            ;; this boosts/faves the base toot, not the notif status
+            ((and (equal "reblog" toot-type)
+                  (not (mastodon-tl--buffer-type-eq 'notifications)))
+             (error "You can't %s boosts" action-string))
+            ((and (equal "favourite" toot-type)
+                  (not (mastodon-tl--buffer-type-eq 'notifications)))
+             (error "You can't %s favourites" action-string))
+            ((and (equal "private" visibility)
+                  (equal type 'boost))
+             (error "You can't boost private toots"))
+            (t
+             (mastodon-toot--action
+              action
+              (lambda ()
+                (let ((inhibit-read-only t))
+                  (add-text-properties (car byline-region)
+                                       (cdr byline-region)
+                                       (if boost-p
+                                           (list 'boosted-p (not boosted))
+                                         (list 'favourited-p (not faved))))
+                  (mastodon-toot--update-stats-on-action type remove)
+                  (mastodon-toot--action-success
+                   (if boost-p
+                       (mastodon-tl--symbol 'boost)
+                     (mastodon-tl--symbol 'favourite))
+                   byline-region remove))
+                (message (format "%s #%s" (if boost-p msg action) id)))))))
        (message (format "Nothing to %s here?!?" action-string))))))
 
 (defun mastodon-toot--inc-or-dec (count subtract)
