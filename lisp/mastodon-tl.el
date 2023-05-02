@@ -1601,14 +1601,9 @@ buffers that aren't strictly mastodon timelines."
 We hide replies if user explictly set the
 `mastodon-tl--hide-replies' or used PREFIX combination to open a
 timeline."
-  (and
-   ;; Only hide replies if we are in a proper timeline
-   (mastodon-tl--timeline-proper-p)
-   (or
-    ;; User configured to hide replies
-    mastodon-tl--hide-replies
-    ;; Timeline called with C-u prefix
-    (equal '(4) prefix))))
+  (and (mastodon-tl--timeline-proper-p) ; Only if we are in a proper timeline
+       (or mastodon-tl--hide-replies ; User configured to hide replies
+           (equal '(4) prefix)))) ; Timeline called with C-u prefix
 
 
 ;;; UTILITIES
