@@ -1420,6 +1420,19 @@ LONGEST is the length of the longest binding."
                  longest-kbind)
                 nil))))
 
+(defun mastodon-toot--format-reply-in-compose-string (reply-text)
+  "Format a REPLY-TEXT for display in compose buffer docs."
+  (let* ((rendered (mastodon-tl--render-text reply-text))
+         (no-newlines (replace-regexp-in-string "\n\n" "\n" rendered)))
+    (concat " Reply to:\n\""
+            ;; (propertize
+            (truncate-string-to-width
+             no-newlines
+             mastodon-toot-orig-in-reply-length)
+            ;; overridden by containing propertize call:
+            ;; 'face 'mastodon-toot-docs-reply-text-face)
+            "...\"\n")))
+
 (defun mastodon-toot--display-docs-and-status-fields (&optional reply-text)
   "Insert propertized text with documentation about `mastodon-toot-mode'.
 Also includes and the status fields which will get updated based
@@ -1454,22 +1467,12 @@ REPLY-TEXT is the text of the toot being replied to."
        " Attachments: "
        (propertize "None                  "
                    'toot-attachments t)
+       "\n"
+       (if reply-text
+           (mastodon-toot--format-reply-in-compose-string reply-text)
+         "")
+       divider
        "\n")
-      'face 'mastodon-toot-docs-face
-      'read-only "Edit your message below."
-      'toot-post-header t)
-     (if reply-text
-         (concat
-          (propertize (truncate-string-to-width
-                       (mastodon-tl--render-text reply-text)
-                       mastodon-toot-orig-in-reply-length)
-                      'read-only "Edit your message below."
-                      'toot-post-header t
-                      'face 'mastodon-toot-docs-reply-text-face)
-          "\n")
-       "")
-     (propertize
-      (concat divider "\n")
       'rear-nonsticky t
       'face 'mastodon-toot-docs-face
       'read-only "Edit your message below."
