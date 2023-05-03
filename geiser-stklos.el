@@ -211,7 +211,7 @@ Optional argument ARGS are the arguments to the procedure."
 ;;; Modules
 
 (defconst geiser-stklos--module-re
-  "(define-module +\\([^) ]+\\)"
+  "(define-\\(module\\|library\\) +\\([^) ]+\\)"
   "Regular expression used to try to guess which module the current file is associated to.")
 
 
@@ -243,9 +243,9 @@ if a closing match is not found."
 ;; find which module should be used for the position where the
 ;; cursor is.
 ;; if the user is editing text inside a module definition -- which is
-;; between "(define-module " and its closing parenthesis, then
-;; the current module should be taken as that one, so defines and sets
-;; will be done inside that module.
+;; between "(define-module " or "(define-library " and its closing
+;; parenthesis, then the current module should be taken as that one,
+;; so defines and sets will be done inside that module.
 (defun geiser-stklos--get-module (&optional module)
   "Find which MODULE should be used for the position where the cursor is."
   (cond ((null module)
