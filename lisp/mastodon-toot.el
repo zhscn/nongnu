@@ -1140,12 +1140,12 @@ text of the toot being replied to in the compose buffer."
   (mastodon-toot--refresh-attachments-display)
   (mastodon-toot--update-status-fields))
 
-(defun mastodon-toot--attach-media (file content-type description)
-  "Prompt for an attachment FILE of CONTENT-TYPE with DESCRIPTION.
+(defun mastodon-toot--attach-media (file description)
+  "Prompt for an attachment FILE with DESCRIPTION.
 A preview is displayed in the new toot buffer, and the file
 is uploaded asynchronously using `mastodon-toot--upload-attached-media'.
 File is actually attached to the toot upon posting."
-  (interactive "fFilename: \nsContent type: \nsDescription: ")
+  (interactive "fFilename: \nsDescription: ")
   (when (>= (length mastodon-toot--media-attachments) 4)
     ;; Only a max. of 4 attachments are allowed, so pop the oldest one.
     (pop mastodon-toot--media-attachments))
@@ -1154,7 +1154,6 @@ File is actually attached to the toot upon posting."
     (setq mastodon-toot--media-attachments
           (nconc mastodon-toot--media-attachments
                  `(((:contents . ,(mastodon-http--read-file-as-string file))
-                    (:content-type . ,content-type)
                     (:description . ,description)
                     (:filename . ,file)))))
     (mastodon-toot--refresh-attachments-display)
@@ -1196,12 +1195,11 @@ which is used to attach it to a toot when posting."
                                            (when image-options 'imagemagick)
                                          nil) ; inbuilt scaling in 27.1
                                        t image-options))
-                         (type (alist-get :content-type attachment))
                          (description (alist-get :description attachment)))
                     (setq counter (1+ counter))
                     (list (format "\n    %d: " counter)
                           image
-                          (format " \"%s\" (%s)" description type))))
+                          (format " \"%s\"" description))))
                 mastodon-toot--media-attachments))
       (list "None")))
 
