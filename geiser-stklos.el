@@ -408,8 +408,8 @@ Argument BINARY is a string containing the binary name."
 
 ;; STklos files are .stk, and we may wat to open .scm files with STklos also:
 ;;
-(geiser-impl--add-to-alist 'regexp "\\.scm$" 'stklos t)
-(geiser-impl--add-to-alist 'regexp "\\.stk$" 'stklos t)
+(geiser-implementation-extension 'stklos "scm")
+(geiser-implementation-extension 'stklos "stk")
 
 
 (provide 'geiser-stklos)
