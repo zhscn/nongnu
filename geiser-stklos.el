@@ -127,12 +127,13 @@ option."
   :type 'boolean
   :group 'geiser-stklos)
 
-;; (geiser-custom--defcustom geiser-stklos-log-file
-;;     nil
-;;   "Name of the file where the STklos part of the system will log its
-;; actions."
-;;   :type 'string
-;;   :group 'geiser-stklos)
+(geiser-custom--defcustom geiser-stklos-log-file
+    ""
+  "Name of the file where the STklos part of the system will log its
+actions. FOR GEISER-STKLOS DEVELOPMENT ONLY -- currently there is no
+effect for the common user."
+  :type 'string
+  :group 'geiser-stklos)
 
 ;; (geiser-custom--defcustom geiser-emacs-log-buffer
 ;;     '*geiser-log*
@@ -360,8 +361,12 @@ Argument BINARY is a string containing the binary name."
   "Hook for startup.  The argument is ignored."
   (let ((geiser-log-verbose-p t))
     (compilation-setup t)
-    (geiser:eval "GEISER" geiser:set-log-file geiser-stklos-log-file)))
-
+    (let ((c (if (zerop (length geiser-stklos-log-file))
+                 "(newline)"
+                 (concat "(begin (geiser:eval \"GEISER\" geiser:set-log-file "
+                         geiser-stklos-log-file
+                         ") (newline))"))))
+      (geiser-eval--send/wait c))))
 
 (defconst geiser-stklos-builtin-keywords
   '("assume"
