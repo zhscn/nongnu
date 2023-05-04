@@ -419,6 +419,10 @@ Argument BINARY is a string containing the binary name."
 (geiser-implementation-extension 'stklos "scm")
 (geiser-implementation-extension 'stklos "stk")
 
+(geiser-activate-implementation 'stklos)
+
+(autoload 'run-stklos "geiser-stklos" "Start a Geiser STklos Scheme REPL." t)
+
 
 (provide 'geiser-stklos)
 
