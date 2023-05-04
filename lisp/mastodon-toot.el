@@ -130,7 +130,8 @@ You need to install company yourself to use this."
   "Display a copy of the toot replied to in the compose buffer."
   :type 'boolean)
 
-(defcustom mastodon-toot-orig-in-reply-length 160
+(defcustom mastodon-toot-orig-in-reply-length 191
+  ;; three lines of divider width: (- (* 3 67) (length " Reply to: "))
   "Length to crop toot replied to in the compose buffer to."
   :type 'integer)
 
@@ -1422,15 +1423,14 @@ LONGEST is the length of the longest binding."
 (defun mastodon-toot--format-reply-in-compose-string (reply-text)
   "Format a REPLY-TEXT for display in compose buffer docs."
   (let* ((rendered (mastodon-tl--render-text reply-text))
-         (no-newlines (replace-regexp-in-string "\n\n" "\n" rendered)))
-    (concat " Reply to:\n\""
-            ;; (propertize
-            (truncate-string-to-width
-             no-newlines
-             mastodon-toot-orig-in-reply-length)
-            ;; overridden by containing propertize call:
-            ;; 'face 'mastodon-toot-docs-reply-text-face)
-            "...\"\n")))
+         (no-newlines (replace-regexp-in-string "\n\n" "\n" rendered))
+         (crop (string-limit
+                (concat " Reply to: " no-newlines)
+                mastodon-toot-orig-in-reply-length)))
+    (if (> (length no-newlines)
+           (length crop)) ; we cropped:
+        (concat crop "\n")
+      no-newlines)))
 
 (defun mastodon-toot--display-docs-and-status-fields (&optional reply-text)
   "Insert propertized text with documentation about `mastodon-toot-mode'.
