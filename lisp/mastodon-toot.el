@@ -1750,6 +1750,8 @@ EDIT means we are editing an existing toot, not composing a new one."
     (cl-pushnew #'mastodon-toot--propertize-tags-and-handles after-change-functions)
     ;; if we set this before changing modes, it gets nuked:
     (setq mastodon-toot-previous-window-config previous-window-config)
+    (when mastodon-toot--proportional-fonts-compose
+      (facemenu-set-face 'variable-pitch))
     (when initial-text
       (insert initial-text))))
 
