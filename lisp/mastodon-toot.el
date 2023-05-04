@@ -1740,12 +1740,13 @@ EDIT means we are editing an existing toot, not composing a new one."
     ;; after-change:
     (make-local-variable 'after-change-functions)
     (cl-pushnew #'mastodon-toot--update-status-fields after-change-functions)
-    (mastodon-toot--refresh-attachments-display)
-    (mastodon-toot--update-status-fields)
-    ;; draft toot text saving:
-    (setq mastodon-toot-current-toot-text nil)
     (cl-pushnew #'mastodon-toot--save-toot-text after-change-functions)
     (cl-pushnew #'mastodon-toot--propertize-tags-and-handles after-change-functions)
+    (mastodon-toot--update-status-fields)
+    (mastodon-toot--propertize-tags-and-handles)
+    (mastodon-toot--refresh-attachments-display)
+    ;; draft toot text saving:
+    (setq mastodon-toot-current-toot-text nil)
     ;; if we set this before changing modes, it gets nuked:
     (setq mastodon-toot-previous-window-config previous-window-config)
     (when mastodon-toot--proportional-fonts-compose
