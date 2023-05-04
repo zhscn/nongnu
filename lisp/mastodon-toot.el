@@ -1424,9 +1424,8 @@ LONGEST is the length of the longest binding."
   "Format a REPLY-TEXT for display in compose buffer docs."
   (let* ((rendered (mastodon-tl--render-text reply-text))
          (no-newlines (replace-regexp-in-string "\n\n" "\n" rendered))
-         (crop (string-limit
-                (concat " Reply to: " no-newlines)
-                mastodon-toot-orig-in-reply-length)))
+         (crop (string-limit (concat " Reply to: " no-newlines)
+                             mastodon-toot-orig-in-reply-length)))
     (if (> (length no-newlines)
            (length crop)) ; we cropped:
         (concat crop "\n")
@@ -1644,7 +1643,6 @@ Added to `after-change-functions'."
       ;; cull any prev props:
       ;; stops all text after a handle or mention being propertized:
       (set-text-properties (cdr header-region) (point-max) `(face ,face))
-      ;; TODO: confirm allowed hashtag/handle characters:
       (mastodon-toot--propertize-item mastodon-toot-tag-regex
                                       'success
                                       (cdr header-region))
