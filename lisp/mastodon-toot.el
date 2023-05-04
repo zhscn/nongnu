@@ -1638,10 +1638,12 @@ Added to `after-change-functions'."
   (when (mastodon-toot--compose-buffer-p)
     (let ((header-region
            (mastodon-tl--find-property-range 'toot-post-header
-                                             (point-min))))
+                                             (point-min)))
+          (face (when mastodon-toot--proportional-fonts-compose
+                  'variable-pitch)))
       ;; cull any prev props:
       ;; stops all text after a handle or mention being propertized:
-      (set-text-properties (cdr header-region) (point-max) nil)
+      (set-text-properties (cdr header-region) (point-max) `(face ,face))
       ;; TODO: confirm allowed hashtag/handle characters:
       (mastodon-toot--propertize-item mastodon-toot-tag-regex
                                       'success
