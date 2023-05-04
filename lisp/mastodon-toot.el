@@ -1468,7 +1468,9 @@ REPLY-TEXT is the text of the toot being replied to."
                    'toot-attachments t)
        "\n"
        (if reply-text
-           (mastodon-toot--format-reply-in-compose-string reply-text)
+           (propertize
+            (mastodon-toot--format-reply-in-compose-string reply-text)
+            'toot-reply t)
          "")
        divider
        "\n")
@@ -1665,6 +1667,16 @@ Added to `after-change-functions'."
   (or (mastodon-tl--buffer-type-eq 'edit-toot)
       (mastodon-tl--buffer-type-eq 'new-toot)))
 
+(defun mastodon-toot--fill-reply-in-compose ()
+  (save-excursion
+    (save-match-data
+      (goto-char (point-min))
+      (let* ((fill-column 67)
+             (prop (text-property-search-forward 'toot-reply)))
+        (when prop
+          (fill-region (prop-match-beginning prop)
+                       (point)))))))
+
 ;; NB: now that we have toot drafts, to ensure offline composing remains
 ;; possible, avoid any direct requests here:
 (defun mastodon-toot--compose-buffer (&optional reply-to-user
@@ -1697,9 +1709,11 @@ EDIT means we are editing an existing toot, not composing a new one."
               (mastodon-profile--get-source-pref 'privacy)
               "public")) ; fallback
     (unless buffer-exists
-      (mastodon-toot--display-docs-and-status-fields
-       (when mastodon-toot-display-orig-in-reply-buffer
-         reply-text))
+      (if mastodon-toot-display-orig-in-reply-buffer
+          (progn
+            (mastodon-toot--display-docs-and-status-fields reply-text)
+            (mastodon-toot--fill-reply-in-compose))
+        (mastodon-toot--display-docs-and-status-fields))
       ;; `reply-to-user' (alone) is also used by `mastodon-tl--dm-user', so
       ;; perhaps we should not always call --setup-as-reply, or make its
       ;; workings conditional on reply-to-id. currently it only checks for
