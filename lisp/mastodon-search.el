@@ -100,7 +100,7 @@ QUERY is the string to search."
             status-ids-list)))
 
 (defun mastodon-search--view-trending (type print-fun)
-  "Display a list of tags trending on your instance.
+  "Display a list of items trending on your instance.
 TYPE is a string, either tags, statuses, or links.
 PRINT-FUN is the function used to print the data from the response."
   (let* ((url (mastodon-http--api
@@ -119,22 +119,19 @@ PRINT-FUN is the function used to print the data from the response."
                       (message "todo"))))
          (buffer (get-buffer-create
                   (format "*mastodon-trending-%s*" type))))
-    (with-current-buffer buffer
-      (switch-to-buffer (current-buffer))
-      (mastodon-mode)
-      (let ((inhibit-read-only t))
-        (erase-buffer)
-        (mastodon-tl--set-buffer-spec (buffer-name buffer)
-                                      (format "api/v1/trends/%s" type)
-                                      nil)
-        (insert (mastodon-tl--set-face
-                 (concat "\n " mastodon-tl--horiz-bar "\n"
-                         (upcase (format " TRENDING %s\n" type))
-                         " " mastodon-tl--horiz-bar "\n\n")
-                 'success))
-        (funcall print-fun data)
-        (unless (equal type "statuses")
-          (goto-char (point-min)))))))
+    (with-mastodon-buffer
+     buffer #'mastodon-mode nil
+     (mastodon-tl--set-buffer-spec (buffer-name buffer)
+                                   (format "api/v1/trends/%s" type)
+                                   nil)
+     (insert (mastodon-tl--set-face
+              (concat "\n " mastodon-tl--horiz-bar "\n"
+                      (upcase (format " TRENDING %s\n" type))
+                      " " mastodon-tl--horiz-bar "\n\n")
+              'success))
+     (funcall print-fun data)
+     (unless (equal type "statuses")
+       (goto-char (point-min))))))
 
 ;; functions for mastodon search
 
@@ -155,7 +152,7 @@ PRINT-FUN is the function used to print the data from the response."
          (toots-list-json
           (mastodon-search--get-full-statuses-data statuses)))
     (with-mastodon-buffer
-     buffer
+     buffer #'mastodon-mode nil
      (mastodon-tl--set-buffer-spec buffer
                                    "api/v2/search"
                                    nil)

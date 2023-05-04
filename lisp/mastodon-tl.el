@@ -1711,12 +1711,11 @@ ID is that of the toot to view."
     (if (equal (caar toot) 'error)
         (message "Error: %s" (cdar toot))
       (with-mastodon-buffer
-       buffer
+       buffer #'mastodon-mode nil
        (mastodon-tl--set-buffer-spec buffer
                                      (format "statuses/%s" id)
                                      nil)
-       (let ((inhibit-read-only t))
-         (mastodon-tl--toot toot :detailed-p))))))
+       (mastodon-tl--toot toot :detailed-p)))))
 
 (defun mastodon-tl--view-whole-thread ()
   "From a thread view, view entire thread.
@@ -1757,7 +1756,7 @@ view all branches of a thread."
                  0)
               ;; if we have a thread:
               (with-mastodon-buffer
-               buffer
+               buffer #'mastodon-mode nil
                (let ((marker (make-marker)))
                  (mastodon-tl--set-buffer-spec buffer
                                                endpoint
@@ -2567,7 +2566,7 @@ JSON and http headers, without it just the JSON."
       (let* ((headers (if headers (cdr response) nil))
              (link-header (mastodon-tl--get-link-header-from-response headers)))
         (with-mastodon-buffer
-         buffer
+         buffer #'mastodon-mode nil
          (mastodon-tl--set-buffer-spec buffer
                                        endpoint
                                        update-function
@@ -2607,12 +2606,7 @@ Optional arg NOTE-TYPE means only get that type of note."
          (buffer (concat "*mastodon-" buffer-name "*"))
          (json (mastodon-http--get-json url args)))
     (with-mastodon-buffer
-     buffer
-     ;; mastodon-mode wipes buffer-spec, so order must unforch be:
-     ;; 1 run update-function, 2 enable masto-mode, 3 set buffer spec.
-     ;; which means we cannot use buffer-spec for update-function
-     ;; unless we set it both before and after the others
-     (mastodon-tl--set-buffer-spec buffer endpoint update-function)
+     buffer #'mastodon-mode nil
      (setq
       ;; Initialize with a minimal interval; we re-scan at least once
       ;; every 5 minutes to catch any timestamps we may have missed

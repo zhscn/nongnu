@@ -799,30 +799,27 @@ INSTANCE is the instance were are working with."
     (let* ((domain (url-file-nondirectory instance))
            (buf (get-buffer-create
                  (format "*mastodon-instance-%s*" domain))))
-      (with-current-buffer buf
-        (switch-to-buffer-other-window buf)
-        (let ((inhibit-read-only t))
-          (erase-buffer)
-          (special-mode)
-          (when brief
-            (setq response
-                  (list (assoc 'uri response)
-                        (assoc 'title response)
-                        (assoc 'short_description response)
-                        (assoc 'email response)
-                        (cons 'contact_account
-                              (list
-                               (assoc 'username
-                                      (assoc 'contact_account response))))
-                        (assoc 'rules response)
-                        (assoc 'stats response))))
-          (mastodon-views--print-json-keys response)
-          ;; (mastodon-mode) ; breaks our 'q' binding that avoids leaving
-          ;; split window
-          (mastodon-tl--set-buffer-spec (buffer-name buf)
-                                        "instance"
-                                        nil)
-          (goto-char (point-min)))))))
+      (with-mastodon-buffer
+       buf #'special-mode :other-window
+       (when brief
+         (setq response
+               (list (assoc 'uri response)
+                     (assoc 'title response)
+                     (assoc 'short_description response)
+                     (assoc 'email response)
+                     (cons 'contact_account
+                           (list
+                            (assoc 'username
+                                   (assoc 'contact_account response))))
+                     (assoc 'rules response)
+                     (assoc 'stats response))))
+       (mastodon-views--print-json-keys response)
+       ;; (mastodon-mode) ; breaks our 'q' binding that avoids leaving
+       ;; split window
+       (mastodon-tl--set-buffer-spec (buffer-name buf)
+                                     "instance"
+                                     nil)
+       (goto-char (point-min))))))
 
 (defun mastodon-views--format-key (el pad)
   "Format a key of element EL, a cons, with PAD padding."
