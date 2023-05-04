@@ -148,7 +148,7 @@ If the original toot visibility is different we use the more restricted one."
   "Whether to enable your instance's custom emoji by default."
   :type 'boolean)
 
-(defcustom mastodon-toot--enable-proportional-fonts-compose-buffer nil
+(defcustom mastodon-toot--proportional-fonts-compose nil
   "Nonnil to enable using proportional fonts in the compose buffer.
 By default fixed width fonts are used."
   :type '(boolean :tag "Enable using proportional rather than fixed \
