@@ -242,9 +242,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
   "Face used for content warning.")
 
 (defface mastodon-toot-docs-face
-  `((t :inherit font-lock-comment-face
-       :height 1.0
-       :family ,(face-attribute 'default :family)))
+  `((t :inherit font-lock-comment-face))
   "Face used for documentation in toot compose buffer.
 If `mastodon-tl--enable-proportional-fonts' is changed,
 mastodon.el needs to be re-loaded for this to be correctly set.")

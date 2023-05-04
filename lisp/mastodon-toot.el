@@ -1701,8 +1701,6 @@ EDIT means we are editing an existing toot, not composing a new one."
                                        (point-marker))))
     (switch-to-buffer-other-window buffer)
     (text-mode)
-    (when mastodon-toot--enable-proportional-fonts-compose-buffer
-      (variable-pitch-mode))
     (mastodon-toot-mode t)
     (setq mastodon-toot--visibility
           (or (plist-get mastodon-profile-account-settings 'privacy)
@@ -1763,14 +1761,6 @@ EDIT means we are editing an existing toot, not composing a new one."
 (add-hook 'mastodon-toot-mode-hook
           (lambda ()
             (auto-fill-mode -1)))
-
-;; scale fixed-pitch docs relative to any possible variable pitch scaling set:
-(add-hook 'mastodon-toot-mode-hook
-          (lambda ()
-            (when mastodon-toot--enable-proportional-fonts-compose-buffer
-              (let ((height (/ 1 (face-attribute 'variable-pitch :height))))
-                (set-face-attribute 'mastodon-toot-docs-face nil
-                                    :height height)))))
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."
