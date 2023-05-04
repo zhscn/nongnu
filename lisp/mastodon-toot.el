@@ -1679,9 +1679,8 @@ Added to `after-change-functions'."
 
 ;; NB: now that we have toot drafts, to ensure offline composing remains
 ;; possible, avoid any direct requests here:
-(defun mastodon-toot--compose-buffer (&optional reply-to-user
-                                                reply-to-id reply-json initial-text
-                                                edit)
+(defun mastodon-toot--compose-buffer
+    (&optional reply-to-user reply-to-id reply-json initial-text edit)
   "Create a new buffer to capture text for a new toot.
 If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set the `mastodon-toot--reply-to-id' var.
@@ -1727,12 +1726,10 @@ EDIT means we are editing an existing toot, not composing a new one."
     (when mastodon-toot--enable-completion
       (set ; (setq-local
        (make-local-variable 'completion-at-point-functions)
-       (add-to-list
-        'completion-at-point-functions
-        #'mastodon-toot--mentions-capf))
-      (add-to-list
-       'completion-at-point-functions
-       #'mastodon-toot--tags-capf)
+       (add-to-list 'completion-at-point-functions
+                    #'mastodon-toot--mentions-capf))
+      (add-to-list 'completion-at-point-functions
+                   #'mastodon-toot--tags-capf)
       ;; company
       (when (and mastodon-toot--use-company-for-completion
                  (require 'company nil :no-error))
@@ -1755,7 +1752,8 @@ EDIT means we are editing an existing toot, not composing a new one."
       (insert initial-text))))
 
 ;;;###autoload
-(add-hook 'mastodon-toot-mode-hook #'mastodon-profile--fetch-server-account-settings-maybe)
+(add-hook 'mastodon-toot-mode-hook
+          #'mastodon-profile--fetch-server-account-settings-maybe)
 
 ;; disable auto-fill-mode:
 (add-hook 'mastodon-toot-mode-hook
