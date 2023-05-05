@@ -1669,12 +1669,12 @@ Added to `after-change-functions'."
       (mastodon-tl--buffer-type-eq 'new-toot)))
 
 (defun mastodon-toot--fill-reply-in-compose ()
+  "Fill reply text in compose buffer to the width of the divider."
   (save-excursion
     (save-match-data
-      (goto-char (point-min))
-      (let* ((fill-column 67)
-             (prop (text-property-search-forward 'toot-reply)))
-        (when prop
+      (let* ((fill-column 67))
+        (goto-char (point-min))
+        (while-let ((prop (text-property-search-forward 'toot-reply)))
           (fill-region (prop-match-beginning prop)
                        (point)))))))
 
