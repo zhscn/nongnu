@@ -1377,16 +1377,19 @@ To disable showing the stats, customize
                     (propertize favourites
                                 'favourited-p favourited
                                 'favourites-field t
+                                'help-echo (format "%s favourites" favourites-count)
                                 'face font-lock-comment-face)
                     (propertize " | " 'face font-lock-comment-face)
                     (propertize boosts
                                 'boosted-p boosted
                                 'boosts-field t
+                                'help-echo (format "%s boosts" boosts-count)
                                 'face font-lock-comment-face)
                     (propertize " | " 'face font-lock-comment-face)
                     (propertize replies
                                 'replies-field t
                                 'replies-count replies-count
+                                'help-echo (format "%s replies" replies-count)
                                 'face font-lock-comment-face)))
            (status
             (concat
