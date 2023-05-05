@@ -38,9 +38,12 @@
 (defvar emojify-emojis-dir)
 (defvar emojify-user-emojis)
 
+(require 'compat)
 (require 'cl-lib)
 (require 'persist)
 (require 'mastodon-iso)
+(require 'facemenu)
+(require 'text-property-search)
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
@@ -48,6 +51,7 @@
 (defvar mastodon-profile-account-settings)
 
 (autoload 'iso8601-parse "iso8601")
+(autoload 'with-mastodon-buffer "mastodon")
 (autoload 'mastodon-auth--user-acct "mastodon-auth")
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--build-array-params-alist "mastodon-http")
@@ -1423,8 +1427,10 @@ LONGEST is the length of the longest binding."
 (defun mastodon-toot--format-reply-in-compose-string (reply-text)
   "Format a REPLY-TEXT for display in compose buffer docs."
   (let* ((rendered (mastodon-tl--render-text reply-text))
-         (no-newlines (replace-regexp-in-string "\n\n" "\n" rendered))
-         (crop (string-limit
+         (no-props (substring-no-properties rendered))
+         (no-newlines (replace-regexp-in-string "\n\n" "" no-props))
+         (crop (truncate-string-to-width
+                ;; (string-limit
                 (concat " Reply to: \"" no-newlines "\"")
                 mastodon-toot-orig-in-reply-length)))
     (if (> (length no-newlines)
