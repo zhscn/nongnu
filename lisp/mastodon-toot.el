@@ -1428,15 +1428,19 @@ LONGEST is the length of the longest binding."
   "Format a REPLY-TEXT for display in compose buffer docs."
   (let* ((rendered (mastodon-tl--render-text reply-text))
          (no-props (substring-no-properties rendered))
-         (no-newlines (replace-regexp-in-string "\n\n" "" no-props))
+         ;; FIXME: this regex replaces \n at end of every post
+         ;; so we have to trim:
+         (no-newlines (string-trim
+                       (replace-regexp-in-string "[\n]+" " " no-props)))
+         (reply-to (concat " Reply to: \"" no-newlines "\""))
          (crop (truncate-string-to-width
                 ;; (string-limit
-                (concat " Reply to: \"" no-newlines "\"")
+                reply-to
                 mastodon-toot-orig-in-reply-length)))
     (if (> (length no-newlines)
            (length crop)) ; we cropped:
         (concat crop "\n")
-      no-newlines)))
+      (concat reply-to "\n"))))
 
 (defun mastodon-toot--display-docs-and-status-fields (&optional reply-text)
   "Insert propertized text with documentation about `mastodon-toot-mode'.
