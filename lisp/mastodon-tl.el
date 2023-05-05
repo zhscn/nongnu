@@ -421,7 +421,7 @@ With a double PREFIX arg, limit results to your own instance."
                            "tags-multiple"
                          (concat "tag-" tag))
                        (concat "timelines/tag/" (if (listp tag)
-                                                    ;; endpoint needs to be /tag/:sometag
+                                                    ;; endpoint must be /tag/:sth
                                                     (car tag) tag))
                        'mastodon-tl--timeline
                        nil
@@ -1149,9 +1149,13 @@ HELP-ECHO, DISPLAY, and FACE are the text properties to add."
   (let ((parsed (ts-human-duration
                  (ts-diff (ts-parse timestamp) (ts-now)))))
     (cond ((> (plist-get parsed :days) 0)
-           (format "%s days, %s hours left" (plist-get parsed :days) (plist-get parsed :hours)))
+           (format "%s days, %s hours left"
+                   (plist-get parsed :days)
+                   (plist-get parsed :hours)))
           ((> (plist-get parsed :hours) 0)
-           (format "%s hours, %s minutes left" (plist-get parsed :hours) (plist-get parsed :minutes)))
+           (format "%s hours, %s minutes left"
+                   (plist-get parsed :hours)
+                   (plist-get parsed :minutes)))
           ((> (plist-get parsed :minutes) 0)
            (format "%s minutes left" (plist-get parsed :minutes)))
           (t ;; we failed to guess:
@@ -1384,9 +1388,12 @@ To disable showing the stats, customize
                                 'replies-field t
                                 'replies-count replies-count
                                 'face font-lock-comment-face)))
-           (status (concat
-                    (propertize " " 'display `(space :align-to (- right ,(+ (length status) 7))))
-                    status)))
+           (status
+            (concat
+             (propertize " "
+                         'display
+                         `(space :align-to (- right ,(+ (length status) 7))))
+             status)))
       status)))
 
 (defun mastodon-tl--is-reply (toot)
@@ -1594,7 +1601,8 @@ This includes the update profile note buffer, but not the preferences one."
   "Return non-nil if the current buffer is a 'proper' timeline.
 A proper timeline excludes notifications, threads, and other toot
 buffers that aren't strictly mastodon timelines."
-  (let ((timeline-buffers '(home federated local tag-timeline list-timeline profile-statuses)))
+  (let ((timeline-buffers
+         '(home federated local tag-timeline list-timeline profile-statuses)))
     (member (mastodon-tl--get-buffer-type) timeline-buffers)))
 
 (defun mastodon-tl--hide-replies-p (&optional prefix)
@@ -2009,7 +2017,8 @@ Action must be either \"unblock\" or \"unmute\"."
                        nil ; predicate
                        t))))
 
-(defun mastodon-tl--do-user-action-and-response (user-handle action &optional negp notify langs)
+(defun mastodon-tl--do-user-action-and-response
+    (user-handle action &optional negp notify langs)
   "Do ACTION on user USER-HANDLE.
 NEGP is whether the action involves un-doing something.
 If NOTIFY is \"true\", enable notifications when that user posts.
@@ -2028,7 +2037,8 @@ LANGS is an array parameters alist of languages to filer user's posts by."
                       (mastodon-profile--lookup-account-in-status
                        user-handle (mastodon-profile--toot-json)))))
          (user-id (mastodon-profile--account-field account 'id))
-         (name (if (not (string-empty-p (mastodon-profile--account-field account 'display_name)))
+         (name (if (not (string-empty-p
+                         (mastodon-profile--account-field account 'display_name)))
                    (mastodon-profile--account-field account 'display_name)
                  (mastodon-profile--account-field account 'username)))
          (args (cond (notify
@@ -2043,7 +2053,8 @@ LANGS is an array parameters alist of languages to filer user's posts by."
             (mastodon-tl--do-user-action-function url name user-handle action args)))
       (message "Cannot find a user with handle %S" user-handle))))
 
-(defun mastodon-tl--do-user-action-function (url name user-handle action &optional notify args)
+(defun mastodon-tl--do-user-action-function
+    (url name user-handle action &optional notify args)
   "Post ACTION on user NAME/USER-HANDLE to URL.
 NOTIFY is either \"true\" or \"false\", and used when we have been called
 by `mastodon-tl--follow-user' to enable or disable notifications.
@@ -2275,7 +2286,10 @@ POS is a number, where point will be placed."
                 endpoint)
                (mastodon-tl--thread
                 (match-string 2 endpoint))))))
-    ;; TODO: sends point to POS, which was where point was in buffer before reload. This is very rough; we may have removed an item (deleted a toot, cleared a notif), so the buffer will be smaller, point will end up past where we were, etc.
+    ;; TODO: sends point to POS, which was where point was in buffer before
+    ;; reload. This is very rough; we may have removed an item (deleted a
+    ;; toot, cleared a notif), so the buffer will be smaller, point will end
+    ;; up past where we were, etc.
     (when pos
       (goto-char pos)
       (mastodon-tl--goto-prev-item))))
