@@ -38,7 +38,6 @@
 (defvar emojify-emojis-dir)
 (defvar emojify-user-emojis)
 
-(require 'compat)
 (require 'cl-lib)
 (require 'persist)
 (require 'mastodon-iso)
@@ -1684,7 +1683,9 @@ Added to `after-change-functions'."
     (save-match-data
       (let* ((fill-column 67))
         (goto-char (point-min))
-        (while-let ((prop (text-property-search-forward 'toot-reply)))
+        ;; while-let shoulndn't be needed here, as we really should only have
+        ;; one. if we have more, the bug is elsewhere.
+        (when-let ((prop (text-property-search-forward 'toot-reply)))
           (fill-region (prop-match-beginning prop)
                        (point)))))))
 
