@@ -1424,8 +1424,9 @@ LONGEST is the length of the longest binding."
   "Format a REPLY-TEXT for display in compose buffer docs."
   (let* ((rendered (mastodon-tl--render-text reply-text))
          (no-newlines (replace-regexp-in-string "\n\n" "\n" rendered))
-         (crop (string-limit (concat " Reply to: " no-newlines)
-                             mastodon-toot-orig-in-reply-length)))
+         (crop (string-limit
+                (concat " Reply to: \"" no-newlines "\"")
+                mastodon-toot-orig-in-reply-length)))
     (if (> (length no-newlines)
            (length crop)) ; we cropped:
         (concat crop "\n")
