@@ -224,19 +224,15 @@ to also capture toots that are 'sent' but that don't successfully
 send.")
 
 (defvar mastodon-toot-handle-regex
-  (concat
-   ;; preceding bracket, space or bol [boundary doesn't work with @]
-   "\\([(\n\t ]\\|^\\)"
-   "\\(?2:@[0-9a-zA-Z._-]+" ; a handle
-   "\\(@[^ \n\t]*\\)?\\)" ; with poss domain, * = allow only @
-   "\\(\\b\\|'\\)")) ; boundary or ' char
+  (rx (| (any ?\( "\n" "\t "" ") bol) ; preceding things
+      (group-n 2 (+ ?@ (* (any ?- ?_ ?. "A-Z" "a-z" "0-9" ))) ; handle
+               (? ?@ (* (not (any "\n" "\t" " "))))) ; optional domain
+      (| "'" word-boundary))) ; boundary or possessive
 
 (defvar mastodon-toot-tag-regex
-  (concat
-   ;; preceding bracket, space or bol [boundary doesn't work with #]
-   "\\([(\n\t ]\\|^\\)"
-   "\\(?2:#[0-9a-zA-Z_]+\\)" ; tag
-   "\\(\\b\\|'\\)")) ; boundary or ' char
+  (rx (| (any ?\( "\n" "\t" " ") bol)
+      (group-n 2 ?# (+ (any "A-Z" "a-z" "0-9")))
+      (| "'" word-boundary))) ; boundary or possessive
 
 (defvar mastodon-toot-url-regex
   ;; adapted from ffap-url-regexp
