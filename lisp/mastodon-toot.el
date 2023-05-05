@@ -1753,6 +1753,24 @@ EDIT means we are editing an existing toot, not composing a new one."
     (when initial-text
       (insert initial-text))))
 
+;; flyspell ignore masto toot regexes:
+(defvar flyspell-generic-check-word-predicate)
+(defun mastodon-toot-mode-flyspell-verify ()
+  "A predicate function for `flyspell'.
+Only text that is not one of these faces will be spell-checked."
+  (let ((faces '(mastodon-display-name-face
+                 mastodon-toot-docs-face font-lock-comment-face
+                 success link)))
+    (unless (eql (point) (point-min))
+      ;; (point) is next char after the word. Must check one char before.
+      (let ((f (get-text-property (1- (point)) 'face)))
+        (not (memq f faces))))))
+
+(add-hook 'mastodon-toot-mode-hook
+    	  (lambda ()
+            (setq flyspell-generic-check-word-predicate
+                  'mastodon-toot-mode-flyspell-verify)))
+
 ;;;###autoload
 (add-hook 'mastodon-toot-mode-hook
           #'mastodon-profile--fetch-server-account-settings-maybe)
