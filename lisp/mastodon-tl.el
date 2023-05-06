@@ -1738,12 +1738,11 @@ ID is that of the toot to view."
                 (mastodon-http--api (concat "statuses/" id)))))
     (if (equal (caar toot) 'error)
         (message "Error: %s" (cdar toot))
-      (with-mastodon-buffer
-       buffer #'mastodon-mode nil
-       (mastodon-tl--set-buffer-spec buffer
-                                     (format "statuses/%s" id)
-                                     nil)
-       (mastodon-tl--toot toot :detailed-p)))))
+      (with-mastodon-buffer buffer #'mastodon-mode nil
+        (mastodon-tl--set-buffer-spec buffer
+                                      (format "statuses/%s" id)
+                                      nil)
+        (mastodon-tl--toot toot :detailed-p)))))
 
 (defun mastodon-tl--view-whole-thread ()
   "From a thread view, view entire thread.
@@ -1783,23 +1782,22 @@ view all branches of a thread."
                     (length (alist-get 'descendants context)))
                  0)
               ;; if we have a thread:
-              (with-mastodon-buffer
-               buffer #'mastodon-mode nil
-               (let ((marker (make-marker)))
-                 (mastodon-tl--set-buffer-spec buffer
-                                               endpoint
-                                               #'mastodon-tl--thread)
-                 (mastodon-tl--timeline (alist-get 'ancestors context)
-                                        :thread)
-                 (goto-char (point-max))
-                 (move-marker marker (point))
-                 ;; print re-fetched toot:
-                 (mastodon-tl--toot toot :detailed-p :thread)
-                 (mastodon-tl--timeline (alist-get 'descendants context)
-                                        :thread)
-                 ;; put point at the toot:
-                 (goto-char (marker-position marker))
-                 (mastodon-tl--goto-next-toot)))
+              (with-mastodon-buffer buffer #'mastodon-mode nil
+                (let ((marker (make-marker)))
+                  (mastodon-tl--set-buffer-spec buffer
+                                                endpoint
+                                                #'mastodon-tl--thread)
+                  (mastodon-tl--timeline (alist-get 'ancestors context)
+                                         :thread)
+                  (goto-char (point-max))
+                  (move-marker marker (point))
+                  ;; print re-fetched toot:
+                  (mastodon-tl--toot toot :detailed-p :thread)
+                  (mastodon-tl--timeline (alist-get 'descendants context)
+                                         :thread)
+                  ;; put point at the toot:
+                  (goto-char (marker-position marker))
+                  (mastodon-tl--goto-next-toot)))
             ;; else just print the lone toot:
             (mastodon-tl--single-toot id)))))))
 
@@ -2596,11 +2594,10 @@ RESPONSE is the data returned from the server by
 JSON and http headers, without it just the JSON."
   (let ((json (if headers (car response) response)))
     (if (not json) ; praying this is right here, else try "\n[]"
-	    (message "Looks like nothing returned from endpoint: %s" endpoint)
+	(message "Looks like nothing returned from endpoint: %s" endpoint)
       (let* ((headers (if headers (cdr response) nil))
              (link-header (mastodon-tl--get-link-header-from-response headers)))
-        (with-mastodon-buffer buffer
-          #'mastodon-mode nil
+        (with-mastodon-buffer buffer #'mastodon-mode nil
           (mastodon-tl--set-buffer-spec buffer
                                         endpoint
                                         update-function
@@ -2639,27 +2636,26 @@ Optional arg NOTE-TYPE means only get that type of note."
          (url (mastodon-http--api endpoint))
          (buffer (concat "*mastodon-" buffer-name "*"))
          (json (mastodon-http--get-json url args)))
-    (with-mastodon-buffer
-     buffer #'mastodon-mode nil
-     (setq
-      ;; Initialize with a minimal interval; we re-scan at least once
-      ;; every 5 minutes to catch any timestamps we may have missed
-      mastodon-tl--timestamp-next-update (time-add (current-time)
-                                                   (seconds-to-time 300)))
-     (funcall update-function json)
-     (mastodon-tl--set-buffer-spec buffer endpoint update-function nil args)
-     (setq mastodon-tl--timestamp-update-timer
-           (when mastodon-tl--enable-relative-timestamps
-             (run-at-time (time-to-seconds
-                           (time-subtract mastodon-tl--timestamp-next-update
-                                          (current-time)))
-                          nil ;; don't repeat
-                          #'mastodon-tl--update-timestamps-callback
-                          (current-buffer)
-                          nil)))
-     (unless (mastodon-tl--profile-buffer-p)
-       ;; FIXME: this breaks test (because test has empty buffer)
-       (mastodon-tl--goto-first-item)))
+    (with-mastodon-buffer buffer #'mastodon-mode nil
+      (setq
+       ;; Initialize with a minimal interval; we re-scan at least once
+       ;; every 5 minutes to catch any timestamps we may have missed
+       mastodon-tl--timestamp-next-update (time-add (current-time)
+                                                    (seconds-to-time 300)))
+      (funcall update-function json)
+      (mastodon-tl--set-buffer-spec buffer endpoint update-function nil args)
+      (setq mastodon-tl--timestamp-update-timer
+            (when mastodon-tl--enable-relative-timestamps
+              (run-at-time (time-to-seconds
+                            (time-subtract mastodon-tl--timestamp-next-update
+                                           (current-time)))
+                           nil ;; don't repeat
+                           #'mastodon-tl--update-timestamps-callback
+                           (current-buffer)
+                           nil)))
+      (unless (mastodon-tl--profile-buffer-p)
+        ;; FIXME: this breaks test (because test has empty buffer)
+        (mastodon-tl--goto-first-item)))
     buffer))
 
 (provide 'mastodon-tl)

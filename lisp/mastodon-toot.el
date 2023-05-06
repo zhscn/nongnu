@@ -44,13 +44,15 @@
 (require 'facemenu)
 (require 'text-property-search)
 
+(eval-when-compile
+  (require 'mastodon-tl))
+
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--enable-proportional-fonts)
 (defvar mastodon-profile-account-settings)
 
 (autoload 'iso8601-parse "iso8601")
-(autoload 'with-mastodon-buffer "mastodon")
 (autoload 'mastodon-auth--user-acct "mastodon-auth")
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--build-array-params-alist "mastodon-http")
@@ -902,27 +904,26 @@ instance to edit a toot."
   (interactive)
   (let ((id (mastodon-tl--property 'base-toot-id))
         (history (mastodon-tl--property 'edit-history)))
-    (with-mastodon-buffer
-     "*mastodon-toot-edits*" #'special-mode :other-window
-     (let ((count 1))
-       (mapc (lambda (x)
-               (insert (propertize (if (= count 1)
-                                       (format "%s [original]:\n" count)
-                                     (format "%s:\n" count))
-                                   'face font-lock-comment-face)
-                       (mastodon-toot--insert-toot-iter x)
-                       "\n")
-               (cl-incf count))
-             history))
-     (setq-local header-line-format
-                 (propertize
-                  (format "Edits to toot by %s:"
-                          (alist-get 'username
-                                     (alist-get 'account (car history))))
-                  'face font-lock-comment-face))
-     (mastodon-tl--set-buffer-spec (buffer-name (current-buffer))
-                                   (format "statuses/%s/history" id)
-                                   nil))))
+    (with-mastodon-buffer "*mastodon-toot-edits*" #'special-mode :other-window
+      (let ((count 1))
+        (mapc (lambda (x)
+                (insert (propertize (if (= count 1)
+                                        (format "%s [original]:\n" count)
+                                      (format "%s:\n" count))
+                                    'face font-lock-comment-face)
+                        (mastodon-toot--insert-toot-iter x)
+                        "\n")
+                (cl-incf count))
+              history))
+      (setq-local header-line-format
+                  (propertize
+                   (format "Edits to toot by %s:"
+                           (alist-get 'username
+                                      (alist-get 'account (car history))))
+                   'face font-lock-comment-face))
+      (mastodon-tl--set-buffer-spec (buffer-name (current-buffer))
+                                    (format "statuses/%s/history" id)
+                                    nil))))
 
 (defun mastodon-toot--insert-toot-iter (it)
   "Insert iteration IT of toot."

@@ -29,13 +29,14 @@
 
 ;;; Code:
 (require 'json)
+(eval-when-compile
+  (require 'mastodon-tl))
 
 (autoload 'mastodon-auth--access-token "mastodon-auth")
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--get-json "mastodon-http")
 (autoload 'mastodon-http--get-search-json "mastodon-http")
 (autoload 'mastodon-mode "mastodon")
-(autoload 'with-mastodon-buffer "mastodon")
 (autoload 'mastodon-tl--as-string "mastodon-tl")
 (autoload 'mastodon-tl--as-string "mastodon-tl")
 (autoload 'mastodon-tl--render-text "mastodon-tl")
@@ -119,19 +120,18 @@ PRINT-FUN is the function used to print the data from the response."
                       (message "todo"))))
          (buffer (get-buffer-create
                   (format "*mastodon-trending-%s*" type))))
-    (with-mastodon-buffer
-     buffer #'mastodon-mode nil
-     (mastodon-tl--set-buffer-spec (buffer-name buffer)
-                                   (format "api/v1/trends/%s" type)
-                                   nil)
-     (insert (mastodon-tl--set-face
-              (concat "\n " mastodon-tl--horiz-bar "\n"
-                      (upcase (format " TRENDING %s\n" type))
-                      " " mastodon-tl--horiz-bar "\n\n")
-              'success))
-     (funcall print-fun data)
-     (unless (equal type "statuses")
-       (goto-char (point-min))))))
+    (with-mastodon-buffer buffer #'mastodon-mode nil
+      (mastodon-tl--set-buffer-spec (buffer-name buffer)
+                                    (format "api/v1/trends/%s" type)
+                                    nil)
+      (insert (mastodon-tl--set-face
+               (concat "\n " mastodon-tl--horiz-bar "\n"
+                       (upcase (format " TRENDING %s\n" type))
+                       " " mastodon-tl--horiz-bar "\n\n")
+               'success))
+      (funcall print-fun data)
+      (unless (equal type "statuses")
+        (goto-char (point-min))))))
 
 ;; functions for mastodon search
 
@@ -151,33 +151,32 @@ PRINT-FUN is the function used to print the data from the response."
                             tags))
          (toots-list-json
           (mastodon-search--get-full-statuses-data statuses)))
-    (with-mastodon-buffer
-     buffer #'mastodon-mode nil
-     (mastodon-tl--set-buffer-spec buffer
-                                   "api/v2/search"
-                                   nil)
-     ;; user results:
-     (insert (mastodon-tl--set-face
-              (concat "\n " mastodon-tl--horiz-bar "\n"
-                      " USERS\n"
-                      " " mastodon-tl--horiz-bar "\n\n")
-              'success))
-     (mastodon-search--insert-users-propertized accts :note)
-     ;; hashtag results:
-     (insert (mastodon-tl--set-face
-              (concat "\n " mastodon-tl--horiz-bar "\n"
-                      " HASHTAGS\n"
-                      " " mastodon-tl--horiz-bar "\n\n")
-              'success))
-     (mastodon-search--print-tags-list tags-list)
-     ;; status results:
-     (insert (mastodon-tl--set-face
-              (concat "\n " mastodon-tl--horiz-bar "\n"
-                      " STATUSES\n"
-                      " " mastodon-tl--horiz-bar "\n")
-              'success))
-     (mapc #'mastodon-tl--toot toots-list-json)
-     (goto-char (point-min)))))
+    (with-mastodon-buffer buffer #'mastodon-mode nil
+      (mastodon-tl--set-buffer-spec buffer
+                                    "api/v2/search"
+                                    nil)
+      ;; user results:
+      (insert (mastodon-tl--set-face
+               (concat "\n " mastodon-tl--horiz-bar "\n"
+                       " USERS\n"
+                       " " mastodon-tl--horiz-bar "\n\n")
+               'success))
+      (mastodon-search--insert-users-propertized accts :note)
+      ;; hashtag results:
+      (insert (mastodon-tl--set-face
+               (concat "\n " mastodon-tl--horiz-bar "\n"
+                       " HASHTAGS\n"
+                       " " mastodon-tl--horiz-bar "\n\n")
+               'success))
+      (mastodon-search--print-tags-list tags-list)
+      ;; status results:
+      (insert (mastodon-tl--set-face
+               (concat "\n " mastodon-tl--horiz-bar "\n"
+                       " STATUSES\n"
+                       " " mastodon-tl--horiz-bar "\n")
+               'success))
+      (mapc #'mastodon-tl--toot toots-list-json)
+      (goto-char (point-min)))))
 
 (defun mastodon-search--insert-users-propertized (json &optional note)
   "Insert users list into the buffer.
