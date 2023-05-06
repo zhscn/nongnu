@@ -261,7 +261,8 @@ See `mastodon-toot-display-orig-in-reply-buffer'.")
 MODE-FUN is called to set the major mode.
 OTHER-WINDOW means call `switch-to-buffer-other-window' rather
 than `switch-to-buffer'."
-  (declare (debug 'body))
+  (declare (debug t)
+           (indent defun))
   `(with-current-buffer (get-buffer-create ,buffer)
      (let ((inhibit-read-only t))
        (erase-buffer)
@@ -270,6 +271,7 @@ than `switch-to-buffer'."
          (switch-to-buffer ,buffer))
        (funcall ,mode-fun)
        ,@body)))
+
 
 ;;;###autoload
 (defun mastodon ()
