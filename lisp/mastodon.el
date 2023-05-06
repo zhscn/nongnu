@@ -256,23 +256,6 @@ mastodon.el needs to be re-loaded for this to be correctly set.")
   "Face used for reply text in toot compose buffer.
 See `mastodon-toot-display-orig-in-reply-buffer'.")
 
-(defmacro with-mastodon-buffer (buffer mode-fun other-window &rest body)
-  "Evaluate BODY in a new or existing buffer called BUFFER.
-MODE-FUN is called to set the major mode.
-OTHER-WINDOW means call `switch-to-buffer-other-window' rather
-than `switch-to-buffer'."
-  (declare (debug t)
-           (indent defun))
-  `(with-current-buffer (get-buffer-create ,buffer)
-     (let ((inhibit-read-only t))
-       (erase-buffer)
-       (if ,other-window
-           (switch-to-buffer-other-window ,buffer)
-         (switch-to-buffer ,buffer))
-       (funcall ,mode-fun)
-       ,@body)))
-
-
 ;;;###autoload
 (defun mastodon ()
   "Connect Mastodon client to `mastodon-instance-url' instance."

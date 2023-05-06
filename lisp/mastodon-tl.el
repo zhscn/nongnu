@@ -42,7 +42,6 @@
 (autoload 'mastodon-mode "mastodon")
 (autoload 'mastodon-notifications-get "mastodon")
 (autoload 'mastodon-url-lookup "mastodon")
-(autoload 'with-mastodon-buffer "mastodon")
 (autoload 'mastodon-auth--get-account-id "mastodon-auth")
 (autoload 'mastodon-auth--get-account-name "mastodon-auth")
 (autoload 'mastodon-http--api "mastodon-http")
@@ -256,6 +255,21 @@ types of mastodon links and not just shr.el-generated ones.")
       map))
   "The keymap to be set for the author byline.
 It is active where point is placed by `mastodon-tl--goto-next-toot.'")
+
+
+;;; MACRO
+(defmacro with-mastodon-buffer (buffer &rest body)
+  "Evaluate BODY in a new or existing buffer called BUFFER.
+MODE-FUN is called to set the major mode.
+OTHER-WINDOW means call `switch-to-buffer-other-window' rather
+than `switch-to-buffer'."
+  (declare (debug t)
+           (indent defun))
+  `(with-current-buffer (get-buffer-create ,buffer)
+     (let ((inhibit-read-only t))
+       (erase-buffer)
+       (switch-to-buffer ,buffer)
+       ,@body)))
 
 
 ;;; NAV
