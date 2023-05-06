@@ -2579,34 +2579,34 @@ RESPONSE is the data returned from the server by
 JSON and http headers, without it just the JSON."
   (let ((json (if headers (car response) response)))
     (if (not json) ; praying this is right here, else try "\n[]"
-	(message "Looks like nothing returned from endpoint: %s" endpoint)
+	    (message "Looks like nothing returned from endpoint: %s" endpoint)
       (let* ((headers (if headers (cdr response) nil))
              (link-header (mastodon-tl--get-link-header-from-response headers)))
-        (with-mastodon-buffer
-         buffer #'mastodon-mode nil
-         (mastodon-tl--set-buffer-spec buffer
-                                       endpoint
-                                       update-function
-                                       link-header
-                                       update-params
-                                       hide-replies)
-         (setq
-          ;; Initialize with a minimal interval; we re-scan at least once
-          ;; every 5 minutes to catch any timestamps we may have missed
-          mastodon-tl--timestamp-next-update (time-add (current-time)
-                                                       (seconds-to-time 300)))
-         (funcall update-function json)
-         (setq mastodon-tl--timestamp-update-timer
-               (when mastodon-tl--enable-relative-timestamps
-                 (run-at-time (time-to-seconds
-                               (time-subtract mastodon-tl--timestamp-next-update
-                                              (current-time)))
-                              nil ;; don't repeat
-                              #'mastodon-tl--update-timestamps-callback
-                              (current-buffer)
-                              nil)))
-         (unless (mastodon-tl--profile-buffer-p)
-           (mastodon-tl--goto-first-item)))))))
+        (with-mastodon-buffer buffer
+          #'mastodon-mode nil
+          (mastodon-tl--set-buffer-spec buffer
+                                        endpoint
+                                        update-function
+                                        link-header
+                                        update-params
+                                        hide-replies)
+          (funcall update-function json)
+          (setq
+           ;; Initialize with a minimal interval; we re-scan at least once
+           ;; every 5 minutes to catch any timestamps we may have missed
+           mastodon-tl--timestamp-next-update (time-add (current-time)
+                                                        (seconds-to-time 300)))
+          (setq mastodon-tl--timestamp-update-timer
+                (when mastodon-tl--enable-relative-timestamps
+                  (run-at-time (time-to-seconds
+                                (time-subtract mastodon-tl--timestamp-next-update
+                                               (current-time)))
+                               nil ;; don't repeat
+                               #'mastodon-tl--update-timestamps-callback
+                               (current-buffer)
+                               nil)))
+          (unless (mastodon-tl--profile-buffer-p)
+            (mastodon-tl--goto-first-item)))))))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function &optional note-type)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
