@@ -258,17 +258,20 @@ It is active where point is placed by `mastodon-tl--goto-next-toot.'")
 
 
 ;;; MACRO
-(defmacro with-mastodon-buffer (buffer &rest body)
+(defmacro with-mastodon-buffer (buffer mode-fun other-window &rest body)
   "Evaluate BODY in a new or existing buffer called BUFFER.
 MODE-FUN is called to set the major mode.
 OTHER-WINDOW means call `switch-to-buffer-other-window' rather
 than `switch-to-buffer'."
   (declare (debug t)
-           (indent defun))
+           (indent 3))
   `(with-current-buffer (get-buffer-create ,buffer)
      (let ((inhibit-read-only t))
        (erase-buffer)
-       (switch-to-buffer ,buffer)
+       (funcall ,mode-fun)
+       (if ,other-window
+           (switch-to-buffer-other-window ,buffer)
+         (switch-to-buffer ,buffer))
        ,@body)))
 
 
