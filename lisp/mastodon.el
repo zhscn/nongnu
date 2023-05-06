@@ -256,17 +256,6 @@ mastodon.el needs to be re-loaded for this to be correctly set.")
   "Face used for reply text in toot compose buffer.
 See `mastodon-toot-display-orig-in-reply-buffer'.")
 
-(defmacro with-mastodon-buffer (buffer &rest body)
-  "Evaluate BODY in a new `mastodon-mode' buffer called BUFFER."
-  (declare (debug 'body))
-  `(with-current-buffer (get-buffer-create ,buffer)
-     (let ((inhibit-read-only t))
-       (erase-buffer)
-       (switch-to-buffer ,buffer)
-       (mastodon-mode)
-       ,@body)))
-
-
 ;;;###autoload
 (defun mastodon ()
   "Connect Mastodon client to `mastodon-instance-url' instance."
