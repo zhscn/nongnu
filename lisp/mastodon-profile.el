@@ -494,19 +494,22 @@ This endpoint only holds a few preferences. For others, see
   (let* ((url (mastodon-http--api "preferences"))
          (response (mastodon-http--get-json url))
          (buf (get-buffer-create "*mastodon-preferences*")))
-    (with-mastodon-buffer
-     buf #'special-mode :other-window
-     (mastodon-tl--set-buffer-spec (buffer-name buf)
-                                   "preferences"
-                                   nil)
-     (while response
-       (let ((el (pop response)))
-         (insert
-          (format "%-30s %s"
-                  (prin1-to-string (car el))
-                  (prin1-to-string (cdr el)))
-          "\n\n")))
-     (goto-char (point-min)))))
+    (with-current-buffer buf
+      (switch-to-buffer-other-window buf)
+      (erase-buffer)
+      (special-mode)
+      (mastodon-tl--set-buffer-spec (buffer-name buf)
+                                    "preferences"
+                                    nil)
+      (let ((inhibit-read-only t))
+        (while response
+          (let ((el (pop response)))
+            (insert
+             (format "%-30s %s"
+                     (prin1-to-string (car el))
+                     (prin1-to-string (cdr el)))
+             "\n\n"))))
+      (goto-char (point-min)))))
 
 ;; PROFILE VIEW DETAILS
 
@@ -604,7 +607,7 @@ HEADERS means also fetch link headers for pagination."
          (pinned (mastodon-profile--get-statuses-pinned account))
          (joined (mastodon-profile--account-field account 'created_at)))
     (with-mastodon-buffer
-     buffer #'mastodon-mode nil
+     buffer
      (mastodon-profile-mode)
      (setq mastodon-profile--account account)
      (mastodon-tl--set-buffer-spec buffer
