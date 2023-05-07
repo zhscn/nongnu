@@ -1583,11 +1583,11 @@ call this function after it is set or use something else."
           ((string-suffix-p "search" endpoint-fun)
            'search)
           ;; trends
-          ((equal "api/v1/trends/statuses" endpoint-fun)
+          ((string= "api/v1/trends/statuses" endpoint-fun)
            'trending-statuses)
-          ((equal "api/v1/trends/tags" endpoint-fun)
+          ((string= "api/v1/trends/tags" endpoint-fun)
            'trending-tags)
-          ((equal "api/v1/trends/links" endpoint-fun)
+          ((string= "api/v1/trends/links" endpoint-fun)
            'trending-links)
           ;; User's views:
           ((string= "filters" endpoint-fun)
