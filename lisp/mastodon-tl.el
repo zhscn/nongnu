@@ -1519,6 +1519,16 @@ HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
 
 
 ;;; BUFFERS
+(defun mastodon-tl--endpoint-str-= (str &optional type)
+  "Return T if STR is equal to the current buffer's endpoint.
+TYPE may be :prefix or :suffix, in which case, T if STR is a prefix or suffix."
+  (let ((endpoint-fun (mastodon-tl--get-endpoint nil :no-error)))
+    (cond ((eq type :prefix)
+           (string-prefix-p str endpoint-fun))
+          ((eq type :suffix)
+           (string-suffix-p str endpoint-fun))
+          (t
+           (string= str endpoint-fun)))))
 
 (defun mastodon-tl--get-buffer-type ()
   "Return a symbol descriptive of current mastodon buffer type.
@@ -1526,33 +1536,32 @@ Should work in all mastodon buffers.
 Note that for many buffers, this requires `mastodon-tl--buffer-spec'
 to be set. It is set for almost all buffers, but you still have to
 call this function after it is set or use something else."
-  (let ((endpoint-fun (mastodon-tl--get-endpoint nil :no-error))
-        (buffer-name (mastodon-tl--buffer-name nil :no-error)))
+  (let ((buffer-name (mastodon-tl--buffer-name nil :no-error)))
     (cond (mastodon-toot-mode
            ;; composing/editing:
            (if (string= "*edit toot*" (buffer-name))
                'edit-toot
              'new-toot))
           ;; main timelines:
-          ((string= "timelines/home" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "timelines/home")
            'home)
           ((string= "*mastodon-local*" buffer-name)
            'local)
-          ((string= "timelines/public" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "timelines/public")
            'federated)
-          ((string-prefix-p "timelines/tag/" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "timelines/tag/" :prefix)
            'tag-timeline)
-          ((string-prefix-p "timelines/list/" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "timelines/list/" :prefix)
            'list-timeline)
           ;; notifs:
           ((string-suffix-p "mentions*" buffer-name)
            'mentions)
-          ((string= "notifications" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "notifications")
            'notifications)
           ;; threads:
-          ((string-suffix-p "context" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "context" :suffix)
            'thread)
-          ((string-prefix-p "statuses" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "statuses" :prefix)
            'single-status)
           ;; profiles:
           ((mastodon-tl--profile-buffer-p)
@@ -1569,43 +1578,43 @@ call this function after it is set or use something else."
             ;; posts inc. boosts:
             ((string-suffix-p "no-boosts*" buffer-name)
              'profile-statuses-no-boosts)
-            ((string-suffix-p "statuses" endpoint-fun)
+            ((mastodon-tl--endpoint-str-= "statuses" :suffix)
              'profile-statuses)
             ;; profile followers
-            ((string-suffix-p "followers" endpoint-fun)
+            ((mastodon-tl--endpoint-str-= "followers" :suffix)
              'profile-followers)
             ;; profile following
-            ((string-suffix-p "following" endpoint-fun)
+            ((mastodon-tl--endpoint-str-= "following" :suffix)
              'profile-following)))
-          ((string= "preferences" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "preferences")
            'preferences)
           ;; search
-          ((string-suffix-p "search" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "search" :suffix)
            'search)
           ;; trends
-          ((string= "api/v1/trends/statuses" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "api/v1/trends/statuses")
            'trending-statuses)
-          ((string= "api/v1/trends/tags" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "api/v1/trends/tags")
            'trending-tags)
-          ((string= "api/v1/trends/links" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "api/v1/trends/links")
            'trending-links)
           ;; User's views:
-          ((string= "filters" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "filters")
            'filters)
-          ((string= "lists" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "lists")
            'lists)
-          ((string= "suggestions" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "suggestions")
            'follow-suggestions)
-          ((string= "favourites" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "favourites")
            'favourites)
-          ((string= "bookmarks" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "bookmarks")
            'bookmarks)
-          ((string= "follow_requests" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "follow_requests")
            'follow-requests)
-          ((string= "scheduled_statuses" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "scheduled_statuses")
            'scheduled-statuses)
           ;; instance description
-          ((string= "instance" endpoint-fun)
+          ((mastodon-tl--endpoint-str-= "instance")
            'instance-description)
           ((string= "*mastodon-toot-edits*" buffer-name)
            'toot-edits))))
