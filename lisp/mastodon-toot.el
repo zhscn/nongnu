@@ -531,13 +531,12 @@ Uses `lingva.el'."
   (if (not (require 'lingva nil :no-error))
       (message "Looks like you need to install lingva.el first.")
     (if mastodon-tl--buffer-spec
-        (let ((toot (mastodon-tl--property 'toot-json)))
-          (if toot
-              (lingva-translate nil
-                                (mastodon-tl--content toot)
-                                (when mastodon-tl--enable-proportional-fonts
-                                  t))
-            (message "No toot to translate?")))
+        (if-let ((toot (mastodon-tl--property 'toot-json)))
+            (lingva-translate nil
+                              (mastodon-tl--content toot)
+                              (when mastodon-tl--enable-proportional-fonts
+                                t))
+          (message "No toot to translate?"))
       (message "No mastodon buffer?"))))
 
 (defun mastodon-toot--own-toot-p (toot)
