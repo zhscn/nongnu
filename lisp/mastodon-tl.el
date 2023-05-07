@@ -195,6 +195,7 @@ If nil `(point-min)' is used instead.")
   (if (char-displayable-p ?―)
       (make-string 12 ?―)
     (make-string 12 ?-)))
+
 
 ;;; KEYMAPS
 
@@ -257,7 +258,8 @@ types of mastodon links and not just shr.el-generated ones.")
 It is active where point is placed by `mastodon-tl--goto-next-toot.'")
 
 
-;;; MACRO
+;;; BUFFER MACRO
+
 (defmacro with-mastodon-buffer (buffer mode-fun other-window &rest body)
   "Evaluate BODY in a new or existing buffer called BUFFER.
 MODE-FUN is called to set the major mode.
