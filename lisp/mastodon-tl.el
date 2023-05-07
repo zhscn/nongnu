@@ -279,7 +279,7 @@ than `switch-to-buffer'."
 
 ;;; NAV
 
-(defun mastodon-tl--next-tab-item ()
+(defun mastodon-tl--next-tab-item (&optional previous)
   "Move to the next interesting item.
 This could be the next toot, link, or image; whichever comes first.
 Don't move if nothing else to move to is found, i.e. near the end of the buffer.
@@ -287,11 +287,14 @@ This also skips tab items in invisible text, i.e. hidden spoiler text."
   (interactive)
   (let (next-range
         (search-pos (point)))
-    (while (and (setq next-range (mastodon-tl--find-next-or-previous-property-range
-                                  'mastodon-tab-stop search-pos nil))
+    (while (and (setq next-range
+                      (mastodon-tl--find-next-or-previous-property-range
+                       'mastodon-tab-stop search-pos previous))
                 (get-text-property (car next-range) 'invisible)
-                (setq search-pos (1+ (cdr next-range))))
-      ;; do nothing, all the action in in the while condition
+                (setq search-pos (if previous
+                                     (1- (car next-range))
+                                   (1+ (cdr next-range)))))
+      ;; do nothing, all the action is in the while condition
       )
     (if (null next-range)
         (message "Nothing else here.")
@@ -305,18 +308,7 @@ first. Don't move if nothing else to move to is found, i.e. near
 the start of the buffer. This also skips tab items in invisible
 text, i.e. hidden spoiler text."
   (interactive)
-  (let (next-range
-        (search-pos (point)))
-    (while (and (setq next-range (mastodon-tl--find-next-or-previous-property-range
-                                  'mastodon-tab-stop search-pos t))
-                (get-text-property (car next-range) 'invisible)
-                (setq search-pos (1- (car next-range))))
-      ;; do nothing, all the action in in the while condition
-      )
-    (if (null next-range)
-        (message "Nothing else before this.")
-      (goto-char (car next-range))
-      (message "%s" (mastodon-tl--property 'help-echo :no-move)))))
+  (mastodon-tl--next-tab-item :previous))
 
 (defun mastodon-tl--goto-toot-pos (find-pos refresh &optional pos)
   "Search for toot with FIND-POS.
