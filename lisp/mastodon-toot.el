@@ -408,16 +408,15 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
          (inhibit-read-only 1))
     ;; TODO another way to implement this would be to async fetch counts again
     ;;  and re-display from count-properties
-    (add-text-properties
-     (car count-prop-range)
-     (cdr count-prop-range)
-     (list 'display ; update the display prop:
-           (number-to-string
-            (mastodon-toot--inc-or-dec count subtract))
-           ;; update the count prop
-           ;; we rely on this for any subsequent actions:
-           count-prop
-           (mastodon-toot--inc-or-dec count subtract)))))
+    (add-text-properties (car count-prop-range)
+                         (cdr count-prop-range)
+                         (list 'display
+                               (number-to-string
+                                (mastodon-toot--inc-or-dec count subtract))
+                               ;; update the count prop
+                               ;; we rely on this for any subsequent actions:
+                               count-prop
+                               (mastodon-toot--inc-or-dec count subtract)))))
 
 (defun mastodon-toot--toggle-boost ()
   "Boost/unboost toot at `point'."
@@ -434,16 +433,13 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
   "Bookmark or unbookmark toot at point."
   (interactive)
   (mastodon-tl--do-if-toot-strict
-   (let* ( ;(toot (mastodon-tl--property 'toot-json))
-          (id (mastodon-tl--property 'base-toot-id))
-          ;; (mastodon-tl--as-string (mastodon-tl--toot-id toot)))
+   (let* ((id (mastodon-tl--property 'base-toot-id))
           (bookmarked-p (mastodon-tl--property 'bookmarked-p))
           (prompt (if bookmarked-p
                       (format "Toot already bookmarked. Remove? ")
                     (format "Bookmark this toot? ")))
-          (byline-region
-           (when id
-             (mastodon-tl--find-property-range 'byline (point))))
+          (byline-region (when id
+                           (mastodon-tl--find-property-range 'byline (point))))
           (action (if bookmarked-p "unbookmark" "bookmark"))
           (bookmark-str (mastodon-tl--symbol 'bookmark))
           (message (if bookmarked-p
@@ -459,9 +455,8 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
                 (add-text-properties (car byline-region)
                                      (cdr byline-region)
                                      (list 'bookmarked-p (not bookmarked-p))))
-              (mastodon-toot--action-success
-               bookmark-str
-               byline-region remove)
+              (mastodon-toot--action-success bookmark-str
+                                             byline-region remove)
               (message (format "%s #%s" message id)))))
        (message (format "Nothing to %s here?!?" action))))))
 
@@ -481,23 +476,20 @@ With FAVOURITE, list favouriters, else list boosters."
   (mastodon-tl--do-if-toot-strict
    (let* ((base-toot (mastodon-tl--property 'base-toot-id))
           (endpoint (if favourite "favourited_by" "reblogged_by"))
-          (url (mastodon-http--api
-                (format "statuses/%s/%s" base-toot endpoint)))
+          (url (mastodon-http--api (format "statuses/%s/%s" base-toot endpoint)))
           (params '(("limit" . "80")))
           (json (mastodon-http--get-json url params)))
      (if (eq (caar json) 'error)
-         (error "%s (Status does not exist or is private)"
-                (alist-get 'error json))
+         (error "%s (Status does not exist or is private)" (alist-get 'error json))
        (let ((handles (mastodon-tl--map-alist 'acct json))
              (type-string (if favourite "Favouriters" "Boosters")))
          (if (not handles)
              (error "Looks like this toot has no %s" type-string)
-           (let ((choice
-                  (completing-read
-                   (format "%s (enter to view profile): " type-string)
-                   handles
-                   nil
-                   t)))
+           (let ((choice (completing-read
+                          (format "%s (enter to view profile): " type-string)
+                          handles
+                          nil
+                          t)))
              (mastodon-profile--show-user choice))))))))
 
 (defun mastodon-toot--copy-toot-url ()
@@ -523,7 +515,6 @@ base toot."
     (kill-new (mastodon-tl--content toot))
     (message "Toot content copied to the clipboard.")))
 
-;; (when (require 'lingva nil :no-error)
 (defun mastodon-toot--translate-toot-text ()
   "Translate text of toot at point.
 Uses `lingva.el'."
