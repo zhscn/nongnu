@@ -306,11 +306,10 @@ from the server and load anew."
         (progn (switch-to-buffer buffer)
                (mastodon-tl--update))
       (message "Loading your notifications...")
-      (mastodon-tl--init-sync
-       (or buffer-name "notifications")
-       "notifications"
-       'mastodon-notifications--timeline
-       type)
+      (mastodon-tl--init-sync (or buffer-name "notifications")
+                              "notifications"
+                              'mastodon-notifications--timeline
+                              type)
       (with-current-buffer buffer
         (use-local-map mastodon-notifications--map)))))
 
@@ -329,11 +328,7 @@ not, just browse the URL in the normal fashion."
                     (mastodon-tl--property 'shr-url :no-move)
                     (read-string "Lookup URL: "))))
     (if (not (mastodon--masto-url-p query))
-        ;; this doesn't work as shr-browse-url doesn't take a url arg
-        ;; and with no args it can't use our read-string query, but only
-        ;; looks for a url at point
-        ;; (if (equal major-mode 'mastodon-mode)
-        ;; (shr-browse-url query) ;; keep our shr keymap
+        ;; (shr-browse-url query) ; doesn't work (keep our shr keymap)
         (browse-url query)
       (message "Performing lookup...")
       (let* ((url (format "%s/api/v2/search" mastodon-instance-url))

@@ -281,13 +281,11 @@ NO-TOOT means we are not calling from a toot buffer."
   "Set max_toot_chars returned in JSON-RESPONSE and display in new toot buffer.
 NO-TOOT means we are not calling from a toot buffer."
   (let ((max-chars
-         (or
-          (alist-get 'max_toot_chars json-response)
-          ;; some servers have this instead:
-          (alist-get 'max_characters
-                     (alist-get 'statuses
-                                (alist-get 'configuration
-                                           json-response))))))
+         (or (alist-get 'max_toot_chars json-response)
+             (alist-get 'max_characters ; some servers have this instead
+                        (alist-get 'statuses
+                                   (alist-get 'configuration
+                                              json-response))))))
     (setq mastodon-toot--max-toot-chars max-chars)
     (unless no-toot
       (with-current-buffer "*new toot*"
@@ -327,10 +325,8 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
 Makes a POST request to the server. Used for favouriting,
 boosting, or bookmarking toots."
   (let* ((id (mastodon-tl--property 'base-toot-id))
-         (url (mastodon-http--api (concat "statuses/"
-                                          (mastodon-tl--as-string id)
-                                          "/"
-                                          action))))
+         (url (mastodon-http--api
+               (concat "statuses/" (mastodon-tl--as-string id) "/" action))))
     (let ((response (mastodon-http--post url)))
       (mastodon-http--triage response callback))))
 
@@ -339,9 +335,9 @@ boosting, or bookmarking toots."
 TYPE is a symbol, either `favourite' or `boost.'"
   (mastodon-tl--do-if-toot-strict
    (let* ((boost-p (equal type 'boost))
-          (has-id (mastodon-tl--property 'base-toot-id))
-          (byline-region (when has-id
-                           (mastodon-tl--find-property-range 'byline (point))))
+          ;;   (has-id (mastodon-tl--property 'base-toot-id))
+          (byline-region ;(when has-id
+           (mastodon-tl--find-property-range 'byline (point)))
           (id (when byline-region
                 (mastodon-tl--as-string (mastodon-tl--property 'base-toot-id))))
           (boosted (when byline-region
@@ -354,9 +350,9 @@ TYPE is a symbol, either `favourite' or `boost.'"
           (msg (if boosted "unboosted" "boosted"))
           (action-string (if boost-p "boost" "favourite"))
           (remove (if boost-p (when boosted t) (when faved t)))
-          (toot-type (alist-get 'type (mastodon-tl--property 'toot-json)))
-          (visibility (mastodon-tl--field 'visibility
-                                          (mastodon-tl--property 'toot-json))))
+          (toot-json (mastodon-tl--property 'toot-json))
+          (toot-type (alist-get 'type toot-json))
+          (visibility (mastodon-tl--field 'visibility toot-json)))
      (if byline-region
          (if (and (or (equal visibility "direct")
                       (equal visibility "unlisted"))
@@ -387,11 +383,10 @@ TYPE is a symbol, either `favourite' or `boost.'"
                                            (list 'boosted-p (not boosted))
                                          (list 'favourited-p (not faved))))
                   (mastodon-toot--update-stats-on-action type remove)
-                  (mastodon-toot--action-success
-                   (if boost-p
-                       (mastodon-tl--symbol 'boost)
-                     (mastodon-tl--symbol 'favourite))
-                   byline-region remove))
+                  (mastodon-toot--action-success (if boost-p
+                                                     (mastodon-tl--symbol 'boost)
+                                                   (mastodon-tl--symbol 'favourite))
+                                                 byline-region remove))
                 (message (format "%s #%s" (if boost-p msg action) id)))))))
        (message (format "Nothing to %s here?!?" action-string))))))
 
