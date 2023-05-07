@@ -368,29 +368,26 @@ If LOCAL, get only local timeline.
 With a single PREFIX arg, hide-replies.
 With a double PREFIX arg, only show posts with media."
   (interactive "p")
-  (let ((params
-         `(("limit" . ,mastodon-tl--timeline-posts-count))))
+  (let ((params `(("limit" . ,mastodon-tl--timeline-posts-count))))
     ;; avoid adding 'nil' to our params alist:
     (when (eq prefix 16)
       (push '("only_media" . "true") params))
     (when local
       (push '("local" . "true") params))
     (message "Loading federated timeline...")
-    (mastodon-tl--init
-     (if local "local" "federated")
-     "timelines/public" 'mastodon-tl--timeline nil
-     params
-     (when (eq prefix 4) t))))
+    (mastodon-tl--init (if local "local" "federated")
+                       "timelines/public" 'mastodon-tl--timeline nil
+                       params
+                       (when (eq prefix 4) t))))
 
 (defun mastodon-tl--get-home-timeline (&optional arg)
   "Open home timeline.
 With a single prefix ARG, hide replies."
   (interactive "p")
   (message "Loading home timeline...")
-  (mastodon-tl--init
-   "home" "timelines/home" 'mastodon-tl--timeline nil
-   `(("limit" . ,mastodon-tl--timeline-posts-count))
-   (when (eq arg 4) t)))
+  (mastodon-tl--init "home" "timelines/home" 'mastodon-tl--timeline nil
+                     `(("limit" . ,mastodon-tl--timeline-posts-count))
+                     (when (eq arg 4) t)))
 
 (defun mastodon-tl--get-local-timeline (&optional prefix)
   "Open local timeline.
@@ -407,7 +404,8 @@ With a single PREFIX arg, only show posts with media.
 With a double PREFIX arg, limit results to your own instance."
   (interactive "p")
   (let* ((word (or (word-at-point) ""))
-         (input (or tag (read-string (format "Load timeline for tag (%s): " word))))
+         (input (or tag (read-string
+                         (format "Load timeline for tag (%s): " word))))
          (tag (or tag (if (string-empty-p input) word input))))
     (message "Loading timeline for #%s..." tag)
     (mastodon-tl--show-tag-timeline prefix tag)))
@@ -417,8 +415,7 @@ With a double PREFIX arg, limit results to your own instance."
 If TAG is a list, show a timeline for all tags.
 With a single PREFIX arg, only show posts with media.
 With a double PREFIX arg, limit results to your own instance."
-  (let ((params
-         `(("limit" . ,mastodon-tl--timeline-posts-count))))
+  (let ((params `(("limit" . ,mastodon-tl--timeline-posts-count))))
     ;; avoid adding 'nil' to our params alist:
     (when (eq prefix 4)
       (push '("only_media" . "true") params))
