@@ -424,15 +424,12 @@ With a double PREFIX arg, limit results to your own instance."
       (let ((list (mastodon-http--build-array-params-alist "any[]" (cdr tag))))
         (while list
           (push (pop list) params))))
-    (mastodon-tl--init (if (listp tag)
-                           "tags-multiple"
-                         (concat "tag-" tag))
-                       (concat "timelines/tag/" (if (listp tag)
-                                                    ;; endpoint must be /tag/:sth
-                                                    (car tag) tag))
-                       'mastodon-tl--timeline
-                       nil
-                       params)))
+    (mastodon-tl--init
+     (if (listp tag) "tags-multiple" (concat "tag-" tag))
+     (concat "timelines/tag/" (if (listp tag) (car tag) tag)) ; must be /tag/:sth
+     'mastodon-tl--timeline
+     nil
+     params)))
 
 
 ;;; BYLINES, etc.
@@ -440,9 +437,8 @@ With a double PREFIX arg, limit results to your own instance."
 (defun mastodon-tl--message-help-echo ()
   "Call message on `help-echo' property at point.
 Do so if type of status at poins is not follow_request/follow."
-  (let ((type (alist-get
-               'type
-               (mastodon-tl--property 'toot-json :no-move)))
+  (let ((type (alist-get 'type
+                         (mastodon-tl--property 'toot-json :no-move)))
         (echo (mastodon-tl--property 'help-echo :no-move)))
     (when echo ; not for followers/following in profile
       (unless (or (string= type "follow_request")
@@ -454,10 +450,9 @@ Do so if type of status at poins is not follow_request/follow."
 With arg AVATAR, include the account's avatar image."
   (let-alist toot
     (concat
-     ;; avatar insertion moved up to `mastodon-tl--byline' by default in order
-     ;; to be outside of text prop 'byline t. arg avatar is used by
-     ;; `mastodon-profile--format-user'
-     (when (and avatar
+     ;; avatar insertion moved up to `mastodon-tl--byline' by default to be
+     ;; outside 'byline propt.
+     (when (and avatar ; used by `mastodon-profile--format-user'
                 mastodon-tl--show-avatars
                 mastodon-tl--display-media-p
                 (if (version< emacs-version "27.1")
@@ -498,11 +493,10 @@ moving image media from the byline.
 Used when point is at the start of a byline, i.e. where
 `mastodon-tl--goto-next-toot' leaves point."
   (let* ((toot-to-count
-          (or
-           ;; simply praying this order works
+          (or ; simply praying this order works
            (alist-get 'status toot) ; notifications timeline
-           ;; fol-req notif, has 'type
-           ;; placed before boosts coz fol-reqs have a (useless) reblog entry:
+           ;; fol-req notif, has 'type placed before boosts coz fol-reqs have
+           ;; a (useless) reblog entry:
            (when (and (or (mastodon-tl--buffer-type-eq 'notifications)
                           (mastodon-tl--buffer-type-eq 'mentions))
                       (alist-get 'type toot))
@@ -516,9 +510,8 @@ Used when point is at the start of a byline, i.e. where
              (format-media (when media-types
                              (format "media: %s"
                                      (mapconcat #'identity media-types " "))))
-             (format-media-binding (when (and (or
-                                               (member "video" media-types)
-                                               (member "gifv" media-types))
+             (format-media-binding (when (and (or (member "video" media-types)
+                                                  (member "gifv" media-types))
                                               (require 'mpv nil :no-error))
                                      (format " | C-RET to view with mpv"))))
         (format "%s" (concat format-media format-media-binding))))))
@@ -532,22 +525,19 @@ Used when point is at the start of a byline, i.e. where
   "Return a list of attachment URLs and types for TOOT.
 The result is added as an attachments property to author-byline."
   (let ((media-attachments (mastodon-tl--field 'media_attachments toot)))
-    (mapcar
-     (lambda (attachment)
-       (let-alist attachment
-         (list :url (or .remote_url .url) ; fallback for notifications
-               :type .type)))
-     media-attachments)))
+    (mapcar (lambda (attachment)
+              (let-alist attachment
+                (list :url (or .remote_url .url) ; fallback for notifications
+                      :type .type)))
+            media-attachments)))
 
 (defun mastodon-tl--byline-boosted (toot)
   "Add byline for boosted data from TOOT."
   (let ((reblog (alist-get 'reblog toot)))
     (when reblog
       (concat
-       "\n  "
-       (propertize "Boosted" 'face 'mastodon-boosted-face)
-       " "
-       (mastodon-tl--byline-author reblog)))))
+       "\n  " (propertize "Boosted" 'face 'mastodon-boosted-face)
+       " " (mastodon-tl--byline-author reblog)))))
 
 (defun mastodon-tl--format-faved-or-boosted-byline (letter)
   "Format the byline marker for a boosted or favourited status.
@@ -575,8 +565,7 @@ DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
   (let* ((created-time
           ;; bosts and faves in notifs view
-          ;; (makes timestamps be for the original toot
-          ;; not the boost/fave):
+          ;; (makes timestamps be for the original toot not the boost/fave):
           (or (mastodon-tl--field 'created_at
                                   (mastodon-tl--field 'status toot))
               ;; all other toots, inc. boosts/faves in timelines:
@@ -785,13 +774,10 @@ START and END are the boundaries of the link in the toot."
                          url toot-instance-url))
          (maybe-userhandle
           (if (proper-list-p toot) ; fails for profile buffers?
-              (or (mastodon-tl--userhandle-from-mentions toot
-                                                         link-str)
+              (or (mastodon-tl--userhandle-from-mentions toot link-str)
                   ;; FIXME: if prev always works, cut this:
-                  (mastodon-tl--extract-userhandle-from-url
-                   url link-str))
-            (mastodon-tl--extract-userhandle-from-url
-             url link-str))))
+                  (mastodon-tl--extract-userhandle-from-url url link-str))
+            (mastodon-tl--extract-userhandle-from-url url link-str))))
     (cond (;; Hashtags:
            maybe-hashtag
            (setq mastodon-tab-stop-type 'hashtag
@@ -812,9 +798,7 @@ START and END are the boundaries of the link in the toot."
                                      (when maybe-userid
                                        (list 'account-id maybe-userid))))))
           ;; Anything else:
-          (t
-           ;; Leave it as a url handled by shr.el.
-           ;; (We still have to replace the keymap so that tabbing works.)
+          (t ; Leave it as a url handled by shr.el.
            (setq keymap (if (eq shr-map (get-text-property start 'keymap))
                             mastodon-tl--shr-map-replacement
                           mastodon-tl--shr-image-map-replacement)
@@ -828,18 +812,18 @@ START and END are the boundaries of the link in the toot."
 
 (defun mastodon-tl--userhandle-from-mentions (toot link)
   "Extract a user handle from mentions in json TOOT.
-LINK is maybe the '@handle' to search for."
+LINK is maybe the `@handle' to search for."
   (mastodon-tl--extract-el-from-mentions 'acct toot link))
 
 (defun mastodon-tl--extract-userid-toot (toot link)
   "Extract a user id for an ACCT from mentions in a TOOT.
-LINK is maybe the '@handle' to search for."
+LINK is maybe the `@handle' to search for."
   (mastodon-tl--extract-el-from-mentions 'id toot link))
 
 (defun mastodon-tl--extract-el-from-mentions (el toot link)
   "Extract element EL from TOOT mentions that matches LINK.
-LINK should be a simple handle string with no domain, i.e. @user.
-Return nil if no matching element"
+LINK should be a simple handle string with no domain, i.e. \"@user\".
+Return nil if no matching element."
   ;; Must return nil if nothing found!
   ;; TODO: we should break the while loop as soon as we get sth
   (let ((mentions (append (alist-get 'mentions toot) nil)))
@@ -848,8 +832,7 @@ Return nil if no matching element"
              (name (substring-no-properties link 1 (length link))) ; cull @
              return)
         (while mention
-          (when (string= (alist-get 'username mention)
-                         name)
+          (when (string= name (alist-get 'username mention))
             (setq return (alist-get el mention)))
           (setq mention (pop mentions)))
         return))))
@@ -866,7 +849,7 @@ this should be of the form <at-sign><user id>, e.g. \"@Gargon\"."
                (string= (downcase buffer-text)
                         (downcase (substring (url-filename parsed-url) 1))))
       (if local-p
-          buffer-text ; no instance suffic for local mention
+          buffer-text ; no instance suffix for local mention
         (concat buffer-text "@" (url-host parsed-url))))))
 
 (defun mastodon-tl--extract-hashtag-from-url (url instance-url)
@@ -890,17 +873,15 @@ the toot)."
 (defun mastodon-tl--make-link (string link-type)
   "Return a propertized version of STRING that will act like link.
 LINK-TYPE is the type of link to produce."
-  (let ((help-text (cond
-                    ((eq link-type 'content-warning)
-                     "Toggle hidden text")
-                    (t
-                     (error "Unknown link type %s" link-type)))))
-    (propertize
-     string
-     'mastodon-tab-stop link-type
-     'mouse-face 'highlight
-     'keymap mastodon-tl--link-keymap
-     'help-echo help-text)))
+  (let ((help-text (cond ((eq link-type 'content-warning)
+                          "Toggle hidden text")
+                         (t
+                          (error "Unknown link type %s" link-type)))))
+    (propertize string
+                'mastodon-tab-stop link-type
+                'mouse-face 'highlight
+                'keymap mastodon-tl--link-keymap
+                'help-echo help-text)))
 
 (defun mastodon-tl--do-link-action-at-point (position)
   "Do the action of the link at POSITION.
@@ -910,7 +891,8 @@ Used for hitting RET on a given link."
     (cond ((eq link-type 'content-warning)
            (mastodon-tl--toggle-spoiler-text position))
           ((eq link-type 'hashtag)
-           (mastodon-tl--show-tag-timeline nil (get-text-property position 'mastodon-tag)))
+           (mastodon-tl--show-tag-timeline
+            nil (get-text-property position 'mastodon-tag)))
           ;; 'account / 'account-id is not set for mentions, only bylines
           ((eq link-type 'user-handle)
            (let ((account-json (get-text-property position 'account))
