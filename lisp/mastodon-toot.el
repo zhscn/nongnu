@@ -1360,17 +1360,14 @@ LONGEST is the length of the longest binding."
 
 (defun mastodon-toot--formatted-kbinds-longest (kbinds-list)
   "Return the length of the longest item in KBINDS-LIST."
-  (let ((lengths (mapcar (lambda (x)
-                           (length x))
-                         kbinds-list)))
+  (let ((lengths (mapcar #'length kbinds-list)))
     (car (sort lengths #'>))))
 
 (defun mastodon-toot--make-mode-docs ()
   "Create formatted documentation text for the mastodon-toot-mode."
   (let* ((kbinds (mastodon-toot--get-mode-kbinds))
-         (longest-kbind
-          (mastodon-toot--formatted-kbinds-longest
-           (mastodon-toot--format-kbinds kbinds))))
+         (longest-kbind (mastodon-toot--formatted-kbinds-longest
+                         (mastodon-toot--format-kbinds kbinds))))
     (concat
      " Compose a new toot here. The following keybindings are available:"
      (mapconcat #'identity
@@ -1383,15 +1380,12 @@ LONGEST is the length of the longest binding."
   "Format a REPLY-TEXT for display in compose buffer docs."
   (let* ((rendered (mastodon-tl--render-text reply-text))
          (no-props (substring-no-properties rendered))
-         ;; FIXME: this regex replaces \n at end of every post
-         ;; so we have to trim:
+         ;; FIXME: this replaces \n at end of every post, so we have to trim:
          (no-newlines (string-trim
                        (replace-regexp-in-string "[\n]+" " " no-props)))
          (reply-to (concat " Reply to: \"" no-newlines "\""))
-         (crop (truncate-string-to-width
-                ;; (string-limit
-                reply-to
-                mastodon-toot-orig-in-reply-length)))
+         (crop (truncate-string-to-width reply-to
+                                         mastodon-toot-orig-in-reply-length)))
     (if (> (length no-newlines)
            (length crop)) ; we cropped:
         (concat crop "\n")
@@ -1457,9 +1451,8 @@ The default is given by `mastodon-toot--default-reply-visibility'."
   "If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set `mastodon-toot--reply-to-id'.
 REPLY-JSON is the full JSON of the toot being replied to."
-  (let ((reply-visibility
-	 (mastodon-toot--most-restrictive-visibility
-	  (alist-get 'visibility reply-json)))
+  (let ((reply-visibility (mastodon-toot--most-restrictive-visibility
+	                   (alist-get 'visibility reply-json)))
         (reply-cw (alist-get 'spoiler_text reply-json)))
     (when reply-to-user
       (when (> (length reply-to-user) 0) ; self is "" unforch
