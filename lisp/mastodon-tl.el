@@ -1197,8 +1197,8 @@ To disable showing the stats, customize
 
 ;; POLLS
 
-(defun mastodon-tl--format-poll-option (option-counter longest-option)
-  "Format a poll option. OPTION-COUNTER is just a counter.
+(defun mastodon-tl--format-poll-option (option option-counter longest-option)
+  "Format poll OPTION. OPTION-COUNTER is just a counter.
 LONGEST-OPTION is the option whose length determines the formatting."
   (format "%s: %s%s%s\n"
           (setq option-counter (1+ option-counter))
@@ -1222,7 +1222,7 @@ LONGEST-OPTION is the option whose length determines the formatting."
            (option-counter 0))
       (concat "\nPoll: \n\n"
               (mapconcat (lambda (option)
-                           (mastodon-tl--format-poll-option option-counter longest-option))
+                           (mastodon-tl--format-poll-option option option-counter longest-option))
                          .options
                          "\n")
               "\n"
