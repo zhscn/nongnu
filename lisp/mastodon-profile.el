@@ -394,11 +394,10 @@ Current settings are fetched from the server."
                   (mastodon-profile--get-source-value key)
                 (mastodon-profile--get-json-value key)))
          (prompt (format "Account setting %s is %s. Toggle?" key val)))
-    (if val
-        (when (y-or-n-p prompt)
-          (mastodon-profile--update-preference (symbol-name key) "false" source))
-      (when (y-or-n-p prompt)
-        (mastodon-profile--update-preference (symbol-name key) "true" source)))))
+    (when (y-or-n-p prompt)
+      (mastodon-profile--update-preference (symbol-name key)
+                                           (if val "false" "true")
+                                           source))))
 
 (defun mastodon-profile--edit-string-value (key)
   "Edit the string for account preference KEY."
