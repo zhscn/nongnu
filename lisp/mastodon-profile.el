@@ -207,6 +207,7 @@ NO-REBLOGS means do not display boosts in statuses."
            (handle (alist-get 'acct profile)))
       (mastodon-views--add-account-to-list nil id handle))))
 
+
 ;;; ACCOUNT PREFERENCES
 
 (defun mastodon-profile--get-json-value (val)
@@ -241,9 +242,7 @@ NO-REBLOGS means do not display boosts in statuses."
          (msg-str "Edit your profile note. C-c C-c to send, C-c C-k to cancel."))
     (switch-to-buffer-other-window buffer)
     (text-mode)
-    (mastodon-tl--set-buffer-spec (buffer-name buffer)
-                                  endpoint
-                                  nil)
+    (mastodon-tl--set-buffer-spec (buffer-name buffer) endpoint nil)
     (setq-local header-line-format
                 (propertize msg-str
                             'face font-lock-comment-face))
@@ -257,7 +256,7 @@ NO-REBLOGS means do not display boosts in statuses."
                         'note-header t)
             "\n")
     (make-local-variable 'after-change-functions)
-    (push #'mastodon-profile--update-note-count after-change-functions)
+    (cl-pushnew #'mastodon-profile--update-note-count after-change-functions)
     (let ((start-point (point)))
       (insert note)
       (goto-char start-point))
@@ -342,9 +341,7 @@ Only do so if `mastodon-profile-account-settings' is nil."
 Store the values in `mastodon-profile-account-settings'.
 Run in `mastodon-mode-hook'.
 If NO-FORCE, only fetch if `mastodon-profile-account-settings' is nil."
-  (unless
-      (and no-force
-           mastodon-profile-account-settings)
+  (unless (and no-force mastodon-profile-account-settings)
     (let ((keys '(locked discoverable display_name bot))
           (source-keys '(privacy sensitive language)))
       (mapc (lambda (k)
@@ -424,10 +421,8 @@ Returns an alist."
                                      (format "fields_attributes[%s][value]" count)))))
     (cl-loop for a-pair in keys
              for b-pair in fields
-             append (list (cons (car a-pair)
-                                (car b-pair))
-                          (cons (cdr a-pair)
-                                (cdr b-pair))))))
+             append (list (cons (car a-pair) (car b-pair))
+                          (cons (cdr a-pair) (cdr b-pair))))))
 
 (defun mastodon-profile--update-meta-fields ()
   "Prompt for new metadata fields information and PATCH the server."
@@ -463,7 +458,6 @@ Returns the results as an alist."
                           (read-string
                            (format "Metadata value [%s/4] (max. 255 chars): " x)
                            (cdr f))))))
-      ;; hack to avoiding using `string-limit', which req. 28.1:
       (mapcar (lambda (x)
                 (cons (mastodon-profile--limit-to-255 (car x))
                       (mastodon-profile--limit-to-255 (cdr x))))
@@ -500,15 +494,15 @@ This endpoint only holds a few preferences. For others, see
            "\n\n")))
       (goto-char (point-min)))))
 
-;; PROFILE VIEW DETAILS
+
+;;; PROFILE VIEW DETAILS
 
 (defun mastodon-profile--relationships-get (id)
   "Fetch info about logged-in user's relationship to user with id ID."
   (let* ((their-id id)
          (args `(("id[]" . ,their-id)))
          (url (mastodon-http--api "accounts/relationships")))
-    ;; FIXME: not sure why we need to do this for relationships only!
-    (car (mastodon-http--get-json url args))))
+    (car (mastodon-http--get-json url args)))) ; API takes array, just get 1st
 
 (defun mastodon-profile--fields-get (&optional account fields)
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
@@ -522,8 +516,7 @@ FIELDS means provide a fields vector fetched by other means."
 (defun mastodon-profile--fields-insert (fields)
   "Format and insert field pairs (a.k.a profile metadata) in FIELDS."
   (let* ((car-fields (mapcar #'car fields))
-         (left-width (cl-reduce
-                      #'max (mapcar #'length car-fields))))
+         (left-width (cl-reduce #'max (mapcar #'length car-fields))))
     (mapconcat (lambda (field)
                  (mastodon-tl--render-text
                   (concat
@@ -543,8 +536,7 @@ FIELDS means provide a fields vector fetched by other means."
 (defun mastodon-profile--insert-statuses-pinned (pinned-statuses)
   "Insert each of the PINNED-STATUSES for a given account."
   (mapc (lambda (pinned-status)
-          (insert (mastodon-tl--set-face
-                   "   :pinned: " 'success))
+          (insert (mastodon-tl--set-face "   :pinned: " 'success))
           (mastodon-tl--toot pinned-status))
         pinned-statuses))
 
@@ -583,10 +575,8 @@ HEADERS means also fetch link headers for pagination."
       (with-mastodon-buffer buffer #'mastodon-mode nil
         (mastodon-profile-mode)
         (setq mastodon-profile--account account)
-        (mastodon-tl--set-buffer-spec buffer
-                                      endpoint
-                                      update-function
-                                      link-header)
+        (mastodon-tl--set-buffer-spec buffer endpoint
+                                      update-function link-header)
         (let* ((inhibit-read-only t)
                (is-statuses (string= endpoint-type "statuses"))
                (is-followers (string= endpoint-type "followers"))
@@ -604,24 +594,20 @@ HEADERS means also fetch link headers for pagination."
              (mastodon-profile--image-from-account account 'avatar_static)
              (mastodon-profile--image-from-account account 'header_static)
              "\n"
-             (propertize .display_name
-                         'face 'mastodon-display-name-face)
+             (propertize .display_name 'face 'mastodon-display-name-face)
              "\n"
-             (propertize (concat "@" .acct)
-                         'face 'default)
+             (propertize (concat "@" .acct) 'face 'default)
              (if (equal .locked t)
                  (concat " " (mastodon-tl--symbol 'locked))
                "")
              "\n " mastodon-tl--horiz-bar "\n"
              ;; profile note:
-             ;; account here to enable tab-stops in profile note
-             (mastodon-tl--render-text .note account)
+             (mastodon-tl--render-text .note account) ; account = tab-stops in profile
              ;; meta fields:
              (if fields
-                 (concat "\n"
-                         (mastodon-tl--set-face
-                          (mastodon-profile--fields-insert fields)
-                          'success))
+                 (concat "\n" (mastodon-tl--set-face
+                               (mastodon-profile--fields-insert fields)
+                               'success))
                "")
              "\n"
              ;; Joined date:
@@ -640,9 +626,8 @@ HEADERS means also fetch link headers for pagination."
             'success)
            ;; insert relationship (follows)
            (let-alist relationships
-             (let ((followsp
-                    (mastodon-profile--follows-p
-                     (list .requested_by .following .followed_by))))
+             (let ((followsp (mastodon-profile--follows-p
+                              (list .requested_by .following .followed_by))))
                (if followsp
                    (mastodon-tl--set-face
                     (concat (when (equal .following 't)
@@ -653,19 +638,18 @@ HEADERS means also fetch link headers for pagination."
                               " | REQUESTED TO FOLLOW YOU")
                             "\n\n")
                     'success)
-                 ""))) ; if no followsp we still need str-or-char-p for insert
+                 ""))) ; for insert call
            ;; insert endpoint
-           (mastodon-tl--set-face
-            (concat " " mastodon-tl--horiz-bar "\n"
-                    endpoint-name "\n"
-                    " " mastodon-tl--horiz-bar "\n")
-            'success))
+           (mastodon-tl--set-face (concat " " mastodon-tl--horiz-bar "\n"
+                                          endpoint-name "\n"
+                                          " " mastodon-tl--horiz-bar "\n")
+                                  'success))
           (setq mastodon-tl--update-point (point))
           (mastodon-media--inline-images (point-min) (point))
           ;; insert pinned toots first
           (when (and pinned (equal endpoint-type "statuses"))
             (mastodon-profile--insert-statuses-pinned pinned)
-            (setq mastodon-tl--update-point (point))) ;updates to follow pinned toots
+            (setq mastodon-tl--update-point (point))) ; updates after pinned toots
           (funcall update-function json)))
       (goto-char (point-min)))))
 
@@ -703,8 +687,7 @@ IMG-TYPE is the JSON key from the account data."
                          user-handles
                          nil ; predicate
                          'confirm)))))
-  (if (not (or
-            ;; own profile has no need for toot-json test:
+  (if (not (or ; own profile has no need for toot-json test:
             (equal user-handle (mastodon-auth--get-account-name))
             (mastodon-tl--profile-buffer-p)
             (mastodon-tl--property 'toot-json :no-move)))
