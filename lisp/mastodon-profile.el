@@ -91,11 +91,6 @@
 
 (defvar mastodon-profile-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; conflicts with `s' keybinding to translate toot at point
-    ;; seeing as we now have the C-c C-c cycle functionality,
-    ;; maybe we can retire both of these awful bindings
-    ;; (define-key map (kbd "s") #'mastodon-profile--open-followers)
-    ;; (define-key map (kbd "g") #'mastodon-profile--open-following)
     (define-key map (kbd "C-c C-c") #'mastodon-profile--account-view-cycle)
     map)
   "Keymap for `mastodon-profile-mode'.")
@@ -105,7 +100,6 @@
 This minor mode is used for mastodon profile pages and adds a couple of
 extra keybindings."
   :init-value nil
-  ;; modeline indicator:
   :lighter " Profile"
   :keymap mastodon-profile-mode-map
   :group 'mastodon
@@ -555,7 +549,7 @@ FIELDS means provide a fields vector fetched by other means."
         pinned-statuses))
 
 (defun mastodon-profile--follows-p (list)
-  "T if you have any relationship."
+  "T if you have any relationship with the accounts in LIST."
   (let (result)
     (dolist (x list result)
       (when (not (equal :json-false x))
