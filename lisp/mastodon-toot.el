@@ -1576,8 +1576,7 @@ Added to `after-change-functions' in new toot buffers."
                                     mastodon-toot-draft-toots-list
                                     nil t)))
         (setq mastodon-toot-draft-toots-list
-              (cl-delete draft mastodon-toot-draft-toots-list
-                         :test 'equal))
+              (cl-delete draft mastodon-toot-draft-toots-list :test 'equal))
         (message "Draft deleted!"))
     (message "No drafts to delete.")))
 
@@ -1591,9 +1590,8 @@ Added to `after-change-functions' in new toot buffers."
   "Propertize tags and handles in toot compose buffer.
 Added to `after-change-functions'."
   (when (mastodon-toot--compose-buffer-p)
-    (let ((header-region
-           (mastodon-tl--find-property-range 'toot-post-header
-                                             (point-min)))
+    (let ((header-region (mastodon-tl--find-property-range 'toot-post-header
+                                                           (point-min)))
           (face (when mastodon-toot--proportional-fonts-compose
                   'variable-pitch)))
       ;; cull any prev props:
@@ -1629,14 +1627,10 @@ Added to `after-change-functions'."
     (save-match-data
       (let* ((fill-column 67))
         (goto-char (point-min))
-        ;; while-let shoulndn't be needed here, as we really should only have
-        ;; one. if we have more, the bug is elsewhere.
         (when-let ((prop (text-property-search-forward 'toot-reply)))
           (fill-region (prop-match-beginning prop)
                        (point)))))))
 
-;; NB: now that we have toot drafts, to ensure offline composing remains
-;; possible, avoid any direct requests here:
 (defun mastodon-toot--compose-buffer
     (&optional reply-to-user reply-to-id reply-json initial-text edit)
   "Create a new buffer to capture text for a new toot.
@@ -1680,10 +1674,9 @@ EDIT means we are editing an existing toot, not composing a new one."
       (mastodon-toot--get-max-toot-chars))
     ;; set up completion:
     (when mastodon-toot--enable-completion
-      (set ; (setq-local
-       (make-local-variable 'completion-at-point-functions)
-       (add-to-list 'completion-at-point-functions
-                    #'mastodon-toot--mentions-capf))
+      (set (make-local-variable 'completion-at-point-functions)
+           (add-to-list 'completion-at-point-functions
+                        #'mastodon-toot--mentions-capf))
       (add-to-list 'completion-at-point-functions
                    #'mastodon-toot--tags-capf)
       ;; company
@@ -1695,10 +1688,10 @@ EDIT means we are editing an existing toot, not composing a new one."
         (company-mode-on)))
     ;; after-change:
     (make-local-variable 'after-change-functions)
-    (cl-pushnew #'mastodon-toot--update-status-fields after-change-functions)
     (cl-pushnew #'mastodon-toot--save-toot-text after-change-functions)
-    (cl-pushnew #'mastodon-toot--propertize-tags-and-handles after-change-functions)
+    (cl-pushnew #'mastodon-toot--update-status-fields after-change-functions)
     (mastodon-toot--update-status-fields)
+    (cl-pushnew #'mastodon-toot--propertize-tags-and-handles after-change-functions)
     (mastodon-toot--propertize-tags-and-handles)
     (mastodon-toot--refresh-attachments-display)
     ;; draft toot text saving:
@@ -1712,6 +1705,7 @@ EDIT means we are editing an existing toot, not composing a new one."
 
 ;; flyspell ignore masto toot regexes:
 (defvar flyspell-generic-check-word-predicate)
+
 (defun mastodon-toot-mode-flyspell-verify ()
   "A predicate function for `flyspell'.
 Only text that is not one of these faces will be spell-checked."
