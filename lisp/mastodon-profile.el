@@ -509,7 +509,7 @@ This endpoint only holds a few preferences. For others, see
 Returns an alist.
 FIELDS means provide a fields vector fetched by other means."
   (let ((fields (or fields
-                    (mastodon-profile--account-field account 'fields))))
+                    (alist-get 'fields account))))
     (when fields
       (mastodon-tl--map-alist-vals-to-alist 'name 'value fields))))
 
@@ -528,7 +528,7 @@ FIELDS means provide a fields vector fetched by other means."
 
 (defun mastodon-profile--get-statuses-pinned (account)
   "Fetch the pinned toots for ACCOUNT."
-  (let* ((id (mastodon-profile--account-field account 'id))
+  (let* ((id (alist-get 'id account))
          (args `(("pinned" . "true")))
          (url (mastodon-http--api (format "accounts/%s/statuses" id))))
     (mastodon-http--get-json url args)))
@@ -706,11 +706,6 @@ IMG-TYPE is the JSON key from the account data."
   (interactive)
   (message "Loading your profile...")
   (mastodon-profile--show-user (mastodon-auth--get-account-name)))
-
-(defun mastodon-profile--account-field (account field)
-  "Return FIELD from the ACCOUNT.
-FIELD is used to identify regions under `account'."
-  (cdr (assoc field account)))
 
 (defun mastodon-profile--add-author-bylines (tootv)
   "Convert TOOTV into a author-bylines and insert.
