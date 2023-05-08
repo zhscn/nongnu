@@ -1848,12 +1848,10 @@ view all branches of a thread."
       (let* ((endpoint (format "statuses/%s/context" id))
              (url (mastodon-http--api endpoint))
              (buffer (format "*mastodon-thread-%s*" id))
-             (toot
-              ;; refetch current toot in case we just faved/boosted:
-              (mastodon-http--get-json
-               (mastodon-http--api (concat "statuses/" id))
-               nil
-               :silent))
+             (toot (mastodon-http--get-json ; refetch in case we just faved/boosted:
+                    (mastodon-http--api (concat "statuses/" id))
+                    nil
+                    :silent))
              (context (mastodon-http--get-json url nil :silent)))
         (if (equal (caar toot) 'error)
             (message "Error: %s" (cdar toot))
@@ -2233,7 +2231,7 @@ PREFIX is sent to `mastodon-tl--show-tag-timeline', which see."
 (defun mastodon-tl--some-followed-tags-timeline (&optional prefix)
   "Prompt for some tags, and open a timeline for them.
 The suggestions are from followed tags, but any other tags are also allowed.
-PREFIX us sent to `mastodon-tl--show-tag-timeline', which see."
+PREFIX is for `mastodon-tl--show-tag-timeline', which see."
   (interactive "p")
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
          (tags (mastodon-tl--map-alist 'name followed-tags-json))
@@ -2311,7 +2309,7 @@ report the account for spam."
 (defvar crm-separator)
 
 (defun mastodon-tl--map-rules-alist (rules)
-  "Return an alist of the text and id fields of RULES."
+  "Convert RULES text and id fields into an alist."
   (mapcar (lambda (x)
             (let-alist x
               (cons .text .id)))
