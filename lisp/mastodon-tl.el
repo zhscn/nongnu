@@ -584,12 +584,12 @@ this just means displaying toot client."
     .edited_at
     (let* ((created-time
             ;; bosts and faves in notifs view
-            ;; (timestamps for original not the boost/fave):
-            (or (mastodon-tl--field 'created_at
-                                    (mastodon-tl--field 'status toot))
+            ;; (makes timestamps be for the original toot
+            ;; not the boost/fave):
+            (or .status.created_at
                 ;; all other toots, inc. boosts/faves in timelines:
-                ;; (mastodon-tl--field fetches from reblogs if needed):
-                (mastodon-tl--field 'created_at toot)))
+                ;; (mastodon-tl--field auto fetches from reblogs if needed):
+                .created_at))
            (parsed-time (date-to-time created-time))
            (faved (equal 't .favourited))
            (boosted (equal 't .reblogged))
