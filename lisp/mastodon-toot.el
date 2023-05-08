@@ -676,18 +676,20 @@ TEXT-ONLY means don't check for attachments or polls."
   'emojify-insert-emoji
   "Prompt to insert an emoji.")
 
+
+(defun mastodon-toot--emoji-dir ()
+  "Return the file path for the mastodon custom emojis directory."
+  (concat (expand-file-name emojify-emojis-dir)
+          "/mastodon-custom-emojis/"))
+
 (defun mastodon-toot--download-custom-emoji ()
   "Download `mastodon-instance-url's custom emoji.
 Emoji images are stored in a subdir of `emojify-emojis-dir'.
 To use the downloaded emoji, run `mastodon-toot--enable-custom-emoji'."
   (interactive)
-  (let ((custom-emoji (mastodon-http--get-json
-                       (mastodon-http--api "custom_emojis")))
-        (mastodon-custom-emoji-dir (file-name-as-directory
-                                    (concat (file-name-as-directory
-                                             (expand-file-name
-                                              emojify-emojis-dir))
-                                            "mastodon-custom-emojis"))))
+  (let ((url (mastodon-http--api "custom_emojis"))
+        (custom-emoji (mastodon-http--get-json url))
+        (mastodon-custom-emoji-dir (mastodon-toot--emoji-dir)))
     (if (not (file-directory-p emojify-emojis-dir))
         (message "Looks like you need to set up emojify first.")
       (unless (file-directory-p mastodon-custom-emoji-dir)
@@ -700,11 +702,10 @@ To use the downloaded emoji, run `mastodon-toot--enable-custom-emoji'."
                            (string-match-p "^[a-zA-Z0-9-_]+$" shortcode)
                            (string-match-p "^[a-zA-Z]+$" (file-name-extension url)))
                   (url-copy-file url
-                                 (concat
-                                  mastodon-custom-emoji-dir
-                                  shortcode
-                                  "."
-                                  (file-name-extension url))
+                                 (concat mastodon-custom-emoji-dir
+                                         shortcode
+                                         "."
+                                         (file-name-extension url))
                                  t))))
             custom-emoji)
       (message "Custom emoji for %s downloaded to %s"
@@ -714,13 +715,11 @@ To use the downloaded emoji, run `mastodon-toot--enable-custom-emoji'."
 (defun mastodon-toot--collect-custom-emoji ()
   "Return a list of `mastodon-instance-url's custom emoji.
 The list is formatted for `emojify-user-emojis', which see."
-  (let* ((mastodon-custom-emojis-dir (concat (expand-file-name
-                                              emojify-emojis-dir)
-                                             "/mastodon-custom-emojis/"))
+  (let* ((mastodon-custom-emojis-dir (mastodon-toot--emoji-dir))
          (custom-emoji-files (directory-files mastodon-custom-emojis-dir
                                               nil ; not full path
                                               "^[^.]")) ; no dot files
-         (mastodon-emojify-user-emojis))
+         mastodon-emojify-user-emojis)
     (mapc (lambda (x)
             (push
              `(,(concat ":"
@@ -738,9 +737,7 @@ Custom emoji must first be downloaded with
 `mastodon-toot--download-custom-emoji'. Custom emoji are appended
 to `emojify-user-emojis', and the emoji data is updated."
   (interactive)
-  (unless (file-exists-p (concat (expand-file-name
-                                  emojify-emojis-dir)
-                                 "/mastodon-custom-emojis/"))
+  (unless (file-exists-p (mastodon-toot--emoji-dir))
     (when (y-or-n-p "Looks like you haven't downloaded your
     instance's custom emoji yet. Download now? ")
       (mastodon-toot--download-custom-emoji)))
