@@ -1199,46 +1199,53 @@ To disable showing the stats, customize
 
 (defun mastodon-tl--get-poll (toot)
   "If TOOT includes a poll, return it as a formatted string."
-  (let-alist toot
-    (let* ((option-titles (mastodon-tl--map-alist 'title .poll.options))
-           (longest-option (car (sort option-titles
-                                      (lambda (x y)
-                                        (> (length x)
-                                           (length y))))))
-           (option-counter 0))
-      (concat "\nPoll: \n\n"
-              (mapconcat (lambda (option)
-                           (progn
-                             (format "%s: %s%s%s\n"
-                                     (setq option-counter (1+ option-counter))
-                                     (propertize (alist-get 'title option)
-                                                 'face 'success)
-                                     (make-string
-                                      (1+
-                                       (- (length longest-option)
-                                          (length (alist-get 'title option))))
-                                      ?\ )
-                                     ;; TODO: disambiguate no votes from hidden votes
-                                     (format "[%s votes]" (or (alist-get 'votes_count option)
-                                                              "0")))))
-                         .poll.options
-                         "\n")
-              "\n"
-              (propertize
-               (cond (.poll.voters_count ; sometimes it is nil
-                      (if (= .poll.voters_count 1)
-                          (format "%s person | " .poll.voters_count)
-                        (format "%s people | " .poll.voters_count)))
-                     (.poll.vote_count
-                      (format "%s votes | " .poll.vote_count))
-                     (t
-                      ""))
-               'face 'font-lock-comment-face)
-              (let ((str (if (eq .poll.expired :json-false)
-                             (mastodon-tl--format-poll-expiry .poll.expires_at)
-                           "Poll expired.")))
-                (propertize str 'face 'font-lock-comment-face))
-              "\n"))))
+  (let* ((poll (mastodon-tl--field 'poll toot))
+         (expiry (mastodon-tl--field 'expires_at poll))
+         (expired-p (if (eq (mastodon-tl--field 'expired poll) :json-false) nil t))
+         ;; (multi (mastodon-tl--field 'multiple poll))
+         (voters-count (mastodon-tl--field 'voters_count poll))
+         (vote-count (mastodon-tl--field 'votes_count poll))
+         (options (mastodon-tl--field 'options poll))
+         (option-titles (mastodon-tl--map-alist 'title options))
+         (longest-option (car (sort option-titles
+                                    (lambda (x y)
+                                      (> (length x)
+                                         (length y))))))
+         (option-counter 0))
+    (concat "\nPoll: \n\n"
+            (mapconcat (lambda (option)
+                         (progn
+                           (format "%s: %s%s%s\n"
+                                   (setq option-counter (1+ option-counter))
+                                   (propertize (alist-get 'title option)
+                                               'face 'success)
+                                   (make-string
+                                    (1+
+                                     (- (length longest-option)
+                                        (length (alist-get 'title
+                                                           option))))
+                                    ?\ )
+                                   ;; TODO: disambiguate no votes from hidden votes
+                                   (format "[%s votes]" (or (alist-get 'votes_count option)
+                                                            "0")))))
+                       options
+                       "\n")
+            "\n"
+            (propertize
+             (cond (voters-count ; sometimes it is nil
+                    (if (= voters-count 1)
+                        (format "%s person | " voters-count)
+                      (format "%s people | " voters-count)))
+                   (vote-count
+                    (format "%s votes | " vote-count))
+                   (t
+                    ""))
+             'face 'font-lock-comment-face)
+            (let ((str (if expired-p
+                           "Poll expired."
+                         (mastodon-tl--format-poll-expiry expiry))))
+              (propertize str 'face 'font-lock-comment-face))
+            "\n")))
 
 (defun mastodon-tl--format-poll-expiry (timestamp)
   "Convert poll expiry TIMESTAMP into a descriptive string."
