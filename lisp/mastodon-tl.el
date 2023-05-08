@@ -60,7 +60,6 @@
 (autoload 'mastodon-media--inline-images "mastodon-media")
 (autoload 'mastodon-notifications--filter-types-list "mastodon-notifications")
 (autoload 'mastodon-notifications--get-mentions "mastodon-notifications")
-(autoload 'mastodon-profile--account-field "mastodon-profile")
 (autoload 'mastodon-profile--account-from-id "mastodon-profile")
 (autoload 'mastodon-profile--extract-users-handles "mastodon-profile")
 (autoload 'mastodon-profile--get-preferences-pref "mastodon-profile")
@@ -2137,11 +2136,10 @@ LANGS is an array parameters alist of languages to filer user's posts by."
                       ;; if muting/blocking, we select from handles in current status
                       (mastodon-profile--lookup-account-in-status
                        user-handle (mastodon-profile--toot-json)))))
-         (user-id (mastodon-profile--account-field account 'id))
-         (name (if (not (string-empty-p
-                         (mastodon-profile--account-field account 'display_name)))
-                   (mastodon-profile--account-field account 'display_name)
-                 (mastodon-profile--account-field account 'username)))
+         (user-id (alist-get 'id account))
+         (name (if (not (string-empty-p (alist-get 'display_name account)))
+                   (alist-get 'display_name account)
+                 (alist-get 'username account)))
          (args (cond (notify
                       `(("notify" . ,notify)))
                      (langs langs)
@@ -2255,7 +2253,7 @@ PREFIX is for `mastodon-tl--show-tag-timeline', which see."
 (defun mastodon-tl--report-params (account toot)
   "Query user and return report params alist.
 ACCOUNT and TOOT are the data to use."
-  (let* ((account-id (mastodon-profile--account-field account 'id))
+  (let* ((account-id (alist-get 'id account))
          (comment (read-string "Add comment [optional]: "))
          (toot-id (when (y-or-n-p "Also report status at point? ")
                     (mastodon-tl--toot-id toot))) ; base toot if poss
