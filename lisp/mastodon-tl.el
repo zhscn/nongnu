@@ -1269,59 +1269,60 @@ To disable showing the stats, customize
 
 (defun mastodon-tl--read-poll-option ()
   "Read a poll option to vote on a poll."
-  (list
-   (let-alist (mastodon-tl--property 'toot-json)
-     (let* ((poll (or .reblog.poll .poll))
-            (options (mastodon-tl--field 'options poll))
-            (options-titles (mastodon-tl--map-alist 'title options))
-            (options-number-seq (number-sequence 1 (length options)))
-            (options-numbers (mapcar #'number-to-string options-number-seq))
-            (options-alist (cl-mapcar #'cons options-numbers options-titles))
-            ;; we display both option number and the option title
-            ;; but also store both as cons cell as cdr, as we need it below
-            (candidates (mapcar (lambda (cell)
-                                  (cons (format "%s | %s" (car cell) (cdr cell))
-                                        cell))
-                                options-alist)))
-       (if (null .poll) ;(mastodon-tl--field 'poll (mastodon-tl--property 'toot-json)))
-           (message "No poll here.")
-         ;; var "option" = just the cdr, a cons of option number and desc
-         (cdr (assoc (completing-read "Poll option to vote for: "
-                                      candidates
-                                      nil ; (predicate)
-                                      t) ; require match
-                     candidates)))))))
+  (list (let* ((toot (mastodon-tl--property 'toot-json))
+               (poll (mastodon-tl--field 'poll toot))
+               (options (mastodon-tl--field 'options poll))
+               (options-titles (mastodon-tl--map-alist 'title options))
+               (options-number-seq (number-sequence 1 (length options)))
+               (options-numbers (mapcar #'number-to-string options-number-seq))
+               (options-alist (cl-mapcar #'cons options-numbers options-titles))
+               ;; we display both option number and the option title
+               ;; but also store both as cons cell as cdr, as we need it below
+               (candidates (mapcar (lambda (cell)
+                                     (cons (format "%s | %s" (car cell) (cdr cell))
+                                           cell))
+                                   options-alist)))
+          (if (null poll)
+              (message "No poll here.")
+            ;; var "option" = just the cdr, a cons of option number and desc
+            (cdr (assoc (completing-read "Poll option to vote for: "
+                                         candidates
+                                         nil
+                                         t) ; require match
+                        candidates))))))
 
 (defun mastodon-tl--poll-vote (option)
   "If there is a poll at point, prompt user for OPTION to vote on it."
   (interactive (mastodon-tl--read-poll-option))
-  (let-alist (mastodon-tl--property 'toot-json)
-    (if (null .poll) ;(mastodon-tl--field 'poll (mastodon-tl--property 'toot-json)))
-        (message "No poll here.")
-      (let* ((url (mastodon-http--api (format "polls/%s/votes" .poll.id)))
-             ;; need to zero-index our option:
-             (option-as-arg (number-to-string (1- (string-to-number (car option)))))
-             (arg `(("choices[]" . ,option-as-arg)))
-             (response (mastodon-http--post url arg)))
-        (mastodon-http--triage response
-                               (lambda ()
-                                 (message "You voted for option %s: %s!"
-                                          (car option) (cdr option))))))))
+  (if (null (mastodon-tl--field 'poll (mastodon-tl--property 'toot-json)))
+      (message "No poll here.")
+    (let* ((toot (mastodon-tl--property 'toot-json))
+           (poll (mastodon-tl--field 'poll toot))
+           (poll-id (alist-get 'id poll))
+           (url (mastodon-http--api (format "polls/%s/votes" poll-id)))
+           ;; need to zero-index our option:
+           (option-as-arg (number-to-string (1- (string-to-number (car option)))))
+           (arg `(("choices[]" . ,option-as-arg)))
+           (response (mastodon-http--post url arg)))
+      (mastodon-http--triage response
+                             (lambda ()
+                               (message "You voted for option %s: %s!"
+                                        (car option) (cdr option)))))))
 
 
 ;; VIDEOS / MPV
 
-(defun mastodon-tl--find-first-video-in-attachments ()
-  "Return the first media attachment that is a moving image."
-  (let ((attachments (mastodon-tl--property 'attachments))
-        vids)
-    (mapc (lambda (x)
-            (let ((att-type (plist-get x :type)))
-              (when (or (string= "video" att-type)
-                        (string= "gifv" att-type))
-                (push x vids))))
-          attachments)
-    (car vids)))
+       (defun mastodon-tl--find-first-video-in-attachments ()
+         "Return the first media attachment that is a moving image."
+         (let ((attachments (mastodon-tl--property 'attachments))
+               vids)
+           (mapc (lambda (x)
+                   (let ((att-type (plist-get x :type)))
+                     (when (or (string= "video" att-type)
+                               (string= "gifv" att-type))
+                       (push x vids))))
+                 attachments)
+           (car vids)))
 
 (defun mastodon-tl--mpv-play-video-from-byline ()
   "Run `mastodon-tl--mpv-play-video-at-point' on first moving image in post."
