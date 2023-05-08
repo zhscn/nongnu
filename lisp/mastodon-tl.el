@@ -457,7 +457,7 @@ With arg AVATAR, include the account's avatar image."
     (concat
      ;; avatar insertion moved up to `mastodon-tl--byline' by default in order
      ;; to be outside of text prop 'byline t. arg avatar is used by
-     ;; `mastodon-profile--add-author-bylines'
+     ;; `mastodon-profile--format-user'
      (when (and avatar
                 mastodon-tl--show-avatars
                 mastodon-tl--display-media-p

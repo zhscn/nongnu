@@ -163,7 +163,7 @@ NO-REBLOGS means do not display boosts in statuses."
       (mastodon-profile--make-profile-buffer-for
        mastodon-profile--account
        "following"
-       #'mastodon-profile--add-author-bylines
+       #'mastodon-profile--format-user
        nil
        :headers)
     (error "Not in a mastodon profile")))
@@ -175,7 +175,7 @@ NO-REBLOGS means do not display boosts in statuses."
       (mastodon-profile--make-profile-buffer-for
        mastodon-profile--account
        "followers"
-       #'mastodon-profile--add-author-bylines
+       #'mastodon-profile--format-user
        nil
        :headers)
     (error "Not in a mastodon profile")))
@@ -706,19 +706,17 @@ IMG-TYPE is the JSON key from the account data."
   (message "Loading your profile...")
   (mastodon-profile--show-user (mastodon-auth--get-account-name)))
 
-(defun mastodon-profile--add-author-bylines (tootv)
-  "Convert TOOTV into a author-bylines and insert.
+(defun mastodon-profile--format-user (tootv)
+  "Convert TOOTV into author-bylines and insert.
 Also insert their profile note.
 Used to view a user's followers and those they're following."
-  ;;FIXME change the name of this fun now that we've edited what it does!
   (let ((inhibit-read-only t))
     (unless (seq-empty-p tootv)
       (mapc (lambda (toot)
               (let ((start-pos (point)))
                 (insert "\n"
                         (propertize
-                         (mastodon-tl--byline-author `((account . ,toot))
-                                                     :avatar)
+                         (mastodon-tl--byline-author `((account . ,toot)) :avatar)
                          'byline  't
                          'toot-id (alist-get 'id toot)
                          'base-toot-id (mastodon-tl--toot-id toot)
