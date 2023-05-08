@@ -507,8 +507,7 @@ This endpoint only holds a few preferences. For others, see
   "Fetch the fields vector (aka profile metadata) from profile of ACCOUNT.
 Returns an alist.
 FIELDS means provide a fields vector fetched by other means."
-  (let ((fields (or fields
-                    (alist-get 'fields account))))
+  (let ((fields (or fields (alist-get 'fields account))))
     (when fields
       (mastodon-tl--map-alist-vals-to-alist 'name 'value fields))))
 
@@ -725,7 +724,7 @@ Used to view a user's followers and those they're following."
                 (insert "\n"
                         (propertize
                          (mastodon-tl--render-text (alist-get 'note toot) nil)
-                         'toot-json toot)                         '
+                         'toot-json toot)
                         "\n")))
             tootv))))
 
@@ -736,13 +735,12 @@ If the handle does not match a search return then retun NIL."
                      (substring handle 1 (length handle))
                    handle))
          (args `(("q" . ,handle)))
-         (matching-account
-          (seq-remove
-           (lambda (x)
-             (not (string= (alist-get 'acct x) handle)))
-           (mastodon-http--get-json
-            (mastodon-http--api "accounts/search")
-            args))))
+         (matching-account (seq-remove
+                            (lambda (x)
+                              (not (string= (alist-get 'acct x) handle)))
+                            (mastodon-http--get-json
+                             (mastodon-http--api "accounts/search")
+                             args))))
     (when (equal 1 (length matching-account))
       (elt matching-account 0))))
 
