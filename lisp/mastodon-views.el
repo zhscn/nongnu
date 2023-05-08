@@ -505,20 +505,17 @@ JSON is the data returned by the server."
 
 (defun mastodon-views--insert-scheduled-toot (toot)
   "Insert scheduled TOOT into the buffer."
-  (let* ((id (alist-get 'id toot))
-         (scheduled (alist-get 'scheduled_at toot))
-         (params (alist-get 'params toot))
-         (text (alist-get 'text params)))
+  (let-alist toot
     (insert
-     (propertize (concat text
+     (propertize (concat .params.text
                          " | "
-                         (mastodon-toot--iso-to-human scheduled))
+                         (mastodon-toot--iso-to-human .scheduled_at))
                  'byline t ; so we nav here
                  'toot-id "0" ; so we nav here
                  'face 'font-lock-comment-face
                  'keymap mastodon-views--scheduled-map
                  'scheduled-json toot
-                 'id id)
+                 'id .id)
      "\n")))
 
 (defun mastodon-views--get-scheduled-toots (&optional id)
@@ -889,21 +886,18 @@ IND is the optional indentation level to print at."
 
 (defun mastodon-views--print-instance-rules-or-fields (alist)
   "Print ALIST of instance rules or contact account or emoji fields."
-  (let ((key (or (alist-get 'id alist)
-                 (alist-get 'name alist)
-                 (alist-get 'shortcode alist)))
-        (value (or (alist-get 'text alist)
-                   (alist-get 'value alist)
-                   (alist-get 'url alist))))
-    (indent-to 4)
-    (insert
-     (format "%-5s: "
-             (propertize key
-                         'face '(:underline t)))
-     (mastodon-views--newline-if-long value)
-     (format "%s" (mastodon-tl--render-text
-                   value))
-     "\n")))
+  (let-alist alist
+    (let ((key (or .id .name .shortcode))
+          (value (or .text .value .url)))
+      (indent-to 4)
+      (insert
+       (format "%-5s: "
+               (propertize key)
+               'face '(:underline t))
+       (mastodon-views--newline-if-long value)
+       (format "%s" (mastodon-tl--render-text
+                     value))
+       "\n"))))
 
 (defun mastodon-views--newline-if-long (el)
   "Return a newline string if the cdr of EL is over 50 characters long."
