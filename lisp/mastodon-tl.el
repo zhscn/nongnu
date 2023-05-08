@@ -1197,6 +1197,20 @@ To disable showing the stats, customize
 
 ;; POLLS
 
+(defun mastodon-tl--format-poll-option (option-counter longest-option)
+  "Format a poll option. OPTION-COUNTER is just a counter.
+LONGEST-OPTION is the option whose length determines the formatting."
+  (format "%s: %s%s%s\n"
+          (setq option-counter (1+ option-counter))
+          (propertize (alist-get 'title option)
+                      'face 'success)
+          (make-string (1+ (- (length longest-option)
+                              (length (alist-get 'title option))))
+                       ?\ )
+          ;; TODO: disambiguate no votes from hidden votes
+          (format "[%s votes]" (or (alist-get 'votes_count option)
+                                   "0"))))
+
 (defun mastodon-tl--get-poll (toot)
   "If TOOT includes a poll, return it as a formatted string."
   (let-alist (mastodon-tl--field 'poll toot) ; toot or reblog
@@ -1208,25 +1222,12 @@ To disable showing the stats, customize
            (option-counter 0))
       (concat "\nPoll: \n\n"
               (mapconcat (lambda (option)
-                           (progn
-                             (format "%s: %s%s%s\n"
-                                     (setq option-counter (1+ option-counter))
-                                     (propertize (alist-get 'title option)
-                                                 'face 'success)
-                                     (make-string
-                                      (1+
-                                       (- (length longest-option)
-                                          (length (alist-get 'title
-                                                             option))))
-                                      ?\ )
-                                     ;; TODO: disambiguate no votes from hidden votes
-                                     (format "[%s votes]" (or (alist-get 'votes_count option)
-                                                              "0")))))
+                           (mastodon-tl--format-poll-option option-counter longest-option))
                          .options
                          "\n")
               "\n"
               (propertize
-               (cond (.voters_count ; sometimes it is nil
+               (cond (.voters_count     ; sometimes it is nil
                       (if (= .voters_count 1)
                           (format "%s person | " .voters_count)
                         (format "%s people | " .voters_count)))
