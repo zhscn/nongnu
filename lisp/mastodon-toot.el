@@ -1128,8 +1128,7 @@ File is actually attached to the toot upon posting."
   "Upload a single ATTACHMENT using `mastodon-http--post-media-attachment'.
 The item's id is added to `mastodon-toot--media-attachment-ids',
 which is used to attach it to a toot when posting."
-  (let* ((filename (expand-file-name
-                    (alist-get :filename attachment)))
+  (let* ((filename (expand-file-name (alist-get :filename attachment)))
          (caption (alist-get :description attachment))
          (url (concat mastodon-instance-url "/api/v2/media")))
     (message "Uploading %s..." (file-name-nondirectory filename))
@@ -1168,7 +1167,7 @@ which is used to attach it to a toot when posting."
       (list "None")))
 
 (defun mastodon-toot--fetch-max-poll-options (instance)
-  "Return the maximum number of poll options from INSTANCE, which is json."
+  "Return the maximum number of poll options from JSON data INSTANCE."
   (mastodon-toot--fetch-poll-field 'max_options instance))
 
 (defun mastodon-toot--fetch-max-poll-option-chars (instance)
@@ -1180,7 +1179,7 @@ INSTANCE is JSON."
         50))) ; masto default
 
 (defun mastodon-toot--fetch-poll-field (field instance)
-  "Return FIELD from the poll settings from INSTANCE, which is json."
+  "Return FIELD from the poll settings from JSON data INSTANCE."
   (let* ((polls (if (alist-get 'pleroma instance)
                     (alist-get 'poll_limits instance)
                   (alist-get 'polls
@@ -1190,8 +1189,7 @@ INSTANCE is JSON."
 (defun mastodon-toot--read-poll-options-count (max)
   "Read the user's choice of the number of options the poll should have.
 MAX is the maximum number set by their instance."
-  (let ((number (read-number
-                 (format "Number of options [2-%s]: " max) 2)))
+  (let ((number (read-number (format "Number of options [2-%s]: " max) 2)))
     (if (> number max)
         (error "You need to choose a number between 2 and %s" max)
       number)))
@@ -1199,7 +1197,6 @@ MAX is the maximum number set by their instance."
 (defun mastodon-toot--create-poll ()
   "Prompt for new poll options and return as a list."
   (interactive)
-  ;; re length, API docs show a poll 9 options.
   (let* ((instance (mastodon-http--get-json (mastodon-http--api "instance")))
          (max-options (mastodon-toot--fetch-max-poll-options instance))
          (count (mastodon-toot--read-poll-options-count max-options))
@@ -1216,11 +1213,10 @@ MAX is the maximum number set by their instance."
 (defun mastodon-toot--read-poll-options (count length)
   "Read a list of options for poll with COUNT options.
 LENGTH is the maximum character length allowed for a poll option."
-  (let* ((choices
-          (cl-loop for x from 1 to count
-                   collect (read-string
-                            (format "Poll option [%s/%s] [max %s chars]: "
-                                    x count length))))
+  (let* ((choices (cl-loop for x from 1 to count
+                           collect (read-string
+                                    (format "Poll option [%s/%s] [max %s chars]: "
+                                            x count length))))
          (longest (cl-reduce #'max (mapcar #'length choices))))
     (if (> longest length)
         (progn
@@ -1241,7 +1237,7 @@ LENGTH is the maximum character length allowed for a poll option."
           response))))
 
 (defun mastodon-toot--poll-expiry-options-alist ()
-  "Return an alist of seconds options."
+  "Return an alist of expiry options options in seconds."
   `(("5 minutes" . ,(number-to-string (* 60 5)))
     ("30 minutes" . ,(number-to-string (* 60 30)))
     ("1 hour" . ,(number-to-string (* 60 60)))
@@ -1273,29 +1269,27 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
          (message "You can't schedule toots you're editing."))
         ((not (or (mastodon-tl--buffer-type-eq 'new-toot)
                   (mastodon-tl--buffer-type-eq 'scheduled-statuses)))
-         (message "You can only schedule toots from the compose toot buffer or the scheduled toots view."))
+         (message "You can only schedule toots from the compose buffer or scheduled toots view."))
         (t
          (let* ((id (when reschedule (mastodon-tl--property 'id :no-move)))
                 (ts (when reschedule
                       (alist-get 'scheduled_at
                                  (mastodon-tl--property 'scheduled-json :no-move))))
-                (time-value
-                 (org-read-date t t nil "Schedule toot:"
-                                ;; default to scheduled timestamp if already set:
-                                (mastodon-toot--iso-to-org
-                                 ;; we are rescheduling without editing:
-                                 (or ts
-                                     ;; we are maybe editing the scheduled toot:
-                                     mastodon-toot--scheduled-for))))
+                (time-value (org-read-date t t nil "Schedule toot:"
+                                           ;; default to scheduled timestamp if already set:
+                                           (mastodon-toot--iso-to-org
+                                            ;; we are rescheduling without editing:
+                                            (or ts
+                                                ;; we are maybe editing the scheduled toot:
+                                                mastodon-toot--scheduled-for))))
                 (iso8601-str (format-time-string "%FT%T%z" time-value))
                 (msg-str (format-time-string "%d-%m-%y at %H:%M[%z]" time-value)))
            (if (not reschedule)
                (progn
                  (setq-local mastodon-toot--scheduled-for iso8601-str)
                  (message (format "Toot scheduled for %s." msg-str)))
-             (let* ((args (when reschedule `(("scheduled_at" . ,iso8601-str))))
-                    (url (when reschedule (mastodon-http--api
-                                           (format "scheduled_statuses/%s" id))))
+             (let* ((args `(("scheduled_at" . ,iso8601-str)))
+                    (url (mastodon-http--api (format "scheduled_statuses/%s" id)))
                     (response (mastodon-http--put url args)))
                (mastodon-http--triage response
                                       (lambda ()
@@ -1315,13 +1309,12 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
   (when ts (let* ((decoded (iso8601-parse ts)))
              (encode-time decoded))))
 
-;; we'll need to revisit this if the binds get
-;; more diverse than two-chord bindings
 (defun mastodon-toot--get-mode-kbinds ()
   "Get a list of the keybindings in the mastodon-toot-mode."
   (let* ((binds (copy-tree mastodon-toot-mode-map))
          (prefix (car (cadr binds)))
-         (bindings (remove nil (mapcar (lambda (i) (if (listp i) i))
+         (bindings (remove nil (mapcar (lambda (i)
+                                         (when (listp i) i))
                                        (cadr binds)))))
     (mapcar (lambda (b)
               (setf (car b) (vector prefix (car b)))
