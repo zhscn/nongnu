@@ -575,6 +575,13 @@ By default it is `mastodon-tl--byline-boosted'.
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
   (let-alist toot
+    .favourited
+    .reblogged
+    .bookmarked
+    .visibility
+    .account
+    .account.avatar
+    .edited_at
     (let* ((created-time
             ;; bosts and faves in notifs view
             ;; (timestamps for original not the boost/fave):
