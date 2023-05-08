@@ -1307,17 +1307,17 @@ LONGEST-OPTION is the option whose length determines the formatting."
 
 ;; VIDEOS / MPV
 
-       (defun mastodon-tl--find-first-video-in-attachments ()
-         "Return the first media attachment that is a moving image."
-         (let ((attachments (mastodon-tl--property 'attachments))
-               vids)
-           (mapc (lambda (x)
-                   (let ((att-type (plist-get x :type)))
-                     (when (or (string= "video" att-type)
-                               (string= "gifv" att-type))
-                       (push x vids))))
-                 attachments)
-           (car vids)))
+(defun mastodon-tl--find-first-video-in-attachments ()
+  "Return the first media attachment that is a moving image."
+  (let ((attachments (mastodon-tl--property 'attachments))
+        vids)
+    (mapc (lambda (x)
+            (let ((att-type (plist-get x :type)))
+              (when (or (string= "video" att-type)
+                        (string= "gifv" att-type))
+                (push x vids))))
+          attachments)
+    (car vids)))
 
 (defun mastodon-tl--mpv-play-video-from-byline ()
   "Run `mastodon-tl--mpv-play-video-at-point' on first moving image in post."
