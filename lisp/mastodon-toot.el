@@ -1539,10 +1539,7 @@ CW is the content warning, which contributes to the character count."
       (replace-match "xxxxxxxxxxxxxxxxxxxxxxx")) ; 23 x's
     ;; handle @handles
     (goto-char (point-min))
-    (while (search-forward-regexp (concat "\\(?2:@[^ @\n]+\\)" ; a handle only
-                                          "\\(@[^ \n]+\\)?" ; with poss domain
-                                          "\\b")
-                                  nil t)
+    (while (search-forward-regexp mastodon-toot-handle-regex nil t)
       (replace-match (match-string 2))) ; replace with handle only
     (+ (length cw)
        (length (buffer-substring (point-min) (point-max))))))
