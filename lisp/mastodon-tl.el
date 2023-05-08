@@ -574,112 +574,109 @@ favouriting and following to the byline. It also takes a single function.
 By default it is `mastodon-tl--byline-boosted'.
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client."
-  (let-alist toot
-    .favourited
-    .reblogged
-    .bookmarked
-    .visibility
-    .account
-    .account.avatar
-    .edited_at
-    (let* ((created-time
-            ;; bosts and faves in notifs view
-            ;; (makes timestamps be for the original toot
-            ;; not the boost/fave):
-            (or .status.created_at
-                ;; all other toots, inc. boosts/faves in timelines:
-                ;; (mastodon-tl--field auto fetches from reblogs if needed):
-                .created_at))
-           (parsed-time (date-to-time created-time))
-           (faved (equal 't .favourited))
-           (boosted (equal 't .reblogged))
-           (bookmarked (equal 't .bookmarked))
-           (edited-parsed (when .edited_at (date-to-time .edited_at))))
+  (let* ((created-time
+          ;; bosts and faves in notifs view
+          ;; (makes timestamps be for the original toot
+          ;; not the boost/fave):
+          (or (mastodon-tl--field 'created_at
+                                  (mastodon-tl--field 'status toot))
+              ;; all other toots, inc. boosts/faves in timelines:
+              ;; (mastodon-tl--field auto fetches from reblogs if needed):
+              (mastodon-tl--field 'created_at toot)))
+         (parsed-time (date-to-time created-time))
+         (faved (equal 't (mastodon-tl--field 'favourited toot)))
+         (boosted (equal 't (mastodon-tl--field 'reblogged toot)))
+         (bookmarked (equal 't (mastodon-tl--field 'bookmarked toot)))
+         (visibility (mastodon-tl--field 'visibility toot))
+         (account (alist-get 'account toot))
+         (avatar-url (alist-get 'avatar account))
+         (edited-time (alist-get 'edited_at toot))
+         (edited-parsed (when edited-time (date-to-time edited-time))))
+    (concat
+     ;; Boosted/favourited markers are not technically part of the byline, so
+     ;; we don't propertize them with 'byline t', as per the rest. This
+     ;; ensures that `mastodon-tl--goto-next-toot' puts point on
+     ;; author-byline, not before the (F) or (B) marker. Not propertizing like
+     ;; this makes the behaviour of these markers consistent whether they are
+     ;; displayed for an already boosted/favourited toot or as the result of
+     ;; the toot having just been favourited/boosted.
+     (concat (when boosted
+               (mastodon-tl--format-faved-or-boosted-byline
+                (mastodon-tl--symbol 'boost)))
+             (when faved
+               (mastodon-tl--format-faved-or-boosted-byline
+                (mastodon-tl--symbol 'favourite)))
+             (when bookmarked
+               (mastodon-tl--format-faved-or-boosted-byline
+                (mastodon-tl--symbol 'bookmark))))
+     ;; we remove avatars from the byline also, so that they also do not mess
+     ;; with `mastodon-tl--goto-next-toot':
+     (when (and mastodon-tl--show-avatars
+                mastodon-tl--display-media-p
+                (if (version< emacs-version "27.1")
+                    (image-type-available-p 'imagemagick)
+                  (image-transforms-p)))
+       (mastodon-media--get-avatar-rendering avatar-url))
+     (propertize
       (concat
-       ;; Boosted/favourited markers are not technically part of the byline, so
-       ;; we don't propertize them with 'byline t', as per the rest. This
-       ;; ensures that `mastodon-tl--goto-next-toot' puts point on
-       ;; author-byline, not before the (F) or (B) marker. Not propertizing like
-       ;; this makes the behaviour of these markers consistent whether they are
-       ;; displayed for an already boosted/favourited toot or as the result of
-       ;; the toot having just been favourited/boosted.
-       (concat (when boosted
-                 (mastodon-tl--format-faved-or-boosted-byline
-                  (mastodon-tl--symbol 'boost)))
-               (when faved
-                 (mastodon-tl--format-faved-or-boosted-byline
-                  (mastodon-tl--symbol 'favourite)))
-               (when bookmarked
-                 (mastodon-tl--format-faved-or-boosted-byline
-                  (mastodon-tl--symbol 'bookmark))))
-       ;; we remove avatars from the byline also, so that they also do not mess
-       ;; with `mastodon-tl--goto-next-toot':
-       (when (and mastodon-tl--show-avatars
-                  mastodon-tl--display-media-p
-                  (if (version< emacs-version "27.1")
-                      (image-type-available-p 'imagemagick)
-                    (image-transforms-p)))
-         (mastodon-media--get-avatar-rendering .account.avatar))
+       ;; we propertize help-echo format faves for author name
+       ;; in `mastodon-tl--byline-author'
+       (funcall author-byline toot)
+       ;; visibility:
+       (cond ((equal visibility "direct")
+              (concat " " (mastodon-tl--symbol 'direct)))
+             ((equal visibility "private")
+              (concat " " (mastodon-tl--symbol 'private))))
+       (funcall action-byline toot)
+       " "
        (propertize
-        (concat
-         ;; we propertize help-echo format faves for author name
-         ;; in `mastodon-tl--byline-author'
-         (funcall author-byline toot)
-         ;; visibility:
-         (cond ((equal .visibility "direct")
-                (concat " " (mastodon-tl--symbol 'direct)))
-               ((equal .visibility "private")
-                (concat " " (mastodon-tl--symbol 'private))))
-         (funcall action-byline toot)
-         " "
-         (propertize
-          (format-time-string mastodon-toot-timestamp-format parsed-time)
-          'timestamp parsed-time
-          'display (if mastodon-tl--enable-relative-timestamps
-                       (mastodon-tl--relative-time-description parsed-time)
-                     parsed-time))
-         (when detailed-p
-           ;; (let* ((app .application
-           ;; (app-name (alist-get 'name
-           ;; (app-url (alist-get 'website app)))
-           (when .application
+        (format-time-string mastodon-toot-timestamp-format parsed-time)
+        'timestamp parsed-time
+        'display (if mastodon-tl--enable-relative-timestamps
+                     (mastodon-tl--relative-time-description parsed-time)
+                   parsed-time))
+       (when detailed-p
+         (let* ((app (alist-get 'application toot))
+                (app-name (alist-get 'name app))
+                (app-url (alist-get 'website app)))
+           (when app
              (concat
               (propertize " via " 'face 'default)
-              (propertize .application.name
+              (propertize app-name
                           'face 'mastodon-display-name-face
                           'follow-link t
                           'mouse-face 'highlight
 		          'mastodon-tab-stop 'shr-url
-		          'shr-url .application.website
-                          'help-echo .application.website
-		          'keymap mastodon-tl--shr-map-replacement))))
-         (if .edited_at
-             (concat
-              " "
-              (mastodon-tl--symbol 'edited)
-              " "
-              (propertize
-               (format-time-string mastodon-toot-timestamp-format
-                                   edited-parsed)
-               'face font-lock-comment-face
-               'timestamp edited-parsed
-               'display (if mastodon-tl--enable-relative-timestamps
-                            (mastodon-tl--relative-time-description edited-parsed)
-                          edited-parsed)))
-           "")
-         (propertize (concat "\n  " mastodon-tl--horiz-bar)
-                     'face 'default)
-         (if mastodon-tl--show-stats
-             (mastodon-tl--toot-stats toot)
-           "")
-         "\n")
-        'favourited-p faved
-        'boosted-p boosted
-        'bookmarked-p bookmarked
-        'edited .edited_at
-        'edit-history (when .edited_at
-                        (mastodon-toot--get-toot-edits .id))
-        'byline t)))))
+		          'shr-url app-url
+                          'help-echo app-url
+		          'keymap mastodon-tl--shr-map-replacement)))))
+       (if edited-time
+           (concat
+            " "
+            (mastodon-tl--symbol 'edited)
+            " "
+            (propertize
+             (format-time-string mastodon-toot-timestamp-format
+                                 edited-parsed)
+             'face font-lock-comment-face
+             'timestamp edited-parsed
+             'display (if mastodon-tl--enable-relative-timestamps
+                          (mastodon-tl--relative-time-description edited-parsed)
+                        edited-parsed)))
+         "")
+       (propertize (concat "\n  " mastodon-tl--horiz-bar)
+                   'face 'default)
+       (if mastodon-tl--show-stats
+           (mastodon-tl--toot-stats toot)
+         "")
+       "\n")
+      'favourited-p faved
+      'boosted-p    boosted
+      'bookmarked-p bookmarked
+      'edited edited-time
+      'edit-history (when edited-time
+                      (mastodon-toot--get-toot-edits (alist-get 'id toot)))
+      'byline       t))))
 
 
 ;;; TIMESTAMPS
@@ -2085,10 +2082,9 @@ LANGS is the accumulated array param alist if we re-run recursively."
                                   (mastodon-tl--property 'toot-json :no-move))))
                 ;; profile view, no toots
                 ;; needed for e.g. gup.pe groups which show no toots publically:
-                ;; FIXME: this breaks calling 'W' on toots in profile view:
-                ;; ((mastodon-tl--profile-buffer-p)
-                ;; (list (alist-get 'acct
-                ;; (mastodon-profile--profile-json))))
+                ((mastodon-tl--profile-buffer-p)
+                 (list (alist-get 'acct
+                                  (mastodon-profile--profile-json))))
                 (t
                  (mastodon-profile--extract-users-handles
                   (mastodon-profile--toot-json))))))
