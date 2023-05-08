@@ -753,21 +753,19 @@ If the handle does not match a search return then retun NIL."
   "Return all user handles found in STATUS.
 These include the author, author of reblogged entries and any user mentioned."
   (when status
-    (let ((this-account
-           (or (alist-get 'account status) ; status is a toot
-               status)) ; status is a user listing
+    (let ((this-account (or (alist-get 'account status) ; status is a toot
+                            status)) ; status is a user listing
 	  (mentions (or (alist-get 'mentions (alist-get 'status status))
                         (alist-get 'mentions status)))
 	  (reblog (or (alist-get 'reblog (alist-get 'status status))
                       (alist-get 'reblog status))))
-      (seq-filter
-       #'stringp
-       (seq-uniq
-        (seq-concatenate
-         'list
-         (list (alist-get 'acct this-account))
-         (mastodon-profile--extract-users-handles reblog)
-         (mastodon-tl--map-alist 'acct mentions)))))))
+      (seq-filter #'stringp
+                  (seq-uniq
+                   (seq-concatenate
+                    'list
+                    (list (alist-get 'acct this-account))
+                    (mastodon-profile--extract-users-handles reblog)
+                    (mastodon-tl--map-alist 'acct mentions)))))))
 
 (defun mastodon-profile--lookup-account-in-status (handle status)
   "Return account for HANDLE using hints in STATUS if possible."
@@ -775,15 +773,12 @@ These include the author, author of reblogged entries and any user mentioned."
          (reblog-account (alist-get 'account (alist-get 'reblog status)))
          (mention-id (seq-some
                       (lambda (mention)
-                        (when (string= handle
-                                       (alist-get 'acct mention))
+                        (when (string= handle (alist-get 'acct mention))
                           (alist-get 'id mention)))
                       (alist-get 'mentions status))))
-    (cond ((string= handle
-                    (alist-get 'acct this-account))
+    (cond ((string= handle (alist-get 'acct this-account))
            this-account)
-          ((string= handle
-                    (alist-get 'acct reblog-account))
+          ((string= handle (alist-get 'acct reblog-account))
            reblog-account)
           (mention-id
            (mastodon-profile--account-from-id mention-id))
@@ -798,8 +793,7 @@ Optionally provide the ID of the account to remove."
          (id (or id (alist-get 'id account)))
          (handle (if account
                      (alist-get 'acct account)
-                   (let ((account
-                          (mastodon-profile--account-from-id id)))
+                   (let ((account (mastodon-profile--account-from-id id)))
                      (alist-get 'acct account))))
          (url (mastodon-http--api
                (format "accounts/%s/remove_from_followers" id))))
@@ -814,8 +808,7 @@ Optionally provide the ID of the account to remove."
   (interactive)
   (let* ((handles (mastodon-profile--extract-users-handles
                    (mastodon-profile--toot-json)))
-         (handle (completing-read "Remove from followers: "
-                                  handles nil))
+         (handle (completing-read "Remove from followers: " handles nil))
          (account (mastodon-profile--lookup-account-in-status
                    handle (mastodon-profile--toot-json)))
          (id (alist-get 'id account)))
@@ -829,11 +822,9 @@ Currently limited to 100 handles. If not found, try
   (let* ((endpoint (format "accounts/%s/followers"
                            (mastodon-auth--get-account-id)))
          (url (mastodon-http--api endpoint))
-         (response (mastodon-http--get-json url
-                                            `(("limit" . "100"))))
+         (response (mastodon-http--get-json url `(("limit" . "100"))))
          (handles (mastodon-tl--map-alist-vals-to-alist 'acct 'id response))
-         (choice (completing-read "Remove from followers: "
-                                  handles))
+         (choice (completing-read "Remove from followers: " handles))
          (id (alist-get choice handles nil nil 'equal)))
     (mastodon-profile--remove-user-from-followers id)))
 
@@ -918,16 +909,15 @@ the given account."
 
 (defun mastodon-profile--get-familiar-followers (id)
   "Return JSON data of familiar followers for account ID."
-  ;; the server can handle multiple IDs, but for now we just handle one.
+  ;; the server handles multiple IDs, but we just handle one.
   (let* ((params `(("id" . ,id)))
          (url (mastodon-http--api "accounts/familiar_followers"))
          (json (mastodon-http--get-json url params))
-         (accounts (alist-get 'accounts (car json))) ; first id result
+         (accounts (alist-get 'accounts (car json))) ; first id
          (handles (mastodon-tl--map-alist 'acct accounts)))
     (if (null handles)
         (message "Looks like there are no familiar followers for this account")
-      (let ((choice (completing-read "Show profile of user: "
-                                     handles)))
+      (let ((choice (completing-read "Show profile of user: " handles)))
         (mastodon-profile--show-user choice)))))
 
 (provide 'mastodon-profile)
