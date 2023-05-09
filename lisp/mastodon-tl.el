@@ -1369,16 +1369,11 @@ this just means displaying toot client.
 THREAD means the status will be displayed in a thread view."
   (mastodon-tl--insert-status
    toot
-   (mastodon-tl--clean-tabs-and-nl
-    (if (mastodon-tl--has-spoiler toot)
-        (mastodon-tl--spoiler toot)
-      (mastodon-tl--content toot)))
-   'mastodon-tl--byline-author
-   'mastodon-tl--byline-boosted
-   nil
-   nil
-   detailed-p
-   thread))
+   (mastodon-tl--clean-tabs-and-nl (if (mastodon-tl--has-spoiler toot)
+                                       (mastodon-tl--spoiler toot)
+                                     (mastodon-tl--content toot)))
+   'mastodon-tl--byline-author 'mastodon-tl--byline-boosted
+   nil nil detailed-p thread))
 
 (defun mastodon-tl--timeline (toots &optional thread)
   "Display each toot in TOOTS.
@@ -1430,19 +1425,18 @@ Optionally get it for BUFFER."
 (defun mastodon-tl--get-buffer-property (property &optional buffer no-error)
   "Get PROPERTY from `mastodon-tl--buffer-spec' in BUFFER or `current-buffer'.
 If NO-ERROR is non-nil, do not error when property is empty."
-  (with-current-buffer  (or buffer (current-buffer))
+  (with-current-buffer (or buffer (current-buffer))
     (if no-error
         (plist-get mastodon-tl--buffer-spec property)
       (or (plist-get mastodon-tl--buffer-spec property)
           (error "Mastodon-tl--buffer-spec is not defined for buffer %s"
                  (or buffer (current-buffer)))))))
 
-(defun mastodon-tl--set-buffer-spec (buffer endpoint update-function
-                                            &optional link-header update-params
-                                            hide-replies)
+(defun mastodon-tl--set-buffer-spec
+    (buffer endpoint update-fun &optional link-header update-params hide-replies)
   "Set `mastodon-tl--buffer-spec' for the current buffer.
 BUFFER is buffer name, ENDPOINT is buffer's enpoint,
-UPDATE-FUNCTION is its update function.
+UPDATE-FUN is its update function.
 LINK-HEADER is the http Link header if present.
 UPDATE-PARAMS is any http parameters needed for the update function.
 HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
@@ -1451,13 +1445,14 @@ HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
                          mastodon-instance-url)
                   buffer-name ,buffer
                   endpoint ,endpoint
-                  update-function ,update-function
+                  update-function ,update-fun
                   link-header ,link-header
                   update-params ,update-params
                   hide-replies ,hide-replies)))
 
 
 ;;; BUFFERS
+
 (defun mastodon-tl--endpoint-str-= (str &optional type)
   "Return T if STR is equal to the current buffer's endpoint.
 TYPE may be :prefix or :suffix, in which case, T if STR is a prefix or suffix."
@@ -1505,12 +1500,8 @@ call this function after it is set or use something else."
           ;; profiles:
           ((mastodon-tl--profile-buffer-p)
            (cond
-            ;; own profile:
-            ;; perhaps not needed, and needlessly confusing,
-            ;; e.g. for `mastodon-profile--account-view-cycle':
-            ;; ((equal (mastodon-tl--buffer-name)
-            ;; (concat "*mastodon-" (mastodon-auth--get-account-name) "-statuses*"))
-            ;; 'own-profile-statuses)
+            ;; an own profile option is needlessly confusing e.g. for
+            ;; `mastodon-profile--account-view-cycle'
             ;; profile note:
             ((string-suffix-p "update-profile*" buffer-name)
              'update-profile-note)
@@ -1569,8 +1560,8 @@ This includes the update profile note buffer, but not the preferences one."
 
 (defun mastodon-tl--timeline-proper-p ()
   "Return non-nil if the current buffer is a 'proper' timeline.
-A proper timeline excludes notifications, threads, and other toot
-buffers that aren't strictly mastodon timelines."
+A proper timeline excludes notifications, threads, profiles, and
+other toot buffers that aren't strictly mastodon timelines."
   (let ((timeline-buffers
          '(home federated local tag-timeline list-timeline profile-statuses)))
     (member (mastodon-tl--get-buffer-type) timeline-buffers)))
@@ -1658,9 +1649,8 @@ BACKWARD means move backward (up) the timeline."
   (cond ((numberp numeric)
          (number-to-string numeric))
         ((stringp numeric) numeric)
-        (t (error
-            "Numeric:%s must be either a string or a number"
-            numeric))))
+        (t (error "Numeric:%s must be either a string or a number"
+                  numeric))))
 
 (defun mastodon-tl--toot-id (json)
   "Find approproiate toot id in JSON.
@@ -1716,8 +1706,7 @@ view all branches of a thread."
              (buffer (format "*mastodon-thread-%s*" id))
              (toot (mastodon-http--get-json ; refetch in case we just faved/boosted:
                     (mastodon-http--api (concat "statuses/" id))
-                    nil
-                    :silent))
+                    nil :silent))
              (context (mastodon-http--get-json url nil :silent)))
         (if (equal (caar toot) 'error)
             (message "Error: %s" (cdar toot))
@@ -1729,8 +1718,7 @@ view all branches of a thread."
               ;; if we have a thread:
               (with-mastodon-buffer buffer #'mastodon-mode nil
                 (let ((marker (make-marker)))
-                  (mastodon-tl--set-buffer-spec buffer
-                                                endpoint
+                  (mastodon-tl--set-buffer-spec buffer endpoint
                                                 #'mastodon-tl--thread)
                   (mastodon-tl--timeline (alist-get 'ancestors context) :thread)
                   (goto-char (point-max))
@@ -1829,8 +1817,7 @@ If NOTIFY is \"false\", disable notifications when that user posts.
 Can be called to toggle NOTIFY on users already being followed.
 LANGS is an array parameters alist of languages to filer user's posts by."
   (interactive
-   (list
-    (mastodon-tl--interactive-user-handles-get "follow")))
+   (list (mastodon-tl--interactive-user-handles-get "follow")))
   (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response
     user-handle "follow" nil notify langs)))
@@ -1838,16 +1825,14 @@ LANGS is an array parameters alist of languages to filer user's posts by."
 (defun mastodon-tl--enable-notify-user-posts (user-handle)
   "Query for USER-HANDLE and enable notifications when they post."
   (interactive
-   (list
-    (mastodon-tl--interactive-user-handles-get "enable")))
+   (list (mastodon-tl--interactive-user-handles-get "enable")))
   (mastodon-tl--do-if-toot
    (mastodon-tl--follow-user user-handle "true")))
 
 (defun mastodon-tl--disable-notify-user-posts (user-handle)
   "Query for USER-HANDLE and disable notifications when they post."
   (interactive
-   (list
-    (mastodon-tl--interactive-user-handles-get "disable")))
+   (list (mastodon-tl--interactive-user-handles-get "disable")))
   (mastodon-tl--follow-user user-handle "false"))
 
 (defun mastodon-tl--filter-user-user-posts-by-language (user-handle)
@@ -1870,8 +1855,7 @@ LANGS is the accumulated array param alist if we re-run recursively."
     (when choice
       (setq langs-alist
             (push `("languages[]" . ,(alist-get choice mastodon-iso-639-1
-                                                nil nil
-                                                #'string=))
+                                                nil nil #'string=))
                   langs-alist))
       (if (y-or-n-p "Filter by another language? ")
           (mastodon-tl--read-filter-langs langs-alist)
@@ -1880,24 +1864,21 @@ LANGS is the accumulated array param alist if we re-run recursively."
 (defun mastodon-tl--unfollow-user (user-handle)
   "Query for USER-HANDLE from current status and unfollow that user."
   (interactive
-   (list
-    (mastodon-tl--interactive-user-handles-get "unfollow")))
+   (list (mastodon-tl--interactive-user-handles-get "unfollow")))
   (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response user-handle "unfollow" t)))
 
 (defun mastodon-tl--block-user (user-handle)
   "Query for USER-HANDLE from current status and block that user."
   (interactive
-   (list
-    (mastodon-tl--interactive-user-handles-get "block")))
+   (list (mastodon-tl--interactive-user-handles-get "block")))
   (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response user-handle "block")))
 
 (defun mastodon-tl--unblock-user (user-handle)
   "Query for USER-HANDLE from list of blocked users and unblock that user."
   (interactive
-   (list
-    (mastodon-tl--interactive-blocks-or-mutes-list-get "unblock")))
+   (list (mastodon-tl--get-blocks-or-mutes-list "unblock")))
   (if (not user-handle)
       (message "Looks like you have no blocks to unblock!")
     (mastodon-tl--do-user-action-and-response user-handle "unblock" t)))
@@ -1905,16 +1886,14 @@ LANGS is the accumulated array param alist if we re-run recursively."
 (defun mastodon-tl--mute-user (user-handle)
   "Query for USER-HANDLE from current status and mute that user."
   (interactive
-   (list
-    (mastodon-tl--interactive-user-handles-get "mute")))
+   (list (mastodon-tl--interactive-user-handles-get "mute")))
   (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response user-handle "mute")))
 
 (defun mastodon-tl--unmute-user (user-handle)
   "Query for USER-HANDLE from list of muted users and unmute that user."
   (interactive
-   (list
-    (mastodon-tl--interactive-blocks-or-mutes-list-get "unmute")))
+   (list (mastodon-tl--get-blocks-or-mutes-list "unmute")))
   (if (not user-handle)
       (message "Looks like you have no mutes to unmute!")
     (mastodon-tl--do-user-action-and-response user-handle "unmute" t)))
@@ -1922,8 +1901,7 @@ LANGS is the accumulated array param alist if we re-run recursively."
 (defun mastodon-tl--dm-user (user-handle)
   "Query for USER-HANDLE from current status and compose a message to that user."
   (interactive
-   (list
-    (mastodon-tl--interactive-user-handles-get "message")))
+   (list (mastodon-tl--interactive-user-handles-get "message")))
   (mastodon-tl--do-if-toot
    (mastodon-toot--compose-buffer (concat "@" user-handle))
    (setq mastodon-toot--visibility "direct")
@@ -1937,11 +1915,10 @@ LANGS is the accumulated array param alist if we re-run recursively."
                      ;; follow suggests / search / foll requests compat:
                      (mastodon-tl--buffer-type-eq 'search)
                      (mastodon-tl--buffer-type-eq 'follow-requests)
-                     ;; profile view follows/followers compat:
-                     ;; but not for profile statuses:
-                     ;; fetch 'toot-json:
+                     ;; profile follows/followers but not statuses:
                      (mastodon-tl--buffer-type-eq 'profile-followers)
                      (mastodon-tl--buffer-type-eq 'profile-following))
+                     ;; fetch 'toot-json:
                  (list (alist-get 'acct
                                   (mastodon-tl--property 'toot-json :no-move))))
                 ;; profile view, no toots
@@ -1963,7 +1940,7 @@ LANGS is the accumulated array param alist if we re-run recursively."
                         nil ; predicate
                         'confirm)))))
 
-(defun mastodon-tl--interactive-blocks-or-mutes-list-get (action)
+(defun mastodon-tl--get-blocks-or-mutes-list (action)
   "Fetch the list of accounts for ACTION from the server.
 Action must be either \"unblock\" or \"unmute\"."
   (let* ((endpoint (cond ((equal action "unblock")
@@ -1975,9 +1952,7 @@ Action must be either \"unblock\" or \"unmute\"."
          (accts (mastodon-tl--map-alist 'acct json)))
     (when accts
       (completing-read (format "Handle of user to %s: " action)
-                       accts
-                       nil ; predicate
-                       t))))
+                       accts nil t)))) ; require match
 
 (defun mastodon-tl--do-user-action-and-response
     (user-handle action &optional negp notify langs)
@@ -1988,22 +1963,20 @@ If NOTIFY is \"false\", disable notifications when that user posts.
 NOTIFY is only non-nil when called by `mastodon-tl--follow-user'.
 LANGS is an array parameters alist of languages to filer user's posts by."
   (let* ((account (if negp
-                      ;; if unmuting/unblocking, we got handle from mute/block list
-                      (mastodon-profile--search-account-by-handle
-                       user-handle)
-                    ;; if profile view, use 'profile-json as status:
+                      ;; unmuting/unblocking, handle from mute/block list
+                      (mastodon-profile--search-account-by-handle user-handle)
+                    ;; profile view, use 'profile-json as status:
                     (if (mastodon-tl--profile-buffer-p)
                         (mastodon-profile--lookup-account-in-status
                          user-handle (mastodon-profile--profile-json))
-                      ;; if muting/blocking, we select from handles in current status
+                      ;; muting/blocking, select from handles in current status
                       (mastodon-profile--lookup-account-in-status
                        user-handle (mastodon-profile--toot-json)))))
          (user-id (alist-get 'id account))
          (name (if (not (string-empty-p (alist-get 'display_name account)))
                    (alist-get 'display_name account)
                  (alist-get 'username account)))
-         (args (cond (notify
-                      `(("notify" . ,notify)))
+         (args (cond (notify `(("notify" . ,notify)))
                      (langs langs)
                      (t nil)))
          (url (mastodon-http--api (format "accounts/%s/%s" user-id action))))
@@ -2065,8 +2038,7 @@ If TAG is provided, unfollow it."
   (let* ((followed-tags-json (unless tag (mastodon-tl--followed-tags)))
          (tags (unless tag
                  (mastodon-tl--map-alist 'name followed-tags-json)))
-         (tag (or tag (completing-read "Unfollow tag: "
-                                       tags)))
+         (tag (or tag (completing-read "Unfollow tag: " tags)))
          (url (mastodon-http--api (format "tags/%s/unfollow" tag)))
          (response (mastodon-http--post url)))
     (mastodon-http--triage response
@@ -2165,7 +2137,6 @@ report the account for spam."
             (handle (alist-get 'acct account))
             (params (mastodon-tl--report-params account toot))
             (response (mastodon-http--post url params)))
-       ;; (setq masto-report-response response)
        (mastodon-http--triage response
                               (lambda ()
                                 (message "User %s reported!" handle)))))))
@@ -2200,7 +2171,8 @@ report the account for spam."
          (url (mastodon-http--api endpoint)))
     (mastodon-http--get-json url args)))
 
-(defun mastodon-tl--more-json-async (endpoint id &optional params callback &rest cbargs)
+(defun mastodon-tl--more-json-async
+    (endpoint id &optional params callback &rest cbargs)
   "Return JSON for timeline ENDPOINT before ID.
 Then run CALLBACK with arguments CBARGS.
 PARAMS is used to send any parameters needed to correctly update
@@ -2247,10 +2219,9 @@ POS is a number, where point will be placed."
                 endpoint)
                (mastodon-tl--thread
                 (match-string 2 endpoint))))))
-    ;; TODO: sends point to POS, which was where point was in buffer before
-    ;; reload. This is very rough; we may have removed an item (deleted a
-    ;; toot, cleared a notif), so the buffer will be smaller, point will end
-    ;; up past where we were, etc.
+    ;; TODO: sends point to where point was in buffer. This is very rough; we
+    ;; may have removed an item , so the buffer will be smaller, point will
+    ;; end up past where we were, etc.
     (when pos
       (goto-char pos)
       (mastodon-tl--goto-prev-item))))
@@ -2326,7 +2297,8 @@ HEADERS is the http headers returned in the response, if any."
                                         link-header))
         (message "Loading older toots... done.")))))
 
-(defun mastodon-tl--find-property-range (property start-point &optional search-backwards)
+(defun mastodon-tl--find-property-range (property start-point
+                                                  &optional search-backwards)
   "Return `nil` if no such range is found.
 If PROPERTY is set at START-POINT returns a range around
 START-POINT otherwise before/after START-POINT.
@@ -2348,14 +2320,13 @@ before (non-nil) or after (nil)"
                         (and (not (equal start-point (point-min)))
                              (get-text-property (1- start-point) property)
                              start-point)))
-               (start (and
-                       end
-                       (previous-single-property-change end property nil (point-min)))))
+               (start (and end (previous-single-property-change
+                                end property nil (point-min)))))
           (when end
             (cons start end)))
       (let* ((start (next-single-property-change start-point property))
-             (end (and start
-                       (next-single-property-change start property nil (point-max)))))
+             (end (and start (next-single-property-change
+                              start property nil (point-max)))))
         (when start
           (cons start end))))))
 
@@ -2404,7 +2375,8 @@ no-op."
           ;; We need to re-schedule for an earlier time
           (cancel-timer mastodon-tl--timestamp-update-timer)
           (setq mastodon-tl--timestamp-update-timer
-                (run-at-time (time-to-seconds (time-subtract this-update (current-time)))
+                (run-at-time (time-to-seconds (time-subtract this-update
+                                                             (current-time)))
                              nil ;; don't repeat
                              #'mastodon-tl--update-timestamps-callback
                              (current-buffer) nil)))))))
@@ -2414,7 +2386,7 @@ no-op."
 Start searching for more timestamps from PREVIOUS-MARKER or
 from the start if it is nil."
   ;; only do things if the buffer hasn't been killed in the meantime
-  (when (and mastodon-tl--enable-relative-timestamps ;; should be true but just in case...
+  (when (and mastodon-tl--enable-relative-timestamps ; just in case
              (buffer-live-p buffer))
     (save-excursion
       (with-current-buffer buffer
@@ -2424,8 +2396,7 @@ from the start if it is nil."
               (iteration 0)
               next-timestamp-range)
           (if previous-marker
-              ;; This is a follow-up call to process the next batch of
-              ;; timestamps.
+              ;; a follow-up call to process the next batch of timestamps.
               ;; Release the marker to not slow things down.
               (set-marker previous-marker nil)
             ;; Otherwise this is a rew run, so let's initialize the next-run time.
@@ -2444,8 +2415,9 @@ from the start if it is nil."
               (unless (string= current-display new-display)
                 (let ((inhibit-read-only t))
                   (add-text-properties
-                   start end (list 'display
-                                   (mastodon-tl--relative-time-description timestamp)))))
+                   start end
+                   (list 'display
+                         (mastodon-tl--relative-time-description timestamp)))))
               (mastodon-tl--consider-timestamp-for-updates timestamp)
               (setq iteration (1+ iteration)
                     previous-timestamp (1+ (cdr next-timestamp-range)))))
@@ -2521,12 +2493,12 @@ HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
   (let ((url (mastodon-http--api endpoint))
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers
-        (mastodon-http--get-response-async url params
-                                           'mastodon-tl--init* buffer endpoint update-function
-                                           headers params hide-replies)
-      (mastodon-http--get-json-async url params
-                                     'mastodon-tl--init* buffer endpoint update-function nil
-                                     params hide-replies))))
+        (mastodon-http--get-response-async
+         url params 'mastodon-tl--init*
+         buffer endpoint update-function headers params hide-replies)
+      (mastodon-http--get-json-async
+       url params 'mastodon-tl--init*
+       buffer endpoint update-function nil params hide-replies))))
 
 (defun mastodon-tl--init* (response buffer endpoint update-function
                                     &optional headers update-params hide-replies)
@@ -2541,12 +2513,8 @@ JSON and http headers, without it just the JSON."
       (let* ((headers (if headers (cdr response) nil))
              (link-header (mastodon-tl--get-link-header-from-response headers)))
         (with-mastodon-buffer buffer #'mastodon-mode nil
-          (mastodon-tl--set-buffer-spec buffer
-                                        endpoint
-                                        update-function
-                                        link-header
-                                        update-params
-                                        hide-replies)
+          (mastodon-tl--set-buffer-spec buffer endpoint update-function
+                                        link-header update-params hide-replies)
           (funcall update-function json)
           (setq
            ;; Initialize with a minimal interval; we re-scan at least once
@@ -2565,7 +2533,8 @@ JSON and http headers, without it just the JSON."
           (unless (mastodon-tl--profile-buffer-p)
             (mastodon-tl--goto-first-item)))))))
 
-(defun mastodon-tl--init-sync (buffer-name endpoint update-function &optional note-type)
+(defun mastodon-tl--init-sync (buffer-name endpoint update-function
+                                           &optional note-type)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously.
@@ -2574,8 +2543,6 @@ Optional arg NOTE-TYPE means only get that type of note."
                           (mastodon-notifications--filter-types-list note-type)))
          (args (when note-type (mastodon-http--build-array-params-alist
                                 "exclude_types[]" exclude-types)))
-         ;; NB: we now store 'update-params separately in `mastodon-tl--buffer-spec'
-         ;; and -http.el handles all conversion of params alists into query strings.
          (url (mastodon-http--api endpoint))
          (buffer (concat "*mastodon-" buffer-name "*"))
          (json (mastodon-http--get-json url args)))
@@ -2597,7 +2564,6 @@ Optional arg NOTE-TYPE means only get that type of note."
                            (current-buffer)
                            nil)))
       (unless (mastodon-tl--profile-buffer-p)
-        ;; FIXME: this breaks test (because test has empty buffer)
         (mastodon-tl--goto-first-item)))
     buffer))
 
