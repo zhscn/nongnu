@@ -282,7 +282,8 @@ than `switch-to-buffer'."
   "Move to the next interesting item.
 This could be the next toot, link, or image; whichever comes first.
 Don't move if nothing else to move to is found, i.e. near the end of the buffer.
-This also skips tab items in invisible text, i.e. hidden spoiler text."
+This also skips tab items in invisible text, i.e. hidden spoiler text.
+PREVIOUS means move to previous item."
   (interactive)
   (let (next-range
         (search-pos (point)))
@@ -979,17 +980,15 @@ content warning message are displayed. The content warning
 message is a link which unhides/hides the main body."
   (let* ((spoiler (mastodon-tl--field 'spoiler_text toot))
          (string (mastodon-tl--set-face
-                  ;; remove trailing whitespace
                   (mastodon-tl--clean-tabs-and-nl
                    (mastodon-tl--render-text spoiler toot))
                   'default))
-         (message (concat
-                   " " mastodon-tl--horiz-bar "\n "
-                   (mastodon-tl--make-link
-                    (concat "CW: " string)
-                    'content-warning)
-                   "\n "
-                   mastodon-tl--horiz-bar "\n"))
+         (message (concat " " mastodon-tl--horiz-bar "\n "
+                          (mastodon-tl--make-link
+                           (concat "CW: " string)
+                           'content-warning)
+                          "\n "
+                          mastodon-tl--horiz-bar "\n"))
          (cw (mastodon-tl--set-face message 'mastodon-cw-face)))
     (concat
      cw
@@ -1022,10 +1021,8 @@ message is a link which unhides/hides the main body."
 (defun mastodon-tl--media-attachment (media-attachment)
   "Return a propertized string for MEDIA-ATTACHMENT."
   (let* ((preview-url (alist-get 'preview_url media-attachment))
-         (remote-url
-          (or (alist-get 'remote_url media-attachment)
-              ;; fallback b/c notifications don't have remote_url
-              (alist-get 'url media-attachment)))
+         (remote-url (or (alist-get 'remote_url media-attachment)
+                         (alist-get 'url media-attachment))) ; for notifs
          (type (alist-get 'type media-attachment))
          (caption (alist-get 'description media-attachment))
          (display-str
@@ -1039,18 +1036,17 @@ message is a link which unhides/hides the main body."
          preview-url remote-url type caption) ; 2nd arg for shr-browse-url
       ;; return URL/caption:
       (concat (mastodon-tl--propertize-img-str-or-url
-               (concat "Media:: " preview-url) ;; string
+               (concat "Media:: " preview-url) ; string
                preview-url remote-url type caption
-               display-str ;; display
+               display-str ; display
                ;; FIXME: shr-link underlining is awful for captions with
                ;; newlines, as the underlining runs to the edge of the
-               ;; frame even if the text doesn'
+               ;; frame even if the text doesn't
                'shr-link)
               "\n"))))
 
-(defun mastodon-tl--propertize-img-str-or-url (str media-url full-remote-url
-                                                   type help-echo
-                                                   &optional display face)
+(defun mastodon-tl--propertize-img-str-or-url
+    (str media-url full-remote-url type help-echo &optional display face)
   "Propertize an media placeholder string \"[img]\" or media URL.
 STR is the string to propertize, MEDIA-URL is the preview link,
 FULL-REMOTE-URL is the link to the full resolution image on the
@@ -1069,7 +1065,7 @@ HELP-ECHO, DISPLAY, and FACE are the text properties to add."
               'keymap mastodon-tl--shr-image-map-replacement
               'help-echo (if (or (string= type "image")
                                  (string= type nil)
-                                 (string= type "unknown")) ;handle borked images
+                                 (string= type "unknown")) ; handle borked images
                              help-echo
                            (concat help-echo "\nC-RET: play " type " with mpv"))))
 
@@ -1101,12 +1097,13 @@ LONGEST-OPTION is the option whose length determines the formatting."
            (option-counter 0))
       (concat "\nPoll: \n\n"
               (mapconcat (lambda (option)
-                           (mastodon-tl--format-poll-option option option-counter longest-option))
+                           (mastodon-tl--format-poll-option
+                            option option-counter longest-option))
                          .options
                          "\n")
               "\n"
               (propertize
-               (cond (.voters_count     ; sometimes it is nil
+               (cond (.voters_count ; sometimes it is nil
                       (if (= .voters_count 1)
                           (format "%s person | " .voters_count)
                         (format "%s people | " .voters_count)))
@@ -1135,7 +1132,7 @@ LONGEST-OPTION is the option whose length determines the formatting."
                    (plist-get parsed :minutes)))
           ((> (plist-get parsed :minutes) 0)
            (format "%s minutes left" (plist-get parsed :minutes)))
-          (t ;; we failed to guess:
+          (t ; we failed to guess:
            (format "%s days, %s hours, %s minutes left"
                    (plist-get parsed :days)
                    (plist-get parsed :hours)
@@ -1211,15 +1208,11 @@ LONGEST-OPTION is the option whose length determines the formatting."
 URL and TYPE are provided when called while point is on byline,
 in which case play first video or gif from current toot."
   (interactive)
-  (let ((url (or
-              ;; point in byline:
-              url
-              ;; point in toot:
-              (mastodon-tl--property 'image-url :no-move)))
-        (type (or ;; in byline:
-               type
-               ;; point in toot:
-               (mastodon-tl--property 'mastodon-media-type :no-move))))
+  (let ((url (or url ; point in byline:
+                 (mastodon-tl--property 'image-url :no-move))) ; point in toot
+        (type (or type ; in byline
+                  ;; point in toot:
+                  (mastodon-tl--property 'mastodon-media-type :no-move))))
     (if url
         (if (or (equal type "gifv")
                 (equal type "video"))
@@ -1240,18 +1233,16 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
          (poll-p (if reblog
                      (alist-get 'poll reblog)
                    (alist-get 'poll toot))))
-    (concat
-     (mastodon-tl--render-text content toot)
-     (when poll-p
-       (mastodon-tl--get-poll toot))
-     (mastodon-tl--media toot))))
+    (concat (mastodon-tl--render-text content toot)
+            (when poll-p
+              (mastodon-tl--get-poll toot))
+            (mastodon-tl--media toot))))
 
 (defun mastodon-tl--prev-toot-id ()
   "Return the id of the last toot inserted into the buffer."
-  (let ((prev-pos (1- (save-excursion
-                        (previous-single-property-change
-                         (point)
-                         'base-toot-id)))))
+  (let ((prev-pos
+         (1- (save-excursion
+               (previous-single-property-change (point) 'base-toot-id)))))
     (get-text-property prev-pos 'base-toot-id)))
 
 (defun mastodon-tl--after-reply-status (reply-to-id)
@@ -1296,7 +1287,6 @@ THREAD means the status will be displayed in a thread view."
                          'line-prefix bar
                          'wrap-prefix bar))
          body)
-       ;; body
        " \n"
        (mastodon-tl--byline toot author-byline action-byline detailed-p))
       'toot-id      (or id ; notification's own id
@@ -1305,8 +1295,7 @@ THREAD means the status will be displayed in a thread view."
                      ;; if status is a notif, get id from base-toot
                      ;; (-tl--toot-id toot) will not work here:
                      (or base-toot
-                         ;; else normal toot with reblog check:
-                         toot))
+                         toot)) ; else normal toot with reblog check
       'toot-json    toot
       'base-toot    base-toot)
      "\n")
