@@ -108,31 +108,26 @@ follow-requests view."
                                    (plist-get mastodon-tl--buffer-spec 'endpoint)))
            (f-req-p (or (string= "follow_request" (alist-get 'type toot-json)) ;notifs
                         f-reqs-view-p)))
-      (if f-req-p
-          (let* ((account (or (alist-get 'account toot-json) ;notifs
-                              toot-json)) ;f-reqs
-                 (id (alist-get 'id account))
-                 (handle (alist-get 'acct account))
-                 (name (alist-get 'username account)))
-            (if id
-                (let ((response
-                       (mastodon-http--post
-                        (concat
-                         (mastodon-http--api "follow_requests")
-                         (format "/%s/%s" id (if reject
-                                                 "reject"
-                                               "authorize"))))))
-                  (mastodon-http--triage response
-                                         (lambda ()
-                                           (if f-reqs-view-p
-                                               (mastodon-views--view-follow-requests)
-                                             (mastodon-tl--reload-timeline-or-profile))
-                                           (message "Follow request of %s (@%s) %s!"
-                                                    name handle (if reject
-                                                                    "rejected"
-                                                                  "accepted")))))
-              (message "No account result at point?")))
-        (message "No follow request at point?")))))
+      (if (not f-req-p)
+          (message "No follow request at point?")
+        (let-alist (or (alist-get 'account toot-json) ;notifs
+                       toot-json) ;f-reqs
+          (if .id
+              (let ((response
+                     (mastodon-http--post
+                      (concat
+                       (mastodon-http--api "follow_requests")
+                       (format "/%s/%s" .id (if reject "reject" "authorize"))))))
+                (mastodon-http--triage response
+                                       (lambda ()
+                                         (if f-reqs-view-p
+                                             (mastodon-views--view-follow-requests)
+                                           (mastodon-tl--reload-timeline-or-profile))
+                                         (message "Follow request of %s (@%s) %s!"
+                                                  .username .acct (if reject
+                                                                      "rejected"
+                                                                    "accepted")))))
+            (message "No account result at point?")))))))
 
 (defun mastodon-notifications--follow-request-accept ()
   "Accept a follow request.
