@@ -750,18 +750,16 @@ INSTANCE is an instance domain name."
             (account (or (alist-get 'account reblog)
                          (alist-get 'account toot)
                          toot)) ; else `toot' is already an account listing.
-            ;; we can't use --profile-buffer-p as our test here because we may
-            ;; be looking at toots/boosts/users in a profile buffer.
-            ;; profile-json works as a defacto test for if point is on the
-            ;; profile details at the top of a profile buffer.
-            (url (if (and (mastodon-tl--profile-buffer-p)
-                          ;; only call this in profile buffers:
-                          (mastodon-tl--property 'profile-json))
+            ;; we may be at toots/boosts/users in a profile buffer.
+            ;; profile-json is a defacto test for if point is on the profile
+            ;; details at the top of a profile buffer.
+            (profile-note-p (and (mastodon-tl--profile-buffer-p)
+                                 ;; only call this in profile buffers:
+                                 (mastodon-tl--property 'profile-json)))
+            (url (if profile-note-p
                      (alist-get 'url toot) ; profile description
                    (alist-get 'url account)))
-            (username (if (and (mastodon-tl--profile-buffer-p)
-                               ;; only call this in profile buffers:
-                               (mastodon-tl--property 'profile-json))
+            (username (if profile-note-p
                           (alist-get 'username toot) ;; profile
                         (alist-get 'username account)))
             (instance (mastodon-views--get-instance-url url username instance))
