@@ -876,12 +876,9 @@ IND is the optional indentation level to print at."
             (insert (mastodon-views--format-key el pad)
                     " "
                     (mastodon-views--newline-if-long (cdr el))
-                    ;; only send strings straight to --render-text
-                    ;; this makes hyperlinks work:
-                    (if (not (stringp val))
-                        (mastodon-tl--render-text
-                         (prin1-to-string val))
-                      (mastodon-tl--render-text val))
+                    ;; only send strings to --render-text (for hyperlinks):
+                    (mastodon-tl--render-text
+                     (if (stringp val) val (prin1-to-string val)))
                     "\n"))))))))
 
 (defun mastodon-views--print-instance-rules-or-fields (alist)
