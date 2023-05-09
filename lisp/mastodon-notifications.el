@@ -80,8 +80,7 @@
   "Alist of subjects for notification types.")
 
 (defvar mastodon-notifications--map
-  (let ((map
-         (copy-keymap mastodon-mode-map)))
+  (let ((map (copy-keymap mastodon-mode-map)))
     (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
     (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
     (define-key map (kbd "C-k") #'mastodon-notifications--clear-current)
@@ -90,11 +89,8 @@
 
 (defun mastodon-notifications--byline-concat (message)
   "Add byline for TOOT with MESSAGE."
-  (concat
-   " "
-   (propertize message 'face 'highlight)
-   " "
-   (cdr (assoc message mastodon-notifications--response-alist))))
+  (concat " " (propertize message 'face 'highlight)
+          " " (cdr (assoc message mastodon-notifications--response-alist))))
 
 (defun mastodon-notifications--follow-request-process (&optional reject)
   "Process the follow request at point.
@@ -181,6 +177,7 @@ Status notifications are given when
         (status (mastodon-tl--field 'status note))
         (follower (alist-get 'username (alist-get 'account note))))
     (mastodon-notifications--insert-status
+     ;; toot
      (cond ((or (equal type 'follow)
                 (equal type 'follow-request))
             ;; Using reblog with an empty id will mark this as something
@@ -193,6 +190,7 @@ Status notifications are given when
             note)
            (t
             status))
+     ;; body
      (if (or (equal type 'follow)
              (equal type 'follow-request))
          (propertize (if (equal type 'follow)
@@ -204,13 +202,14 @@ Status notifications are given when
         (if (mastodon-tl--has-spoiler status)
             (mastodon-tl--spoiler status)
           (mastodon-tl--content status))))
+     ;; author-byline
      (if (or (equal type 'follow)
              (equal type 'follow-request)
              (equal type 'mention))
          'mastodon-tl--byline-author
        (lambda (_status)
-         (mastodon-tl--byline-author
-          note)))
+         (mastodon-tl--byline-author note)))
+     ;; action-byline
      (lambda (_status)
        (mastodon-notifications--byline-concat
         (cond ((equal type 'boost)
@@ -230,13 +229,13 @@ Status notifications are given when
               ((equal type 'edit)
                "Edited"))))
      id
+     ;; base toot
      (when (or (equal type 'favourite)
                (equal type 'boost))
        status))))
 
-(defun mastodon-notifications--insert-status (toot body
-                                                   author-byline action-byline id
-                                                   &optional base-toot)
+(defun mastodon-notifications--insert-status
+    (toot body author-byline action-byline id &optional base-toot)
   "Display the content and byline of timeline element TOOT.
 BODY will form the section of the toot above the byline.
 
@@ -301,8 +300,7 @@ Status notifications are created when you call
 
 (defun mastodon-notifications--filter-types-list (type)
   "Return a list of notification types with TYPE removed."
-  (let ((types
-         (mapcar #'car mastodon-notifications--types-alist)))
+  (let ((types (mapcar #'car mastodon-notifications--types-alist)))
     (remove type types)))
 
 (defun mastodon-notifications--clear-all ()
