@@ -595,10 +595,7 @@ JSON is what is returned by by the server."
 (defun mastodon-views--insert-filter-string-set (json)
   "Insert a filter string plus a blank line.
 JSON is the filters data."
-  (mapc (lambda (x)
-          (mastodon-views--insert-filter-string x)
-          (insert "\n\n"))
-        json))
+  (mapc #'mastodon-views--insert-filter-string json))
 
 (defun mastodon-views--insert-filter-string (filter)
   "Insert a single FILTER."
@@ -611,9 +608,8 @@ JSON is the filters data."
      (propertize filter-string
                  'toot-id id ;for goto-next-filter compat
                  'phrase phrase
-                 ;;'help-echo "n/p to go to next/prev filter, c to create new filter, d to delete filter at point."
-                 ;;'keymap mastodon-views--view-filters-keymap
-                 'byline t)))) ;for goto-next-filter compat
+                 'byline t) ;for goto-next-filter compat
+     "\n\n")))
 
 (defun mastodon-views--create-filter ()
   "Create a filter for a word.
