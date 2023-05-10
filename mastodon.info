@@ -292,19 +292,11 @@ File: mastodon.info,  Node: Composing toots,  Next: Other commands and account s
 1.2.3 Composing toots
 ---------------------
 
-‘M-x mastodon-toot’ (or ‘t’ from a mastodon.el buffer).
-
-   Pops a new buffer/window in ‘text-mode’ and ‘mastodon-toot’ minor
-mode.  Enter the contents of your toot here.  ‘C-c C-c’ sends the toot.
-‘C-c C-k’ cancels.  Both actions kill the buffer and window.
-
-   Autocompletion of mentions and tags is provided by
-‘completion-at-point-functions’ (capf) backends.
-‘mastodon-toot--enable-completion’ is enabled by default.  If you want
-to enable ‘company-mode’ in the toot compose buffer, set
-‘mastodon-toot--use-company-for-completion’ to ‘t’.  (‘mastodon.el’ used
-to run its own native company backends, but these have been removed in
-favour of capfs.)
+‘M-x mastodon-toot’ (or ‘t’ from a mastodon.el buffer) opens a new
+buffer/window in ‘text-mode’ and ‘mastodon-toot’ minor mode.  Enter the
+contents of your toot here.  ‘C-c C-c’ sends the toot.  ‘C-c C-k’
+cancels.  Both actions kill the buffer and window.  Further keybindings
+are displayed in the buffer, and in the following subsection.
 
    Replies preserve visibility status/content warnings, and include
 boosters by default.
@@ -340,7 +332,21 @@ is as follows:
      ‘C-c C-p’   Create a poll
      ‘C-c C-l’   Set toot language
 
-  2. Draft toots
+  2. autocompletion of mentions and tags
+
+     Autocompletion of mentions and tags is provided by
+     ‘completion-at-point-functions’ (capf) backends.
+     ‘mastodon-toot--enable-completion’ is enabled by default.  If you
+     want to enable ‘company-mode’ in the toot compose buffer, set
+     ‘mastodon-toot--use-company-for-completion’ to ‘t’.  (‘mastodon.el’
+     used to run its own native company backends, but these have been
+     removed in favour of capfs.)
+
+     If you don’t run ‘company’ and want immediate, keyless completion,
+     you’ll need to have another completion engine running that handles
+     capfs.  A common combination is ‘consult’ and ‘corfu’.
+
+  3. Draft toots
 
         • Compose buffer text is saved as you type, kept in
           ‘mastodon-toot-current-toot-text’.
@@ -650,22 +656,23 @@ Node: Timelines4522
 Ref: Keybindings4997
 Ref: Toot byline legend9570
 Node: Composing toots9879
-Ref: Keybindings (1)11456
-Ref: Draft toots11974
-Node: Other commands and account settings12445
-Node: Customization15603
-Node: Alternative timeline layout16389
-Node: Live-updating timelines mastodon-async-mode16779
-Node: Translating toots17631
-Node: bookmarks and mastodonel18813
-Node: Dependencies19283
-Node: Network compatibility19889
-Node: Contributing20375
-Node: Bug reports20664
-Node: Fixes and features21570
-Node: Coding style22053
-Node: Supporting mastodonel22677
-Node: Contributors23199
+Ref: Keybindings (1)11118
+Ref: autocompletion of mentions and tags11636
+Ref: Draft toots12349
+Node: Other commands and account settings12820
+Node: Customization15978
+Node: Alternative timeline layout16764
+Node: Live-updating timelines mastodon-async-mode17154
+Node: Translating toots18006
+Node: bookmarks and mastodonel19188
+Node: Dependencies19658
+Node: Network compatibility20264
+Node: Contributing20750
+Node: Bug reports21039
+Node: Fixes and features21945
+Node: Coding style22428
+Node: Supporting mastodonel23052
+Node: Contributors23574
 
 End Tag Table
 
