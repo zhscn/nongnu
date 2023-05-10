@@ -362,13 +362,10 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @node Composing toots
 @subsection Composing toots
 
-@samp{M-x mastodon-toot} (or @samp{t} from a mastodon.el buffer).
-
-Pops a new buffer/window in @samp{text-mode} and @samp{mastodon-toot} minor mode. Enter the
-contents of your toot here. @samp{C-c C-c} sends the toot. @samp{C-c C-k} cancels.
-Both actions kill the buffer and window.
-
-Autocompletion of mentions and tags is provided by @samp{completion-at-point-functions} (capf) backends. @samp{mastodon-toot--enable-completion} is enabled by default. If you want to enable @samp{company-mode} in the toot compose buffer, set @samp{mastodon-toot--use-company-for-completion} to @samp{t}. (@samp{mastodon.el} used to run its own native company backends, but these have been removed in favour of capfs.)
+@samp{M-x mastodon-toot} (or @samp{t} from a mastodon.el buffer) opens a new buffer/window
+in @samp{text-mode} and @samp{mastodon-toot} minor mode. Enter the contents of your toot
+here. @samp{C-c C-c} sends the toot. @samp{C-c C-k} cancels. Both actions kill the buffer
+and window. Further keybindings are displayed in the buffer, and in the following subsection.
 
 Replies preserve visibility status/content warnings, and include boosters by default.
 
@@ -417,6 +414,21 @@ value of that hook is as follows:
 @item @samp{C-c C-l}
 @tab Set toot language
 @end multitable
+
+@item
+@anchor{autocompletion of mentions and tags}autocompletion of mentions and tags
+
+
+Autocompletion of mentions and tags is provided by
+@samp{completion-at-point-functions} (capf) backends.
+@samp{mastodon-toot--enable-completion} is enabled by default. If you want to enable
+@samp{company-mode} in the toot compose buffer, set
+@samp{mastodon-toot--use-company-for-completion} to @samp{t}. (@samp{mastodon.el} used to run its
+own native company backends, but these have been removed in favour of capfs.)
+
+If you don’t run @samp{company} and want immediate, keyless completion, you’ll need
+to have another completion engine running that handles capfs. A common
+combination is @samp{consult} and @samp{corfu}.
 
 @item
 @anchor{Draft toots}Draft toots
@@ -584,7 +596,8 @@ Set default reply visibility
 @node Alternative timeline layout
 @subsection Alternative timeline layout
 
-The incomparable Nicholas Rougier has written an alternative timeline layout for @samp{mastodon.el}.
+The incomparable Nicholas Rougier has written an alternative timeline layout
+for @samp{mastodon.el}.
 
 The repo is at @uref{https://github.com/rougier/mastodon-alt, mastodon-alt}.
 
@@ -605,9 +618,9 @@ view a timeline with one of the commands that begin with
 @node Translating toots
 @subsection Translating toots
 
-You can translate toots with @samp{mastodon-toot--translate-toot-text} (@samp{a} in a timeline). At the moment
-this requires @uref{https://codeberg.org/martianh/lingva.el, lingva.el}, a little interface I wrote to @uref{https://lingva.ml, lingva.ml}, to
-be installed to work.
+You can translate toots with @samp{mastodon-toot--translate-toot-text} (@samp{a} in a
+timeline). At the moment this requires @uref{https://codeberg.org/martianh/lingva.el, lingva.el}, a little interface I wrote
+to @uref{https://lingva.ml, lingva.ml}, to be installed to work.
 
 You could easily modify the simple function to use your Emacs translator of
 choice (@samp{libretrans.el} , @samp{google-translate}, @samp{babel}, @samp{go-translate}, etc.), you just
@@ -629,7 +642,9 @@ to your translator function as its text argument. Here's what
 @node bookmarks and @samp{mastodonel}
 @subsection bookmarks and @samp{mastodon.el}
 
-@samp{mastodon.el} doesn’t currently implement its own bookmark record and handler, which means that emacs bookmarks will not work as is. Until we implement them, you can get bookmarks going immediately by using @uref{https://github.com/emacsmirror/emacswiki.org/blob/master/bookmark%2b.el, bookmark+.el}.
+@samp{mastodon.el} doesn’t currently implement its own bookmark record and handler,
+which means that emacs bookmarks will not work as is. Until we implement them,
+you can get bookmarks going immediately by using @uref{https://github.com/emacsmirror/emacswiki.org/blob/master/bookmark%2b.el, bookmark+.el}.
 
 @node Dependencies
 @section Dependencies
