@@ -135,6 +135,14 @@ PRINT-FUN is the function used to print the data from the response."
 
 ;; functions for mastodon search
 
+(defun mastodon-search--format-heading (heading)
+  "Format HEADING as a heading."
+  (insert
+   (mastodon-tl--set-face (concat "\n " mastodon-tl--horiz-bar "\n "
+                                  heading "\n"
+                                  " " mastodon-tl--horiz-bar "\n")
+                          'success)))
+
 (defun mastodon-search--search-query (query)
   "Prompt for a search QUERY and return accounts, statuses, and hashtags."
   (interactive "sSearch mastodon for: ")
@@ -156,25 +164,13 @@ PRINT-FUN is the function used to print the data from the response."
                                     "api/v2/search"
                                     nil)
       ;; user results:
-      (insert (mastodon-tl--set-face
-               (concat "\n " mastodon-tl--horiz-bar "\n"
-                       " USERS\n"
-                       " " mastodon-tl--horiz-bar "\n\n")
-               'success))
+      (mastodon-search--format-heading "USERS")
       (mastodon-search--insert-users-propertized accts :note)
       ;; hashtag results:
-      (insert (mastodon-tl--set-face
-               (concat "\n " mastodon-tl--horiz-bar "\n"
-                       " HASHTAGS\n"
-                       " " mastodon-tl--horiz-bar "\n\n")
-               'success))
+      (mastodon-search--format-heading "HASHTAGS")
       (mastodon-search--print-tags-list tags-list)
       ;; status results:
-      (insert (mastodon-tl--set-face
-               (concat "\n " mastodon-tl--horiz-bar "\n"
-                       " STATUSES\n"
-                       " " mastodon-tl--horiz-bar "\n")
-               'success))
+      (mastodon-search--format-heading "STATUSES")
       (mapc #'mastodon-tl--toot toots-list-json)
       (goto-char (point-min)))))
 
