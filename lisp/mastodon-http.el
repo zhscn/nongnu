@@ -147,19 +147,21 @@ Authorization header is included by default unless UNAUTHENTICATED-P is non-nil.
      (with-temp-buffer
        (mastodon-http--url-retrieve-synchronously url)))
    unauthenticated-p))
+(defun mastodon-http--concat-params-to-url (url params)
+  "Build a query string with PARAMS and concat to URL."
+  (if params
+      (concat url "?"
+              (mastodon-http--build-params-string params))
+    url))
 
 (defun mastodon-http--get (url &optional params silent)
   "Make synchronous GET request to URL.
 PARAMS is an alist of any extra parameters to send with the request.
 SILENT means don't message."
-  (mastodon-http--authorized-request
-   "GET"
-   ;; url-request-data doesn't seem to work with GET requests:
-   (let ((url (if params
-                  (concat url "?"
-                          (mastodon-http--build-params-string params))
-                url)))
-     (mastodon-http--url-retrieve-synchronously url silent))))
+  (mastodon-http--authorized-request "GET"
+    ;; url-request-data doesn't seem to work with GET requests?:
+    (let ((url (mastodon-http--concat-params-to-url url params)))
+      (mastodon-http--url-retrieve-synchronously url silent))))
 
 (defun mastodon-http--get-response (url &optional params no-headers silent vector)
   "Make synchronous GET request to URL. Return JSON and response headers.
@@ -232,15 +234,10 @@ Callback to `mastodon-http--get-response-async', usually
   "Make DELETE request to URL.
 PARAMS is an alist of any extra parameters to send with the request."
   ;; url-request-data only works with POST requests?
-  (let ((url
-         (if params
-             (concat url "?"
-                     (mastodon-http--build-params-string params))
-           url)))
-    (mastodon-http--authorized-request
-     "DELETE"
-     (with-temp-buffer
-       (mastodon-http--url-retrieve-synchronously url)))))
+  (let ((url (mastodon-http--concat-params-to-url url params)))
+    (mastodon-http--authorized-request "DELETE"
+      (with-temp-buffer
+        (mastodon-http--url-retrieve-synchronously url)))))
 
 (defun mastodon-http--put (url &optional params headers)
   "Make PUT request to URL.
@@ -258,12 +255,6 @@ HEADERS is an alist of any extra headers to send with the request."
                   headers)))
      (with-temp-buffer (mastodon-http--url-retrieve-synchronously url)))))
 
-(defun mastodon-http--append-query-string (url params)
-  "Append PARAMS to URL as query strings and return it.
-PARAMS should be an alist as required by `url-build-query-string'."
-  (let ((query-string (url-build-query-string params)))
-    (concat url "?" query-string)))
-
 ;; profile update functions
 
 (defun mastodon-http--patch-json (url &optional params)
@@ -275,12 +266,9 @@ Optionally specify the PARAMS to send."
 (defun mastodon-http--patch (base-url &optional params)
   "Make synchronous PATCH request to BASE-URL.
 Optionally specify the PARAMS to send."
-  (mastodon-http--authorized-request
-   "PATCH"
-   (let ((url
-          (concat base-url "?"
-                  (mastodon-http--build-params-string params))))
-     (mastodon-http--url-retrieve-synchronously url))))
+  (mastodon-http--authorized-request "PATCH"
+    (let ((url (mastodon-http--concat-params-to-url base-url params)))
+      (mastodon-http--url-retrieve-synchronously url))))
 
  ;; Asynchronous functions
 
@@ -288,13 +276,9 @@ Optionally specify the PARAMS to send."
   "Make GET request to URL.
 Pass response buffer to CALLBACK function with args CBARGS.
 PARAMS is an alist of any extra parameters to send with the request."
-  (let ((url (if params
-                 (concat url "?"
-                         (mastodon-http--build-params-string params))
-               url)))
-    (mastodon-http--authorized-request
-     "GET"
-     (url-retrieve url callback cbargs))))
+  (let ((url (mastodon-http--concat-params-to-url url params)))
+    (mastodon-http--authorized-request "GET"
+      (url-retrieve url callback cbargs))))
 
 (defun mastodon-http--get-response-async (url &optional params callback &rest cbargs)
   "Make GET request to URL. Call CALLBACK with http response and CBARGS.

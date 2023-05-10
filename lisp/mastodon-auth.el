@@ -41,7 +41,7 @@
 (autoload 'mastodon-client--make-user-active "mastodon-client")
 (autoload 'mastodon-client--store-access-token "mastodon-client")
 (autoload 'mastodon-http--api "mastodon-http")
-(autoload 'mastodon-http--append-query-string "mastodon-http")
+(autoload 'mastodon-http--concat-params-to-url "mastodon-http")
 (autoload 'mastodon-http--get-json "mastodon-http")
 (autoload 'mastodon-http--post "mastodon-http")
 
@@ -83,7 +83,7 @@ We apologize for the inconvenience.
 
 (defun mastodon-auth--get-browser-login-url ()
   "Return properly formed browser login url."
-  (mastodon-http--append-query-string
+  (mastodon-http--concat-params-to-url
    (concat mastodon-instance-url "/oauth/authorize/")
    `(("response_type" "code")
      ("redirect_uri" ,mastodon-client-redirect-uri)
