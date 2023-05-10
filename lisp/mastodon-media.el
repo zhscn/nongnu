@@ -271,22 +271,27 @@ Replace them with the referenced image."
             ;; proceed to load this image asynchronously
             (put-text-property start end 'media-state 'loading)
             (mastodon-media--load-image-from-url
-             image-url media-type start (- end start))))))))
-            ;; (mastodon-media--moving-image-overlay start end)))))))
+             image-url media-type start (- end start))
+            (mastodon-media--moving-image-overlay start end)))))))
 
-;; (defun mastodon-media--moving-image-overlay (start end)
-;;   "Add play symbol overlay to moving image media items."
-;;   (let ((ov (make-overlay start end))
-;;         (type (get-text-property start 'mastodon-media-type)))
-;;     (when (or (equal type "gifv")
-;;               (equal type "video"))
-;;       (overlay-put
-;;        ov
-;;        'after-string
-;;        (propertize " "
-;;                    'face
-;;                    '((:height 1.5 :inherit 'font-lock-comment-face)))))))
+;; (defvar-local mastodon-media--overlays nil
+;;   "Holds a list of overlays in the buffer.")
 
+(defun mastodon-media--moving-image-overlay (start end)
+  "Add play symbol overlay to moving image media items."
+  (let ((ov (make-overlay start end))
+        (type (get-text-property start 'mastodon-media-type)))
+    (when (or (equal type "gifv")
+              (equal type "video"))
+      (overlay-put
+       ov
+       'after-string
+       (propertize ""
+                   'face
+                   '((:height 3.5 :inherit 'font-lock-comment-face)))))))
+;; (cl-pushnew ov mastodon-media--overlays)))
+
+(remove-overlays)
 (defun mastodon-media--get-avatar-rendering (avatar-url)
   "Return the string to be written that renders the avatar at AVATAR-URL."
   ;; We use just an empty space as the textual representation.
