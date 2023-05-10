@@ -755,9 +755,9 @@ These include the author, author of reblogged entries and any user mentioned."
   (when status
     (let ((this-account (or (alist-get 'account status) ; status is a toot
                             status)) ; status is a user listing
-	  (mentions (or (alist-get 'mentions (alist-get 'status status))
+	      (mentions (or (alist-get 'mentions (alist-get 'status status))
                         (alist-get 'mentions status)))
-	  (reblog (or (alist-get 'reblog (alist-get 'status status))
+	      (reblog (or (alist-get 'reblog (alist-get 'status status))
                       (alist-get 'reblog status))))
       (seq-filter #'stringp
                   (seq-uniq

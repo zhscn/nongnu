@@ -919,7 +919,7 @@ Buffer-local variable `mastodon-toot-previous-window-config' holds the config."
   "Apply `mastodon-toot--process-local' function to each mention in MENTIONS.
 Remove empty string (self) from result and joins the sequence with whitespace."
   (mapconcat (lambda (mention) mention)
-	     (remove "" (mapcar #'mastodon-toot--process-local mentions))
+	         (remove "" (mapcar #'mastodon-toot--process-local mentions))
              " "))
 
 (defun mastodon-toot--process-local (acct)
@@ -941,8 +941,8 @@ Local user (including the logged in): `username`.
 Federated user: `username@host.co`."
   (let* ((boosted (mastodon-tl--field 'reblog status))
          (mentions (if boosted
-	               (alist-get 'mentions (alist-get 'reblog status))
-	             (alist-get 'mentions status))))
+	                   (alist-get 'mentions (alist-get 'reblog status))
+	                 (alist-get 'mentions status))))
     ;; reverse does not work on vectors in 24.5
     (mastodon-tl--map-alist 'acct (reverse mentions))))
 
@@ -1049,17 +1049,17 @@ text of the toot being replied to in the compose buffer."
             (if (and (not (equal user booster))
                      (not (member booster mentions)))
                 ;; different booster, user and mentions:
-		(mastodon-toot--mentions-to-string (append (list user booster) mentions nil))
+		        (mastodon-toot--mentions-to-string (append (list user booster) mentions nil))
               ;; booster is either user or in mentions:
               (if (not (member user mentions))
                   ;; user not already in mentions:
-		  (mastodon-toot--mentions-to-string (append (list user) mentions nil))
+		          (mastodon-toot--mentions-to-string (append (list user) mentions nil))
                 ;; user already in mentions:
                 (mastodon-toot--mentions-to-string (copy-sequence mentions))))
           ;; ELSE no booster:
           (if (not (member user mentions))
               ;; user not in mentions:
-	      (mastodon-toot--mentions-to-string (append (list user) mentions nil))
+	          (mastodon-toot--mentions-to-string (append (list user) mentions nil))
             ;; user in mentions already:
             (mastodon-toot--mentions-to-string (copy-sequence mentions)))))
       id
@@ -1443,16 +1443,16 @@ REPLY-TEXT is the text of the toot being replied to."
 The default is given by `mastodon-toot--default-reply-visibility'."
   (unless (null reply-visibility)
     (let ((less-restrictive (member (intern mastodon-toot--default-reply-visibility)
-				    mastodon-toot-visibility-list)))
+				                    mastodon-toot-visibility-list)))
       (if (member (intern reply-visibility) less-restrictive)
-	  mastodon-toot--default-reply-visibility reply-visibility))))
+	      mastodon-toot--default-reply-visibility reply-visibility))))
 
 (defun mastodon-toot--setup-as-reply (reply-to-user reply-to-id reply-json)
   "If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set `mastodon-toot--reply-to-id'.
 REPLY-JSON is the full JSON of the toot being replied to."
   (let ((reply-visibility (mastodon-toot--most-restrictive-visibility
-	                   (alist-get 'visibility reply-json)))
+	                       (alist-get 'visibility reply-json)))
         (reply-cw (alist-get 'spoiler_text reply-json)))
     (when reply-to-user
       (when (> (length reply-to-user) 0) ; self is "" unforch

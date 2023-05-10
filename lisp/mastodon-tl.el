@@ -479,12 +479,12 @@ With arg AVATAR, include the account's avatar image."
      (propertize (concat "@" .account.acct)
                  'face 'mastodon-handle-face
                  'mouse-face 'highlight
-	         'mastodon-tab-stop 'user-handle
+	             'mastodon-tab-stop 'user-handle
                  'account .account
-	         'shr-url .account.url
-	         'keymap mastodon-tl--link-keymap
+	             'shr-url .account.url
+	             'keymap mastodon-tl--link-keymap
                  'mastodon-handle (concat "@" .account.acct)
-	         'help-echo (concat "Browse user profile of @" .account.acct))
+	             'help-echo (concat "Browse user profile of @" .account.acct))
      ")")))
 
 (defun mastodon-tl--format-byline-help-echo (toot)
@@ -635,10 +635,10 @@ this just means displaying toot client."
                           'face 'mastodon-display-name-face
                           'follow-link t
                           'mouse-face 'highlight
-		          'mastodon-tab-stop 'shr-url
-		          'shr-url app-url
+		                  'mastodon-tab-stop 'shr-url
+		                  'shr-url app-url
                           'help-echo app-url
-		          'keymap mastodon-tl--shr-map-replacement)))))
+		                  'keymap mastodon-tl--shr-map-replacement)))))
        (if edited-time
            (concat
             " "
@@ -1388,8 +1388,8 @@ THREAD means the status will be displayed in a thread view."
                (mastodon-tl--get-buffer-property 'hide-replies nil :no-error)
                ;; loading a tl with a prefix arg:
                (mastodon-tl--hide-replies-p current-prefix-arg))
-	      (cl-remove-if-not #'mastodon-tl--is-reply toots)
-	    toots)))
+	          (cl-remove-if-not #'mastodon-tl--is-reply toots)
+	        toots)))
   (goto-char (point-min)))
 
 
@@ -1918,7 +1918,7 @@ LANGS is the accumulated array param alist if we re-run recursively."
                      ;; profile follows/followers but not statuses:
                      (mastodon-tl--buffer-type-eq 'profile-followers)
                      (mastodon-tl--buffer-type-eq 'profile-following))
-                     ;; fetch 'toot-json:
+                 ;; fetch 'toot-json:
                  (list (alist-get 'acct
                                   (mastodon-tl--property 'toot-json :no-move))))
                 ;; profile view, no toots
@@ -2509,7 +2509,7 @@ RESPONSE is the data returned from the server by
 JSON and http headers, without it just the JSON."
   (let ((json (if headers (car response) response)))
     (if (not json) ; praying this is right here, else try "\n[]"
-	(message "Looks like nothing returned from endpoint: %s" endpoint)
+	    (message "Looks like nothing returned from endpoint: %s" endpoint)
       (let* ((headers (if headers (cdr response) nil))
              (link-header (mastodon-tl--get-link-header-from-response headers)))
         (with-mastodon-buffer buffer #'mastodon-mode nil
