@@ -174,12 +174,7 @@ with the image."
                     ;; it; we already have set a default image when we
                     ;; added the tag.
                     (put-text-property marker (+ marker region-length)
-                                       'display image)
-                    (when (not (equal "image"
-                                      (get-text-property marker 'mastodon-media-type)))
-                      (let ((ov (make-overlay marker (+ marker region-length)
-                                              (marker-buffer marker))))
-                        (overlay-put ov 'after-string " ▶"))))
+                                       'display image))
                   ;; We are done with the marker; release it:
                   (set-marker marker nil)))
               (kill-buffer url-buffer)))))))
@@ -264,6 +259,7 @@ Replace them with the referenced image."
         (let* ((start (car line-details))
                (end (cadr line-details))
                (media-type (cadr (cdr line-details)))
+               (type (get-text-property start 'mastodon-media-type))
                (image-url (get-text-property start 'media-url)))
           (if (not (mastodon-media--valid-link-p image-url))
               ;; mark it at least as not needing loading any more
@@ -272,26 +268,25 @@ Replace them with the referenced image."
             (put-text-property start end 'media-state 'loading)
             (mastodon-media--load-image-from-url
              image-url media-type start (- end start))
-            (mastodon-media--moving-image-overlay start end)))))))
+            (when (or (equal type "gifv")
+                      (equal type "video"))
+              (mastodon-media--moving-image-overlay start end))))))))
 
 ;; (defvar-local mastodon-media--overlays nil
 ;;   "Holds a list of overlays in the buffer.")
 
 (defun mastodon-media--moving-image-overlay (start end)
   "Add play symbol overlay to moving image media items."
-  (let ((ov (make-overlay start end))
-        (type (get-text-property start 'mastodon-media-type)))
-    (when (or (equal type "gifv")
-              (equal type "video"))
-      (overlay-put
-       ov
-       'after-string
-       (propertize ""
-                   'face
-                   '((:height 3.5 :inherit 'font-lock-comment-face)))))))
+  (let ((ov (make-overlay start end)))
+    (overlay-put
+     ov
+     'after-string
+     (propertize ""
+                 'help-echo "Video"
+                 'face
+                 '((:height 3.5 :inherit 'font-lock-comment-face))))))
 ;; (cl-pushnew ov mastodon-media--overlays)))
 
-(remove-overlays)
 (defun mastodon-media--get-avatar-rendering (avatar-url)
   "Return the string to be written that renders the avatar at AVATAR-URL."
   ;; We use just an empty space as the textual representation.
