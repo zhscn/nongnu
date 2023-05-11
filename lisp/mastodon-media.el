@@ -310,7 +310,7 @@ TYPE is the attachment's type field on the server.
 CAPTION is the image caption if provided."
   (let* ((help-echo-base
           "RET/i: load full image (prefix: copy URL), +/-: zoom,\
-r: rotate, o: save preview")
+ r: rotate, o: save preview")
          (help-echo (if caption
                         (concat help-echo-base
                                 "\n\"" caption "\"")
