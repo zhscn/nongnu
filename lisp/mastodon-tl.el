@@ -1076,7 +1076,7 @@ HELP-ECHO, DISPLAY, and FACE are the text properties to add."
   "Format poll OPTION. OPTION-COUNTER is just a counter.
 LONGEST-OPTION is the option whose length determines the formatting."
   (format "%s: %s%s%s\n"
-          (setq option-counter (1+ option-counter))
+          option-counter
           (propertize (alist-get 'title option)
                       'face 'success)
           (make-string (1+ (- (length longest-option)
@@ -1097,6 +1097,7 @@ LONGEST-OPTION is the option whose length determines the formatting."
            (option-counter 0))
       (concat "\nPoll: \n\n"
               (mapconcat (lambda (option)
+                           (setq option-counter (1+ option-counter))
                            (mastodon-tl--format-poll-option
                             option option-counter longest-option))
                          .options
