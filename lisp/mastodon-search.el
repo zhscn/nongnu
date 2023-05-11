@@ -62,9 +62,12 @@
   "Prompt for a search QUERY and return accounts synchronously.
 Returns a nested list containing user handle, display name, and URL."
   (let* ((url (mastodon-http--api "accounts/search"))
-         (response (if (equal mastodon-toot--completion-style-for-mentions "following")
-                       (mastodon-http--get-json url `(("q" . ,query) ("following" . "true")) :silent)
-                     (mastodon-http--get-json url `(("q" . ,query)) :silent))))
+         (response
+          (if (equal mastodon-toot--completion-style-for-mentions "following")
+              (mastodon-http--get-json
+               url `(("q" . ,query) ("following" . "true"))
+               :silent)
+            (mastodon-http--get-json url `(("q" . ,query)) :silent))))
     (mapcar #'mastodon-search--get-user-info-@ response)))
 
 ;; functions for tags completion:
@@ -73,8 +76,7 @@ Returns a nested list containing user handle, display name, and URL."
   "Return an alist containing tag strings plus their URLs.
 QUERY is the string to search."
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
-         (params `(("q" . ,query)
-                   ("type" . "hashtags")))
+         (params `(("q" . ,query) ("type" . "hashtags")))
          (response (mastodon-http--get-json url params :silent))
          (tags (alist-get 'hashtags response)))
     (mapcar #'mastodon-search--get-hashtag-info tags)))
@@ -95,10 +97,8 @@ QUERY is the string to search."
 
 (defun mastodon-search--get-full-statuses-data (response)
   "For statuses list in RESPONSE, fetch and return full status JSON."
-  (let ((status-ids-list
-         (mapcar #'mastodon-search--get-id-from-status response)))
-    (mapcar #'mastodon-search--fetch-full-status-from-id
-            status-ids-list)))
+  (let ((status-ids (mapcar #'mastodon-search--get-id-from-status response)))
+    (mapcar #'mastodon-search--fetch-full-status-from-id status-ids)))
 
 (defun mastodon-search--view-trending (type print-fun)
   "Display a list of tags trending on your instance.
@@ -108,18 +108,16 @@ PRINT-FUN is the function used to print the data from the response."
                (format "trends/%s" type)))
          ;; max for statuses = 40, for others = 20
          (params (if (equal type "statuses")
-                     `(("limit" . "40"))
-                   `(("limit" . "20")) ))
+                     '(("limit" . "40"))
+                   '(("limit" . "20"))))
          (response (mastodon-http--get-json url params))
          (data (cond ((equal type "tags")
-                      (mapcar #'mastodon-search--get-hashtag-info
-                              response))
+                      (mapcar #'mastodon-search--get-hashtag-info response))
                      ((equal type "statuses")
                       (mastodon-search--get-full-statuses-data response))
                      ((equal type "links")
                       (message "todo"))))
-         (buffer (get-buffer-create
-                  (format "*mastodon-trending-%s*" type))))
+         (buffer (get-buffer-create (format "*mastodon-trending-%s*" type))))
     (with-mastodon-buffer buffer #'mastodon-mode nil
       (mastodon-tl--set-buffer-spec (buffer-name buffer)
                                     (format "api/v1/trends/%s" type)
@@ -135,6 +133,14 @@ PRINT-FUN is the function used to print the data from the response."
 
 ;; functions for mastodon search
 
+(defun mastodon-search--format-heading (heading)
+  "Format HEADING as a heading."
+  (insert
+   (mastodon-tl--set-face (concat "\n " mastodon-tl--horiz-bar "\n "
+                                  heading "\n"
+                                  " " mastodon-tl--horiz-bar "\n")
+                          'success)))
+
 (defun mastodon-search--search-query (query)
   "Prompt for a search QUERY and return accounts, statuses, and hashtags."
   (interactive "sSearch mastodon for: ")
@@ -144,37 +150,18 @@ PRINT-FUN is the function used to print the data from the response."
          (accts (alist-get 'accounts response))
          (tags (alist-get 'hashtags response))
          (statuses (alist-get 'statuses response))
-         ;; this is now done in search--insert-users-propertized
-         ;; (user-ids (mapcar #'mastodon-search--get-user-info
-         ;; accts)) ; returns a list of three-item lists
-         (tags-list (mapcar #'mastodon-search--get-hashtag-info
-                            tags))
-         (toots-list-json
-          (mastodon-search--get-full-statuses-data statuses)))
+         (tags-list (mapcar #'mastodon-search--get-hashtag-info tags))
+         (toots-list-json (mastodon-search--get-full-statuses-data statuses)))
     (with-mastodon-buffer buffer #'mastodon-mode nil
-      (mastodon-tl--set-buffer-spec buffer
-                                    "api/v2/search"
-                                    nil)
+      (mastodon-tl--set-buffer-spec buffer "api/v2/search" nil)
       ;; user results:
-      (insert (mastodon-tl--set-face
-               (concat "\n " mastodon-tl--horiz-bar "\n"
-                       " USERS\n"
-                       " " mastodon-tl--horiz-bar "\n\n")
-               'success))
+      (mastodon-search--format-heading "USERS")
       (mastodon-search--insert-users-propertized accts :note)
       ;; hashtag results:
-      (insert (mastodon-tl--set-face
-               (concat "\n " mastodon-tl--horiz-bar "\n"
-                       " HASHTAGS\n"
-                       " " mastodon-tl--horiz-bar "\n\n")
-               'success))
+      (mastodon-search--format-heading "HASHTAGS")
       (mastodon-search--print-tags-list tags-list)
       ;; status results:
-      (insert (mastodon-tl--set-face
-               (concat "\n " mastodon-tl--horiz-bar "\n"
-                       " STATUSES\n"
-                       " " mastodon-tl--horiz-bar "\n")
-               'success))
+      (mastodon-search--format-heading "STATUSES")
       (mapc #'mastodon-tl--toot toots-list-json)
       (goto-char (point-min)))))
 
@@ -194,32 +181,32 @@ user's profile note. This is also called by
   "Propertize display string for ACCT, optionally including profile NOTE."
   (let ((user (mastodon-search--get-user-info acct)))
     (propertize
-     (concat (propertize (car user)
-                         'face 'mastodon-display-name-face
-                         'byline t
-                         'toot-id "0")
-             " : \n : "
-             (propertize (concat "@" (cadr user))
-                         'face 'mastodon-handle-face
-                         'mouse-face 'highlight
-		         'mastodon-tab-stop 'user-handle
-		         'keymap mastodon-tl--link-keymap
-                         'mastodon-handle (concat "@" (cadr user))
-		         'help-echo (concat "Browse user profile of @" (cadr user)))
-             " : \n"
-             (if note
-                 (mastodon-tl--render-text (cadddr user) acct)
-               "")
-             "\n")
-     'toot-json acct))) ; so named for compat w other processing functions
+     (concat
+      (propertize (car user)
+                  'face 'mastodon-display-name-face
+                  'byline t
+                  'toot-id "0")
+      " : \n : "
+      (propertize (concat "@" (cadr user))
+                  'face 'mastodon-handle-face
+                  'mouse-face 'highlight
+		          'mastodon-tab-stop 'user-handle
+		          'keymap mastodon-tl--link-keymap
+                  'mastodon-handle (concat "@" (cadr user))
+		          'help-echo (concat "Browse user profile of @" (cadr user)))
+      " : \n"
+      (if note
+          (mastodon-tl--render-text (cadddr user) acct)
+        "")
+      "\n")
+     'toot-json acct))) ; for compat w other processing functions
 
 (defun mastodon-search--print-tags-list (tags)
   "Insert a propertized list of TAGS."
   (mapc (lambda (el)
           (insert
            " : "
-           (propertize (concat "#"
-                               (car el))
+           (propertize (concat "#" (car el))
                        'face '(:box t)
                        'mouse-face 'highlight
                        'mastodon-tag (car el)

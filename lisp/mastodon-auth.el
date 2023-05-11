@@ -41,7 +41,7 @@
 (autoload 'mastodon-client--make-user-active "mastodon-client")
 (autoload 'mastodon-client--store-access-token "mastodon-client")
 (autoload 'mastodon-http--api "mastodon-http")
-(autoload 'mastodon-http--append-query-string "mastodon-http")
+(autoload 'mastodon-http--concat-params-to-url "mastodon-http")
 (autoload 'mastodon-http--get-json "mastodon-http")
 (autoload 'mastodon-http--post "mastodon-http")
 
@@ -83,7 +83,7 @@ We apologize for the inconvenience.
 
 (defun mastodon-auth--get-browser-login-url ()
   "Return properly formed browser login url."
-  (mastodon-http--append-query-string
+  (mastodon-http--concat-params-to-url
    (concat mastodon-instance-url "/oauth/authorize/")
    `(("response_type" "code")
      ("redirect_uri" ,mastodon-client-redirect-uri)
@@ -108,11 +108,9 @@ code. Copy this code and paste it in the minibuffer prompt."
 NOTICE is displayed in vertical split occupying 50% of total
 width.  The buffer name of the buffer being displayed in the
 window is BUFFER-NAME.
-
 When optional argument ASK is given which should be a string, use
 ASK as the minibuffer prompt.  Return whatever user types in
 response to the prompt.
-
 When ASK is absent return nil."
   (let ((buffer (get-buffer-create buffer-name))
         (inhibit-read-only t)
@@ -170,25 +168,21 @@ When ASK is absent return nil."
 
 (defun mastodon-auth--access-token ()
   "Return the access token to use with `mastodon-instance-url'.
-
 Generate/save token if none known yet."
   (cond (mastodon-auth--token-alist
-         ;; user variables are known and
-         ;; initialised already.
+         ;; user variables are known and initialised.
          (alist-get mastodon-instance-url mastodon-auth--token-alist
                     nil nil 'equal))
         ((plist-get (mastodon-client--active-user) :access_token)
-         ;; user variables needs to initialised by reading from
-         ;; plstore.
+         ;; user variables need to be read from plstore.
          (push (cons mastodon-instance-url
                      (plist-get (mastodon-client--active-user) :access_token))
                mastodon-auth--token-alist)
          (alist-get mastodon-instance-url mastodon-auth--token-alist
                     nil nil 'equal))
         ((null mastodon-active-user)
-         ;; user not aware of 2FA related changes and has not set the
-         ;; `mastodon-active-user' properly. Make user aware and error
-         ;; out.
+         ;; user not aware of 2FA-related changes and has not set
+         ;; `mastodon-active-user'. Make user aware and error out.
          (mastodon-auth--show-notice mastodon-auth--user-unaware
                                      "*mastodon-notice*")
          (error "Variables not set properly"))
@@ -199,9 +193,7 @@ Generate/save token if none known yet."
 
 (defun mastodon-auth--handle-token-response (response)
   "Add token RESPONSE to `mastodon-auth--token-alist'.
-
 The token is returned by `mastodon-auth--get-token'.
-
 Handle any errors from the server."
   (pcase response
     ((and (let token (plist-get response :access_token))
@@ -210,28 +202,23 @@ Handle any errors from the server."
       (mastodon-client--store-access-token token))
      (cdar (push (cons mastodon-instance-url token)
                  mastodon-auth--token-alist)))
-
     (`(:error ,class :error_description ,error)
      (error "Mastodon-auth--access-token: %s: %s" class error))
     (_ (error "Unknown response from mastodon-auth--get-token!"))))
 
 (defun mastodon-auth--get-account-name ()
   "Request user credentials and return an account name."
-  (alist-get
-   'acct
-   (mastodon-http--get-json
-    (mastodon-http--api
-     "accounts/verify_credentials")
-    nil
-    :silent)))
+  (alist-get 'acct
+             (mastodon-http--get-json (mastodon-http--api
+                                       "accounts/verify_credentials")
+                                      nil
+                                      :silent)))
 
 (defun mastodon-auth--get-account-id ()
   "Request user credentials and return an account name."
-  (alist-get
-   'id
-   (mastodon-http--get-json
-    (mastodon-http--api
-     "accounts/verify_credentials"))))
+  (alist-get 'id
+             (mastodon-http--get-json (mastodon-http--api
+                                       "accounts/verify_credentials"))))
 
 (defun mastodon-auth--user-acct ()
   "Return a mastodon user acct name."

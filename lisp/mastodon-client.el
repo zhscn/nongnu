@@ -62,14 +62,13 @@
 
 (defun mastodon-client--register ()
   "POST client to Mastodon."
-  (mastodon-http--post
-   (mastodon-http--api "apps")
-   `(("client_name" . "mastodon.el")
-     ("redirect_uris" . ,mastodon-client-redirect-uri)
-     ("scopes" . ,mastodon-client-scopes)
-     ("website" . ,mastodon-client-website))
-   nil
-   :unauthenticated))
+  (mastodon-http--post (mastodon-http--api "apps")
+                       `(("client_name" . "mastodon.el")
+                         ("redirect_uris" . ,mastodon-client-redirect-uri)
+                         ("scopes" . ,mastodon-client-scopes)
+                         ("website" . ,mastodon-client-website))
+                       nil
+                       :unauthenticated))
 
 (defun mastodon-client--fetch ()
   "Return JSON from `mastodon-client--register' call."
@@ -154,7 +153,6 @@ Return the plist after the operation."
 
 (defun mastodon-client--form-user-from-vars ()
   "Create a username from user variable.  Return that username.
-
 Username in the form user@instance.com is formed from the
 variables `mastodon-instance-url' and `mastodon-active-user'."
   (concat mastodon-active-user
@@ -182,7 +180,6 @@ Otherwise return nil."
 
 (defun mastodon-client--active-user ()
   "Return the details of the currently active user.
-
 Details is a plist."
   (let ((active-user-details mastodon-client--active-user-details-plist))
     (unless active-user-details
@@ -195,7 +192,6 @@ Details is a plist."
 
 (defun mastodon-client ()
   "Return variable client secrets to use for `mastodon-instance-url'.
-
 Read plist from `mastodon-client--token-file' if variable is nil.
 Fetch and store plist if `mastodon-client--read' returns nil."
   (let ((client-details
