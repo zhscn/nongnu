@@ -1,4 +1,4 @@
-;;; mastodon.el --- Client for fediverse services using Mastodon API  -*- lexical-binding: t -*-
+;;; mastodon.el --- Client for fediverse services using the Mastodon API  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2019 Johnson Denen
 ;; Copyright (C) 2020-2022 Marty Hiatt
