@@ -1,5 +1,6 @@
 (load-file "lisp/mastodon-http.el")
 (load-file "lisp/mastodon-iso.el")
+(load-file "lisp/mastodon-tl.el")
 (load-file "lisp/mastodon-toot.el")
 (load-file "lisp/mastodon-search.el")
 (load-file "lisp/mastodon.el")
@@ -11,7 +12,6 @@
 (load-file "lisp/mastodon-media.el")
 (load-file "lisp/mastodon-notifications.el")
 (load-file "lisp/mastodon-profile.el")
-(load-file "lisp/mastodon-tl.el")
 (load-file "lisp/mastodon-async.el")
 
 ;; load tests in bulk to avoid using deprecated `cask exec'

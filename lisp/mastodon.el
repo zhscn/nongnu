@@ -1,4 +1,4 @@
-;;; mastodon.el --- Client for fediverse services that implement the Mastodon API  -*- lexical-binding: t -*-
+;;; mastodon.el --- Client for fediverse services using the Mastodon API  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2019 Johnson Denen
 ;; Copyright (C) 2020-2022 Marty Hiatt
@@ -29,8 +29,11 @@
 
 ;;; Commentary:
 
-;; mastodon.el is a client for fediverse services that implement the Mastodon API. See <https://github.com/mastodon/mastodon>.
-;; See the readme file at https://codeberg.org/martianh/mastodon.el for set up and usage details.
+;; mastodon.el is a client for fediverse services that implement the Mastodon
+;; API. See <https://github.com/mastodon/mastodon>.
+
+;; See the readme file at https://codeberg.org/martianh/mastodon.el for set up
+;; and usage details.
 
 ;;; Code:
 (require 'cl-lib) ; for `cl-some' call in mastodon
@@ -240,6 +243,18 @@ Use. e.g. \"%c\" for your locale's date and time format."
 (defface mastodon-cw-face
   '((t :inherit success))
   "Face used for content warning.")
+
+(defface mastodon-toot-docs-face
+  `((t :inherit font-lock-comment-face))
+  "Face used for documentation in toot compose buffer.
+If `mastodon-tl--enable-proportional-fonts' is changed,
+mastodon.el needs to be re-loaded for this to be correctly set.")
+
+(defface mastodon-toot-docs-reply-text-face
+  `((t :inherit font-lock-comment-face
+       :family ,(face-attribute 'variable-pitch :family)))
+  "Face used for reply text in toot compose buffer.
+See `mastodon-toot-display-orig-in-reply-buffer'.")
 
 ;;;###autoload
 (defun mastodon ()

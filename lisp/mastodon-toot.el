@@ -41,6 +41,11 @@
 (require 'cl-lib)
 (require 'persist)
 (require 'mastodon-iso)
+(require 'facemenu)
+(require 'text-property-search)
+
+(eval-when-compile
+  (require 'mastodon-tl))
 
 (defvar mastodon-instance-url)
 (defvar mastodon-tl--buffer-spec)
@@ -130,7 +135,8 @@ You need to install company yourself to use this."
   "Display a copy of the toot replied to in the compose buffer."
   :type 'boolean)
 
-(defcustom mastodon-toot-orig-in-reply-length 160
+(defcustom mastodon-toot-orig-in-reply-length 191
+  ;; three lines of divider width: (- (* 3 67) (length " Reply to: "))
   "Length to crop toot replied to in the compose buffer to."
   :type 'integer)
 
@@ -146,6 +152,12 @@ If the original toot visibility is different we use the more restricted one."
 (defcustom mastodon-toot--enable-custom-instance-emoji nil
   "Whether to enable your instance's custom emoji by default."
   :type 'boolean)
+
+(defcustom mastodon-toot--proportional-fonts-compose nil
+  "Nonnil to enable using proportional fonts in the compose buffer.
+By default fixed width fonts are used."
+  :type '(boolean :tag "Enable using proportional rather than fixed \
+width fonts"))
 
 (defvar-local mastodon-toot--content-warning nil
   "A flag whether the toot should be marked with a content warning.")
@@ -214,19 +226,15 @@ to also capture toots that are 'sent' but that don't successfully
 send.")
 
 (defvar mastodon-toot-handle-regex
-  (concat
-   ;; preceding bracket, space or bol [boundary doesn't work with @]
-   "\\([(\n\t ]\\|^\\)"
-   "\\(?2:@[0-9a-zA-Z._-]+" ; a handle
-   "\\(@[^ \n\t]*\\)?\\)" ; with poss domain, * = allow only @
-   "\\(\\b\\|'\\)")) ; boundary or ' char
+  (rx (| (any ?\( "\n" "\t "" ") bol) ; preceding things
+      (group-n 2 (+ ?@ (* (any ?- ?_ ?. "A-Z" "a-z" "0-9" ))) ; handle
+               (? ?@ (* (not (any "\n" "\t" " "))))) ; optional domain
+      (| "'" word-boundary))) ; boundary or possessive
 
 (defvar mastodon-toot-tag-regex
-  (concat
-   ;; preceding bracket, space or bol [boundary doesn't work with #]
-   "\\([(\n\t ]\\|^\\)"
-   "\\(?2:#[0-9a-zA-Z_]+\\)" ; tag
-   "\\(\\b\\|'\\)")) ; boundary or ' char
+  (rx (| (any ?\( "\n" "\t" " ") bol)
+      (group-n 2 ?# (+ (any "A-Z" "a-z" "0-9")))
+      (| "'" word-boundary))) ; boundary or possessive
 
 (defvar mastodon-toot-url-regex
   ;; adapted from ffap-url-regexp
@@ -329,7 +337,6 @@ boosting, or bookmarking toots."
 (defun mastodon-toot--toggle-boost-or-favourite (type)
   "Toggle boost or favourite of toot at `point'.
 TYPE is a symbol, either `favourite' or `boost.'"
-  (interactive)
   (mastodon-tl--do-if-toot-strict
    (let* ((boost-p (equal type 'boost))
           (has-id (mastodon-tl--property 'base-toot-id))
@@ -351,37 +358,41 @@ TYPE is a symbol, either `favourite' or `boost.'"
           (visibility (mastodon-tl--field 'visibility
                                           (mastodon-tl--property 'toot-json))))
      (if byline-region
-         (cond ;; actually there's nothing wrong with faving/boosting own toots!
-          ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
-          ;;(error "You can't %s your own toots" action-string))
-          ;; & nothing wrong with faving/boosting own toots from notifs:
-          ;; this boosts/faves the base toot, not the notif status
-          ((and (equal "reblog" toot-type)
-                (not (mastodon-tl--buffer-type-eq 'notifications)))
-           (error "You can't %s boosts" action-string))
-          ((and (equal "favourite" toot-type)
-                (not (mastodon-tl--buffer-type-eq 'notifications)))
-           (error "You can't %s favourites" action-string))
-          ((and (equal "private" visibility)
-                (equal type 'boost))
-           (error "You can't boost private toots"))
-          (t
-           (mastodon-toot--action
-            action
-            (lambda ()
-              (let ((inhibit-read-only t))
-                (add-text-properties (car byline-region)
-                                     (cdr byline-region)
-                                     (if boost-p
-                                         (list 'boosted-p (not boosted))
-                                       (list 'favourited-p (not faved))))
-                (mastodon-toot--update-stats-on-action type remove)
-                (mastodon-toot--action-success
-                 (if boost-p
-                     (mastodon-tl--symbol 'boost)
-                   (mastodon-tl--symbol 'favourite))
-                 byline-region remove))
-              (message (format "%s #%s" (if boost-p msg action) id))))))
+         (if (and (or (equal visibility "direct")
+                      (equal visibility "unlisted"))
+                  boost-p)
+             (message "You cant boost posts with visibility: %s" visibility)
+           (cond ;; actually there's nothing wrong with faving/boosting own toots!
+            ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'toot-json))
+            ;;(error "You can't %s your own toots" action-string))
+            ;; & nothing wrong with faving/boosting own toots from notifs:
+            ;; this boosts/faves the base toot, not the notif status
+            ((and (equal "reblog" toot-type)
+                  (not (mastodon-tl--buffer-type-eq 'notifications)))
+             (error "You can't %s boosts" action-string))
+            ((and (equal "favourite" toot-type)
+                  (not (mastodon-tl--buffer-type-eq 'notifications)))
+             (error "You can't %s favourites" action-string))
+            ((and (equal "private" visibility)
+                  (equal type 'boost))
+             (error "You can't boost private toots"))
+            (t
+             (mastodon-toot--action
+              action
+              (lambda ()
+                (let ((inhibit-read-only t))
+                  (add-text-properties (car byline-region)
+                                       (cdr byline-region)
+                                       (if boost-p
+                                           (list 'boosted-p (not boosted))
+                                         (list 'favourited-p (not faved))))
+                  (mastodon-toot--update-stats-on-action type remove)
+                  (mastodon-toot--action-success
+                   (if boost-p
+                       (mastodon-tl--symbol 'boost)
+                     (mastodon-tl--symbol 'favourite))
+                   byline-region remove))
+                (message (format "%s #%s" (if boost-p msg action) id)))))))
        (message (format "Nothing to %s here?!?" action-string))))))
 
 (defun mastodon-toot--inc-or-dec (count subtract)
@@ -496,7 +507,7 @@ With FAVOURITE, list favouriters, else list boosters."
 
 (defun mastodon-toot--copy-toot-url ()
   "Copy URL of toot at point.
-If the toot is a fave/boost notification, copy the URLof the
+If the toot is a fave/boost notification, copy the URL of the
 base toot."
   (interactive)
   (let* ((toot (or (mastodon-tl--property 'base-toot)
@@ -892,31 +903,28 @@ instance to edit a toot."
   "View editing history of the toot at point in a popup buffer."
   (interactive)
   (let ((id (mastodon-tl--property 'base-toot-id))
-        (history (mastodon-tl--property 'edit-history)))
-    (with-current-buffer (get-buffer-create "*mastodon-toot-edits*")
-      (let ((inhibit-read-only t))
-        (special-mode)
-        (erase-buffer)
-        (let ((count 1))
-          (mapc (lambda (x)
-                  (insert (propertize (if (= count 1)
-                                          (format "%s [original]:\n" count)
-                                        (format "%s:\n" count))
-                                      'face font-lock-comment-face)
-                          (mastodon-toot--insert-toot-iter x)
-                          "\n")
-                  (cl-incf count))
-                history))
-        (switch-to-buffer-other-window (current-buffer))
-        (setq-local header-line-format
-                    (propertize
-                     (format "Edits to toot by %s:"
-                             (alist-get 'username
-                                        (alist-get 'account (car history))))
-                     'face font-lock-comment-face))
-        (mastodon-tl--set-buffer-spec (buffer-name (current-buffer))
-                                      (format "statuses/%s/history" id)
-                                      nil)))))
+        (history (mastodon-tl--property 'edit-history))
+        (buf "*mastodon-toot-edits*"))
+    (with-mastodon-buffer buf #'special-mode :other-window
+      (let ((count 1))
+        (mapc (lambda (x)
+                (insert (propertize (if (= count 1)
+                                        (format "%s [original]:\n" count)
+                                      (format "%s:\n" count))
+                                    'face font-lock-comment-face)
+                        (mastodon-toot--insert-toot-iter x)
+                        "\n")
+                (cl-incf count))
+              history))
+      (setq-local header-line-format
+                  (propertize
+                   (format "Edits to toot by %s:"
+                           (alist-get 'username
+                                      (alist-get 'account (car history))))
+                   'face font-lock-comment-face))
+      (mastodon-tl--set-buffer-spec (buffer-name (current-buffer))
+                                    (format "statuses/%s/history" id)
+                                    nil))))
 
 (defun mastodon-toot--insert-toot-iter (it)
   "Insert iteration IT of toot."
@@ -1131,12 +1139,12 @@ text of the toot being replied to in the compose buffer."
   (mastodon-toot--refresh-attachments-display)
   (mastodon-toot--update-status-fields))
 
-(defun mastodon-toot--attach-media (file content-type description)
-  "Prompt for an attachment FILE of CONTENT-TYPE with DESCRIPTION.
+(defun mastodon-toot--attach-media (file description)
+  "Prompt for an attachment FILE with DESCRIPTION.
 A preview is displayed in the new toot buffer, and the file
 is uploaded asynchronously using `mastodon-toot--upload-attached-media'.
 File is actually attached to the toot upon posting."
-  (interactive "fFilename: \nsContent type: \nsDescription: ")
+  (interactive "fFilename: \nsDescription: ")
   (when (>= (length mastodon-toot--media-attachments) 4)
     ;; Only a max. of 4 attachments are allowed, so pop the oldest one.
     (pop mastodon-toot--media-attachments))
@@ -1145,7 +1153,6 @@ File is actually attached to the toot upon posting."
     (setq mastodon-toot--media-attachments
           (nconc mastodon-toot--media-attachments
                  `(((:contents . ,(mastodon-http--read-file-as-string file))
-                    (:content-type . ,content-type)
                     (:description . ,description)
                     (:filename . ,file)))))
     (mastodon-toot--refresh-attachments-display)
@@ -1187,12 +1194,11 @@ which is used to attach it to a toot when posting."
                                            (when image-options 'imagemagick)
                                          nil) ; inbuilt scaling in 27.1
                                        t image-options))
-                         (type (alist-get :content-type attachment))
                          (description (alist-get :description attachment)))
                     (setq counter (1+ counter))
                     (list (format "\n    %d: " counter)
                           image
-                          (format " \"%s\" (%s)" description type))))
+                          (format " \"%s\"" description))))
                 mastodon-toot--media-attachments))
       (list "None")))
 
@@ -1418,15 +1424,20 @@ LONGEST is the length of the longest binding."
 (defun mastodon-toot--format-reply-in-compose-string (reply-text)
   "Format a REPLY-TEXT for display in compose buffer docs."
   (let* ((rendered (mastodon-tl--render-text reply-text))
-         (no-newlines (replace-regexp-in-string "\n\n" "\n" rendered)))
-    (concat " Reply to:\n\""
-            ;; (propertize
-            (truncate-string-to-width
-             no-newlines
-             mastodon-toot-orig-in-reply-length)
-            ;; overridden by containing propertize call:
-            ;; 'face 'mastodon-toot-docs-reply-text-face)
-            "...\"\n")))
+         (no-props (substring-no-properties rendered))
+         ;; FIXME: this regex replaces \n at end of every post
+         ;; so we have to trim:
+         (no-newlines (string-trim
+                       (replace-regexp-in-string "[\n]+" " " no-props)))
+         (reply-to (concat " Reply to: \"" no-newlines "\""))
+         (crop (truncate-string-to-width
+                ;; (string-limit
+                reply-to
+                mastodon-toot-orig-in-reply-length)))
+    (if (> (length no-newlines)
+           (length crop)) ; we cropped:
+        (concat crop "\n")
+      (concat reply-to "\n"))))
 
 (defun mastodon-toot--display-docs-and-status-fields (&optional reply-text)
   "Insert propertized text with documentation about `mastodon-toot-mode'.
@@ -1464,12 +1475,14 @@ REPLY-TEXT is the text of the toot being replied to."
                    'toot-attachments t)
        "\n"
        (if reply-text
-           (mastodon-toot--format-reply-in-compose-string reply-text)
+           (propertize
+            (mastodon-toot--format-reply-in-compose-string reply-text)
+            'toot-reply t)
          "")
        divider
        "\n")
       'rear-nonsticky t
-      'face font-lock-comment-face
+      'face 'mastodon-toot-docs-face
       'read-only "Edit your message below."
       'toot-post-header t))))
 
@@ -1557,7 +1570,8 @@ REPLY-JSON is the full JSON of the toot being replied to."
 (defun mastodon-toot--count-toot-chars (toot-string &optional cw)
   "Count the characters in TOOT-STRING.
 URLs always = 23, and domain names of handles are not counted.
-This is how mastodon does it."
+This is how mastodon does it.
+CW is the content warning, which contributes to the character count."
   (with-temp-buffer
     (switch-to-buffer (current-buffer))
     (insert toot-string)
@@ -1631,11 +1645,12 @@ Added to `after-change-functions'."
   (when (mastodon-toot--compose-buffer-p)
     (let ((header-region
            (mastodon-tl--find-property-range 'toot-post-header
-                                             (point-min))))
+                                             (point-min)))
+          (face (when mastodon-toot--proportional-fonts-compose
+                  'variable-pitch)))
       ;; cull any prev props:
       ;; stops all text after a handle or mention being propertized:
-      (set-text-properties (cdr header-region) (point-max) nil)
-      ;; TODO: confirm allowed hashtag/handle characters:
+      (set-text-properties (cdr header-region) (point-max) `(face ,face))
       (mastodon-toot--propertize-item mastodon-toot-tag-regex
                                       'success
                                       (cdr header-region))
@@ -1660,11 +1675,22 @@ Added to `after-change-functions'."
   (or (mastodon-tl--buffer-type-eq 'edit-toot)
       (mastodon-tl--buffer-type-eq 'new-toot)))
 
+(defun mastodon-toot--fill-reply-in-compose ()
+  "Fill reply text in compose buffer to the width of the divider."
+  (save-excursion
+    (save-match-data
+      (let* ((fill-column 67))
+        (goto-char (point-min))
+        ;; while-let shoulndn't be needed here, as we really should only have
+        ;; one. if we have more, the bug is elsewhere.
+        (when-let ((prop (text-property-search-forward 'toot-reply)))
+          (fill-region (prop-match-beginning prop)
+                       (point)))))))
+
 ;; NB: now that we have toot drafts, to ensure offline composing remains
 ;; possible, avoid any direct requests here:
-(defun mastodon-toot--compose-buffer (&optional reply-to-user
-                                                reply-to-id reply-json initial-text
-                                                edit)
+(defun mastodon-toot--compose-buffer
+    (&optional reply-to-user reply-to-id reply-json initial-text edit)
   "Create a new buffer to capture text for a new toot.
 If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set the `mastodon-toot--reply-to-id' var.
@@ -1690,9 +1716,11 @@ EDIT means we are editing an existing toot, not composing a new one."
               (mastodon-profile--get-source-pref 'privacy)
               "public")) ; fallback
     (unless buffer-exists
-      (mastodon-toot--display-docs-and-status-fields
-       (when mastodon-toot-display-orig-in-reply-buffer
-         reply-text))
+      (if mastodon-toot-display-orig-in-reply-buffer
+          (progn
+            (mastodon-toot--display-docs-and-status-fields reply-text)
+            (mastodon-toot--fill-reply-in-compose))
+        (mastodon-toot--display-docs-and-status-fields))
       ;; `reply-to-user' (alone) is also used by `mastodon-tl--dm-user', so
       ;; perhaps we should not always call --setup-as-reply, or make its
       ;; workings conditional on reply-to-id. currently it only checks for
@@ -1706,12 +1734,10 @@ EDIT means we are editing an existing toot, not composing a new one."
     (when mastodon-toot--enable-completion
       (set ; (setq-local
        (make-local-variable 'completion-at-point-functions)
-       (add-to-list
-        'completion-at-point-functions
-        #'mastodon-toot--mentions-capf))
-      (add-to-list
-       'completion-at-point-functions
-       #'mastodon-toot--tags-capf)
+       (add-to-list 'completion-at-point-functions
+                    #'mastodon-toot--mentions-capf))
+      (add-to-list 'completion-at-point-functions
+                   #'mastodon-toot--tags-capf)
       ;; company
       (when (and mastodon-toot--use-company-for-completion
                  (require 'company nil :no-error))
@@ -1721,20 +1747,42 @@ EDIT means we are editing an existing toot, not composing a new one."
         (company-mode-on)))
     ;; after-change:
     (make-local-variable 'after-change-functions)
-    (push #'mastodon-toot--update-status-fields after-change-functions)
-    (mastodon-toot--refresh-attachments-display)
+    (cl-pushnew #'mastodon-toot--update-status-fields after-change-functions)
+    (cl-pushnew #'mastodon-toot--save-toot-text after-change-functions)
+    (cl-pushnew #'mastodon-toot--propertize-tags-and-handles after-change-functions)
     (mastodon-toot--update-status-fields)
+    (mastodon-toot--propertize-tags-and-handles)
+    (mastodon-toot--refresh-attachments-display)
     ;; draft toot text saving:
     (setq mastodon-toot-current-toot-text nil)
-    (push #'mastodon-toot--save-toot-text after-change-functions)
-    (push #'mastodon-toot--propertize-tags-and-handles after-change-functions)
     ;; if we set this before changing modes, it gets nuked:
     (setq mastodon-toot-previous-window-config previous-window-config)
+    (when mastodon-toot--proportional-fonts-compose
+      (facemenu-set-face 'variable-pitch))
     (when initial-text
       (insert initial-text))))
 
+;; flyspell ignore masto toot regexes:
+(defvar flyspell-generic-check-word-predicate)
+(defun mastodon-toot-mode-flyspell-verify ()
+  "A predicate function for `flyspell'.
+Only text that is not one of these faces will be spell-checked."
+  (let ((faces '(mastodon-display-name-face
+                 mastodon-toot-docs-face font-lock-comment-face
+                 success link)))
+    (unless (eql (point) (point-min))
+      ;; (point) is next char after the word. Must check one char before.
+      (let ((f (get-text-property (1- (point)) 'face)))
+        (not (memq f faces))))))
+
+(add-hook 'mastodon-toot-mode-hook
+    	  (lambda ()
+            (setq flyspell-generic-check-word-predicate
+                  'mastodon-toot-mode-flyspell-verify)))
+
 ;;;###autoload
-(add-hook 'mastodon-toot-mode-hook #'mastodon-profile--fetch-server-account-settings-maybe)
+(add-hook 'mastodon-toot-mode-hook
+          #'mastodon-profile--fetch-server-account-settings-maybe)
 
 ;; disable auto-fill-mode:
 (add-hook 'mastodon-toot-mode-hook
