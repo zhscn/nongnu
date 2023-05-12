@@ -26,12 +26,22 @@
   :type 'booleanp
   :group 'haskell-tng)
 
+;; c.f. compilation-error-regexp-alist
+;; Each elt has the form (REGEXP FILE [LINE COLUMN TYPE HYPERLINK HIGHLIGHT...])
 (defvar haskell-tng-compilation-error-regexp-alist
   (let ((file '(: (group (+ (not (any "{" "}" "(" ")" "[" "]" "\n"))) ".hs")))
         (num '(: (group (+ digit))))
         (err '(: ": " (group "error") ":"))
         (war '(: ": " (group "warning") ":")))
-    `(;; ghc errors / warnings (including -ferror-spans)
+    `(;; ghc details
+      (,(rx-to-string
+         `(: bol (+ not-newline) " is defined at " ,file ":" ,num ":" ,num (? "-" ,num)))
+       1 2 (3 . 4) 0 1)
+      (,(rx-to-string
+         `(: bol (+ not-newline) " is defined at " ,file ":(" ,num "," ,num ")-(" ,num "," ,num ")"))
+       1 (2 . 4) (3 . 5) 0 1)
+
+      ;; ghc errors / warnings (including -ferror-spans)
       (,(rx-to-string `(: bol ,file ":" ,num ":" ,num (? "-" ,num) ,err))
        1 2 (3 . 4) 2 1 (5 'compilation-error))
       (,(rx-to-string `(: bol ,file ":" ,num ":" ,num (? "-" ,num) ,war))
@@ -41,7 +51,7 @@
       (,(rx-to-string `(: bol ,file ":(" ,num "," ,num ")-(" ,num "," ,num ")" ,war))
        1 (2 . 4) (3 . 5) 1 1 (6 'compilation-warning))
 
-      ;; tasty / hspec and miscellaneous ghc extra info
+      ;; tasty / hspec
       (,(rx-to-string
          `(: bol (? (+ space) "error, called at") (+ space) (? "(") ,file ":" ,num ":" ,num (? "-" ,num ":")))
        1 2 (3 . 4) 2 1)

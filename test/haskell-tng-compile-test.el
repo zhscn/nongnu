@@ -53,6 +53,9 @@
   (should (have-expected-errors (testdata "compile/ghc-8.4.4-warning.compile")))
   (should (have-expected-errors (testdata "compile/ghc-8.4.4-warningspan.compile"))))
 
+(ert-deftest haskell-tng-compile-details-file-tests ()
+  (should (have-expected-errors (testdata "compile/ghc-9.2.7-details.compile"))))
+
 (ert-deftest haskell-tng-compile-hspec-file-tests ()
   (should (have-expected-errors (testdata "compile/hspec-failure.compile"))))
 

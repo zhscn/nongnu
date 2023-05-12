@@ -1,0 +1,17 @@
+library/HsInspect/Index.hs:186:22: error:
+    • Couldn't match type ‘GHC.PackageId’ with ‘PackageId’
+      Expected: Maybe PackageId
+        Actual: Maybe GHC.PackageId
+      NB: ‘PackageId’ is defined at library/HsInspect/Index.hs:310:1-53
+          ‘GHC.PackageId’
+            is defined in ‘GHC.Unit.Info’ in package ‘ghc-9.2.7’
+    • In the first argument of ‘Exported’, namely ‘pid’
+      In the expression: Exported pid (mkModuleName m)
+      In the expression:
+        let
+          unitid' = GHC.toUnitId . GHC.moduleUnit $ m
+          pid = if unitid == unitid' then Nothing else findPid unitid'
+        in Exported pid (mkModuleName m)
+    |
+186 |          in Exported pid (mkModuleName m)
+    |                      ^^^
