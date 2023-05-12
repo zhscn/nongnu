@@ -45,7 +45,9 @@ When in a comment and called with a prefix, the comment will be completed."
       (delete-region (point) (line-end-position)))
     ;; TODO don't continue line comments if there is code before them
     ;;
-    ;; TODO in-comment indent should observer but not repeat | haddock markers
+    ;; TODO in-comment indent should observe but not repeat | haddock markers
+    ;;
+    ;; TODO newline-and-indent is adding a lot of newlines
     (cond
      (alt
       (call-interactively #'newline-and-indent))

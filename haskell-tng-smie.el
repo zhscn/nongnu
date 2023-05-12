@@ -32,6 +32,7 @@
 (require 'haskell-tng-lexer)
 
 ;; TODO autodetection of indent options
+;; TODO CPP support... newline before # shouldn't indent
 
 (defcustom haskell-tng-aligntypes nil
   "Whether to align arrows to their parent :: declaration.
