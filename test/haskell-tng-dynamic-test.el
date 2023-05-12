@@ -11,8 +11,7 @@
 ;;
 ;;; Code:
 
-(require 'haskell-tng-testutils
-         "test/haskell-tng-testutils.el")
+(require 'haskell-tng-testutils)
 
 (require 'haskell-tng-mode)
 

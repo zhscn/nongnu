@@ -3,8 +3,7 @@
 ;; Copyright (C) 2018-2019 Tseen She
 ;; License: GPL 3 or any later version
 
-(require 'haskell-tng-testutils
-         "test/haskell-tng-testutils.el")
+(require 'haskell-tng-testutils)
 
 (require 'haskell-tng-mode)
 
