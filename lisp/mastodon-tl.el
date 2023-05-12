@@ -2016,15 +2016,27 @@ ARGS is an alist of any parameters to send with the request."
 
 ;; FOLLOW TAGS
 
+(defun mastodon-tl--get-tags-list ()
+  "Return the list of tags of the toot at point."
+  (let* ((toot (or (mastodon-tl--property 'base-toot :no-move) ; fave/boost notifs
+                   (mastodon-tl--property 'toot-json :no-move)))
+         (tags (mastodon-tl--field 'tags toot)))
+    (mapcar (lambda (x)
+              (alist-get 'name x))
+            tags)))
+
 (defun mastodon-tl--follow-tag (&optional tag)
   "Prompt for a tag and follow it.
 If TAG provided, follow it."
   (interactive)
-  (let* ((tag-at-point
-          (when (eq 'hashtag (get-text-property (point) 'mastodon-tab-stop))
-            (get-text-property (point) 'mastodon-tag)))
-         (tag (or tag (read-string (format "Tag to follow [%s]: " tag-at-point)
-                                   nil nil tag-at-point)))
+  (let* ((tags (unless tag (mastodon-tl--get-tags-list)))
+         (tag-at-point
+          (unless tag
+            (when (eq 'hashtag (get-text-property (point) 'mastodon-tab-stop))
+              (get-text-property (point) 'mastodon-tag))))
+         (tag (or tag (completing-read
+                       (format "Tag to follow [%s]: " tag-at-point)
+                       tags nil nil nil nil tag-at-point)))
          (url (mastodon-http--api (format "tags/%s/follow" tag)))
          (response (mastodon-http--post url)))
     (mastodon-http--triage response
