@@ -2020,7 +2020,11 @@ ARGS is an alist of any parameters to send with the request."
   "Prompt for a tag and follow it.
 If TAG provided, follow it."
   (interactive)
-  (let* ((tag (or tag (read-string "Tag to follow: ")))
+  (let* ((tag-at-point
+          (when (eq 'hashtag (get-text-property (point) 'mastodon-tab-stop))
+            (get-text-property (point) 'mastodon-tag)))
+         (tag (or tag (read-string (format "Tag to follow [%s]: " tag-at-point)
+                                   nil nil tag-at-point)))
          (url (mastodon-http--api (format "tags/%s/follow" tag)))
          (response (mastodon-http--post url)))
     (mastodon-http--triage response
