@@ -556,21 +556,16 @@ NO-CONFIRM means there is no ask or message, there is only do."
     (if (null id)
         (message "no scheduled toot at point?")
       (let* ((toot (mastodon-tl--property 'scheduled-json :no-move))
-             (scheduled (alist-get 'scheduled_at toot))
-             (params (alist-get 'params toot))
-             (text (alist-get 'text params))
-             (visibility (alist-get 'visibility params))
-             (cw (alist-get 'spoiler_text params))
-             (lang (alist-get 'language params))
-             ;; (poll (alist-get 'poll params))
-             (reply-id (alist-get 'in_reply_to_id params)))
-        ;; (media (alist-get 'media_attachments toot)))
-        (mastodon-toot--compose-buffer)
-        (goto-char (point-max))
-        (insert text)
-        ;; adopt properties from scheduled toot:
-        (mastodon-toot--set-toot-properties reply-id visibility cw
-                                            lang scheduled id)))))
+             (scheduled (alist-get 'scheduled_at toot)))
+        (let-alist (alist-get 'params toot)
+          ;; (poll (alist-get 'poll params))
+          ;; (media (alist-get 'media_attachments toot)))
+          (mastodon-toot--compose-buffer)
+          (goto-char (point-max))
+          (insert .text)
+          ;; adopt properties from scheduled toot:
+          (mastodon-toot--set-toot-properties
+           .in_reply_to_id .visibility .spoiler_text .language scheduled id))))))
 
 
 ;;; FILTERS
