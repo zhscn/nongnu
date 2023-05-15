@@ -810,16 +810,14 @@ IND is the optional indentation level to print at."
     (while response
       (let ((el (pop response)))
         (cond
-         ;; vector of alists (fields, instance rules):
-         ((and (vectorp (cdr el))
+         ((and (vectorp (cdr el)) ; vector of alists (fields, instance rules):
                (not (seq-empty-p (cdr el)))
                (consp (seq-elt (cdr el) 0)))
           (insert (mastodon-views--format-key el pad)
                   "\n\n")
           (seq-do #'mastodon-views--print-instance-rules-or-fields (cdr el))
           (insert "\n"))
-         ;; vector of strings (media types):
-         ((and (vectorp (cdr el))
+         ((and (vectorp (cdr el)) ; vector of strings (media types):
                (not (seq-empty-p (cdr el)))
                (< 1 (seq-length (cdr el)))
                (stringp (seq-elt (cdr el) 0)))
@@ -830,15 +828,13 @@ IND is the optional indentation level to print at."
                    (lambda (x) (concat x ", "))
                    (cdr el) 'string)
                   "\n\n"))
-         ;; basic nesting:
-         ((consp (cdr el))
+         ((consp (cdr el)) ; basic nesting:
           (when ind (indent-to ind))
           (insert (mastodon-views--format-key el pad)
                   "\n\n")
           (mastodon-views--print-json-keys
            (cdr el) (if ind (+ ind 4) 4)))
-         (t
-          ;; basic handling of raw booleans:
+         (t ; basic handling of raw booleans:
           (let ((val (cond ((equal (cdr el) ':json-false)
                             "no")
                            ((equal (cdr el) 't)
