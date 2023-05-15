@@ -225,6 +225,9 @@ For the moment we just put all composed toots in here, as we want
 to also capture toots that are 'sent' but that don't successfully
 send.")
 
+
+;;; REGEXES
+
 (defvar mastodon-toot-handle-regex
   (rx (| (any ?\( "\n" "\t "" ") bol) ; preceding things
       (group-n 2 (+ ?@ (* (any ?- ?_ ?. "A-Z" "a-z" "0-9" ))) ; handle
@@ -240,8 +243,11 @@ send.")
   ;; adapted from ffap-url-regexp
   (concat
    "\\(?2:\\(news\\(post\\)?:\\|mailto:\\|file:\\|\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://\\)" ; uri prefix
-   "[^ \n\t]*\\)" ; any old thing that's, i.e. we allow invalid/unwise chars
+   "[^ \n\t]*\\)" ; any old thing, that is, i.e. we allow invalid/unwise chars
    "\\b")) ; boundary
+
+
+;;; MODE MAP
 
 (defvar mastodon-toot-mode-map
   (let ((map (make-sparse-keymap)))
@@ -555,6 +561,9 @@ Uses `lingva.el'."
                                    (mastodon-tl--reload-timeline-or-profile))
                                  (message "Toot %s!" msg)))))))
 
+
+;;; DELETE, DRAFT, REDRAFT
+
 (defun mastodon-toot--delete-toot ()
   "Delete user's toot at point synchronously."
   (interactive)
@@ -598,6 +607,9 @@ NO-REDRAFT means delete toot only."
               (string-empty-p cw))
     (setq mastodon-toot--content-warning t)
     (setq mastodon-toot--content-warning-from-reply-or-redraft cw)))
+
+
+;;; REDRAFT
 
 (defun mastodon-toot--redraft (response &optional reply-id toot-visibility toot-cw)
   "Opens a new toot compose buffer using values from RESPONSE buffer.
@@ -671,10 +683,12 @@ TEXT-ONLY means don't check for attachments or polls."
        (string-empty-p (mastodon-tl--clean-tabs-and-nl
                         (mastodon-toot--remove-docs)))))
 
+
+;;; EMOJIS
+
 (defalias 'mastodon-toot--insert-emoji
   'emojify-insert-emoji
   "Prompt to insert an emoji.")
-
 
 (defun mastodon-toot--emoji-dir ()
   "Return the file path for the mastodon custom emojis directory."
@@ -770,6 +784,9 @@ to `emojify-user-emojis', and the emoji data is updated."
     (read-string "Warning: "
                  mastodon-toot--content-warning-from-reply-or-redraft)))
 
+
+;;; SEND TOOT FUNCTION
+
 (defun mastodon-toot--send ()
   "POST contents of new-toot buffer to Mastodon instance and kill buffer.
 If media items have been attached and uploaded with
@@ -840,7 +857,8 @@ instance to edit a toot."
                   (let ((pos (marker-position (cadr prev-window-config))))
                     (mastodon-tl--reload-timeline-or-profile pos))))))))))
 
-;; EDITING TOOTS:
+
+;;; EDITING TOOTS:
 
 (defun mastodon-toot--edit-toot-at-point ()
   "Edit the user's toot at point."
@@ -934,6 +952,9 @@ eg. \"feduser@fed.social\" -> \"@feduser@fed.social\"."
         (t (concat "@" acct "@" ; local acct
                    (cadr (split-string mastodon-instance-url "/" t))))))
 
+
+;;; COMPLETION (TAGS, MENTIONS)
+
 (defun mastodon-toot--mentions (status)
   "Extract mentions (not the reply-to author or booster) from STATUS.
 The mentioned users look like this:
@@ -941,8 +962,8 @@ Local user (including the logged in): `username`.
 Federated user: `username@host.co`."
   (let* ((boosted (mastodon-tl--field 'reblog status))
          (mentions (if boosted
-	                   (alist-get 'mentions (alist-get 'reblog status))
-	                 (alist-get 'mentions status))))
+	               (alist-get 'mentions (alist-get 'reblog status))
+	             (alist-get 'mentions status))))
     ;; reverse does not work on vectors in 24.5
     (mastodon-tl--map-alist 'acct (reverse mentions))))
 
@@ -1026,6 +1047,9 @@ If TAGS, we search for tags, else we search for handles."
   ;; or make it an alist and use cdr
   (cadr (assoc candidate mastodon-toot-completions)))
 
+
+;;; REPLY
+
 (defun mastodon-toot--reply ()
   "Reply to toot at `point'.
 Customize `mastodon-toot-display-orig-in-reply-buffer' to display
@@ -1049,21 +1073,24 @@ text of the toot being replied to in the compose buffer."
             (if (and (not (equal user booster))
                      (not (member booster mentions)))
                 ;; different booster, user and mentions:
-		        (mastodon-toot--mentions-to-string (append (list user booster) mentions nil))
+		(mastodon-toot--mentions-to-string (append (list user booster) mentions nil))
               ;; booster is either user or in mentions:
               (if (not (member user mentions))
                   ;; user not already in mentions:
-		          (mastodon-toot--mentions-to-string (append (list user) mentions nil))
+		  (mastodon-toot--mentions-to-string (append (list user) mentions nil))
                 ;; user already in mentions:
                 (mastodon-toot--mentions-to-string (copy-sequence mentions))))
           ;; ELSE no booster:
           (if (not (member user mentions))
               ;; user not in mentions:
-	          (mastodon-toot--mentions-to-string (append (list user) mentions nil))
+	      (mastodon-toot--mentions-to-string (append (list user) mentions nil))
             ;; user in mentions already:
             (mastodon-toot--mentions-to-string (copy-sequence mentions)))))
       id
       (or base-toot toot)))))
+
+
+;;; COMPOSE TOOT SETTINGS
 
 (defun mastodon-toot--toggle-warning ()
   "Toggle `mastodon-toot--content-warning'."
@@ -1095,6 +1122,20 @@ text of the toot being replied to in the compose buffer."
                 (t
                  "public")))
     (mastodon-toot--update-status-fields)))
+
+(defun mastodon-toot--set-toot-language ()
+  "Prompt for a language and set `mastodon-toot--language'.
+Return its two letter ISO 639 1 code."
+  (interactive)
+  (let* ((choice (completing-read "Language for this toot: "
+                                  mastodon-iso-639-1)))
+    (setq mastodon-toot--language
+          (alist-get choice mastodon-iso-639-1 nil nil 'equal))
+    (message "Language set to %s" choice)
+    (mastodon-toot--update-status-fields)))
+
+
+;;; ATTACHMENTS
 
 (defun mastodon-toot--clear-all-attachments ()
   "Remove all attachments from a toot draft."
@@ -1165,6 +1206,9 @@ which is used to attach it to a toot when posting."
                           (format " \"%s\"" description))))
                 mastodon-toot--media-attachments))
       (list "None")))
+
+
+;;; POLL
 
 (defun mastodon-toot--fetch-max-poll-options (instance)
   "Return the maximum number of poll options from JSON data INSTANCE."
@@ -1248,16 +1292,8 @@ LENGTH is the maximum character length allowed for a poll option."
     ("14 days" . ,(number-to-string (* 60 60 24 14)))
     ("30 days" . ,(number-to-string (* 60 60 24 30)))))
 
-(defun mastodon-toot--set-toot-language ()
-  "Prompt for a language and set `mastodon-toot--language'.
-Return its two letter ISO 639 1 code."
-  (interactive)
-  (let* ((choice (completing-read "Language for this toot: "
-                                  mastodon-iso-639-1)))
-    (setq mastodon-toot--language
-          (alist-get choice mastodon-iso-639-1 nil nil 'equal))
-    (message "Language set to %s" choice)
-    (mastodon-toot--update-status-fields)))
+
+;;; SCHEDULE
 
 (defun mastodon-toot--schedule-toot (&optional reschedule)
   "Read a date (+ time) in the minibuffer and schedule the current toot.
@@ -1308,6 +1344,9 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
   "Convert ISO8601 timestamp TS to something `org-read-date' can handle."
   (when ts (let* ((decoded (iso8601-parse ts)))
              (encode-time decoded))))
+
+
+;;; DISPLAY KEYBINDINGS
 
 (defun mastodon-toot--get-mode-kbinds ()
   "Get a list of the keybindings in the mastodon-toot-mode."
@@ -1362,6 +1401,9 @@ LONGEST is the length of the longest binding."
   "Return the length of the longest item in KBINDS-LIST."
   (let ((lengths (mapcar #'length kbinds-list)))
     (car (sort lengths #'>))))
+
+
+;;; DISPLAY DOCS
 
 (defun mastodon-toot--make-mode-docs ()
   "Create formatted documentation text for the mastodon-toot-mode."
@@ -1537,6 +1579,9 @@ CW is the content warning, which contributes to the character count."
     (+ (length cw)
        (length (buffer-substring (point-min) (point-max))))))
 
+
+;;; DRAFTS
+
 (defun mastodon-toot--save-toot-text (&rest _args)
   "Save the current toot text in `mastodon-toot-current-toot-text'.
 Added to `after-change-functions' in new toot buffers."
@@ -1586,6 +1631,9 @@ Added to `after-change-functions' in new toot buffers."
   (setq mastodon-toot-draft-toots-list nil)
   (message "All drafts deleted!"))
 
+
+;;; PROPERTIZE TAGS AND HANDLES
+
 (defun mastodon-toot--propertize-tags-and-handles (&rest _args)
   "Propertize tags and handles in toot compose buffer.
 Added to `after-change-functions'."
@@ -1630,6 +1678,9 @@ Added to `after-change-functions'."
         (when-let ((prop (text-property-search-forward 'toot-reply)))
           (fill-region (prop-match-beginning prop)
                        (point)))))))
+
+
+;;; COMPOSE BUFFER FUNCTION
 
 (defun mastodon-toot--compose-buffer
     (&optional reply-to-user reply-to-id reply-json initial-text edit)
