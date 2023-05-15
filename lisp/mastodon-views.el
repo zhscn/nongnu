@@ -338,8 +338,8 @@ Prompt for name and replies policy."
                                         `(("title" . ,title)
                                           ("replies_policy" . ,replies-policy))
                                         nil)))
-    (mastodon-views--list-action-triage response
-                                        (message "list %s created!" title))))
+    (mastodon-views--list-action-triage
+     response "list %s created!" title)))
 
 (defun mastodon-views--delete-list-at-point ()
   "Delete list at point."
@@ -359,8 +359,8 @@ If ID is provided, delete that list."
          (url (mastodon-http--api (format "lists/%s" id))))
     (when (y-or-n-p (format "Delete list %s?" name))
       (let ((response (mastodon-http--delete url)))
-        (mastodon-views--list-action-triage response
-                                            (message "list %s deleted!" name))))))
+        (mastodon-views--list-action-triage
+         response "list %s deleted!" name)))))
 
 (defun mastodon-views--get-users-followings ()
   "Return the list of followers of the logged in account."
@@ -395,7 +395,7 @@ If ACCOUNT-ID and HANDLE are provided use them rather than prompting."
          (url (mastodon-http--api (format "lists/%s/accounts" list-id)))
          (response (mastodon-http--post url `(("account_ids[]" . ,account-id)))))
     (mastodon-views--list-action-triage
-     response (message "%s added to list %s!" account list-name))))
+     response "%s added to list %s!" account list-name)))
 
 (defun mastodon-views--add-toot-account-at-point-to-list ()
   "Prompt for a list, and add the account of the toot at point to it."
@@ -430,15 +430,15 @@ If ID is provided, use that list."
          (args (mastodon-http--build-array-params-alist "account_ids[]" `(,account-id)))
          (response (mastodon-http--delete url args)))
     (mastodon-views--list-action-triage
-     response (message "%s removed from list %s!" account list-name))))
+     response "%s removed from list %s!" account list-name)))
 
-(defun mastodon-views--list-action-triage (response message)
-  "Call `mastodon-http--triage' on RESPONSE and display MESSAGE."
+(defun mastodon-views--list-action-triage (response &rest args)
+  "Call `mastodon-http--triage' on RESPONSE and call message on ARGS."
   (mastodon-http--triage response
                          (lambda ()
                            (when (mastodon-tl--buffer-type-eq 'lists)
                              (mastodon-views--view-lists))
-                           message)))
+                           (apply #'message args))))
 
 (defun mastodon-views--accounts-in-list (list-id)
   "Return the JSON of the accounts in list with LIST-ID."
