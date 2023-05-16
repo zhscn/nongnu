@@ -80,8 +80,9 @@ SILENT means don't message."
     (url-retrieve-synchronously url (or silent nil) nil mastodon-http--timeout)))
 
 (defun mastodon-http--triage (response success)
-  "Determine if RESPONSE was successful. Call SUCCESS if successful.
-Message status and JSON error from RESPONSE if unsuccessful."
+  "Determine if RESPONSE was successful.
+Call SUCCESS if successful. Message status and JSON error from
+RESPONSE if unsuccessful."
   (let ((status (with-current-buffer response
                   (mastodon-http--status))))
     (if (string-prefix-p "2" status)
