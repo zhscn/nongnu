@@ -579,6 +579,7 @@ this just means displaying toot client."
          (visibility (mastodon-tl--field 'visibility toot))
          (account (alist-get 'account toot))
          (avatar-url (alist-get 'avatar account))
+         (type (alist-get 'type toot))
          (edited-time (alist-get 'edited_at toot))
          (edited-parsed (when edited-time (date-to-time edited-time))))
     (concat
@@ -635,10 +636,10 @@ this just means displaying toot client."
                           'face 'mastodon-display-name-face
                           'follow-link t
                           'mouse-face 'highlight
-		                  'mastodon-tab-stop 'shr-url
-		                  'shr-url app-url
+		          'mastodon-tab-stop 'shr-url
+		          'shr-url app-url
                           'help-echo app-url
-		                  'keymap mastodon-tl--shr-map-replacement)))))
+		          'keymap mastodon-tl--shr-map-replacement)))))
        (if edited-time
            (concat
             " "
@@ -655,7 +656,8 @@ this just means displaying toot client."
          "")
        (propertize (concat "\n  " mastodon-tl--horiz-bar)
                    'face 'default)
-       (if mastodon-tl--show-stats
+       (if (and mastodon-tl--show-stats
+                (not (member type '("follow" "follow_request"))))
            (mastodon-tl--toot-stats toot)
          "")
        "\n")
