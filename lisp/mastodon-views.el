@@ -830,7 +830,7 @@ IND is the optional indentation level to print at."
           (mastodon-views--print-json-keys
            (cdr el) (if ind (+ ind 4) 4)))
          (t ; basic handling of raw booleans:
-          (let ((val (cond ((equal (cdr el) ':json-false)
+          (let ((val (cond ((equal (cdr el) :json-false)
                             "no")
                            ((equal (cdr el) 't)
                             "yes")

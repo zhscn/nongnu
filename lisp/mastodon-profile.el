@@ -214,7 +214,7 @@ NO-REBLOGS means do not display boosts in statuses."
   "Fetch current VAL ue from account."
   (let* ((url (mastodon-http--api "accounts/verify_credentials"))
          (response (mastodon-http--get-json url)))
-    (if (eq (alist-get val response) ':json-false)
+    (if (eq (alist-get val response) :json-false)
         nil
       (alist-get val response))))
 
@@ -225,7 +225,7 @@ NO-REBLOGS means do not display boosts in statuses."
 (defun mastodon-profile--get-source-value (pref)
   "Return account PREF erence from the \"source\" section on the server."
   (let ((source (mastodon-profile--get-source-values)))
-    (if (eq (alist-get pref source) ':json-false)
+    (if (eq (alist-get pref source) :json-false)
         nil
       (alist-get pref source))))
 
