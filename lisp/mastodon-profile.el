@@ -269,13 +269,12 @@ NO-REBLOGS means do not display boosts in statuses."
         (header-region (mastodon-tl--find-property-range 'note-header
                                                          (point-min)))
         (count-region (mastodon-tl--find-property-range 'note-counter
-                                                        (point-min))))
+                                                        (point-min)))
+        (count (number-to-string (mastodon-toot--count-toot-chars
+                                  (buffer-substring-no-properties
+                                   (cdr header-region) (point-max))))))
     (add-text-properties (car count-region) (cdr count-region)
-                         (list 'display
-                               (number-to-string
-                                (mastodon-toot--count-toot-chars
-                                 (buffer-substring-no-properties
-                                  (cdr header-region) (point-max))))))))
+                         (list 'display count))))
 
 (defun mastodon-profile--update-profile-note-cancel ()
   "Cancel updating user profile and kill buffer and window."
