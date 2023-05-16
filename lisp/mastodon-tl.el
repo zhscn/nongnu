@@ -2174,7 +2174,7 @@ report the account for spam."
          (crm-separator (replace-regexp-in-string "," "|" crm-separator))
          (choices (completing-read-multiple
                    "rules [TAB for options, | to separate]: "
-                   alist nil :match)))
+                   alist nil t)))
     (mapcar (lambda (x)
               (alist-get x alist nil nil 'equal))
             choices)))

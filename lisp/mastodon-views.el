@@ -291,7 +291,7 @@ If ID is provided, use that list."
          (name-choice (read-string "List name: " name-old))
          (replies-policy (completing-read "Replies policy: " ; give this a proper name
                                           '("followed" "list" "none")
-                                          nil :match nil nil "list"))
+                                          nil t nil nil "list"))
          (url (mastodon-http--api (format "lists/%s" id)))
          (response (mastodon-http--put url
                                        `(("title" . ,name-choice)
@@ -333,7 +333,7 @@ Prompt for name and replies policy."
   (let* ((title (read-string "New list name: "))
          (replies-policy (completing-read "Replies policy: " ; give this a proper name
                                           '("followed" "list" "none")
-                                          nil :match nil nil "list")) ; default
+                                          nil t nil nil "list")) ; default
          (response (mastodon-http--post (mastodon-http--api "lists")
                                         `(("title" . ,title)
                                           ("replies_policy" . ,replies-policy))
@@ -621,7 +621,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
             (completing-read-multiple
              "Contexts to filter [TAB for options]: "
              '("home" "notifications" "public" "thread")
-             nil :match)))
+             nil t)))
          (contexts-processed
           (if (equal nil contexts)
               (error "You must select at least one context for a filter")
