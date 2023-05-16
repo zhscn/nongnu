@@ -193,7 +193,7 @@ Callback to `mastodon-http--get-response-async', usually
   (let ((headers (unless no-headers
                    (mastodon-http--process-headers))))
     (goto-char (point-min))
-    (goto-char url-http-end-of-headers)
+    (re-search-forward "^$" nil 'move)
     (let ((json-array-type (if vector 'vector 'list))
           (json-string (decode-coding-string
                         (buffer-substring-no-properties (point) (point-max))
@@ -216,7 +216,7 @@ Callback to `mastodon-http--get-response-async', usually
   (goto-char (point-min))
   (let* ((head-str (buffer-substring-no-properties
                     (point-min)
-                    (goto-char url-http-end-of-headers)))
+                    (re-search-forward "^$" nil 'move)))
          (head-list (split-string head-str "\n")))
     (mapcar (lambda (x)
               (let ((list (split-string x ": ")))
