@@ -2231,11 +2231,8 @@ POS is a number, where point will be placed."
           ((eq type 'thread)
            (save-match-data
              (let ((endpoint (mastodon-tl--get-endpoint)))
-               (string-match
-                "statuses/\\(?2:[[:digit:]]+\\)/context"
-                endpoint)
-               (mastodon-tl--thread
-                (match-string 2 endpoint))))))
+               (string-match "statuses/\\(?2:[[:digit:]]+\\)/context" endpoint)
+               (mastodon-tl--thread (match-string 2 endpoint))))))
     ;; TODO: sends point to where point was in buffer. This is very rough; we
     ;; may have removed an item , so the buffer will be smaller, point will
     ;; end up past where we were, etc.

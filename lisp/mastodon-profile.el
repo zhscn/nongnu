@@ -345,13 +345,11 @@ If NO-FORCE, only fetch if `mastodon-profile-account-settings' is nil."
           (source-keys '(privacy sensitive language)))
       (mapc (lambda (k)
               (mastodon-profile--update-preference-plist
-               k
-               (mastodon-profile--get-json-value k)))
+               k (mastodon-profile--get-json-value k)))
             keys)
       (mapc (lambda (sk)
               (mastodon-profile--update-preference-plist
-               sk
-               (mastodon-profile--get-source-value sk)))
+               sk (mastodon-profile--get-source-value sk)))
             source-keys)
       ;; hack for max toot chars:
       (mastodon-toot--get-max-toot-chars :no-toot)
@@ -401,9 +399,8 @@ Current settings are fetched from the server."
 (defun mastodon-profile--edit-string-value (key)
   "Edit the string for account preference KEY."
   (let* ((val (mastodon-profile--get-json-value key))
-         (new-val
-          (read-string (format "Edit account setting %s: " key)
-                       val)))
+         (new-val (read-string (format "Edit account setting %s: " key)
+                               val)))
     (mastodon-profile--update-preference (symbol-name key) new-val)))
 
 (defun mastodon-profile--update-display-name ()
@@ -432,8 +429,8 @@ Returns an alist."
     (mastodon-http--triage response
                            (lambda ()
                              (mastodon-profile--fetch-server-account-settings)
-                             (message "Account setting %s updated to %s!"
-                                      "metadata fields" fields-updated)))))
+                             (message "Metadata fields updated to %s!"
+                                      fields-updated)))))
 
 (defun mastodon-profile--update-meta-fields-alist ()
   "Prompt for new metadata fields information.
@@ -481,11 +478,10 @@ This endpoint only holds a few preferences. For others, see
       (mastodon-tl--set-buffer-spec (buffer-name buf) "preferences" nil)
       (while response
         (let ((el (pop response)))
-          (insert
-           (format "%-30s %s"
-                   (prin1-to-string (car el))
-                   (prin1-to-string (cdr el)))
-           "\n\n")))
+          (insert (format "%-30s %s"
+                          (prin1-to-string (car el))
+                          (prin1-to-string (cdr el)))
+                  "\n\n")))
       (goto-char (point-min)))))
 
 
@@ -706,22 +702,23 @@ Also insert their profile note.
 Used to view a user's followers and those they're following."
   (let ((inhibit-read-only t))
     (unless (seq-empty-p tootv)
-      (mapc (lambda (toot)
-              (let ((start-pos (point)))
-                (insert "\n"
-                        (propertize
-                         (mastodon-tl--byline-author `((account . ,toot)) :avatar)
-                         'byline  't
-                         'toot-id (alist-get 'id toot)
-                         'base-toot-id (mastodon-tl--toot-id toot)
-                         'toot-json toot))
-                (mastodon-media--inline-images start-pos (point))
-                (insert "\n"
-                        (propertize
-                         (mastodon-tl--render-text (alist-get 'note toot) nil)
-                         'toot-json toot)
-                        "\n")))
-            tootv))))
+      (mapc
+       (lambda (toot)
+         (let ((start-pos (point)))
+           (insert "\n"
+                   (propertize
+                    (mastodon-tl--byline-author `((account . ,toot)) :avatar)
+                    'byline  't
+                    'toot-id (alist-get 'id toot)
+                    'base-toot-id (mastodon-tl--toot-id toot)
+                    'toot-json toot))
+           (mastodon-media--inline-images start-pos (point))
+           (insert "\n"
+                   (propertize
+                    (mastodon-tl--render-text (alist-get 'note toot) nil)
+                    'toot-json toot)
+                   "\n")))
+       tootv))))
 
 (defun mastodon-profile--search-account-by-handle (handle)
   "Return an account based on a user's HANDLE.
@@ -750,9 +747,9 @@ These include the author, author of reblogged entries and any user mentioned."
   (when status
     (let ((this-account (or (alist-get 'account status) ; status is a toot
                             status)) ; status is a user listing
-	      (mentions (or (alist-get 'mentions (alist-get 'status status))
+	  (mentions (or (alist-get 'mentions (alist-get 'status status))
                         (alist-get 'mentions status)))
-	      (reblog (or (alist-get 'reblog (alist-get 'status status))
+	  (reblog (or (alist-get 'reblog (alist-get 'status status))
                       (alist-get 'reblog status))))
       (seq-filter #'stringp
                   (seq-uniq
