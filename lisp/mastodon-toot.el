@@ -1570,7 +1570,8 @@ CW is the content warning, which contributes to the character count."
     (insert toot-string)
     (goto-char (point-min))
     ;; handle URLs
-    (while (search-forward-regexp "\\w+://[^ \n]*" nil t) ; URL
+    (while (search-forward-regexp mastodon-toot-url-regex nil t)
+                                        ; "\\w+://[^ \n]*" old regex
       (replace-match "xxxxxxxxxxxxxxxxxxxxxxx")) ; 23 x's
     ;; handle @handles
     (goto-char (point-min))
