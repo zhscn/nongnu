@@ -483,10 +483,11 @@ The default value, `macrostep-macro-form-p', is specific to Emacs Lisp.")
 (define-minor-mode macrostep-mode
   "Minor mode for inline expansion of macros in Emacs Lisp source buffers.
 
-\\<macrostep-mode-map>Progressively expand macro forms with \\[macrostep-expand], collapse them with \\[macrostep-collapse],
-and move back and forth with \\[macrostep-next-macro] and \\[macrostep-prev-macro].
-Use \\[macrostep-collapse-all] or collapse all visible expansions to
-quit and return to normal editing.
+\\<macrostep-mode-map>Progressively expand macro forms with \
+\\[macrostep-expand], collapse them with \\[macrostep-collapse],
+and move back and forth with \\[macrostep-next-macro] and \
+\\[macrostep-prev-macro].  Use \\[macrostep-collapse-all] or collapse all
+visible expansions to quit and return to normal editing.
 
 \\{macrostep-mode-map}"
   :lighter " Macro-Stepper"
@@ -501,9 +502,10 @@ quit and return to normal editing.
               buffer-read-only t)
         ;; Set up post-command hook to bail out on leaving read-only
         (add-hook 'post-command-hook #'macrostep-command-hook nil t)
-        (message
-         (substitute-command-keys
-          "\\<macrostep-mode-map>Entering macro stepper mode. Use \\[macrostep-expand] to expand, \\[macrostep-collapse] to collapse, \\[macrostep-collapse-all] to exit.")))
+        (message (substitute-command-keys "\
+\\<macrostep-mode-map>Entering macro stepper mode. \
+Use \\[macrostep-expand] to expand, \\[macrostep-collapse] to collapse, \
+\\[macrostep-collapse-all] to exit.")))
 
     ;; Exiting mode
     (if macrostep-expansion-buffer
