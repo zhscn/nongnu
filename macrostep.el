@@ -1,12 +1,13 @@
 ;;; macrostep.el --- Interactive macro expander  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2015 Jon Oddie
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; Author: Jon Oddie <j.j.oddie@gmail.com>
 ;; Url: https://github.com/emacsorphanage/macrostep
 ;; Keywords: lisp, languages, macro, debugging
 
-;; Package-Version: 0.9.1.50-git
+;; Package-Version: 0.9.2
 ;; Package-Requires: ((cl-lib "0.5"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
@@ -237,6 +238,10 @@
 ;; 8 Changelog
 ;; ===========
 
+;;   - v0.9.2, 2023-05-12:
+;;     - name the keymap macrostep-mode-map, fixing a regression in v0.9.1
+;;   - v0.9.1, 2023-03-12:
+;;     - bug fixes, cleanup and modernization
 ;;   - v0.9, 2015-10-01:
 ;;     - separate into Elisp-specific and generic components
 ;;     - highlight and expand compiler macros
