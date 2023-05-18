@@ -47,7 +47,7 @@ Built-In Completions
 ``case-style``
    This cycles between different styles of case:
 
-   :Camel Case: ``TheRedFoxJumpedOverTheLazyDog``
+   :Pascal Case: ``TheRedFoxJumpedOverTheLazyDog``
    :Snake Case: ``the_red_fox_jumped_over_the_lazy_dog``
    :Kebab Case: ``the-red-fox-jumped-over-the-lazy-dog``
 ``dabbrev``
