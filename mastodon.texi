@@ -52,6 +52,7 @@ Usage
 * Composing toots::
 * Other commands and account settings::
 * Customization::
+* commands and variables index::
 * Alternative timeline layout::
 * Live-updating timelines @samp{mastodon-async-mode}::
 * Translating toots::
@@ -163,6 +164,7 @@ Or, with @samp{use-package}:
 * Composing toots::
 * Other commands and account settings::
 * Customization::
+* commands and variables index::
 * Alternative timeline layout::
 * Live-updating timelines @samp{mastodon-async-mode}::
 * Translating toots::
@@ -592,6 +594,11 @@ Display toot being replied to
 Set default reply visibility
 @end itemize
 @end itemize
+
+@node commands and variables index
+@subsection commands and variables index
+
+An index of all user-facing commands and custom variables is available here: @uref{mastodon-index.org, mastodon-index.org}.
 
 @node Alternative timeline layout
 @subsection Alternative timeline layout

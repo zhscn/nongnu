@@ -335,6 +335,10 @@ See =M-x customize-group RET mastodon= to view all customize options.
    - Display toot being replied to
    - Set default reply visibility
 
+*** Commands and variables index
+
+An index of all user-facing commands and custom variables is available here: [[file:mastodon-index.org][mastodon-index.org]].
+
 *** Alternative timeline layout
 
 The incomparable Nicholas Rougier has written an alternative timeline layout
@@ -379,6 +383,7 @@ to your translator function as its text argument. Here's what
 #+end_src
 
 *** bookmarks and =mastodon.el=
+
 =mastodon.el= doesn’t currently implement its own bookmark record and handler,
 which means that emacs bookmarks will not work as is. Until we implement them,
 you can get bookmarks going immediately by using [[https://github.com/emacsmirror/emacswiki.org/blob/master/bookmark%2b.el][bookmark+.el]].
