@@ -2455,23 +2455,23 @@ from the start if it is nil."
   "Set `mastodon-tl--after-update-marker' to the after-update location.
 This location is defined by a non-nil value of
 `mastodon-tl-position-after-update'."
-  (if mastodon-tl-position-after-update
-      (let ((marker (make-marker)))
-        (set-marker marker
-                    (cond
-                     ((eq 'keep-point mastodon-tl-position-after-update)
-                      (point))
-                     ((eq 'last-old-toot mastodon-tl-position-after-update)
-                      (next-single-property-change
-                       (or mastodon-tl--update-point (point-min))
-                       'byline))
-                     (t
-                      (error "Unknown mastodon-tl-position-after-update value %S"
-                             mastodon-tl-position-after-update))))
-        ;; Make the marker advance if text gets inserted there.
-        (set-marker-insertion-type marker t)
-        (setq mastodon-tl--after-update-marker marker))
-    (setq mastodon-tl--after-update-marker nil)))
+  (if (not mastodon-tl-position-after-update)
+      (setq mastodon-tl--after-update-marker nil)
+    (let ((marker (make-marker)))
+      (set-marker marker
+                  (cond
+                   ((eq 'keep-point mastodon-tl-position-after-update)
+                    (point))
+                   ((eq 'last-old-toot mastodon-tl-position-after-update)
+                    (next-single-property-change
+                     (or mastodon-tl--update-point (point-min))
+                     'byline))
+                   (t
+                    (error "Unknown mastodon-tl-position-after-update value %S"
+                           mastodon-tl-position-after-update))))
+      ;; Make the marker advance if text gets inserted there.
+      (set-marker-insertion-type marker t)
+      (setq mastodon-tl--after-update-marker marker))))
 
 (defun mastodon-tl--update ()
   "Update timeline with new toots."
