@@ -1237,10 +1237,7 @@ in which case play first video or gif from current toot."
   "Retrieve text content from TOOT.
 Runs `mastodon-tl--render-text' and fetches poll or media."
   (let* ((content (mastodon-tl--field 'content toot))
-         (reblog (alist-get 'reblog toot))
-         (poll-p (if reblog
-                     (alist-get 'poll reblog)
-                   (alist-get 'poll toot))))
+         (poll-p (mastodon-tl--field 'poll toot)))
     (concat (mastodon-tl--render-text content toot)
             (when poll-p
               (mastodon-tl--get-poll toot))
