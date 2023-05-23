@@ -257,7 +257,7 @@ types of mastodon links and not just shr.el-generated ones.")
 It is active where point is placed by `mastodon-tl--goto-next-toot.'")
 
 
-;;; BUFFER MACRO
+;;; MACROS
 
 (defmacro with-mastodon-buffer (buffer mode-fun other-window &rest body)
   "Evaluate BODY in a new or existing buffer called BUFFER.
@@ -274,6 +274,21 @@ than `switch-to-buffer'."
            (switch-to-buffer-other-window ,buffer)
          (switch-to-buffer ,buffer))
        ,@body)))
+
+(defmacro mastodon-tl--do-if-toot (&rest body)
+  "Execute BODY if we have a toot or user at point."
+  (declare (debug t))
+  `(if (and (not (mastodon-tl--profile-buffer-p))
+            (not (mastodon-tl--property 'toot-json))) ; includes user listings
+       (message "Looks like there's no toot or user at point?")
+     ,@body))
+
+(defmacro mastodon-tl--do-if-toot-strict (&rest body)
+  "Execute BODY if we have a toot, and only a toot, at point."
+  (declare (debug t))
+  `(if (not (mastodon-tl--property 'toot-id :no-move))
+       (message "Looks like there's no toot at point?")
+     ,@body))
 
 
 ;;; NAV
@@ -1797,21 +1812,6 @@ ID is that of the post the context is currently displayed for."
 
 
 ;;; FOLLOW/BLOCK/MUTE, ETC
-
-(defmacro mastodon-tl--do-if-toot (&rest body)
-  "Execute BODY if we have a toot or user at point."
-  (declare (debug t))
-  `(if (and (not (mastodon-tl--profile-buffer-p))
-            (not (mastodon-tl--property 'toot-json))) ; includes user listings
-       (message "Looks like there's no toot or user at point?")
-     ,@body))
-
-(defmacro mastodon-tl--do-if-toot-strict (&rest body)
-  "Execute BODY if we have a toot, and only a toot, at point."
-  (declare (debug t))
-  `(if (not (mastodon-tl--property 'toot-id :no-move))
-       (message "Looks like there's no toot at point?")
-     ,@body))
 
 (defun mastodon-tl--follow-user (user-handle &optional notify langs)
   "Query for USER-HANDLE from current status and follow that user.
