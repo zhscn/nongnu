@@ -1388,7 +1388,7 @@ THREAD means the status will be displayed in a thread view."
         (if (eq (mastodon-tl--get-buffer-type) 'profile-statuses)
             toots
           (if (or ; we were called via --more*:
-               (mastodon-tl--get-buffer-property 'hide-replies nil :no-error)
+               (mastodon-tl--buffer-property 'hide-replies nil :no-error)
                ;; loading a tl with a prefix arg:
                (mastodon-tl--hide-replies-p current-prefix-arg))
 	      (cl-remove-if-not #'mastodon-tl--is-reply toots)
@@ -1398,34 +1398,34 @@ THREAD means the status will be displayed in a thread view."
 
 ;;; BUFFER SPEC
 
-(defun mastodon-tl--get-update-function (&optional buffer)
+(defun mastodon-tl--update-function (&optional buffer)
   "Get the UPDATE-FUNCTION stored in `mastodon-tl--buffer-spec'.
 Optionally get it for BUFFER."
-  (mastodon-tl--get-buffer-property 'update-function buffer))
+  (mastodon-tl--buffer-property 'update-function buffer))
 
-(defun mastodon-tl--get-endpoint (&optional buffer no-error)
+(defun mastodon-tl--endpoint (&optional buffer no-error)
   "Get the ENDPOINT stored in `mastodon-tl--buffer-spec'.
 Optionally set it for BUFFER.
 NO-ERROR means to fail silently."
-  (mastodon-tl--get-buffer-property 'endpoint buffer no-error))
+  (mastodon-tl--buffer-property 'endpoint buffer no-error))
 
 (defun mastodon-tl--buffer-name (&optional buffer no-error)
   "Get the BUFFER-NAME stored in `mastodon-tl--buffer-spec'.
 Optionally get it for BUFFER.
 NO-ERROR means to fail silently."
-  (mastodon-tl--get-buffer-property 'buffer-name buffer no-error))
+  (mastodon-tl--buffer-property 'buffer-name buffer no-error))
 
 (defun mastodon-tl--link-header (&optional buffer)
   "Get the LINK HEADER stored in `mastodon-tl--buffer-spec'.
 Optionally get it for BUFFER."
-  (mastodon-tl--get-buffer-property 'link-header buffer :no-error))
+  (mastodon-tl--buffer-property 'link-header buffer :no-error))
 
 (defun mastodon-tl--update-params (&optional buffer)
   "Get the UPDATE PARAMS stored in `mastodon-tl--buffer-spec'.
 Optionally get it for BUFFER."
-  (mastodon-tl--get-buffer-property 'update-params buffer :no-error))
+  (mastodon-tl--buffer-property 'update-params buffer :no-error))
 
-(defun mastodon-tl--get-buffer-property (property &optional buffer no-error)
+(defun mastodon-tl--buffer-property (property &optional buffer no-error)
   "Get PROPERTY from `mastodon-tl--buffer-spec' in BUFFER or `current-buffer'.
 If NO-ERROR is non-nil, do not error when property is empty."
   (with-current-buffer (or buffer (current-buffer))
@@ -1459,7 +1459,7 @@ HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
 (defun mastodon-tl--endpoint-str-= (str &optional type)
   "Return T if STR is equal to the current buffer's endpoint.
 TYPE may be :prefix or :suffix, in which case, T if STR is a prefix or suffix."
-  (let ((endpoint-fun (mastodon-tl--get-endpoint nil :no-error)))
+  (let ((endpoint-fun (mastodon-tl--endpoint nil :no-error)))
     (cond ((eq type :prefix)
            (string-prefix-p str endpoint-fun))
           ((eq type :suffix)
@@ -1559,7 +1559,7 @@ call this function after it is set or use something else."
 (defun mastodon-tl--profile-buffer-p ()
   "Return t if current buffer is a profile buffer of any kind.
 This includes the update profile note buffer, but not the preferences one."
-  (string-prefix-p "accounts" (mastodon-tl--get-endpoint nil :no-error)))
+  (string-prefix-p "accounts" (mastodon-tl--endpoint nil :no-error)))
 
 (defun mastodon-tl--timeline-proper-p ()
   "Return non-nil if the current buffer is a 'proper' timeline.
@@ -1751,7 +1751,7 @@ Note that you can only (un)mute threads you have posted in."
 (defun mastodon-tl--mute-or-unmute-thread  (&optional unmute)
   "Mute a thread.
 If UNMUTE, unmute it."
-  (let ((endpoint (mastodon-tl--get-endpoint)))
+  (let ((endpoint (mastodon-tl--endpoint)))
     (if (mastodon-tl--buffer-type-eq 'thread)
         (let* ((id
                 (save-match-data
@@ -2232,7 +2232,7 @@ POS is a number, where point will be placed."
            (mastodon-profile--my-profile))
           ((eq type 'thread)
            (save-match-data
-             (let ((endpoint (mastodon-tl--get-endpoint)))
+             (let ((endpoint (mastodon-tl--endpoint)))
                (string-match "statuses/\\(?2:[[:digit:]]+\\)/context" endpoint)
                (mastodon-tl--thread (match-string 2 endpoint))))))
     ;; TODO: sends point to where point was in buffer. This is very rough; we
@@ -2280,7 +2280,7 @@ when showing followers or accounts followed."
             (mastodon-http--get-response-async url nil 'mastodon-tl--more* (current-buffer)
                                                (point) :headers))))
     (mastodon-tl--more-json-async
-     (mastodon-tl--get-endpoint)
+     (mastodon-tl--endpoint)
      (mastodon-tl--oldest-id)
      (mastodon-tl--update-params)
      'mastodon-tl--more* (current-buffer) (point))))
@@ -2301,21 +2301,21 @@ HEADERS is the http headers returned in the response, if any."
             ;; if thread view, call --thread with parent ID
             (progn (goto-char (point-min))
                    (mastodon-tl--goto-next-toot)
-                   (funcall (mastodon-tl--get-update-function)))
-          (funcall (mastodon-tl--get-update-function) json))
+                   (funcall (mastodon-tl--update-function)))
+          (funcall (mastodon-tl--update-function) json))
         (goto-char point-before)
         ;; update buffer spec to new link-header:
         ;; (other values should just remain as they were)
         (when headers
           (mastodon-tl--set-buffer-spec (mastodon-tl--buffer-name)
-                                        (mastodon-tl--get-endpoint)
-                                        (mastodon-tl--get-update-function)
+                                        (mastodon-tl--endpoint)
+                                        (mastodon-tl--update-function)
                                         link-header))
         (message "Loading older toots... done.")))))
 
 (defun mastodon-tl--find-property-range (property start-point
                                                   &optional search-backwards)
-  "Return `nil` if no such range is found.
+  "Return nil if no such range is found.
 If PROPERTY is set at START-POINT returns a range around
 START-POINT otherwise before/after START-POINT.
 SEARCH-BACKWARDS determines whether we pick point
@@ -2476,8 +2476,8 @@ This location is defined by a non-nil value of
 (defun mastodon-tl--update ()
   "Update timeline with new toots."
   (interactive)
-  (let* ((endpoint (mastodon-tl--get-endpoint))
-         (update-function (mastodon-tl--get-update-function))
+  (let* ((endpoint (mastodon-tl--endpoint))
+         (update-function (mastodon-tl--update-function))
          (thread-id (mastodon-tl--property 'toot-id)))
     ;; update a thread, without calling `mastodon-tl--updated-json':
     (if (mastodon-tl--buffer-type-eq 'thread)
