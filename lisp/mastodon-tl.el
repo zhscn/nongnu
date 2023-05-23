@@ -2531,24 +2531,7 @@ JSON and http headers, without it just the JSON."
         (with-mastodon-buffer buffer #'mastodon-mode nil
           (mastodon-tl--set-buffer-spec buffer endpoint update-function
                                         link-header update-params hide-replies)
-          (remove-overlays) ; video overlays
-          (funcall update-function json)
-          (setq
-           ;; Initialize with a minimal interval; we re-scan at least once
-           ;; every 5 minutes to catch any timestamps we may have missed
-           mastodon-tl--timestamp-next-update (time-add (current-time)
-                                                        (seconds-to-time 300)))
-          (setq mastodon-tl--timestamp-update-timer
-                (when mastodon-tl--enable-relative-timestamps
-                  (run-at-time (time-to-seconds
-                                (time-subtract mastodon-tl--timestamp-next-update
-                                               (current-time)))
-                               nil ;; don't repeat
-                               #'mastodon-tl--update-timestamps-callback
-                               (current-buffer)
-                               nil)))
-          (unless (mastodon-tl--profile-buffer-p)
-            (mastodon-tl--goto-first-item)))))))
+          (mastodon-tl--do-init json update-function))))))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function
                                            &optional note-type)
@@ -2564,26 +2547,31 @@ Optional arg NOTE-TYPE means only get that type of note."
          (buffer (concat "*mastodon-" buffer-name "*"))
          (json (mastodon-http--get-json url args)))
     (with-mastodon-buffer buffer #'mastodon-mode nil
-      (setq
-       ;; Initialize with a minimal interval; we re-scan at least once
-       ;; every 5 minutes to catch any timestamps we may have missed
-       mastodon-tl--timestamp-next-update (time-add (current-time)
-                                                    (seconds-to-time 300)))
-      (remove-overlays) ; video overlays
-      (funcall update-function json)
       (mastodon-tl--set-buffer-spec buffer endpoint update-function nil args)
-      (setq mastodon-tl--timestamp-update-timer
-            (when mastodon-tl--enable-relative-timestamps
-              (run-at-time (time-to-seconds
-                            (time-subtract mastodon-tl--timestamp-next-update
-                                           (current-time)))
-                           nil ;; don't repeat
-                           #'mastodon-tl--update-timestamps-callback
-                           (current-buffer)
-                           nil)))
-      (unless (mastodon-tl--profile-buffer-p)
-        (mastodon-tl--goto-first-item)))
-    buffer))
+      (mastodon-tl--do-init json update-function)
+      buffer)))
+
+(defun mastodon-tl--do-init (json update-fun)
+  "Utility function for `mastodon-tl--init*' and `mastodon-tl--init-sync'.
+JSON is the data to call UPDATE-FUN on."
+  (remove-overlays) ; video overlays
+  (funcall update-fun json)
+  (setq
+   ;; Initialize with a minimal interval; we re-scan at least once
+   ;; every 5 minutes to catch any timestamps we may have missed
+   mastodon-tl--timestamp-next-update (time-add (current-time)
+                                                (seconds-to-time 300)))
+  (setq mastodon-tl--timestamp-update-timer
+        (when mastodon-tl--enable-relative-timestamps
+          (run-at-time (time-to-seconds
+                        (time-subtract mastodon-tl--timestamp-next-update
+                                       (current-time)))
+                       nil ;; don't repeat
+                       #'mastodon-tl--update-timestamps-callback
+                       (current-buffer)
+                       nil)))
+  (unless (mastodon-tl--profile-buffer-p)
+    (mastodon-tl--goto-first-item)))
 
 (provide 'mastodon-tl)
 ;;; mastodon-tl.el ends here
