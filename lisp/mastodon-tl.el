@@ -479,12 +479,12 @@ With arg AVATAR, include the account's avatar image."
      (propertize (concat "@" .account.acct)
                  'face 'mastodon-handle-face
                  'mouse-face 'highlight
-	             'mastodon-tab-stop 'user-handle
+	         'mastodon-tab-stop 'user-handle
                  'account .account
-	             'shr-url .account.url
-	             'keymap mastodon-tl--link-keymap
+	         'shr-url .account.url
+	         'keymap mastodon-tl--link-keymap
                  'mastodon-handle (concat "@" .account.acct)
-	             'help-echo (concat "Browse user profile of @" .account.acct))
+	         'help-echo (concat "Browse user profile of @" .account.acct))
      ")")))
 
 (defun mastodon-tl--format-byline-help-echo (toot)
@@ -1391,8 +1391,8 @@ THREAD means the status will be displayed in a thread view."
                (mastodon-tl--get-buffer-property 'hide-replies nil :no-error)
                ;; loading a tl with a prefix arg:
                (mastodon-tl--hide-replies-p current-prefix-arg))
-	          (cl-remove-if-not #'mastodon-tl--is-reply toots)
-	        toots)))
+	      (cl-remove-if-not #'mastodon-tl--is-reply toots)
+	    toots)))
   (goto-char (point-min)))
 
 
