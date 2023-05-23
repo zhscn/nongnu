@@ -1148,27 +1148,27 @@ LONGEST-OPTION is the option whose length determines the formatting."
 
 (defun mastodon-tl--read-poll-option ()
   "Read a poll option to vote on a poll."
-  (list (let* ((toot (mastodon-tl--property 'toot-json))
-               (poll (mastodon-tl--field 'poll toot))
-               (options (mastodon-tl--field 'options poll))
-               (options-titles (mastodon-tl--map-alist 'title options))
-               (options-number-seq (number-sequence 1 (length options)))
-               (options-numbers (mapcar #'number-to-string options-number-seq))
-               (options-alist (cl-mapcar #'cons options-numbers options-titles))
-               ;; we display both option number and the option title
-               ;; but also store both as cons cell as cdr, as we need it below
-               (candidates (mapcar (lambda (cell)
-                                     (cons (format "%s | %s" (car cell) (cdr cell))
-                                           cell))
-                                   options-alist)))
-          (if (null poll)
-              (message "No poll here.")
-            ;; var "option" = just the cdr, a cons of option number and desc
-            (cdr (assoc (completing-read "Poll option to vote for: "
-                                         candidates
-                                         nil
-                                         t) ; require match
-                        candidates))))))
+  (let* ((toot (mastodon-tl--property 'toot-json))
+         (poll (mastodon-tl--field 'poll toot))
+         (options (mastodon-tl--field 'options poll))
+         (options-titles (mastodon-tl--map-alist 'title options))
+         (options-number-seq (number-sequence 1 (length options)))
+         (options-numbers (mapcar #'number-to-string options-number-seq))
+         (options-alist (cl-mapcar #'cons options-numbers options-titles))
+         ;; we display both option number and the option title
+         ;; but also store both as cons cell as cdr, as we need it below
+         (candidates (mapcar (lambda (cell)
+                               (cons (format "%s | %s" (car cell) (cdr cell))
+                                     cell))
+                             options-alist)))
+    (if (null poll)
+        (message "No poll here.")
+      (list
+       ;; var "option" = just the cdr, a cons of option number and desc
+       (cdr (assoc (completing-read "Poll option to vote for: "
+                                    candidates
+                                    nil t) ; require match
+                   candidates))))))
 
 (defun mastodon-tl--poll-vote (option)
   "If there is a poll at point, prompt user for OPTION to vote on it."
