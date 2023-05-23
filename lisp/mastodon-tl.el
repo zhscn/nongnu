@@ -843,7 +843,6 @@ LINK is maybe the `@handle' to search for."
 LINK should be a simple handle string with no domain, i.e. \"@user\".
 Return nil if no matching element."
   ;; Must return nil if nothing found!
-  ;; TODO: we should break the while loop as soon as we get sth
   (let ((mentions (append (alist-get 'mentions toot) nil)))
     (when mentions
       (let* ((mention (pop mentions))
@@ -986,8 +985,7 @@ content should be hidden."
 
 (defun mastodon-tl--clean-tabs-and-nl (string)
   "Remove tabs and newlines from STRING."
-  (replace-regexp-in-string
-   "[\t\n ]*\\'" "" string))
+  (replace-regexp-in-string "[\t\n ]*\\'" "" string))
 
 (defun mastodon-tl--spoiler (toot)
   "Render TOOT with spoiler message.
