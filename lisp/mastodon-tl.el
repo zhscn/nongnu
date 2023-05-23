@@ -1035,30 +1035,22 @@ message is a link which unhides/hides the main body."
 
 (defun mastodon-tl--media-attachment (media-attachment)
   "Return a propertized string for MEDIA-ATTACHMENT."
-  (let* ((preview-url (alist-get 'preview_url media-attachment))
-         (remote-url (or (alist-get 'remote_url media-attachment)
-                         (alist-get 'url media-attachment))) ; for notifs
-         (type (alist-get 'type media-attachment))
-         (caption (alist-get 'description media-attachment))
-         (display-str
-          (if (and mastodon-tl--display-caption-not-url-when-no-media
-                   caption)
-              (concat "Media:: " caption)
-            (concat "Media:: " preview-url))))
-    (if mastodon-tl--display-media-p
-        ;; return placeholder [img]:
-        (mastodon-media--get-media-link-rendering
-         preview-url remote-url type caption) ; 2nd arg for shr-browse-url
-      ;; return URL/caption:
-      (concat (mastodon-tl--propertize-img-str-or-url
-               (concat "Media:: " preview-url) ; string
-               preview-url remote-url type caption
-               display-str ; display
-               ;; FIXME: shr-link underlining is awful for captions with
-               ;; newlines, as the underlining runs to the edge of the
-               ;; frame even if the text doesn't
-               'shr-link)
-              "\n"))))
+  (let-alist media-attachment
+    (let ((display-str
+           (if (and mastodon-tl--display-caption-not-url-when-no-media
+                    .description)
+               (concat "Media:: " .description)
+             (concat "Media:: " .preview_url))))
+      (if mastodon-tl--display-media-p
+          (mastodon-media--get-media-link-rendering ; placeholder: "[img]"
+           .preview_url (or .remote_url .url) .type .description) ; 2nd arg for shr-browse-url
+        ;; return URL/caption:
+        (concat (mastodon-tl--propertize-img-str-or-url
+                 (concat "Media:: " .preview_url) ; string
+                 .preview_url .remote_url .type .description
+                 display-str ; display
+                 'shr-link)
+                "\n")))))
 
 (defun mastodon-tl--propertize-img-str-or-url
     (str media-url full-remote-url type help-echo &optional display face)
