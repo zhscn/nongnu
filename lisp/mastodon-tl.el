@@ -1896,13 +1896,13 @@ LANGS is the accumulated array param alist if we re-run recursively."
   "Get the list of user-handles for ACTION from the current toot."
   (mastodon-tl--do-if-toot
    (let ((user-handles
-          (cond ((or (mastodon-tl--buffer-type-eq 'follow-suggestions)
-                     ;; follow suggests / search / foll requests compat:
-                     (mastodon-tl--buffer-type-eq 'search)
-                     (mastodon-tl--buffer-type-eq 'follow-requests)
-                     ;; profile follows/followers but not statuses:
-                     (mastodon-tl--buffer-type-eq 'profile-followers)
-                     (mastodon-tl--buffer-type-eq 'profile-following))
+          (cond ((or ; follow suggests / search / foll requests compat:
+                  (mastodon-tl--buffer-type-eq 'follow-suggestions)
+                  (mastodon-tl--buffer-type-eq 'search)
+                  (mastodon-tl--buffer-type-eq 'follow-requests)
+                  ;; profile follows/followers but not statuses:
+                  (mastodon-tl--buffer-type-eq 'profile-followers)
+                  (mastodon-tl--buffer-type-eq 'profile-following))
                  ;; fetch 'toot-json:
                  (list (alist-get 'acct
                                   (mastodon-tl--property 'toot-json :no-move))))
@@ -1958,9 +1958,9 @@ LANGS is an array parameters alist of languages to filer user's posts by."
                       (mastodon-profile--lookup-account-in-status
                        user-handle (mastodon-profile--toot-json)))))
          (user-id (alist-get 'id account))
-         (name (if (not (string-empty-p (alist-get 'display_name account)))
-                   (alist-get 'display_name account)
-                 (alist-get 'username account)))
+         (name (if (string-empty-p (alist-get 'display_name account))
+                   (alist-get 'username account)
+                 (alist-get 'display_name account)))
          (args (cond (notify `(("notify" . ,notify)))
                      (langs langs)
                      (t nil)))
@@ -2037,8 +2037,7 @@ If TAG provided, follow it."
 If TAG is provided, unfollow it."
   (interactive)
   (let* ((followed-tags-json (unless tag (mastodon-tl--followed-tags)))
-         (tags (unless tag
-                 (mastodon-tl--map-alist 'name followed-tags-json)))
+         (tags (unless tag (mastodon-tl--map-alist 'name followed-tags-json)))
          (tag (or tag (completing-read "Unfollow tag: " tags)))
          (url (mastodon-http--api (format "tags/%s/unfollow" tag)))
          (response (mastodon-http--post url)))
