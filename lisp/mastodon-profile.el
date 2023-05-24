@@ -63,7 +63,7 @@
 (autoload 'mastodon-tl--find-property-range "mastodon-tl.el")
 (autoload 'mastodon-tl--get-link-header-from-response "mastodon-tl")
 (autoload 'mastodon-tl--init "mastodon-tl.el")
-(autoload 'mastodon-tl--interactive-user-handles-get "mastodon-tl")
+(autoload 'mastodon-tl--user-handles-get "mastodon-tl")
 (autoload 'mastodon-tl--map-alist "mastodon-tl")
 (autoload 'mastodon-tl--map-alist-vals-to-alist "mastodon-tl")
 (autoload 'mastodon-tl--profile-buffer-p "mastodon tl")
@@ -867,11 +867,11 @@ NOTE-OLD is the text of any existing note."
 (defun mastodon-profile--add-or-view-private-note (action-fun &optional message view)
   "Add or view a private note for an account.
 ACTION-FUN does the adding or viewing, MESSAGE is a prompt for
-`mastodon-tl--interactive-user-handles-get', VIEW is a flag."
+`mastodon-tl--user-handles-get', VIEW is a flag."
   (let* ((profile-json (mastodon-profile--profile-json))
          (handle (if (mastodon-tl--profile-buffer-p)
                      (alist-get 'acct profile-json)
-                   (mastodon-tl--interactive-user-handles-get message)))
+                   (mastodon-tl--user-handles-get message)))
          (account (if (mastodon-tl--profile-buffer-p)
                       profile-json
                     (mastodon-profile--search-account-by-handle handle)))
@@ -893,7 +893,7 @@ the given account."
          (handle
           (if (mastodon-tl--profile-buffer-p)
               (alist-get 'acct profile-json)
-            (mastodon-tl--interactive-user-handles-get "show familiar followers of")))
+            (mastodon-tl--user-handles-get "show familiar followers of")))
          (account (if (mastodon-tl--profile-buffer-p)
                       profile-json
                     (mastodon-profile--search-account-by-handle handle)))

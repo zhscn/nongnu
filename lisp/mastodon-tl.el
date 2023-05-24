@@ -1803,7 +1803,7 @@ If NOTIFY is \"false\", disable notifications when that user posts.
 Can be called to toggle NOTIFY on users already being followed.
 LANGS is an array parameters alist of languages to filer user's posts by."
   (interactive
-   (list (mastodon-tl--interactive-user-handles-get "follow")))
+   (list (mastodon-tl--user-handles-get "follow")))
   (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response
     user-handle "follow" nil notify langs)))
@@ -1811,14 +1811,14 @@ LANGS is an array parameters alist of languages to filer user's posts by."
 (defun mastodon-tl--enable-notify-user-posts (user-handle)
   "Query for USER-HANDLE and enable notifications when they post."
   (interactive
-   (list (mastodon-tl--interactive-user-handles-get "enable")))
+   (list (mastodon-tl--user-handles-get "enable")))
   (mastodon-tl--do-if-toot
    (mastodon-tl--follow-user user-handle "true")))
 
 (defun mastodon-tl--disable-notify-user-posts (user-handle)
   "Query for USER-HANDLE and disable notifications when they post."
   (interactive
-   (list (mastodon-tl--interactive-user-handles-get "disable")))
+   (list (mastodon-tl--user-handles-get "disable")))
   (mastodon-tl--follow-user user-handle "false"))
 
 (defun mastodon-tl--filter-user-user-posts-by-language (user-handle)
@@ -1826,8 +1826,7 @@ LANGS is an array parameters alist of languages to filer user's posts by."
 This feature is experimental and for now not easily varified by
 the instance API."
   (interactive
-   (list
-    (mastodon-tl--interactive-user-handles-get "filter by language")))
+   (list (mastodon-tl--user-handles-get "filter by language")))
   (let ((langs (mastodon-tl--read-filter-langs)))
     (mastodon-tl--do-if-toot
      (mastodon-tl--follow-user user-handle nil langs))))
@@ -1850,14 +1849,14 @@ LANGS is the accumulated array param alist if we re-run recursively."
 (defun mastodon-tl--unfollow-user (user-handle)
   "Query for USER-HANDLE from current status and unfollow that user."
   (interactive
-   (list (mastodon-tl--interactive-user-handles-get "unfollow")))
+   (list (mastodon-tl--user-handles-get "unfollow")))
   (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response user-handle "unfollow" t)))
 
 (defun mastodon-tl--block-user (user-handle)
   "Query for USER-HANDLE from current status and block that user."
   (interactive
-   (list (mastodon-tl--interactive-user-handles-get "block")))
+   (list (mastodon-tl--user-handles-get "block")))
   (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response user-handle "block")))
 
@@ -1872,7 +1871,7 @@ LANGS is the accumulated array param alist if we re-run recursively."
 (defun mastodon-tl--mute-user (user-handle)
   "Query for USER-HANDLE from current status and mute that user."
   (interactive
-   (list (mastodon-tl--interactive-user-handles-get "mute")))
+   (list (mastodon-tl--user-handles-get "mute")))
   (mastodon-tl--do-if-toot
    (mastodon-tl--do-user-action-and-response user-handle "mute")))
 
@@ -1887,13 +1886,13 @@ LANGS is the accumulated array param alist if we re-run recursively."
 (defun mastodon-tl--dm-user (user-handle)
   "Query for USER-HANDLE from current status and compose a message to that user."
   (interactive
-   (list (mastodon-tl--interactive-user-handles-get "message")))
+   (list (mastodon-tl--user-handles-get "message")))
   (mastodon-tl--do-if-toot
    (mastodon-toot--compose-buffer (concat "@" user-handle))
    (setq mastodon-toot--visibility "direct")
    (mastodon-toot--update-status-fields)))
 
-(defun mastodon-tl--interactive-user-handles-get (action)
+(defun mastodon-tl--user-handles-get (action)
   "Get the list of user-handles for ACTION from the current toot."
   (mastodon-tl--do-if-toot
    (let ((user-handles
