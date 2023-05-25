@@ -359,7 +359,7 @@ TYPE is a symbol, either `favourite' or `boost.'"
                                           (mastodon-tl--property 'toot-json))))
      (if byline-region
          (if (and (or (equal visibility "direct")
-                      (equal visibility "unlisted"))
+                      (equal visibility "private"))
                   boost-p)
              (message "You cant boost posts with visibility: %s" visibility)
            (cond ;; actually there's nothing wrong with faving/boosting own toots!
