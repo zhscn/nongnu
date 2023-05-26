@@ -724,10 +724,7 @@ INSTANCE is an instance domain name."
   (interactive)
   (if user
       (let ((response (mastodon-http--get-json
-                       (mastodon-http--api "instance")
-                       nil ; params
-                       nil ; silent
-                       :vector)))
+                       (mastodon-http--api "instance") nil nil :vector)))
         (mastodon-views--instance-response-fun response brief instance))
     (mastodon-tl--do-if-toot
      (let* ((toot (if (mastodon-tl--profile-buffer-p)
@@ -755,12 +752,7 @@ INSTANCE is an instance domain name."
                         (alist-get 'username account)))
             (instance (mastodon-views--get-instance-url url username instance))
             (response (mastodon-http--get-json
-                       (if user
-                           (mastodon-http--api "instance")
-                         (concat instance "/api/v1/instance"))
-                       nil ; params
-                       nil ; silent
-                       :vector)))
+                       (concat instance "/api/v1/instance") nil nil :vector)))
        (mastodon-views--instance-response-fun response brief instance)))))
 
 (defun mastodon-views--instance-response-fun (response brief instance)
