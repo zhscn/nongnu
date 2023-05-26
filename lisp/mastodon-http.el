@@ -87,7 +87,6 @@ RESPONSE if unsuccessful."
                   (mastodon-http--status))))
     (if (string-prefix-p "2" status)
         (funcall success)
-      ;; 404 sometimes returns http response so --process-json fails:
       (if (string-prefix-p "404" status)
           (message "Error %s: page not found" status)
         (let ((json-response (with-current-buffer response
@@ -181,6 +180,15 @@ Callback to `mastodon-http--get-json-async', usually
 `mastodon-tl--init*', is run on the result."
   (car (mastodon-http--process-response :no-headers)))
 
+(defun mastodon-http--render-html-err (string)
+  "Render STRING as HTML in a temp buffer.
+STRING should be a HTML for a 404 errror."
+  (with-temp-buffer
+    (insert json-string)
+    (shr-render-buffer (current-buffer))
+    (view-mode) ; for 'q' to kill buffer and window
+    (error ""))) ; stop subsequent processing
+
 (defun mastodon-http--process-response (&optional no-headers vector)
   "Process http response.
 Return a cons of JSON list and http response headers.
@@ -201,9 +209,14 @@ Callback to `mastodon-http--get-response-async', usually
       (kill-buffer)
       (cond ((or (string-empty-p json-string) (null json-string))
              nil)
-            ;; if no json, maybe we have a plain string error message (misskey
-            ;; does this, but there are probably better ways to do this):
-            ;; FIXME: friendica at least sends plain html if endpoint not found.
+            ;; if we get html, just render it and error:
+            ;; ideally we should handle the status code in here rather than
+            ;; this crappy hack?
+            ((string-prefix-p "\n<!" json-string) ; html hack
+             (mastodon-http--render-html-err json-string))
+            ;; if no json or html, maybe we have a plain string error message
+            ;; (misskey does this, but there are probably better ways to do
+            ;; this):
             ((not (or (string-prefix-p "\n{" json-string)
                       (string-prefix-p "\n[" json-string)))
              (error "%s" json-string))
