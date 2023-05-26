@@ -863,6 +863,8 @@ this should be of the form <at-sign><user id>, e.g. \"@Gargon\"."
                    (url-host (url-generic-parse-url mastodon-instance-url))
                    (url-host parsed-url))))
     (when (and (string= "@" (substring buffer-text 0 1))
+               ;; don't error on domain only url (rare):
+               (not (string= "" (url-filename parsed-url)))
                (string= (downcase buffer-text)
                         (downcase (substring (url-filename parsed-url) 1))))
       (if local-p
