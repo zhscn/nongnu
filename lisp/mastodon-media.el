@@ -284,7 +284,7 @@ Replace them with the referenced image."
      (propertize ""
                  'help-echo "Video"
                  'face
-                 '((:height 3.5 :inherit 'font-lock-comment-face))))))
+                 '((:height 3.5 :inherit font-lock-comment-face))))))
 ;; (cl-pushnew ov mastodon-media--overlays)))
 
 (defun mastodon-media--get-avatar-rendering (avatar-url)
