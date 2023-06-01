@@ -242,12 +242,14 @@ Argument FN-CACHE stores the result for reuse."
              (word-split
               (mapcar
                #'downcase
-               (split-string (string-trim (replace-regexp-in-string
-                                           "\\([[:lower:]]\\)\\([[:upper:]]\\)"
-                                           "\\1_\\2"
-                                           word-init)
-                                          "_")
-                             "[_\\-]"))))
+               ;; `split-string' modified match-data.
+               (save-match-data
+                 (split-string (string-trim (replace-regexp-in-string
+                                             "\\([[:lower:]]\\)\\([[:upper:]]\\)"
+                                             "\\1_\\2"
+                                             word-init)
+                                            "_")
+                               "[_\\-]")))))
 
         (push (string-join (mapcar #'capitalize word-split) "") result-choices)
 
