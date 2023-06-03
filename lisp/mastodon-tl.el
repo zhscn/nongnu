@@ -1908,9 +1908,10 @@ LANGS is the accumulated array param alist if we re-run recursively."
                  ;; fetch 'toot-json:
                  (list (alist-get 'acct
                                   (mastodon-tl--property 'toot-json :no-move))))
-                ;; profile view, no toots
+                ;; profile view, point in profile details, poss no toots
                 ;; needed for e.g. gup.pe groups which show no toots publically:
-                ((mastodon-tl--profile-buffer-p)
+                ((and (mastodon-tl--profile-buffer-p)
+                      (get-text-property (point) 'profile-json))
                  (list (alist-get 'acct
                                   (mastodon-profile--profile-json))))
                 (t
