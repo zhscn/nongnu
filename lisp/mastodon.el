@@ -180,6 +180,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "v") #'mastodon-tl--poll-vote)
     (define-key map (kbd "E") #'mastodon-toot--view-toot-edits)
     (define-key map (kbd "T") #'mastodon-tl--thread)
+    (define-key map (kbd "m") #'mastodon-tl--dm-user)
     (when (require 'lingva nil :no-error)
       (define-key map (kbd "a") #'mastodon-toot--translate-toot-text))
     (define-key map (kbd ",") #'mastodon-toot--list-toot-favouriters)
