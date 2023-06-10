@@ -621,9 +621,9 @@ HEADERS means also fetch link headers for pagination."
                (if followsp
                    (mastodon-tl--set-face
                     (concat (when (equal .following 't)
-                              " | FOLLOWS YOU")
-                            (when (equal .followed_by 't)
                               " | FOLLOWED BY YOU")
+                            (when (equal .followed_by 't)
+                              " | FOLLOWS YOU")
                             (when (equal .requested_by 't)
                               " | REQUESTED TO FOLLOW YOU")
                             "\n\n")
