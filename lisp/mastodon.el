@@ -367,7 +367,8 @@ not, just browse the URL in the normal fashion."
           (string-match "^/profile/[[:alpha:]]+$" query)
           (string-match "^/p/[[:alpha:]]+/[[:digit:]]+$" query)
           (string-match "^/[[:alpha:]]+$" query)
-          (string-match "^/u/[[:alpha:]]+$" query)))))
+          (string-match "^/u/[[:alpha:]]+$" query)
+          (string-match "^/post/[[:digit:]]+$" query)))))
 
 (defun mastodon-live-buffers ()
   "Return a list of open mastodon buffers.
