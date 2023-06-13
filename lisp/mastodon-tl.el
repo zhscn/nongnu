@@ -1757,12 +1757,15 @@ Note that you can only (un)mute threads you have posted in."
 If UNMUTE, unmute it."
   (let ((endpoint (mastodon-tl--endpoint))
         (mute-str (if unmute "unmute" "mute")))
-    (when (mastodon-tl--buffer-type-eq 'thread)
+    (when (or (mastodon-tl--buffer-type-eq 'thread)
+              (mastodon-tl--buffer-type-eq 'notifications))
       (let* ((id
-              (save-match-data
-                (string-match "statuses/\\(?2:[[:digit:]]+\\)/context"
-                              endpoint)
-                (match-string 2 endpoint)))
+              (if (mastodon-tl--buffer-type-eq 'notifications)
+                  (get-text-property (point) 'base-toot-id)
+                (save-match-data
+                  (string-match "statuses/\\(?2:[[:digit:]]+\\)/context"
+                                endpoint)
+                  (match-string 2 endpoint))))
              (we-posted-p (mastodon-tl--user-in-thread-p id))
              (url (mastodon-http--api (format "statuses/%s/%s" id mute-str))))
         (if (not we-posted-p)
