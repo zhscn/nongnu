@@ -1123,7 +1123,9 @@ LONGEST-OPTION is the option whose length determines the formatting."
                       ""))
                'face 'font-lock-comment-face)
               (let ((str (if (eq .expired :json-false)
-                             (mastodon-tl--format-poll-expiry .expires_at)
+                             (if (eq .expires_at nil)
+                                 ""
+                               (mastodon-tl--format-poll-expiry .expires_at))
                            "Poll expired.")))
                 (propertize str 'face 'font-lock-comment-face))
               "\n"))))
