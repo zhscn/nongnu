@@ -38,7 +38,7 @@ Usage
 * Composing toots::
 * Other commands and account settings::
 * Customization::
-* commands and variables index::
+* Commands and variables index::
 * Alternative timeline layout::
 * Live-updating timelines mastodon-async-mode::
 * Translating toots::
@@ -162,7 +162,7 @@ File: mastodon.info,  Node: Usage,  Next: Dependencies,  Prev: Installation,  Up
 * Composing toots::
 * Other commands and account settings::
 * Customization::
-* commands and variables index::
+* Commands and variables index::
 * Alternative timeline layout::
 * Live-updating timelines mastodon-async-mode::
 * Translating toots::
@@ -426,7 +426,7 @@ and should work without first loading ‘mastodon.el’:
      posts are marked as sensitive (nsfw) by default.
 
 
-File: mastodon.info,  Node: Customization,  Next: commands and variables index,  Prev: Other commands and account settings,  Up: Usage
+File: mastodon.info,  Node: Customization,  Next: Commands and variables index,  Prev: Other commands and account settings,  Up: Usage
 
 1.2.5 Customization
 -------------------
@@ -451,16 +451,16 @@ See ‘M-x customize-group RET mastodon’ to view all customize options.
         • Set default reply visibility
 
 
-File: mastodon.info,  Node: commands and variables index,  Next: Alternative timeline layout,  Prev: Customization,  Up: Usage
+File: mastodon.info,  Node: Commands and variables index,  Next: Alternative timeline layout,  Prev: Customization,  Up: Usage
 
-1.2.6 commands and variables index
+1.2.6 Commands and variables index
 ----------------------------------
 
 An index of all user-facing commands and custom variables is available
 here: mastodon-index.org (mastodon-index.org).
 
 
-File: mastodon.info,  Node: Alternative timeline layout,  Next: Live-updating timelines mastodon-async-mode,  Prev: commands and variables index,  Up: Usage
+File: mastodon.info,  Node: Alternative timeline layout,  Next: Live-updating timelines mastodon-async-mode,  Prev: Commands and variables index,  Up: Usage
 
 1.2.7 Alternative timeline layout
 ---------------------------------
@@ -672,7 +672,7 @@ Ref: autocompletion of mentions and tags11702
 Ref: Draft toots12415
 Node: Other commands and account settings12886
 Node: Customization16044
-Node: commands and variables index16831
+Node: Commands and variables index16831
 Node: Alternative timeline layout17151
 Node: Live-updating timelines mastodon-async-mode17556
 Node: Translating toots18408
