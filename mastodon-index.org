@@ -49,19 +49,8 @@
 | Binding          | Command                                           | Description                                                                    |
 |------------------+---------------------------------------------------+--------------------------------------------------------------------------------|
 |                  | mastodon                                          | Connect Mastodon client to `mastodon-instance-url' instance.                   |
-|                  | mastodon-async--display-buffer                    | Display the async user facing buffer.                                          |
-|                  | mastodon-async--stop-http                         | Stop the http processs and close the async and http buffer.                    |
-|                  | mastodon-async--stream-federated                  | Open a stream of Federated.                                                    |
-|                  | mastodon-async--stream-home                       | Open a stream of the home timeline.                                            |
-|                  | mastodon-async--stream-local                      | Open a stream of Local.                                                        |
-|                  | mastodon-async--stream-notifications              | Open a stream of user notifications.                                           |
 |                  | mastodon-async-mode                               | Async Mastodon.                                                                |
 |                  | mastodon-discover                                 | Plug Mastodon functionality into `discover'.                                   |
-|                  | mastodon-inspect--get-search-account              | Return JSON for a single account after search QUERY.                           |
-|                  | mastodon-inspect--get-search-result               | Inspect function for a search result for QUERY.                                |
-|                  | mastodon-inspect--toot                            | Find next toot and dump its meta data into new buffer.                         |
-|                  | mastodon-inspect--view-single-toot                | View the toot/status represented by TOOT-ID.                                   |
-|                  | mastodon-inspect--view-single-toot-source         | View the ess source of a toot/status represented by TOOT-ID.                   |
 | C-M-q            | mastodon-kill-all-buffers                         | Kill any and all open mastodon buffers, hopefully.                             |
 |                  | mastodon-mode                                     | Major mode for Mastodon, the federated microblogging network.                  |
 |                  | mastodon-notifications--clear-all                 | Clear all notifications.                                                       |
@@ -108,14 +97,14 @@
 |                  | mastodon-search--trending-tags                    | Display a list of tags trending on your instance.                              |
 | B                | mastodon-tl--block-user                           | Query for USER-HANDLE from current status and block that user.                 |
 |                  | mastodon-tl--disable-notify-user-posts            | Query for USER-HANDLE and disable notifications when they post.                |
-|                  | mastodon-tl--dm-user                              | Query for USER-HANDLE from current status and compose a message to that user.  |
+| m                | mastodon-tl--dm-user                              | Query for USER-HANDLE from current status and compose a message to that user.  |
 |                  | mastodon-tl--do-link-action                       | Do the action of the link at point.                                            |
 |                  | mastodon-tl--do-link-action-at-point              | Do the action of the link at POSITION.                                         |
 |                  | mastodon-tl--enable-notify-user-posts             | Query for USER-HANDLE and enable notifications when they post.                 |
 |                  | mastodon-tl--filter-user-user-posts-by-language   | Query for USER-HANDLE and enable notifications when they post.                 |
 |                  | mastodon-tl--follow-tag                           | Prompt for a tag and follow it.                                                |
 | W                | mastodon-tl--follow-user                          | Query for USER-HANDLE from current status and follow that user.                |
-| C-:              | mastodon-tl--followed-tags-timeline               | Open a timeline of all your followed tags.                                     |
+| '                | mastodon-tl--followed-tags-timeline               | Open a timeline of all your followed tags.                                     |
 | F                | mastodon-tl--get-federated-timeline               | Open federated timeline.                                                       |
 | H                | mastodon-tl--get-home-timeline                    | Open home timeline.                                                            |
 | L                | mastodon-tl--get-local-timeline                   | Open local timeline.                                                           |
@@ -124,7 +113,7 @@
 | C-<down>, n      | mastodon-tl--goto-next-toot                       | Jump to next toot header.                                                      |
 |                  | mastodon-tl--goto-prev-item                       | Jump to previous item, e.g. filter or follow request.                          |
 | C-<up>, p        | mastodon-tl--goto-prev-toot                       | Jump to last toot header.                                                      |
-| :                | mastodon-tl--list-followed-tags                   | List followed tags. View timeline of tag user choses.                          |
+| "                | mastodon-tl--list-followed-tags                   | List followed tags. View timeline of tag user choses.                          |
 | C-<return>       | mastodon-tl--mpv-play-video-at-point              | Play the video or gif at point with an mpv process.                            |
 |                  | mastodon-tl--mpv-play-video-from-byline           | Run `mastodon-tl--mpv-play-video-at-point' on first moving image in post.      |
 |                  | mastodon-tl--mute-thread                          | Mute the thread displayed in the current buffer.                               |
@@ -232,7 +221,6 @@
 | Custom variable                                    | Description                                                          |
 |----------------------------------------------------+----------------------------------------------------------------------|
 | mastodon-active-user                               | Username of the active user.                                         |
-| mastodon-async-mode-hook                           | Hook run after entering or leaving `mastodon-async-mode'.            |
 | mastodon-client--token-file                        | File path where Mastodon access tokens are stored.                   |
 | mastodon-instance-url                              | Base URL for the Mastodon instance you want to be active.            |
 | mastodon-media--avatar-height                      | Height of the user avatar images (if shown).                         |
