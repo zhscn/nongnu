@@ -184,7 +184,7 @@ Callback to `mastodon-http--get-json-async', usually
   "Render STRING as HTML in a temp buffer.
 STRING should be a HTML for a 404 errror."
   (with-temp-buffer
-    (insert json-string)
+    (insert string)
     (shr-render-buffer (current-buffer))
     (view-mode) ; for 'q' to kill buffer and window
     (error ""))) ; stop subsequent processing
@@ -212,7 +212,7 @@ Callback to `mastodon-http--get-response-async', usually
             ;; if we get html, just render it and error:
             ;; ideally we should handle the status code in here rather than
             ;; this crappy hack?
-            ((string-prefix-p "\n<!" json-string) ; html hack
+            ((string-prefix-p "\n<" json-string) ; html hack
              (mastodon-http--render-html-err json-string))
             ;; if no json or html, maybe we have a plain string error message
             ;; (misskey does this, but there are probably better ways to do
