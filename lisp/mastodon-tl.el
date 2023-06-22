@@ -629,9 +629,11 @@ this just means displaying toot client."
        (funcall author-byline toot)
        ;; visibility:
        (cond ((equal visibility "direct")
-              (concat " " (mastodon-tl--symbol 'direct)))
+              (propertize (concat " " (mastodon-tl--symbol 'direct))
+                          'help-echo visibility))
              ((equal visibility "private")
-              (concat " " (mastodon-tl--symbol 'private))))
+              (propertize (concat " " (mastodon-tl--symbol 'private))
+                          'help-echo visibility)))
        (funcall action-byline toot)
        " "
        (propertize
