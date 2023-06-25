@@ -172,7 +172,7 @@ definition in Corfu."
                        (list pos popon-width (window-start)
                              (buffer-modified-tick)))
                 (car corfu-terminal--last-position)
-              (let ((pos (popon-x-y-at-pos pos)))
+              (let ((pos (popon-x-y-at-pos (if (posnp pos) (posn-point pos) pos))))
                 (cons
                  (max
                   (min (- (car pos) (+ off margin-left-width))
