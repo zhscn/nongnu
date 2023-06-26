@@ -334,7 +334,7 @@ is as follows:
      ‘C-c C-p’   Create a poll
      ‘C-c C-l’   Set toot language
 
-  2. autocompletion of mentions and tags
+  2. Autocompletion of mentions and tags
 
      Autocompletion of mentions and tags is provided by
      ‘completion-at-point-functions’ (capf) backends.
@@ -668,7 +668,7 @@ Ref: Keybindings5063
 Ref: Toot byline legend9636
 Node: Composing toots9945
 Ref: Keybindings (1)11184
-Ref: autocompletion of mentions and tags11702
+Ref: Autocompletion of mentions and tags11702
 Ref: Draft toots12415
 Node: Other commands and account settings12886
 Node: Customization16044

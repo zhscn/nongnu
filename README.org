@@ -236,7 +236,7 @@ value of that hook is as follows:
 | =C-c C-l= | Set toot language                |
 |---------+----------------------------------|
 
-**** autocompletion of mentions and tags
+**** Autocompletion of mentions and tags
 
 Autocompletion of mentions and tags is provided by
 =completion-at-point-functions= (capf) backends.
@@ -382,7 +382,7 @@ to your translator function as its text argument. Here's what
           (message "No toot to translate?"))))
 #+end_src
 
-*** bookmarks and =mastodon.el=
+*** Bookmarks and =mastodon.el=
 
 =mastodon.el= doesn’t currently implement its own bookmark record and handler,
 which means that emacs bookmarks will not work as is. Until we implement them,

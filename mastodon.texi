@@ -418,7 +418,7 @@ value of that hook is as follows:
 @end multitable
 
 @item
-@anchor{autocompletion of mentions and tags}autocompletion of mentions and tags
+@anchor{Autocompletion of mentions and tags}Autocompletion of mentions and tags
 
 
 Autocompletion of mentions and tags is provided by
