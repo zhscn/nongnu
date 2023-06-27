@@ -1689,8 +1689,16 @@ ID is that of the toot to view."
     (if (equal (caar toot) 'error)
         (message "Error: %s" (cdar toot))
       (with-mastodon-buffer buffer #'mastodon-mode nil
-        (mastodon-tl--set-buffer-spec buffer (format "statuses/%s" id) nil)
-        (mastodon-tl--toot toot :detailed-p)))))
+        (mastodon-tl--set-buffer-spec buffer (format "statuses/%s" id)
+                                      #'mastodon-tl--update-toot)
+        (mastodon-tl--toot toot :detailed-p)
+        (goto-char (point-min))
+        (mastodon-tl--goto-next-item)))))
+
+(defun mastodon-tl--update-toot (json)
+  ""
+  (let ((id (alist-get 'id json)))
+    (mastodon-tl--single-toot id)))
 
 (defun mastodon-tl--view-whole-thread ()
   "From a thread view, view entire thread.
