@@ -348,13 +348,14 @@ nil if nothing is found."
   "Prefix STRING with the search prompt."
   (format "%s%s" (evil-search-prompt forward) string))
 
-(defadvice isearch-message-prefix (around evil activate)
+(evil--local-advice-add 'isearch-message-prefix :around #'evil--use-search-prompt)
+(defun evil--use-search-prompt (orig-fun &rest args)
   "Use `evil-search-prompt'."
-  (if evil-search-prompt
-      (setq ad-return-value evil-search-prompt)
-    ad-do-it))
+  (or evil-search-prompt
+      (apply orig-fun args)))
 
-(defadvice isearch-delete-char (around evil activate)
+(evil--local-advice-add 'isearch-delete-char :around #'evil--exit-search-when-empty)
+(defun evil--exit-search-when-empty (orig-fun &rest args)
   "Exit search if no search string."
   (cond
    ((and evil-search-prompt (string= isearch-string ""))
@@ -362,12 +363,13 @@ nil if nothing is found."
       (setq isearch-success nil)
       (isearch-exit)))
    (t
-    ad-do-it)))
+    (apply orig-fun args))))
 
-(defadvice isearch-lazy-highlight-search (around evil activate)
+(evil--local-advice-add 'isearch-lazy-highlight-search :around #'evil--without-search-wrap)
+(defun evil--without-search-wrap (orig-fun &rest args)
   "Never wrap the search in this context."
   (let (evil-search-wrap)
-    ad-do-it))
+    (apply orig-fun args)))
 
 ;;; Ex search
 
