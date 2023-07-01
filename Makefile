@@ -2,7 +2,7 @@ SHELL = /bin/sh
 EMACS ?= emacs
 SED ?= sed
 FILES = $(filter-out evil-test-helpers.el evil-tests.el evil-pkg.el,$(wildcard evil*.el))
-VERSION := $(shell $(SED) -ne '/define-package/,$$p' evil-pkg.el | $(SED) -ne '/^\s*"[[:digit:]]\+\(\.[[:digit:]]\+\)*"\s*$$/ s/^.*"\(.*\)".*$$/\1/p')
+VERSION := $(shell $(SED) -ne 's/;; Version: *\(.*\)/\1/p' evil.el)
 ELPAPKG = evil-$(VERSION)
 PROFILER =
 DOC = doc
@@ -102,8 +102,14 @@ indent: clean
 		(replace-match \"\\n\\n\")) \
 		(when (buffer-modified-p) (save-buffer 0))))"
 
+evil-pkg.el: evil.el
+	$(EMACS) --batch -l package evil.el 		   \
+		--eval "(package-generate-description-file \
+			 (package-buffer-info)		   \
+		         \"$@\")"
+
 # Create an ELPA package.
-elpa:
+elpa: evil-pkg.el
 	@echo "Creating ELPA package $(ELPAPKG).tar"
 	@rm -rf ${ELPAPKG}
 	@mkdir ${ELPAPKG}
