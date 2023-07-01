@@ -106,11 +106,19 @@
 
 ;;; Code:
 
-(require 'advice)
 (require 'evil-common)
 
 (declare-function evil-emacs-state-p "evil-states")
 (declare-function evil-ex-p "evil-ex")
+
+(defun evil--local-advice-add (&rest args)
+  "Like `advice-add' for Evil's advices active in `evil-local-mode'."
+  ;; FIXME: Ideally, we should wait until the first buffer with
+  ;; `evil-local-mode' and then disable them when we leave the last such
+  ;; buffer, but the advices need to be careful to be harmless
+  ;; in non-evil-local-mode buffers anyway, so it's OK to activate
+  ;; them even when there's no `evil-local-mode' buffer.
+  (apply #'advice-add args))
 
 (define-minor-mode evil-local-mode
   "Minor mode for setting up Evil in a single buffer."
@@ -168,11 +176,16 @@ To enable Evil globally, do (evil-mode)."
 
 (defalias 'evil--fundamental-mode #'fundamental-mode)
 
+(defvar evil--global-advice-list nil)
+
 ;;;###autoload (autoload 'evil-mode "evil" nil t)
 (define-globalized-minor-mode evil-mode evil-local-mode evil-initialize
   :group 'evil)
 
-(defadvice evil-mode (after start-evil activate)
+;; `define-globalized-minor-mode' supports a BODY argument but only since
+;; Emacs-27.1, so we resort to using this ugly advice in the mean time.
+(advice-add 'evil-mode :after #'evil--mode-body)
+(defun evil--mode-body (&rest _)
   ;; Hooks used to not run in Fundamental buffers (bug#23827), so
   ;; other measures are necessary to initialize Evil there. When Evil
   ;; is enabled globally, the default value of `major-mode' is set to
@@ -181,15 +194,20 @@ To enable Evil globally, do (evil-mode)."
       (progn
         (and (eval-when-compile (version< emacs-version "26.1"))
              (eq (default-value 'major-mode) 'fundamental-mode)
-             (setq-default major-mode 'evil--fundamental-mode))
-        (ad-enable-regexp "^evil")
-        (ad-activate-regexp "^evil")
+             (setq-default major-mode #'evil--fundamental-mode))
+        (pcase-dolist (advice evil--global-advice-list)
+          (apply #'advice-add advice))
         (with-no-warnings (evil-esc-mode 1)))
-    (when (eq (default-value 'major-mode) 'evil--fundamental-mode)
+    (when (eq (default-value 'major-mode) #'evil--fundamental-mode)
       (setq-default major-mode 'fundamental-mode))
-    (ad-disable-regexp "^evil")
-    (ad-update-regexp "^evil")
+    (pcase-dolist (`(,funname ,_where ,adfun) evil--global-advice-list)
+      (advice-remove funname adfun))
     (with-no-warnings (evil-esc-mode -1))))
+
+(defun evil--global-advice-add (&rest args)
+  "Like `advice-add' for Evil's advice active in `evail-mode'."
+  (when evil-mode (apply #'advice-add args))
+  (add-to-list 'evil--global-advice-list args))
 
 (defun evil-change-state (state &optional message)
   "Change the state to STATE.
@@ -329,17 +347,20 @@ then this function does nothing."
 ;; run. This is appropriate since many buffers are used for throwaway
 ;; purposes. Passing the buffer to `set-window-buffer' indicates
 ;; otherwise, though, so advise this function to initialize Evil.
-(defadvice set-window-buffer (before evil)
+(evil--global-advice-add 'set-window-buffer :before #'evil--swb-initialize)
+(defun evil--swb-initialize (_window buffer &rest _)
   "Initialize Evil in the displayed buffer."
-  (when (and evil-mode (get-buffer (ad-get-arg 1)))
-    (with-current-buffer (ad-get-arg 1)
+  (when (and evil-mode (get-buffer buffer))
+    (with-current-buffer buffer
       (unless evil-local-mode
         (save-match-data (evil-initialize))))))
 
 ;; Refresh cursor color.
 ;; Cursor color can only be set for each frame but not for each buffer.
+;; FIXME: Shouldn't this belong in `evil-(local-)mode'?
 (add-hook 'window-configuration-change-hook #'evil-refresh-cursor)
-(defadvice select-window (after evil activate)
+(evil--local-advice-add 'select-window :after #'evil--sw-refresh-cursor)
+(defun evil--sw-refresh-cursor (&rest _)
   (evil-refresh-cursor))
 
 (defun evil-generate-mode-line-tag (&optional state)
@@ -422,16 +443,17 @@ This allows input methods to be used in normal-state."
      (add-hook 'input-method-activate-hook #'evil-activate-input-method nil t)
      (add-hook 'input-method-deactivate-hook #'evil-deactivate-input-method nil t)))
 
-(defadvice toggle-input-method (around evil)
+(evil--global-advice-add 'toggle-input-method :around #'evil--refresh-inpput-method)
+(defun evil--refresh-inpput-method (orig-fun &rest args)
   "Refresh `evil-input-method'."
   (cond
    ((not evil-local-mode)
-    ad-do-it)
+    (apply orig-fun args))
    ((evil-state-property evil-state :input-method)
-    ad-do-it)
+    (apply orig-fun args))
    (t
     (let ((current-input-method evil-input-method))
-      ad-do-it))))
+      (apply orig-fun args)))))
 
 ;; Local keymaps are implemented using buffer-local variables.
 ;; However, unless a buffer-local value already exists,
@@ -1105,13 +1127,12 @@ Add additional BINDINGS if specified."
 
 ;; Advise these functions as they may activate an overriding keymap or
 ;; a keymap with state bindings; if so, refresh `evil-mode-map-alist'.
-(defadvice use-global-map (after evil activate)
+(evil--local-advice-add 'use-global-map :after #'evil--ugm-normalize-keymaps)
+(evil--local-advice-add 'use-local-map :after #'evil--ugm-normalize-keymaps)
+(defun evil--ugm-normalize-keymaps (&rest _)
   "Refresh Evil keymaps."
   (evil-normalize-keymaps))
 
-(defadvice use-local-map (after evil activate)
-  "Refresh Evil keymaps."
-  (evil-normalize-keymaps))
 
 (defmacro evil-define-state (state doc &rest body)
   "Define an Evil state STATE.
