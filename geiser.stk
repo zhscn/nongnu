@@ -32,10 +32,16 @@
   (when (string? name)
     (set! geiser-log-file (open-output-file name))))
 
+;; The variable geiser-log-file may be a port, but it may also
+;; be #f when no logging is going on, so this wrapper is used to
+;; flush it.
+(define (flush-when-port p)
+  (when (output-port? p) (flush-output-port p)))
+
 (define (geiser-format port . rest)
   (when (output-port? port)
     (apply format (cons port rest))
-    (flush-output-port port)))
+    (flush-when-port port)))
 
 ;; executes thunk, with all its output (standar and error) redirected
 ;; to a string.
@@ -88,7 +94,8 @@
                  `((result ,@result)
                    (output . ,output))))
       (write out-form)
-      (geiser-format geiser-log-file "call-with-result response: ~s~%" out-form))
+      (geiser-format geiser-log-file "call-with-result response: ~s~%" out-form)
+      (flush-when-port geiser-log-file))
     
     (newline)))
 
@@ -112,7 +119,8 @@
 (define (geiser:eval module-name form . rest)
   (geiser-format geiser-log-file "_________________~%")
   (geiser-format geiser-log-file "geiser:eval form: ~s~%" form)
-
+  (flush-when-port geiser-log-file)
+  
   ;; All calls start at toplevel
   (let ((module (or (and (symbol? module-name )
 			 (find-module module-name))
@@ -124,6 +132,7 @@
                    (lambda () (eval form module)))))
       (let ((ret (call-with-result thunk)))
         (geiser-format geiser-log-file "geiser:eval return: ~s~%" ret)
+        (flush-when-port geiser-log-file)
         ret))))
 
 

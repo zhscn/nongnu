@@ -130,8 +130,10 @@ option."
 (geiser-custom--defcustom geiser-stklos-log-file
     ""
   "Name of the file where the STklos part of the system will log its
-actions. FOR GEISER-STKLOS DEVELOPMENT ONLY -- currently there is no
-effect for the common user."
+actions. Note that forms are sent from emacs to STklos, and then
+from STklos back to Emacs. This is the file where *only* the
+STklos process will show the forms it receives, and the answer it
+gives back to Emacs. Leave empty for no logging."
   :type 'string
   :group 'geiser-stklos)
 
@@ -362,11 +364,20 @@ Argument BINARY is a string containing the binary name."
   "Hook for startup.  The argument is ignored."
   (let ((geiser-log-verbose-p t))
     (compilation-setup t)
+
+    ;; If the user wants to log the forms that STklos receives, and the
+    ;; answer it gives back, we send to STklos the form
+    ;;
+    ;; (geiser:eval "GEISER" (geiser:set-log-file FILENAME))
+    ;;
+    ;; besides (newline), which we always send.
+    ;; This is *only* the STklos part of logging. The STklos process will
+    ;; log the forms received and sent back.
     (let ((c (if (zerop (length geiser-stklos-log-file))
                  "(newline)"
-                 (concat "(begin (geiser:eval \"GEISER\" geiser:set-log-file "
+                 (concat "(begin (geiser:eval \"GEISER\" (geiser:set-log-file \""
                          geiser-stklos-log-file
-                         ") (newline))"))))
+                         "\")) (newline))"))))
       (geiser-eval--send/wait c))))
 
 (defconst geiser-stklos-builtin-keywords
