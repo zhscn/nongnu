@@ -213,7 +213,8 @@ Optional argument ARGS are the arguments to the procedure."
 
 (defconst geiser-stklos--module-re
   "(define-\\(module\\|library\\) +\\([^) ]+\\)"
-  "Regular expression used to try to guess which module the current file is associated to.")
+  "Regular expression used to try to guess which module the current
+file is associated to.")
 
 
 (defun geiser-stklos--find-close-par (&optional start-point)
@@ -384,7 +385,8 @@ Argument BINARY is a string containing the binary name."
     "These are symbols that we want to be highlighted in STklos code.")
 
 (defun geiser-stklos--keywords ()
-  "The symbols that are to be highlighted as keywords, besides the standard Scheme ones."
+  "The symbols that are to be highlighted as keywords, besides the
+standard Scheme ones."
   (append (geiser-syntax--simple-keywords geiser-stklos-extra-keywords)
           (geiser-syntax--simple-keywords geiser-stklos-builtin-keywords)))
 
