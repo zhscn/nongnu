@@ -1,4 +1,4 @@
-;;; geiser-stklos.el -- STklos Scheme implementation of the geiser protocols
+;; geiser-stklos.el -- STklos Scheme implementation of the geiser protocols
 
 ;; Copyright (C) 2020-2021 Jerônimo Pellegrini
 
@@ -285,7 +285,9 @@
   (let ((mod-name (if (null? rest)
                       (module-name (current-module))
                       (car rest))))
-    (cond ((procedure? (eval name (find-module mod-name)))
+    ;; "procedure?" tests for primitives OR closures;
+    ;; but primitives have no signature data, so we use "closure?"
+    (cond ((closure? (eval name (find-module mod-name)))
            (let ((sig (geiser:procedure-signature name mod-name))
                  (doc (%procedure-doc (eval name (find-module mod-name)))))
              (let ((res
@@ -372,8 +374,8 @@
          (let ((module (if (null? rest)
                            (current-module)
                            (car rest))))
-           (map (lambda (n) (geiser-build-autodoc n module)) names)))
-        (else "")))
+           (filter list? (map (lambda (n) (geiser-build-autodoc n module)) names))))
+        (else ())))
 
 ;; The no-values identity
 (define (geiser:no-values)

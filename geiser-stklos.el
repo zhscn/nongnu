@@ -188,21 +188,19 @@ Optional argument ARGS are the arguments to the procedure."
   ;; Adapted from Geiser-Gauche
   (cl-case proc
     ((autodoc symbol-location completions)
-     (format "(eval '(geiser:%s %s {{cur-module}}) (find-module 'GEISER))"
-	     proc (mapconcat #'identity args " ")))
-
+     (let ((cur-mod (geiser-stklos--get-module)))
+       ;; geiser:autodoc needs a module -- either a call to (current-module),
+       ;; or a QUOTED symbol that identifies a module:
+       (let ((cur-mod (if (eq cur-mod :f)
+                          "(current-module)"
+                          (format "(quote %s)" cur-mod))))
+         (format "(eval '(geiser:autodoc %s %s) (find-module 'GEISER))"
+	               (mapconcat #'identity args " ")
+                 cur-mod))))
     ((eval compile)
      (let ((module (if (car args) (concat "'" (car args)) "#f"))
 	         (form (mapconcat #'identity (cdr args) " ")))
        (format "((in-module GEISER geiser:eval) %s '%s)" module form)))
-       ;; ;; The {{cur-module}} cookie is replaced by the current module for
-       ;; ;; commands that need it
-       ;; (replace-regexp-in-string
-	     ;;  "{{cur-module}}"
-	     ;;  (if (string= module "'#f")
-	     ;;      (format "'%s" (geiser-stklos--get-module))
-	     ;;    module)
-	     ;;  (format "(eval '(geiser:eval %s '%s) (find-module 'GEISER))" module form))))
     ((load-file compile-file)
      (format "((in-module GEISER geiser:load-file) %s)" (car args)))
     ((no-values)
@@ -247,6 +245,12 @@ if a closing match is not found."
 
 ;; find which module should be used for the position where the
 ;; cursor is.
+;;
+;; The result:
+;; - if the cursor is inside a module, a STRING with the name of the module
+;; - if the cursor is not inside a module definition, then the SYMBOL :f
+;;   is returned
+;;
 ;; if the user is editing text inside a module definition -- which is
 ;; between "(define-module " or "(define-library " and its closing
 ;; parenthesis, then the current module should be taken as that one,
@@ -254,27 +258,18 @@ if a closing match is not found."
 (defun geiser-stklos--get-module (&optional module)
   "Find which MODULE should be used for the position where the cursor is."
   (cond ((null module)
-         (let ((here (point)))
-           (save-excursion
-             ;; goto end of line, so if we are already exacly on the module
-             ;; definition, we'll be able to find it searching backwards:
-             (end-of-line)
-             ;; module defined BEFORE point:
-             (let ((module-begin (re-search-backward geiser-stklos--module-re nil t)))
-               (if module-begin
-                   ;; and we're not AFTER it was closed:
-                   (let ((module-end (geiser-stklos--find-close-par module-begin)))
-                     (if (< here module-end)
-                         (geiser-stklos--get-module (match-string-no-properties 1))
-                       :f))
-                 :f)))))
-        ((symbolp module) (geiser-stklos--get-module (symbol-name module))) ; try again, as string
+         (save-excursion
+           (geiser-syntax--pop-to-top)
+           (if (looking-at geiser-stklos--module-re)
+             (geiser-stklos--get-module (match-string-no-properties 2))
+             :f)))
+        ;;((symbolp module) module) ;; why?
         ((listp module) module)
         ((stringp module)
          (condition-case e
              (car (geiser-syntax--read-from-string module))
            (progn (message "error -> %s" e)
-                  (error   :f))))
+                  (error :f))))
         (t :f)))
 
 
