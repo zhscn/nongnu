@@ -378,9 +378,26 @@ Argument BINARY is a string containing the binary name."
     "define-struct"
     "dotimes"
     "fluid-let"
+    "include-file"
     "macro-expand"
+    "match-case"
     "repeat"
+    "require-extension"
+    "require-feature"
+    "require-for-syntax"
+    "require-library"
     "tagbody"
+    "until"
+    "when-compile"
+    "when-load-and-compile"
+    "with-error-to-file"
+    "with-error-to-port"
+    "with-input-from-port"
+    "with-input-from-string"
+    "with-mutex"
+    "with-output-to-port"
+    "with-output-to-string"
+    "while"
     "with-handler" )
     "These are symbols that we want to be highlighted in STklos code.")
 
@@ -416,7 +433,7 @@ standard Scheme ones."
   (unsupported            '(callers callees))            ; doesn't seem to make any difference?
   )
 
-;; STklos files are .stk, and we may wat to open .scm files with STklos also:
+;; STklos files are .stk, and we may want to open .scm files with STklos also:
 ;;
 (geiser-implementation-extension 'stklos "scm")
 (geiser-implementation-extension 'stklos "stk")
