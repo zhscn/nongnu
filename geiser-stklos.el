@@ -357,7 +357,7 @@ Argument BINARY is a string containing the binary name."
 ;; Function ran at startup
 (defun geiser-stklos--startup (_remote)
   "Hook for startup.  The argument is ignored."
-  (let ((geiser-log-verbose-p t))
+  (let ((geiser-log-verbose t))
     (compilation-setup t)
 
     ;; If the user wants to log the forms that STklos receives, and the
