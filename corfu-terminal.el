@@ -5,7 +5,7 @@
 ;; Author: Akib Azmain Turja <akib@disroot.org>
 ;; Created: 2022-04-11
 ;; Version: 0.5
-;; Package-Requires: ((emacs "26.1") (corfu "0.35") (popon "0.1"))
+;; Package-Requires: ((emacs "26.1") (corfu "0.36") (popon "0.1"))
 ;; Keywords: convenience
 ;; Homepage: https://codeberg.org/akib/emacs-corfu-terminal
 
@@ -169,26 +169,26 @@ definition in Corfu."
               (+ width margin-left-width margin-right-width)))
            (popon-pos
             (if (equal (cdr corfu-terminal--last-position)
-                       (list pos popon-width (window-start)
-                             (buffer-modified-tick)))
+                       (list (posn-point pos) popon-width
+                             (window-start) (buffer-modified-tick)))
                 (car corfu-terminal--last-position)
-              (let ((pos (popon-x-y-at-pos (if (posnp pos) (posn-point pos) pos))))
+              (let ((x-y (popon-x-y-at-posn pos)))
                 (cons
                  (max
-                  (min (- (car pos) (+ off margin-left-width))
+                  (min (- (car x-y) (+ off margin-left-width))
                        (- (window-max-chars-per-line)
                           corfu-terminal-position-right-margin
                           popon-width))
                   0)
                  (if (and (< (/ (window-body-height nil 'pixelwise)
                                 (default-font-height))
-                             (+ (1+ (cdr pos)) (length lines)))
-                          (>= (cdr pos) (length lines)))
-                     (- (cdr pos) (length lines))
-                   (1+ (cdr pos))))))))
+                             (+ (1+ (cdr x-y)) (length lines)))
+                          (>= (cdr x-y) (length lines)))
+                     (- (cdr x-y) (length lines))
+                   (1+ (cdr x-y))))))))
       (setq corfu-terminal--last-position
-            (list popon-pos pos popon-width (window-start)
-                  (buffer-modified-tick)))
+            (list popon-pos (posn-point pos) popon-width
+                  (window-start) (buffer-modified-tick)))
       (setq corfu-terminal--popon
             (popon-create
              (cons
