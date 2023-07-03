@@ -9,7 +9,7 @@
 ;; Keywords: languages, stklos, scheme, geiser
 ;; Package-Requires: ((emacs "24.4") (geiser "0.16"))
 ;; SPDX-License-Identifier: BSD-3-Clause
-;; Version: 1.4
+;; Version: 1.7
 
 ;; This file is not part of GNU Emacs.
 
