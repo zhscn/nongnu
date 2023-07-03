@@ -130,11 +130,11 @@ option."
 
 (geiser-custom--defcustom geiser-stklos-log-file
     ""
-  "Name of the file where the STklos part of the system will log its
-actions. Note that forms are sent from emacs to STklos, and then
-from STklos back to Emacs. This is the file where *only* the
+  "Name of the log file for the STklos part of the system.
+Note that forms are sent from Emacs to STklos, and then
+from STklos back to Emacs.  This is the file where *only* the
 STklos process will show the forms it receives, and the answer it
-gives back to Emacs. Leave empty for no logging."
+gives back to Emacs.  Leave empty for no logging."
   :type 'string
   :group 'geiser-stklos)
 
@@ -214,8 +214,7 @@ Optional argument ARGS are the arguments to the procedure."
 
 (defconst geiser-stklos--module-re
   "(define-\\(module\\|library\\) +\\([^) ]+\\)"
-  "Regular expression used to try to guess which module the current
-file is associated to.")
+  "Regular expression for guessing the current module.")
 
 
 (defun geiser-stklos--find-close-par (&optional start-point)
@@ -409,8 +408,8 @@ Argument BINARY is a string containing the binary name."
     "These are symbols that we want to be highlighted in STklos code.")
 
 (defun geiser-stklos--keywords ()
-  "The symbols that are to be highlighted as keywords, besides the
-standard Scheme ones."
+  "The symbols that are to be highlighted as keywords.
+This is in addition to the standard Scheme ones."
   (append (geiser-syntax--simple-keywords geiser-stklos-extra-keywords)
           (geiser-syntax--simple-keywords geiser-stklos-builtin-keywords)))
 
