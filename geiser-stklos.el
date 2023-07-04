@@ -43,7 +43,7 @@
 ;; * autodoc (signature of procedures and values of symbols are displayed in the minibuffer
 ;;   when the mouse hovers over their names)
 ;; * symbol documentation (docstrings for procedures, and values of variables)
-;; * logging (STklos side only)
+;; * logging of forms
 ;;
 ;; Unsupported Geiser features
 ;; ───────────────────────────
@@ -138,13 +138,6 @@ gives back to Emacs.  Leave empty for no logging."
   :type 'string
   :group 'geiser-stklos)
 
-;; (geiser-custom--defcustom geiser-emacs-log-buffer
-;;     '*geiser-log*
-;;   "Name of the Emacs buffer where the Emacs Lisp part of the system
-;; will log its actions."
-;;   :type 'symbol
-;;   :group 'geiser-stklos)
-
 
 
 ;;; REPL support:
@@ -153,14 +146,15 @@ gives back to Emacs.  Leave empty for no logging."
   (expand-file-name "" (file-name-directory load-file-name))
   "Directory where the STklos scheme geiser modules are installed.")
 
-;; returns the name of the executable.
+;; returns the name of the STklos executable.
 (defun geiser-stklos--binary ()
-  "Return the name of the executable."
+  "Return the name of the STklos executable."
   (if (listp geiser-stklos-binary)
       (car geiser-stklos-binary)
     geiser-stklos-binary))
 
-;; a list of strings to be passed to STklos
+;; a list of strings to be passed to STklos as parameters, when
+;; starting it
 (defun geiser-stklos--parameters ()
   "Return a list with all parameters needed to start STklos Scheme.
 This function uses `geiser-stklos-init-file' if it exists."
@@ -180,14 +174,32 @@ This function uses `geiser-stklos-init-file' if it exists."
 ;;; Evaluation support:
 
 ;; Translates symbols into Scheme procedure calls from
-;; geiser.stk :
+;; geiser.stk
+;; When the parameter 'proc' is
+;; - 'autodoc': in this case, 'arg' should be a list with a single
+;;   symbol, whose value will be looked up in the current module.
+;;   By "current" module, we mean the current *position of the cursor*
+;;   in the file (it is determined syntatically/lexically, and it
+;;   is not the current module in the STklos runtime.
+;;
+;; - 'eval' or 'compile': the arguments following proc should be
+;;   a module and a form.
+;;
+;; - 'load-file' or 'compile-file': this is always translated into
+;;   (load-file x), where 'x' is the first argument after 'proc'
+;;
+;; - 'no-values': a special call is made to a procedure that returns
+;;   no values.
+;;
+;; - 'symbol-location' or 'completions': same as 'no-values', since
+;;   those are not supported.
 (defun geiser-stklos--geiser-procedure (proc &rest args)
   "Translates symbols into Scheme procedure calls from geiser.stk.
 Argument PROC is the procedure to be called.
 Optional argument ARGS are the arguments to the procedure."
   ;; Adapted from Geiser-Gauche
   (cl-case proc
-    ((autodoc symbol-location completions)
+    ((autodoc)
      (let ((cur-mod (geiser-stklos--get-module)))
        ;; geiser:autodoc needs a module -- either a call to (current-module),
        ;; or a QUOTED symbol that identifies a module:
@@ -203,8 +215,10 @@ Optional argument ARGS are the arguments to the procedure."
        (format "((in-module GEISER geiser:eval) %s '%s)" module form)))
     ((load-file compile-file)
      (format "((in-module GEISER geiser:load-file) %s)" (car args)))
-    ((no-values)
-     "((in-module GEISER geiser:no-values))")
+
+    ((no-values)                    "((in-module GEISER geiser:no-values))")
+    ((symbol-location completions)  "((in-module GEISER geiser:no-values))")
+
     ;; The rest of the commands are all evaluated in the geiser module
     (t
      (let ((form (mapconcat #'identity args " ")))
@@ -319,7 +333,7 @@ if a closing match is not found."
 ;; - with false negative, if the buffer is running STklos
 ;; but the user is in not in the stklos module, AND
 ;; the user was not in the stklos module recently, so
-;; there are no "stklos" strings in the buffer.
+;; there are no "stklos>" strings in the buffer.
 ;;
 ;; - with false positive, if the buffer is not a STklos buffer,
 ;; but there is a string "stklos>" there. I see no way
