@@ -342,7 +342,7 @@ Optionally start from POS."
       (funcall refresh))))
 
 (defun mastodon-tl--scroll-up-command ()
-  "Call `scroll-up-command'.
+  "Call `scroll-up-command', loading more toots if necessary.
 If we hit `point-max', call `mastodon-tl--more' then `scroll-up-command'."
   (interactive)
   (if (not (equal (point) (point-max)))
