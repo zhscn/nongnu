@@ -110,9 +110,9 @@
 | L                | mastodon-tl--get-local-timeline                   | Open local timeline.                                                           |
 | #                | mastodon-tl--get-tag-timeline                     | Prompt for tag and opens its timeline.                                         |
 |                  | mastodon-tl--goto-next-item                       | Jump to next item, e.g. filter or follow request.                              |
-| C-<down>, n      | mastodon-tl--goto-next-toot                       | Jump to next toot header.                                                      |
+| n, C-<down>      | mastodon-tl--goto-next-toot                       | Jump to next toot header.                                                      |
 |                  | mastodon-tl--goto-prev-item                       | Jump to previous item, e.g. filter or follow request.                          |
-| C-<up>, p        | mastodon-tl--goto-prev-toot                       | Jump to last toot header.                                                      |
+| p, C-<up>        | mastodon-tl--goto-prev-toot                       | Jump to last toot header.                                                      |
 | "                | mastodon-tl--list-followed-tags                   | List followed tags. View timeline of tag user choses.                          |
 | C-<return>       | mastodon-tl--mpv-play-video-at-point              | Play the video or gif at point with an mpv process.                            |
 |                  | mastodon-tl--mpv-play-video-from-byline           | Run `mastodon-tl--mpv-play-video-at-point' on first moving image in post.      |
@@ -122,6 +122,7 @@
 | v                | mastodon-tl--poll-vote                            | If there is a poll at point, prompt user for OPTION to vote on it.             |
 | S-TAB, <backtab> | mastodon-tl--previous-tab-item                    | Move to the previous interesting item.                                         |
 | Z                | mastodon-tl--report-to-mods                       | Report the author of the toot at point to your instance moderators.            |
+| SPC              | mastodon-tl--scroll-up-command                    | Call `scroll-up-command', loading more toots if necessary.                     |
 |                  | mastodon-tl--single-toot                          | View toot at point in separate buffer.                                         |
 |                  | mastodon-tl--some-followed-tags-timeline          | Prompt for some tags, and open a timeline for them.                            |
 | T                | mastodon-tl--thread                               | Open thread buffer for toot at point or with ID.                               |
