@@ -341,6 +341,15 @@ Optionally start from POS."
           (mastodon-tl--message-help-echo))
       (funcall refresh))))
 
+(defun mastodon-tl--scroll-up-command ()
+  "Call `scroll-up-command'.
+If we hit `point-max', call `mastodon-tl--more' then `scroll-up-command'."
+  (interactive)
+  (if (not (equal (point) (point-max)))
+      (scroll-up-command)
+    (mastodon-tl--more)
+    (scroll-up-command)))
+
 (defun mastodon-tl--goto-next-toot ()
   "Jump to next toot header."
   (interactive)
