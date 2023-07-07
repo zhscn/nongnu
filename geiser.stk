@@ -309,7 +309,7 @@
                ("docstring" . ,(string-append "A procedure in module "
                                               (symbol->string mod-name) ".\n"
                                               (if doc doc ""))))))
-               (write-to-log res)
+               (geiser-format geiser-log-file res)
                res)))
           ((bound? name mod-name) ; variable
            `(("signature" ,name ("args"))
