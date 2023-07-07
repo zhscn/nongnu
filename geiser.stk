@@ -25,6 +25,19 @@
           geiser:set-log-file)
 
 
+;; STklos changed made the %procedure-signature public, changing its
+;; name to procedure-formals, so we test for both.
+(define geiser:procedure-formals #f)
+(let ((has-proc? (lambda (p)
+                   (with-handler
+                    (lambda (x) #f)
+                    p))))
+  (set! geiser:procedure-formals
+    (cond ((has-proc? procedure-formals)    procedure-formals)
+          ((has-proc? %procedure-signature) %procedure-signature)
+          (else                             (lambda (x) #f)))))
+
+
 (define geiser-log-file #f)
 
 ;; Opens the Geiser log file
@@ -254,7 +267,8 @@
 ;;        ("module" stklos))
 ;; 
 (define (geiser:procedure-signature name mod-name)
-  (let ((sig (list-copy (%procedure-signature (eval name (find-module mod-name))))))
+  (let ((sig (list-copy (geiser:procedure-formals (eval name
+                                                        (find-module mod-name))))))
     (if sig
         (let ((proper (list? sig)))
           (let ((optional-args (if proper '() '("..."))))
