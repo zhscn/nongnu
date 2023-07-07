@@ -1,5 +1,5 @@
 all:
-	@echo "There is no need to call make ot install Geiser-STklos."
+	@echo "There is no need to call make or install Geiser-STklos."
 	@echo "You can call 'make test' to test it, though."
 
 .PHONY: test-stklos
