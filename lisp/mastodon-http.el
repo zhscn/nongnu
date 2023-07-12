@@ -338,11 +338,7 @@ item uploaded, and `mastodon-toot--update-status-fields' is run."
                   (when data
                     (push (alist-get 'id data)
                           mastodon-toot--media-attachment-ids) ; add ID to list
-                    (message "%s file %s with id %S and caption '%s' uploaded!"
-                             (capitalize (alist-get 'type data))
-                             file
-                             (alist-get 'id data)
-                             (alist-get 'description data))
+                    (message "Uploading %s... (done)" file)
                     (mastodon-toot--update-status-fields))))
       :error (cl-function
               (lambda (&key error-thrown &allow-other-keys)
