@@ -1167,7 +1167,8 @@ which is used to attach it to a toot when posting."
                     (alist-get :filename attachment)))
          (caption (alist-get :description attachment))
          (url (concat mastodon-instance-url "/api/v2/media")))
-    (message "Uploading %s..." (file-name-nondirectory filename))
+    (message "Uploading %s... (please wait before starting further uploads)"
+             (file-name-nondirectory filename))
     (mastodon-http--post-media-attachment url filename caption)))
 
 (defun mastodon-toot--refresh-attachments-display ()
