@@ -127,7 +127,7 @@ nil."
 
 (defcustom mastodon-tl--show-stats t
   "Whether to show toot stats (faves, boosts, replies counts)."
-  :type 'bool)
+  :type 'boolean)
 
 (defcustom mastodon-tl--symbols
   '((reply     . ("💬" . "R"))
