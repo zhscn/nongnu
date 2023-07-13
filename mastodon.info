@@ -38,6 +38,7 @@ Usage
 * Composing toots::
 * Other commands and account settings::
 * Customization::
+* Commands and variables index::
 * Alternative timeline layout::
 * Live-updating timelines mastodon-async-mode::
 * Translating toots::
@@ -161,6 +162,7 @@ File: mastodon.info,  Node: Usage,  Next: Dependencies,  Prev: Installation,  Up
 * Composing toots::
 * Other commands and account settings::
 * Customization::
+* Commands and variables index::
 * Alternative timeline layout::
 * Live-updating timelines mastodon-async-mode::
 * Translating toots::
@@ -332,7 +334,7 @@ is as follows:
      ‘C-c C-p’   Create a poll
      ‘C-c C-l’   Set toot language
 
-  2. autocompletion of mentions and tags
+  2. Autocompletion of mentions and tags
 
      Autocompletion of mentions and tags is provided by
      ‘completion-at-point-functions’ (capf) backends.
@@ -424,7 +426,7 @@ and should work without first loading ‘mastodon.el’:
      posts are marked as sensitive (nsfw) by default.
 
 
-File: mastodon.info,  Node: Customization,  Next: Alternative timeline layout,  Prev: Other commands and account settings,  Up: Usage
+File: mastodon.info,  Node: Customization,  Next: Commands and variables index,  Prev: Other commands and account settings,  Up: Usage
 
 1.2.5 Customization
 -------------------
@@ -449,9 +451,18 @@ See ‘M-x customize-group RET mastodon’ to view all customize options.
         • Set default reply visibility
 
 
-File: mastodon.info,  Node: Alternative timeline layout,  Next: Live-updating timelines mastodon-async-mode,  Prev: Customization,  Up: Usage
+File: mastodon.info,  Node: Commands and variables index,  Next: Alternative timeline layout,  Prev: Customization,  Up: Usage
 
-1.2.6 Alternative timeline layout
+1.2.6 Commands and variables index
+----------------------------------
+
+An index of all user-facing commands and custom variables is available
+here: mastodon-index.org (mastodon-index.org).
+
+
+File: mastodon.info,  Node: Alternative timeline layout,  Next: Live-updating timelines mastodon-async-mode,  Prev: Commands and variables index,  Up: Usage
+
+1.2.7 Alternative timeline layout
 ---------------------------------
 
 The incomparable Nicholas Rougier has written an alternative timeline
@@ -463,7 +474,7 @@ layout for ‘mastodon.el’.
 
 File: mastodon.info,  Node: Live-updating timelines mastodon-async-mode,  Next: Translating toots,  Prev: Alternative timeline layout,  Up: Usage
 
-1.2.7 Live-updating timelines: ‘mastodon-async-mode’
+1.2.8 Live-updating timelines: ‘mastodon-async-mode’
 ----------------------------------------------------
 
 (code taken from mastodon-future
@@ -482,7 +493,7 @@ Then you can view a timeline with one of the commands that begin with
 
 File: mastodon.info,  Node: Translating toots,  Next: bookmarks and mastodonel,  Prev: Live-updating timelines mastodon-async-mode,  Up: Usage
 
-1.2.8 Translating toots
+1.2.9 Translating toots
 -----------------------
 
 You can translate toots with ‘mastodon-toot--translate-toot-text’ (‘a’
@@ -509,8 +520,8 @@ looks like:
 
 File: mastodon.info,  Node: bookmarks and mastodonel,  Prev: Translating toots,  Up: Usage
 
-1.2.9 bookmarks and ‘mastodon.el’
----------------------------------
+1.2.10 bookmarks and ‘mastodon.el’
+----------------------------------
 
 ‘mastodon.el’ doesn’t currently implement its own bookmark record and
 handler, which means that emacs bookmarks will not work as is.  Until we
@@ -645,34 +656,35 @@ File: mastodon.info,  Node: Contributors,  Prev: Supporting mastodonel,  Up: REA
 
 Tag Table:
 Node: Top210
-Node: README911
-Node: Installation1327
-Node: MELPA1863
-Node: Emoji2231
-Node: Discover2563
-Node: Usage3115
-Node: Logging in to your instance3525
-Node: Timelines4522
-Ref: Keybindings4997
-Ref: Toot byline legend9570
-Node: Composing toots9879
-Ref: Keybindings (1)11118
-Ref: autocompletion of mentions and tags11636
-Ref: Draft toots12349
-Node: Other commands and account settings12820
-Node: Customization15978
-Node: Alternative timeline layout16764
-Node: Live-updating timelines mastodon-async-mode17154
-Node: Translating toots18006
-Node: bookmarks and mastodonel19188
-Node: Dependencies19658
-Node: Network compatibility20264
-Node: Contributing20750
-Node: Bug reports21039
-Node: Fixes and features21945
-Node: Coding style22428
-Node: Supporting mastodonel23052
-Node: Contributors23574
+Node: README944
+Node: Installation1360
+Node: MELPA1896
+Node: Emoji2264
+Node: Discover2596
+Node: Usage3148
+Node: Logging in to your instance3591
+Node: Timelines4588
+Ref: Keybindings5063
+Ref: Toot byline legend9636
+Node: Composing toots9945
+Ref: Keybindings (1)11184
+Ref: Autocompletion of mentions and tags11702
+Ref: Draft toots12415
+Node: Other commands and account settings12886
+Node: Customization16044
+Node: Commands and variables index16831
+Node: Alternative timeline layout17151
+Node: Live-updating timelines mastodon-async-mode17556
+Node: Translating toots18408
+Node: bookmarks and mastodonel19590
+Node: Dependencies20062
+Node: Network compatibility20668
+Node: Contributing21154
+Node: Bug reports21443
+Node: Fixes and features22349
+Node: Coding style22832
+Node: Supporting mastodonel23456
+Node: Contributors23978
 
 End Tag Table
 

@@ -155,8 +155,8 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "l") #'recenter-top-bottom)
     ;; navigation between timelines
     (define-key map (kbd "#") #'mastodon-tl--get-tag-timeline)
-    (define-key map (kbd ":") #'mastodon-tl--list-followed-tags)
-    (define-key map (kbd "C-:") #'mastodon-tl--followed-tags-timeline)
+    (define-key map (kbd "\"") #'mastodon-tl--list-followed-tags)
+    (define-key map (kbd "'") #'mastodon-tl--followed-tags-timeline)
     (define-key map (kbd "A") #'mastodon-profile--get-toot-author)
     (define-key map (kbd "F") #'mastodon-tl--get-federated-timeline)
     (define-key map (kbd "H") #'mastodon-tl--get-home-timeline)
@@ -180,6 +180,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "v") #'mastodon-tl--poll-vote)
     (define-key map (kbd "E") #'mastodon-toot--view-toot-edits)
     (define-key map (kbd "T") #'mastodon-tl--thread)
+    (define-key map (kbd "m") #'mastodon-tl--dm-user)
     (when (require 'lingva nil :no-error)
       (define-key map (kbd "a") #'mastodon-toot--translate-toot-text))
     (define-key map (kbd ",") #'mastodon-toot--list-toot-favouriters)
@@ -215,6 +216,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "I") #'mastodon-views--view-filters)
     (define-key map (kbd "G") #'mastodon-views--view-follow-suggestions)
     (define-key map (kbd "X") #'mastodon-views--view-lists)
+    (define-key map (kbd "SPC") #'mastodon-tl--scroll-up-command)
     map)
   "Keymap for `mastodon-mode'.")
 
@@ -306,11 +308,10 @@ from the server and load anew."
         (progn (switch-to-buffer buffer)
                (mastodon-tl--update))
       (message "Loading your notifications...")
-      (mastodon-tl--init-sync
-       (or buffer-name "notifications")
-       "notifications"
-       'mastodon-notifications--timeline
-       type)
+      (mastodon-tl--init-sync (or buffer-name "notifications")
+                              "notifications"
+                              'mastodon-notifications--timeline
+                              type)
       (with-current-buffer buffer
         (use-local-map mastodon-notifications--map)))))
 
@@ -329,11 +330,7 @@ not, just browse the URL in the normal fashion."
                     (mastodon-tl--property 'shr-url :no-move)
                     (read-string "Lookup URL: "))))
     (if (not (mastodon--masto-url-p query))
-        ;; this doesn't work as shr-browse-url doesn't take a url arg
-        ;; and with no args it can't use our read-string query, but only
-        ;; looks for a url at point
-        ;; (if (equal major-mode 'mastodon-mode)
-        ;; (shr-browse-url query) ;; keep our shr keymap
+        ;; (shr-browse-url query) ; doesn't work (keep our shr keymap)
         (browse-url query)
       (message "Performing lookup...")
       (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
@@ -371,7 +368,10 @@ not, just browse the URL in the normal fashion."
           (string-match "^/profile/[[:alpha:]]+$" query)
           (string-match "^/p/[[:alpha:]]+/[[:digit:]]+$" query)
           (string-match "^/[[:alpha:]]+$" query)
-          (string-match "^/u/[[:alpha:]]+$" query)))))
+          (string-match "^/u/[[:alpha:]]+$" query)
+          (string-match "^/c/[[:alnum:]]+$" query)
+          (string-match "^/post/[[:digit:]]+$" query)
+          (string-match "^/comment/[[:digit:]]+$" query))))) ; lemmy
 
 (defun mastodon-live-buffers ()
   "Return a list of open mastodon buffers.

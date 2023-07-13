@@ -80,15 +80,13 @@ SILENT means don't message."
     (url-retrieve-synchronously url (or silent nil) nil mastodon-http--timeout)))
 
 (defun mastodon-http--triage (response success)
-  "Determine if RESPONSE was successful. Call SUCCESS if successful.
-Message status and JSON error from RESPONSE if unsuccessful."
+  "Determine if RESPONSE was successful.
+Call SUCCESS if successful. Message status and JSON error from
+RESPONSE if unsuccessful."
   (let ((status (with-current-buffer response
                   (mastodon-http--status))))
     (if (string-prefix-p "2" status)
         (funcall success)
-      ;; don't switch to buffer, just with-current-buffer the response:
-      ;; (switch-to-buffer response)
-      ;; 404 sometimes returns http response so --process-json fails:
       (if (string-prefix-p "404" status)
           (message "Error %s: page not found" status)
         (let ((json-response (with-current-buffer response
@@ -104,7 +102,8 @@ Message status and JSON error from RESPONSE if unsuccessful."
 (defmacro mastodon-http--authorized-request (method body &optional unauthenticated-p)
   "Make a METHOD type request using BODY, with Mastodon authorization.
 Unless UNAUTHENTICATED-P is non-nil."
-  (declare (debug 'body))
+  (declare (debug 'body)
+           (indent 1))
   `(let ((url-request-method ,method)
          (url-request-extra-headers
           (unless ,unauthenticated-p
@@ -115,14 +114,12 @@ Unless UNAUTHENTICATED-P is non-nil."
 (defun mastodon-http--build-params-string (params)
   "Build a request parameters string from parameters alist PARAMS."
   ;; (url-build-query-string args nil))
-  ;; url-build-query-string adds 'nil' to empty params so lets stay with our
+  ;; url-build-query-string adds 'nil' for empty params so lets stick with our
   ;; own:
   (mapconcat (lambda (p)
                (concat (url-hexify-string (car p))
-                       "="
-                       (url-hexify-string (cdr p))))
-             params
-             "&"))
+                       "=" (url-hexify-string (cdr p))))
+             params "&"))
 
 (defun mastodon-http--build-array-params-alist (param-str array)
   "Return parameters alist using PARAM-STR and ARRAY param values.
@@ -133,33 +130,33 @@ Used for API form data parameters that take an array."
 (defun mastodon-http--post (url &optional params headers unauthenticated-p)
   "POST synchronously to URL, optionally with PARAMS and HEADERS.
 Authorization header is included by default unless UNAUTHENTICATED-P is non-nil."
-  (mastodon-http--authorized-request
-   "POST"
-   (let ((url-request-data
-          (when params
-            (mastodon-http--build-params-string params)))
-         (url-request-extra-headers
-          (append url-request-extra-headers ; auth set in macro
-                  ;; pleroma compat:
-                  (unless (assoc "Content-Type" headers)
-                    '(("Content-Type" . "application/x-www-form-urlencoded")))
-                  headers)))
-     (with-temp-buffer
-       (mastodon-http--url-retrieve-synchronously url)))
-   unauthenticated-p))
+  (mastodon-http--authorized-request "POST"
+    (let ((url-request-data (when params
+                              (mastodon-http--build-params-string params)))
+          (url-request-extra-headers
+           (append url-request-extra-headers ; auth set in macro
+                   (unless (assoc "Content-Type" headers) ; pleroma compat:
+                     '(("Content-Type" . "application/x-www-form-urlencoded")))
+                   headers)))
+      (with-temp-buffer
+        (mastodon-http--url-retrieve-synchronously url)))
+    unauthenticated-p))
+
+(defun mastodon-http--concat-params-to-url (url params)
+  "Build a query string with PARAMS and concat to URL."
+  (if params
+      (concat url "?"
+              (mastodon-http--build-params-string params))
+    url))
 
 (defun mastodon-http--get (url &optional params silent)
   "Make synchronous GET request to URL.
 PARAMS is an alist of any extra parameters to send with the request.
 SILENT means don't message."
-  (mastodon-http--authorized-request
-   "GET"
-   ;; url-request-data doesn't seem to work with GET requests:
-   (let ((url (if params
-                  (concat url "?"
-                          (mastodon-http--build-params-string params))
-                url)))
-     (mastodon-http--url-retrieve-synchronously url silent))))
+  (mastodon-http--authorized-request "GET"
+    ;; url-request-data doesn't seem to work with GET requests?:
+    (let ((url (mastodon-http--concat-params-to-url url params)))
+      (mastodon-http--url-retrieve-synchronously url silent))))
 
 (defun mastodon-http--get-response (url &optional params no-headers silent vector)
   "Make synchronous GET request to URL. Return JSON and response headers.
@@ -183,6 +180,15 @@ Callback to `mastodon-http--get-json-async', usually
 `mastodon-tl--init*', is run on the result."
   (car (mastodon-http--process-response :no-headers)))
 
+(defun mastodon-http--render-html-err (string)
+  "Render STRING as HTML in a temp buffer.
+STRING should be a HTML for a 404 errror."
+  (with-temp-buffer
+    (insert string)
+    (shr-render-buffer (current-buffer))
+    (view-mode) ; for 'q' to kill buffer and window
+    (error ""))) ; stop subsequent processing
+
 (defun mastodon-http--process-response (&optional no-headers vector)
   "Process http response.
 Return a cons of JSON list and http response headers.
@@ -197,18 +203,20 @@ Callback to `mastodon-http--get-response-async', usually
     (goto-char (point-min))
     (re-search-forward "^$" nil 'move)
     (let ((json-array-type (if vector 'vector 'list))
-          (json-string
-           (decode-coding-string
-            (buffer-substring-no-properties (point) (point-max))
-            'utf-8)))
+          (json-string (decode-coding-string
+                        (buffer-substring-no-properties (point) (point-max))
+                        'utf-8)))
       (kill-buffer)
-      ;; (unless (or (string-empty-p json-string) (null json-string))
       (cond ((or (string-empty-p json-string) (null json-string))
              nil)
-            ;; if we don't have json, maybe we have a plain string error
-            ;; message (misskey works like this for instance, but there are
-            ;; probably less dunce ways to do this):
-            ;; FIXME: friendica at least sends plain html if endpoint not found.
+            ;; if we get html, just render it and error:
+            ;; ideally we should handle the status code in here rather than
+            ;; this crappy hack?
+            ((string-prefix-p "\n<" json-string) ; html hack
+             (mastodon-http--render-html-err json-string))
+            ;; if no json or html, maybe we have a plain string error message
+            ;; (misskey does this, but there are probably better ways to do
+            ;; this):
             ((not (or (string-prefix-p "\n{" json-string)
                       (string-prefix-p "\n[" json-string)))
              (error "%s" json-string))
@@ -232,37 +240,24 @@ Callback to `mastodon-http--get-response-async', usually
   "Make DELETE request to URL.
 PARAMS is an alist of any extra parameters to send with the request."
   ;; url-request-data only works with POST requests?
-  (let ((url
-         (if params
-             (concat url "?"
-                     (mastodon-http--build-params-string params))
-           url)))
-    (mastodon-http--authorized-request
-     "DELETE"
-     (with-temp-buffer
-       (mastodon-http--url-retrieve-synchronously url)))))
+  (let ((url (mastodon-http--concat-params-to-url url params)))
+    (mastodon-http--authorized-request "DELETE"
+      (with-temp-buffer
+        (mastodon-http--url-retrieve-synchronously url)))))
 
 (defun mastodon-http--put (url &optional params headers)
   "Make PUT request to URL.
 PARAMS is an alist of any extra parameters to send with the request.
 HEADERS is an alist of any extra headers to send with the request."
-  (mastodon-http--authorized-request
-   "PUT"
-   (let ((url-request-data
-          (when params (mastodon-http--build-params-string params)))
-         (url-request-extra-headers
-          (append url-request-extra-headers ; auth set in macro
-                  ;; pleroma compat:
-                  (unless (assoc "Content-Type" headers)
-                    '(("Content-Type" . "application/x-www-form-urlencoded")))
-                  headers)))
-     (with-temp-buffer (mastodon-http--url-retrieve-synchronously url)))))
-
-(defun mastodon-http--append-query-string (url params)
-  "Append PARAMS to URL as query strings and return it.
-PARAMS should be an alist as required by `url-build-query-string'."
-  (let ((query-string (url-build-query-string params)))
-    (concat url "?" query-string)))
+  (mastodon-http--authorized-request "PUT"
+    (let ((url-request-data
+           (when params (mastodon-http--build-params-string params)))
+          (url-request-extra-headers
+           (append url-request-extra-headers ; auth set in macro
+                   (unless (assoc "Content-Type" headers) ; pleroma compat:
+                     '(("Content-Type" . "application/x-www-form-urlencoded")))
+                   headers)))
+      (with-temp-buffer (mastodon-http--url-retrieve-synchronously url)))))
 
 ;; profile update functions
 
@@ -275,12 +270,9 @@ Optionally specify the PARAMS to send."
 (defun mastodon-http--patch (base-url &optional params)
   "Make synchronous PATCH request to BASE-URL.
 Optionally specify the PARAMS to send."
-  (mastodon-http--authorized-request
-   "PATCH"
-   (let ((url
-          (concat base-url "?"
-                  (mastodon-http--build-params-string params))))
-     (mastodon-http--url-retrieve-synchronously url))))
+  (mastodon-http--authorized-request "PATCH"
+    (let ((url (mastodon-http--concat-params-to-url base-url params)))
+      (mastodon-http--url-retrieve-synchronously url))))
 
  ;; Asynchronous functions
 
@@ -288,13 +280,9 @@ Optionally specify the PARAMS to send."
   "Make GET request to URL.
 Pass response buffer to CALLBACK function with args CBARGS.
 PARAMS is an alist of any extra parameters to send with the request."
-  (let ((url (if params
-                 (concat url "?"
-                         (mastodon-http--build-params-string params))
-               url)))
-    (mastodon-http--authorized-request
-     "GET"
-     (url-retrieve url callback cbargs))))
+  (let ((url (mastodon-http--concat-params-to-url url params)))
+    (mastodon-http--authorized-request "GET"
+      (url-retrieve url callback cbargs))))
 
 (defun mastodon-http--get-response-async (url &optional params callback &rest cbargs)
   "Make GET request to URL. Call CALLBACK with http response and CBARGS.
@@ -303,7 +291,7 @@ PARAMS is an alist of any extra parameters to send with the request."
    url
    params
    (lambda (status)
-     (when status ;; only when we actually get sth?
+     (when status ; for flakey servers
        (apply callback (mastodon-http--process-response) cbargs)))))
 
 (defun mastodon-http--get-json-async (url &optional params callback &rest cbargs)
@@ -320,14 +308,12 @@ PARAMS is an alist of any extra parameters to send with the request."
   "POST asynchronously to URL with PARAMS and HEADERS.
 Then run function CALLBACK with arguements CBARGS.
 Authorization header is included by default unless UNAUTHENTICED-P is non-nil."
-  (mastodon-http--authorized-request
-   "POST"
-   (let ((request-timeout 5)
-         (url-request-data
-          (when params
-            (mastodon-http--build-params-string params))))
-     (with-temp-buffer
-       (url-retrieve url callback cbargs)))))
+  (mastodon-http--authorized-request "POST"
+    (let ((request-timeout 5)
+          (url-request-data (when params
+                              (mastodon-http--build-params-string params))))
+      (with-temp-buffer
+        (url-retrieve url callback cbargs)))))
 
 ;; TODO: test for curl first?
 (defun mastodon-http--post-media-attachment (url filename caption)
@@ -361,13 +347,16 @@ item uploaded, and `mastodon-toot--update-status-fields' is run."
                  ;; because the '=' test below fails for them
                  ;; they have the form (error . error message 24)
                  ((not (proper-list-p error-thrown)) ; not dotted list
-		          (message "Got error: %s. Shit went south." (cdr error-thrown)))
+		  (message "Got error: %s. Shit went south." (cdr error-thrown)))
                  ;; handle mastodon api errors
                  ;; they have the form (error http 401)
-		         ((= (car (last error-thrown)) 401)
-                  (message "Got error: %s Unauthorized: The access token is invalid" error-thrown))
+		 ((= (car (last error-thrown)) 401)
+                  (message "Got error: %s Unauthorized: The access token is invalid"
+                           error-thrown))
                  ((= (car (last error-thrown)) 422)
-                  (message "Got error: %s Unprocessable entity: file or file type is unsupported or invalid" error-thrown))
+                  (message "Got error: %s Unprocessable entity: file or file\
+ type is unsupported or invalid"
+                           error-thrown))
                  (t
                   (message "Got error: %s Shit went south"
                            error-thrown))))))))

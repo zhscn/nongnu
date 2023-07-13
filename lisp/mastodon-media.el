@@ -145,7 +145,7 @@ IMAGE-OPTIONS are the precomputed options to apply to the image.
 MARKER is the marker to where the response should be visible.
 REGION-LENGTH is the length of the region that should be replaced
 with the image."
-  (when (marker-buffer marker) ; only if the buffer hasn't been kill in the meantime
+  (when (marker-buffer marker) ; if buffer hasn't been killed
     (let ((url-buffer (current-buffer))
           (is-error-response-p (eq :error (car status-plist))))
       (unwind-protect
@@ -193,8 +193,7 @@ REGION-LENGTH is the range from start to propertize."
                            `(:max-height ,mastodon-media--preview-max-height))))))
     (let ((buffer (current-buffer))
           (marker (copy-marker start))
-	  ;; Keep url.el from spamming us with messages about connecting to hosts:
-	  (url-show-status nil))
+	      (url-show-status nil)) ; stop url.el from spamming us about connecting
       (condition-case nil
           ;; catch any errors in url-retrieve so as to not abort
           ;; whatever called us
@@ -204,11 +203,12 @@ REGION-LENGTH is the range from start to propertize."
               (with-current-buffer (url-fetch-from-cache url)
                 (set-buffer-multibyte nil)
                 (goto-char (point-min))
-                (zlib-decompress-region (goto-char (search-forward "\n\n")) (point-max))
-                (mastodon-media--process-image-response nil marker image-options region-length url))
+                (zlib-decompress-region
+                 (goto-char (search-forward "\n\n")) (point-max))
+                (mastodon-media--process-image-response
+                 nil marker image-options region-length url))
             ;; else fetch as usual and process-image-response will cache it
-            (url-retrieve url
-                          #'mastodon-media--process-image-response
+            (url-retrieve url #'mastodon-media--process-image-response
                           (list marker image-options region-length url)))
         (error (with-current-buffer buffer
                  ;; TODO: Consider adding retries
@@ -224,20 +224,20 @@ Returns the list of (`start' . `end', `media-symbol') points of
 that line and string found or nil no more media links were
 found."
   (let ((next-pos (point)))
-    (while (and (setq next-pos (next-single-property-change next-pos 'media-state))
-                (or (not (eq 'needs-loading (get-text-property next-pos 'media-state)))
-                    (null (get-text-property next-pos 'media-url))
-                    (null (get-text-property next-pos 'media-type))))
+    (while
+        (and
+         (setq next-pos (next-single-property-change next-pos 'media-state))
+         (or (not (eq 'needs-loading (get-text-property next-pos 'media-state)))
+             (null (get-text-property next-pos 'media-url))
+             (null (get-text-property next-pos 'media-type))))
       ;; do nothing - the loop will proceed
       )
     (when (and next-pos (< next-pos end-pos))
       (let ((media-type (get-text-property next-pos 'media-type)))
         (cond
-         ;; Avatars are just one character in the buffer
-         ((eq media-type 'avatar)
+         ((eq media-type 'avatar) ; avatars are one character
           (list next-pos (+ next-pos 1) 'avatar))
-         ;; Media links are 5 character ("[img]")
-         ((eq media-type 'media-link)
+         ((eq media-type 'media-link) ; media links are 5 characters: [img]
           (list next-pos (+ next-pos 5) 'media-link)))))))
 
 (defun mastodon-media--valid-link-p (link)
@@ -254,11 +254,12 @@ Replace them with the referenced image."
   (save-excursion
     (goto-char search-start)
     (let (line-details)
-      (while (setq line-details (mastodon-media--select-next-media-line
-                                 search-end))
+      (while (setq line-details
+                   (mastodon-media--select-next-media-line search-end))
         (let* ((start (car line-details))
                (end (cadr line-details))
                (media-type (cadr (cdr line-details)))
+               (type (get-text-property start 'mastodon-media-type))
                (image-url (get-text-property start 'media-url)))
           (if (not (mastodon-media--valid-link-p image-url))
               ;; mark it at least as not needing loading any more
@@ -266,21 +267,25 @@ Replace them with the referenced image."
             ;; proceed to load this image asynchronously
             (put-text-property start end 'media-state 'loading)
             (mastodon-media--load-image-from-url
-             image-url media-type start (- end start))))))))
-            ;; (mastodon-media--moving-image-overlay start end)))))))
+             image-url media-type start (- end start))
+            (when (or (equal type "gifv")
+                      (equal type "video"))
+              (mastodon-media--moving-image-overlay start end))))))))
 
-;; (defun mastodon-media--moving-image-overlay (start end)
-;;   "Add play symbol overlay to moving image media items."
-;;   (let ((ov (make-overlay start end))
-;;         (type (get-text-property start 'mastodon-media-type)))
-;;     (when (or (equal type "gifv")
-;;               (equal type "video"))
-;;       (overlay-put
-;;        ov
-;;        'after-string
-;;        (propertize " "
-;;                    'face
-;;                    '((:height 1.5 :inherit 'font-lock-comment-face)))))))
+;; (defvar-local mastodon-media--overlays nil
+;;   "Holds a list of overlays in the buffer.")
+
+(defun mastodon-media--moving-image-overlay (start end)
+  "Add play symbol overlay to moving image media items."
+  (let ((ov (make-overlay start end)))
+    (overlay-put
+     ov
+     'after-string
+     (propertize ""
+                 'help-echo "Video"
+                 'face
+                 '((:height 3.5 :inherit font-lock-comment-face))))))
+;; (cl-pushnew ov mastodon-media--overlays)))
 
 (defun mastodon-media--get-avatar-rendering (avatar-url)
   "Return the string to be written that renders the avatar at AVATAR-URL."
@@ -302,17 +307,18 @@ Replace them with the referenced image."
                                  t image-options))
      " ")))
 
-(defun mastodon-media--get-media-link-rendering (media-url &optional full-remote-url
-                                                           type caption)
+(defun mastodon-media--get-media-link-rendering
+    (media-url &optional full-remote-url type caption)
   "Return the string to be written that renders the image at MEDIA-URL.
 FULL-REMOTE-URL is used for `shr-browse-image'.
 TYPE is the attachment's type field on the server.
 CAPTION is the image caption if provided."
-  (let* ((help-echo-base "RET/i: load full image (prefix: copy URL), +/-: zoom, r: rotate, o: save preview")
+  (let* ((help-echo-base
+          "RET/i: load full image (prefix: copy URL), +/-: zoom,\
+ r: rotate, o: save preview")
          (help-echo (if caption
                         (concat help-echo-base
-                                "\n\""
-                                caption "\"")
+                                "\n\"" caption "\"")
                       help-echo-base)))
     (concat
      (mastodon-tl--propertize-img-str-or-url

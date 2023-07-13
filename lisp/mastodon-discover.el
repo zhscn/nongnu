@@ -79,7 +79,8 @@
         ("Views"
          ("h/?" "View mode help/keybindings" describe-mode)
          ("#" "Tag search" mastodon-tl--get-tag-timeline)
-         (":" "List followed tags" mastodon-tl--list-followed-tags)
+         ("\"" "List followed tags" mastodon-tl--list-followed-tags)
+         ("'" "Followed tags timeline" mastodon-tl--followed-tags-timeline)
          ("F" "Federated" mastodon-tl--get-federated-timeline)
          ("H" "Home" mastodon-tl--get-home-timeline)
          ("L" "Local" mastodon-tl--get-local-timeline)

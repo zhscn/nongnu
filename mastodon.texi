@@ -52,6 +52,7 @@ Usage
 * Composing toots::
 * Other commands and account settings::
 * Customization::
+* Commands and variables index::
 * Alternative timeline layout::
 * Live-updating timelines @samp{mastodon-async-mode}::
 * Translating toots::
@@ -163,6 +164,7 @@ Or, with @samp{use-package}:
 * Composing toots::
 * Other commands and account settings::
 * Customization::
+* Commands and variables index::
 * Alternative timeline layout::
 * Live-updating timelines @samp{mastodon-async-mode}::
 * Translating toots::
@@ -416,7 +418,7 @@ value of that hook is as follows:
 @end multitable
 
 @item
-@anchor{autocompletion of mentions and tags}autocompletion of mentions and tags
+@anchor{Autocompletion of mentions and tags}Autocompletion of mentions and tags
 
 
 Autocompletion of mentions and tags is provided by
@@ -592,6 +594,11 @@ Display toot being replied to
 Set default reply visibility
 @end itemize
 @end itemize
+
+@node Commands and variables index
+@subsection Commands and variables index
+
+An index of all user-facing commands and custom variables is available here: @uref{mastodon-index.org, mastodon-index.org}.
 
 @node Alternative timeline layout
 @subsection Alternative timeline layout
