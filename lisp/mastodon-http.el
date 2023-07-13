@@ -347,10 +347,10 @@ item uploaded, and `mastodon-toot--update-status-fields' is run."
                  ;; because the '=' test below fails for them
                  ;; they have the form (error . error message 24)
                  ((not (proper-list-p error-thrown)) ; not dotted list
-		          (message "Got error: %s. Shit went south." (cdr error-thrown)))
+		  (message "Got error: %s. Shit went south." (cdr error-thrown)))
                  ;; handle mastodon api errors
                  ;; they have the form (error http 401)
-		         ((= (car (last error-thrown)) 401)
+		 ((= (car (last error-thrown)) 401)
                   (message "Got error: %s Unauthorized: The access token is invalid"
                            error-thrown))
                  ((= (car (last error-thrown)) 422)
