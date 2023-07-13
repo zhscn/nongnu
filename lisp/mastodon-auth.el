@@ -85,10 +85,10 @@ We apologize for the inconvenience.
   "Return properly formed browser login url."
   (mastodon-http--append-query-string
    (concat mastodon-instance-url "/oauth/authorize/")
-   `(("response_type" "code")
-     ("redirect_uri" ,mastodon-client-redirect-uri)
-     ("scope" ,mastodon-client-scopes)
-     ("client_id" ,(plist-get (mastodon-client) :client_id)))))
+   `(("response_type" . "code")
+     ("redirect_uri" . ,mastodon-client-redirect-uri)
+     ("scope" . ,mastodon-client-scopes)
+     ("client_id" . ,(plist-get (mastodon-client) :client_id)))))
 
 (defvar mastodon-auth--explanation
   (format
