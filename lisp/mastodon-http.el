@@ -309,7 +309,7 @@ PARAMS is an alist of any extra parameters to send with the request."
 Then run function CALLBACK with arguements CBARGS.
 Authorization header is included by default unless UNAUTHENTICED-P is non-nil."
   (mastodon-http--authorized-request "POST"
-    (let ((request-timeout 5)
+    (let (;(request-timeout 5) ; this is from request.el no url.el!
           (url-request-data (when params
                               (mastodon-http--build-params-string params))))
       (with-temp-buffer
