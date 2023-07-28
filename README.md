@@ -11,8 +11,12 @@ Flymake Backend for [GNU Guile][guile] using `guild` compiler.
 # Installation
 
 Verify that `guild` is in your `PATH`, then add `flymake-guile.el`
-to your load-path.
+to your Emacs load-path.
 
+Alternatively, you can install it using [Guix][guix]. Clone the repository and then:
+```bash
+guix package -f flymake-guile/guix.scm
+```
 
 ## Usage
 Verify that `flymake-mode` is enabled ad then add the following to
@@ -39,3 +43,4 @@ See [COPYING](COPYING) for more detail.
 
 [guile]: https://www.gnu.org/software/guile/
 [geiser]: https://www.nongnu.org/geiser/
+[guix]: https://guix.gnu.org/
