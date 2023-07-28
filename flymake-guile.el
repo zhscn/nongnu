@@ -46,7 +46,7 @@
   :type 'string
   :group 'flymake-guile)
 
-(defcustom flymake-guile-warnings "3"
+(defcustom flymake-guile-warnings '("3")
   "A list of warnings to enable for `guild compile'.
 
 The value of this variable could be an list string of warning types
@@ -54,7 +54,7 @@ or an warning level.
 
 The list of supported warning types/levels can be found by running
 `guild compile -W help'."
-  :type 'string
+  :type  '(string)
   :group 'flymake-guile)
 
 (defvar geiser-guile-load-path)
@@ -83,23 +83,37 @@ The list of supported warning types/levels can be found by running
 	  (append (flymake-guile--project-path)
 		  geiser-guile-load-path)))
 
-(defun flymake-guile--get-diagnostic (stack-msg stack-lnum stack-file source)
+(defun flymake-guile--warning-level-args ()
+  "Build the `warning' arguments for `guild compile'."
+  (if (listp flymake-guile-warnings)
+      (mapcan (lambda (rule)
+		(list "-W" rule))
+	      flymake-guile-warnings)
+    (error "`flymake-guile-warnings' must be a list of: e.g '(\"unused-module\")")))
+
+(defun flymake-guile--get-diagnostic (stack-msg stack-lnum stack-cnum stack-file source)
   "Get the diagnostic line and message for the `SOURCE'.
 If the diagnostic has additional information for the source file
-extract if otherwise use the `STACK-MSG' and `STACK-LNUM'.
+extract if otherwise use the `STACK-MSG' and `STACK-LNUM'/`STACK-CNUM'.
 Also verify if the `STACK-FILE' and the source file are te same."
-  (let ((text stack-msg)
+  (let* ((text stack-msg)
 	(lnum stack-lnum)
-	(file (file-name-nondirectory stack-file))
-	(source-file (file-name-nondirectory (buffer-file-name source))))
-    (when (string-match
-	   (concat
-	    source-file
-	    flymake-guile--diag-lnum-rx
-	    "\\(.*\\)")
-	   text)
-      (setq file source-file)
+	(cnum stack-cnum)
+	(origin-file (file-name-nondirectory stack-file))
+	(source-file (file-name-nondirectory (buffer-file-name source)))
+	(maybe-stack (string-match
+		      (concat
+		       source-file
+		       flymake-guile--diag-lnum-rx
+		       "\\(.*\\)")
+		      text))
+	;; origin-file/stack-file could be an
+	;; internal guile file.
+	(file (cond (maybe-stack source-file)
+		    (t origin-file))))
+    (when maybe-stack
       (setq lnum (match-string 1 text))
+      (setq cnum (match-string 2 text))
       (setq text (match-string 3 text)))
     (when (not (string= source-file file))
       ;; Set the line number to zero when the report comes from
@@ -107,8 +121,11 @@ Also verify if the `STACK-FILE' and the source file are te same."
       ;; means that there is an error parsing or and syntax's error
       ;; and guile Backtrace is reporting lines from internal code
       ;; e.g "ice-9/boot-9".
-      (setq lnum "0"))
-    (cons (string-to-number lnum) text)))
+      (setq lnum "0")
+      (setq cnum "0"))
+    (cons (cons (string-to-number lnum)
+		(string-to-number cnum))
+	  text)))
 
 (flymake-quickdef-backend flymake-guile-backend
   :pre-let ((guild-exec (executable-find flymake-guile-guild-binary)))
@@ -117,10 +134,10 @@ Also verify if the `STACK-FILE' and the source file are te same."
   :proc-form (append
 	      (list guild-exec
 		"compile"
-		"-O0"
-		(concat "-W" flymake-guile-warnings))
-	      flymake-guile-guild-args
+		"-O0")
+	      (flymake-guile--warning-level-args)
 	      (flymake-guile--load-path-args)
+	      flymake-guile-guild-args
 	      (list fmqd-temp-file))
   :search-regexp (concat
 		  "\\(.*\\)"
@@ -130,12 +147,19 @@ Also verify if the `STACK-FILE' and the source file are te same."
   :prep-diagnostic
   (let* ((stack_file (match-string 1))
 	 (stack_lnum (match-string 2))
+	 (stack_cnum (match-string 3))
 	 (severity (match-string 4))
 	 (stack_msg (match-string 5))
-	 (report (flymake-guile--get-diagnostic stack_msg stack_lnum stack_file fmqd-source))
-	 (lnum (car report))
+	 (report (flymake-guile--get-diagnostic
+		  stack_msg
+		  stack_lnum
+		  stack_cnum
+		  stack_file
+		  fmqd-source))
+	 (lnum (car (car report)))
+	 (cnum (cdr (car report)))
 	 (text (cdr report))
-	 (pos (flymake-diag-region fmqd-source lnum))
+	 (pos (flymake-diag-region fmqd-source lnum cnum))
 	 (beg (car pos))
 	 (end (cdr pos))
 	 (type (cond
