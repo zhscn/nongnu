@@ -97,7 +97,7 @@ Installation
    (use-package idle-highlight-mode
      :config (setq idle-highlight-idle-time 0.2)
 
-     :hook ((prog-mode text-mode) . idle-highlight-mode)))
+     :hook ((prog-mode text-mode) . idle-highlight-mode))
 
 Hints
 -----
