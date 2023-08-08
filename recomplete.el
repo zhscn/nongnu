@@ -77,12 +77,13 @@
 
 WHERE using FN-ADVICE temporarily added to FN-ORIG."
   (declare (indent 3))
-  `(let ((fn-advice-var ,fn-advice))
-     (unwind-protect
-         (progn
-           (advice-add ,fn-orig ,where fn-advice-var)
-           ,@body)
-       (advice-remove ,fn-orig fn-advice-var))))
+  (let ((function-var (gensym)))
+    `(let ((,function-var ,fn-advice))
+       (unwind-protect
+           (progn
+             (advice-add ,fn-orig ,where ,function-var)
+             ,@body)
+         (advice-remove ,fn-orig ,function-var)))))
 
 ;; Back-ported from emacs-29.1 (remove once older versions have beeen dropped).
 (defmacro recomplete--with-undo-amalgamate (&rest body)
