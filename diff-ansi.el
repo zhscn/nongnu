@@ -159,12 +159,14 @@ It can be useful to show progress when viewing very large diffs."
 (defmacro diff-ansi--with-advice (fn-orig where fn-advice &rest body)
   "Execute BODY with advice added WHERE.
 Argument FN-ADVICE temporarily added to FN-ORIG."
-  `(let ((fn-advice-var ,fn-advice))
-     (unwind-protect
-         (progn
-           (advice-add ,fn-orig ,where fn-advice-var)
-           ,@body)
-       (advice-remove ,fn-orig fn-advice-var))))
+  (declare (indent 3))
+  (let ((function-var (gensym)))
+    `(let ((,function-var ,fn-advice))
+       (unwind-protect
+           (progn
+             (advice-add ,fn-orig ,where ,function-var)
+             ,@body)
+         (advice-remove ,fn-orig ,function-var)))))
 
 (defmacro diff-ansi--with-temp-echo-area (&rest body)
   "Run BODY with the message temporarily overwritten."
@@ -721,14 +723,10 @@ Store the result in TARGET-BUF when non-nil."
 
         ;; Postpone activation until the timer can take it's self as an argument.
         (diff-ansi--with-advice #'timer-activate :override (lambda (&rest _) nil)
-                                (setq diff-ansi--ansi-color-timer (run-at-time 0.0 0.001 nil))
-                                (timer-set-function
-                                 diff-ansi--ansi-color-timer #'diff-ansi-progressive-highlight-impl
-                                 (list
-                                  (current-buffer)
-                                  beg
-                                  (cons beg end)
-                                  diff-ansi--ansi-color-timer)))
+          (setq diff-ansi--ansi-color-timer (run-at-time 0.0 0.001 nil))
+          (timer-set-function diff-ansi--ansi-color-timer #'diff-ansi-progressive-highlight-impl
+                              (list
+                               (current-buffer) beg (cons beg end) diff-ansi--ansi-color-timer)))
         (timer-activate diff-ansi--ansi-color-timer)))))
 
 
@@ -798,11 +796,11 @@ This calls OLD-FN with ARGS."
   (let ((point-begin (point)))
     (diff-ansi--with-advice #'magit-wash-sequence :override (lambda (&rest _) nil)
 
-                            (apply old-fn args)
+      (apply old-fn args)
 
-                            (with-demoted-errors "diff-ansi: %S"
-                              ;; Don't do anything to the diff, it may cause problems.
-                              (diff-ansi-region point-begin (point-max))))))
+      (with-demoted-errors "diff-ansi: %S"
+        ;; Don't do anything to the diff, it may cause problems.
+        (diff-ansi-region point-begin (point-max))))))
 
 (defun diff-ansi--enable ()
   "Enable the buffer local minor mode."
