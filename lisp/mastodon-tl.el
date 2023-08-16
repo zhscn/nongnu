@@ -1317,7 +1317,8 @@ THREAD means the status will be displayed in a thread view."
                      (or base-toot
                          toot)) ; else normal toot with reblog check
       'toot-json    toot
-      'base-toot    base-toot)
+      'base-toot    base-toot
+      'cursor-face 'highlight)
      "\n")
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
