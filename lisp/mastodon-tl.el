@@ -168,6 +168,10 @@ Note that you can hide replies on a one-off basis by loading a
 timeline with a simple prefix argument, `C-u'."
   :type '(boolean :tag "Whether to hide replies from the timelines."))
 
+(defcustom mastodon-tl--highlight-current-toot nil
+  "Whether to highlight the toot at point. Uses `cursor-face' special property."
+  :type '(boolean))
+
 
 ;;; VARIABLES
 
@@ -1318,7 +1322,7 @@ THREAD means the status will be displayed in a thread view."
                          toot)) ; else normal toot with reblog check
       'toot-json    toot
       'base-toot    base-toot
-      'cursor-face 'highlight)
+      'cursor-face 'mastodon-cursor-highlight-face)
      "\n")
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
