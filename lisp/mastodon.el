@@ -99,6 +99,7 @@
 (autoload 'mastodon-views--view-scheduled-toots "mastodon-views")
 (autoload 'special-mode "simple")
 
+(defvar mastodon-tl--highlight-current-toot)
 (defvar mastodon-notifications--map)
 
 (defgroup mastodon nil
@@ -258,6 +259,10 @@ mastodon.el needs to be re-loaded for this to be correctly set.")
   "Face used for reply text in toot compose buffer.
 See `mastodon-toot-display-orig-in-reply-buffer'.")
 
+(defface mastodon-cursor-highlight-face
+  `((t :inherit highlight :extend t))
+  "Face for `mastodon-tl--highlight-current-toot'.")
+
 ;;;###autoload
 (defun mastodon ()
   "Connect Mastodon client to `mastodon-instance-url' instance."
@@ -401,7 +406,9 @@ Calls `mastodon-tl--get-buffer-type', which see."
                                 (when (require 'emojify nil :noerror)
                                   (emojify-mode t)
                                   (when mastodon-toot--enable-custom-instance-emoji
-                                    (mastodon-toot--enable-custom-emoji)))))
+                                    (mastodon-toot--enable-custom-emoji))
+                                  (when mastodon-tl--highlight-current-toot
+                                    (cursor-face-highlight-mode)))))
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook #'mastodon-profile--fetch-server-account-settings)

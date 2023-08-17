@@ -186,8 +186,8 @@ STRING should be a HTML for a 404 errror."
   (with-temp-buffer
     (insert string)
     (shr-render-buffer (current-buffer))
-    (view-mode) ; for 'q' to kill buffer and window
-    (error ""))) ; stop subsequent processing
+    (view-mode))) ; for 'q' to kill buffer and window
+    ;; (error ""))) ; stop subsequent processing
 
 (defun mastodon-http--process-response (&optional no-headers vector)
   "Process http response.

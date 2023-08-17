@@ -193,7 +193,7 @@ REGION-LENGTH is the range from start to propertize."
                            `(:max-height ,mastodon-media--preview-max-height))))))
     (let ((buffer (current-buffer))
           (marker (copy-marker start))
-	      (url-show-status nil)) ; stop url.el from spamming us about connecting
+	  (url-show-status nil)) ; stop url.el from spamming us about connecting
       (condition-case nil
           ;; catch any errors in url-retrieve so as to not abort
           ;; whatever called us
