@@ -110,9 +110,9 @@
 | L                | mastodon-tl--get-local-timeline                   | Open local timeline.                                                           |
 | #                | mastodon-tl--get-tag-timeline                     | Prompt for tag and opens its timeline.                                         |
 |                  | mastodon-tl--goto-next-item                       | Jump to next item, e.g. filter or follow request.                              |
-| n, C-<down>      | mastodon-tl--goto-next-toot                       | Jump to next toot header.                                                      |
+| C-<down>, n      | mastodon-tl--goto-next-toot                       | Jump to next toot header.                                                      |
 |                  | mastodon-tl--goto-prev-item                       | Jump to previous item, e.g. filter or follow request.                          |
-| p, C-<up>        | mastodon-tl--goto-prev-toot                       | Jump to last toot header.                                                      |
+| C-<up>, p        | mastodon-tl--goto-prev-toot                       | Jump to last toot header.                                                      |
 | "                | mastodon-tl--list-followed-tags                   | List followed tags. View timeline of tag user choses.                          |
 | C-<return>       | mastodon-tl--mpv-play-video-at-point              | Play the video or gif at point with an mpv process.                            |
 |                  | mastodon-tl--mpv-play-video-from-byline           | Run `mastodon-tl--mpv-play-video-at-point' on first moving image in post.      |
@@ -219,35 +219,36 @@
 #+end_src
 
 #+RESULTS:
-| Custom variable                                    | Description                                                          |
-|----------------------------------------------------+----------------------------------------------------------------------|
-| mastodon-active-user                               | Username of the active user.                                         |
-| mastodon-client--token-file                        | File path where Mastodon access tokens are stored.                   |
-| mastodon-instance-url                              | Base URL for the Mastodon instance you want to be active.            |
-| mastodon-media--avatar-height                      | Height of the user avatar images (if shown).                         |
-| mastodon-media--enable-image-caching               | Whether images should be cached.                                     |
-| mastodon-media--preview-max-height                 | Max height of any media attachment preview to be shown in timelines. |
-| mastodon-mode-hook                                 | Hook run when entering Mastodon mode.                                |
-| mastodon-profile-mode-hook                         | Hook run after entering or leaving `mastodon-profile-mode'.          |
-| mastodon-profile-update-mode-hook                  | Hook run after entering or leaving `mastodon-profile-update-mode'.   |
-| mastodon-tl--display-caption-not-url-when-no-media | Display an image's caption rather than URL.                          |
-| mastodon-tl--enable-proportional-fonts             | Nonnil to enable using proportional fonts when rendering HTML.       |
-| mastodon-tl--enable-relative-timestamps            | Whether to show relative (to the current time) timestamps.           |
-| mastodon-tl--hide-replies                          | Whether to hide replies from the timelines.                          |
-| mastodon-tl--show-avatars                          | Whether to enable display of user avatars in timelines.              |
-| mastodon-tl--show-stats                            | Whether to show toot stats (faves, boosts, replies counts).          |
-| mastodon-tl--symbols                               | A set of symbols (and fallback strings) to be used in timeline.      |
-| mastodon-tl--timeline-posts-count                  | Number of posts to display when loading a timeline.                  |
-| mastodon-tl-position-after-update                  | Defines where `point' should be located after a timeline update.     |
-| mastodon-toot--attachment-height                   | Height of the attached images preview in the toot draft buffer.      |
-| mastodon-toot--completion-style-for-mentions       | The company completion style to use for mentions.                    |
-| mastodon-toot--default-media-directory             | The default directory when prompting for a media file to upload.     |
-| mastodon-toot--default-reply-visibility            | Default visibility settings when replying.                           |
-| mastodon-toot--enable-completion                   | Whether to enable completion of mentions and hashtags.               |
-| mastodon-toot--enable-custom-instance-emoji        | Whether to enable your instance's custom emoji by default.           |
-| mastodon-toot--proportional-fonts-compose          | Nonnil to enable using proportional fonts in the compose buffer.     |
-| mastodon-toot--use-company-for-completion          | Whether to enable company for completion.                            |
-| mastodon-toot-display-orig-in-reply-buffer         | Display a copy of the toot replied to in the compose buffer.         |
-| mastodon-toot-mode-hook                            | Hook run after entering or leaving `mastodon-toot-mode'.             |
-| mastodon-toot-orig-in-reply-length                 | Length to crop toot replied to in the compose buffer to.             |
-| mastodon-toot-timestamp-format                     | Format to use for timestamps.                                        |
+| Custom variable                                    | Description                                                                  |
+|----------------------------------------------------+------------------------------------------------------------------------------|
+| mastodon-active-user                               | Username of the active user.                                                 |
+| mastodon-client--token-file                        | File path where Mastodon access tokens are stored.                           |
+| mastodon-instance-url                              | Base URL for the Mastodon instance you want to be active.                    |
+| mastodon-media--avatar-height                      | Height of the user avatar images (if shown).                                 |
+| mastodon-media--enable-image-caching               | Whether images should be cached.                                             |
+| mastodon-media--preview-max-height                 | Max height of any media attachment preview to be shown in timelines.         |
+| mastodon-mode-hook                                 | Hook run when entering Mastodon mode.                                        |
+| mastodon-profile-mode-hook                         | Hook run after entering or leaving `mastodon-profile-mode'.                  |
+| mastodon-profile-update-mode-hook                  | Hook run after entering or leaving `mastodon-profile-update-mode'.           |
+| mastodon-tl--display-caption-not-url-when-no-media | Display an image's caption rather than URL.                                  |
+| mastodon-tl--enable-proportional-fonts             | Nonnil to enable using proportional fonts when rendering HTML.               |
+| mastodon-tl--enable-relative-timestamps            | Whether to show relative (to the current time) timestamps.                   |
+| mastodon-tl--hide-replies                          | Whether to hide replies from the timelines.                                  |
+| mastodon-tl--highlight-current-toot                | Whether to highlight the toot at point. Uses `cursor-face' special property. |
+| mastodon-tl--show-avatars                          | Whether to enable display of user avatars in timelines.                      |
+| mastodon-tl--show-stats                            | Whether to show toot stats (faves, boosts, replies counts).                  |
+| mastodon-tl--symbols                               | A set of symbols (and fallback strings) to be used in timeline.              |
+| mastodon-tl--timeline-posts-count                  | Number of posts to display when loading a timeline.                          |
+| mastodon-tl-position-after-update                  | Defines where `point' should be located after a timeline update.             |
+| mastodon-toot--attachment-height                   | Height of the attached images preview in the toot draft buffer.              |
+| mastodon-toot--completion-style-for-mentions       | The company completion style to use for mentions.                            |
+| mastodon-toot--default-media-directory             | The default directory when prompting for a media file to upload.             |
+| mastodon-toot--default-reply-visibility            | Default visibility settings when replying.                                   |
+| mastodon-toot--enable-completion                   | Whether to enable completion of mentions and hashtags.                       |
+| mastodon-toot--enable-custom-instance-emoji        | Whether to enable your instance's custom emoji by default.                   |
+| mastodon-toot--proportional-fonts-compose          | Nonnil to enable using proportional fonts in the compose buffer.             |
+| mastodon-toot--use-company-for-completion          | Whether to enable company for completion.                                    |
+| mastodon-toot-display-orig-in-reply-buffer         | Display a copy of the toot replied to in the compose buffer.                 |
+| mastodon-toot-mode-hook                            | Hook run after entering or leaving `mastodon-toot-mode'.                     |
+| mastodon-toot-orig-in-reply-length                 | Length to crop toot replied to in the compose buffer to.                     |
+| mastodon-toot-timestamp-format                     | Format to use for timestamps.                                                |
