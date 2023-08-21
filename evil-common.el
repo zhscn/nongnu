@@ -59,6 +59,9 @@ If LOCAL is non-nil, the buffer-local value of HOOK is modified."
     (macroexp-let2* nil
         ((fun-name `(make-symbol
                      ,(or name (format "evil-delay-in-%s" hook-sym))))
+         ;; FIXME: We use `apply-partially' here for those cases where
+         ;; this macro is used (via `evil-define-key') in a file which
+         ;; still doesn't activate `lexical-binding'.
          (fun `(apply-partially
                 (lambda (name &rest _)
                   (when ,(or condition t)
