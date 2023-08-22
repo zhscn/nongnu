@@ -447,13 +447,13 @@ Returns the results as an alist."
     ;; offer empty fields if user currently has less than four filled:
     (while (< (length fields-old) 4)
       (setq fields-old (append fields-old '(("" . "")))))
-    (let ((f-str "Metadata %s [%s/4] (max. 255 chars): ")
-          (alist
-           (cl-loop for f in fields-old
-                    for x from 1 to 5
-                    collect
-                    (cons (read-string (format f-str "key" x) (car f))
-                          (read-string (format f-str "value" x) (cdr f))))))
+    (let* ((f-str "Metadata %s [%s/4] (max. 255 chars): ")
+           (alist
+            (cl-loop for f in fields-old
+                     for x from 1 to 5
+                     collect
+                     (cons (read-string (format f-str "key" x) (car f))
+                           (read-string (format f-str "value" x) (cdr f))))))
       (mapcar (lambda (x)
                 (cons (mastodon-profile--limit-to-255 (car x))
                       (mastodon-profile--limit-to-255 (cdr x))))
