@@ -109,6 +109,9 @@ extra keybindings."
   "Holds the JSON data of the CredentialAccount entity,
  containing details of the current user's account.")
 
+(defvar mastodon-profile-acccount-preferences-data nil
+  "Holds the JSON data of the current user's preferences.")
+
 (defvar mastodon-profile-update-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-profile--user-profile-send-updated)
@@ -462,12 +465,16 @@ Returns the results as an alist."
 ;; used in tl.el
 (defun mastodon-profile--get-preferences-pref (pref)
   "Fetch PREF from the endpoint \"/preferences\".
-This endpoint only holds a few preferences. For others, see
+If `mastodon-profile-acccount-preferences-data' is set, fetch
+from that instead.
+The endpoint only holds a few preferences. For others, see
 `mastodon-profile--update-preference' and its endpoint,
 \"/accounts/update_credentials.\""
   (alist-get pref
-             (mastodon-http--get-json
-              (mastodon-http--api "preferences"))))
+             (or mastodon-profile-acccount-preferences-data
+                 (setq mastodon-profile-acccount-preferences-data
+                       (mastodon-http--get-json
+                        (mastodon-http--api "preferences"))))))
 
 (defun mastodon-profile--view-preferences ()
   "View user preferences in another window."
