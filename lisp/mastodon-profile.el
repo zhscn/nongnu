@@ -78,6 +78,7 @@
 (autoload 'mastodon-toot--count-toot-chars "mastodon-toot")
 (autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
 (autoload 'mastodon-views--add-account-to-list "mastodon-views")
+(autoload 'mastodon-return-credential-account "mastodon")
 
 (defvar mastodon-tl--horiz-bar)
 (defvar mastodon-tl--update-point)
@@ -106,8 +107,8 @@ extra keybindings."
   :global nil)
 
 (defvar mastodon-profile-credential-account nil
-  "Holds the JSON data of the CredentialAccount entity,
- containing details of the current user's account.")
+  "Holds the JSON data of the CredentialAccount entity.
+It contains details of the current user's account.")
 
 (defvar mastodon-profile-acccount-preferences-data nil
   "Holds the JSON data of the current user's preferences.")
@@ -246,7 +247,7 @@ NO-REBLOGS means do not display boosts in statuses."
          (msg-str "Edit your profile note. C-c C-c to send, C-c C-k to cancel."))
     (switch-to-buffer-other-window buffer)
     (text-mode)
-    (mastodon-tl--set-buffer-spec (buffer-name buffer) endpoint nil)
+    (mastodon-tl--set-buffer-spec (buffer-name buffer) "accounts/verify_credentials" nil)
     (setq-local header-line-format
                 (propertize msg-str
                             'face font-lock-comment-face))
