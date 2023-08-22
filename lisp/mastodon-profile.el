@@ -105,6 +105,10 @@ extra keybindings."
   :group 'mastodon
   :global nil)
 
+(defvar mastodon-profile-credential-account nil
+  "Holds the JSON data of the CredentialAccount entity,
+ containing details of the current user's account.")
+
 (defvar mastodon-profile-update-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-profile--user-profile-send-updated)
@@ -212,8 +216,7 @@ NO-REBLOGS means do not display boosts in statuses."
 
 (defun mastodon-profile--get-json-value (val)
   "Fetch current VAL ue from account."
-  (let* ((url (mastodon-http--api "accounts/verify_credentials"))
-         (response (mastodon-http--get-json url)))
+  (let* ((response (mastodon-return-credential-account)))
     (if (eq (alist-get val response) :json-false)
         nil
       (alist-get val response))))
@@ -232,9 +235,7 @@ NO-REBLOGS means do not display boosts in statuses."
 (defun mastodon-profile--update-user-profile-note ()
   "Fetch user's profile note and display for editing."
   (interactive)
-  (let* ((endpoint "accounts/verify_credentials")
-         (url (mastodon-http--api endpoint))
-         (json (mastodon-http--get-json url))
+  (let* ((json (mastodon-return-credential-account))
          (source (alist-get 'source json))
          (note (alist-get 'note source))
          (buffer (get-buffer-create "*mastodon-update-profile*"))
