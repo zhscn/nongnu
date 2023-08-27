@@ -281,7 +281,7 @@ See `mastodon-toot-display-orig-in-reply-buffer'.")
                                     (string-prefix-p "*mastodon-" (buffer-name x))
                                   (get-buffer x)))
                               (buffer-list))))) ; catch any other masto buffer
-    (mastodon-return-credential-account)
+    (mastodon-return-credential-account :force)
     (if buffer
         (switch-to-buffer buffer)
       (mastodon-tl--get-home-timeline)
@@ -291,14 +291,22 @@ See `mastodon-toot-display-orig-in-reply-buffer'.")
 
 (defvar mastodon-profile-credential-account nil)
 
-(defun mastodon-return-credential-account ()
+(defun mastodon-return-credential-account (&optional force)
   "Return the CredentialAccount entity.
-Either from `mastodon-profile-credential-account' or from the server."
-  (or mastodon-profile-credential-account
+Either from `mastodon-profile-credential-account' or from the
+server.
+FORCE means to fetch from the server and update
+`mastodon-profile-credential-account'."
+  (if force
       (setq mastodon-profile-credential-account
             (mastodon-http--get-json
              (mastodon-http--api "accounts/verify_credentials")
-             nil :silent))))
+             nil :silent))
+    (or mastodon-profile-credential-account
+        (setq mastodon-profile-credential-account
+              (mastodon-http--get-json
+               (mastodon-http--api "accounts/verify_credentials")
+               nil :silent)))))
 
 ;;;###autoload
 (defun mastodon-toot (&optional user reply-to-id reply-json)
@@ -420,7 +428,7 @@ Calls `mastodon-tl--get-buffer-type', which see."
                                   (when mastodon-toot--enable-custom-instance-emoji
                                     (mastodon-toot--enable-custom-emoji))
                                   (when mastodon-tl--highlight-current-toot
-                                    (cursor-face-highlight-mode)))))
+                                    (cursor-face-highlight-mode))))) ; 29.1
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook #'mastodon-profile--fetch-server-account-settings)
