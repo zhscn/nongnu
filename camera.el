@@ -92,15 +92,17 @@ Don't do anything if current buffer is not BUFFER."
            (size (camera--get-text-area-size))
            (image (funcall camera-capture-frame-function size)))
       (erase-buffer)
-      (insert-image image "[frame]")
+      (when image
+        (insert-image image "[frame]"))
       (setq camera--current-frame image))
     (when camera--update-frame-timer
       (cancel-timer camera--update-frame-timer))
     (setq camera--update-frame-timer
-          (run-with-idle-timer (+ (time-to-seconds (current-idle-time))
-                                  (/ (float camera-framerate)))
-                               nil #'camera--update-frame
-                               (current-buffer)))))
+          (run-with-idle-timer
+           (+ (time-to-seconds (or (current-idle-time) 0))
+              (/ (float camera-framerate)))
+           nil #'camera--update-frame
+           (current-buffer)))))
 
 (defun camera--pre-command ()
   "Cancel timer to update frame shown on buffer."
