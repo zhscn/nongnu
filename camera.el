@@ -158,32 +158,77 @@ Don't do anything if current buffer is not BUFFER."
     (display-buffer (current-buffer))
     (camera--update-frame (current-buffer))))
 
+(defvar camera--ffmpeg-process nil
+  "The ffmpeg process.")
+
+(defvar camera--ffmpeg-image-file nil
+  "The image file where the frames are being saved.")
+
+(defvar camera--ffmpeg-frame-size nil
+  "Size of frames being captured by the current ffmpeg process.")
+
+(defun camera--ffmpeg-cleanup ()
+  "Cleanup before killing buffer."
+  (when camera--ffmpeg-process
+    (when (process-live-p camera--ffmpeg-process)
+      (kill-process camera--ffmpeg-process)
+      (while (process-live-p camera--ffmpeg-process)
+        (sit-for 0.05)))
+    (when (process-buffer camera--ffmpeg-process)
+      (kill-buffer (process-buffer camera--ffmpeg-process))))
+  (when (and camera--ffmpeg-image-file
+             (file-exists-p camera--ffmpeg-image-file))
+    (delete-file camera--ffmpeg-image-file)))
+
 (defun camera-capture-frame-ffmpeg (size)
   "Capture a frame from the camera with `ffmpeg'.
 
 Return an image of the frame.  Try to make the size of the frame SIZE."
-  (let ((temp-file (make-temp-file "emacs-camera-ffmpeg-" nil ".jpeg")))
-    (unwind-protect
-        ;; TODO: Refractor.
-        (with-temp-buffer
-
-          ;; `ffmpeg' complains when file exists.
-          (when (file-exists-p temp-file)
-            (delete-file temp-file))
-          (let ((process (start-file-process
-                          "camera-ffmpeg" (current-buffer)
-                          "ffmpeg" "-f" "video4linux2" "-s"
-                          (format "%ix%i" (car size) (cdr size))
-                          "-i" camera-ffmpeg-video-device "-frames" "1"
-                          temp-file)))
-            (while (process-live-p process)
-              (sleep-for 0.05)))
-          (erase-buffer)
-          (set-buffer-multibyte nil)
-          (insert-file-contents-literally temp-file)
-          (create-image (buffer-string) 'jpeg t))
-      (when (file-exists-p temp-file)
-        (delete-file temp-file)))))
+  (when (and camera--ffmpeg-process
+             (not (process-live-p camera--ffmpeg-process)))
+    (message "ffmpeg process exited with status %i, retrying..."
+             (process-exit-status camera--ffmpeg-process)))
+  (unless (and (equal camera--ffmpeg-frame-size size)
+               camera--ffmpeg-image-file
+               camera--ffmpeg-process
+               (process-live-p camera--ffmpeg-process))
+    (when camera--ffmpeg-process
+      (when (process-live-p camera--ffmpeg-process)
+        (kill-process camera--ffmpeg-process)
+        (while (process-live-p camera--ffmpeg-process)
+          (sit-for 0.05)))
+      (when (process-buffer camera--ffmpeg-process)
+        (kill-buffer (process-buffer camera--ffmpeg-process))))
+    (when (and camera--ffmpeg-image-file
+               (file-exists-p camera--ffmpeg-image-file))
+      (delete-file camera--ffmpeg-image-file))
+    (setq-local camera--ffmpeg-image-file
+                (make-temp-file "emacs-camera-ffmpeg-" nil ".jpeg"))
+    (when (and camera--ffmpeg-image-file
+               (file-exists-p camera--ffmpeg-image-file))
+      (delete-file camera--ffmpeg-image-file))
+    (setq-local camera--ffmpeg-frame-size size)
+    (setq-local camera--ffmpeg-process
+                (start-file-process
+                 "camera-ffmpeg"
+                 (generate-new-buffer " *camera-ffmpeg*" t)
+                 "ffmpeg" "-f" "video4linux2" "-s"
+                 (format "%ix%i" (car camera--ffmpeg-frame-size)
+                         (cdr camera--ffmpeg-frame-size))
+                 "-i" camera-ffmpeg-video-device
+                 "-fpsmax" (number-to-string camera-framerate)
+                 "-update" "true" camera--ffmpeg-image-file))
+    (while (and (process-live-p camera--ffmpeg-process)
+                (not (file-exists-p camera--ffmpeg-image-file)))
+      (sleep-for 0.05))
+    (add-hook 'kill-buffer-hook #'camera--ffmpeg-cleanup nil t))
+  (when (file-exists-p camera--ffmpeg-image-file)
+    (let ((img-file camera--ffmpeg-image-file))
+      (with-temp-buffer
+        (erase-buffer)
+        (set-buffer-multibyte nil)
+        (insert-file-contents-literally img-file)
+        (create-image (buffer-string) 'jpeg t)))))
 
 (provide 'camera)
 ;;; camera.el ends here
