@@ -222,7 +222,7 @@ Takes its form from `window-configuration-to-register'.")
 (persist-defvar mastodon-toot-draft-toots-list nil
                 "A list of toots that have been saved as drafts.
 For the moment we just put all composed toots in here, as we want
-to also capture toots that are 'sent' but that don't successfully
+to also capture toots that are \"sent\" but that don't successfully
 send.")
 
 

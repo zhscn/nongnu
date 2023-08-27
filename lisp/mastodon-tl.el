@@ -1584,7 +1584,7 @@ This includes the update profile note buffer, but not the preferences one."
   (string-prefix-p "accounts" (mastodon-tl--endpoint nil :no-error)))
 
 (defun mastodon-tl--timeline-proper-p ()
-  "Return non-nil if the current buffer is a 'proper' timeline.
+  "Return non-nil if the current buffer is a \"proper\" timeline.
 A proper timeline excludes notifications, threads, profiles, and
 other toot buffers that aren't strictly mastodon timelines."
   (let ((timeline-buffers
