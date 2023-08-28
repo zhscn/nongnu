@@ -222,7 +222,7 @@ Takes its form from `window-configuration-to-register'.")
 (persist-defvar mastodon-toot-draft-toots-list nil
                 "A list of toots that have been saved as drafts.
 For the moment we just put all composed toots in here, as we want
-to also capture toots that are 'sent' but that don't successfully
+to also capture toots that are \"sent\" but that don't successfully
 send.")
 
 
@@ -687,7 +687,7 @@ TEXT-ONLY means don't check for attachments or polls."
 ;;; EMOJIS
 
 (defalias 'mastodon-toot--insert-emoji
-  'emojify-insert-emoji
+  #'emojify-insert-emoji
   "Prompt to insert an emoji.")
 
 (defun mastodon-toot--emoji-dir ()
@@ -1623,7 +1623,7 @@ Added to `after-change-functions' in new toot buffers."
                                     mastodon-toot-draft-toots-list
                                     nil t)))
         (setq mastodon-toot-draft-toots-list
-              (cl-delete draft mastodon-toot-draft-toots-list :test 'equal))
+              (cl-delete draft mastodon-toot-draft-toots-list :test #'equal))
         (message "Draft deleted!"))
     (message "No drafts to delete.")))
 
@@ -1773,7 +1773,7 @@ Only text that is not one of these faces will be spell-checked."
 (add-hook 'mastodon-toot-mode-hook
     	  (lambda ()
             (setq flyspell-generic-check-word-predicate
-                  'mastodon-toot-mode-flyspell-verify)))
+                  #'mastodon-toot-mode-flyspell-verify)))
 
 ;;;###autoload
 (add-hook 'mastodon-toot-mode-hook

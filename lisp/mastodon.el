@@ -224,8 +224,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
 (defcustom mastodon-mode-hook nil
   "Hook run when entering Mastodon mode."
   :type 'hook
-  :options '(provide-discover-context-menu)
-  :group 'mastodon)
+  :options '(provide-discover-context-menu))
 
 (defface mastodon-handle-face
   '((t :inherit default))
@@ -427,7 +426,6 @@ Calls `mastodon-tl--get-buffer-type', which see."
 
 (define-derived-mode mastodon-mode special-mode "Mastodon"
   "Major mode for Mastodon, the federated microblogging network."
-  :group 'mastodon
   (read-only-mode 1))
 
 (provide 'mastodon)
