@@ -645,12 +645,12 @@ Prompt for a context, must be a list containting at least one of \"home\",
          (url (mastodon-http--api (format "filters/%s" filter-id))))
     (if (null phrase)
         (error "No filter at point?")
-      (when (y-or-n-p (format "Delete filter %s? " phrase)))
-      (let ((response (mastodon-http--delete url)))
-        (mastodon-http--triage
-         response (lambda ()
-                    (mastodon-views--view-filters)
-                    (message "Filter for \"%s\" deleted!" phrase)))))))
+      (when (y-or-n-p (format "Delete filter %s? " phrase))
+        (let ((response (mastodon-http--delete url)))
+          (mastodon-http--triage
+           response (lambda ()
+                      (mastodon-views--view-filters)
+                      (message "Filter for \"%s\" deleted!" phrase))))))))
 
 
 ;;; FOLLOW SUGGESTIONS
