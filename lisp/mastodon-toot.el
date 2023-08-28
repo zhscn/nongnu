@@ -1130,7 +1130,7 @@ Return its two letter ISO 639 1 code."
   (let* ((choice (completing-read "Language for this toot: "
                                   mastodon-iso-639-1)))
     (setq mastodon-toot--language
-          (alist-get choice mastodon-iso-639-1 nil nil 'equal))
+          (alist-get choice mastodon-iso-639-1))
     (message "Language set to %s" choice)
     (mastodon-toot--update-status-fields)))
 
