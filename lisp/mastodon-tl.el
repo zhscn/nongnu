@@ -203,8 +203,8 @@ If nil `(point-min)' is used instead.")
 
 (defvar mastodon-tl--link-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map [return] 'mastodon-tl--do-link-action-at-point)
-    (define-key map [mouse-2] 'mastodon-tl--do-link-action)
+    (define-key map [return] #'mastodon-tl--do-link-action-at-point)
+    (define-key map [mouse-2] #'mastodon-tl--do-link-action)
     (define-key map [follow-link] 'mouse-face)
     map)
   "The keymap for link-like things in buffer (except for shr.el generate links).
@@ -1594,7 +1594,7 @@ This includes the update profile note buffer, but not the preferences one."
   (string-prefix-p "accounts" (mastodon-tl--endpoint nil :no-error)))
 
 (defun mastodon-tl--timeline-proper-p ()
-  "Return non-nil if the current buffer is a 'proper' timeline.
+  "Return non-nil if the current buffer is a \"proper\" timeline.
 A proper timeline excludes notifications, threads, profiles, and
 other toot buffers that aren't strictly mastodon timelines."
   (let ((timeline-buffers
@@ -2284,7 +2284,7 @@ when showing followers or accounts followed."
 (defun mastodon-tl--get-link-header-from-response (headers)
   "Get http Link header from list of http HEADERS."
   ;; pleroma uses "link", so case-insensitive match required:
-  (when-let ((link-headers (alist-get "Link" headers nil nil 'cl-equalp)))
+  (when-let ((link-headers (alist-get "Link" headers nil nil #'cl-equalp)))
     (split-string link-headers ", ")))
 
 (defun mastodon-tl--more ()
