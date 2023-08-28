@@ -4,8 +4,15 @@ This package allows you to take photos using your camera/webcam from Emacs.
 
 * Installation
 
-~camera~ isn't available on any ELPA right now.  So, you have to follow one
-of the following methods:
+** NonGNU ELPA
+
+Camera is available on NonGNU ELPA.  If you don't have the archive
+setup, put something like the following in your init file:
+
+#+begin_src emacs-lisp
+(add-to-list 'package-archives
+             '("nongnu" . "https://elpa.nongnu.org/nongnu/"))
+#+end_src
 
 ** Quelpa
 
