@@ -177,7 +177,7 @@ provides the JSON data."
   (if (seq-empty-p data)
       (insert (propertize
                (format "Looks like you have no %s for now." view-name)
-               'face font-lock-comment-face
+               'face 'font-lock-comment-face
                'byline t
                'toot-id "0")) ; so point can move here when no item
     (funcall insert-fun data)
