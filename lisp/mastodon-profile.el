@@ -827,7 +827,7 @@ Currently limited to 100 handles. If not found, try
          (response (mastodon-http--get-json url `(("limit" . "100"))))
          (handles (mastodon-tl--map-alist-vals-to-alist 'acct 'id response))
          (choice (completing-read "Remove from followers: " handles))
-         (id (alist-get choice handles nil nil 'equal)))
+         (id (alist-get choice handles)))
     (mastodon-profile--remove-user-from-followers id)))
 
 (defun mastodon-profile--add-private-note-to-account ()
