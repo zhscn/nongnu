@@ -250,14 +250,14 @@ NO-REBLOGS means do not display boosts in statuses."
     (mastodon-tl--set-buffer-spec (buffer-name buffer) "accounts/verify_credentials" nil)
     (setq-local header-line-format
                 (propertize msg-str
-                            'face font-lock-comment-face))
+                            'face 'font-lock-comment-face))
     (mastodon-profile-update-mode t)
     (insert (propertize (concat (propertize "0"
                                             'note-counter t
                                             'display nil)
                                 "/500 characters")
                         'read-only t
-                        'face font-lock-comment-face
+                        'face 'font-lock-comment-face
                         'note-header t)
             "\n")
     (make-local-variable 'after-change-functions)

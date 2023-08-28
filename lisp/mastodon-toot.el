@@ -905,7 +905,7 @@ instance to edit a toot."
                 (insert (propertize (if (= count 1)
                                         (format "%s [original]:\n" count)
                                       (format "%s:\n" count))
-                                    'face font-lock-comment-face)
+                                    'face 'font-lock-comment-face)
                         (mastodon-toot--insert-toot-iter x)
                         "\n")
                 (cl-incf count))
@@ -915,7 +915,7 @@ instance to edit a toot."
                    (format "Edits to toot by %s:"
                            (alist-get 'username
                                       (alist-get 'account (car history))))
-                   'face font-lock-comment-face))
+                   'face 'font-lock-comment-face))
       (mastodon-tl--set-buffer-spec (buffer-name (current-buffer))
                                     (format "statuses/%s/history" id)
                                     nil))))

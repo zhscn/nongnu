@@ -677,7 +677,7 @@ this just means displaying toot client."
             (propertize
              (format-time-string mastodon-toot-timestamp-format
                                  edited-parsed)
-             'face font-lock-comment-face
+             'face 'font-lock-comment-face
              'timestamp edited-parsed
              'display (if mastodon-tl--enable-relative-timestamps
                           (mastodon-tl--relative-time-description edited-parsed)
@@ -1377,19 +1377,19 @@ To disable showing the stats, customize
                                 'favourited-p (eq 't .favourited)
                                 'favourites-field t
                                 'help-echo (format "%s favourites" .favourites_count)
-                                'face font-lock-comment-face)
-                    (propertize " | " 'face font-lock-comment-face)
+                                'face 'font-lock-comment-face)
+                    (propertize " | " 'face 'font-lock-comment-face)
                     (propertize boosts
                                 'boosted-p (eq 't .reblogged)
                                 'boosts-field t
                                 'help-echo (format "%s boosts" .reblogs_count)
-                                'face font-lock-comment-face)
-                    (propertize " | " 'face font-lock-comment-face)
+                                'face 'font-lock-comment-face)
+                    (propertize " | " 'face 'font-lock-comment-face)
                     (propertize replies
                                 'replies-field t
                                 'replies-count .replies_count
                                 'help-echo (format "%s replies" .replies_count)
-                                'face font-lock-comment-face)))
+                                'face 'font-lock-comment-face)))
            (status
             (concat
              (propertize " "
