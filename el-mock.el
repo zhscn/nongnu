@@ -302,8 +302,11 @@ Example:
                 spec)))
 
 (defun mocklet-function (spec body-func)
+  ;; FIXME: This is kept for compatibility with .elc files compiled with old
+  ;; versions of `el-mock'.  Is it worth keeping?
+  (declare (obsolete with-mock "el-mock-1.26?"))
   (with-mock
-    (eval (mock-parse-spec spec))
+    (eval (mock-parse-spec spec) t)
     (funcall body-func)))
 
 (defmacro mocklet (speclist &rest body)
@@ -335,10 +338,11 @@ Example:
             (stub-nil)
             (stub-2 => 2))
     (and (null (mock-nil 1))    (= (mock-1 4) 1)
-         (null (stub-nil 'any)) (= (stub-2) 2))) ; => t
-"
+         (null (stub-nil \\='any)) (= (stub-2) 2))) ; => t"
   (declare (indent 1))
-  `(mocklet-function ',speclist (lambda () ,@body)))
+  `(with-mock
+     ,(mock-parse-spec spec)
+     ,@body))
 
 (define-obsolete-function-alias 'stublet #'mocklet "1.26?")
 
