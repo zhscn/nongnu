@@ -11,7 +11,7 @@
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; This file is distributed in the hope that it will be useful,
@@ -27,7 +27,7 @@
 ;;; Commentary:
 
 ;; Emacs Lisp Mock is a library for mocking and stubbing using
-;; readable syntax. Most commonly Emacs Lisp Mock is used in
+;; readable syntax.  Most commonly Emacs Lisp Mock is used in
 ;; conjunction with Emacs Lisp Expectations, but it can be used in
 ;; other contexts.
 
@@ -60,7 +60,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'advice)
 
 (defvar -stubbed-functions nil)
 (defvar -mocked-functions nil)
@@ -85,7 +84,7 @@
   (mock-suppress-redefinition-message
    (lambda ()
      (let ((func (get funcsym 'mock-original-func)))
-       (if (not func)
+       (if (not func) ;; FIXME: Not needed since Emacs≥24.4
            (fmakunbound funcsym)
          (fset funcsym func)
          ;; may be unadviced
@@ -109,18 +108,17 @@
   (mock--stub-setup funcsym (lambda (&rest _actual-args)
                              (signal 'mock-error '(called)))))
 
-(defalias 'mock/teardown 'stub/teardown)
+(defalias 'mock/teardown #'stub/teardown)
 
 ;;;; mock verify
-(put 'mock-error 'error-conditions '(mock-error error))
-(put 'mock-error 'error-message "Mock error")
+(define-error 'mock-error "Mock error")
 (defun mock-verify ()
   (cl-loop for f in -mocked-functions
            when (equal 0 (get f 'mock-call-count))
            do (signal 'mock-error (list 'not-called f)))
   (cl-loop for args in mock-verify-list
            do
-           (apply 'mock-verify-args args)))
+           (apply #'mock-verify-args args)))
 
 (defun mock-verify-args (funcsym expected-args actual-args expected-times)
   (unless (= (length expected-args) (length actual-args))
@@ -167,8 +165,7 @@ wrap test method around this function."
 (defun mock-suppress-redefinition-message (func)
   "Erase \"ad-handle-definition: `%s' got redefined\" message."
   (funcall func))
-(put 'mock-syntax-error 'error-conditions '(mock-syntax-error error))
-(put 'mock-syntax-error 'error-message "Mock syntax error")
+(define-error 'mock-syntax-error "Mock syntax error")
 
 ;;;; User interface
 (defmacro with-mock (&rest body)
@@ -181,9 +178,10 @@ Example:
     (stub fooz => 2)
     (fooz 9999))                  ; => 2
 "
+  (declare (indent 0))
   `(mock-protect
     (lambda () ,@body)))
-(defalias 'with-stub 'with-mock)
+(defalias 'with-stub #'with-mock)
 
 (defmacro stub (function &rest rest)
   "Create a stub for FUNCTION.
@@ -331,14 +329,10 @@ Example:
     (and (null (mock-nil 1))    (= (mock-1 4) 1)
          (null (stub-nil 'any)) (= (stub-2) 2))) ; => t
 "
+  (declare (indent 1))
   `(mocklet-function ',speclist (lambda () ,@body)))
 
-(defalias 'stublet 'mocklet)
-
-(put 'with-mock 'lisp-indent-function 0)
-(put 'with-stub 'lisp-indent-function 0)
-(put 'mocklet 'lisp-indent-function 1)
-(put 'stublet 'lisp-indent-function 1)
+(defalias 'stublet #'mocklet)
 
 (provide 'el-mock)
 
