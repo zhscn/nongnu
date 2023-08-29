@@ -72,6 +72,7 @@
    (lambda ()
      (when (fboundp funcsym)
        (put funcsym 'mock-original-func (symbol-function funcsym)))
+     (cl-pushnew funcsym -stubbed-functions)
      (fset funcsym function))))
 
 (defun stub/setup (funcsym value)
@@ -81,6 +82,8 @@
   (mock--stub-setup funcsym `(lambda (&rest x) ,value)))
 
 (defun stub/teardown (funcsym)
+  ;; FIXME: Better not call this function by accident since it will
+  ;; merrily undefine the function you pass it :-(
   (mock-suppress-redefinition-message
    (lambda ()
      (let ((func (get funcsym 'mock-original-func)))
@@ -94,6 +97,7 @@
 (defun mock/setup (func-spec value times)
   (let ((funcsym (car func-spec)))
     (put funcsym 'mock-call-count 0)
+    (cl-pushnew funcsym -mocked-functions)
     (mock--stub-setup funcsym
                       `(lambda (&rest actual-args)
                          (cl-incf (get ',funcsym 'mock-call-count))
@@ -107,8 +111,6 @@
   (declare (obsolete mock--stub-setup "el-mock-1.26?"))
   (mock--stub-setup funcsym (lambda (&rest _actual-args)
                              (signal 'mock-error '(called)))))
-
-(defalias 'mock/teardown #'stub/teardown)
 
 ;;;; mock verify
 (define-error 'mock-error "Mock error")
@@ -155,11 +157,12 @@ wrap test method around this function."
         (prog1
             (funcall body-fn)
           (setq any-error nil))
-      (mapc #'stub/teardown -stubbed-functions)
-      (unwind-protect
-          (unless any-error
-            (mock-verify))
-        (mapc #'mock/teardown -mocked-functions)))))
+      ;; FIXME: `delete-dups' is for backward compatibility with `.elc'
+      ;; compiled with an old version of `el-mock' since those did
+      ;; (push ',function -stubbed-functions) after `stub/setup'.
+      (mapc #'stub/teardown (delete-dups -stubbed-functions))
+      (unless any-error
+        (mock-verify)))))
 
 ;;;; message hack
 (defun mock-suppress-redefinition-message (func)
@@ -209,8 +212,7 @@ Example:
                      (t (signal 'mock-syntax-error '("Use `(stub FUNC)' or `(stub FUNC => RETURN-VALUE)'"))))))
     `(if (not in-mocking)
          (error "Do not use `stub' outside")
-       (mock--stub-setup ',function (lambda (&rest _) ,value))
-       (push ',function -stubbed-functions))))
+       (mock--stub-setup ',function (lambda (&rest _) ,value)))))
 
 (defmacro mock (func-spec &rest rest)
     "Create a mock for function described by FUNC-SPEC.
@@ -255,8 +257,7 @@ Example:
                       ((not times) (signal 'mock-syntax-error '("Use `(mock FUNC-SPEC)' or `(mock FUNC-SPEC => RETURN-VALUE)'"))))))
     `(if (not in-mocking)
          (error "Do not use `mock' outside")
-       (mock/setup ',func-spec ',value ,times)
-       (push ',(car func-spec) -mocked-functions))))
+       (mock/setup ',func-spec ',value ,times))))
 
 (defmacro not-called (function)
   "Create a not-called mock for FUNCTION.
@@ -280,8 +281,7 @@ Example:
     `(if (not in-mocking)
          (error "Do not use `not-called' outside")
        (mock--stub-setup ',function
-                         (lambda (&rest _) (signal 'mock-error '(called))))
-       (push ',function -mocked-functions))))
+                         (lambda (&rest _) (signal 'mock-error '(called)))))))
 
 
 (defun mock-parse-spec (spec)
