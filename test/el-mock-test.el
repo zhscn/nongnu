@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 
+(require 'el-mock)
+
 (declare-function foo "el-mock-test")
 (declare-function foox "el-mock-test")
 (declare-function hogehoges "el-mock-test")
@@ -18,6 +20,9 @@
 (declare-function fugaga "el-mock-test")
 
 (defvar el-mock-test-var)
+
+(defun el-mock-test--wrap-retval (orig-fun &rest args)
+  (concat "[" (apply orig-fun args) "]"))
 
 (expectations
  (desc "stub setup/teardown")
@@ -229,8 +234,7 @@
          (mock-suppress-redefinition-message ;silence redefinition warning
           (lambda ()
             (defun fugaga (x) (* x 2))
-            (defadvice fugaga (around test activate)
-              (setq ad-return-value (concat "[" ad-return-value "]")))
+            (advice-add 'fugaga :around #'el-mock-test--wrap-retval)
             (prog1
                 (mocklet ((fugaga => "xxx"))
                   (fugaga "aaaaa"))
@@ -239,8 +243,7 @@
          (mock-suppress-redefinition-message
           (lambda ()
             (defun fugaga (x) (* x 2))
-            (defadvice fugaga (around test activate)
-              (setq ad-return-value (concat "[" ad-return-value "]")))
+            (advice-add 'fugaga :around #'el-mock-test--wrap-retval)
             (prog1
                 (let ((orig (symbol-function 'fugaga)))
                   (mocklet ((fugaga => "xx"))
@@ -253,8 +256,7 @@
          (mock-suppress-redefinition-message
           (lambda ()
             (defun fugaga (x) (* x 2))
-            (defadvice fugaga (around test activate)
-              (setq ad-return-value (concat "[" ad-return-value "]")))
+            (advice-add 'fugaga :around #'el-mock-test--wrap-retval)
             (prog1
                 (mocklet (((fugaga "aaaaa") => "xx"))
                   (fugaga "aaaaa"))
@@ -263,8 +265,7 @@
          (mock-suppress-redefinition-message
           (lambda ()
             (defun fugaga (x) (* x 2))
-            (defadvice fugaga (around test activate)
-              (setq ad-return-value (concat "[" ad-return-value "]")))
+            (advice-add 'fugaga :around #'el-mock-test--wrap-retval)
             (prog1
                 (let ((orig (symbol-function 'fugaga)))
                   (mocklet (((fugaga "aaaaa") => "xx"))
@@ -295,8 +296,7 @@
          (mock-suppress-redefinition-message ;silence redefinition warning
           (lambda ()
             (defun fugaga (x) (* x 2))
-            (defadvice fugaga (around test activate)
-              (setq ad-return-value (concat "[" ad-return-value "]")))
+            (advice-add 'fugaga :around #'el-mock-test--wrap-retval)
             (prog1
                 (mocklet ((fugaga not-called))
                   "not-called")
@@ -305,8 +305,7 @@
          (mock-suppress-redefinition-message
           (lambda ()
             (defun fugaga (x) (* x 2))
-            (defadvice fugaga (around test activate)
-              (setq ad-return-value (concat "[" ad-return-value "]")))
+            (advice-add 'fugaga :around #'el-mock-test--wrap-retval)
             (prog1
                 (let ((orig (symbol-function 'fugaga)))
                   (mocklet ((fugaga not-called))
