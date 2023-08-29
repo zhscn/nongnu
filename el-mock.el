@@ -1,6 +1,7 @@
 ;;; el-mock.el --- Tiny Mock and Stub framework in Emacs Lisp  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008, 2010, 2012  rubikitch
+;; Copyright (C) 2023  Free Software Foundation, Inc.
 
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
@@ -67,12 +68,18 @@
 (defvar in-mocking nil)
 
 ;;;; stub setup/teardown
-(defun stub/setup (funcsym value)
+(defun mock--stub-setup (funcsym function)
   (mock-suppress-redefinition-message
    (lambda ()
      (when (fboundp funcsym)
        (put funcsym 'mock-original-func (symbol-function funcsym)))
-     (fset funcsym `(lambda (&rest x) ,value)))))
+     (fset funcsym function))))
+
+(defun stub/setup (funcsym value)
+  ;; FIXME: This is kept for compatibility with .elc files compiled with old
+  ;; versions of `el-mock'.  Is it worth keeping?
+  (declare (obsolete mock--stub-setup "el-mock-1.26?"))
+  (mock--stub-setup funcsym `(lambda (&rest x) ,value)))
 
 (defun stub/teardown (funcsym)
   (mock-suppress-redefinition-message
@@ -86,28 +93,21 @@
     
 ;;;; mock setup/teardown
 (defun mock/setup (func-spec value times)
-  (mock-suppress-redefinition-message
-   (lambda ()
-     (let ((funcsym (car func-spec)))
-       (when (fboundp funcsym)
-         (put funcsym 'mock-original-func (symbol-function funcsym)))
-       (put funcsym 'mock-call-count 0)
-       (fset funcsym
-                     `(lambda (&rest actual-args)
-                        (cl-incf (get ',funcsym 'mock-call-count))
-                        (add-to-list 'mock-verify-list
-                                     (list ',funcsym ',(cdr func-spec) actual-args ,times))
-                        ,value))))))
+  (let ((funcsym (car func-spec)))
+    (put funcsym 'mock-call-count 0)
+    (mock--stub-setup funcsym
+                      `(lambda (&rest actual-args)
+                         (cl-incf (get ',funcsym 'mock-call-count))
+                         (add-to-list 'mock-verify-list
+                                      (list ',funcsym ',(cdr func-spec) actual-args ,times))
+                         ,value))))
 
 (defun not-called/setup (funcsym)
-  (mock-suppress-redefinition-message
-   (lambda ()
-     (let ()
-       (when (fboundp funcsym)
-         (put funcsym 'mock-original-func (symbol-function funcsym)))
-       (fset funcsym
-                     (lambda (&rest _actual-args)
-                       (signal 'mock-error '(called))))))))
+  ;; FIXME: This is kept for compatibility with .elc files compiled with old
+  ;; versions of `el-mock'.  Is it worth keeping?
+  (declare (obsolete mock--stub-setup "el-mock-1.26?"))
+  (mock--stub-setup funcsym (lambda (&rest _actual-args)
+                             (signal 'mock-error '(called)))))
 
 (defalias 'mock/teardown 'stub/teardown)
 
@@ -211,7 +211,7 @@ Example:
                      (t (signal 'mock-syntax-error '("Use `(stub FUNC)' or `(stub FUNC => RETURN-VALUE)'"))))))
     `(if (not in-mocking)
          (error "Do not use `stub' outside")
-       (stub/setup ',function ',value)
+       (mock--stub-setup ',function (lambda (&rest _) ,value))
        (push ',function -stubbed-functions))))
 
 (defmacro mock (func-spec &rest rest)
@@ -281,7 +281,8 @@ Example:
   (let ()
     `(if (not in-mocking)
          (error "Do not use `not-called' outside")
-       (not-called/setup ',function)
+       (mock--stub-setup ',function
+                         (lambda (&rest _) (signal 'mock-error '(called))))
        (push ',function -mocked-functions))))
 
 
