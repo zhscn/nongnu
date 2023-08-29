@@ -7,3 +7,7 @@
 (undercover "*.el" "el-mock/*.el"
 	    (:exclude "*-test.el"))
 (require 'el-mock (f-expand "el-mock.el" (f-parent (f-parent (f-this-file)))))
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
