@@ -296,16 +296,15 @@ Either from `mastodon-profile-credential-account' or from the
 server.
 FORCE means to fetch from the server and update
 `mastodon-profile-credential-account'."
-  (if force
-      (setq mastodon-profile-credential-account
-            (mastodon-http--get-json
-             (mastodon-http--api "accounts/verify_credentials")
-             nil :silent))
-    (or mastodon-profile-credential-account
-        (setq mastodon-profile-credential-account
-              (mastodon-http--get-json
+  (let ((req '(mastodon-http--get-json
                (mastodon-http--api "accounts/verify_credentials")
-               nil :silent)))))
+               nil :silent)))
+    (if force
+        (setq mastodon-profile-credential-account
+              (eval req))
+      (or mastodon-profile-credential-account
+          (setq mastodon-profile-credential-account
+                (eval req))))))
 
 ;;;###autoload
 (defun mastodon-toot (&optional user reply-to-id reply-json)
