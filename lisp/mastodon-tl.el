@@ -709,6 +709,7 @@ The descriptive string is a human readable version relative to
 the current time while the next change timestamp give the first
 time that this description will change in the future.
 TIMESTAMP is assumed to be in the past."
+  ;; FIXME: Use `mastodon-tl--human-duration'!
   (let* ((now (or current-time (current-time)))
          (time-difference (time-subtract now timestamp))
          (seconds-difference (float-time time-difference))
@@ -1157,8 +1158,13 @@ LONGEST-OPTION is the option whose length determines the formatting."
   "Convert poll expiry TIMESTAMP into a descriptive string."
   ;; FIXME: Could we document the format of TIMESTAMP here?
   (let* ((ts (encode-time (parse-time-string timestamp)))
-         (seconds (time-to-seconds (time-subtract nil ts)))
-         (units mastodon-tl--time-units)
+         (seconds (time-to-seconds (time-subtract ts nil))))
+    (concat (mastodon-tl--human-duration (max 0 seconds)) " left")))
+
+(defun mastodon-tl--human-duration (seconds)
+  "Return a string describing SECONDS in a more human-friendly way."
+  (cl-assert (>= seconds 0))
+  (let* ((units mastodon-tl--time-units)
          (n1 seconds) (unit1 (pop units)) n2 unit2
          next)
     (while (and units (> (truncate (setq next (/ n1 (car units)))) 0))
@@ -1170,8 +1176,8 @@ LONGEST-OPTION is the option whose length determines the formatting."
     (setq n1 (truncate n1))
     (if n2 (setq n2 (truncate n2)))
     (if (memq n2 '(nil 0))
-        (format "%d %s%s left" n1 unit1 (if (> n1 1) "s" ""))
-      (format "%d %s%s, %d %s%s left"
+        (format "%d %s%s" n1 unit1 (if (> n1 1) "s" ""))
+      (format "%d %s%s, %d %s%s"
               n1 unit1 (if (> n1 1) "s" "")
               n2 unit2 (if (> n2 1) "s" "")))))
 
