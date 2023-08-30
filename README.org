@@ -393,9 +393,8 @@ you can get bookmarks going immediately by using [[https://github.com/emacsmirro
 Hard dependencies (should all install with =mastodon.el=):
 - =request= (for uploading attachments), [[https://github.com/tkf/emacs-request][emacs-request]]
 - =persist= for storing some settings across sessions
-- =ts= for poll relative expiry times
 
-Optional dependencies:
+Optional dependencies (install yourself, =mastodon.el= can use them):
 - =emojify= for inserting and viewing emojis
 - =mpv= and =mpv.el= for viewing videos and gifs
 - =lingva.el= for translating toots
