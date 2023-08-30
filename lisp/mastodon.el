@@ -7,7 +7,7 @@
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 1.0.0
-;; Package-Requires: ((emacs "27.1") (request "0.3.0") (persist "0.4") (ts "0.3"))
+;; Package-Requires: ((emacs "27.1") (request "0.3.0") (persist "0.4"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -224,8 +224,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
 (defcustom mastodon-mode-hook nil
   "Hook run when entering Mastodon mode."
   :type 'hook
-  :options '(provide-discover-context-menu)
-  :group 'mastodon)
+  :options '(provide-discover-context-menu))
 
 (defface mastodon-handle-face
   '((t :inherit default))
@@ -435,7 +434,6 @@ Calls `mastodon-tl--get-buffer-type', which see."
 
 (define-derived-mode mastodon-mode special-mode "Mastodon"
   "Major mode for Mastodon, the federated microblogging network."
-  :group 'mastodon
   (read-only-mode 1))
 
 (provide 'mastodon)

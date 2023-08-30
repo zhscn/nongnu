@@ -250,14 +250,14 @@ NO-REBLOGS means do not display boosts in statuses."
     (mastodon-tl--set-buffer-spec (buffer-name buffer) "accounts/verify_credentials" nil)
     (setq-local header-line-format
                 (propertize msg-str
-                            'face font-lock-comment-face))
+                            'face 'font-lock-comment-face))
     (mastodon-profile-update-mode t)
     (insert (propertize (concat (propertize "0"
                                             'note-counter t
                                             'display nil)
                                 "/500 characters")
                         'read-only t
-                        'face font-lock-comment-face
+                        'face 'font-lock-comment-face
                         'note-header t)
             "\n")
     (make-local-variable 'after-change-functions)
@@ -827,7 +827,7 @@ Currently limited to 100 handles. If not found, try
          (response (mastodon-http--get-json url `(("limit" . "100"))))
          (handles (mastodon-tl--map-alist-vals-to-alist 'acct 'id response))
          (choice (completing-read "Remove from followers: " handles))
-         (id (alist-get choice handles nil nil 'equal)))
+         (id (alist-get choice handles)))
     (mastodon-profile--remove-user-from-followers id)))
 
 (defun mastodon-profile--add-private-note-to-account ()

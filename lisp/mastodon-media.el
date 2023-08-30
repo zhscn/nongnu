@@ -148,40 +148,39 @@ with the image."
   (when (marker-buffer marker) ; if buffer hasn't been killed
     (let ((url-buffer (current-buffer))
           (is-error-response-p (eq :error (car status-plist))))
-      (unwind-protect
-          (let* ((data (unless is-error-response-p
-                         (goto-char (point-min))
-                         (search-forward "\n\n")
-                         (buffer-substring (point) (point-max))))
-                 (image (when data
-                          (apply #'create-image data
-                                 (if (version< emacs-version "27.1")
-                                     (when image-options 'imagemagick)
-                                   nil) ; inbuilt scaling in 27.1
-                                 t image-options))))
-            (when mastodon-media--enable-image-caching
-              (unless (url-is-cached url) ; cache if not already cached
-                (url-store-in-cache url-buffer)))
-            (with-current-buffer (marker-buffer marker)
-              ;; Save narrowing in our buffer
-              (let ((inhibit-read-only t))
-                (save-restriction
-                  (widen)
-                  (put-text-property marker
-                                     (+ marker region-length) 'media-state 'loaded)
-                  (when image
-                    ;; We only set the image to display if we could load
-                    ;; it; we already have set a default image when we
-                    ;; added the tag.
-                    (put-text-property marker (+ marker region-length)
-                                       'display image))
-                  ;; We are done with the marker; release it:
-                  (set-marker marker nil)))
-              (kill-buffer url-buffer)))))))
+      (let* ((data (unless is-error-response-p
+                     (goto-char (point-min))
+                     (search-forward "\n\n")
+                     (buffer-substring (point) (point-max))))
+             (image (when data
+                      (apply #'create-image data
+                             (if (version< emacs-version "27.1")
+                                 (when image-options 'imagemagick)
+                               nil)     ; inbuilt scaling in 27.1
+                             t image-options))))
+        (when mastodon-media--enable-image-caching
+          (unless (url-is-cached url)   ; cache if not already cached
+            (url-store-in-cache url-buffer)))
+        (with-current-buffer (marker-buffer marker)
+          ;; Save narrowing in our buffer
+          (let ((inhibit-read-only t))
+            (save-restriction
+              (widen)
+              (put-text-property marker
+                                 (+ marker region-length) 'media-state 'loaded)
+              (when image
+                ;; We only set the image to display if we could load
+                ;; it; we already have set a default image when we
+                ;; added the tag.
+                (put-text-property marker (+ marker region-length)
+                                   'display image))
+              ;; We are done with the marker; release it:
+              (set-marker marker nil)))
+          (kill-buffer url-buffer))))))
 
 (defun mastodon-media--load-image-from-url (url media-type start region-length)
   "Take a URL and MEDIA-TYPE and load the image asynchronously.
-MEDIA-TYPE is a symbol and either `avatar' or `media-link.'
+MEDIA-TYPE is a symbol and either `avatar' or `media-link'.
 START is the position where we start loading the image.
 REGION-LENGTH is the range from start to propertize."
   (let ((image-options (when (or (image-type-available-p 'imagemagick)

@@ -31,12 +31,13 @@
 
 ;;; Code:
 
+(require 'mastodon)
+
 (autoload 'mastodon-http--api "mastodon-http")
 (autoload 'mastodon-http--get-params-async-json "mastodon-http")
 (autoload 'mastodon-http--post "mastodon-http")
 (autoload 'mastodon-http--triage "mastodon-http")
 (autoload 'mastodon-media--inline-images "mastodon-media")
-(autoload 'mastodon-notifications-get "mastodon")
 (autoload 'mastodon-tl--byline "mastodon-tl")
 (autoload 'mastodon-tl--byline-author "mastodon-tl")
 (autoload 'mastodon-tl--clean-tabs-and-nl "mastodon-tl")
@@ -55,7 +56,6 @@
 
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
-(defvar mastodon-mode-map)
 
 (defvar mastodon-notifications--types-alist
   '(("follow" . mastodon-notifications--follow)
@@ -80,11 +80,12 @@
   "Alist of subjects for notification types.")
 
 (defvar mastodon-notifications--map
-  (let ((map (copy-keymap mastodon-mode-map)))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map mastodon-mode-map)
     (define-key map (kbd "a") #'mastodon-notifications--follow-request-accept)
     (define-key map (kbd "j") #'mastodon-notifications--follow-request-reject)
     (define-key map (kbd "C-k") #'mastodon-notifications--clear-current)
-    (keymap-canonicalize map))
+    map)
   "Keymap for viewing notifications.")
 
 (defun mastodon-notifications--byline-concat (message)

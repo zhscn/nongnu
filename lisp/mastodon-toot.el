@@ -687,7 +687,7 @@ TEXT-ONLY means don't check for attachments or polls."
 ;;; EMOJIS
 
 (defalias 'mastodon-toot--insert-emoji
-  'emojify-insert-emoji
+  #'emojify-insert-emoji
   "Prompt to insert an emoji.")
 
 (defun mastodon-toot--emoji-dir ()
@@ -905,7 +905,7 @@ instance to edit a toot."
                 (insert (propertize (if (= count 1)
                                         (format "%s [original]:\n" count)
                                       (format "%s:\n" count))
-                                    'face font-lock-comment-face)
+                                    'face 'font-lock-comment-face)
                         (mastodon-toot--insert-toot-iter x)
                         "\n")
                 (cl-incf count))
@@ -915,7 +915,7 @@ instance to edit a toot."
                    (format "Edits to toot by %s:"
                            (alist-get 'username
                                       (alist-get 'account (car history))))
-                   'face font-lock-comment-face))
+                   'face 'font-lock-comment-face))
       (mastodon-tl--set-buffer-spec (buffer-name (current-buffer))
                                     (format "statuses/%s/history" id)
                                     nil))))
@@ -1130,7 +1130,7 @@ Return its two letter ISO 639 1 code."
   (let* ((choice (completing-read "Language for this toot: "
                                   mastodon-iso-639-1)))
     (setq mastodon-toot--language
-          (alist-get choice mastodon-iso-639-1 nil nil 'equal))
+          (alist-get choice mastodon-iso-639-1))
     (message "Language set to %s" choice)
     (mastodon-toot--update-status-fields)))
 
@@ -1623,7 +1623,7 @@ Added to `after-change-functions' in new toot buffers."
                                     mastodon-toot-draft-toots-list
                                     nil t)))
         (setq mastodon-toot-draft-toots-list
-              (cl-delete draft mastodon-toot-draft-toots-list :test 'equal))
+              (cl-delete draft mastodon-toot-draft-toots-list :test #'equal))
         (message "Draft deleted!"))
     (message "No drafts to delete.")))
 
@@ -1773,7 +1773,7 @@ Only text that is not one of these faces will be spell-checked."
 (add-hook 'mastodon-toot-mode-hook
     	  (lambda ()
             (setq flyspell-generic-check-word-predicate
-                  'mastodon-toot-mode-flyspell-verify)))
+                  #'mastodon-toot-mode-flyspell-verify)))
 
 ;;;###autoload
 (add-hook 'mastodon-toot-mode-hook

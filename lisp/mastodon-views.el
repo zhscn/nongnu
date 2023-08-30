@@ -177,7 +177,7 @@ provides the JSON data."
   (if (seq-empty-p data)
       (insert (propertize
                (format "Looks like you have no %s for now." view-name)
-               'face font-lock-comment-face
+               'face 'font-lock-comment-face
                'byline t
                'toot-id "0")) ; so point can move here when no item
     (funcall insert-fun data)
@@ -391,7 +391,7 @@ If ACCOUNT-ID and HANDLE are provided use them rather than prompting."
          (handles (mastodon-tl--map-alist-vals-to-alist 'acct 'id followings))
          (account (or handle (completing-read "Account to add: "
                                               handles nil t)))
-         (account-id (or account-id (alist-get account handles nil nil 'equal)))
+         (account-id (or account-id (alist-get account handles)))
          (url (mastodon-http--api (format "lists/%s/accounts" list-id)))
          (response (mastodon-http--post url `(("account_ids[]" . ,account-id)))))
     (mastodon-views--list-action-triage
@@ -425,7 +425,7 @@ If ID is provided, use that list."
          (handles (mastodon-tl--map-alist-vals-to-alist 'acct 'id accounts))
          (account (completing-read "Account to remove: "
                                    handles nil t))
-         (account-id (alist-get account handles nil nil 'equal))
+         (account-id (alist-get account handles))
          (url (mastodon-http--api (format "lists/%s/accounts" list-id)))
          (args (mastodon-http--build-array-params-alist "account_ids[]" `(,account-id)))
          (response (mastodon-http--delete url args)))
@@ -645,12 +645,12 @@ Prompt for a context, must be a list containting at least one of \"home\",
          (url (mastodon-http--api (format "filters/%s" filter-id))))
     (if (null phrase)
         (error "No filter at point?")
-      (when (y-or-n-p (format "Delete filter %s? " phrase)))
-      (let ((response (mastodon-http--delete url)))
-        (mastodon-http--triage
-         response (lambda ()
-                    (mastodon-views--view-filters)
-                    (message "Filter for \"%s\" deleted!" phrase)))))))
+      (when (y-or-n-p (format "Delete filter %s? " phrase))
+        (let ((response (mastodon-http--delete url)))
+          (mastodon-http--triage
+           response (lambda ()
+                      (mastodon-views--view-filters)
+                      (message "Filter for \"%s\" deleted!" phrase))))))))
 
 
 ;;; FOLLOW SUGGESTIONS

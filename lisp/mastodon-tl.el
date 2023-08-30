@@ -32,7 +32,6 @@
 ;;; Code:
 
 (require 'shr)
-(require 'ts)
 (require 'thingatpt) ; for word-at-point
 (require 'time-date)
 (require 'cl-lib)
@@ -204,8 +203,8 @@ If nil `(point-min)' is used instead.")
 
 (defvar mastodon-tl--link-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map [return] 'mastodon-tl--do-link-action-at-point)
-    (define-key map [mouse-2] 'mastodon-tl--do-link-action)
+    (define-key map [return] #'mastodon-tl--do-link-action-at-point)
+    (define-key map [mouse-2] #'mastodon-tl--do-link-action)
     (define-key map [follow-link] 'mouse-face)
     map)
   "The keymap for link-like things in buffer (except for shr.el generate links).
@@ -678,7 +677,7 @@ this just means displaying toot client."
             (propertize
              (format-time-string mastodon-toot-timestamp-format
                                  edited-parsed)
-             'face font-lock-comment-face
+             'face 'font-lock-comment-face
              'timestamp edited-parsed
              'display (if mastodon-tl--enable-relative-timestamps
                           (mastodon-tl--relative-time-description edited-parsed)
@@ -710,6 +709,7 @@ The descriptive string is a human readable version relative to
 the current time while the next change timestamp give the first
 time that this description will change in the future.
 TIMESTAMP is assumed to be in the past."
+  ;; FIXME: Use `mastodon-tl--human-duration'!
   (let* ((now (or current-time (current-time)))
          (time-difference (time-subtract now timestamp))
          (seconds-difference (float-time time-difference))
@@ -1145,25 +1145,41 @@ LONGEST-OPTION is the option whose length determines the formatting."
                 (propertize str 'face 'font-lock-comment-face))
               "\n"))))
 
+(defconst mastodon-tl--time-units
+  '("sec"   60.0                          ;Use a float to convert `n' to float.
+    "min"   60
+    "hour"  24
+    "day"   7
+    "week"  4.345
+    "month" 12
+    "year"))
+
 (defun mastodon-tl--format-poll-expiry (timestamp)
   "Convert poll expiry TIMESTAMP into a descriptive string."
-  (let ((parsed (ts-human-duration
-                 (ts-diff (ts-parse timestamp) (ts-now)))))
-    (cond ((> (plist-get parsed :days) 0)
-           (format "%s days, %s hours left"
-                   (plist-get parsed :days)
-                   (plist-get parsed :hours)))
-          ((> (plist-get parsed :hours) 0)
-           (format "%s hours, %s minutes left"
-                   (plist-get parsed :hours)
-                   (plist-get parsed :minutes)))
-          ((> (plist-get parsed :minutes) 0)
-           (format "%s minutes left" (plist-get parsed :minutes)))
-          (t ; we failed to guess:
-           (format "%s days, %s hours, %s minutes left"
-                   (plist-get parsed :days)
-                   (plist-get parsed :hours)
-                   (plist-get parsed :minutes))))))
+  ;; FIXME: Could we document the format of TIMESTAMP here?
+  (let* ((ts (encode-time (parse-time-string timestamp)))
+         (seconds (time-to-seconds (time-subtract ts nil))))
+    (concat (mastodon-tl--human-duration (max 0 seconds)) " left")))
+
+(defun mastodon-tl--human-duration (seconds)
+  "Return a string describing SECONDS in a more human-friendly way."
+  (cl-assert (>= seconds 0))
+  (let* ((units mastodon-tl--time-units)
+         (n1 seconds) (unit1 (pop units)) n2 unit2
+         next)
+    (while (and units (> (truncate (setq next (/ n1 (car units)))) 0))
+      (setq unit2 unit1)
+      (setq n2 (- n1 (* (car units) (truncate n1 (car units)))))
+      (setq n1 next)
+      (pop units)
+      (setq unit1 (pop units)))
+    (setq n1 (truncate n1))
+    (if n2 (setq n2 (truncate n2)))
+    (if (memq n2 '(nil 0))
+        (format "%d %s%s" n1 unit1 (if (> n1 1) "s" ""))
+      (format "%d %s%s, %d %s%s"
+              n1 unit1 (if (> n1 1) "s" "")
+              n2 unit2 (if (> n2 1) "s" "")))))
 
 (defun mastodon-tl--read-poll-option ()
   "Read a poll option to vote on a poll."
@@ -1361,19 +1377,19 @@ To disable showing the stats, customize
                                 'favourited-p (eq 't .favourited)
                                 'favourites-field t
                                 'help-echo (format "%s favourites" .favourites_count)
-                                'face font-lock-comment-face)
-                    (propertize " | " 'face font-lock-comment-face)
+                                'face 'font-lock-comment-face)
+                    (propertize " | " 'face 'font-lock-comment-face)
                     (propertize boosts
                                 'boosted-p (eq 't .reblogged)
                                 'boosts-field t
                                 'help-echo (format "%s boosts" .reblogs_count)
-                                'face font-lock-comment-face)
-                    (propertize " | " 'face font-lock-comment-face)
+                                'face 'font-lock-comment-face)
+                    (propertize " | " 'face 'font-lock-comment-face)
                     (propertize replies
                                 'replies-field t
                                 'replies-count .replies_count
                                 'help-echo (format "%s replies" .replies_count)
-                                'face font-lock-comment-face)))
+                                'face 'font-lock-comment-face)))
            (status
             (concat
              (propertize " "
@@ -2191,7 +2207,7 @@ report the account for spam."
                    "rules [TAB for options, | to separate]: "
                    alist nil t)))
     (mapcar (lambda (x)
-              (alist-get x alist nil nil 'equal))
+              (alist-get x alist))
             choices)))
 
 
@@ -2274,7 +2290,7 @@ when showing followers or accounts followed."
 (defun mastodon-tl--get-link-header-from-response (headers)
   "Get http Link header from list of http HEADERS."
   ;; pleroma uses "link", so case-insensitive match required:
-  (when-let ((link-headers (alist-get "Link" headers nil nil 'cl-equalp)))
+  (when-let ((link-headers (alist-get "Link" headers nil nil #'cl-equalp)))
     (split-string link-headers ", ")))
 
 (defun mastodon-tl--more ()
