@@ -6,17 +6,17 @@
 
 (package
   (name "emacs-flymake-guile")
-  (version "0.2")
+  (version "0.3")
   (source
    (origin
      (method git-fetch)
      (uri
       (git-reference
-       (url "https://framagit.org/flymake-backends/flymake-guile")
+       (url "https://framagit.org/flymake-backends/flymake-guile.git")
        (commit version)))
      (file-name (git-file-name name version))
      (sha256
-      (base32 "0p96kbsh50ypjfzgxik6zj7lacas8az2s9fcmcraxd0b35y9bwbc"))))
+      (base32 "044k5rjc6bxpb1bsnlclc5n86vvj8gqkf974np9kcb3fgdrwvbqf"))))
   (build-system emacs-build-system)
   (propagated-inputs (list emacs-flymake-quickdef))
   (home-page "https://framagit.org/flymake-backends/flymake-guile")

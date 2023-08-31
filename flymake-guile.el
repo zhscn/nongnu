@@ -5,7 +5,7 @@
 ;; Author: Distopico <distopico@riseup.net>
 ;; Package-Requires: ((emacs "26.1") (flymake "1.2.1") (flymake-quickdef "1.0.0"))
 ;; Keywords: language, tools
-;; Version: 0.2
+;; Version: 0.3
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
