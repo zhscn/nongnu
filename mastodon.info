@@ -27,7 +27,9 @@ README
 
 Installation
 
+* ELPA::
 * MELPA::
+* repo::
 * Emoji::
 * Discover::
 
@@ -42,7 +44,7 @@ Usage
 * Alternative timeline layout::
 * Live-updating timelines mastodon-async-mode::
 * Translating toots::
-* bookmarks and ‘mastodon.el’: bookmarks and mastodonel.
+* Bookmarks and ‘mastodon.el’: Bookmarks and mastodonel.
 
 Contributing
 
@@ -77,30 +79,33 @@ File: mastodon.info,  Node: Installation,  Next: Usage,  Up: README
 1.1 Installation
 ================
 
-Clone this repository and add the lisp directory to your load path.
-Then, require it and go.
-
-     (add-to-list 'load-path "/path/to/mastodon.el/lisp")
-     (require 'mastodon)
-
-   Or, with ‘use-package’:
-
-     (use-package mastodon
-       :ensure t)
-
-   The minimum Emacs version is now 27.1.  But if you are running an
-older version it shouldn’t be very hard to get it working.
+You can install ‘mastodon.el’ from ELPA, MELPA, or directly from this
+repo.
 
 * Menu:
 
+* ELPA::
 * MELPA::
+* repo::
 * Emoji::
 * Discover::
 
 
-File: mastodon.info,  Node: MELPA,  Next: Emoji,  Up: Installation
+File: mastodon.info,  Node: ELPA,  Next: MELPA,  Up: Installation
 
-1.1.1 MELPA
+1.1.1 ELPA
+----------
+
+You should be able to directly install with:
+
+   ‘M-x package-refresh-contents RET’
+
+   ‘M-x package-install RET mastodon RET’
+
+
+File: mastodon.info,  Node: MELPA,  Next: repo,  Prev: ELPA,  Up: Installation
+
+1.1.2 MELPA
 -----------
 
 Add ‘MELPA’ to your archives:
@@ -116,9 +121,29 @@ Add ‘MELPA’ to your archives:
    ‘M-x package-install RET mastodon RET’
 
 
-File: mastodon.info,  Node: Emoji,  Next: Discover,  Prev: MELPA,  Up: Installation
+File: mastodon.info,  Node: repo,  Next: Emoji,  Prev: MELPA,  Up: Installation
 
-1.1.2 Emoji
+1.1.3 repo
+----------
+
+Clone this repository and add the lisp directory to your load path.
+Then, require it and go.
+
+     (add-to-list 'load-path "/path/to/mastodon.el/lisp")
+     (require 'mastodon)
+
+   Or, with ‘use-package’:
+
+     (use-package mastodon
+       :ensure t)
+
+   The minimum Emacs version is now 27.1.  But if you are running an
+older version it shouldn’t be very hard to get it working.
+
+
+File: mastodon.info,  Node: Emoji,  Next: Discover,  Prev: repo,  Up: Installation
+
+1.1.4 Emoji
 -----------
 
 ‘mastodon-mode’ will enable Emojify
@@ -129,7 +154,7 @@ Emacs environment, so there’s no need to write your own hook anymore.
 
 File: mastodon.info,  Node: Discover,  Prev: Emoji,  Up: Installation
 
-1.1.3 Discover
+1.1.5 Discover
 --------------
 
 ‘mastodon-mode’ can provide a context menu for its keybindings if
@@ -166,7 +191,7 @@ File: mastodon.info,  Node: Usage,  Next: Dependencies,  Prev: Installation,  Up
 * Alternative timeline layout::
 * Live-updating timelines mastodon-async-mode::
 * Translating toots::
-* bookmarks and ‘mastodon.el’: bookmarks and mastodonel.
+* Bookmarks and ‘mastodon.el’: Bookmarks and mastodonel.
 
 
 File: mastodon.info,  Node: Logging in to your instance,  Next: Timelines,  Up: Usage
@@ -491,7 +516,7 @@ Then you can view a timeline with one of the commands that begin with
 ‘mastodon-async--stream-’.
 
 
-File: mastodon.info,  Node: Translating toots,  Next: bookmarks and mastodonel,  Prev: Live-updating timelines mastodon-async-mode,  Up: Usage
+File: mastodon.info,  Node: Translating toots,  Next: Bookmarks and mastodonel,  Prev: Live-updating timelines mastodon-async-mode,  Up: Usage
 
 1.2.9 Translating toots
 -----------------------
@@ -518,9 +543,9 @@ looks like:
              (message "No toot to translate?"))))
 
 
-File: mastodon.info,  Node: bookmarks and mastodonel,  Prev: Translating toots,  Up: Usage
+File: mastodon.info,  Node: Bookmarks and mastodonel,  Prev: Translating toots,  Up: Usage
 
-1.2.10 bookmarks and ‘mastodon.el’
+1.2.10 Bookmarks and ‘mastodon.el’
 ----------------------------------
 
 ‘mastodon.el’ doesn’t currently implement its own bookmark record and
@@ -539,9 +564,8 @@ Hard dependencies (should all install with ‘mastodon.el’):
    • ‘request’ (for uploading attachments), emacs-request
      (https://github.com/tkf/emacs-request)
    • ‘persist’ for storing some settings across sessions
-   • ‘ts’ for poll relative expiry times
 
-   Optional dependencies:
+   Optional dependencies (install yourself, ‘mastodon.el’ can use them):
    • ‘emojify’ for inserting and viewing emojis
    • ‘mpv’ and ‘mpv.el’ for viewing videos and gifs
    • ‘lingva.el’ for translating toots
@@ -656,35 +680,37 @@ File: mastodon.info,  Node: Contributors,  Prev: Supporting mastodonel,  Up: REA
 
 Tag Table:
 Node: Top210
-Node: README944
-Node: Installation1360
-Node: MELPA1896
-Node: Emoji2264
-Node: Discover2596
-Node: Usage3148
-Node: Logging in to your instance3591
-Node: Timelines4588
-Ref: Keybindings5063
-Ref: Toot byline legend9636
-Node: Composing toots9945
-Ref: Keybindings (1)11184
-Ref: Autocompletion of mentions and tags11702
-Ref: Draft toots12415
-Node: Other commands and account settings12886
-Node: Customization16044
-Node: Commands and variables index16831
-Node: Alternative timeline layout17151
-Node: Live-updating timelines mastodon-async-mode17556
-Node: Translating toots18408
-Node: bookmarks and mastodonel19590
-Node: Dependencies20062
-Node: Network compatibility20668
-Node: Contributing21154
-Node: Bug reports21443
-Node: Fixes and features22349
-Node: Coding style22832
-Node: Supporting mastodonel23456
-Node: Contributors23978
+Node: README962
+Node: Installation1378
+Node: ELPA1626
+Node: MELPA1854
+Node: repo2234
+Node: Emoji2727
+Node: Discover3058
+Node: Usage3610
+Node: Logging in to your instance4053
+Node: Timelines5050
+Ref: Keybindings5525
+Ref: Toot byline legend10098
+Node: Composing toots10407
+Ref: Keybindings (1)11646
+Ref: Autocompletion of mentions and tags12164
+Ref: Draft toots12877
+Node: Other commands and account settings13348
+Node: Customization16506
+Node: Commands and variables index17293
+Node: Alternative timeline layout17613
+Node: Live-updating timelines mastodon-async-mode18018
+Node: Translating toots18870
+Node: Bookmarks and mastodonel20052
+Node: Dependencies20524
+Node: Network compatibility21134
+Node: Contributing21620
+Node: Bug reports21909
+Node: Fixes and features22815
+Node: Coding style23298
+Node: Supporting mastodonel23922
+Node: Contributors24444
 
 End Tag Table
 

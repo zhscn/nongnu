@@ -41,7 +41,9 @@ README
 
 Installation
 
+* ELPA::
 * MELPA::
+* repo::
 * Emoji::
 * Discover::
 
@@ -56,7 +58,7 @@ Usage
 * Alternative timeline layout::
 * Live-updating timelines @samp{mastodon-async-mode}::
 * Translating toots::
-* bookmarks and @samp{mastodon.el}: bookmarks and @samp{mastodonel}. 
+* Bookmarks and @samp{mastodon.el}: Bookmarks and @samp{mastodonel}. 
 
 Contributing
 
@@ -86,29 +88,24 @@ implement the Mastodon API@. For info see @uref{https://joinmastodon.org/, joinm
 @node Installation
 @section Installation
 
-Clone this repository and add the lisp directory to your load path.
-Then, require it and go.
-
-@lisp
-(add-to-list 'load-path "/path/to/mastodon.el/lisp")
-(require 'mastodon)
-@end lisp
-
-Or, with @samp{use-package}:
-
-@lisp
-(use-package mastodon
-  :ensure t)
-@end lisp
-
-The minimum Emacs version is now 27.1. But if you are running an older version
-it shouldn't be very hard to get it working.
+You can install @samp{mastodon.el} from ELPA, MELPA, or directly from this repo.
 
 @menu
+* ELPA::
 * MELPA::
+* repo::
 * Emoji::
 * Discover::
 @end menu
+
+@node ELPA
+@subsection ELPA
+
+You should be able to directly install with:
+
+@samp{M-x package-refresh-contents RET}
+
+@samp{M-x package-install RET mastodon RET}
 
 @node MELPA
 @subsection MELPA
@@ -126,6 +123,27 @@ Update and install:
 @samp{M-x package-refresh-contents RET}
 
 @samp{M-x package-install RET mastodon RET}
+
+@node repo
+@subsection repo
+
+Clone this repository and add the lisp directory to your load path.
+Then, require it and go.
+
+@lisp
+(add-to-list 'load-path "/path/to/mastodon.el/lisp")
+(require 'mastodon)
+@end lisp
+
+Or, with @samp{use-package}:
+
+@lisp
+(use-package mastodon
+  :ensure t)
+@end lisp
+
+The minimum Emacs version is now 27.1. But if you are running an older version
+it shouldn't be very hard to get it working.
 
 @node Emoji
 @subsection Emoji
@@ -168,7 +186,7 @@ Or, with @samp{use-package}:
 * Alternative timeline layout::
 * Live-updating timelines @samp{mastodon-async-mode}::
 * Translating toots::
-* bookmarks and @samp{mastodon.el}: bookmarks and @samp{mastodonel}. 
+* Bookmarks and @samp{mastodon.el}: Bookmarks and @samp{mastodonel}. 
 @end menu
 
 @node Logging in to your instance
@@ -646,8 +664,8 @@ to your translator function as its text argument. Here's what
         (message "No toot to translate?"))))
 @end lisp
 
-@node bookmarks and @samp{mastodonel}
-@subsection bookmarks and @samp{mastodon.el}
+@node Bookmarks and @samp{mastodonel}
+@subsection Bookmarks and @samp{mastodon.el}
 
 @samp{mastodon.el} doesn’t currently implement its own bookmark record and handler,
 which means that emacs bookmarks will not work as is. Until we implement them,
@@ -662,11 +680,9 @@ Hard dependencies (should all install with @samp{mastodon.el}):
 @samp{request} (for uploading attachments), @uref{https://github.com/tkf/emacs-request, emacs-request}
 @item
 @samp{persist} for storing some settings across sessions
-@item
-@samp{ts} for poll relative expiry times
 @end itemize
 
-Optional dependencies:
+Optional dependencies (install yourself, @samp{mastodon.el} can use them):
 @itemize
 @item
 @samp{emojify} for inserting and viewing emojis

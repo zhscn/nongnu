@@ -13,6 +13,34 @@ implement the Mastodon API. For info see [[https://joinmastodon.org/][joinmastod
 
 ** Installation
 
+You can install =mastodon.el= from ELPA, MELPA, or directly from this repo.
+
+*** ELPA
+
+You should be able to directly install with:
+
+=M-x package-refresh-contents RET=
+
+=M-x package-install RET mastodon RET=
+
+*** MELPA
+
+Add =MELPA= to your archives:
+
+#+BEGIN_SRC emacs-lisp
+  (require 'package)
+  (add-to-list 'package-archives
+               '("melpa" . "http://melpa.org/packages/") t)
+#+END_SRC
+
+Update and install:
+
+=M-x package-refresh-contents RET=
+
+=M-x package-install RET mastodon RET=
+
+*** Repo
+
 Clone this repository and add the lisp directory to your load path.
 Then, require it and go.
 
@@ -30,22 +58,6 @@ Or, with =use-package=:
 
 The minimum Emacs version is now 27.1. But if you are running an older version
 it shouldn't be very hard to get it working.
-
-*** MELPA
-
-Add =MELPA= to your archives:
-
-#+BEGIN_SRC emacs-lisp
-  (require 'package)
-  (add-to-list 'package-archives
-               '("melpa" . "http://melpa.org/packages/") t)
-#+END_SRC
-
-Update and install:
-
-=M-x package-refresh-contents RET=
-
-=M-x package-install RET mastodon RET=
 
 *** Emoji
 
