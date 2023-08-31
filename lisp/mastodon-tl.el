@@ -702,57 +702,18 @@ this just means displaying toot client."
 ;;; TIMESTAMPS
 
 (defun mastodon-tl--relative-time-details (timestamp &optional current-time)
-  "Return cons of (descriptive string . next change) for the TIMESTAMP.
+  "Return cons of (DESCRIPTIVE STRING . NEXT-CHANGE) for the TIMESTAMP.
 Use the optional CURRENT-TIME as the current time (only used for
 reliable testing).
 The descriptive string is a human readable version relative to
 the current time while the next change timestamp give the first
 time that this description will change in the future.
 TIMESTAMP is assumed to be in the past."
-  ;; FIXME: Use `mastodon-tl--human-duration'!
-  (let* ((now (or current-time (current-time)))
-         (time-difference (time-subtract now timestamp))
+  (let* ((time-difference (time-subtract current-time timestamp))
          (seconds-difference (float-time time-difference))
-         (regular-response
-          (lambda (seconds-difference multiplier unit-name)
-            (let ((n (floor (+ 0.5 (/ seconds-difference multiplier)))))
-              (cons (format "%d %ss ago" n unit-name)
-                    (* (+ 0.5 n) multiplier)))))
-         (relative-result
-          (cond
-           ((< seconds-difference 60)
-            (cons "just now"
-                  60))
-           ((< seconds-difference (* 1.5 60))
-            (cons "1 minute ago"
-                  90)) ;; at 90 secs
-           ((< seconds-difference (* 60 59.5))
-            (funcall regular-response seconds-difference 60 "minute"))
-           ((< seconds-difference (* 1.5 60 60))
-            (cons "1 hour ago"
-                  (* 60 90))) ;; at 90 minutes
-           ((< seconds-difference (* 60 60 23.5))
-            (funcall regular-response seconds-difference (* 60 60) "hour"))
-           ((< seconds-difference (* 1.5 60 60 24))
-            (cons "1 day ago"
-                  (* 1.5 60 60 24))) ;; at a day and a half
-           ((< seconds-difference (* 60 60 24 6.5))
-            (funcall regular-response seconds-difference (* 60 60 24) "day"))
-           ((< seconds-difference (* 1.5 60 60 24 7))
-            (cons "1 week ago"
-                  (* 1.5 60 60 24 7))) ;; a week and a half
-           ((< seconds-difference (* 60 60 24 7 52))
-            (if (= 52 (floor (+ 0.5 (/ seconds-difference 60 60 24 7))))
-                (cons "52 weeks ago"
-                      (* 60 60 24 7 52))
-              (funcall regular-response seconds-difference (* 60 60 24 7) "week")))
-           ((< seconds-difference (* 1.5 60 60 24 365))
-            (cons "1 year ago"
-                  (* 60 60 24 365 1.5))) ;; a year and a half
-           (t
-            (funcall regular-response seconds-difference (* 60 60 24 365.25) "year")))))
-    (cons (car relative-result)
-          (time-add timestamp (seconds-to-time (cdr relative-result))))))
+         (tmp (mastodon-tl--human-duration (max 0 seconds-difference))))
+    (cons (concat (car tmp) " ago")
+          (time-add current-time (cdr tmp)))))
 
 (defun mastodon-tl--relative-time-description (timestamp &optional current-time)
   "Return a string with a human readable TIMESTAMP relative to the current time.
@@ -1159,27 +1120,50 @@ LONGEST-OPTION is the option whose length determines the formatting."
   ;; FIXME: Could we document the format of TIMESTAMP here?
   (let* ((ts (encode-time (parse-time-string timestamp)))
          (seconds (time-to-seconds (time-subtract ts nil))))
-    (concat (mastodon-tl--human-duration (max 0 seconds)) " left")))
+    ;; FIXME: Use the `cdr' to update poll expiry times?
+    (concat (car (mastodon-tl--human-duration (max 0 seconds))) " left")))
 
-(defun mastodon-tl--human-duration (seconds)
-  "Return a string describing SECONDS in a more human-friendly way."
+(defun mastodon-tl--human-duration (seconds &optional resolution)
+  "Return a string describing SECONDS in a more human-friendly way.
+The return format is (STRING . RES) where RES is the resolution of
+this string, in seconds.
+RESOLUTION is the finest resolution, in seconds, to use for the
+second part of the output (defaults to 60, so that seconds are only
+displayed when the duration is smaller than a minute)."
   (cl-assert (>= seconds 0))
+  (unless resolution (setq resolution 60))
   (let* ((units mastodon-tl--time-units)
-         (n1 seconds) (unit1 (pop units)) n2 unit2
+         (n1 seconds) (unit1 (pop units)) (res1 1)
+         n2 unit2 res2
          next)
     (while (and units (> (truncate (setq next (/ n1 (car units)))) 0))
       (setq unit2 unit1)
+      (setq res2 res1)
       (setq n2 (- n1 (* (car units) (truncate n1 (car units)))))
       (setq n1 next)
+      (setq res1 (truncate (* res1 (car units))))
       (pop units)
       (setq unit1 (pop units)))
     (setq n1 (truncate n1))
     (if n2 (setq n2 (truncate n2)))
-    (if (memq n2 '(nil 0))
-        (format "%d %s%s" n1 unit1 (if (> n1 1) "s" ""))
-      (format "%d %s%s, %d %s%s"
-              n1 unit1 (if (> n1 1) "s" "")
-              n2 unit2 (if (> n2 1) "s" "")))))
+    (cond
+     ((null n2)
+      (cons (format "%d %s%s" n1 unit1 (if (> n1 1) "s" ""))
+            (max resolution res1)))
+     ((< (* res2 n2) resolution)
+      (cons (format "%d %s%s" n1 unit1 (if (> n1 1) "s" ""))
+            (max resolution res2)))
+     ((< res2 resolution)
+      (let ((n2 (/ (* resolution (/ (* n2 res2) resolution)) res2)))
+        (cons (format "%d %s%s, %d %s%s"
+                      n1 unit1 (if (> n1 1) "s" "")
+                      n2 unit2 (if (> n2 1) "s" ""))
+              resolution)))
+     (t
+      (cons (format "%d %s%s, %d %s%s"
+                    n1 unit1 (if (> n1 1) "s" "")
+                    n2 unit2 (if (> n2 1) "s" ""))
+            (max res2 resolution))))))
 
 (defun mastodon-tl--read-poll-option ()
   "Read a poll option to vote on a poll."
