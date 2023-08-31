@@ -1,0 +1,7 @@
+# -*- mode: org; coding: utf-8; -*-
+#+STARTUP: indent
+#+TITLE: flymake-guile NEWS – history of user-visible changes
+
+* NEWS
+** 0.3
+- Improve diagnostic column position

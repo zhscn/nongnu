@@ -23,9 +23,15 @@ Verify that `flymake-mode` is enabled ad then add the following to
 your Emacs configuration:
 
 ```elisp
-(require 'flymake-guile)
-
 (add-hook 'scheme-mode-hook #'flymake-guile)
+```
+
+Emacs 29 and later:
+
+```elisp
+(use-package flymake-guile
+  :ensure t
+  :hook (scheme-mode-hook . flymake-guile))
 ```
 
 ## Customization

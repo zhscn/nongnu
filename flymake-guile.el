@@ -3,7 +3,7 @@
 ;; Copyright (c) 2023 Camilo Q.S. (Distopico) <distopico@riseup.net>
 
 ;; Author: Distopico <distopico@riseup.net>
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "26.1") (flymake "1.2.1") (flymake-quickdef "1.0.0"))
 ;; Keywords: language, tools
 ;; Version: 0.2
 
@@ -26,6 +26,12 @@
 ;;
 ;; Usage:
 ;;   (add-hook 'scheme-mode-hook 'flymake-guile)
+;;
+;;    Emacs 29 and later:
+;;
+;;   (use-package flymake-guile
+;;     :ensure t
+;;     :hook (scheme-mode-hook . flymake-guile))
 
 ;;; Code:
 
