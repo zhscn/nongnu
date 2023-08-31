@@ -41,7 +41,7 @@
   :type 'string
   :group 'flymake-guile)
 
-(defcustom flymake-guile-guild-args nil
+(defcustom flymake-guile-guild-args ""
   "Additional arguments for `guild' compile command."
   :type 'string
   :group 'flymake-guile)
@@ -54,7 +54,7 @@ or an warning level.
 
 The list of supported warning types/levels can be found by running
 `guild compile -W help'."
-  :type  '(string)
+  :type  '(repeat string)
   :group 'flymake-guile)
 
 (defvar geiser-guile-load-path)
