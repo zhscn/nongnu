@@ -65,6 +65,8 @@ The list of supported warning types/levels can be found by running
 
 (defvar flymake-guile--diag-lnum-rx ":\\([[:digit:]]+\\):\\([[:digit:]]+\\):\s")
 
+(defvar flymake-guile--fix-col-rule-rx "unbound variable")
+
 (defun flymake-guile--project-path ()
   "Determine project paths from geiser configuration."
   (when-let ((geiser-repl-add-project-paths)
@@ -124,7 +126,14 @@ Also verify if the `STACK-FILE' and the source file are te same."
       (setq lnum "0")
       (setq cnum "0"))
     (cons (cons (string-to-number lnum)
-		(string-to-number cnum))
+		(let ((col (string-to-number cnum)))
+		  (if (and (> col 0)
+			   ;; The column in this type of errors are not
+			   ;; consistent And will mark all the lines in a
+			   ;; multi-line definition.
+			   (string-match-p flymake-guile--fix-col-rule-rx text))
+		      (+ col 1)
+		    (- col 1))))
 	  text)))
 
 (flymake-quickdef-backend flymake-guile-backend
