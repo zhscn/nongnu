@@ -16,7 +16,7 @@
        (commit version)))
      (file-name (git-file-name name version))
      (sha256
-      (base32 "044k5rjc6bxpb1bsnlclc5n86vvj8gqkf974np9kcb3fgdrwvbqf"))))
+      (base32 "06x237qhvnbyxngbqinjg417n341h652jkagr1a5whximlsaw2c8"))))
   (build-system emacs-build-system)
   (propagated-inputs (list emacs-flymake-quickdef))
   (home-page "https://framagit.org/flymake-backends/flymake-guile")
