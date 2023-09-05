@@ -6,7 +6,7 @@
 
 (package
   (name "emacs-flymake-guile")
-  (version "0.3")
+  (version "0.4")
   (source
    (origin
      (method git-fetch)

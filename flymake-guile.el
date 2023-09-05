@@ -3,9 +3,9 @@
 ;; Copyright (c) 2023 Camilo Q.S. (Distopico) <distopico@riseup.net>
 
 ;; Author: Distopico <distopico@riseup.net>
-;; Package-Requires: ((emacs "26.1") (flymake "1.2.1") (flymake-quickdef "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (flymake "1.2.1"))
 ;; Keywords: language, tools
-;; Version: 0.3
+;; Version: 0.4
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,14 +35,12 @@
 
 ;;; Code:
 
-(require 'flymake-quickdef)
-
 (defgroup flycheck-guile nil
   "GNU Guile Flymake backend."
   :prefix "flymake-guile-"
   :group 'flymake)
 
-(defcustom flymake-guile-guild-binary "guild"
+(defcustom flymake-guile-guild-executable "guild"
   "Name of the Guile `guild' executable."
   :type 'string
   :group 'flymake-guile)
@@ -69,20 +67,24 @@ The list of supported warning types/levels can be found by running
 
 (defvar geiser-repl-add-project-paths)
 
-(defvar flymake-guile--diag-lnum-rx ":\\([[:digit:]]+\\):\\([[:digit:]]+\\):\s")
+(defvar-local flymake-guile--proc nil)
 
-(defvar flymake-guile--fix-col-rule-rx "unbound variable")
+(defvar-local flymake-guile--diag-lnum-rx
+  ":\\([[:digit:]]+\\):\\([[:digit:]]+\\):\s")
+
+(defvar-local flymake-guile--fix-col-rule-rx
+  "unbound variable")
 
 (defun flymake-guile--project-path ()
   "Determine project paths from geiser configuration."
   (when-let ((geiser-repl-add-project-paths)
-	   (root (funcall geiser-repl-current-project-function)))
-      (mapcar (lambda (path)
-		(expand-file-name path root))
-	      (cond ((eq t geiser-repl-add-project-paths)
-		     '("."))
-		    ((listp geiser-repl-add-project-paths)
-		     geiser-repl-add-project-paths)))))
+	     (root (funcall geiser-repl-current-project-function)))
+    (mapcar (lambda (path)
+	      (expand-file-name path root))
+	    (cond ((eq t geiser-repl-add-project-paths)
+		   '("."))
+		  ((listp geiser-repl-add-project-paths)
+		   geiser-repl-add-project-paths)))))
 
 (defun flymake-guile--load-path-args ()
   "Build the `load-path' arguments for `guild compile'."
@@ -97,7 +99,14 @@ The list of supported warning types/levels can be found by running
       (mapcan (lambda (rule)
 		(list "-W" rule))
 	      flymake-guile-warnings)
-    (error "`flymake-guile-warnings' must be a list of: e.g '(\"unused-module\")")))
+    (error
+     "`flymake-guile-warnings' must be a list of: e.g '(\"unused-module\")")))
+
+(defun flymake-guile--type-diagnostic (severity)
+  "Get diagnostic type based on `SEVERITY' string from `guild'."
+  (cond ((string= severity "warning") :warning)
+	((string= severity "In procedure raise-exception") :error)
+	(t :note)))
 
 (defun flymake-guile--get-diagnostic (stack-msg stack-lnum stack-cnum stack-file source)
   "Get the diagnostic line and message for the `SOURCE'.
@@ -105,20 +114,20 @@ If the diagnostic has additional information for the source file
 extract if otherwise use the `STACK-MSG' and `STACK-LNUM'/`STACK-CNUM'.
 Also verify if the `STACK-FILE' and the source file are te same."
   (let* ((text stack-msg)
-	(lnum stack-lnum)
-	(cnum stack-cnum)
-	(origin-file (file-name-nondirectory stack-file))
-	(source-file (file-name-nondirectory (buffer-file-name source)))
-	(maybe-stack (string-match
-		      (concat
-		       source-file
-		       flymake-guile--diag-lnum-rx
-		       "\\(.*\\)")
-		      text))
-	;; origin-file/stack-file could be an
-	;; internal guile file.
-	(file (cond (maybe-stack source-file)
-		    (t origin-file))))
+	 (lnum stack-lnum)
+	 (cnum stack-cnum)
+	 (origin-file (file-name-nondirectory stack-file))
+	 (source-file (file-name-nondirectory (buffer-file-name source)))
+	 (maybe-stack (string-match
+		       (concat
+			source-file
+			flymake-guile--diag-lnum-rx
+			"\\(.*\\)")
+		       text))
+	 ;; origin-file/stack-file could be an
+	 ;; internal guile file.
+	 (file (cond (maybe-stack source-file)
+		     (t origin-file))))
     (when maybe-stack
       (setq lnum (match-string 1 text))
       (setq cnum (match-string 2 text))
@@ -142,47 +151,100 @@ Also verify if the `STACK-FILE' and the source file are te same."
 		    (- col 1))))
 	  text)))
 
-(flymake-quickdef-backend flymake-guile-backend
-  :pre-let ((guild-exec (executable-find flymake-guile-guild-binary)))
-  :pre-check (unless guild-exec (error "Cannot find guild executable"))
-  :write-type 'file
-  :proc-form (append
-	      (list guild-exec
-		"compile"
-		"-O0")
-	      (flymake-guile--warning-level-args)
-	      (flymake-guile--load-path-args)
-	      flymake-guile-guild-args
-	      (list fmqd-temp-file))
-  :search-regexp (concat
-		  "\\(.*\\)"
-		  flymake-guile--diag-lnum-rx
-		  "\\(.*\\):[[:space:]]?"
-		  "\\(Syntax error:[[:space:]].*\\|.*\\)$")
-  :prep-diagnostic
-  (let* ((stack_file (match-string 1))
-	 (stack_lnum (match-string 2))
-	 (stack_cnum (match-string 3))
-	 (severity (match-string 4))
-	 (stack_msg (match-string 5))
-	 (report (flymake-guile--get-diagnostic
-		  stack_msg
-		  stack_lnum
-		  stack_cnum
-		  stack_file
-		  fmqd-source))
-	 (lnum (car (car report)))
-	 (cnum (cdr (car report)))
-	 (text (cdr report))
-	 (pos (flymake-diag-region fmqd-source lnum cnum))
-	 (beg (car pos))
-	 (end (cdr pos))
-	 (type (cond
-		((string= severity "warning") :warning)
-		((string= severity "In procedure raise-exception") :error)
-		(t :note)))
-	 (msg (string-trim text)))
-    (list fmqd-source beg end type msg)))
+(defun flymake-guile--prep-diagnostic (source proc)
+  "Prepare and make `flymake' diagnostic based in the `SOURCE'.
+`PROC' process sentinel is used to add log context."
+  (let ((diags nil))
+    (while (search-forward-regexp
+	    (concat
+	     "\\(.*\\)"
+	     flymake-guile--diag-lnum-rx
+	     "\\(.*\\):[[:space:]]?"
+	     "\\(Syntax error:[[:space:]].*\\|.*\\)$")
+	    nil t)
+      (save-match-data
+	(save-excursion
+	  (let* ((stack_file (match-string 1))
+		 (stack_lnum (match-string 2))
+		 (stack_cnum (match-string 3))
+		 (severity (match-string 4))
+		 (stack_msg (match-string 5))
+		 (report (flymake-guile--get-diagnostic
+			  stack_msg
+			  stack_lnum
+			  stack_cnum
+			  stack_file
+			  source))
+		 (lnum (caar report))
+		 (cnum (cdar report))
+		 (text (cdr report))
+		 (pos (flymake-diag-region source lnum cnum))
+		 (diag-beg (car pos))
+		 (diag-end (cdr pos))
+		 (diag-type (flymake-guile--type-diagnostic severity))
+		 (msg (string-trim text)))
+	    ;; Prevent diagnostics with invalid values
+	    (if (and (integer-or-marker-p diag-beg)
+		     (integer-or-marker-p diag-end))
+		(push (flymake-make-diagnostic source diag-beg
+					       diag-end diag-type msg)
+		      diags)
+	      (with-current-buffer source
+		(flymake-log :error "Invalid buffer position %s or %s in %s"
+			     diag-beg diag-end proc)))))))
+    diags))
+
+(defun flymake-guile--make-sentinel (report-fn source temp-dir)
+  "Generate a process sentinel reporting to `REPORT-FN'.
+The argument `SOURCE' and `TEMP-DIR' are respectively used to pass
+the buffer containing the source code being checked and the
+temporary director generated for the checking."
+  (lambda (proc _event)
+    (unless (process-live-p proc)
+      (unwind-protect
+	  (if (eq proc (buffer-local-value 'flymake-guile--proc source))
+	      (with-current-buffer source
+		(save-restriction
+		  (widen)
+		  (with-current-buffer (process-buffer proc)
+		    (goto-char (point-min))
+		    (save-match-data
+		      (let ((diags (flymake-guile--prep-diagnostic source proc)))
+			(funcall report-fn (nreverse diags)))))))
+	    (flymake-log :warning "Canceling obsolete check %s" proc))
+	(delete-directory temp-dir t)
+	(kill-buffer (process-buffer proc))))))
+
+(defun flymake-guile-backend (report-fn &rest _args)
+  "GNU Guile backend for Flymake using `guild'.
+For the interpretation of `REPORT-FN', consult the Info
+node `(flymake) Backend functions'."
+  (let* ((guild-exec (or (executable-find flymake-guile-guild-executable)
+			 (error "Cannot find guild executable")))
+	 (source (current-buffer))
+	 (temp-dir (make-temp-file "flymake-guile-" t))
+	 (temp-file (expand-file-name (file-name-nondirectory
+				       (or (buffer-file-name)
+					   (buffer-name)))
+				      temp-dir)))
+    (when (process-live-p flymake-guile--proc)
+      (kill-process flymake-guile--proc))
+    (save-restriction
+      (widen)
+      (write-region nil nil temp-file nil 'silent)
+      (setq flymake-guile--proc
+	    (make-process
+	     :name "flymake-guile-backend-flymake"
+	     :noquery t
+	     :connection-type 'pipe
+	     :buffer (generate-new-buffer " *flymake-guile-backend-flymake*")
+	     :sentinel (flymake-guile--make-sentinel report-fn source temp-dir)
+	     :command
+	     (append (list guild-exec "compile" "-O0")
+		     (flymake-guile--warning-level-args)
+		     (flymake-guile--load-path-args)
+		     flymake-guile-guild-args
+		     (list temp-file)))))))
 
 ;;;###autoload
 (defun flymake-guile ()

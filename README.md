@@ -38,7 +38,7 @@ Emacs 29 and later:
 
 - `flymake-guile-warnings` The warning level or a list of warning
   types (default level 3), see: `guild compile -W help` for more detail.
-- `flymake-guile-guild-binary` Name of the Guile `guild` executable.
+- `flymake-guile-guild-executable` Name of the Guile `guild` executable.
 - `flymake-guile-guild-args` Additional arguments for `guild compile`.
 
 ## License
