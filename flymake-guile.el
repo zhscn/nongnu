@@ -5,7 +5,7 @@
 ;; Author: Distopico <distopico@riseup.net>
 ;; Package-Requires: ((emacs "26.1") (flymake "1.2.1"))
 ;; Keywords: language, tools
-;; Version: 0.4
+;; Version: 0.5
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -72,8 +72,10 @@ The list of supported warning types/levels can be found by running
 (defvar-local flymake-guile--diag-lnum-rx
   ":\\([[:digit:]]+\\):\\([[:digit:]]+\\):\s")
 
-(defvar-local flymake-guile--fix-col-rule-rx
-  "unbound variable")
+(defvar-local flymake-guile--fix-col-rule
+  '(("unbound variable" . +1)
+    ("unused variable" . +2)
+    ("unused local top" . +2)))
 
 (defun flymake-guile--project-path ()
   "Determine project paths from geiser configuration."
@@ -108,6 +110,16 @@ The list of supported warning types/levels can be found by running
 	((string= severity "In procedure raise-exception") :error)
 	(t :note)))
 
+(defun flymake-guile--get-col-fix (text)
+  "Get diagnostic column position fix base on `TEXT'.
+The column of some types of errors/warning are not consistent and
+will mark all the lines in a multi-line definition so this try to
+fix and getter a better position."
+  (catch 'rule-match
+    (dolist (col-rule flymake-guile--fix-col-rule)
+      (when (string-match-p (car col-rule) text)
+	(throw 'rule-match (cdr col-rule))))))
+
 (defun flymake-guile--get-diagnostic (stack-msg stack-lnum stack-cnum stack-file source)
   "Get the diagnostic line and message for the `SOURCE'.
 If the diagnostic has additional information for the source file
@@ -140,15 +152,16 @@ Also verify if the `STACK-FILE' and the source file are te same."
       ;; e.g "ice-9/boot-9".
       (setq lnum "0")
       (setq cnum "0"))
-    (cons (cons (string-to-number lnum)
-		(let ((col (string-to-number cnum)))
-		  (if (and (> col 0)
-			   ;; The column in this type of errors are not
-			   ;; consistent And will mark all the lines in a
-			   ;; multi-line definition.
-			   (string-match-p flymake-guile--fix-col-rule-rx text))
-		      (+ col 1)
-		    (- col 1))))
+    (cons (let ((line (string-to-number lnum))
+		(col (string-to-number cnum))
+		(col-fix (flymake-guile--get-col-fix text)))
+	    (cons line
+		  (if (and col-fix
+			   (or (> col 0)
+			       (> line 0)))
+		      ;; Try to report in a better position
+		      (+ col col-fix)
+		    col)))
 	  text)))
 
 (defun flymake-guile--prep-diagnostic (source proc)

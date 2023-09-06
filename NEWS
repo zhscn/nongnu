@@ -3,5 +3,9 @@
 #+TITLE: flymake-guile NEWS – history of user-visible changes
 
 * NEWS
+** 0.5
+- Improve diagnostic position for `unused variable` and `unused local top`
+** 0.4
+- Remove flymake-quickdef dependency
 ** 0.3
 - Improve diagnostic column position

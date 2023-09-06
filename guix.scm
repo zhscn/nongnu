@@ -1,24 +1,13 @@
 (use-modules (guix packages)
+	     (guix git)
 	     (guix build-system emacs)
-	     (guix git-download)
-	     ((guix licenses) #:prefix license:)
-	     (gnu packages emacs-xyz))
+	     ((guix licenses) #:prefix license:))
 
 (package
   (name "emacs-flymake-guile")
-  (version "0.4")
-  (source
-   (origin
-     (method git-fetch)
-     (uri
-      (git-reference
-       (url "https://framagit.org/flymake-backends/flymake-guile.git")
-       (commit version)))
-     (file-name (git-file-name name version))
-     (sha256
-      (base32 "06x237qhvnbyxngbqinjg417n341h652jkagr1a5whximlsaw2c8"))))
+  (version "0.5")
+  (source (git-checkout (url (dirname (current-filename)))))
   (build-system emacs-build-system)
-  (propagated-inputs (list emacs-flymake-quickdef))
   (home-page "https://framagit.org/flymake-backends/flymake-guile")
   (synopsis "GNU Guile support for Flymake")
   (description
