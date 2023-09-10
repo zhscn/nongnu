@@ -31,6 +31,7 @@ This package exposes the following interactive functions:
 
 - ``recomplete-ispell-word``
 - ``recomplete-case-style``
+- ``recomplete-case-style-symbol``
 - ``recomplete-dabbrev``
 
 
@@ -50,6 +51,9 @@ Built-In Completions
    :Pascal Case: ``TheRedFoxJumpedOverTheLazyDog``
    :Snake Case: ``the_red_fox_jumped_over_the_lazy_dog``
    :Kebab Case: ``the-red-fox-jumped-over-the-lazy-dog``
+``case-style-symbol``
+   The same as ``case-style`` however this operates on the current ``symbol``.
+   *Kebab Case* is only used when the language considers ``-`` part of a symbol (Lisp for e.g. not C/C++/Python).
 ``dabbrev``
    Provides similar functionality to ``dabbrev-completion``.
 
