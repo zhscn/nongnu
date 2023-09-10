@@ -245,10 +245,12 @@ Argument FN-CACHE stores the result for reuse."
                #'downcase
                ;; `split-string' modified match-data.
                (save-match-data
-                 (split-string (string-trim (replace-regexp-in-string
-                                             "\\([[:lower:]]\\)\\([[:upper:]]\\)"
-                                             "\\1_\\2"
-                                             word-init)
+                 ;; Setting `case-fold-search' is needed for replace to work properly, see #2.
+                 (split-string (string-trim (let ((case-fold-search nil))
+                                              (replace-regexp-in-string
+                                               "\\([[:lower:]]\\)\\([[:upper:]]\\)"
+                                               "\\1_\\2"
+                                               word-init))
                                             "_")
                                "[_\\-]")))))
 
