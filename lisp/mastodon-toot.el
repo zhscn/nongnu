@@ -678,8 +678,8 @@ Pushes `mastodon-toot-current-toot-text' to
 TEXT-ONLY means don't check for attachments or polls."
   (and (if text-only
            t
-         (not mastodon-toot--media-attachments)
-         (not mastodon-toot-poll))
+         (and (not mastodon-toot--media-attachments)
+              (not mastodon-toot-poll)))
        (string-empty-p (mastodon-tl--clean-tabs-and-nl
                         (mastodon-toot--remove-docs)))))
 
