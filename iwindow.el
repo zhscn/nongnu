@@ -58,7 +58,7 @@
   "List of keys to use to select window.
 
 Each element should be a key that `read-key' can return."
-  :type '(repeat string))
+  :type '(repeat sexp))
 
 (defcustom iwindow-decoration-functions
   (list #'iwindow-show-keys-on-mode-line
@@ -85,16 +85,28 @@ CALLBACK and revert the changes it has done."
 
 (defcustom iwindow-highlight-faces
   '((default . iwindow-highlight-default)
-    (fringe . iwindow-highlight-fringe))
+    (fringe . iwindow-highlight-fringe)
+    (mode-line . iwindow-highlight-mode-line)
+    (mode-line-active . iwindow-highlight-mode-line)
+    (mode-line-inactive . iwindow-highlight-mode-line))
   "Alist of face and their replacements in candidate windows."
   :type '(alist :key-type (face :tag "Face")
                 :value-type (face :tag "Replacement")))
 
-(defface iwindow-highlight-default '((t :background "blue"))
+(defface iwindow-highlight-default
+  '((((class color) (min-colors 88) (background light))
+     :background "gray85")
+    (((class color) (min-colors 88) (background dark))
+     :background "gray15"))
   "`default' face for highlighted windows.")
 
-(defface iwindow-highlight-fringe '((t :background "blue"))
+(defface iwindow-highlight-fringe nil
   "`fringe' face for highlighted windows.")
+
+(defface iwindow-highlight-mode-line
+  '((((class color) (min-colors 88)))
+    (t :inherit error :inverse-video t))
+  "Mode line face for highlighted windows.")
 
 (defun iwindow--make-decision-tree (windows start end predicate)
   "Make a decision tree from window in WINDOWS from START to END.
