@@ -14,14 +14,21 @@ to somewhere, for example:
 (global-set-key (kbd "C-x o") #'iwindow-select)
 #+end_src
 
-You can swap windows with `iwindow-swap'.  To delete a window, you can
-use `iwindow-delete'.  And there is `iwindow-delete-others' to delete
+You can swap windows with ~iwindow-swap~.  To delete a window, you can
+use ~iwindow-delete~.  And there is ~iwindow-delete-others~ to delete
 all window except the chosen one.
 
 * Installation
 
-IWindow isn't available on any ELPA right now.  So, you have to follow
-one of the following methods:
+** NonGNU ELPA
+
+IWindow is available on NonGNU ELPA.  If you don't have the archive
+setup, put something like the following in your init file:
+
+#+begin_src emacs-lisp
+(add-to-list 'package-archives
+             '("nongnu" . "https://elpa.nongnu.org/nongnu/"))
+#+end_src
 
 ** Quelpa
 
