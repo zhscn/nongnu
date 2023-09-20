@@ -575,7 +575,8 @@ HEADERS means also fetch link headers for pagination."
         (remove-overlays)
         (setq mastodon-profile--account account)
         (mastodon-tl--set-buffer-spec buffer endpoint
-                                      update-function link-header)
+                                      update-function link-header
+                                      args)
         (let* ((inhibit-read-only t)
                (is-statuses (string= endpoint-type "statuses"))
                (is-followers (string= endpoint-type "followers"))
