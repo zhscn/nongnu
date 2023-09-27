@@ -315,8 +315,12 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
           (message "Oops: could not find marker '(%s)'" marker)))
       (unless remove
         (goto-char bol)
-        (insert (format "(%s) "
-                        (propertize marker 'face 'success)))))
+        (insert
+         (propertize
+          (format "(%s) "
+                  (propertize marker
+                              'face 'success))
+          'cursor-face 'mastodon-cursor-highlight-face))))
     (when at-byline-p
       ;; leave point after the marker:
       (unless remove
