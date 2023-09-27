@@ -332,9 +332,9 @@ Makes a POST request to the server. Used for favouriting,
 boosting, or bookmarking toots."
   (let* ((id (mastodon-tl--property 'base-toot-id))
          (url (mastodon-http--api
-               (concat "statuses/" (mastodon-tl--as-string id) "/" action))))
-    (let ((response (mastodon-http--post url)))
-      (mastodon-http--triage response callback))))
+               (concat "statuses/" (mastodon-tl--as-string id) "/" action)))
+         (response (mastodon-http--post url)))
+    (mastodon-http--triage response callback)))
 
 (defun mastodon-toot--toggle-boost-or-favourite (type)
   "Toggle boost or favourite of toot at `point'.
