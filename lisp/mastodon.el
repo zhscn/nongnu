@@ -394,7 +394,8 @@ not, just browse the URL in the normal fashion."
           (string-match "^/u/[[:alpha:]]+$" query)
           (string-match "^/c/[[:alnum:]]+$" query)
           (string-match "^/post/[[:digit:]]+$" query)
-          (string-match "^/comment/[[:digit:]]+$" query))))) ; lemmy
+          (string-match "^/comment/[[:digit:]]+$" query) ; lemmy
+          (string-match "^/notes/[[:alnum:]]+$" query))))) ; misskey post
 
 (defun mastodon-live-buffers ()
   "Return a list of open mastodon buffers.
