@@ -127,17 +127,20 @@ Used for API form data parameters that take an array."
   (cl-loop for x in array
            collect (cons param-str x)))
 
-(defun mastodon-http--post (url &optional params headers unauthenticated-p)
+(defun mastodon-http--post (url &optional params headers unauthenticated-p json)
   "POST synchronously to URL, optionally with PARAMS and HEADERS.
 Authorization header is included by default unless UNAUTHENTICATED-P is non-nil."
   (mastodon-http--authorized-request "POST"
-    (let ((url-request-data (when params
-                              (mastodon-http--build-params-string params)))
-          (url-request-extra-headers
-           (append url-request-extra-headers ; auth set in macro
-                   (unless (assoc "Content-Type" headers) ; pleroma compat:
-                     '(("Content-Type" . "application/x-www-form-urlencoded")))
-                   headers)))
+    (let* ((url-request-data
+            (when params
+              (if json
+                  (json-encode params)
+                (fedi-http--build-params-string params))))
+           (url-request-extra-headers
+            (append url-request-extra-headers ; auth set in macro
+                    (unless (assoc "Content-Type" headers) ; pleroma compat:
+                      '(("Content-Type" . "application/x-www-form-urlencoded")))
+                    headers)))
       (with-temp-buffer
         (mastodon-http--url-retrieve-synchronously url)))
     unauthenticated-p))
