@@ -755,7 +755,44 @@ INSTANCE is an instance domain name."
                        (concat instance "/api/v1/instance") nil nil :vector)))
        (mastodon-views--instance-response-fun response brief instance)))))
 
-(defun mastodon-views--instance-response-fun (response brief instance)
+(defun mastodon-views--instance-desc-misskey (&optional brief instance)
+  ""
+  ;; TODO: work out how to try either misskey endpoint or mastodon-compat one.
+  (interactive)
+  (mastodon-tl--do-if-toot
+   (let* ((toot (if (mastodon-tl--profile-buffer-p)
+                    ;; we may be on profile description itself:
+                    (or (mastodon-tl--property 'profile-json)
+                        ;; or on profile account listings, or just toots:
+                        (mastodon-tl--property 'toot-json))
+                  ;; normal timeline/account listing:
+                  (mastodon-tl--property 'toot-json)))
+          (reblog (alist-get 'reblog toot))
+          (account (or (alist-get 'account reblog)
+                       (alist-get 'account toot)
+                       toot)) ; else `toot' is already an account listing.
+          ;; we may be at toots/boosts/users in a profile buffer.
+          ;; profile-json is a defacto test for if point is on the profile
+          ;; details at the top of a profile buffer.
+          (profile-note-p (and (mastodon-tl--profile-buffer-p)
+                               ;; only call this in profile buffers:
+                               (mastodon-tl--property 'profile-json)))
+          (url (if profile-note-p
+                   (alist-get 'url toot) ; profile description
+                 (alist-get 'url account)))
+          (username (if profile-note-p
+                        (alist-get 'username toot) ;; profile
+                      (alist-get 'username account)))
+          (instance (mastodon-views--get-instance-url url username instance))
+          (params `(("detail" . ,(or brief t))))
+          (headers '(("Content-Type" . "application/json")))
+          (url (concat instance "/api/meta"))
+          (response
+           (with-current-buffer (mastodon-http--post url params headers t :json)
+             (mastodon-http--process-response))))
+     (mastodon-views--instance-response-fun response brief instance :misskey))))
+
+(defun mastodon-views--instance-response-fun (response brief instance misskey)
   "Display instance description RESPONSE in a new buffer.
 BRIEF means to show fewer details.
 INSTANCE is the instance were are working with."
@@ -764,21 +801,26 @@ INSTANCE is the instance were are working with."
            (buf (get-buffer-create
                  (format "*mastodon-instance-%s*" domain))))
       (with-mastodon-buffer buf #'special-mode :other-window
-        (when brief
-          (setq response
-                (list (assoc 'uri response)
-                      (assoc 'title response)
-                      (assoc 'short_description response)
-                      (assoc 'email response)
-                      (cons 'contact_account
-                            (list
-                             (assoc 'username
-                                    (assoc 'contact_account response))))
-                      (assoc 'rules response)
-                      (assoc 'stats response))))
-        (mastodon-views--print-json-keys response)
-        (mastodon-tl--set-buffer-spec (buffer-name buf) "instance" nil)
-        (goto-char (point-min))))))
+        (if misskey
+            (let ((inihibit-read-only t))
+              (insert (prin1-to-string response))
+              (pp-buffer)
+              (goto-char (point-min)))
+          (when brief
+            (setq response
+                  (list (assoc 'uri response)
+                        (assoc 'title response)
+                        (assoc 'short_description response)
+                        (assoc 'email response)
+                        (cons 'contact_account
+                              (list
+                               (assoc 'username
+                                      (assoc 'contact_account response))))
+                        (assoc 'rules response)
+                        (assoc 'stats response))))
+          (mastodon-views--print-json-keys response)
+          (mastodon-tl--set-buffer-spec (buffer-name buf) "instance" nil)
+          (goto-char (point-min)))))))
 
 (defun mastodon-views--format-key (el pad)
   "Format a key of element EL, a cons, with PAD padding."
