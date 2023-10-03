@@ -792,7 +792,8 @@ INSTANCE is an instance domain name."
              (mastodon-http--process-response))))
      (mastodon-views--instance-response-fun response brief instance :misskey))))
 
-(defun mastodon-views--instance-response-fun (response brief instance misskey)
+(defun mastodon-views--instance-response-fun (response brief instance
+                                                       &optional misskey)
   "Display instance description RESPONSE in a new buffer.
 BRIEF means to show fewer details.
 INSTANCE is the instance were are working with."
