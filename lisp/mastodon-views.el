@@ -716,7 +716,7 @@ If INSTANCE is given, use that."
          (string-remove-suffix (concat "/@" username)
                                url))))
 
-(defun mastodon-views--view-instance-description (&optional user brief instance)
+(defun mastodon-views--view-instance-description (&optional user brief instance misskey)
   "View the details of the instance the current post's author is on.
 USER means to show the instance details for the logged in user.
 BRIEF means to show fewer details.
@@ -750,47 +750,29 @@ INSTANCE is an instance domain name."
             (username (if profile-note-p
                           (alist-get 'username toot) ;; profile
                         (alist-get 'username account)))
-            (instance (mastodon-views--get-instance-url url username instance))
-            (response (mastodon-http--get-json
-                       (concat instance "/api/v1/instance") nil nil :vector)))
-       (mastodon-views--instance-response-fun response brief instance)))))
+            (instance (mastodon-views--get-instance-url url username instance)))
+       (if misskey
+           (let* ((params `(("detail" . ,(or brief t))))
+                  (headers '(("Content-Type" . "application/json")))
+                  (url (concat instance "/api/meta"))
+                  (response
+                   (with-current-buffer (mastodon-http--post url params headers t :json)
+                     (mastodon-http--process-response))))
+             (mastodon-views--instance-response-fun response brief instance :misskey))
+         (let ((response (mastodon-http--get-json
+                          (concat instance "/api/v1/instance") nil nil :vector)))
+           ;; if non-misskey attempt errors, try misskey instance:
+           ;; akkoma i guess should not error here.
+           (if (eq 'error (caar response))
+               (mastodon-views--instance-desc-misskey)
+             (mastodon-views--instance-response-fun response brief instance))))))))
 
-(defun mastodon-views--instance-desc-misskey (&optional brief instance)
-  ""
-  ;; TODO: work out how to try either misskey endpoint or mastodon-compat one.
+(defun mastodon-views--instance-desc-misskey (&optional user brief instance)
+  "Show instance description for a misskey/firefish server.
+USER, BRIEF, and INSTANCE are all for
+`mastodon-views--view-instance-description', which see."
   (interactive)
-  (mastodon-tl--do-if-toot
-   (let* ((toot (if (mastodon-tl--profile-buffer-p)
-                    ;; we may be on profile description itself:
-                    (or (mastodon-tl--property 'profile-json)
-                        ;; or on profile account listings, or just toots:
-                        (mastodon-tl--property 'toot-json))
-                  ;; normal timeline/account listing:
-                  (mastodon-tl--property 'toot-json)))
-          (reblog (alist-get 'reblog toot))
-          (account (or (alist-get 'account reblog)
-                       (alist-get 'account toot)
-                       toot)) ; else `toot' is already an account listing.
-          ;; we may be at toots/boosts/users in a profile buffer.
-          ;; profile-json is a defacto test for if point is on the profile
-          ;; details at the top of a profile buffer.
-          (profile-note-p (and (mastodon-tl--profile-buffer-p)
-                               ;; only call this in profile buffers:
-                               (mastodon-tl--property 'profile-json)))
-          (url (if profile-note-p
-                   (alist-get 'url toot) ; profile description
-                 (alist-get 'url account)))
-          (username (if profile-note-p
-                        (alist-get 'username toot) ;; profile
-                      (alist-get 'username account)))
-          (instance (mastodon-views--get-instance-url url username instance))
-          (params `(("detail" . ,(or brief t))))
-          (headers '(("Content-Type" . "application/json")))
-          (url (concat instance "/api/meta"))
-          (response
-           (with-current-buffer (mastodon-http--post url params headers t :json)
-             (mastodon-http--process-response))))
-     (mastodon-views--instance-response-fun response brief instance :misskey))))
+  (mastodon-views--view-instance-description user brief instance :miskey))
 
 (defun mastodon-views--instance-response-fun (response brief instance
                                                        &optional misskey)
