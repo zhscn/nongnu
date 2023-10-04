@@ -420,9 +420,7 @@ Apart from Mastodon itself, it is currently known to work with:
 - Akkoma ([[https://akkoma.social/][akkoma.social]])
 - Gotosocial ([[https://gotosocial.org/][gotosocial.org]])
 
-It also has partial support for the non-Mastodon API servers:
-- Misskey ([[https://misskey.io/][misskey.io]])
-- Firefish ([[https://joinfirefish.org/][joinfirefish.org]], formerly Calkey)
+It does not support the non-Mastodon API servers Misskey ([[https://misskey.io/][misskey.io]]) and Firefish ([[https://joinfirefish.org/][joinfirefish.org]], formerly Calkey), but it should fully support displaying and interacting with posts and users on those platforms.
 
 If you attempt to use =mastodon.el= with a server and run into problems, feel
 free to open an issue.
