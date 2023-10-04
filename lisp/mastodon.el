@@ -420,14 +420,17 @@ Calls `mastodon-tl--get-buffer-type', which see."
                                   buf-names)))
     (switch-to-buffer choice)))
 
+(defun mastodon-mode-hook-fun ()
+  "Function to add to `mastodon-mode-hook'."
+  (when (require 'emojify nil :noerror)
+    (emojify-mode t)
+    (when mastodon-toot--enable-custom-instance-emoji
+      (mastodon-toot--enable-custom-emoji))
+    (when mastodon-tl--highlight-current-toot
+      (cursor-face-highlight-mode)))) ; 29.1
+
 ;;;###autoload
-(add-hook 'mastodon-mode-hook (lambda ()
-                                (when (require 'emojify nil :noerror)
-                                  (emojify-mode t)
-                                  (when mastodon-toot--enable-custom-instance-emoji
-                                    (mastodon-toot--enable-custom-emoji))
-                                  (when mastodon-tl--highlight-current-toot
-                                    (cursor-face-highlight-mode))))) ; 29.1
+(add-hook 'mastodon-mode-hook #'mastodon-mode-hook-fun)
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook #'mastodon-profile--fetch-server-account-settings)
