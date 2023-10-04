@@ -242,16 +242,23 @@
                    (syntaxes '())
                    (vars '()))
                (for-each (lambda (name)
-                           ;; STklos does not recognize macro names, but we can
-                           ;; tell that, if it is exported, and does not have a value,
-                           ;; then it is syntax!
-                           (let ((obj (symbol-value name module :geiser-stklos--it-is-syntax)))
-                             (cond ((procedure? obj)
-                                    (push! (list name) procs))
-                                   ((eq? obj :geiser-stklos--it-is-syntax)
-                                    (push! (list name) syntaxes))
+                           (let ((stk-ver (short-version)))
+                             (let ((obj (symbol-value name module :geiser-stklos--no-value)))
+                               (cond ((procedure? obj)
+                                      (push! (list name) procs))
+
+                                     ;; STklos < 2.0 doesn't have a syntax clas, so we test if the
+                                     ;; symbol has no value. For 2.0 on, we can test if it's member of the
+                                     ;; syntax class -- which is the same as testing if it's member of the
+                                     ;; same class as push!, defined above.
+                                     ((or (and (>= (string->number stk-ver) 2)
+                                               (eq? (class-of obj) (class-of push!))) ; well, push! is syntax!
+                                          (and (< (string->number stk-ver) 2)
+                                             (eq? obj :geiser-stklos--no-value)))
+                                      (push! (list name) syntaxes))
+
                                    (else
-                                    (push! (list name) vars)))))
+                                    (push! (list name) vars))))))
                          exports)
                `(list ("modules") ("procs" . ,procs) ("syntax" . ,syntaxes) ("vars" . ,vars))))))
         (else '())))
