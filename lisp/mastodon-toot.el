@@ -758,12 +758,17 @@ to `emojify-user-emojis', and the emoji data is updated."
     (when (y-or-n-p "Looks like you haven't downloaded your
     instance's custom emoji yet. Download now? ")
       (mastodon-toot--download-custom-emoji)))
-  (setq emojify-user-emojis
-        (append (mastodon-toot--collect-custom-emoji)
-                emojify-user-emojis))
-  ;; if already loaded, reload
-  (when (featurep 'emojify)
-    (emojify-set-emoji-data)))
+  ;; FIXME this test is awful, only works if we were last to mod the list:
+  (unless (equal (car (mastodon-toot--collect-custom-emoji))
+                 (car emojify-user-emojis))
+    (setq emojify-user-emojis
+          (append (mastodon-toot--collect-custom-emoji)
+                  emojify-user-emojis))
+    ;; if already loaded, reload
+    (when (featurep 'emojify)
+      ;; we now only do this within the unless test above, as it is extremely
+      ;; slow and runs in `mastodon-mode-hook'.
+      (emojify-set-emoji-data))))
 
 (defun mastodon-toot--remove-docs ()
   "Get the body of a toot from the current compose buffer."
