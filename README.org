@@ -415,9 +415,17 @@ Optional dependencies (install yourself, =mastodon.el= can use them):
 
 =mastodon.el= should work with ActivityPub servers that implement the Mastodon API.
 
-Apart from Mastodon itself, it is currently known to work with Pleroma and
-Gotosocial. If you attempt to use =mastodon.el= with another server that
-implements the Mastodon API and run into problems, feel free to open an issue.
+Apart from Mastodon itself, it is currently known to work with:
+-  Pleroma ([[https://pleroma.social/][pleroma.social]])
+- Akkoma ([[https://akkoma.social/][akkoma.social]])
+- Gotosocial ([[https://gotosocial.org/][gotosocial.org]])
+
+It also has partial support for the non-Mastodon API servers:
+- Misskey ([[https://misskey.io/][misskey.io]])
+- Firefish ([[https://joinfirefish.org/][joinfirefish.org]], formerly Calkey)
+
+If you attempt to use =mastodon.el= with a server and run into problems, feel
+free to open an issue.
 
 ** Contributing
 
