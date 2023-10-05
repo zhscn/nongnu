@@ -50,6 +50,7 @@
 (autoload 'mastodon-http--patch-json "mastodon-http")
 (autoload 'mastodon-http--post "mastodon-http.el")
 (autoload 'mastodon-http--triage "mastodon-http.el")
+(autoload 'mastodon-kill-window "mastodon")
 (autoload 'mastodon-media--get-media-link-rendering "mastodon-media.el")
 (autoload 'mastodon-media--inline-images "mastodon-media.el")
 (autoload 'mastodon-mode "mastodon.el")
@@ -294,7 +295,7 @@ NO-REBLOGS means do not display boosts in statuses."
   "Cancel updating user profile and kill buffer and window."
   (interactive)
   (when (y-or-n-p "Cancel updating your profile note?")
-    (kill-buffer-and-window)))
+    (mastodon-kill-window)))
 
 (defun mastodon-profile--note-remove-header ()
   "Get the body of a toot from the current compose buffer."
@@ -310,9 +311,9 @@ Ask for confirmation if length > 500 characters."
          (url (mastodon-http--api "accounts/update_credentials")))
     (if (> (mastodon-toot--count-toot-chars note) 500)
         (when (y-or-n-p "Note is over mastodon's max for profile notes (500). Proceed?")
-          (kill-buffer-and-window)
+          (quit-window 'kill)
           (mastodon-profile--user-profile-send-updated-do url note))
-      (kill-buffer-and-window)
+      (quit-window 'kill)
       (mastodon-profile--user-profile-send-updated-do url note))))
 
 (defun mastodon-profile--user-profile-send-updated-do (url note)

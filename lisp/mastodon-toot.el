@@ -64,6 +64,7 @@
 (autoload 'mastodon-http--put "mastodon-http")
 (autoload 'mastodon-http--read-file-as-string "mastodon-http")
 (autoload 'mastodon-http--triage "mastodon-http")
+(autoload 'mastodon-kill-window "mastodon")
 (autoload 'mastodon-profile--fetch-server-account-settings "mastodon-profile")
 (autoload 'mastodon-profile--fetch-server-account-settings-maybe "mastodon-profile")
 (autoload 'mastodon-profile--get-source-pref "mastodon-profile")
@@ -682,7 +683,7 @@ CANCEL means the toot was not sent, so we save the toot text as a draft."
                     mastodon-toot-draft-toots-list :test 'equal)))
     ;; prevent some weird bug when cancelling a non-empty toot:
     (delete #'mastodon-toot--save-toot-text after-change-functions)
-    (kill-buffer-and-window)
+    (quit-window 'kill)
     (mastodon-toot--restore-previous-window-config prev-window-config)))
 
 (defun mastodon-toot--cancel ()

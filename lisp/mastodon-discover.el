@@ -35,6 +35,8 @@
 
 (declare-function discover-add-context-menu "discover")
 
+(autoload 'mastodon-kill-window "mastodon")
+
 (defun mastodon-discover ()
   "Plug Mastodon functionality into `discover'."
   (interactive)
@@ -115,7 +117,7 @@
          ("C-c C-c" "Cycle profile views" mastodon-profile--account-view-cycle))
         ("Quit"
          ("q" "Quit mastodon and bury buffer." kill-this-buffer)
-         ("Q" "Quit mastodon buffer and kill window." kill-buffer-and-window)
+         ("Q" "Quit mastodon buffer and kill window." mastodon--kill-window)
          ("M-C-q" "Quit mastodon and kill all buffers." mastodon-kill-all-buffers)))))))
 
 (provide 'mastodon-discover)

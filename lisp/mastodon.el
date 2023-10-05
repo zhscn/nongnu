@@ -142,6 +142,12 @@ The default value \"%F %T\" prints ISO8601-style YYYY-mm-dd HH:MM:SS.
 Use. e.g. \"%c\" for your locale's date and time format."
   :type 'string)
 
+
+(defun mastodon-kill-window ()
+  "Quit window and delete helper."
+  (interactive)
+  (quit-window 'kill))
+
 (defvar mastodon-mode-map
   (let ((map (make-sparse-keymap)))
     ;; navigation inside a timeline
@@ -169,7 +175,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "/") #'mastodon-switch-to-buffer)
     ;; quitting mastodon
     (define-key map (kbd "q") #'kill-current-buffer)
-    (define-key map (kbd "Q") #'kill-buffer-and-window)
+    (define-key map (kbd "Q") #'mastodon-kill-window)
     (define-key map (kbd "M-C-q") #'mastodon-kill-all-buffers)
     ;; toot actions
     (define-key map (kbd "c") #'mastodon-tl--toggle-spoiler-text-in-toot)
