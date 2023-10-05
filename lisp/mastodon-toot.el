@@ -758,12 +758,17 @@ to `emojify-user-emojis', and the emoji data is updated."
     (when (y-or-n-p "Looks like you haven't downloaded your
     instance's custom emoji yet. Download now? ")
       (mastodon-toot--download-custom-emoji)))
-  (setq emojify-user-emojis
-        (append (mastodon-toot--collect-custom-emoji)
-                emojify-user-emojis))
-  ;; if already loaded, reload
-  (when (featurep 'emojify)
-    (emojify-set-emoji-data)))
+  ;; FIXME this test is awful, only works if we were last to mod the list:
+  (unless (equal (car (mastodon-toot--collect-custom-emoji))
+                 (car emojify-user-emojis))
+    (setq emojify-user-emojis
+          (append (mastodon-toot--collect-custom-emoji)
+                  emojify-user-emojis))
+    ;; if already loaded, reload
+    (when (featurep 'emojify)
+      ;; we now only do this within the unless test above, as it is extremely
+      ;; slow and runs in `mastodon-mode-hook'.
+      (emojify-set-emoji-data))))
 
 (defun mastodon-toot--remove-docs ()
   "Get the body of a toot from the current compose buffer."
@@ -1774,19 +1779,20 @@ Only text that is not one of these faces will be spell-checked."
       (let ((f (get-text-property (1- (point)) 'face)))
         (not (memq f faces))))))
 
-(add-hook 'mastodon-toot-mode-hook
-    	  (lambda ()
-            (setq flyspell-generic-check-word-predicate
-                  #'mastodon-toot-mode-flyspell-verify)))
+(defun mastodon-toot-mode-hook-fun ()
+  "Function for code to run in `mastodon-toot-mode-hook'."
+  ;; disable auto-fill-mode:
+  (auto-fill-mode -1)
+  ;; add flyspell predicate function:
+  (setq flyspell-generic-check-word-predicate
+        #'mastodon-toot-mode-flyspell-verify))
+
+(add-hook 'mastodon-toot-mode-hook #'mastodon-toot-mode-hook-fun)
 
 ;;;###autoload
 (add-hook 'mastodon-toot-mode-hook
           #'mastodon-profile--fetch-server-account-settings-maybe)
 
-;; disable auto-fill-mode:
-(add-hook 'mastodon-toot-mode-hook
-          (lambda ()
-            (auto-fill-mode -1)))
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."

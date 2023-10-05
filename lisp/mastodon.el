@@ -6,7 +6,7 @@
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
-;; Version: 1.0.2
+;; Version: 1.0.3
 ;; Package-Requires: ((emacs "27.1") (request "0.3.0") (persist "0.4"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
@@ -394,7 +394,8 @@ not, just browse the URL in the normal fashion."
           (string-match "^/u/[[:alpha:]]+$" query)
           (string-match "^/c/[[:alnum:]]+$" query)
           (string-match "^/post/[[:digit:]]+$" query)
-          (string-match "^/comment/[[:digit:]]+$" query))))) ; lemmy
+          (string-match "^/comment/[[:digit:]]+$" query) ; lemmy
+          (string-match "^/notes/[[:alnum:]]+$" query))))) ; misskey post
 
 (defun mastodon-live-buffers ()
   "Return a list of open mastodon buffers.
@@ -419,14 +420,17 @@ Calls `mastodon-tl--get-buffer-type', which see."
                                   buf-names)))
     (switch-to-buffer choice)))
 
+(defun mastodon-mode-hook-fun ()
+  "Function to add to `mastodon-mode-hook'."
+  (when (require 'emojify nil :noerror)
+    (emojify-mode t)
+    (when mastodon-toot--enable-custom-instance-emoji
+      (mastodon-toot--enable-custom-emoji))
+    (when mastodon-tl--highlight-current-toot
+      (cursor-face-highlight-mode)))) ; 29.1
+
 ;;;###autoload
-(add-hook 'mastodon-mode-hook (lambda ()
-                                (when (require 'emojify nil :noerror)
-                                  (emojify-mode t)
-                                  (when mastodon-toot--enable-custom-instance-emoji
-                                    (mastodon-toot--enable-custom-emoji))
-                                  (when mastodon-tl--highlight-current-toot
-                                    (cursor-face-highlight-mode))))) ; 29.1
+(add-hook 'mastodon-mode-hook #'mastodon-mode-hook-fun)
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook #'mastodon-profile--fetch-server-account-settings)
