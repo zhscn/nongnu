@@ -1485,11 +1485,13 @@ REPLY-TEXT is the text of the toot being replied to."
             'toot-reply t)
          "")
        divider
-       "\n")
-      'rear-nonsticky t
+       )
       'face 'mastodon-toot-docs-face
       'read-only "Edit your message below."
-      'toot-post-header t))))
+      'toot-post-header t)
+     ;; allow us to enter text after read-only header:
+     (propertize "\n"
+                 'rear-nonsticky t))))
 
 (defun mastodon-toot--most-restrictive-visibility (reply-visibility)
   "Return REPLY-VISIBILITY or default visibility, whichever is more restrictive.
