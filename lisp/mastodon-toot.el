@@ -1779,19 +1779,20 @@ Only text that is not one of these faces will be spell-checked."
       (let ((f (get-text-property (1- (point)) 'face)))
         (not (memq f faces))))))
 
-(add-hook 'mastodon-toot-mode-hook
-    	  (lambda ()
-            (setq flyspell-generic-check-word-predicate
-                  #'mastodon-toot-mode-flyspell-verify)))
+(defun mastodon-toot-mode-hook-fun ()
+  "Function for code to run in `mastodon-toot-mode-hook'."
+  ;; disable auto-fill-mode:
+  (auto-fill-mode -1)
+  ;; add flyspell predicate function:
+  (setq flyspell-generic-check-word-predicate
+        #'mastodon-toot-mode-flyspell-verify))
+
+(add-hook 'mastodon-toot-mode-hook #'mastodon-toot-mode-hook-fun)
 
 ;;;###autoload
 (add-hook 'mastodon-toot-mode-hook
           #'mastodon-profile--fetch-server-account-settings-maybe)
 
-;; disable auto-fill-mode:
-(add-hook 'mastodon-toot-mode-hook
-          (lambda ()
-            (auto-fill-mode -1)))
 
 (define-minor-mode mastodon-toot-mode
   "Minor mode to capture Mastodon toots."
