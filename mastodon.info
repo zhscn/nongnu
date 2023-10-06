@@ -29,7 +29,7 @@ Installation
 
 * ELPA::
 * MELPA::
-* repo::
+* Repo::
 * Emoji::
 * Discover::
 
@@ -80,13 +80,13 @@ File: mastodon.info,  Node: Installation,  Next: Usage,  Up: README
 ================
 
 You can install ‘mastodon.el’ from ELPA, MELPA, or directly from this
-repo.
+repo.  It is also available as a GUIX package.
 
 * Menu:
 
 * ELPA::
 * MELPA::
-* repo::
+* Repo::
 * Emoji::
 * Discover::
 
@@ -103,7 +103,7 @@ You should be able to directly install with:
    ‘M-x package-install RET mastodon RET’
 
 
-File: mastodon.info,  Node: MELPA,  Next: repo,  Prev: ELPA,  Up: Installation
+File: mastodon.info,  Node: MELPA,  Next: Repo,  Prev: ELPA,  Up: Installation
 
 1.1.2 MELPA
 -----------
@@ -121,9 +121,9 @@ Add ‘MELPA’ to your archives:
    ‘M-x package-install RET mastodon RET’
 
 
-File: mastodon.info,  Node: repo,  Next: Emoji,  Prev: MELPA,  Up: Installation
+File: mastodon.info,  Node: Repo,  Next: Emoji,  Prev: MELPA,  Up: Installation
 
-1.1.3 repo
+1.1.3 Repo
 ----------
 
 Clone this repository and add the lisp directory to your load path.
@@ -141,7 +141,7 @@ Then, require it and go.
 older version it shouldn’t be very hard to get it working.
 
 
-File: mastodon.info,  Node: Emoji,  Next: Discover,  Prev: repo,  Up: Installation
+File: mastodon.info,  Node: Emoji,  Next: Discover,  Prev: Repo,  Up: Installation
 
 1.1.4 Emoji
 -----------
@@ -579,10 +579,19 @@ File: mastodon.info,  Node: Network compatibility,  Next: Contributing,  Prev: D
 ‘mastodon.el’ should work with ActivityPub servers that implement the
 Mastodon API.
 
-   Apart from Mastodon itself, it is currently known to work with
-Pleroma and Gotosocial.  If you attempt to use ‘mastodon.el’ with
-another server that implements the Mastodon API and run into problems,
-feel free to open an issue.
+   Apart from Mastodon itself, it is currently known to work with:
+   • Pleroma (pleroma.social (https://pleroma.social/))
+   • Akkoma (akkoma.social (https://akkoma.social/))
+   • Gotosocial (gotosocial.org (https://gotosocial.org/))
+
+   It does not support the non-Mastodon API servers Misskey (misskey.io
+(https://misskey.io/)) and Firefish (joinfirefish.org
+(https://joinfirefish.org/), formerly Calkey), but it should fully
+support displaying and interacting with posts and users on those
+platforms.
+
+   If you attempt to use ‘mastodon.el’ with a server and run into
+problems, feel free to open an issue.
 
 
 File: mastodon.info,  Node: Contributing,  Next: Supporting mastodonel,  Prev: Network compatibility,  Up: README
@@ -654,8 +663,8 @@ File: mastodon.info,  Node: Supporting mastodonel,  Next: Contributors,  Prev: C
 If you’d like to support continued development of ‘mastodon.el’, I
 accept donations via paypal: paypal.me/martianh
 (https://paypal.me/martianh).  If you would prefer a different payment
-method, write to me at that address and I can provide IBAN or other
-details.
+method, please write to me at <martianhiatus [at] riseup [dot] net> and
+I can provide IBAN or other bank account details.
 
    I don’t have a tech worker’s income, so even a small tip would help
 out.
@@ -682,35 +691,35 @@ Tag Table:
 Node: Top210
 Node: README962
 Node: Installation1378
-Node: ELPA1626
-Node: MELPA1854
-Node: repo2234
-Node: Emoji2727
-Node: Discover3058
-Node: Usage3610
-Node: Logging in to your instance4053
-Node: Timelines5050
-Ref: Keybindings5525
-Ref: Toot byline legend10098
-Node: Composing toots10407
-Ref: Keybindings (1)11646
-Ref: Autocompletion of mentions and tags12164
-Ref: Draft toots12877
-Node: Other commands and account settings13348
-Node: Customization16506
-Node: Commands and variables index17293
-Node: Alternative timeline layout17613
-Node: Live-updating timelines mastodon-async-mode18018
-Node: Translating toots18870
-Node: Bookmarks and mastodonel20052
-Node: Dependencies20524
-Node: Network compatibility21134
-Node: Contributing21620
-Node: Bug reports21909
-Node: Fixes and features22815
-Node: Coding style23298
-Node: Supporting mastodonel23922
-Node: Contributors24444
+Node: ELPA1667
+Node: MELPA1895
+Node: Repo2275
+Node: Emoji2768
+Node: Discover3099
+Node: Usage3651
+Node: Logging in to your instance4094
+Node: Timelines5091
+Ref: Keybindings5566
+Ref: Toot byline legend10139
+Node: Composing toots10448
+Ref: Keybindings (1)11687
+Ref: Autocompletion of mentions and tags12205
+Ref: Draft toots12918
+Node: Other commands and account settings13389
+Node: Customization16547
+Node: Commands and variables index17334
+Node: Alternative timeline layout17654
+Node: Live-updating timelines mastodon-async-mode18059
+Node: Translating toots18911
+Node: Bookmarks and mastodonel20093
+Node: Dependencies20565
+Node: Network compatibility21175
+Node: Contributing22046
+Node: Bug reports22335
+Node: Fixes and features23241
+Node: Coding style23724
+Node: Supporting mastodonel24348
+Node: Contributors24915
 
 End Tag Table
 

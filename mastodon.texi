@@ -43,7 +43,7 @@ Installation
 
 * ELPA::
 * MELPA::
-* repo::
+* Repo::
 * Emoji::
 * Discover::
 
@@ -88,12 +88,12 @@ implement the Mastodon API@. For info see @uref{https://joinmastodon.org/, joinm
 @node Installation
 @section Installation
 
-You can install @samp{mastodon.el} from ELPA, MELPA, or directly from this repo.
+You can install @samp{mastodon.el} from ELPA, MELPA, or directly from this repo. It is also available as a GUIX package.
 
 @menu
 * ELPA::
 * MELPA::
-* repo::
+* Repo::
 * Emoji::
 * Discover::
 @end menu
@@ -124,8 +124,8 @@ Update and install:
 
 @samp{M-x package-install RET mastodon RET}
 
-@node repo
-@subsection repo
+@node Repo
+@subsection Repo
 
 Clone this repository and add the lisp directory to your load path.
 Then, require it and go.
@@ -697,9 +697,20 @@ Optional dependencies (install yourself, @samp{mastodon.el} can use them):
 
 @samp{mastodon.el} should work with ActivityPub servers that implement the Mastodon API@.
 
-Apart from Mastodon itself, it is currently known to work with Pleroma and
-Gotosocial. If you attempt to use @samp{mastodon.el} with another server that
-implements the Mastodon API and run into problems, feel free to open an issue.
+Apart from Mastodon itself, it is currently known to work with:
+@itemize
+@item
+Pleroma (@uref{https://pleroma.social/, pleroma.social})
+@item
+Akkoma (@uref{https://akkoma.social/, akkoma.social})
+@item
+Gotosocial (@uref{https://gotosocial.org/, gotosocial.org})
+@end itemize
+
+It does not support the non-Mastodon API servers Misskey (@uref{https://misskey.io/, misskey.io}) and Firefish (@uref{https://joinfirefish.org/, joinfirefish.org}, formerly Calkey), but it should fully support displaying and interacting with posts and users on those platforms.
+
+If you attempt to use @samp{mastodon.el} with a server and run into problems, feel
+free to open an issue.
 
 @node Contributing
 @section Contributing
@@ -764,9 +775,9 @@ There's no need for a blank line after the first docstring line (one is added au
 @section Supporting @samp{mastodon.el}
 
 If you'd like to support continued development of @samp{mastodon.el}, I accept
-donations via paypal: @uref{https://paypal.me/martianh, paypal.me/martianh}. If you would
-prefer a different payment method, write to me at that address and I can
-provide IBAN or other details.
+donations via paypal: @uref{https://paypal.me/martianh, paypal.me/martianh}. If you would prefer a different
+payment method, please write to me at <martianhiatus [at] riseup [dot] net> and I can
+provide IBAN or other bank account details.
 
 I don't have a tech worker's income, so even a small tip would help out.
 
