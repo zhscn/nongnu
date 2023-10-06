@@ -15,7 +15,7 @@ implement the Mastodon API. For info see [[https://joinmastodon.org/][joinmastod
 
 ** Installation
 
-You can install =mastodon.el= from ELPA, MELPA, or directly from this repo.
+You can install =mastodon.el= from ELPA, MELPA, or directly from this repo. It is also available as a GUIX package.
 
 *** ELPA
 
