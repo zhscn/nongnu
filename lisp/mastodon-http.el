@@ -135,7 +135,7 @@ Authorization header is included by default unless UNAUTHENTICATED-P is non-nil.
             (when params
               (if json
                   (json-encode params)
-                (fedi-http--build-params-string params))))
+                (mastodon-http--build-params-string params))))
            (url-request-extra-headers
             (append url-request-extra-headers ; auth set in macro
                     (unless (assoc "Content-Type" headers) ; pleroma compat:
