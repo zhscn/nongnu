@@ -34,6 +34,7 @@
 (require 'json)
 (require 'request) ; for attachments upload
 (require 'url)
+(require 'shr)
 
 (defvar mastodon-instance-url)
 (defvar mastodon-toot--media-attachment-ids)
