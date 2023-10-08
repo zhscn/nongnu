@@ -425,15 +425,13 @@ Calls `mastodon-tl--get-buffer-type', which see."
   (when (require 'emojify nil :noerror)
     (emojify-mode t)
     (when mastodon-toot--enable-custom-instance-emoji
-      (mastodon-toot--enable-custom-emoji))
-    (when mastodon-tl--highlight-current-toot
-      (cursor-face-highlight-mode)))) ; 29.1
+      (mastodon-toot--enable-custom-emoji)))
+  (mastodon-profile--fetch-server-account-settings)
+  (when mastodon-tl--highlight-current-toot
+    (cursor-face-highlight-mode))) ; 29.1
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook #'mastodon-mode-hook-fun)
-
-;;;###autoload
-(add-hook 'mastodon-mode-hook #'mastodon-profile--fetch-server-account-settings)
 
 (define-derived-mode mastodon-mode special-mode "Mastodon"
   "Major mode for Mastodon, the federated microblogging network."
