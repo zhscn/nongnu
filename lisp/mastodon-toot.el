@@ -507,13 +507,17 @@ With FAVOURITE, list favouriters, else list boosters."
 If the toot is a fave/boost notification, copy the URL of the
 base toot."
   (interactive)
-  (let* ((toot (or (mastodon-tl--property 'base-toot)
-                   (mastodon-tl--property 'toot-json)))
-         (url (if (mastodon-tl--field 'reblog toot)
-                  (alist-get 'url (alist-get 'reblog toot))
-                (alist-get 'url toot))))
+  (let* ((url (mastodon-toot--toot-url)))
     (kill-new url)
     (message "Toot URL copied to the clipboard.")))
+
+(defun mastodon-toot--toot-url ()
+  "Return the URL of the base toot at point."
+  (let* ((toot (or (mastodon-tl--property 'base-toot)
+                   (mastodon-tl--property 'toot-json))))
+    (if (mastodon-tl--field 'reblog toot)
+        (alist-get 'url (alist-get 'reblog toot))
+      (alist-get 'url toot))))
 
 (defun mastodon-toot--copy-toot-text ()
   "Copy text of toot at point.
