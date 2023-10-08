@@ -171,6 +171,17 @@ timeline with a simple prefix argument, `C-u'."
   "Whether to highlight the toot at point. Uses `cursor-face' special property."
   :type '(boolean))
 
+(defcustom mastodon-tl--expand-content-warnings 'server
+  "Whether to expand content warnings by default.
+The API returns data about this setting on the server, but no
+means to set it, so we roll our own option here to override the
+server setting if desired. If you change the server setting and
+want it to be respected by mastodon.el, you'll likely need to
+either unset `mastodon-profile-acccount-preferences-data' and
+re-load mastodon.el, or restart Emacs."
+  :type '(choice (const :tag "true" t)
+                 (const :tag "false" nil)
+                 (const :tag "follow server setting" 'server)))
 
 ;;; VARIABLES
 
@@ -987,15 +998,20 @@ message is a link which unhides/hides the main body."
      cw
      (propertize (mastodon-tl--content toot)
                  'invisible
-                 ;; check server setting to expand all spoilers:
-                 (unless (eq t
-                             ;; If something goes wrong reading prefs,
-                             ;; just return nil so CWs show by default.
-                             (condition-case nil
-                                 (mastodon-profile--get-preferences-pref
-                                  'reading:expand:spoilers)
-                               (error nil)))
-                   t)
+                 (let ((cust mastodon-tl--expand-content-warnings))
+                   (cond ((eq t cust)
+                          nil)
+                         ((eq nil cust)
+                          t)
+                         ((eq 'server cust)
+                          (unless (eq t
+                                      ;; If something goes wrong reading prefs,
+                                      ;; just return nil so CWs show by default.
+                                      (condition-case nil
+                                          (mastodon-profile--get-preferences-pref
+                                           'reading:expand:spoilers)
+                                        (error nil)))
+                            t))))
                  'mastodon-content-warning-body t))))
 
 
