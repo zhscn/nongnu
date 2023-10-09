@@ -181,7 +181,7 @@ either unset `mastodon-profile-acccount-preferences-data' and
 re-load mastodon.el, or restart Emacs."
   :type '(choice (const :tag "true" t)
                  (const :tag "false" nil)
-                 (const :tag "follow server setting" 'server)))
+                 (const :tag "follow server setting" server)))
 
 ;;; VARIABLES
 
