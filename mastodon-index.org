@@ -114,6 +114,7 @@
 |                  | mastodon-tl--goto-prev-item                       | Jump to previous item, e.g. filter or follow request.                          |
 | C-<up>, p        | mastodon-tl--goto-prev-toot                       | Jump to last toot header.                                                      |
 | "                | mastodon-tl--list-followed-tags                   | List followed tags. View timeline of tag user choses.                          |
+| <mouse-2>        | mastodon-tl--mpv-click-play-video                 | Click to play video with `mpv.el''                                             |
 | C-<return>       | mastodon-tl--mpv-play-video-at-point              | Play the video or gif at point with an mpv process.                            |
 |                  | mastodon-tl--mpv-play-video-from-byline           | Run `mastodon-tl--mpv-play-video-at-point' on first moving image in post.      |
 |                  | mastodon-tl--mute-thread                          | Mute the thread displayed in the current buffer.                               |
@@ -183,6 +184,7 @@
 |                  | mastodon-views--edit-list                         | Prompt for a list and edit the name and replies policy.                        |
 |                  | mastodon-views--edit-list-at-point                | Edit list at point.                                                            |
 |                  | mastodon-views--edit-scheduled-as-new             | Edit scheduled status as new toot.                                             |
+|                  | mastodon-views--instance-desc-misskey             | Show instance description for a misskey/firefish server.                       |
 |                  | mastodon-views--remove-account-from-list          | Prompt for a list, select an account and remove from list.                     |
 |                  | mastodon-views--remove-account-from-list-at-point | Prompt for account and remove from list at point.                              |
 |                  | mastodon-views--reschedule-toot                   | Reschedule the scheduled toot at point.                                        |
@@ -233,6 +235,7 @@
 | mastodon-tl--display-caption-not-url-when-no-media | Display an image's caption rather than URL.                                  |
 | mastodon-tl--enable-proportional-fonts             | Nonnil to enable using proportional fonts when rendering HTML.               |
 | mastodon-tl--enable-relative-timestamps            | Whether to show relative (to the current time) timestamps.                   |
+| mastodon-tl--expand-content-warnings               | Whether to expand content warnings by default.                               |
 | mastodon-tl--hide-replies                          | Whether to hide replies from the timelines.                                  |
 | mastodon-tl--highlight-current-toot                | Whether to highlight the toot at point. Uses `cursor-face' special property. |
 | mastodon-tl--show-avatars                          | Whether to enable display of user avatars in timelines.                      |
