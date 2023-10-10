@@ -256,6 +256,7 @@ types of mastodon links and not just shr.el-generated ones.")
     ;; keep new my-profile binding; shr 'O' doesn't work here anyway
     (define-key map (kbd "O") #'mastodon-profile--my-profile)
     (define-key map (kbd "<C-return>") #'mastodon-tl--mpv-play-video-at-point)
+    (define-key map (kbd "<mouse-2>") #'mastodon-tl--mpv-click-play-video)
     map)
   "The keymap to be set for shr.el generated image links.
 We need to override the keymap so tabbing will navigate to all
@@ -1245,6 +1246,11 @@ displayed when the duration is smaller than a minute)."
          (url (plist-get video :url))
          (type (plist-get video :type)))
     (mastodon-tl--mpv-play-video-at-point url type)))
+
+(defun mastodon-tl--mpv-click-play-video (_event)
+  "Click to play video with `mpv.el''"
+  (interactive "e")
+  (mastodon-tl--mpv-play-video-at-point))
 
 (defun mastodon-tl--mpv-play-video-at-point (&optional url type)
   "Play the video or gif at point with an mpv process.
