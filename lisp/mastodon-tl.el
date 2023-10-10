@@ -256,7 +256,7 @@ types of mastodon links and not just shr.el-generated ones.")
     ;; keep new my-profile binding; shr 'O' doesn't work here anyway
     (define-key map (kbd "O") #'mastodon-profile--my-profile)
     (define-key map (kbd "<C-return>") #'mastodon-tl--mpv-play-video-at-point)
-    (define-key map (kbd "<mouse-2>") #'mastodon-tl--mpv-click-play-video)
+    (define-key map (kbd "<mouse-2>") #'mastodon-tl--click-image-or-video)
     map)
   "The keymap to be set for shr.el generated image links.
 We need to override the keymap so tabbing will navigate to all
@@ -1247,10 +1247,18 @@ displayed when the duration is smaller than a minute)."
          (type (plist-get video :type)))
     (mastodon-tl--mpv-play-video-at-point url type)))
 
-(defun mastodon-tl--mpv-click-play-video (_event)
+(defun mastodon-tl--click-image-or-video (_event)
   "Click to play video with `mpv.el''"
   (interactive "e")
-  (mastodon-tl--mpv-play-video-at-point))
+  (if (mastodon-tl--media-video-p)
+      (mastodon-tl--mpv-play-video-at-point)
+    (shr-browse-image)))
+
+(defun mastodon-tl--media-video-p (&optional type)
+  "T if mastodon-media-type prop is \"gifv\" or \"video\"."
+  (let ((type (or type (mastodon-tl--property 'mastodon-media-type :no-move))))
+    (or (equal type "gifv")
+        (equal type "video"))))
 
 (defun mastodon-tl--mpv-play-video-at-point (&optional url type)
   "Play the video or gif at point with an mpv process.
@@ -1258,13 +1266,12 @@ URL and TYPE are provided when called while point is on byline,
 in which case play first video or gif from current toot."
   (interactive)
   (let ((url (or url ; point in byline:
-                 (mastodon-tl--property 'image-url :no-move))) ; point in toot
-        (type (or type ; in byline
-                  ;; point in toot:
-                  (mastodon-tl--property 'mastodon-media-type :no-move))))
+                 (mastodon-tl--property 'image-url :no-move)))) ; point in toot
+    ;; (type (or type ; in byline
+    ;; point in toot:
+    ;; (mastodon-tl--property 'mastodon-media-type :no-move))))
     (if url
-        (if (or (equal type "gifv")
-                (equal type "video"))
+        (if (mastodon-tl--media-video-p type)
             (progn
               (message "'q' to kill mpv.")
               (mpv-start "--loop" url))
