@@ -244,7 +244,8 @@ send.")
   (concat
    "\\(?2:\\(news\\(post\\)?:\\|mailto:\\|file:\\|\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://\\)" ; uri prefix
    "[^ \n\t]*\\)" ; any old thing, that is, i.e. we allow invalid/unwise chars
-   "\\b")) ; boundary
+   ;; "[ .,:;!?]\\b"))
+   "\\>")) ; boundary end
 
 
 ;;; MODE MAP
