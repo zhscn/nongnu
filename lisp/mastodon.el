@@ -395,6 +395,7 @@ not, just browse the URL in the normal fashion."
           (string-match "^/c/[[:alnum:]]+$" query)
           (string-match "^/post/[[:digit:]]+$" query)
           (string-match "^/comment/[[:digit:]]+$" query) ; lemmy
+          (string-match "^/user[s]?/[[:alnum:]]+/statuses/[[:digit:]]+$" query) ; hometown
           (string-match "^/notes/[[:alnum:]]+$" query))))) ; misskey post
 
 (defun mastodon-live-buffers ()
