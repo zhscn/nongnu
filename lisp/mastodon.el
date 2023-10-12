@@ -352,7 +352,7 @@ not, just browse the URL in the normal fashion."
                     (thing-at-point-url-at-point)
                     (mastodon-tl--property 'shr-url :no-move)
                     (read-string "Lookup URL: "))))
-    (if (not (mastodon--masto-url-p query))
+    (if (not (mastodon--fedi-url-p query))
         ;; (shr-browse-url query) ; doesn't work (keep our shr keymap)
         (browse-url query)
       (message "Performing lookup...")
@@ -374,7 +374,7 @@ not, just browse the URL in the normal fashion."
               (t
                (browse-url query)))))))
 
-(defun mastodon--masto-url-p (query)
+(defun mastodon--fedi-url-p (query)
   "Check if QUERY resembles a fediverse URL."
   ;; calqued off https://github.com/tuskyapp/Tusky/blob/c8fc2418b8f5458a817bba221d025b822225e130/app/src/main/java/com/keylesspalace/tusky/BottomSheetActivity.kt
   ;; thx to Conny Duck!
