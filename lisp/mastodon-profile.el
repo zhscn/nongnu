@@ -93,6 +93,7 @@
 (defvar mastodon-profile-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-profile--account-view-cycle)
+    (define-key map (kbd "C-c C-s") #'mastodon-profile--account-search)
     map)
   "Keymap for `mastodon-profile-mode'.")
 
@@ -214,6 +215,13 @@ NO-REBLOGS means do not display boosts in statuses."
            (id (alist-get 'id profile))
            (handle (alist-get 'acct profile)))
       (mastodon-views--add-account-to-list nil id handle))))
+
+(defun mastodon-profile--account-search (query)
+  "Search currently viewed account for QUERY."
+  (interactive "sSearch account for: ")
+  (let* ((ep (mastodon-tl--buffer-property 'endpoint))
+         (id (nth 1 (split-string ep "/"))))
+    (mastodon-search--search-query query "statuses" nil id)))
 
 
 ;;; ACCOUNT PREFERENCES

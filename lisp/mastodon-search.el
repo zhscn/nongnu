@@ -147,6 +147,8 @@ PRINT-FUN is the function used to print the data from the response."
 (defun mastodon-search--search-query (query
                                       &optional type following account-id)
   "Prompt for a search QUERY and return accounts, statuses, and hashtags."
+  ;; TODO: handle account search, buffer name etc.
+  ;; TODO: handle no results
   (interactive "sSearch mastodon for: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
          (type (or type
