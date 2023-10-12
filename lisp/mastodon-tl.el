@@ -1573,8 +1573,13 @@ call this function after it is set or use something else."
           ((mastodon-tl--endpoint-str-= "preferences")
            'preferences)
           ;; search
-          ((mastodon-tl--endpoint-str-= "search" :suffix)
-           'search)
+          ((mastodon-tl--search-buffer-p)
+           (cond ((equal (mastodon-search--buf-type) "accounts")
+                  'search-accounts)
+                 ((equal (mastodon-search--buf-type) "hashtags")
+                  'search-hashtags)
+                 ((equal (mastodon-search--buf-type) "statuses")
+                  'search-statuses)))
           ;; trends
           ((mastodon-tl--endpoint-str-= "api/v1/trends/statuses")
            'trending-statuses)
@@ -1611,6 +1616,10 @@ call this function after it is set or use something else."
   "Return t if current buffer is a profile buffer of any kind.
 This includes the update profile note buffer, but not the preferences one."
   (string-prefix-p "accounts" (mastodon-tl--endpoint nil :no-error)))
+
+(defun mastodon-tl--search-buffer-p ()
+  "T if current buffer is a search buffer."
+  (string-suffix-p "search" (mastodon-tl--endpoint nil :no-error)))
 
 (defun mastodon-tl--timeline-proper-p ()
   "Return non-nil if the current buffer is a \"proper\" timeline.
