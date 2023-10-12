@@ -141,29 +141,63 @@ PRINT-FUN is the function used to print the data from the response."
                                   " " mastodon-tl--horiz-bar "\n")
                           'success)))
 
-(defun mastodon-search--search-query (query)
+(defun mastodon-search--search-query (query
+                                      &optional type following account-id)
   "Prompt for a search QUERY and return accounts, statuses, and hashtags."
   (interactive "sSearch mastodon for: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
-         (buffer (format "*mastodon-search-%s*" query))
-         (response (mastodon-http--get-json url `(("q" . ,query))))
-         (accts (alist-get 'accounts response))
-         (tags (alist-get 'hashtags response))
-         (statuses (alist-get 'statuses response))
-         (tags-list (mapcar #'mastodon-search--get-hashtag-info tags))
-         (toots-list-json (mastodon-search--get-full-statuses-data statuses)))
+         (buffer (format "*mastodon-search-%s-%s*" type query))
+         (params `(("q" . ,query)
+                   ,(when type `("type" . ,type))
+                   ,(when following `("following" . ,following))
+                   ,(when account-id `("account_id" . ,account-id))))
+         (response (mastodon-http--get-json url params))
+         (accts (when (equal type "accounts")
+                  (alist-get 'accounts response)))
+         (tags (when (equal type "hashtags")
+                 (alist-get 'hashtags response)))
+         (statuses (when (equal type "statuses")
+                     (alist-get 'statuses response)))
+         (tags-list (when tags
+                      (mapcar #'mastodon-search--get-hashtag-info tags))))
+    ;; (toots-list-json (when statuses ; v slow, but do we have a choice?
+    ;;                    (mastodon-search--get-full-statuses-data statuses))))
     (with-mastodon-buffer buffer #'mastodon-mode nil
-      (mastodon-tl--set-buffer-spec buffer "api/v2/search" nil)
+      (mastodon-search-mode)
+      (mastodon-tl--set-buffer-spec buffer "api/v2/search" nil
+                                    nil params)
       ;; user results:
-      (mastodon-search--format-heading "USERS")
-      (mastodon-search--insert-users-propertized accts :note)
+      (when accts
+        (mastodon-search--format-heading "USERS")
+        (mastodon-search--insert-users-propertized accts :note))
       ;; hashtag results:
-      (mastodon-search--format-heading "HASHTAGS")
-      (mastodon-search--print-tags-list tags-list)
+      (when tags
+        (mastodon-search--format-heading "HASHTAGS")
+        (mastodon-search--print-tags-list tags-list))
       ;; status results:
-      (mastodon-search--format-heading "STATUSES")
-      (mapc #'mastodon-tl--toot toots-list-json)
+      (when statuses
+        (mastodon-search--format-heading "STATUSES")
+        (mapc #'mastodon-tl--toot statuses)) ;toots-list-json))
       (goto-char (point-min)))))
+
+(defun mastodon-search--buf-type ()
+  "Return search buffer type, a member of `mastodon-search-types'."
+  ;; called in `mastodon-tl--get-buffer-type'
+  (let* ((spec (mastodon-tl--buffer-property 'update-params)))
+    (alist-get "type" spec nil nil #'equal)))
+
+(defun mastodon-search--query-cycle ()
+  "Cycle through search types: accounts, hashtags, and statuses."
+  (interactive)
+  (let* ((spec (mastodon-tl--buffer-property 'update-params))
+         (type (alist-get "type" spec nil nil #'equal))
+         (query (alist-get "q" spec nil nil #'equal)))
+    (cond ((equal type "hashtags")
+           (mastodon-search--search-query query "accounts"))
+          ((equal type "accounts")
+           (mastodon-search--search-query query "statuses"))
+          ((equal type "statuses")
+           (mastodon-search--search-query query "hashtags")))))
 
 (defun mastodon-search--insert-users-propertized (json &optional note)
   "Insert users list into the buffer.
@@ -249,6 +283,23 @@ render them properly."
   (let* ((url (concat mastodon-instance-url "/api/v1/statuses/" (mastodon-tl--as-string id)))
          (json (mastodon-http--get-json url)))
     json))
+
+
+(defvar mastodon-search-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-c") #'mastodon-search--query-cycle)
+    map)
+  "Keymap for `mastodon-search-mode'.")
+
+(define-minor-mode mastodon-search-mode
+  "Toggle mastodon search minor mode.
+This minor mode is used for mastodon search pages to adds a keybinding."
+  :init-value nil
+  :lighter " Search"
+  :keymap mastodon-search-mode-map
+  :group 'mastodon
+  :global nil)
+
 
 (provide 'mastodon-search)
 ;;; mastodon-search.el ends here
