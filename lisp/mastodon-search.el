@@ -192,7 +192,9 @@ ACCOUNT-ID means limit search to that account."
         (mastodon-search--format-heading "STATUSES")
         (mapc #'mastodon-tl--toot statuses)) ;toots-list-json))
       (goto-char (point-min))
-      (message "`C-c' `C-c' to cycle result types."))))
+      (message
+       (substitute-command-keys
+        "\\[mastodon-search--query-cycle] to cycle result types.")))))
 
 (defun mastodon-search--buf-type ()
   "Return search buffer type, a member of `mastodon-search-types'."

@@ -662,7 +662,10 @@ HEADERS means also fetch link headers for pagination."
             (setq mastodon-tl--update-point (point))) ; updates after pinned toots
           (funcall update-function json)))
       (goto-char (point-min))
-      (message "`C-c' `C-c' to cycle profile views."))))
+      (message
+       (substitute-command-keys
+        ;; "\\[mastodon-profile--account-view-cycle]" ; not always bound?
+        "\\`C-c C-c' to cycle profile views: toots, followers, following.")))))
 
 (defun mastodon-profile--format-joined-date-string (joined)
   "Format a human-readable Joined string from timestamp JOINED.
@@ -708,8 +711,7 @@ IMG-TYPE is the JSON key from the account data."
       (if account
           (progn
             (message "Loading profile of user %s..." user-handle)
-            (mastodon-profile--make-author-buffer account)
-            (message "'C-c C-c' to cycle profile views: toots, followers, following"))
+            (mastodon-profile--make-author-buffer account))
         (message "Cannot find a user with handle %S" user-handle)))))
 
 (defun mastodon-profile--my-profile ()
