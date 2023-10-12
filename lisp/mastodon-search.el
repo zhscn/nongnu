@@ -97,8 +97,8 @@ QUERY is the string to search."
 
 (defun mastodon-search--get-full-statuses-data (response)
   "For statuses list in RESPONSE, fetch and return full status JSON."
-  (let ((status-ids (mapcar #'mastodon-search--get-id-from-status response)))
-    (mapcar #'mastodon-search--fetch-full-status-from-id status-ids)))
+  (let ((status-ids (mapcar #'mastodon-search--id-from-status response)))
+    (mapcar #'mastodon-search--full-status-from-id status-ids)))
 
 (defun mastodon-search--view-trending (type print-fun)
   "Display a list of tags trending on your instance.
@@ -271,12 +271,12 @@ user's profile note. This is also called by
         (alist-get 'spoiler_text status)
         (alist-get 'content status)))
 
-(defun mastodon-search--get-id-from-status (status)
+(defun mastodon-search--id-from-status (status)
   "Fetch the id from a STATUS returned by a search call to the server.
 We use this to fetch the complete status from the server."
   (alist-get 'id status))
 
-(defun mastodon-search--fetch-full-status-from-id (id)
+(defun mastodon-search--full-status-from-id (id)
   "Fetch the full status with id ID from the server.
 This allows us to access the full account etc. details and to
 render them properly."
