@@ -44,6 +44,7 @@
 (autoload 'mastodon-tl--set-face "mastodon-tl")
 (autoload 'mastodon-tl--timeline "mastodon-tl")
 (autoload 'mastodon-tl--toot "mastodon-tl")
+(autoload 'mastodon-tl--buffer-property "mastodon-tl")
 
 (defvar mastodon-toot--completion-style-for-mentions)
 (defvar mastodon-instance-url)
@@ -146,7 +147,10 @@ PRINT-FUN is the function used to print the data from the response."
 
 (defun mastodon-search--search-query (query
                                       &optional type following account-id)
-  "Prompt for a search QUERY and return accounts, statuses, and hashtags."
+  "Prompt for a search QUERY and return accounts, statuses, and hashtags.
+TYPE is a member of `mastodon-search-types'.
+FOLLOWING means limit search to accounts followed.
+ACCOUNT-ID means limit search to that account."
   ;; TODO: handle account search, buffer name etc.
   ;; TODO: handle no results
   (interactive "sSearch mastodon for: ")

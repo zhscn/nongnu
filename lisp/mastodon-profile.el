@@ -79,6 +79,8 @@
 (autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
 (autoload 'mastodon-views--add-account-to-list "mastodon-views")
 (autoload 'mastodon-return-credential-account "mastodon")
+(autoload 'mastodon-tl--buffer-property "mastodon-tl")
+(autoload 'mastodon-search--search-query "mastodon-search")
 
 (defvar mastodon-tl--horiz-bar)
 (defvar mastodon-tl--update-point)
