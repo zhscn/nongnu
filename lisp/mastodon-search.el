@@ -141,11 +141,18 @@ PRINT-FUN is the function used to print the data from the response."
                                   " " mastodon-tl--horiz-bar "\n")
                           'success)))
 
+(defvar mastodon-search-types
+  '("statuses" "accounts" "hashtags"))
+
 (defun mastodon-search--search-query (query
                                       &optional type following account-id)
   "Prompt for a search QUERY and return accounts, statuses, and hashtags."
   (interactive "sSearch mastodon for: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
+         (type (or type
+                   (completing-read "Search type: "
+                                    mastodon-search-types
+                                    nil t)))
          (buffer (format "*mastodon-search-%s-%s*" type query))
          (params `(("q" . ,query)
                    ,(when type `("type" . ,type))
@@ -178,7 +185,8 @@ PRINT-FUN is the function used to print the data from the response."
       (when statuses
         (mastodon-search--format-heading "STATUSES")
         (mapc #'mastodon-tl--toot statuses)) ;toots-list-json))
-      (goto-char (point-min)))))
+      (goto-char (point-min))
+      (message "`C-c' `C-c' to cycle result types."))))
 
 (defun mastodon-search--buf-type ()
   "Return search buffer type, a member of `mastodon-search-types'."
