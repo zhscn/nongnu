@@ -245,21 +245,22 @@ user's profile note. This is also called by
 
 (defun mastodon-search--propertize-user (acct &optional note)
   "Propertize display string for ACCT, optionally including profile NOTE."
-  (let ((user (mastodon-search--get-user-info acct)))
+  (let* ((user (mastodon-search--get-user-info acct))
+         (id (alist-get 'id acct)))
     (propertize
      (concat
       (propertize (car user)
                   'face 'mastodon-display-name-face
                   'byline t
-                  'toot-id "0")
+                  'toot-id id) ; for prev/next nav
       " : \n : "
       (propertize (concat "@" (cadr user))
                   'face 'mastodon-handle-face
                   'mouse-face 'highlight
-		          'mastodon-tab-stop 'user-handle
-		          'keymap mastodon-tl--link-keymap
+		  'mastodon-tab-stop 'user-handle
+		  'keymap mastodon-tl--link-keymap
                   'mastodon-handle (concat "@" (cadr user))
-		          'help-echo (concat "Browse user profile of @" (cadr user)))
+		  'help-echo (concat "Browse user profile of @" (cadr user)))
       " : \n"
       (if note
           (mastodon-tl--render-text (cadddr user) acct)
