@@ -2403,17 +2403,21 @@ HEADERS is the http headers returned in the response, if any."
             ;; if thread view, call --thread with parent ID
             (progn (goto-char (point-min))
                    (mastodon-tl--goto-next-toot)
-                   (funcall (mastodon-tl--update-function)))
-          (funcall (mastodon-tl--update-function) json))
-        (goto-char point-before)
-        ;; update buffer spec to new link-header:
-        ;; (other values should just remain as they were)
-        (when headers
-          (mastodon-tl--set-buffer-spec (mastodon-tl--buffer-name)
-                                        (mastodon-tl--endpoint)
-                                        (mastodon-tl--update-function)
-                                        link-header))
-        (message "Loading older toots... done.")))))
+                   (funcall (mastodon-tl--update-function))
+                   (goto-char point-before)
+                   (message "Loaded full thread."))
+          (if (not json)
+              (message "No more results.")
+            (funcall (mastodon-tl--update-function) json)
+            (goto-char point-before)
+            ;; update buffer spec to new link-header:
+            ;; (other values should just remain as they were)
+            (when headers
+              (mastodon-tl--set-buffer-spec (mastodon-tl--buffer-name)
+                                            (mastodon-tl--endpoint)
+                                            (mastodon-tl--update-function)
+                                            link-header))
+            (message "Loading older toots... done.")))))))
 
 (defun mastodon-tl--find-property-range (property start-point
                                                   &optional search-backwards)
