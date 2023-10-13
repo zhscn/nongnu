@@ -193,7 +193,10 @@ ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
       ;; user results:
       (when accts
         (mastodon-search--format-heading "USERS")
-        (mastodon-search--insert-users-propertized accts :note))
+        (mastodon-search--insert-users-propertized accts :note)
+        (mastodon-tl--set-buffer-spec buffer "search"
+                                      'mastodon-views--insert-users-propertized-note
+                                      nil params))
       ;; hashtag results:
       (when tags
         (mastodon-search--format-heading "HASHTAGS")
