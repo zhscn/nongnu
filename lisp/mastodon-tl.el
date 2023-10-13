@@ -2355,7 +2355,9 @@ HEADERS is the http headers returned in the response, if any."
                          ((equal "hashtags" (mastodon-search--buf-type))
                           (alist-get 'hashtags response))
                          ((equal "accounts" (mastodon-search--buf-type))
-                          (alist-get 'accounts response))))
+                          (alist-get 'accounts response))
+                         (t
+                          json)))
              (headers (if headers (cdr response) nil))
              (link-header (mastodon-tl--get-link-header-from-response headers)))
         (goto-char (point-max))
