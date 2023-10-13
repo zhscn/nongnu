@@ -187,7 +187,8 @@ ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
                       (mapcar #'mastodon-search--get-hashtag-info tags))))
     (with-mastodon-buffer buffer #'mastodon-mode nil
       (mastodon-search-mode)
-      (mastodon-tl--set-buffer-spec buffer "api/v2/search" nil
+      (mastodon-tl--set-buffer-spec buffer "search"
+                                    'mastodon-tl--timeline
                                     nil params)
       ;; user results:
       (when accts
