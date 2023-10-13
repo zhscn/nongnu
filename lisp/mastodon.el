@@ -405,6 +405,11 @@ Calls `mastodon-tl--get-buffer-type', which see."
            when (with-current-buffer x (mastodon-tl--get-buffer-type))
            collect (get-buffer x)))
 
+(defun mastodon-buffer-p (&optional buffer)
+  "Non-nil if BUFFER or `current-buffer' is a mastodon one."
+  (let ((buf (or buffer (current-buffer))))
+    (member buf (mastodon-live-buffers))))
+
 (defun mastodon-kill-all-buffers ()
   "Kill any and all open mastodon buffers, hopefully."
   (interactive)
