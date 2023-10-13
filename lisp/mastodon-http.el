@@ -53,6 +53,10 @@
   (concat mastodon-instance-url "/api/"
           mastodon-http--api-version "/" endpoint))
 
+(defun mastodon-http--api-search ()
+  "Return Mastodon API url for the /search endpoind (v2)."
+  (format "%s/api/v2/search" mastodon-instance-url))
+
 (defun mastodon-http--response ()
   "Capture response buffer content as string."
   (with-current-buffer (current-buffer)

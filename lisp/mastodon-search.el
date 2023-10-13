@@ -76,7 +76,7 @@ Returns a nested list containing user handle, display name, and URL."
 (defun mastodon-search--search-tags-query (query)
   "Return an alist containing tag strings plus their URLs.
 QUERY is the string to search."
-  (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
+  (let* ((url (mastodon-http--api-search))
          (params `(("q" . ,query) ("type" . "hashtags")))
          (response (mastodon-http--get-json url params :silent))
          (tags (alist-get 'hashtags response)))
@@ -152,10 +152,9 @@ TYPE is a member of `mastodon-search-types'.
 FOLLOWING means limit to accounts followed, for \"accounts\" type only.
 A single prefix arg also sets FOLLOWING to true.
 ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
-  ;; TODO: handle account search, buffer name etc.
   ;; TODO: handle no results
   (interactive "sSearch mastodon for: ")
-  (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
+  (let* ((url (mastodon-http--api-search))
          (following (when (or following
                               (equal current-prefix-arg '(4)))
                       "true"))
@@ -180,8 +179,6 @@ ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
                      (alist-get 'statuses response)))
          (tags-list (when tags
                       (mapcar #'mastodon-search--get-hashtag-info tags))))
-    ;; (toots-list-json (when statuses ; v slow, but do we have a choice?
-    ;;                    (mastodon-search--get-full-statuses-data statuses))))
     (with-mastodon-buffer buffer #'mastodon-mode nil
       (mastodon-search-mode)
       (mastodon-tl--set-buffer-spec buffer "api/v2/search" nil
@@ -197,7 +194,7 @@ ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
       ;; status results:
       (when statuses
         (mastodon-search--format-heading "STATUSES")
-        (mapc #'mastodon-tl--toot statuses)) ;toots-list-json))
+        (mapc #'mastodon-tl--toot statuses))
       (goto-char (point-min))
       (message
        (substitute-command-keys

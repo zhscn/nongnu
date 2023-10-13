@@ -2249,7 +2249,9 @@ PARAMS is used to send any parameters needed to correctly update
 the current view."
   (let* ((args `(("max_id" . ,(mastodon-tl--as-string id))))
          (args (if params (push (car args) params) args))
-         (url (mastodon-http--api endpoint)))
+         (url (if (string-suffix-p "search" endpoint)
+                  (mastodon-http--api-search)
+                (mastodon-http--api endpoint))))
     (apply #'mastodon-http--get-json-async url args callback cbargs)))
 
 (defun mastodon-tl--updated-json (endpoint id &optional params)
