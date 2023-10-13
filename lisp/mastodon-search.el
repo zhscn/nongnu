@@ -96,11 +96,6 @@ QUERY is the string to search."
   (mastodon-search--view-trending "statuses"
                                   #'mastodon-tl--timeline))
 
-(defun mastodon-search--get-full-statuses-data (response)
-  "For statuses list in RESPONSE, fetch and return full status JSON."
-  (let ((status-ids (mapcar #'mastodon-search--id-from-status response)))
-    (mapcar #'mastodon-search--full-status-from-id status-ids)))
-
 (defun mastodon-search--view-trending (type print-fun)
   "Display a list of tags trending on your instance.
 TYPE is a string, either tags, statuses, or links.
@@ -115,7 +110,7 @@ PRINT-FUN is the function used to print the data from the response."
          (data (cond ((equal type "tags")
                       (mapcar #'mastodon-search--get-hashtag-info response))
                      ((equal type "statuses")
-                      (mastodon-search--get-full-statuses-data response))
+                      response) ; no longer needs further processing
                      ((equal type "links")
                       (message "todo"))))
          (buffer (get-buffer-create (format "*mastodon-trending-%s*" type))))
