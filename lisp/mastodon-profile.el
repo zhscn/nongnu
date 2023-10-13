@@ -254,7 +254,8 @@ NO-REBLOGS means do not display boosts in statuses."
          (note (alist-get 'note source))
          (buffer (get-buffer-create "*mastodon-update-profile*"))
          (inhibit-read-only t)
-         (msg-str "Edit your profile note. C-c C-c to send, C-c C-k to cancel."))
+         (msg-str (substitute-command-keys
+                   "Edit your profile note. \\`C-c C-c' to send, \\`C-c C-k' to cancel.")))
     (switch-to-buffer-other-window buffer)
     (text-mode)
     (mastodon-tl--set-buffer-spec (buffer-name buffer) "accounts/verify_credentials" nil)
