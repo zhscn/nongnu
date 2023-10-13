@@ -2257,6 +2257,31 @@ the current view."
                 (mastodon-http--api endpoint))))
     (apply #'mastodon-http--get-json-async url args callback cbargs)))
 
+(defun mastodon-tl--more-json-async-offset (endpoint &optional params
+                                                     callback &rest cbargs)
+  "Return JSON for ENDPOINT, using the \"offset\" query param.
+This is used for pagination with endpoints that implement the
+\"offset\" parameter, rather than using link-headers or
+\"max_id\".
+PARAMS are the update parameters, see
+`mastodon-tl--update-params'. These (\"limit\" and \"offset\")
+must be set in `mastodon-tl--buffer-spec' for pagination to work.
+Then run CALLBACK with arguments CBARGS."
+  (let* ((params (or params
+                     (mastodon-tl--update-params)))
+         (limit (string-to-number
+                 (alist-get "limit" params nil nil #'equal)))
+         (offset (number-to-string
+                  (+ limit ; limit + old offset = new offset
+                     (string-to-number
+                      (alist-get "offset" params nil nil #'equal)))))
+         (url (if (string-suffix-p "search" endpoint)
+                  (mastodon-http--api-search)
+                (mastodon-http--api endpoint))))
+    ;; increment:
+    (setf (alist-get "offset" params nil nil #'equal) offset)
+    (apply #'mastodon-http--get-json-async url params callback cbargs)))
+
 (defun mastodon-tl--updated-json (endpoint id &optional params)
   "Return JSON for timeline ENDPOINT since ID.
 PARAMS is used to send any parameters needed to correctly update
@@ -2335,11 +2360,21 @@ when showing followers or accounts followed."
                  (url (mastodon-tl--build-link-header-url next)))
             (mastodon-http--get-response-async url nil 'mastodon-tl--more* (current-buffer)
                                                (point) :headers))))
-    (mastodon-tl--more-json-async
-     (mastodon-tl--endpoint)
-     (mastodon-tl--oldest-id)
-     (mastodon-tl--update-params)
-     'mastodon-tl--more* (current-buffer) (point))))
+    ;; offset (search, trending, user lists, ...?):
+    (if (or (string-prefix-p "*mastodon-trending-" (buffer-name))
+            (mastodon-tl--search-buffer-p))
+        ;; Endpoints that do not implement: follow-suggestions,
+        ;; follow-requests
+        (mastodon-tl--more-json-async-offset
+         (mastodon-tl--endpoint)
+         (mastodon-tl--update-params)
+         'mastodon-tl--more* (current-buffer) (point))
+      ;; max_id (timelines, items with ids/timestamps):
+      (mastodon-tl--more-json-async
+       (mastodon-tl--endpoint)
+       (mastodon-tl--oldest-id)
+       (mastodon-tl--update-params)
+       'mastodon-tl--more* (current-buffer) (point)))))
 
 (defun mastodon-tl--more* (response buffer point-before &optional headers)
   "Append older toots to timeline, asynchronously.
