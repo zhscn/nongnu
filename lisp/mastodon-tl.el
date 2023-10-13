@@ -2350,7 +2350,8 @@ HEADERS is the http headers returned in the response, if any."
              ;; FIXME: max-id pagination works for statuses only, not other
              ;; search results pages:
              (json (cond ((equal "statuses" (mastodon-search--buf-type))
-                          (alist-get 'statuses response))
+                          (cdr ; avoid repeat of last status
+                           (alist-get 'statuses response)))
                          ((equal "hashtags" (mastodon-search--buf-type))
                           (alist-get 'hashtags response))
                          ((equal "accounts" (mastodon-search--buf-type))
