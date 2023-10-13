@@ -146,9 +146,11 @@ PRINT-FUN is the function used to print the data from the response."
   '("statuses" "accounts" "hashtags"))
 
 (defun mastodon-search--search-query (query
-                                      &optional type following account-id)
+                                      &optional type limit
+                                      following account-id offset)
   "Prompt for a search QUERY and return accounts, statuses, and hashtags.
 TYPE is a member of `mastodon-search-types'.
+LIMIT is a number as string, up to 40, with 40 the default.
 FOLLOWING means limit to accounts followed, for \"accounts\" type only.
 A single prefix arg also sets FOLLOWING to true.
 ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
@@ -164,10 +166,14 @@ ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
                      (completing-read "Search type: "
                                       mastodon-search-types
                                       nil t))))
+         (limit (or limit "40"))
+         (offset (or offset "0"))
          (buffer (format "*mastodon-search-%s-%s*" type query))
          (params (cl-remove nil
                             `(("q" . ,query)
                               ,(when type `("type" . ,type))
+                              ,(when limit `("limit" . ,limit))
+                              ,(when offset `("offset" . ,offset))
                               ,(when following `("following" . ,following))
                               ,(when account-id `("account_id" . ,account-id)))))
          (response (mastodon-http--get-json url params))
