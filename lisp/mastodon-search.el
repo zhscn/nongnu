@@ -103,9 +103,11 @@ PRINT-FUN is the function used to print the data from the response."
   (let* ((url (mastodon-http--api
                (format "trends/%s" type)))
          ;; max for statuses = 40, for others = 20
-         (params (if (equal type "statuses")
-                     '(("limit" . "40"))
-                   '(("limit" . "20"))))
+         (limit (if (equal type "statuses")
+                    '("limit" . "40")
+                  '("limit" . "20")))
+         (offset '(("offset" . "0")))
+         (params (push limit offset))
          (response (mastodon-http--get-json url params))
          (data (cond ((equal type "tags")
                       (mapcar #'mastodon-search--get-hashtag-info response))
@@ -117,6 +119,8 @@ PRINT-FUN is the function used to print the data from the response."
     (with-mastodon-buffer buffer #'mastodon-mode nil
       (mastodon-tl--set-buffer-spec (buffer-name buffer)
                                     (format "trends/%s" type)
+                                    print-fun nil
+                                    params)
       (insert (mastodon-tl--set-face
                (concat "\n " mastodon-tl--horiz-bar "\n"
                        (upcase (format " TRENDING %s\n" type))
