@@ -100,7 +100,7 @@
 |                  | mastodon-search-mode                              | Toggle mastodon search minor mode.                                             |
 |                  | mastodon-serach--query-accounts-followed          | Run an accounts search QUERY, limited to your followers.                       |
 | B                | mastodon-tl--block-user                           | Query for USER-HANDLE from current status and block that user.                 |
-| <mouse-2>        | mastodon-tl--click-image-or-video                 | Click to play video with `mpv.el''                                             |
+| <mouse-2>        | mastodon-tl--click-image-or-video                 | Click to play video with `mpv.el'.                                             |
 |                  | mastodon-tl--disable-notify-user-posts            | Query for USER-HANDLE and disable notifications when they post.                |
 | m                | mastodon-tl--dm-user                              | Query for USER-HANDLE from current status and compose a message to that user.  |
 |                  | mastodon-tl--do-link-action                       | Do the action of the link at point.                                            |
