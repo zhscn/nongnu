@@ -181,14 +181,9 @@ ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
          (tags (when (equal type "hashtags")
                  (alist-get 'hashtags response)))
          (statuses (when (equal type "statuses")
-                     (alist-get 'statuses response)))
-         (tags-list (when tags
-                      (mapcar #'mastodon-search--get-hashtag-info tags))))
+                     (alist-get 'statuses response))))
     (with-mastodon-buffer buffer #'mastodon-mode nil
       (mastodon-search-mode)
-      (mastodon-tl--set-buffer-spec buffer "search"
-                                    'mastodon-tl--timeline
-                                    nil params)
       ;; user results:
       (when accts
         (mastodon-search--format-heading "USERS")
@@ -199,11 +194,17 @@ ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
       ;; hashtag results:
       (when tags
         (mastodon-search--format-heading "HASHTAGS")
-        (mastodon-search--print-tags-list tags-list))
+        (mastodon-search--print-tags tags)
+        (mastodon-tl--set-buffer-spec buffer "search"
+                                      'mastodon-search--print-tags
+                                      nil params))
       ;; status results:
       (when statuses
         (mastodon-search--format-heading "STATUSES")
-        (mapc #'mastodon-tl--toot statuses))
+        (mapc #'mastodon-tl--toot statuses)
+        (mastodon-tl--set-buffer-spec buffer "search"
+                                      'mastodon-tl--timeline
+                                      nil params))
       (goto-char (point-min))
       (message
        (substitute-command-keys
@@ -270,7 +271,12 @@ If NOTE is non-nil, include user's profile note. This is also
       "\n")
      'toot-json acct))) ; for compat w other processing functions
 
-(defun mastodon-search--print-tags-list (tags)
+(defun mastodon-search--print-tags (tags)
+  "Print tags returned from a \"hashtags\" search query."
+  (let ((tags-list (mapcar #'mastodon-search--get-hashtag-info tags)))
+    (mastodon-search--print-tags-list tags-list)))
+
+(defun mastodon-search--print-tags-list (tags-list)
   "Insert a propertized list of TAGS."
   (mapc (lambda (el)
           (insert
@@ -283,7 +289,7 @@ If NOTE is non-nil, include user's profile note. This is also
                        'help-echo (concat "Browse tag #" (car el))
                        'keymap mastodon-tl--link-keymap)
            " : \n\n"))
-        tags))
+        tags-list))
 
 (defun mastodon-search--get-user-info (account)
   "Get user handle, display name, account URL and profile note from ACCOUNT."
