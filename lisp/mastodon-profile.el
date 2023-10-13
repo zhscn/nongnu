@@ -223,7 +223,7 @@ NO-REBLOGS means do not display boosts in statuses."
   (interactive "sSearch account for: ")
   (let* ((ep (mastodon-tl--buffer-property 'endpoint))
          (id (nth 1 (split-string ep "/"))))
-    (mastodon-search--search-query query "statuses" nil id)))
+    (mastodon-search--search-query query "statuses" nil nil id)))
 
 
 ;;; ACCOUNT PREFERENCES
