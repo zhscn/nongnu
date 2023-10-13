@@ -149,21 +149,28 @@ PRINT-FUN is the function used to print the data from the response."
                                       &optional type following account-id)
   "Prompt for a search QUERY and return accounts, statuses, and hashtags.
 TYPE is a member of `mastodon-search-types'.
-FOLLOWING means limit search to accounts followed.
-ACCOUNT-ID means limit search to that account."
+FOLLOWING means limit to accounts followed, for \"accounts\" type only.
+A single prefix arg also sets FOLLOWING to true.
+ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
   ;; TODO: handle account search, buffer name etc.
   ;; TODO: handle no results
   (interactive "sSearch mastodon for: ")
   (let* ((url (format "%s/api/v2/search" mastodon-instance-url))
+         (following (when (or following
+                              (equal current-prefix-arg '(4)))
+                      "true"))
          (type (or type
-                   (completing-read "Search type: "
-                                    mastodon-search-types
-                                    nil t)))
+                   (if (equal current-prefix-arg '(4))
+                       "accounts" ; if FOLLOWING, must be "accounts"
+                     (completing-read "Search type: "
+                                      mastodon-search-types
+                                      nil t))))
          (buffer (format "*mastodon-search-%s-%s*" type query))
-         (params `(("q" . ,query)
-                   ,(when type `("type" . ,type))
-                   ,(when following `("following" . ,following))
-                   ,(when account-id `("account_id" . ,account-id))))
+         (params (cl-remove nil
+                            `(("q" . ,query)
+                              ,(when type `("type" . ,type))
+                              ,(when following `("following" . ,following))
+                              ,(when account-id `("account_id" . ,account-id)))))
          (response (mastodon-http--get-json url params))
          (accts (when (equal type "accounts")
                   (alist-get 'accounts response)))
@@ -214,6 +221,11 @@ ACCOUNT-ID means limit search to that account."
            (mastodon-search--search-query query "statuses"))
           ((equal type "statuses")
            (mastodon-search--search-query query "hashtags")))))
+
+(defun mastodon-serach--query-accounts-followed (query)
+  "Run an accounts search QUERY, limited to your followers."
+  (interactive "sSearch mastodon for: ")
+  (mastodon-search--search-query query "accounts" :following))
 
 (defun mastodon-search--insert-users-propertized (json &optional note)
   "Insert users list into the buffer.
