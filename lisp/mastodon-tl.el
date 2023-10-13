@@ -2583,12 +2583,13 @@ This location is defined by a non-nil value of
 (defun mastodon-tl--update ()
   "Update timeline with new toots."
   (interactive)
+  ;; FIXME: handle update for search and trending buffers
   (let* ((endpoint (mastodon-tl--endpoint))
-         (update-function (mastodon-tl--update-function))
-         (thread-id (mastodon-tl--property 'toot-id)))
+         (update-function (mastodon-tl--update-function)))
     ;; update a thread, without calling `mastodon-tl--updated-json':
     (if (mastodon-tl--buffer-type-eq 'thread)
-        (funcall update-function thread-id)
+        (let ((thread-id (mastodon-tl--property 'toot-id)))
+          (funcall update-function thread-id))
       ;; update other timelines:
       (let* ((id (mastodon-tl--newest-id))
              (params (mastodon-tl--update-params))
