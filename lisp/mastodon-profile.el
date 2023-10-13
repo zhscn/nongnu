@@ -219,7 +219,7 @@ NO-REBLOGS means do not display boosts in statuses."
       (mastodon-views--add-account-to-list nil id handle))))
 
 (defun mastodon-profile--account-search (query)
-  "Search currently viewed account for QUERY."
+  "Run a statuses search QUERY for the currently viewed account."
   (interactive "sSearch account for: ")
   (let* ((ep (mastodon-tl--buffer-property 'endpoint))
          (id (nth 1 (split-string ep "/"))))
