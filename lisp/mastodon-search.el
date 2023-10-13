@@ -233,10 +233,10 @@ ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
 
 (defun mastodon-search--insert-users-propertized (json &optional note)
   "Insert users list into the buffer.
-JSON is the data from the server. If NOTE is non-nil, include
-user's profile note. This is also called by
-`mastodon-tl--get-follow-suggestions' and
-`mastodon-profile--insert-follow-requests'."
+JSON is the data from the server.
+If NOTE is non-nil, include user's profile note. This is also
+ called by `mastodon-tl--get-follow-suggestions' and
+ `mastodon-profile--insert-follow-requests'."
   (mapc (lambda (acct)
           (insert (concat (mastodon-search--propertize-user acct note)
                           mastodon-tl--horiz-bar
