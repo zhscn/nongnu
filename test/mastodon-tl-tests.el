@@ -1218,9 +1218,9 @@ correct value for following, as well as notifications enabled or disabled."
   "Should return a list of string numbers based on `mastodon-tl--test-instance-rules'"
   (let ((crm-separator "[ 	]*,[ 	]*"))
     (with-mock
-     (stub mastodon-tl--instance-rules => mastodon-tl--test-instance-rules)
-     (stub completing-read-multiple => '("We do not accept homophobia."
-                                         "We do not accept harassment."
-                                         "We also do not accept hate speech."))
-     (should (equal '("2" "5" "6")
-                    (mastodon-tl--read-rules-ids))))))
+      (stub mastodon-tl--instance-rules => mastodon-tl--test-instance-rules)
+      (stub completing-read-multiple => '("We do not accept homophobia."
+                                          "We do not accept harassment."
+                                          "We also do not accept hate speech."))
+      (should (equal '("2" "5" "6")
+                     (mastodon-tl--read-rules-ids))))))

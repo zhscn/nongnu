@@ -2232,7 +2232,7 @@ report the account for spam."
                    "rules [TAB for options, | to separate]: "
                    alist nil t)))
     (mapcar (lambda (x)
-              (alist-get x alist))
+              (alist-get x alist nil nil #'equal))
             choices)))
 
 
