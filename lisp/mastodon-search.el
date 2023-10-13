@@ -185,22 +185,20 @@ ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
     (with-mastodon-buffer buffer #'mastodon-mode nil
       (mastodon-search-mode)
       ;; user results:
+      (mastodon-search--format-heading (upcase type))
       (when accts
-        (mastodon-search--format-heading "USERS")
         (mastodon-search--insert-users-propertized accts :note)
         (mastodon-tl--set-buffer-spec buffer "search"
                                       'mastodon-views--insert-users-propertized-note
                                       nil params))
       ;; hashtag results:
       (when tags
-        (mastodon-search--format-heading "HASHTAGS")
         (mastodon-search--print-tags tags)
         (mastodon-tl--set-buffer-spec buffer "search"
                                       'mastodon-search--print-tags
                                       nil params))
       ;; status results:
       (when statuses
-        (mastodon-search--format-heading "STATUSES")
         (mapc #'mastodon-tl--toot statuses)
         (mastodon-tl--set-buffer-spec buffer "search"
                                       'mastodon-tl--timeline
