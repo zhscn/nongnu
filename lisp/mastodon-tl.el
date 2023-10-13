@@ -1584,11 +1584,11 @@ call this function after it is set or use something else."
                  ((equal (mastodon-search--buf-type) "statuses")
                   'search-statuses)))
           ;; trends
-          ((mastodon-tl--endpoint-str-= "api/v1/trends/statuses")
+          ((mastodon-tl--endpoint-str-= "trends/statuses")
            'trending-statuses)
-          ((mastodon-tl--endpoint-str-= "api/v1/trends/tags")
+          ((mastodon-tl--endpoint-str-= "trends/tags")
            'trending-tags)
-          ((mastodon-tl--endpoint-str-= "api/v1/trends/links")
+          ((mastodon-tl--endpoint-str-= "trends/links")
            'trending-links)
           ;; User's views:
           ((mastodon-tl--endpoint-str-= "filters")
