@@ -82,6 +82,8 @@
 (autoload 'mastodon-toot--schedule-toot "mastodon-toot")
 (autoload 'mastodon-toot--set-toot-properties "mastodon-toot")
 (autoload 'mastodon-toot--update-status-fields "mastodon-toot")
+(autoload 'mastodon-search--buf-type "mastodon-search")
+(autoload 'mastodon-http--api-search "mastodon-http")
 
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot-mode)
@@ -1248,14 +1250,15 @@ displayed when the duration is smaller than a minute)."
     (mastodon-tl--mpv-play-video-at-point url type)))
 
 (defun mastodon-tl--click-image-or-video (_event)
-  "Click to play video with `mpv.el''"
+  "Click to play video with `mpv.el'."
   (interactive "e")
   (if (mastodon-tl--media-video-p)
       (mastodon-tl--mpv-play-video-at-point)
     (shr-browse-image)))
 
 (defun mastodon-tl--media-video-p (&optional type)
-  "T if mastodon-media-type prop is \"gifv\" or \"video\"."
+  "T if mastodon-media-type prop is \"gifv\" or \"video\".
+TYPE is a mastodon media type."
   (let ((type (or type (mastodon-tl--property 'mastodon-media-type :no-move))))
     (or (equal type "gifv")
         (equal type "video"))))

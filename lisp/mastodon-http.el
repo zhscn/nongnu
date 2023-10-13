@@ -54,7 +54,7 @@
           mastodon-http--api-version "/" endpoint))
 
 (defun mastodon-http--api-search ()
-  "Return Mastodon API url for the /search endpoind (v2)."
+  "Return Mastodon API url for the /search endpoint (v2)."
   (format "%s/api/v2/search" mastodon-instance-url))
 
 (defun mastodon-http--response ()
