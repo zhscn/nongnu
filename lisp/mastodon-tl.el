@@ -2340,12 +2340,13 @@ POS is a number, where point will be placed."
 
 (defun mastodon-tl--use-link-header-p ()
   "Return t if we are in a view needing Link header pagination.
-Currently this includes favourites, bookmarks, and profile pages
-when showing followers or accounts followed."
+Currently this includes favourites, bookmarks, follow requests,
+and profile pages when showing followers or accounts followed."
   (or (mastodon-tl--buffer-type-eq 'favourites)
       (mastodon-tl--buffer-type-eq 'bookmarks)
       (mastodon-tl--buffer-type-eq 'profile-followers)
-      (mastodon-tl--buffer-type-eq 'profile-following)))
+      (mastodon-tl--buffer-type-eq 'profile-following)
+      (mastodon-tl--buffer-type-eq 'follow-requests)))
 
 (defun mastodon-tl--get-link-header-from-response (headers)
   "Get http Link header from list of http HEADERS."
@@ -2363,7 +2364,7 @@ when showing followers or accounts followed."
       ;; "prev" type!
       (let ((link-header (mastodon-tl--link-header)))
         (if (> 2 (length link-header))
-            (error "No next page")
+            (message "No next page")
           (let* ((next (car link-header))
                  ;;(prev (cadr (mastodon-tl--link-header)))
                  (url (mastodon-tl--build-link-header-url next)))
@@ -2656,7 +2657,7 @@ JSON and http headers, without it just the JSON."
           (mastodon-tl--do-init json update-function))))))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function
-                                           &optional note-type params)
+                                           &optional note-type params headers)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously.
@@ -2670,9 +2671,12 @@ Optional arg NOTE-TYPE means only get that type of note."
          (params (append notes-params params))
          (url (mastodon-http--api endpoint))
          (buffer (concat "*mastodon-" buffer-name "*"))
-         (json (mastodon-http--get-json url params)))
+         (response (mastodon-http--get-response url params))
+         (json (if headers (car response) response))
+         (headers (if headers (cdr response) nil))
+         (link-header (mastodon-tl--get-link-header-from-response headers)))
     (with-mastodon-buffer buffer #'mastodon-mode nil
-      (mastodon-tl--set-buffer-spec buffer endpoint update-function nil params)
+      (mastodon-tl--set-buffer-spec buffer endpoint update-function link-header params)
       (mastodon-tl--do-init json update-function)
       buffer)))
 

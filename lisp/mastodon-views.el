@@ -461,7 +461,8 @@ JSON is the data returned by the server."
                           "follow_requests"
                           'mastodon-views--insert-follow-requests
                           nil
-                          '(("limit" . "80"))) ; server max
+                          '(("limit" . "40")) ; server max is 80
+                          :headers)
   (mastodon-tl--goto-first-item)
   (with-current-buffer "*mastodon-follow-requests*"
     (use-local-map mastodon-views--view-follow-requests-keymap)))
