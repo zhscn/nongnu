@@ -165,7 +165,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "N") #'mastodon-notifications-get)
     (define-key map (kbd "@") #'mastodon-notifications--get-mentions)
     (define-key map (kbd "P") #'mastodon-profile--show-user)
-    (define-key map (kbd "s") #'mastodon-search--search-query)
+    (define-key map (kbd "s") #'mastodon-search--query)
     (define-key map (kbd "/") #'mastodon-switch-to-buffer)
     ;; quitting mastodon
     (define-key map (kbd "q") #'kill-current-buffer)

@@ -144,9 +144,9 @@ PRINT-FUN is the function used to print the data from the response."
 (defvar mastodon-search-types
   '("statuses" "accounts" "hashtags"))
 
-(defun mastodon-search--search-query (query
-                                      &optional type limit
-                                      following account-id offset)
+(defun mastodon-search--query (query
+                               &optional type limit
+                               following account-id offset)
   "Prompt for a search QUERY and return accounts, statuses, and hashtags.
 TYPE is a member of `mastodon-search-types'.
 LIMIT is a number as string, up to 40, with 40 the default.
@@ -221,16 +221,16 @@ ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
          (type (alist-get "type" spec nil nil #'equal))
          (query (alist-get "q" spec nil nil #'equal)))
     (cond ((equal type "hashtags")
-           (mastodon-search--search-query query "accounts"))
+           (mastodon-search--query query "accounts"))
           ((equal type "accounts")
-           (mastodon-search--search-query query "statuses"))
+           (mastodon-search--query query "statuses"))
           ((equal type "statuses")
-           (mastodon-search--search-query query "hashtags")))))
+           (mastodon-search--query query "hashtags")))))
 
 (defun mastodon-serach--query-accounts-followed (query)
   "Run an accounts search QUERY, limited to your followers."
   (interactive "sSearch mastodon for: ")
-  (mastodon-search--search-query query "accounts" :following))
+  (mastodon-search--query query "accounts" :following))
 
 (defun mastodon-search--insert-users-propertized (json &optional note)
   "Insert users list into the buffer.

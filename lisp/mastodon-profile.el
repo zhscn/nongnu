@@ -80,7 +80,7 @@
 (autoload 'mastodon-views--add-account-to-list "mastodon-views")
 (autoload 'mastodon-return-credential-account "mastodon")
 (autoload 'mastodon-tl--buffer-property "mastodon-tl")
-(autoload 'mastodon-search--search-query "mastodon-search")
+(autoload 'mastodon-search--query "mastodon-search")
 
 (defvar mastodon-tl--horiz-bar)
 (defvar mastodon-tl--update-point)
@@ -223,7 +223,7 @@ NO-REBLOGS means do not display boosts in statuses."
   (interactive "sSearch account for: ")
   (let* ((ep (mastodon-tl--buffer-property 'endpoint))
          (id (nth 1 (split-string ep "/"))))
-    (mastodon-search--search-query query "statuses" nil nil id)))
+    (mastodon-search--query query "statuses" nil nil id)))
 
 
 ;;; ACCOUNT PREFERENCES
@@ -833,7 +833,7 @@ Optionally provide the ID of the account to remove."
 (defun mastodon-profile--remove-from-followers-list ()
   "Select a user from your followers and remove from followers.
 Currently limited to 100 handles. If not found, try
-`mastodon-search--search-query'."
+`mastodon-search--query'."
   (interactive)
   (let* ((endpoint (format "accounts/%s/followers"
                            (mastodon-auth--get-account-id)))

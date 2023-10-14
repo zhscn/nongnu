@@ -94,7 +94,7 @@
 |                  | mastodon-profile-mode                             | Toggle mastodon profile minor mode.                                            |
 |                  | mastodon-profile-update-mode                      | Minor mode to update Mastodon user profile.                                    |
 |                  | mastodon-search--query-cycle                      | Cycle through search types: accounts, hashtags, and statuses.                  |
-| s                | mastodon-search--search-query                     | Prompt for a search QUERY and return accounts, statuses, and hashtags.         |
+| s                | mastodon-search--query                     | Prompt for a search QUERY and return accounts, statuses, and hashtags.         |
 |                  | mastodon-search--trending-statuses                | Display a list of statuses trending on your instance.                          |
 |                  | mastodon-search--trending-tags                    | Display a list of tags trending on your instance.                              |
 |                  | mastodon-search-mode                              | Toggle mastodon search minor mode.                                             |
