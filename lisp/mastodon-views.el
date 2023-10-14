@@ -164,9 +164,12 @@ request.
 This function is used as the update-function to
 `mastodon-tl--init-sync', which initializes a buffer for us and
 provides the JSON data."
-  ;; FIXME: this breaks pagination, duh!
-  (erase-buffer)
-  (mastodon-search--insert-heading view-name) ; this cd go in init-sync
+  ;; FIXME: this is not an update function as it inserts a heading and
+  ;; possible bindings string
+  ;; either it should go in init-sync, or possibly in each view function
+  ;; but either way, this function does almost nothing for us.
+  ;; could we call init-sync in here pehaps?
+  (mastodon-search--insert-heading view-name)
   (when bindings-string
     (insert (mastodon-tl--set-face (concat "[" bindings-string "]\n\n")
                                    'font-lock-comment-face)))
