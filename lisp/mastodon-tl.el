@@ -2357,7 +2357,8 @@ when showing followers or accounts followed."
   "Append older toots to timeline, asynchronously."
   (message "Loading older toots...")
   (if (mastodon-tl--use-link-header-p)
-      ;; link-header: can't build a URL with --more-json-async, endpoint/id:
+      ;; link-header paginate:
+      ;; can't build a URL with --more-json-async, endpoint/id:
       ;; ensure we have a "next" type here, otherwise the CAR will be the
       ;; "prev" type!
       (let ((link-header (mastodon-tl--link-header)))
@@ -2368,21 +2369,22 @@ when showing followers or accounts followed."
                  (url (mastodon-tl--build-link-header-url next)))
             (mastodon-http--get-response-async url nil 'mastodon-tl--more* (current-buffer)
                                                (point) :headers))))
-    ;; offset (search, trending, user lists, ...?):
-    (if (or (string-prefix-p "*mastodon-trending-" (buffer-name))
-            (mastodon-tl--search-buffer-p))
-        ;; Endpoints that do not implement: follow-suggestions,
-        ;; follow-requests
-        (mastodon-tl--more-json-async-offset
-         (mastodon-tl--endpoint)
-         (mastodon-tl--update-params)
-         'mastodon-tl--more* (current-buffer) (point))
-      ;; max_id (timelines, items with ids/timestamps):
-      (mastodon-tl--more-json-async
-       (mastodon-tl--endpoint)
-       (mastodon-tl--oldest-id)
-       (mastodon-tl--update-params)
-       'mastodon-tl--more* (current-buffer) (point)))))
+    (cond ( ; no paginate
+           (mastodon-tl--buffer-type-eq 'follow-suggestions)
+           (message "No more results"))
+          ;; offset paginate (search, trending, user lists, ...?):
+          ((or (string-prefix-p "*mastodon-trending-" (buffer-name))
+               (mastodon-tl--search-buffer-p))
+           (mastodon-tl--more-json-async-offset
+            (mastodon-tl--endpoint)
+            (mastodon-tl--update-params)
+            'mastodon-tl--more* (current-buffer) (point)))
+          (t;; max_id paginate (timelines, items with ids/timestamps):
+           (mastodon-tl--more-json-async
+            (mastodon-tl--endpoint)
+            (mastodon-tl--oldest-id)
+            (mastodon-tl--update-params)
+            'mastodon-tl--more* (current-buffer) (point))))))
 
 (defun mastodon-tl--more* (response buffer point-before &optional headers)
   "Append older toots to timeline, asynchronously.
