@@ -443,6 +443,7 @@ If ID is provided, use that list."
 
 
 ;;; FOLLOW REQUESTS
+;; TODO: paginates by link header
 
 (defun mastodon-views--insert-follow-requests (json)
   "Insert the user's current follow requests.
@@ -458,7 +459,9 @@ JSON is the data returned by the server."
   (interactive)
   (mastodon-tl--init-sync "follow-requests"
                           "follow_requests"
-                          'mastodon-views--insert-follow-requests)
+                          'mastodon-views--insert-follow-requests
+                          nil
+                          '(("limit" . "80"))) ; server max
   (mastodon-tl--goto-first-item)
   (with-current-buffer "*mastodon-follow-requests*"
     (use-local-map mastodon-views--view-follow-requests-keymap)))
@@ -650,13 +653,16 @@ Prompt for a context, must be a list containting at least one of \"home\",
 
 
 ;;; FOLLOW SUGGESTIONS
+;; No pagination: max 80 results
 
 (defun mastodon-views--view-follow-suggestions ()
   "Display a buffer of suggested accounts to follow."
   (interactive)
   (mastodon-tl--init-sync "follow-suggestions"
                           "suggestions"
-                          'mastodon-views--insert-follow-suggestions)
+                          'mastodon-views--insert-follow-suggestions
+                          nil
+                          '(("limit" . "80"))) ; server max
   (with-current-buffer "*mastodon-follow-suggestions*"
     (use-local-map mastodon-views--follow-suggestions-map)))
 

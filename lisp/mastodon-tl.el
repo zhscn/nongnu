@@ -2654,20 +2654,23 @@ JSON and http headers, without it just the JSON."
           (mastodon-tl--do-init json update-function))))))
 
 (defun mastodon-tl--init-sync (buffer-name endpoint update-function
-                                           &optional note-type)
+                                           &optional note-type params)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously.
 Optional arg NOTE-TYPE means only get that type of note."
+  ;; Used by `mastodon-notifications-get' and in views.el
   (let* ((exclude-types (when note-type
                           (mastodon-notifications--filter-types-list note-type)))
-         (args (when note-type (mastodon-http--build-array-params-alist
-                                "exclude_types[]" exclude-types)))
+         (notes-params (when note-type
+                         (mastodon-http--build-array-params-alist
+                          "exclude_types[]" exclude-types)))
+         (params (append notes-params params))
          (url (mastodon-http--api endpoint))
          (buffer (concat "*mastodon-" buffer-name "*"))
-         (json (mastodon-http--get-json url args)))
+         (json (mastodon-http--get-json url params)))
     (with-mastodon-buffer buffer #'mastodon-mode nil
-      (mastodon-tl--set-buffer-spec buffer endpoint update-function nil args)
+      (mastodon-tl--set-buffer-spec buffer endpoint update-function nil params)
       (mastodon-tl--do-init json update-function)
       buffer)))
 
