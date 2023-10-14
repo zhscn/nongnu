@@ -2656,8 +2656,9 @@ JSON and http headers, without it just the JSON."
                                         link-header update-params hide-replies)
           (mastodon-tl--do-init json update-function))))))
 
-(defun mastodon-tl--init-sync (buffer-name endpoint update-function
-                                           &optional note-type params headers)
+(defun mastodon-tl--init-sync
+    (buffer-name endpoint update-function
+                 &optional note-type params headers view-name binding-str)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously.
@@ -2677,6 +2678,12 @@ Optional arg NOTE-TYPE means only get that type of note."
          (link-header (when headers
                         (mastodon-tl--get-link-header-from-response headers))))
     (with-mastodon-buffer buffer #'mastodon-mode nil
+      ;; insert view-name/ heading-str
+      (when view-name
+        (mastodon-search--insert-heading view-name))
+      (when binding-str
+        (insert (mastodon-tl--set-face (concat "[" binding-str "]\n\n")
+                                       'font-lock-comment-face)))
       (mastodon-tl--set-buffer-spec buffer endpoint update-function
                                     link-header params)
       (mastodon-tl--do-init json update-function)

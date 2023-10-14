@@ -155,7 +155,7 @@
 
 ;;; GENERAL FUNCTION
 
-(defun mastodon-views--minor-view (view-name bindings-string insert-fun data)
+(defun mastodon-views--minor-view (view-name insert-fun data)
   "Load a minor view named VIEW-NAME.
 BINDINGS-STRING is a string explaining the view's local bindings.
 INSERT-FUN is the function to call to insert the view's elements.
@@ -169,10 +169,10 @@ provides the JSON data."
   ;; either it should go in init-sync, or possibly in each view function
   ;; but either way, this function does almost nothing for us.
   ;; could we call init-sync in here pehaps?
-  (mastodon-search--insert-heading view-name)
-  (when bindings-string
-    (insert (mastodon-tl--set-face (concat "[" bindings-string "]\n\n")
-                                   'font-lock-comment-face)))
+  ;; (mastodon-search--insert-heading view-name)
+  ;; (when bindings-string
+  ;;   (insert (mastodon-tl--set-face (concat "[" bindings-string "]\n\n")
+  ;;                                  'font-lock-comment-face)))
   (if (seq-empty-p data)
       (insert (propertize
                (format "Looks like you have no %s for now." view-name)
@@ -193,17 +193,19 @@ provides the JSON data."
   "Show the user's lists in a new buffer."
   (interactive)
   (mastodon-tl--init-sync "lists" "lists"
-                          'mastodon-views--insert-lists)
+                          'mastodon-views--insert-lists
+                          nil nil nil
+                          "your lists"
+                          "C - create a list\n D - delete a list\
+     \n A/R - add/remove account from a list\
+     \n E - edit a list\n n/p - go to next/prev item")
   (with-current-buffer "*mastodon-lists*"
     (use-local-map mastodon-views--view-lists-keymap)))
 
 (defun mastodon-views--insert-lists (json)
   "Insert the user's lists from JSON."
   (mastodon-views--minor-view
-   "your lists"
-   "C - create a list\n D - delete a list\
-     \n A/R - add/remove account from a list\
-     \n E - edit a list\n n/p - go to next/prev item"
+   "lists"
    #'mastodon-views--print-list-set
    json))
 
@@ -446,14 +448,12 @@ If ID is provided, use that list."
 
 
 ;;; FOLLOW REQUESTS
-;; TODO: paginates by link header
 
 (defun mastodon-views--insert-follow-requests (json)
   "Insert the user's current follow requests.
 JSON is the data returned by the server."
   (mastodon-views--minor-view
    "follow requests"
-   "a/j - accept/reject request at point\n n/p - go to next/prev request"
    #'mastodon-views--insert-users-propertized-note
    json))
 
@@ -465,7 +465,10 @@ JSON is the data returned by the server."
                           'mastodon-views--insert-follow-requests
                           nil
                           '(("limit" . "40")) ; server max is 80
-                          :headers)
+                          :headers
+                          "follow requests"
+                          "a/j - accept/reject request at point\n\
+ n/p - go to next/prev request")
   (mastodon-tl--goto-first-item)
   (with-current-buffer "*mastodon-follow-requests*"
     (use-local-map mastodon-views--view-follow-requests-keymap)))
@@ -478,15 +481,18 @@ JSON is the data returned by the server."
   (interactive)
   (mastodon-tl--init-sync "scheduled-toots"
                           "scheduled_statuses"
-                          'mastodon-views--insert-scheduled-toots)
+                          'mastodon-views--insert-scheduled-toots
+                          nil nil nil
+                          "your scheduled toots"
+                          "n/p - prev/next\n r - reschedule\n\
+ e/RET - edit toot\n c - cancel")
   (with-current-buffer "*mastodon-scheduled-toots*"
     (use-local-map mastodon-views--scheduled-map)))
 
 (defun mastodon-views--insert-scheduled-toots (json)
   "Insert the user's scheduled toots, from JSON."
   (mastodon-views--minor-view
-   "your scheduled toots"
-   "n/p - prev/next\n r - reschedule\n e/RET - edit toot\n c - cancel"
+   "scheduled toots"
    #'mastodon-views--insert-scheduled-toots-list
    json))
 
@@ -577,7 +583,11 @@ NO-CONFIRM means there is no ask or message, there is only do."
   "View the user's filters in a new buffer."
   (interactive)
   (mastodon-tl--init-sync "filters" "filters"
-                          'mastodon-views--insert-filters)
+                          'mastodon-views--insert-filters
+                          nil nil nil
+                          "current filters"
+                          "c - create filter\n d - delete filter at point\n\
+ n/p - go to next/prev filter")
   (with-current-buffer "*mastodon-filters*"
     (use-local-map mastodon-views--view-filters-keymap)))
 
@@ -585,8 +595,7 @@ NO-CONFIRM means there is no ask or message, there is only do."
   "Insert the user's current filters.
 JSON is what is returned by by the server."
   (mastodon-views--minor-view
-   "current filters"
-   "c - create filter\n d - delete filter at point\n n/p - go to next/prev filter"
+   "filters"
    #'mastodon-views--insert-filter-string-set
    json))
 
@@ -666,7 +675,9 @@ Prompt for a context, must be a list containting at least one of \"home\",
                           "suggestions"
                           'mastodon-views--insert-follow-suggestions
                           nil
-                          '(("limit" . "80"))) ; server max
+                          '(("limit" . "80")) ; server max
+                          nil
+                          "suggested accounts")
   (with-current-buffer "*mastodon-follow-suggestions*"
     (use-local-map mastodon-views--follow-suggestions-map)))
 
@@ -675,7 +686,6 @@ Prompt for a context, must be a list containting at least one of \"home\",
 JSON is the data returned by the server."
   (mastodon-views--minor-view
    "suggested accounts"
-   nil
    #'mastodon-views--insert-users-propertized-note
    json))
 
