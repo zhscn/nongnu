@@ -186,29 +186,43 @@ is used for pagination."
                      (alist-get 'statuses response))))
     (with-mastodon-buffer buffer #'mastodon-mode nil
       (mastodon-search-mode)
-      ;; user results:
       (mastodon-search--format-heading (upcase type))
-      (when (equal type "accounts")
-        (mastodon-search--insert-users-propertized accts :note)
-        (mastodon-tl--set-buffer-spec buffer "search"
-                                      'mastodon-views--insert-users-propertized-note
-                                      nil params))
-      ;; hashtag results:
-      (when (equal type "hashtags")
-        (mastodon-search--print-tags tags)
-        (mastodon-tl--set-buffer-spec buffer "search"
-                                      'mastodon-search--print-tags
-                                      nil params))
-      ;; status results:
-      (when (equal type "statuses")
-        (mapc #'mastodon-tl--toot statuses)
-        (mastodon-tl--set-buffer-spec buffer "search"
-                                      'mastodon-tl--timeline
-                                      nil params))
+      ;; user results:
+      (cond ((equal type "accounts")
+             (mastodon-search--render-response accts type buffer params
+                                               'mastodon-views--insert-users-propertized-note
+                                               'mastodon-views--insert-users-propertized-note))
+            ((equal type "hashtags")
+             (mastodon-search--render-response tags type buffer params
+                                               'mastodon-search--print-tags
+                                               'mastodon-search--print-tags))
+            ((equal type "statuses")
+             (mastodon-search--render-response statuses type buffer params
+                                               #'mastodon-tl--timeline
+                                               #'mastodon-tl--timeline)))
       (goto-char (point-min))
       (message
        (substitute-command-keys
         "\\[mastodon-search--query-cycle] to cycle result types.")))))
+
+(defun mastodon-search-insert-no-results (&optional thing)
+  "Insert a no results message for object THING."
+  (let ((thing (or thing "nothing")))
+    (insert
+     (propertize (format "Looks like search returned no %s." thing)
+                 'face 'font-lock-comment-face))))
+
+(defun mastodon-search--render-response (data type buffer params
+                                              insert-fun update-fun)
+  "Call INSERT-FUN on DATA of result TYPE if non-nil.
+BUFFER, PARAMS, and UPDATE-FUN are for `mastodon-tl--buffer-spec'."
+  (if (not data)
+      (mastodon-search-insert-no-results type)
+    (funcall insert-fun data))
+  ;; (mapc #'mastodon-tl--toot data))
+  (mastodon-tl--set-buffer-spec buffer "search"
+                                update-fun
+                                nil params))
 
 (defun mastodon-search--buf-type ()
   "Return search buffer type, a member of `mastodon-search-types'."
