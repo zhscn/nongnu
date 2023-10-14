@@ -849,12 +849,10 @@ Strict-Transport-Security: max-age=31536000
               (should (equal (list 'next test-name expected-next)
                              (list 'next test-name (point)))))))))))
 
-
 (defun tl-tests--property-values-at (property ranges)
   "Returns a list with property values at the given ranges.
-
-                       The property value for PROPERTY within a region is assumed to be
-                       constant."
+The property value for PROPERTY within a region is assumed to be
+constant."
   (let (result)
     (dolist (range ranges (nreverse result))
       (push (get-text-property (car range) property) result))))
