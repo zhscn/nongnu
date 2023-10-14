@@ -164,16 +164,12 @@ request.
 This function is used as the update-function to
 `mastodon-tl--init-sync', which initializes a buffer for us and
 provides the JSON data."
+  ;; FIXME: this breaks pagination, duh!
   (erase-buffer)
-  (insert (mastodon-tl--set-face
-           (concat "\n " mastodon-tl--horiz-bar "\n "
-                   (upcase view-name)
-                   "\n " mastodon-tl--horiz-bar "\n\n")
-           'success)
-          (if bindings-string
-              (mastodon-tl--set-face (concat "[" bindings-string "]\n\n")
-                                     'font-lock-comment-face)
-            ""))
+  (mastodon-search--insert-heading view-name) ; this cd go in init-sync
+  (when bindings-string
+    (insert (mastodon-tl--set-face (concat "[" bindings-string "]\n\n")
+                                   'font-lock-comment-face)))
   (if (seq-empty-p data)
       (insert (propertize
                (format "Looks like you have no %s for now." view-name)
