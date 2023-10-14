@@ -85,6 +85,8 @@
 (autoload 'mastodon-search--buf-type "mastodon-search")
 (autoload 'mastodon-http--api-search "mastodon-http")
 (autoload 'mastodon-views--insert-users-propertized-note "mastodon-views") ; for search pagination
+(autoload 'mastodon-http--get-response "mastodon-http")
+(autoload 'mastodon-search--insert-heading "mastodon-search")
 
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot-mode)
@@ -2662,7 +2664,11 @@ JSON and http headers, without it just the JSON."
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously.
-Optional arg NOTE-TYPE means only get that type of note."
+Optional arg NOTE-TYPE means only get that type of note.
+PARAMS is an alist of any params to include in the request.
+HEADERS are any headers to send in the request.
+VIEW-NAME is a string, to be used as a heading for the view.
+BINDING-STR is a string explaining any bindins in the view."
   ;; Used by `mastodon-notifications-get' and in views.el
   (let* ((exclude-types (when note-type
                           (mastodon-notifications--filter-types-list note-type)))

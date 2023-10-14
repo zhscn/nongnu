@@ -732,11 +732,13 @@ If INSTANCE is given, use that."
          (string-remove-suffix (concat "/@" username)
                                url))))
 
-(defun mastodon-views--view-instance-description (&optional user brief instance misskey)
+(defun mastodon-views--view-instance-description
+    (&optional user brief instance misskey)
   "View the details of the instance the current post's author is on.
 USER means to show the instance details for the logged in user.
 BRIEF means to show fewer details.
-INSTANCE is an instance domain name."
+INSTANCE is an instance domain name.
+MISSKEY means the instance is a Misskey or derived server."
   (interactive)
   (if user
       (let ((response (mastodon-http--get-json
@@ -794,15 +796,16 @@ USER, BRIEF, and INSTANCE are all for
                                                        &optional misskey)
   "Display instance description RESPONSE in a new buffer.
 BRIEF means to show fewer details.
-INSTANCE is the instance were are working with."
+INSTANCE is the instance were are working with.
+MISSKEY means the instance is a Misskey or derived server."
   (when response
     (let* ((domain (url-file-nondirectory instance))
            (buf (get-buffer-create
                  (format "*mastodon-instance-%s*" domain))))
       (with-mastodon-buffer buf #'special-mode :other-window
         (if misskey
-            (mastodon-view--insert-json response)
-          (condition-case err
+            (mastodon-views--insert-json response)
+          (condition-case nil
               (progn
                 (when brief
                   (setq response
