@@ -152,7 +152,9 @@ TYPE is a member of `mastodon-search-types'.
 LIMIT is a number as string, up to 40, with 40 the default.
 FOLLOWING means limit to accounts followed, for \"accounts\" type only.
 A single prefix arg also sets FOLLOWING to true.
-ACCOUNT-ID means limit search to that account, for \"statuses\" type only."
+ACCOUNT-ID means limit search to that account, for \"statuses\" type only.
+OFFSET is a number as string, means to skip that many results. It
+is used for pagination."
   ;; TODO: handle no results
   (interactive "sSearch mastodon for: ")
   (let* ((url (mastodon-http--api-search))
@@ -270,12 +272,12 @@ If NOTE is non-nil, include user's profile note. This is also
      'toot-json acct))) ; for compat w other processing functions
 
 (defun mastodon-search--print-tags (tags)
-  "Print tags returned from a \"hashtags\" search query."
+  "Print TAGS data as returned from a \"hashtags\" search query."
   (let ((tags-list (mapcar #'mastodon-search--get-hashtag-info tags)))
     (mastodon-search--print-tags-list tags-list)))
 
 (defun mastodon-search--print-tags-list (tags-list)
-  "Insert a propertized list of TAGS."
+  "Insert a propertized list of TAGS-LIST."
   (mapc (lambda (el)
           (insert
            " : "
