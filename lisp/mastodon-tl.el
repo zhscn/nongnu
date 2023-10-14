@@ -311,6 +311,15 @@ than `switch-to-buffer'."
 
 ;;; NAV
 
+(defun mastodon-tl--scroll-up-command ()
+  "Call `scroll-up-command', loading more toots if necessary.
+If we hit `point-max', call `mastodon-tl--more' then `scroll-up-command'."
+  (interactive)
+  (if (not (equal (point) (point-max)))
+      (scroll-up-command)
+    (mastodon-tl--more)
+    (scroll-up-command)))
+
 (defun mastodon-tl--next-tab-item (&optional previous)
   "Move to the next interesting item.
 This could be the next toot, link, or image; whichever comes first.
@@ -358,15 +367,6 @@ Optionally start from POS."
           ;; force display of help-echo on moving to a toot byline:
           (mastodon-tl--message-help-echo))
       (funcall refresh))))
-
-(defun mastodon-tl--scroll-up-command ()
-  "Call `scroll-up-command', loading more toots if necessary.
-If we hit `point-max', call `mastodon-tl--more' then `scroll-up-command'."
-  (interactive)
-  (if (not (equal (point) (point-max)))
-      (scroll-up-command)
-    (mastodon-tl--more)
-    (scroll-up-command)))
 
 (defun mastodon-tl--goto-next-toot ()
   "Jump to next toot header."
