@@ -89,7 +89,7 @@ QUERY is the string to search."
   "Display a list of tags trending on your instance."
   (interactive)
   (mastodon-search--view-trending "tags"
-                                  #'mastodon-search--print-tags-list))
+                                  #'mastodon-search--print-tags))
 
 (defun mastodon-search--trending-statuses ()
   "Display a list of statuses trending on your instance."
@@ -109,13 +109,7 @@ PRINT-FUN is the function used to print the data from the response."
                   '("limit" . "20")))
          (offset '(("offset" . "0")))
          (params (push limit offset))
-         (response (mastodon-http--get-json url params))
-         (data (cond ((equal type "tags")
-                      (mapcar #'mastodon-search--get-hashtag-info response))
-                     ((equal type "statuses")
-                      response) ; no longer needs further processing
-                     ((equal type "links")
-                      (message "todo"))))
+         (data (mastodon-http--get-json url params))
          (buffer (get-buffer-create (format "*mastodon-trending-%s*" type))))
     (with-mastodon-buffer buffer #'mastodon-mode nil
       (mastodon-tl--set-buffer-spec (buffer-name buffer)
