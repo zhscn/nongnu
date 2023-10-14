@@ -356,12 +356,19 @@ text, i.e. hidden spoiler text."
   "Search for toot with FIND-POS.
 If search returns nil, execute REFRESH function.
 Optionally start from POS."
-  (let* ((npos (funcall find-pos
-                        (or pos (point))
-                        'byline
-                        (current-buffer))))
+  (let* ((npos (or ; toot/user items have byline:
+                (funcall find-pos
+                         (or pos (point))
+                         'byline
+                         (current-buffer))
+                ;; some other things don't, so just tab-stop:
+                (funcall find-pos
+                         (or pos (point))
+                         'mastodon-tab-stop
+                         (current-buffer)))))
     (if npos
-        (if (not (get-text-property npos 'toot-id))
+        (if (not (or (get-text-property npos 'toot-id) ; toots, etc.
+                     (get-text-property npos 'mastodon-tab-stop))) ; generic
             (mastodon-tl--goto-toot-pos find-pos refresh npos)
           (goto-char npos)
           ;; force display of help-echo on moving to a toot byline:
