@@ -2390,7 +2390,8 @@ Runs the timeline's update function on RESPONSE, in BUFFER.
 When done, places point at POINT-BEFORE.
 HEADERS is the http headers returned in the response, if any."
   (with-current-buffer buffer
-    (when response
+    (if (not response)
+        (message "No more results")
       (let* ((inhibit-read-only t)
              (json (if headers (car response) response))
              ;; FIXME: max-id pagination works for statuses only, not other
