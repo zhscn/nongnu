@@ -1,0 +1,9 @@
+*.*~
+.dirlocals.el
+.woodpecker.yml
+lisp/.dirlocals.el
+Cask
+fixture
+Makefile
+stubfile.plstore
+test
