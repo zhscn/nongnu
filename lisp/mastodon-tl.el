@@ -2673,9 +2673,10 @@ Optional arg NOTE-TYPE means only get that type of note."
          (url (mastodon-http--api endpoint))
          (buffer (concat "*mastodon-" buffer-name "*"))
          (response (mastodon-http--get-response url params))
-         (json (if headers (car response) response))
-         (headers (if headers (cdr response) nil))
-         (link-header (mastodon-tl--get-link-header-from-response headers)))
+         (json (car response))
+         (headers (when headers (cdr response)))
+         (link-header (when headers
+                        (mastodon-tl--get-link-header-from-response headers))))
     (with-mastodon-buffer buffer #'mastodon-mode nil
       ;; insert view-name/ heading-str
       (when view-name
@@ -2683,7 +2684,6 @@ Optional arg NOTE-TYPE means only get that type of note."
       (when binding-str
         (insert (mastodon-tl--set-face (concat "[" binding-str "]\n\n")
                                        'font-lock-comment-face)))
-
       (mastodon-tl--set-buffer-spec buffer endpoint update-function
                                     link-header params)
       (mastodon-tl--do-init json update-function)
