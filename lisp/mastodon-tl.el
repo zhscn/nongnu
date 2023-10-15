@@ -2358,7 +2358,7 @@ and profile pages when showing followers or accounts followed."
 
 (defun mastodon-tl--more ()
   "Append older toots to timeline, asynchronously."
-  (message "Loading older toots...")
+  (message "Loading...")
   (if (mastodon-tl--use-link-header-p)
       ;; link-header paginate:
       ;; can't build a URL with --more-json-async, endpoint/id:
@@ -2431,7 +2431,7 @@ HEADERS is the http headers returned in the response, if any."
                                             (mastodon-tl--endpoint)
                                             (mastodon-tl--update-function)
                                             link-header))
-            (message "Loading older toots... done.")))))))
+            (message "Loading... done.")))))))
 
 (defun mastodon-tl--find-property-range (property start-point
                                                   &optional search-backwards)
