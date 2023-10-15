@@ -303,7 +303,7 @@ than `switch-to-buffer'."
        (message "Looks like there's no item at point?")
      ,@body))
 
-(defmacro mastodon-tl--do-if-toot-strict (&rest body)
+(defmacro mastodon-tl--do-if-item-strict (&rest body)
   "Execute BODY if we have a toot object at point.
 Includes boosts, and notifications that display toots."
   (declare (debug t))
