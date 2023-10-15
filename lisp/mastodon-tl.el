@@ -299,7 +299,7 @@ than `switch-to-buffer'."
   "Execute BODY if we have an item at point."
   (declare (debug t))
   `(if (and (not (mastodon-tl--profile-buffer-p))
-            (not (mastodon-tl--property 'item-json))) ; includes users, hashtags
+            (not (mastodon-tl--property 'item-json))) ; includes users but not tags
        (message "Looks like there's no item at point?")
      ,@body))
 
