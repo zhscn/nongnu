@@ -72,8 +72,8 @@
 (autoload 'mastodon-tl--get-home-timeline "mastodon-tl")
 (autoload 'mastodon-tl--get-local-timeline "mastodon-tl")
 (autoload 'mastodon-tl--get-tag-timeline "mastodon-tl")
-(autoload 'mastodon-tl--goto-next-toot "mastodon-tl")
-(autoload 'mastodon-tl--goto-prev-toot "mastodon-tl")
+(autoload 'mastodon-tl--goto-next-item "mastodon-tl")
+(autoload 'mastodon-tl--goto-prev-item "mastodon-tl")
 (autoload 'mastodon-tl--init-sync "mastodon-tl")
 (autoload 'mastodon-tl--list-followed-tags "mastodon-tl")
 (autoload 'mastodon-tl--mute-user "mastodon-tl")
@@ -145,8 +145,8 @@ Use. e.g. \"%c\" for your locale's date and time format."
 (defvar mastodon-mode-map
   (let ((map (make-sparse-keymap)))
     ;; navigation inside a timeline
-    (define-key map (kbd "n") #'mastodon-tl--goto-next-toot)
-    (define-key map (kbd "p") #'mastodon-tl--goto-prev-toot)
+    (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
+    (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
     (define-key map (kbd "M-n") #'mastodon-tl--next-tab-item)
     (define-key map (kbd "M-p") #'mastodon-tl--previous-tab-item)
     (define-key map [?\t] #'mastodon-tl--next-tab-item)

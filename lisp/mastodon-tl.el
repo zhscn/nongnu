@@ -274,7 +274,7 @@ types of mastodon links and not just shr.el-generated ones.")
       (define-key map (kbd "RET") #'mastodon-profile--get-toot-author)
       map))
   "The keymap to be set for the author byline.
-It is active where point is placed by `mastodon-tl--goto-next-toot.'")
+It is active where point is placed by `mastodon-tl--goto-next-item.'")
 
 
 ;;; MACROS
@@ -373,16 +373,22 @@ Optionally start from POS."
           (goto-char npos)
           ;; force display of help-echo on moving to a toot byline:
           (mastodon-tl--message-help-echo))
-      (funcall refresh))))
+      ;; FIXME: this doesn't really work, as the funcall doesn't return if we
+      ;; run into an endless refresh loop
+      (condition-case nil
+          (funcall refresh)
+        (error "No more items")))))
 
-(defun mastodon-tl--goto-next-toot ()
-  "Jump to next toot header."
+(defun mastodon-tl--goto-next-item ()
+  "Jump to next item.
+Load more items it no next item."
   (interactive)
   (mastodon-tl--goto-item-pos 'next-single-property-change
                               'mastodon-tl--more))
 
-(defun mastodon-tl--goto-prev-toot ()
-  "Jump to last toot header."
+(defun mastodon-tl--goto-prev-item ()
+  "Jump to previous item.
+Update if no previous items"
   (interactive)
   (mastodon-tl--goto-item-pos 'previous-single-property-change
                               'mastodon-tl--update))
@@ -390,23 +396,13 @@ Optionally start from POS."
 (defun mastodon-tl--goto-first-item ()
   "Jump to first toot or item in buffer.
 Used on initializing a timeline or thread."
-  ;; goto-next-toot assumes we already have toots, and is therefore
+  ;; goto-next-item assumes we already have items, and is therefore
   ;; incompatible with any view where it is possible to have no items.
   ;; when that is the case the call to goto-toot-pos loops infinitely
   (goto-char (point-min))
-  (mastodon-tl--goto-next-item))
-
-(defun mastodon-tl--goto-next-item ()
-  "Jump to next item, e.g. filter or follow request."
-  (interactive)
   (mastodon-tl--goto-item-pos 'next-single-property-change
                               'next-line))
-
-(defun mastodon-tl--goto-prev-item ()
-  "Jump to previous item, e.g. filter or follow request."
-  (interactive)
-  (mastodon-tl--goto-item-pos 'previous-single-property-change
-                              'previous-line))
+;; (mastodon-tl--goto-next-item))
 
 
 ;;; TIMELINES
@@ -541,7 +537,7 @@ With arg AVATAR, include the account's avatar image."
 Displays a toot's media types and optionally the binding to play
 moving image media from the byline.
 Used when point is at the start of a byline, i.e. where
-`mastodon-tl--goto-next-toot' leaves point."
+`mastodon-tl--goto-next-item' leaves point."
   (let* ((toot-to-count
           (or ; simply praying this order works
            (alist-get 'status toot) ; notifications timeline
@@ -634,7 +630,7 @@ this just means displaying toot client."
     (concat
      ;; Boosted/favourited markers are not technically part of the byline, so
      ;; we don't propertize them with 'byline t', as per the rest. This
-     ;; ensures that `mastodon-tl--goto-next-toot' puts point on
+     ;; ensures that `mastodon-tl--goto-next-item' puts point on
      ;; author-byline, not before the (F) or (B) marker. Not propertizing like
      ;; this makes the behaviour of these markers consistent whether they are
      ;; displayed for an already boosted/favourited toot or as the result of
@@ -649,7 +645,7 @@ this just means displaying toot client."
                (mastodon-tl--format-faved-or-boosted-byline
                 (mastodon-tl--symbol 'bookmark))))
      ;; we remove avatars from the byline also, so that they also do not mess
-     ;; with `mastodon-tl--goto-next-toot':
+     ;; with `mastodon-tl--goto-next-item':
      (when (and mastodon-tl--show-avatars
                 mastodon-tl--display-media-p
                 (if (version< emacs-version "27.1")
@@ -1704,8 +1700,8 @@ BACKWARD means move backward (up) the timeline."
     (or (get-text-property (point) prop)
         (save-excursion
           (if backward
-              (mastodon-tl--goto-prev-toot)
-            (mastodon-tl--goto-next-toot))
+              (mastodon-tl--goto-prev-item)
+            (mastodon-tl--goto-next-item))
           (get-text-property (point) prop)))))
 
 (defun mastodon-tl--newest-id ()
@@ -1813,7 +1809,7 @@ view all branches of a thread."
                                          :thread)
                   ;; put point at the toot:
                   (goto-char (marker-position marker))
-                  (mastodon-tl--goto-next-toot)))
+                  (mastodon-tl--goto-next-item)))
             ;; else just print the lone toot:
             (mastodon-tl--single-toot id)))))))
 
@@ -2416,7 +2412,7 @@ HEADERS is the http headers returned in the response, if any."
         (if (eq (mastodon-tl--get-buffer-type) 'thread)
             ;; if thread view, call --thread with parent ID
             (progn (goto-char (point-min))
-                   (mastodon-tl--goto-next-toot)
+                   (mastodon-tl--goto-next-item)
                    (funcall (mastodon-tl--update-function))
                    (goto-char point-before)
                    (message "Loaded full thread."))

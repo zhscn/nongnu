@@ -79,7 +79,7 @@
 (autoload 'mastodon-tl--field "mastodon-tl")
 (autoload 'mastodon-tl--find-property-range "mastodon-tl")
 (autoload 'mastodon-tl--find-property-range "mastodon-tl")
-(autoload 'mastodon-tl--goto-next-toot "mastodon-tl")
+(autoload 'mastodon-tl--goto-next-item "mastodon-tl")
 (autoload 'mastodon-tl--map-alist "mastodon-tl")
 (autoload 'mastodon-tl--property "mastodon-tl")
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
@@ -329,7 +329,7 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
         ;; we don't move to the following toot:
         (beginning-of-line)
         (forward-line -1)
-        (mastodon-tl--goto-next-toot)))))
+        (mastodon-tl--goto-next-item)))))
 
 (defun mastodon-toot--action (action callback)
   "Take ACTION on toot at point, then execute CALLBACK.
