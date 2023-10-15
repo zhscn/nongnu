@@ -51,9 +51,6 @@
 (autoload 'mastodon-tl--set-face "mastodon-tl")
 (autoload 'mastodon-tl--buffer-type-eq "mastodon-tl")
 (autoload 'mastodon-tl--profile-buffer-p "mastodon-tl")
-(autoload 'mastodon-tl--goto-next-item "mastodon-tl")
-(autoload 'mastodon-tl--goto-prev-item "mastodon-tl")
-(autoload 'mastodon-tl--goto-next-item "mastodon-tl")
 (autoload 'mastodon-tl--goto-first-item "mastodon-tl")
 (autoload 'mastodon-tl--do-if-item "mastodon-tl")
 (autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
@@ -87,8 +84,6 @@
 (defvar mastodon-views-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map mastodon-mode-map)
-    (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
-    (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
     map)
   "Base keymap for minor mastodon views.")
 
@@ -97,7 +92,6 @@
     (set-keymap-parent map mastodon-views-map)
     (define-key map (kbd "d") #'mastodon-views--delete-filter)
     (define-key map (kbd "c") #'mastodon-views--create-filter)
-    (define-key map (kbd "TAB") #'mastodon-tl--next-tab-item)
     (define-key map (kbd "g") #'mastodon-views--view-filters)
     map)
   "Keymap for viewing filters.")
