@@ -55,7 +55,7 @@
 (autoload 'mastodon-tl--goto-prev-toot "mastodon-tl")
 (autoload 'mastodon-tl--goto-next-item "mastodon-tl")
 (autoload 'mastodon-tl--goto-first-item "mastodon-tl")
-(autoload 'mastodon-tl--do-if-toot "mastodon-tl")
+(autoload 'mastodon-tl--do-if-item "mastodon-tl")
 (autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
 (autoload 'mastodon-tl--render-text "mastodon-tl")
 (autoload 'mastodon-notifications--follow-request-accept "mastodon-notifications")
@@ -179,7 +179,8 @@ provides the JSON data."
                (format "Looks like you have no %s for now." view-name)
                'face 'font-lock-comment-face
                'byline t
-               'toot-id "0")) ; so point can move here when no item
+               'item-type 'no-item ; for nav
+               'item-id "0")) ; so point can move here when no item
     (funcall insert-fun data)
     (goto-char (point-min)))
   ;; (when data
@@ -226,7 +227,8 @@ provides the JSON data."
     (insert
      (propertize list-name
                  'byline t ; so we nav here
-                 'toot-id "0" ; so we nav here
+                 'item-id "0" ; so we nav here
+                 'item-type 'user
                  'help-echo "RET: view list timeline, d: delete this list, \
 a: add account to this list, r: remove account from this list"
                  'list t
@@ -402,7 +404,7 @@ If ACCOUNT-ID and HANDLE are provided use them rather than prompting."
 (defun mastodon-views--add-toot-account-at-point-to-list ()
   "Prompt for a list, and add the account of the toot at point to it."
   (interactive)
-  (let* ((toot (mastodon-tl--property 'toot-json))
+  (let* ((toot (mastodon-tl--property 'item-json))
          (account (mastodon-tl--field 'account toot))
          (account-id (mastodon-tl--field 'id account))
          (handle (mastodon-tl--field 'acct account)))
@@ -509,7 +511,7 @@ JSON is the data returned by the server."
                          " | "
                          (mastodon-toot--iso-to-human .scheduled_at))
                  'byline t ; so we nav here
-                 'toot-id "0" ; so we nav here
+                 'item-id "0" ; so we nav here
                  'face 'font-lock-comment-face
                  'keymap mastodon-views--scheduled-map
                  'scheduled-json toot
@@ -614,7 +616,7 @@ JSON is the filters data."
                                 (mapconcat #'identity contexts ", "))))
     (insert
      (propertize filter-string
-                 'toot-id id ;for goto-next-filter compat
+                 'item-id id ;for goto-next-filter compat
                  'phrase phrase
                  'byline t) ;for goto-next-filter compat
      "\n\n")))
@@ -653,7 +655,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
 (defun mastodon-views--delete-filter ()
   "Delete filter at point."
   (interactive)
-  (let* ((filter-id (mastodon-tl--property 'toot-id :no-move))
+  (let* ((filter-id (mastodon-tl--property 'item-id :no-move))
          (phrase (mastodon-tl--property 'phrase :no-move))
          (url (mastodon-http--api (format "filters/%s" filter-id))))
     (if (null phrase)
@@ -745,14 +747,14 @@ MISSKEY means the instance is a Misskey or derived server."
       (let ((response (mastodon-http--get-json
                        (mastodon-http--api "instance") nil nil :vector)))
         (mastodon-views--instance-response-fun response brief instance))
-    (mastodon-tl--do-if-toot
+    (mastodon-tl--do-if-item
      (let* ((toot (if (mastodon-tl--profile-buffer-p)
                       ;; we may be on profile description itself:
                       (or (mastodon-tl--property 'profile-json)
                           ;; or on profile account listings, or just toots:
-                          (mastodon-tl--property 'toot-json))
+                          (mastodon-tl--property 'item-json))
                     ;; normal timeline/account listing:
-                    (mastodon-tl--property 'toot-json)))
+                    (mastodon-tl--property 'item-json)))
             (reblog (alist-get 'reblog toot))
             (account (or (alist-get 'account reblog)
                          (alist-get 'account toot)

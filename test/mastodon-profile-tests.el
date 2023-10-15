@@ -158,11 +158,11 @@ When formatting Gargon's state we want to see
        t))
      (should
       (equal
-       (get-text-property 4 'toot-id)
+       (get-text-property 4 'item-id)
        (alist-get 'id gargron-profile-json)))
      (should
       (equal
-       (get-text-property 4 'toot-json)
+       (get-text-property 4 'item-json)
        gargron-profile-json)))))
 
 (ert-deftest mastodon-profile--search-account-by-handle--removes-at ()

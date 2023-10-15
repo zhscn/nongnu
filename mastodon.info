@@ -1,4 +1,4 @@
-This is mastodon.info, produced by makeinfo version 6.7 from
+This is mastodon.info, produced by makeinfo version 6.8 from
 mastodon.texi.
 
 INFO-DIR-SECTION Emacs
@@ -537,7 +537,7 @@ looks like:
        "Translate text of toot at point.
        Uses `lingva.el'."
          (interactive)
-         (let* ((toot (mastodon-tl--property 'toot-json)))
+         (let* ((toot (mastodon-tl--property 'item-json)))
            (if toot
                (lingva-translate nil (mastodon-tl--content toot))
              (message "No toot to translate?"))))
@@ -585,10 +585,10 @@ Mastodon API.
    • Gotosocial (gotosocial.org (https://gotosocial.org/))
 
    It does not support the non-Mastodon API servers Misskey (misskey.io
-(https://misskey.io/)) and Firefish (joinfirefish.org
-(https://joinfirefish.org/), formerly Calkey), but it should fully
-support displaying and interacting with posts and users on those
-platforms.
+(https://misskey.io/)), Firefish (joinfirefish.org
+(https://joinfirefish.org/), formerly Calkey) and Friendica, but it
+should fully support displaying and interacting with posts and users on
+those platforms.
 
    If you attempt to use ‘mastodon.el’ with a server and run into
 problems, feel free to open an issue.
@@ -714,12 +714,12 @@ Node: Translating toots18911
 Node: Bookmarks and mastodonel20093
 Node: Dependencies20565
 Node: Network compatibility21175
-Node: Contributing22046
-Node: Bug reports22335
-Node: Fixes and features23241
-Node: Coding style23724
-Node: Supporting mastodonel24348
-Node: Contributors24915
+Node: Contributing22057
+Node: Bug reports22346
+Node: Fixes and features23252
+Node: Coding style23735
+Node: Supporting mastodonel24359
+Node: Contributors24926
 
 End Tag Table
 

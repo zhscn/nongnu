@@ -658,7 +658,7 @@ to your translator function as its text argument. Here's what
   "Translate text of toot at point.
   Uses `lingva.el'."
     (interactive)
-    (let* ((toot (mastodon-tl--property 'toot-json)))
+    (let* ((toot (mastodon-tl--property 'item-json)))
       (if toot
           (lingva-translate nil (mastodon-tl--content toot))
         (message "No toot to translate?"))))
@@ -707,7 +707,7 @@ Akkoma (@uref{https://akkoma.social/, akkoma.social})
 Gotosocial (@uref{https://gotosocial.org/, gotosocial.org})
 @end itemize
 
-It does not support the non-Mastodon API servers Misskey (@uref{https://misskey.io/, misskey.io}) and Firefish (@uref{https://joinfirefish.org/, joinfirefish.org}, formerly Calkey), but it should fully support displaying and interacting with posts and users on those platforms.
+It does not support the non-Mastodon API servers Misskey (@uref{https://misskey.io/, misskey.io}), Firefish (@uref{https://joinfirefish.org/, joinfirefish.org}, formerly Calkey) and Friendica, but it should fully support displaying and interacting with posts and users on those platforms.
 
 If you attempt to use @samp{mastodon.el} with a server and run into problems, feel
 free to open an issue.

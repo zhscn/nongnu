@@ -261,7 +261,8 @@ If NOTE is non-nil, include user's profile note. This is also
       (propertize (car user)
                   'face 'mastodon-display-name-face
                   'byline t
-                  'toot-id id) ; for prev/next nav
+                  'item-type 'user
+                  'item-id id) ; for prev/next nav
       " : \n : "
       (propertize (concat "@" (cadr user))
                   'face 'mastodon-handle-face
@@ -275,7 +276,7 @@ If NOTE is non-nil, include user's profile note. This is also
           (mastodon-tl--render-text (cadddr user) acct)
         "")
       "\n")
-     'toot-json acct))) ; for compat w other processing functions
+     'item-json acct))) ; for compat w other processing functions
 
 (defun mastodon-search--print-tags (tags)
   "Print TAGS data as returned from a \"hashtags\" search query."
@@ -292,6 +293,8 @@ If NOTE is non-nil, include user's profile note. This is also
                        'mouse-face 'highlight
                        'mastodon-tag (car el)
                        'mastodon-tab-stop 'hashtag
+                       'item-type 'tag ; for next/prev nav
+                       'byline t ; for next/prev nav
                        'help-echo (concat "Browse tag #" (car el))
                        'keymap mastodon-tl--link-keymap)
            " : \n\n"))
