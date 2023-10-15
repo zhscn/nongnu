@@ -165,7 +165,7 @@ NO-REBLOGS means do not display boosts in statuses."
   (interactive)
   (if mastodon-profile--account
       (mastodon-profile--make-author-buffer mastodon-profile--account :no-reblogs)
-    (error "Not in a mastodon profile")))
+    (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-following ()
   "Open a profile buffer showing the accounts that current profile follows."
@@ -177,7 +177,7 @@ NO-REBLOGS means do not display boosts in statuses."
        #'mastodon-profile--format-user
        nil
        :headers)
-    (error "Not in a mastodon profile")))
+    (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-followers ()
   "Open a profile buffer showing the accounts following the current profile."
@@ -189,7 +189,7 @@ NO-REBLOGS means do not display boosts in statuses."
        #'mastodon-profile--format-user
        nil
        :headers)
-    (error "Not in a mastodon profile")))
+    (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--view-favourites ()
   "Open a new buffer displaying the user's favourites."

@@ -1496,8 +1496,9 @@ If NO-ERROR is non-nil, do not error when property is empty."
     (if no-error
         (plist-get mastodon-tl--buffer-spec property)
       (or (plist-get mastodon-tl--buffer-spec property)
-          (error "Mastodon-tl--buffer-spec is not defined for buffer %s"
-                 (or buffer (current-buffer)))))))
+          (error "Mastodon-tl--buffer-spec not defined for buffer %s, prop %s"
+                 (or buffer (current-buffer))
+                 property)))))
 
 (defun mastodon-tl--set-buffer-spec
     (buffer endpoint update-fun &optional link-header update-params hide-replies)
@@ -1752,7 +1753,7 @@ ID is that of the toot to view."
          (toot (mastodon-http--get-json
                 (mastodon-http--api (concat "statuses/" id)))))
     (if (equal (caar toot) 'error)
-        (message "Error: %s" (cdar toot))
+        (user-error "Error: %s" (cdar toot))
       (with-mastodon-buffer buffer #'mastodon-mode nil
         (mastodon-tl--set-buffer-spec buffer (format "statuses/%s" id)
                                       #'mastodon-tl--update-toot)
@@ -1772,7 +1773,7 @@ are displayed by default. Call this if you subsequently want to
 view all branches of a thread."
   (interactive)
   (if (not (eq (mastodon-tl--get-buffer-type) 'thread))
-      (error "You need to be viewing a thread to call this")
+      (user-error "You need to be viewing a thread to call this")
     (goto-char (point-min))
     (let ((id (mastodon-tl--property 'base-toot-id)))
       (mastodon-tl--thread id))))
@@ -1784,7 +1785,7 @@ view all branches of a thread."
          (type (mastodon-tl--field 'type (mastodon-tl--property 'toot-json :no-move))))
     (if (or (string= type "follow_request")
             (string= type "follow")) ; no can thread these
-        (error "No thread")
+        (user-error "No thread")
       (let* ((endpoint (format "statuses/%s/context" id))
              (url (mastodon-http--api endpoint))
              (buffer (format "*mastodon-thread-%s*" id))
@@ -1793,7 +1794,7 @@ view all branches of a thread."
                     nil :silent))
              (context (mastodon-http--get-json url nil :silent)))
         (if (equal (caar toot) 'error)
-            (message "Error: %s" (cdar toot))
+            (user-error "Error: %s" (cdar toot))
           (when (member (alist-get 'type toot) '("reblog" "favourite"))
             (setq toot (alist-get 'status toot)))
           (if (> (+ (length (alist-get 'ancestors context))

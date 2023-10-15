@@ -629,14 +629,14 @@ Prompt for a context, must be a list containting at least one of \"home\",
                 nil nil (or (current-word) "")))
          (contexts
           (if (string-empty-p word)
-              (error "You must select at least one word for a filter")
+              (user-error "You must select at least one word for a filter")
             (completing-read-multiple
              "Contexts to filter [TAB for options]: "
              '("home" "notifications" "public" "thread")
              nil t)))
          (contexts-processed
           (if (equal nil contexts)
-              (error "You must select at least one context for a filter")
+              (user-error "You must select at least one context for a filter")
             (mapcar (lambda (x)
                       (cons "context[]" x))
                     contexts)))
@@ -656,7 +656,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
          (phrase (mastodon-tl--property 'phrase :no-move))
          (url (mastodon-http--api (format "filters/%s" filter-id))))
     (if (null phrase)
-        (error "No filter at point?")
+        (user-error "No filter at point?")
       (when (y-or-n-p (format "Delete filter %s? " phrase))
         (let ((response (mastodon-http--delete url)))
           (mastodon-http--triage

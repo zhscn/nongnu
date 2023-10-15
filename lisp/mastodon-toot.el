@@ -376,13 +376,13 @@ TYPE is a symbol, either `favourite' or `boost.'"
             ;; this boosts/faves the base toot, not the notif status
             ((and (equal "reblog" toot-type)
                   (not (mastodon-tl--buffer-type-eq 'notifications)))
-             (error "You can't %s boosts" action-string))
+             (user-error "You can't %s boosts" action-string))
             ((and (equal "favourite" toot-type)
                   (not (mastodon-tl--buffer-type-eq 'notifications)))
-             (error "You can't %s favourites" action-string))
+             (user-error "You can't %s favourites" action-string))
             ((and (equal "private" visibility)
                   (equal type 'boost))
-             (error "You can't boost private toots"))
+             (user-error "You can't boost private toots"))
             (t
              (mastodon-toot--action
               action
@@ -491,11 +491,11 @@ With FAVOURITE, list favouriters, else list boosters."
           (params '(("limit" . "80")))
           (json (mastodon-http--get-json url params)))
      (if (eq (caar json) 'error)
-         (error "%s (Status does not exist or is private)" (alist-get 'error json))
+         (user-error "%s (Status does not exist or is private)" (alist-get 'error json))
        (let ((handles (mastodon-tl--map-alist 'acct json))
              (type-string (if favourite "Favouriters" "Boosters")))
          (if (not handles)
-             (error "Looks like this toot has no %s" type-string)
+             (user-error "Looks like this toot has no %s" type-string)
            (let ((choice (completing-read
                           (format "%s (enter to view profile): " type-string)
                           handles
@@ -1251,7 +1251,7 @@ INSTANCE is JSON."
 MAX is the maximum number set by their instance."
   (let ((number (read-number (format "Number of options [2-%s]: " max) 2)))
     (if (> number max)
-        (error "You need to choose a number between 2 and %s" max)
+        (user-error "You need to choose a number between 2 and %s" max)
       number)))
 
 (defun mastodon-toot--create-poll ()
