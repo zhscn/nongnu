@@ -51,8 +51,9 @@
 (autoload 'mastodon-tl--set-face "mastodon-tl")
 (autoload 'mastodon-tl--buffer-type-eq "mastodon-tl")
 (autoload 'mastodon-tl--profile-buffer-p "mastodon-tl")
+(autoload 'mastodon-tl--goto-next-toot "mastodon-tl")
+(autoload 'mastodon-tl--goto-prev-toot "mastodon-tl")
 (autoload 'mastodon-tl--goto-next-item "mastodon-tl")
-(autoload 'mastodon-tl--goto-prev-item "mastodon-tl")
 (autoload 'mastodon-tl--goto-first-item "mastodon-tl")
 (autoload 'mastodon-tl--do-if-toot "mastodon-tl")
 (autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
@@ -86,8 +87,8 @@
 (defvar mastodon-views-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map mastodon-mode-map)
-    (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
-    (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
+    (define-key map (kbd "n") #'mastodon-tl--goto-next-toot)
+    (define-key map (kbd "p") #'mastodon-tl--goto-prev-toot)
     map)
   "Base keymap for minor mastodon views.")
 
