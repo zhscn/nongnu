@@ -1,7 +1,6 @@
 *.*~
-.dirlocals.el
 .woodpecker.yml
-lisp/.dirlocals.el
+lisp/.dir-locals.el
 Cask
 fixture
 Makefile
