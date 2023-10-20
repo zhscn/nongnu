@@ -546,10 +546,12 @@ Uses `lingva.el'."
       (message "No mastodon buffer?"))))
 
 (defun mastodon-toot--own-toot-p (toot)
-  "Check if TOOT is user's own, e.g. for deleting it."
-  (and (not (alist-get 'reblog toot))
-       (equal (alist-get 'acct (alist-get 'account toot))
-              (mastodon-auth--user-acct))))
+  "Check if TOOT is user's own, for deleting, editing, or pinning it."
+  ;; this check needs to allow acting on own toots displayed as boosts, so we
+  ;; call `mastodon-tl--toot-or-base'.
+  (let ((json (mastodon-tl--toot-or-base toot)))
+    (equal (alist-get 'acct (alist-get 'account json))
+           (mastodon-auth--user-acct))))
 
 (defun mastodon-toot--pin-toot-toggle ()
   "Pin or unpin user's toot at point."
