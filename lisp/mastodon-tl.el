@@ -1297,10 +1297,13 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
 
 (defun mastodon-tl--prev-toot-id ()
   "Return the id of the last toot inserted into the buffer."
-  (let ((prev-pos
-         (1- (save-excursion
-               (previous-single-property-change (point) 'base-toot-id)))))
-    (get-text-property prev-pos 'base-toot-id)))
+  (let* ((prev-change
+          (save-excursion
+            (previous-single-property-change (point) 'base-toot-id)))
+         (prev-pos
+          (when prev-change (1- prev-change))))
+    (when prev-pos
+      (get-text-property prev-pos 'base-toot-id))))
 
 (defun mastodon-tl--after-reply-status (reply-to-id)
   "T if REPLY-TO-ID is equal to that of the last toot inserted in the bufer."
