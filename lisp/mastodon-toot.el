@@ -446,9 +446,6 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
   (mastodon-tl--do-if-item-strict
    (let* ((id (mastodon-tl--property 'base-item-id))
           (bookmarked-p (mastodon-tl--property 'bookmarked-p))
-          (prompt (if bookmarked-p
-                      (format "Toot already bookmarked. Remove? ")
-                    (format "Bookmark this toot? ")))
           (byline-region (when id
                            (mastodon-tl--find-property-range 'byline (point))))
           (action (if bookmarked-p "unbookmark" "bookmark"))
@@ -458,17 +455,16 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
                      "Toot bookmarked!"))
           (remove (when bookmarked-p t)))
      (if byline-region
-         (when (y-or-n-p prompt)
-           (mastodon-toot--action
-            action
-            (lambda ()
-              (let ((inhibit-read-only t))
-                (add-text-properties (car byline-region)
-                                     (cdr byline-region)
-                                     (list 'bookmarked-p (not bookmarked-p))))
-              (mastodon-toot--action-success bookmark-str
-                                             byline-region remove)
-              (message (format "%s #%s" message id)))))
+         (mastodon-toot--action
+          action
+          (lambda ()
+            (let ((inhibit-read-only t))
+              (add-text-properties (car byline-region)
+                                   (cdr byline-region)
+                                   (list 'bookmarked-p (not bookmarked-p))))
+            (mastodon-toot--action-success bookmark-str
+                                           byline-region remove)
+            (message (format "%s #%s" message id))))
        (message (format "Nothing to %s here?!?" action))))))
 
 (defun mastodon-toot--list-toot-boosters ()
