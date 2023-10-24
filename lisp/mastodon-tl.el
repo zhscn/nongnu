@@ -2375,7 +2375,8 @@ and profile pages when showing followers or accounts followed."
             (mastodon-http--get-response-async url nil 'mastodon-tl--more* (current-buffer)
                                                (point) :headers))))
     (cond ( ; no paginate
-           (mastodon-tl--buffer-type-eq 'follow-suggestions)
+           (or (mastodon-tl--buffer-type-eq 'follow-suggestions)
+               (mastodon-tl--buffer-type-eq 'lists))
            (message "No more results"))
           ;; offset paginate (search, trending, user lists, ...?):
           ((or (string-prefix-p "*mastodon-trending-" (buffer-name))
