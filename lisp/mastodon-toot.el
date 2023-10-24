@@ -876,25 +876,26 @@ instance to edit a toot."
 (defun mastodon-toot--edit-toot-at-point ()
   "Edit the user's toot at point."
   (interactive)
-  (let ((toot (or (mastodon-tl--property 'base-toot) ; fave/boost notifs
-                  (mastodon-tl--property 'item-json))))
-    (if (not (mastodon-toot--own-toot-p toot))
-        (message "You can only edit your own toots.")
-      (let* ((id (mastodon-tl--as-string (mastodon-tl--item-id toot)))
-             (source (mastodon-toot--get-toot-source id))
-             (content (alist-get 'text source))
-             (source-cw (alist-get 'spoiler_text source))
-             (toot-visibility (alist-get 'visibility toot))
-             (toot-language (alist-get 'language toot))
-             (reply-id (alist-get 'in_reply_to_id toot)))
-        (when (y-or-n-p "Edit this toot? ")
-          (mastodon-toot--compose-buffer nil reply-id nil content :edit)
-          (goto-char (point-max))
-          ;; adopt reply-to-id, visibility, CW, and language:
-          (mastodon-toot--set-toot-properties reply-id toot-visibility
-                                              source-cw toot-language)
-          (mastodon-toot--update-status-fields)
-          (setq mastodon-toot--edit-item-id id))))))
+  (mastodon-tl--do-if-item-strict
+   (let ((toot (or (mastodon-tl--property 'base-toot) ; fave/boost notifs
+                   (mastodon-tl--property 'item-json))))
+     (if (not (mastodon-toot--own-toot-p toot))
+         (message "You can only edit your own toots.")
+       (let* ((id (mastodon-tl--as-string (mastodon-tl--item-id toot)))
+              (source (mastodon-toot--get-toot-source id))
+              (content (alist-get 'text source))
+              (source-cw (alist-get 'spoiler_text source))
+              (toot-visibility (alist-get 'visibility toot))
+              (toot-language (alist-get 'language toot))
+              (reply-id (alist-get 'in_reply_to_id toot)))
+         (when (y-or-n-p "Edit this toot? ")
+           (mastodon-toot--compose-buffer nil reply-id nil content :edit)
+           (goto-char (point-max))
+           ;; adopt reply-to-id, visibility, CW, and language:
+           (mastodon-toot--set-toot-properties reply-id toot-visibility
+                                               source-cw toot-language)
+           (mastodon-toot--update-status-fields)
+           (setq mastodon-toot--edit-item-id id)))))))
 
 (defun mastodon-toot--get-toot-source (id)
   "Fetch the source JSON of toot with ID."
