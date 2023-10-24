@@ -207,41 +207,44 @@ provides the JSON data."
 
 (defun mastodon-views--print-list-set (lists)
   "Print each account plus a separator for each list in LISTS."
-  (let ((lists-names (mastodon-tl--map-alist 'title lists)))
-    (mapc (lambda (x)
-            (mastodon-views--print-list-accounts x)
-            (insert (propertize (concat " " mastodon-tl--horiz-bar "\n\n")
-                                'face 'success)))
-          lists-names)))
+  (mapc (lambda (x)
+          (mastodon-views--print-list-accounts x)
+          (insert (propertize (concat " " mastodon-tl--horiz-bar "\n\n")
+                              'face 'success)))
+        lists))
 
-(defun mastodon-views--print-list-accounts (list-name)
-  "Insert the accounts in list named LIST-NAME."
-  (let* ((id (mastodon-views--get-list-id list-name))
-         (accounts (mastodon-views--accounts-in-list id)))
-    (insert
-     (propertize list-name
-                 'byline t ; so we nav here
-                 'item-id "0" ; so we nav here
-                 'item-type 'user
-                 'help-echo "RET: view list timeline, d: delete this list, \
+(defun mastodon-views--print-list-accounts (list)
+  "Insert the accounts in list named LIST, an alist."
+  (let-alist list
+    (let* ((accounts (mastodon-views--accounts-in-list .id)))
+      (insert
+       (propertize .title
+                   'byline t ; so we nav here
+                   'item-id "0" ; so we nav here
+                   'item-type 'user
+                   'help-echo "RET: view list timeline, d: delete this list, \
 a: add account to this list, r: remove account from this list"
-                 'list t
-                 'face 'link
-                 'keymap mastodon-views--list-name-keymap
-                 'list-name list-name
-                 'list-id id)
-     (propertize "\n\n"
-                 'list t
-                 'keymap mastodon-views--list-name-keymap
-                 'list-name list-name
-                 'list-id id)
-     (propertize
-      (mapconcat #'mastodon-search--propertize-user accounts
-                 " ")
-      'list t
-      'keymap mastodon-views--list-name-keymap
-      'list-name list-name
-      'list-id id))))
+                   'list t
+                   'face 'link
+                   'keymap mastodon-views--list-name-keymap
+                   'list-name .title
+                   'list-id .id)
+       (propertize (format " [replies: %s, exclusive %s]"
+                           .replies_policy
+                           (when (eq t .exclusive) "true"))
+                   'face 'font-lock-comment-face)
+       (propertize "\n\n"
+                   'list t
+                   'keymap mastodon-views--list-name-keymap
+                   'list-name .title
+                   'list-id .id)
+       (propertize
+        (mapconcat #'mastodon-search--propertize-user accounts
+                   " ")
+        'list t
+        'keymap mastodon-views--list-name-keymap
+        'list-name .title
+        'list-id .id)))))
 
 (defun mastodon-views--get-users-lists ()
   "Get the list of the user's lists from the server."
