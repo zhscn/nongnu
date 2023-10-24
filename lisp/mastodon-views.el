@@ -290,10 +290,13 @@ If ID is provided, use that list."
          (replies-policy (completing-read "Replies policy: " ; give this a proper name
                                           '("followed" "list" "none")
                                           nil t nil nil "list"))
+         (exclusive (when (y-or-n-p "Exclude items from home timeline? ")
+                      "true"))
          (url (mastodon-http--api (format "lists/%s" id)))
          (response (mastodon-http--put url
                                        `(("title" . ,name-choice)
-                                         ("replies_policy" . ,replies-policy)))))
+                                         ("replies_policy" . ,replies-policy)
+                                         ("exclusive" . ,exclusive)))))
     (mastodon-http--triage response
                            (lambda ()
                              (with-current-buffer response
@@ -332,10 +335,12 @@ Prompt for name and replies policy."
          (replies-policy (completing-read "Replies policy: " ; give this a proper name
                                           '("followed" "list" "none")
                                           nil t nil nil "list")) ; default
+         (exclusive (when (y-or-n-p "Exclude items from home timeline? ")
+                      "true"))
          (response (mastodon-http--post (mastodon-http--api "lists")
                                         `(("title" . ,title)
-                                          ("replies_policy" . ,replies-policy))
-                                        nil)))
+                                          ("replies_policy" . ,replies-policy)
+                                          ("exclusive" . ,exclusive)))))
     (mastodon-views--list-action-triage
      response "list %s created!" title)))
 
