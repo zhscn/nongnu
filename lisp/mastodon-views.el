@@ -221,7 +221,7 @@ provides the JSON data."
        (propertize .title
                    'byline t ; so we nav here
                    'item-id "0" ; so we nav here
-                   'item-type 'user
+                   'item-type 'list
                    'help-echo "RET: view list timeline, d: delete this list, \
 a: add account to this list, r: remove account from this list"
                    'list t
