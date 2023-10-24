@@ -290,8 +290,9 @@ If ID is provided, use that list."
          (replies-policy (completing-read "Replies policy: " ; give this a proper name
                                           '("followed" "list" "none")
                                           nil t nil nil "list"))
-         (exclusive (when (y-or-n-p "Exclude items from home timeline? ")
-                      "true"))
+         (exclusive (if (y-or-n-p "Exclude items from home timeline? ")
+                        "true"
+                      "false"))
          (url (mastodon-http--api (format "lists/%s" id)))
          (response (mastodon-http--put url
                                        `(("title" . ,name-choice)
