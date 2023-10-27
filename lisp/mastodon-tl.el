@@ -1880,7 +1880,7 @@ ID is that of the post the context is currently displayed for."
 
 ;;; FOLLOW/BLOCK/MUTE, ETC
 
-(defun mastodon-tl--follow-user (user-handle &optional notify langs)
+(defun mastodon-tl--follow-user (user-handle &optional notify langs reblogs)
   "Query for USER-HANDLE from current status and follow that user.
 If NOTIFY is \"true\", enable notifications when that user posts.
 If NOTIFY is \"false\", disable notifications when that user posts.
@@ -1890,8 +1890,9 @@ LANGS is an array parameters alist of languages to filer user's posts by."
    (list (mastodon-tl--user-handles-get "follow")))
   (mastodon-tl--do-if-item
    (mastodon-tl--do-user-action-and-response
-    user-handle "follow" nil notify langs)))
+    user-handle "follow" nil notify langs reblogs)))
 
+;; TODO: make this action "enable/disable notifications"
 (defun mastodon-tl--enable-notify-user-posts (user-handle)
   "Query for USER-HANDLE and enable notifications when they post."
   (interactive
@@ -1904,6 +1905,18 @@ LANGS is an array parameters alist of languages to filer user's posts by."
   (interactive
    (list (mastodon-tl--user-handles-get "disable")))
   (mastodon-tl--follow-user user-handle "false"))
+
+(defun mastodon-tl--follow-user-disable-boosts (user-handle)
+  ""
+  (interactive
+   (list (mastodon-tl--user-handles-get "disable boosts")))
+  (mastodon-tl--follow-user user-handle nil nil "false"))
+
+(defun mastodon-tl--follow-user-enable-boosts (user-handle)
+  ""
+  (interactive
+   (list (mastodon-tl--user-handles-get "enable boosts")))
+  (mastodon-tl--follow-user user-handle nil nil "true"))
 
 (defun mastodon-tl--filter-user-user-posts-by-language (user-handle)
   "Query for USER-HANDLE and enable notifications when they post.
@@ -2002,10 +2015,14 @@ LANGS is the accumulated array param alist if we re-run recursively."
      ;; return immediately if only 1 handle:
      (if (eq 1 (length user-handles))
          (car user-handles)
-       (completing-read (if (or (equal action "disable")
-                                (equal action "enable"))
-                            (format "%s notifications when user posts: " action)
-                          (format "Handle of user to %s: " action))
+       (completing-read (cond ((or ; TODO: make this "enable/disable notifications"
+                                (equal action "disable")
+                                   (equal action "enable"))
+                               (format "%s notifications when user posts: " action))
+                              ((string-suffix-p "boosts" action)
+                               (format "%s by user: " action))
+                              (t
+                               (format "Handle of user to %s: " action)))
                         user-handles
                         nil ; predicate
                         'confirm)))))
@@ -2025,13 +2042,15 @@ Action must be either \"unblock\" or \"unmute\"."
                        accts nil t)))) ; require match
 
 (defun mastodon-tl--do-user-action-and-response
-    (user-handle action &optional negp notify langs)
+    (user-handle action &optional negp notify langs reblogs)
   "Do ACTION on user USER-HANDLE.
 NEGP is whether the action involves un-doing something.
 If NOTIFY is \"true\", enable notifications when that user posts.
 If NOTIFY is \"false\", disable notifications when that user posts.
 NOTIFY is only non-nil when called by `mastodon-tl--follow-user'.
-LANGS is an array parameters alist of languages to filer user's posts by."
+LANGS is an array parameters alist of languages to filer user's posts by.
+REBLOGS is a boolean string like NOTIFY, enabling or disabling
+display of the user's boosts in your timeline."
   (let* ((account (if negp
                       ;; unmuting/unblocking, handle from mute/block list
                       (mastodon-profile--search-account-by-handle user-handle)
@@ -2048,17 +2067,18 @@ LANGS is an array parameters alist of languages to filer user's posts by."
                  (alist-get 'display_name account)))
          (args (cond (notify `(("notify" . ,notify)))
                      (langs langs)
+                     (reblogs `(("reblogs" . ,reblogs)))
                      (t nil)))
          (url (mastodon-http--api (format "accounts/%s/%s" user-id action))))
     (if account
         (if (equal action "follow") ; y-or-n for all but follow
-            (mastodon-tl--do-user-action-function url name user-handle action notify args)
+            (mastodon-tl--do-user-action-function url name user-handle action notify args reblogs)
           (when (y-or-n-p (format "%s user %s? " action name))
             (mastodon-tl--do-user-action-function url name user-handle action args)))
       (message "Cannot find a user with handle %S" user-handle))))
 
 (defun mastodon-tl--do-user-action-function
-    (url name user-handle action &optional notify args)
+    (url name user-handle action &optional notify args reblogs)
   "Post ACTION on user NAME/USER-HANDLE to URL.
 NOTIFY is either \"true\" or \"false\", and used when we have been called
 by `mastodon-tl--follow-user' to enable or disable notifications.
@@ -2072,6 +2092,12 @@ ARGS is an alist of any parameters to send with the request."
                        name user-handle))
              ((string-equal notify "false")
               (message "Not receiving notifications for user %s (@%s)!"
+                       name user-handle))
+             ((string-equal reblogs "true")
+              (message "Receiving boosts by user %s (@%s)!"
+                       name user-handle))
+             ((string-equal reblogs "false")
+              (message "Not receiving boosts by user %s (@%s)!"
                        name user-handle))
              ((or (string-equal action "mute")
                   (string-equal action "unmute"))
