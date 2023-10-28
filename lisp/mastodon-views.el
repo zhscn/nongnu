@@ -302,7 +302,7 @@ If ID is provided, use that list."
                                          ("replies_policy" . ,replies-policy)
                                          ("exclusive" . ,exclusive)))))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (with-current-buffer response
                                (let* ((json (mastodon-http--process-json))
                                       (name-new (alist-get 'title json)))
@@ -442,7 +442,7 @@ If ID is provided, use that list."
 (defun mastodon-views--list-action-triage (response &rest args)
   "Call `mastodon-http--triage' on RESPONSE and call message on ARGS."
   (mastodon-http--triage response
-                         (lambda ()
+                         (lambda (_)
                            (when (mastodon-tl--buffer-type-eq 'lists)
                              (mastodon-views--view-lists))
                            (apply #'message args))))
@@ -559,7 +559,7 @@ NO-CONFIRM means there is no ask or message, there is only do."
         (let* ((url (mastodon-http--api (format "scheduled_statuses/%s" id)))
                (response (mastodon-http--delete url)))
           (mastodon-http--triage response
-                                 (lambda ()
+                                 (lambda (_)
                                    (mastodon-views--view-scheduled-toots)
                                    (unless no-confirm
                                      (message "Toot cancelled!")))))))))
@@ -650,7 +650,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
                                              `("phrase" . ,word)
                                              contexts-processed))))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (message "Filter created for %s!" word)
                              (when (mastodon-tl--buffer-type-eq 'filters)
                                (mastodon-views--view-filters))))))
@@ -666,7 +666,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
       (when (y-or-n-p (format "Delete filter %s? " phrase))
         (let ((response (mastodon-http--delete url)))
           (mastodon-http--triage
-           response (lambda ()
+           response (lambda (_)
                       (mastodon-views--view-filters)
                       (message "Filter for \"%s\" deleted!" phrase))))))))
 

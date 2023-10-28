@@ -116,7 +116,7 @@ follow-requests view."
                        (mastodon-http--api "follow_requests")
                        (format "/%s/%s" .id (if reject "reject" "authorize"))))))
                 (mastodon-http--triage response
-                                       (lambda ()
+                                       (lambda (_)
                                          (if f-reqs-view-p
                                              (mastodon-views--view-follow-requests)
                                            (mastodon-tl--reload-timeline-or-profile))
@@ -311,7 +311,7 @@ Status notifications are created when you call
     (let ((response
            (mastodon-http--post (mastodon-http--api "notifications/clear"))))
       (mastodon-http--triage
-       response (lambda ()
+       response (lambda (_)
                   (when mastodon-tl--buffer-spec
                     (mastodon-tl--reload-timeline-or-profile))
                   (message "All notifications cleared!"))))))
@@ -326,7 +326,7 @@ Status notifications are created when you call
           (mastodon-http--post (mastodon-http--api
                                 (format "notifications/%s/dismiss" id)))))
     (mastodon-http--triage
-     response (lambda ()
+     response (lambda (_)
                 (when mastodon-tl--buffer-spec
                   (mastodon-tl--reload-timeline-or-profile))
                 (message "Notification dismissed!")))))

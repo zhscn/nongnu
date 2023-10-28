@@ -319,7 +319,7 @@ Ask for confirmation if length > 500 characters."
   "Send PATCH request with the updated profile NOTE to URL."
   (let ((response (mastodon-http--patch url `(("note" . ,note)))))
     (mastodon-http--triage response
-                           (lambda () (message "Profile note updated!")))))
+                           (lambda (_) (message "Profile note updated!")))))
 
 (defun mastodon-profile--update-preference (pref val &optional source)
   "Update account PREF erence to setting VAL.
@@ -329,7 +329,7 @@ SOURCE means that the preference is in the `source' part of the account JSON."
          (pref-formatted (if source (concat "source[" pref "]") pref))
          (response (mastodon-http--patch url `((,pref-formatted . ,val)))))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (mastodon-profile--fetch-server-account-settings)
                              (message "Account setting %s updated to %s!" pref val)))))
 
@@ -441,7 +441,7 @@ Returns an alist."
          (params (mastodon-profile--make-meta-fields-params fields-updated))
          (response (mastodon-http--patch url params)))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (mastodon-profile--fetch-server-account-settings)
                              (message "Metadata fields updated to %s!"
                                       fields-updated)))))
@@ -816,7 +816,7 @@ Optionally provide the ID of the account to remove."
     (when (y-or-n-p (format "Remove follower %s? " handle))
       (let ((response (mastodon-http--post url)))
         (mastodon-http--triage response
-                               (lambda ()
+                               (lambda (_)
                                  (message "Follower %s removed!" handle)))))))
 
 (defun mastodon-profile--remove-from-followers-at-point ()
@@ -862,7 +862,7 @@ NOTE-OLD is the text of any existing note."
          (url (mastodon-http--api (format "accounts/%s/note" id)))
          (response (mastodon-http--post url params)))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (message "Private note on %s added!" handle)))))
 
 (defun mastodon-profile--view-account-private-note ()

@@ -91,7 +91,7 @@ RESPONSE if unsuccessful."
   (let ((status (with-current-buffer response
                   (mastodon-http--status))))
     (if (string-prefix-p "2" status)
-        (funcall success)
+        (funcall success response)
       (if (string-prefix-p "404" status)
           (message "Error %s: page not found" status)
         (let ((json-response (with-current-buffer response

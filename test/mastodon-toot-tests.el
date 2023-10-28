@@ -180,7 +180,7 @@ mention string."
              => "https://example.space/statuses/61208/pin")
        (mock (mastodon-http--post "https://example.space/statuses/61208/pin")
              => pin-response)
-       (should (equal (mastodon-toot--action "pin" (lambda ()
+       (should (equal (mastodon-toot--action "pin" (lambda (_)
                                                      (message "Toot pinned!")))
                       "Toot pinned!"))))))
 

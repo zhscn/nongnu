@@ -386,7 +386,7 @@ TYPE is a symbol, either `favourite' or `boost.'"
             (t
              (mastodon-toot--action
               action
-              (lambda ()
+              (lambda (_)
                 (let ((inhibit-read-only t))
                   (add-text-properties (car byline-region)
                                        (cdr byline-region)
@@ -457,7 +457,7 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
      (if byline-region
          (mastodon-toot--action
           action
-          (lambda ()
+          (lambda (_)
             (let ((inhibit-read-only t))
               (add-text-properties (car byline-region)
                                    (cdr byline-region)
@@ -563,7 +563,7 @@ Uses `lingva.el'."
         (message "You can only pin your own toots.")
       (when (y-or-n-p (format "%s this toot? " msg-y-or-n))
         (mastodon-toot--action action
-                               (lambda ()
+                               (lambda (_)
                                  (when mastodon-tl--buffer-spec
                                    (mastodon-tl--reload-timeline-or-profile))
                                  (message "Toot %s!" msg)))))))
@@ -597,7 +597,7 @@ NO-REDRAFT means delete toot only."
         (let* ((response (mastodon-http--delete url)))
           (mastodon-http--triage
            response
-           (lambda ()
+           (lambda (_)
              (if no-redraft
                  (progn
                    (when mastodon-tl--buffer-spec
@@ -856,7 +856,7 @@ instance to edit a toot."
                              (mastodon-http--post endpoint args))))
              (mastodon-http--triage
               response
-              (lambda ()
+              (lambda (_)
                 (mastodon-toot--kill)
                 (if scheduled
                     (message "Toot scheduled!")
@@ -1343,7 +1343,7 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
                     (url (mastodon-http--api (format "scheduled_statuses/%s" id)))
                     (response (mastodon-http--put url args)))
                (mastodon-http--triage response
-                                      (lambda ()
+                                      (lambda (_)
                                         ;; reschedule means we are in scheduled toots view:
                                         (mastodon-views--view-scheduled-toots)
                                         (message

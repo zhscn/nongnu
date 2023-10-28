@@ -1229,7 +1229,7 @@ displayed when the duration is smaller than a minute)."
            (arg `(("choices[]" . ,option-as-arg)))
            (response (mastodon-http--post url arg)))
       (mastodon-http--triage response
-                             (lambda ()
+                             (lambda (_)
                                (message "You voted for option %s: %s!"
                                         (car option) (cdr option)))))))
 
@@ -1852,7 +1852,7 @@ If UNMUTE, unmute it."
           (when (y-or-n-p (format "%s this thread? " (capitalize mute-str)))
             (let ((response (mastodon-http--post url)))
               (mastodon-http--triage response
-                                     (lambda ()
+                                     (lambda (_)
                                        (if unmute
                                            (message "Thread unmuted!")
                                          (message "Thread muted!")))))))))))
@@ -2086,27 +2086,35 @@ ARGS is an alist of any parameters to send with the request."
   (let ((response (mastodon-http--post url args)))
     (mastodon-http--triage
      response
-     (lambda ()
-       (cond ((string-equal notify "true")
-              (message "Receiving notifications for user %s (@%s)!"
-                       name user-handle))
-             ((string-equal notify "false")
-              (message "Not receiving notifications for user %s (@%s)!"
-                       name user-handle))
-             ((string-equal reblogs "true")
-              (message "Receiving boosts by user %s (@%s)!"
-                       name user-handle))
-             ((string-equal reblogs "false")
-              (message "Not receiving boosts by user %s (@%s)!"
-                       name user-handle))
-             ((or (string-equal action "mute")
-                  (string-equal action "unmute"))
-              (message "User %s (@%s) %sd!" name user-handle action))
-             ((assoc "languages[]" args #'equal)
-              (message "User %s filtered by language(s): %s" name
-                       (mapconcat #'cdr args " ")))
-             ((eq notify nil)
-              (message "User %s (@%s) %sed!" name user-handle action)))))))
+     (lambda (response)
+       (let ((json (with-current-buffer response
+                     (mastodon-http--process-json))))
+         ;; TODO: when > if, with failure msg
+         (cond ((string-equal notify "true")
+                (when (equal 't (alist-get 'notifying json))
+                  (message "Receiving notifications for user %s (@%s)!"
+                           name user-handle)))
+               ((string-equal notify "false")
+                (when (equal :json-false (alist-get 'notifying json))
+                  (message "Not receiving notifications for user %s (@%s)!"
+                           name user-handle)))
+               ((string-equal reblogs "true")
+                (when (equal 't (alist-get 'showing_reblogs json))
+                  (message "Receiving boosts by user %s (@%s)!"
+                           name user-handle)))
+               ((string-equal reblogs "false")
+                (when (equal :json-false (alist-get 'showing_reblogs json))
+                  (message "Not receiving boosts by user %s (@%s)!"
+                           name user-handle)))
+               ((or (string-equal action "mute")
+                    (string-equal action "unmute"))
+                (message "User %s (@%s) %sd!" name user-handle action))
+               ((assoc "languages[]" args #'equal)
+                (message "User %s filtered by language(s): %s" name
+                         (mapconcat #'cdr args " ")))
+               ((and (eq notify nil)
+                     (eq reblogs nil))
+                (message "User %s (@%s) %sed!" name user-handle action))))))))
 
 
 ;; FOLLOW TAGS
@@ -2135,7 +2143,7 @@ If TAG provided, follow it."
          (url (mastodon-http--api (format "tags/%s/follow" tag)))
          (response (mastodon-http--post url)))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (message "tag #%s followed!" tag)))))
 
 (defun mastodon-tl--followed-tags ()
@@ -2153,7 +2161,7 @@ If TAG is provided, unfollow it."
          (url (mastodon-http--api (format "tags/%s/unfollow" tag)))
          (response (mastodon-http--post url)))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (message "tag #%s unfollowed!" tag)))))
 
 (defun mastodon-tl--list-followed-tags (&optional prefix)
@@ -2249,7 +2257,7 @@ report the account for spam."
             (params (mastodon-tl--report-params account toot))
             (response (mastodon-http--post url params)))
        (mastodon-http--triage response
-                              (lambda ()
+                              (lambda (_)
                                 (message "User %s reported!" handle)))))))
 
 (defvar crm-separator)
