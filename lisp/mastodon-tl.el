@@ -2169,7 +2169,9 @@ PREFIX is sent to `mastodon-tl--get-tag-timeline', which see."
 
 (defun mastodon-tl--followed-tags-timeline (&optional prefix)
   "Open a timeline of all your followed tags.
-PREFIX is sent to `mastodon-tl--show-tag-timeline', which see."
+PREFIX is sent to `mastodon-tl--show-tag-timeline', which see.
+Note that the number of tags supported is undocumented, and from
+manual testing appears to be limited to a total of four tags."
   (interactive "p")
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
          (tags (mastodon-tl--map-alist 'name followed-tags-json)))
