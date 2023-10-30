@@ -108,8 +108,8 @@
 |                  | mastodon-tl--filter-user-user-posts-by-language   | Query for USER-HANDLE and enable notifications when they post.                 |
 |                  | mastodon-tl--follow-tag                           | Prompt for a tag and follow it.                                                |
 | W                | mastodon-tl--follow-user                          | Query for USER-HANDLE from current status and follow that user.                |
-|                  | mastodon-tl--follow-user-disable-boosts           |                                                                                |
-|                  | mastodon-tl--follow-user-enable-boosts            |                                                                                |
+|                  | mastodon-tl--follow-user-disable-boosts           | Prompt for a USER-HANDLE, and disable display of boosts in home timeline.      |
+|                  | mastodon-tl--follow-user-enable-boosts            | Prompt for a USER-HANDLE, and enable display of boosts in home timeline.       |
 | '                | mastodon-tl--followed-tags-timeline               | Open a timeline of all your followed tags.                                     |
 | F                | mastodon-tl--get-federated-timeline               | Open federated timeline.                                                       |
 | H                | mastodon-tl--get-home-timeline                    | Open home timeline.                                                            |
