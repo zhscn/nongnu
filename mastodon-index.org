@@ -81,7 +81,6 @@
 |                  | mastodon-profile--remove-user-from-followers      | Remove a user from your followers.                                             |
 |                  | mastodon-profile--show-familiar-followers         | Show a list of familiar followers.                                             |
 | P                | mastodon-profile--show-user                       | Query for USER-HANDLE from current status and show that user's profile.        |
-|                  | mastodon-profile--toot-json                       | Get the next toot-json.                                                        |
 |                  | mastodon-profile--update-display-name             | Update display name for your account.                                          |
 |                  | mastodon-profile--update-meta-fields              | Prompt for new metadata fields information and PATCH the server.               |
 |                  | mastodon-profile--update-profile-note-cancel      | Cancel updating user profile and kill buffer and window.                       |
@@ -93,8 +92,8 @@
 |                  | mastodon-profile--view-preferences                | View user preferences in another window.                                       |
 |                  | mastodon-profile-mode                             | Toggle mastodon profile minor mode.                                            |
 |                  | mastodon-profile-update-mode                      | Minor mode to update Mastodon user profile.                                    |
+| s                | mastodon-search--query                            | Prompt for a search QUERY and return accounts, statuses, and hashtags.         |
 |                  | mastodon-search--query-cycle                      | Cycle through search types: accounts, hashtags, and statuses.                  |
-| s                | mastodon-search--query                     | Prompt for a search QUERY and return accounts, statuses, and hashtags.         |
 |                  | mastodon-search--trending-statuses                | Display a list of statuses trending on your instance.                          |
 |                  | mastodon-search--trending-tags                    | Display a list of tags trending on your instance.                              |
 |                  | mastodon-search-mode                              | Toggle mastodon search minor mode.                                             |
@@ -109,15 +108,17 @@
 |                  | mastodon-tl--filter-user-user-posts-by-language   | Query for USER-HANDLE and enable notifications when they post.                 |
 |                  | mastodon-tl--follow-tag                           | Prompt for a tag and follow it.                                                |
 | W                | mastodon-tl--follow-user                          | Query for USER-HANDLE from current status and follow that user.                |
+|                  | mastodon-tl--follow-user-disable-boosts           | Prompt for a USER-HANDLE, and disable display of boosts in home timeline.      |
+|                  | mastodon-tl--follow-user-enable-boosts            | Prompt for a USER-HANDLE, and enable display of boosts in home timeline.       |
 | '                | mastodon-tl--followed-tags-timeline               | Open a timeline of all your followed tags.                                     |
 | F                | mastodon-tl--get-federated-timeline               | Open federated timeline.                                                       |
 | H                | mastodon-tl--get-home-timeline                    | Open home timeline.                                                            |
 | L                | mastodon-tl--get-local-timeline                   | Open local timeline.                                                           |
 | #                | mastodon-tl--get-tag-timeline                     | Prompt for tag and opens its timeline.                                         |
-|                  | mastodon-tl--goto-next-item                       | Jump to next item, e.g. filter or follow request.                              |
-| C-<down>, n      | mastodon-tl--goto-next-item                       | Jump to next toot header.                                                      |
-|                  | mastodon-tl--goto-prev-item                       | Jump to previous item, e.g. filter or follow request.                          |
-| C-<up>, p        | mastodon-tl--goto-prev-item                       | Jump to last toot header.                                                      |
+| n                | mastodon-tl--goto-next-item                       | Jump to next item.                                                             |
+| C-<down>         | mastodon-tl--goto-next-toot                       |                                                                                |
+| p                | mastodon-tl--goto-prev-item                       | Jump to previous item.                                                         |
+| C-<up>           | mastodon-tl--goto-prev-toot                       |                                                                                |
 | "                | mastodon-tl--list-followed-tags                   | List followed tags. View timeline of tag user choses.                          |
 | C-<return>       | mastodon-tl--mpv-play-video-at-point              | Play the video or gif at point with an mpv process.                            |
 |                  | mastodon-tl--mpv-play-video-from-byline           | Run `mastodon-tl--mpv-play-video-at-point' on first moving image in post.      |
