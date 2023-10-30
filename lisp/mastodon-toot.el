@@ -91,6 +91,7 @@
 (autoload 'mastodon-views--cancel-scheduled-toot "mastodon-views")
 (autoload 'mastodon-views--view-scheduled-toots "mastodon-views")
 (autoload 'org-read-date "org")
+(autoload 'mastodon-tl--toot-or-base "mastodon-tl")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")

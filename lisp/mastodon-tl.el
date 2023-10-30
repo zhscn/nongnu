@@ -1763,7 +1763,7 @@ ID is that of the toot to view."
         (mastodon-tl--goto-next-item)))))
 
 (defun mastodon-tl--update-toot (json)
-  ""
+  "Call `mastodon-tl--single-toot' on id found in JSON."
   (let ((id (alist-get 'id json)))
     (mastodon-tl--single-toot id)))
 
@@ -1885,7 +1885,9 @@ ID is that of the post the context is currently displayed for."
 If NOTIFY is \"true\", enable notifications when that user posts.
 If NOTIFY is \"false\", disable notifications when that user posts.
 Can be called to toggle NOTIFY on users already being followed.
-LANGS is an array parameters alist of languages to filer user's posts by."
+LANGS is an array parameters alist of languages to filer user's posts by.
+REBLOGS is a boolean string like NOTIFY, enabling or disabling
+display of the user's boosts in your timeline."
   (interactive
    (list (mastodon-tl--user-handles-get "follow")))
   (mastodon-tl--do-if-item
@@ -1907,13 +1909,17 @@ LANGS is an array parameters alist of languages to filer user's posts by."
   (mastodon-tl--follow-user user-handle "false"))
 
 (defun mastodon-tl--follow-user-disable-boosts (user-handle)
-  ""
+  "Prompt for a USER-HANDLE, and disable display of boosts in home timeline.
+If they are also not yet followed, follow them."
   (interactive
    (list (mastodon-tl--user-handles-get "disable boosts")))
   (mastodon-tl--follow-user user-handle nil nil "false"))
 
 (defun mastodon-tl--follow-user-enable-boosts (user-handle)
-  ""
+  "Prompt for a USER-HANDLE, and enable display of boosts in home timeline.
+If they are also not yet followed, follow them.
+You only need to call this if you have previously disabled
+display of boosts."
   (interactive
    (list (mastodon-tl--user-handles-get "enable boosts")))
   (mastodon-tl--follow-user user-handle nil nil "true"))
