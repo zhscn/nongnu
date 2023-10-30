@@ -431,6 +431,8 @@ free to open an issue.
 
 PRs, issues, feature requests, and general feedback are very welcome!
 
+If you prefer emailing patches to the process described below, feel free to send them on. Ideally they'd be patches that can be applied with =git am=, if you want to actually contribute a commit.
+
 *** Bug reports
 
 1. =mastodon.el= has bugs, as well as lots of room for improvement.
@@ -439,7 +441,7 @@ PRs, issues, feature requests, and general feedback are very welcome!
    in emacs with no init file (i.e. =emacs -q= (instructions and code for doing
    this are [[https://codeberg.org/martianh/mastodon.el/issues/300][here]]) to see if it also happens independently of your own config
    (it probably does).
-4. Enable debug on error (=toggle-debug-on-error=), make the bug happen again,
+4. Else enable debug on error (=toggle-debug-on-error=), make the bug happen again,
    and copy the backtrace that appears.
 5. Open an issue here and explain what is going on. Provide your emacs version and what kind of server your account is on.
 
@@ -448,7 +450,7 @@ PRs, issues, feature requests, and general feedback are very welcome!
 1. Create an [[https://codeberg.org/martianh/mastodon.el/issues][issue]] detailing what you'd like to do.
 2. Fork the repository and create a branch off of =develop=.
 3. Run the tests and ensure that your code doesn't break any of them.
-4. Create a pull request referencing the issue created in step 1.
+4. Create a pull request (to develop) referencing the issue created in step 1.
 
 *** Coding style
 
