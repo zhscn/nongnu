@@ -138,7 +138,6 @@ contains")
 
 (defun mastodon-profile--item-json ()
   "Get the next item-json."
-  (interactive)
   (mastodon-tl--property 'item-json))
 
 (defun mastodon-profile--make-author-buffer (account &optional no-reblogs)
