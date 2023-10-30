@@ -62,11 +62,11 @@ Strict-Transport-Security: max-age=31536000
   (let ((response-buffer
          (get-buffer-create "mastodon-http--triage-buffer")))
     (with-current-buffer response-buffer
-        (erase-buffer)
+      (erase-buffer)
       (insert mastodon-http--example-200))
     (should (equal (mastodon-http--triage
                     response-buffer
-                    (lambda ()
+                    (lambda (_)
                       (message "success call")))
                    "success call"))))
 
@@ -80,7 +80,7 @@ Strict-Transport-Security: max-age=31536000
       (insert mastodon-http--example-400))
     (should (equal (mastodon-http--triage
                     response-buffer
-                    (lambda ()
+                    (lambda (_)
                       (message "success call")))
                    "Error 444: some unhappy complaint"))))
 
