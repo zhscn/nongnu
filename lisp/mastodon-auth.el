@@ -134,6 +134,7 @@ When ASK is absent return nil."
 (defun mastodon-auth--request-authorization-code ()
   "Ask authorization code and return it."
   (let ((url (mastodon-auth--get-browser-login-url))
+        (select-enable-clipboard t)
         authorization-code)
     (kill-new url)
     (message "%s" url)
