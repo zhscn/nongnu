@@ -74,7 +74,7 @@
 (autoload 'mastodon-tl--symbol "mastodon-tl")
 (autoload 'mastodon-tl--timeline "mastodon-tl.el")
 (autoload 'mastodon-tl--toot "mastodon-tl")
-(autoload 'mastodon-tl--toot-id "mastodon-tl")
+(autoload 'mastodon-tl--item-id "mastodon-tl")
 (autoload 'mastodon-toot--count-toot-chars "mastodon-toot")
 (autoload 'mastodon-toot--get-max-toot-chars "mastodon-toot")
 (autoload 'mastodon-views--add-account-to-list "mastodon-views")
@@ -136,10 +136,10 @@ contains")
   :keymap mastodon-profile-update-mode-map
   :global nil)
 
-(defun mastodon-profile--toot-json ()
-  "Get the next toot-json."
+(defun mastodon-profile--item-json ()
+  "Get the next item-json."
   (interactive)
-  (mastodon-tl--property 'toot-json))
+  (mastodon-tl--property 'item-json))
 
 (defun mastodon-profile--make-author-buffer (account &optional no-reblogs)
   "Take an ACCOUNT json and insert a user account into a new buffer.
@@ -165,7 +165,7 @@ NO-REBLOGS means do not display boosts in statuses."
   (interactive)
   (if mastodon-profile--account
       (mastodon-profile--make-author-buffer mastodon-profile--account :no-reblogs)
-    (error "Not in a mastodon profile")))
+    (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-following ()
   "Open a profile buffer showing the accounts that current profile follows."
@@ -177,7 +177,7 @@ NO-REBLOGS means do not display boosts in statuses."
        #'mastodon-profile--format-user
        nil
        :headers)
-    (error "Not in a mastodon profile")))
+    (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-followers ()
   "Open a profile buffer showing the accounts following the current profile."
@@ -189,7 +189,7 @@ NO-REBLOGS means do not display boosts in statuses."
        #'mastodon-profile--format-user
        nil
        :headers)
-    (error "Not in a mastodon profile")))
+    (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--view-favourites ()
   "Open a new buffer displaying the user's favourites."
@@ -319,7 +319,7 @@ Ask for confirmation if length > 500 characters."
   "Send PATCH request with the updated profile NOTE to URL."
   (let ((response (mastodon-http--patch url `(("note" . ,note)))))
     (mastodon-http--triage response
-                           (lambda () (message "Profile note updated!")))))
+                           (lambda (_) (message "Profile note updated!")))))
 
 (defun mastodon-profile--update-preference (pref val &optional source)
   "Update account PREF erence to setting VAL.
@@ -329,7 +329,7 @@ SOURCE means that the preference is in the `source' part of the account JSON."
          (pref-formatted (if source (concat "source[" pref "]") pref))
          (response (mastodon-http--patch url `((,pref-formatted . ,val)))))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (mastodon-profile--fetch-server-account-settings)
                              (message "Account setting %s updated to %s!" pref val)))))
 
@@ -441,7 +441,7 @@ Returns an alist."
          (params (mastodon-profile--make-meta-fields-params fields-updated))
          (response (mastodon-http--patch url params)))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (mastodon-profile--fetch-server-account-settings)
                              (message "Metadata fields updated to %s!"
                                       fields-updated)))))
@@ -679,7 +679,7 @@ the format \"2000-01-31T00:00:00.000Z\"."
 If toot is a boost, opens the profile of the booster."
   (interactive)
   (mastodon-profile--make-author-buffer
-   (alist-get 'account (mastodon-profile--toot-json))))
+   (alist-get 'account (mastodon-profile--item-json))))
 
 (defun mastodon-profile--image-from-account (account img-type)
   "Return a avatar image from ACCOUNT.
@@ -693,21 +693,21 @@ IMG-TYPE is the JSON key from the account data."
   (interactive
    (list
     (if (and (not (mastodon-tl--profile-buffer-p))
-             (not (mastodon-tl--property 'toot-json :no-move)))
+             (not (mastodon-tl--property 'item-json :no-move)))
         (message "Looks like there's no toot or user at point?")
       (let ((user-handles (mastodon-profile--extract-users-handles
-                           (mastodon-profile--toot-json))))
+                           (mastodon-profile--item-json))))
         (completing-read "View profile of user [choose or enter any handle]: "
                          user-handles
                          nil ; predicate
                          'confirm)))))
-  (if (not (or ; own profile has no need for toot-json test:
+  (if (not (or ; own profile has no need for item-json test:
             (equal user-handle (mastodon-auth--get-account-name))
             (mastodon-tl--profile-buffer-p)
-            (mastodon-tl--property 'toot-json :no-move)))
+            (mastodon-tl--property 'item-json :no-move)))
       (message "Looks like there's no toot or user at point?")
     (let ((account (mastodon-profile--lookup-account-in-status
-                    user-handle (mastodon-profile--toot-json))))
+                    user-handle (mastodon-profile--item-json))))
       (if account
           (progn
             (message "Loading profile of user %s..." user-handle)
@@ -733,14 +733,14 @@ Used to view a user's followers and those they're following."
                    (propertize
                     (mastodon-tl--byline-author `((account . ,toot)) :avatar)
                     'byline  't
-                    'toot-id (alist-get 'id toot)
-                    'base-toot-id (mastodon-tl--toot-id toot)
-                    'toot-json toot))
+                    'item-id (alist-get 'id toot)
+                    'base-item-id (mastodon-tl--item-id toot)
+                    'item-json toot))
            (mastodon-media--inline-images start-pos (point))
            (insert "\n"
                    (propertize
                     (mastodon-tl--render-text (alist-get 'note toot) nil)
-                    'toot-json toot)
+                    'item-json toot)
                    "\n")))
        tootv))))
 
@@ -805,7 +805,7 @@ These include the author, author of reblogged entries and any user mentioned."
   "Remove a user from your followers.
 Optionally provide the ID of the account to remove."
   (interactive)
-  (let* ((account (unless id (mastodon-tl--property 'toot-json :no-move)))
+  (let* ((account (unless id (mastodon-tl--property 'item-json :no-move)))
          (id (or id (alist-get 'id account)))
          (handle (if account
                      (alist-get 'acct account)
@@ -816,17 +816,17 @@ Optionally provide the ID of the account to remove."
     (when (y-or-n-p (format "Remove follower %s? " handle))
       (let ((response (mastodon-http--post url)))
         (mastodon-http--triage response
-                               (lambda ()
+                               (lambda (_)
                                  (message "Follower %s removed!" handle)))))))
 
 (defun mastodon-profile--remove-from-followers-at-point ()
   "Prompt for a user in the item at point and remove from followers."
   (interactive)
   (let* ((handles (mastodon-profile--extract-users-handles
-                   (mastodon-profile--toot-json)))
+                   (mastodon-profile--item-json)))
          (handle (completing-read "Remove from followers: " handles nil))
          (account (mastodon-profile--lookup-account-in-status
-                   handle (mastodon-profile--toot-json)))
+                   handle (mastodon-profile--item-json)))
          (id (alist-get 'id account)))
     (mastodon-profile--remove-user-from-followers id)))
 
@@ -862,7 +862,7 @@ NOTE-OLD is the text of any existing note."
          (url (mastodon-http--api (format "accounts/%s/note" id)))
          (response (mastodon-http--post url params)))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (message "Private note on %s added!" handle)))))
 
 (defun mastodon-profile--view-account-private-note ()

@@ -51,10 +51,8 @@
 (autoload 'mastodon-tl--set-face "mastodon-tl")
 (autoload 'mastodon-tl--buffer-type-eq "mastodon-tl")
 (autoload 'mastodon-tl--profile-buffer-p "mastodon-tl")
-(autoload 'mastodon-tl--goto-next-item "mastodon-tl")
-(autoload 'mastodon-tl--goto-prev-item "mastodon-tl")
 (autoload 'mastodon-tl--goto-first-item "mastodon-tl")
-(autoload 'mastodon-tl--do-if-toot "mastodon-tl")
+(autoload 'mastodon-tl--do-if-item "mastodon-tl")
 (autoload 'mastodon-tl--set-buffer-spec "mastodon-tl")
 (autoload 'mastodon-tl--render-text "mastodon-tl")
 (autoload 'mastodon-notifications--follow-request-accept "mastodon-notifications")
@@ -86,8 +84,6 @@
 (defvar mastodon-views-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map mastodon-mode-map)
-    (define-key map (kbd "n") #'mastodon-tl--goto-next-item)
-    (define-key map (kbd "p") #'mastodon-tl--goto-prev-item)
     map)
   "Base keymap for minor mastodon views.")
 
@@ -96,7 +92,6 @@
     (set-keymap-parent map mastodon-views-map)
     (define-key map (kbd "d") #'mastodon-views--delete-filter)
     (define-key map (kbd "c") #'mastodon-views--create-filter)
-    (define-key map (kbd "TAB") #'mastodon-tl--goto-next-item)
     (define-key map (kbd "g") #'mastodon-views--view-filters)
     map)
   "Keymap for viewing filters.")
@@ -155,7 +150,7 @@
 
 ;;; GENERAL FUNCTION
 
-(defun mastodon-views--minor-view (view-name bindings-string insert-fun data)
+(defun mastodon-views--minor-view (view-name insert-fun data)
   "Load a minor view named VIEW-NAME.
 BINDINGS-STRING is a string explaining the view's local bindings.
 INSERT-FUN is the function to call to insert the view's elements.
@@ -164,27 +159,27 @@ request.
 This function is used as the update-function to
 `mastodon-tl--init-sync', which initializes a buffer for us and
 provides the JSON data."
-  (erase-buffer)
-  (insert (mastodon-tl--set-face
-           (concat "\n " mastodon-tl--horiz-bar "\n "
-                   (upcase view-name)
-                   "\n " mastodon-tl--horiz-bar "\n\n")
-           'success)
-          (if bindings-string
-              (mastodon-tl--set-face (concat "[" bindings-string "]\n\n")
-                                     'font-lock-comment-face)
-            ""))
+  ;; FIXME: this is not an update function as it inserts a heading and
+  ;; possible bindings string
+  ;; either it should go in init-sync, or possibly in each view function
+  ;; but either way, this function does almost nothing for us.
+  ;; could we call init-sync in here pehaps?
+  ;; (mastodon-search--insert-heading view-name)
+  ;; (when bindings-string
+  ;;   (insert (mastodon-tl--set-face (concat "[" bindings-string "]\n\n")
+  ;;                                  'font-lock-comment-face)))
   (if (seq-empty-p data)
       (insert (propertize
                (format "Looks like you have no %s for now." view-name)
                'face 'font-lock-comment-face
                'byline t
-               'toot-id "0")) ; so point can move here when no item
+               'item-type 'no-item ; for nav
+               'item-id "0")) ; so point can move here when no item
     (funcall insert-fun data)
     (goto-char (point-min)))
   ;; (when data
   ;; FIXME: this seems to trigger a new request, but ideally would run.
-  ;; (mastodon-tl--goto-next-toot))
+  ;; (mastodon-tl--goto-next-item))
   )
 
 
@@ -194,56 +189,62 @@ provides the JSON data."
   "Show the user's lists in a new buffer."
   (interactive)
   (mastodon-tl--init-sync "lists" "lists"
-                          'mastodon-views--insert-lists)
+                          'mastodon-views--insert-lists
+                          nil nil nil
+                          "your lists"
+                          "C - create a list\n D - delete a list\
+     \n A/R - add/remove account from a list\
+     \n E - edit a list\n n/p - go to next/prev item")
   (with-current-buffer "*mastodon-lists*"
     (use-local-map mastodon-views--view-lists-keymap)))
 
 (defun mastodon-views--insert-lists (json)
   "Insert the user's lists from JSON."
   (mastodon-views--minor-view
-   "your lists"
-   "C - create a list\n D - delete a list\
-     \n A/R - add/remove account from a list\
-     \n E - edit a list\n n/p - go to next/prev item"
+   "lists"
    #'mastodon-views--print-list-set
    json))
 
 (defun mastodon-views--print-list-set (lists)
   "Print each account plus a separator for each list in LISTS."
-  (let ((lists-names (mastodon-tl--map-alist 'title lists)))
-    (mapc (lambda (x)
-            (mastodon-views--print-list-accounts x)
-            (insert (propertize (concat " " mastodon-tl--horiz-bar "\n\n")
-                                'face 'success)))
-          lists-names)))
+  (mapc (lambda (x)
+          (mastodon-views--print-list-accounts x)
+          (insert (propertize (concat " " mastodon-tl--horiz-bar "\n\n")
+                              'face 'success)))
+        lists))
 
-(defun mastodon-views--print-list-accounts (list-name)
-  "Insert the accounts in list named LIST-NAME."
-  (let* ((id (mastodon-views--get-list-id list-name))
-         (accounts (mastodon-views--accounts-in-list id)))
-    (insert
-     (propertize list-name
-                 'byline t ; so we nav here
-                 'toot-id "0" ; so we nav here
-                 'help-echo "RET: view list timeline, d: delete this list, \
+(defun mastodon-views--print-list-accounts (list)
+  "Insert the accounts in list named LIST, an alist."
+  (let-alist list
+    (let* ((accounts (mastodon-views--accounts-in-list .id)))
+      (insert
+       (propertize .title
+                   'byline t ; so we nav here
+                   'item-id "0" ; so we nav here
+                   'item-type 'list
+                   'help-echo "RET: view list timeline, d: delete this list, \
 a: add account to this list, r: remove account from this list"
-                 'list t
-                 'face 'link
-                 'keymap mastodon-views--list-name-keymap
-                 'list-name list-name
-                 'list-id id)
-     (propertize "\n\n"
-                 'list t
-                 'keymap mastodon-views--list-name-keymap
-                 'list-name list-name
-                 'list-id id)
-     (propertize
-      (mapconcat #'mastodon-search--propertize-user accounts
-                 " ")
-      'list t
-      'keymap mastodon-views--list-name-keymap
-      'list-name list-name
-      'list-id id))))
+                   'list t
+                   'face 'link
+                   'keymap mastodon-views--list-name-keymap
+                   'list-name .title
+                   'list-id .id)
+       (propertize (format " [replies: %s, exclusive %s]"
+                           .replies_policy
+                           (when (eq t .exclusive) "true"))
+                   'face 'font-lock-comment-face)
+       (propertize "\n\n"
+                   'list t
+                   'keymap mastodon-views--list-name-keymap
+                   'list-name .title
+                   'list-id .id)
+       (propertize
+        (mapconcat #'mastodon-search--propertize-user accounts
+                   " ")
+        'list t
+        'keymap mastodon-views--list-name-keymap
+        'list-name .title
+        'list-id .id)))))
 
 (defun mastodon-views--get-users-lists ()
   "Get the list of the user's lists from the server."
@@ -292,12 +293,16 @@ If ID is provided, use that list."
          (replies-policy (completing-read "Replies policy: " ; give this a proper name
                                           '("followed" "list" "none")
                                           nil t nil nil "list"))
+         (exclusive (if (y-or-n-p "Exclude items from home timeline? ")
+                        "true"
+                      "false"))
          (url (mastodon-http--api (format "lists/%s" id)))
          (response (mastodon-http--put url
                                        `(("title" . ,name-choice)
-                                         ("replies_policy" . ,replies-policy)))))
+                                         ("replies_policy" . ,replies-policy)
+                                         ("exclusive" . ,exclusive)))))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (with-current-buffer response
                                (let* ((json (mastodon-http--process-json))
                                       (name-new (alist-get 'title json)))
@@ -334,10 +339,12 @@ Prompt for name and replies policy."
          (replies-policy (completing-read "Replies policy: " ; give this a proper name
                                           '("followed" "list" "none")
                                           nil t nil nil "list")) ; default
+         (exclusive (when (y-or-n-p "Exclude items from home timeline? ")
+                      "true"))
          (response (mastodon-http--post (mastodon-http--api "lists")
                                         `(("title" . ,title)
-                                          ("replies_policy" . ,replies-policy))
-                                        nil)))
+                                          ("replies_policy" . ,replies-policy)
+                                          ("exclusive" . ,exclusive)))))
     (mastodon-views--list-action-triage
      response "list %s created!" title)))
 
@@ -400,7 +407,7 @@ If ACCOUNT-ID and HANDLE are provided use them rather than prompting."
 (defun mastodon-views--add-toot-account-at-point-to-list ()
   "Prompt for a list, and add the account of the toot at point to it."
   (interactive)
-  (let* ((toot (mastodon-tl--property 'toot-json))
+  (let* ((toot (mastodon-tl--property 'item-json))
          (account (mastodon-tl--field 'account toot))
          (account-id (mastodon-tl--field 'id account))
          (handle (mastodon-tl--field 'acct account)))
@@ -435,7 +442,7 @@ If ID is provided, use that list."
 (defun mastodon-views--list-action-triage (response &rest args)
   "Call `mastodon-http--triage' on RESPONSE and call message on ARGS."
   (mastodon-http--triage response
-                         (lambda ()
+                         (lambda (_)
                            (when (mastodon-tl--buffer-type-eq 'lists)
                              (mastodon-views--view-lists))
                            (apply #'message args))))
@@ -453,7 +460,6 @@ If ID is provided, use that list."
 JSON is the data returned by the server."
   (mastodon-views--minor-view
    "follow requests"
-   "a/j - accept/reject request at point\n n/p - go to next/prev request"
    #'mastodon-views--insert-users-propertized-note
    json))
 
@@ -462,7 +468,13 @@ JSON is the data returned by the server."
   (interactive)
   (mastodon-tl--init-sync "follow-requests"
                           "follow_requests"
-                          'mastodon-views--insert-follow-requests)
+                          'mastodon-views--insert-follow-requests
+                          nil
+                          '(("limit" . "40")) ; server max is 80
+                          :headers
+                          "follow requests"
+                          "a/j - accept/reject request at point\n\
+ n/p - go to next/prev request")
   (mastodon-tl--goto-first-item)
   (with-current-buffer "*mastodon-follow-requests*"
     (use-local-map mastodon-views--view-follow-requests-keymap)))
@@ -475,15 +487,18 @@ JSON is the data returned by the server."
   (interactive)
   (mastodon-tl--init-sync "scheduled-toots"
                           "scheduled_statuses"
-                          'mastodon-views--insert-scheduled-toots)
+                          'mastodon-views--insert-scheduled-toots
+                          nil nil nil
+                          "your scheduled toots"
+                          "n/p - prev/next\n r - reschedule\n\
+ e/RET - edit toot\n c - cancel")
   (with-current-buffer "*mastodon-scheduled-toots*"
     (use-local-map mastodon-views--scheduled-map)))
 
 (defun mastodon-views--insert-scheduled-toots (json)
   "Insert the user's scheduled toots, from JSON."
   (mastodon-views--minor-view
-   "your scheduled toots"
-   "n/p - prev/next\n r - reschedule\n e/RET - edit toot\n c - cancel"
+   "scheduled toots"
    #'mastodon-views--insert-scheduled-toots-list
    json))
 
@@ -499,7 +514,7 @@ JSON is the data returned by the server."
                          " | "
                          (mastodon-toot--iso-to-human .scheduled_at))
                  'byline t ; so we nav here
-                 'toot-id "0" ; so we nav here
+                 'item-id "0" ; so we nav here
                  'face 'font-lock-comment-face
                  'keymap mastodon-views--scheduled-map
                  'scheduled-json toot
@@ -544,7 +559,7 @@ NO-CONFIRM means there is no ask or message, there is only do."
         (let* ((url (mastodon-http--api (format "scheduled_statuses/%s" id)))
                (response (mastodon-http--delete url)))
           (mastodon-http--triage response
-                                 (lambda ()
+                                 (lambda (_)
                                    (mastodon-views--view-scheduled-toots)
                                    (unless no-confirm
                                      (message "Toot cancelled!")))))))))
@@ -574,7 +589,11 @@ NO-CONFIRM means there is no ask or message, there is only do."
   "View the user's filters in a new buffer."
   (interactive)
   (mastodon-tl--init-sync "filters" "filters"
-                          'mastodon-views--insert-filters)
+                          'mastodon-views--insert-filters
+                          nil nil nil
+                          "current filters"
+                          "c - create filter\n d - delete filter at point\n\
+ n/p - go to next/prev filter")
   (with-current-buffer "*mastodon-filters*"
     (use-local-map mastodon-views--view-filters-keymap)))
 
@@ -582,8 +601,7 @@ NO-CONFIRM means there is no ask or message, there is only do."
   "Insert the user's current filters.
 JSON is what is returned by by the server."
   (mastodon-views--minor-view
-   "current filters"
-   "c - create filter\n d - delete filter at point\n n/p - go to next/prev filter"
+   "filters"
    #'mastodon-views--insert-filter-string-set
    json))
 
@@ -601,7 +619,7 @@ JSON is the filters data."
                                 (mapconcat #'identity contexts ", "))))
     (insert
      (propertize filter-string
-                 'toot-id id ;for goto-next-filter compat
+                 'item-id id ;for goto-next-filter compat
                  'phrase phrase
                  'byline t) ;for goto-next-filter compat
      "\n\n")))
@@ -617,14 +635,14 @@ Prompt for a context, must be a list containting at least one of \"home\",
                 nil nil (or (current-word) "")))
          (contexts
           (if (string-empty-p word)
-              (error "You must select at least one word for a filter")
+              (user-error "You must select at least one word for a filter")
             (completing-read-multiple
              "Contexts to filter [TAB for options]: "
              '("home" "notifications" "public" "thread")
              nil t)))
          (contexts-processed
           (if (equal nil contexts)
-              (error "You must select at least one context for a filter")
+              (user-error "You must select at least one context for a filter")
             (mapcar (lambda (x)
                       (cons "context[]" x))
                     contexts)))
@@ -632,7 +650,7 @@ Prompt for a context, must be a list containting at least one of \"home\",
                                              `("phrase" . ,word)
                                              contexts-processed))))
     (mastodon-http--triage response
-                           (lambda ()
+                           (lambda (_)
                              (message "Filter created for %s!" word)
                              (when (mastodon-tl--buffer-type-eq 'filters)
                                (mastodon-views--view-filters))))))
@@ -640,27 +658,32 @@ Prompt for a context, must be a list containting at least one of \"home\",
 (defun mastodon-views--delete-filter ()
   "Delete filter at point."
   (interactive)
-  (let* ((filter-id (mastodon-tl--property 'toot-id :no-move))
+  (let* ((filter-id (mastodon-tl--property 'item-id :no-move))
          (phrase (mastodon-tl--property 'phrase :no-move))
          (url (mastodon-http--api (format "filters/%s" filter-id))))
     (if (null phrase)
-        (error "No filter at point?")
+        (user-error "No filter at point?")
       (when (y-or-n-p (format "Delete filter %s? " phrase))
         (let ((response (mastodon-http--delete url)))
           (mastodon-http--triage
-           response (lambda ()
+           response (lambda (_)
                       (mastodon-views--view-filters)
                       (message "Filter for \"%s\" deleted!" phrase))))))))
 
 
 ;;; FOLLOW SUGGESTIONS
+;; No pagination: max 80 results
 
 (defun mastodon-views--view-follow-suggestions ()
   "Display a buffer of suggested accounts to follow."
   (interactive)
   (mastodon-tl--init-sync "follow-suggestions"
                           "suggestions"
-                          'mastodon-views--insert-follow-suggestions)
+                          'mastodon-views--insert-follow-suggestions
+                          nil
+                          '(("limit" . "80")) ; server max
+                          nil
+                          "suggested accounts")
   (with-current-buffer "*mastodon-follow-suggestions*"
     (use-local-map mastodon-views--follow-suggestions-map)))
 
@@ -669,7 +692,6 @@ Prompt for a context, must be a list containting at least one of \"home\",
 JSON is the data returned by the server."
   (mastodon-views--minor-view
    "suggested accounts"
-   nil
    #'mastodon-views--insert-users-propertized-note
    json))
 
@@ -716,24 +738,26 @@ If INSTANCE is given, use that."
          (string-remove-suffix (concat "/@" username)
                                url))))
 
-(defun mastodon-views--view-instance-description (&optional user brief instance misskey)
+(defun mastodon-views--view-instance-description
+    (&optional user brief instance misskey)
   "View the details of the instance the current post's author is on.
 USER means to show the instance details for the logged in user.
 BRIEF means to show fewer details.
-INSTANCE is an instance domain name."
+INSTANCE is an instance domain name.
+MISSKEY means the instance is a Misskey or derived server."
   (interactive)
   (if user
       (let ((response (mastodon-http--get-json
                        (mastodon-http--api "instance") nil nil :vector)))
         (mastodon-views--instance-response-fun response brief instance))
-    (mastodon-tl--do-if-toot
+    (mastodon-tl--do-if-item
      (let* ((toot (if (mastodon-tl--profile-buffer-p)
                       ;; we may be on profile description itself:
                       (or (mastodon-tl--property 'profile-json)
                           ;; or on profile account listings, or just toots:
-                          (mastodon-tl--property 'toot-json))
+                          (mastodon-tl--property 'item-json))
                     ;; normal timeline/account listing:
-                    (mastodon-tl--property 'toot-json)))
+                    (mastodon-tl--property 'item-json)))
             (reblog (alist-get 'reblog toot))
             (account (or (alist-get 'account reblog)
                          (alist-get 'account toot)
@@ -778,15 +802,16 @@ USER, BRIEF, and INSTANCE are all for
                                                        &optional misskey)
   "Display instance description RESPONSE in a new buffer.
 BRIEF means to show fewer details.
-INSTANCE is the instance were are working with."
+INSTANCE is the instance were are working with.
+MISSKEY means the instance is a Misskey or derived server."
   (when response
     (let* ((domain (url-file-nondirectory instance))
            (buf (get-buffer-create
                  (format "*mastodon-instance-%s*" domain))))
       (with-mastodon-buffer buf #'special-mode :other-window
         (if misskey
-            (mastodon-view--insert-json response)
-          (condition-case err
+            (mastodon-views--insert-json response)
+          (condition-case nil
               (progn
                 (when brief
                   (setq response

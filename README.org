@@ -390,7 +390,7 @@ to your translator function as its text argument. Here's what
     "Translate text of toot at point.
     Uses `lingva.el'."
       (interactive)
-      (let* ((toot (mastodon-tl--property 'toot-json)))
+      (let* ((toot (mastodon-tl--property 'item-json)))
         (if toot
             (lingva-translate nil (mastodon-tl--content toot))
           (message "No toot to translate?"))))

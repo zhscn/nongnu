@@ -50,7 +50,7 @@
 (autoload 'mastodon-tl--property "mastodon-tl")
 (autoload 'mastodon-tl--reload-timeline-or-profile "mastodon-tl")
 (autoload 'mastodon-tl--spoiler "mastodon-tl")
-(autoload 'mastodon-tl--toot-id "mastodon-tl")
+(autoload 'mastodon-tl--item-id "mastodon-tl")
 (autoload 'mastodon-tl--update "mastodon-tl")
 (autoload 'mastodon-views--view-follow-requests "mastodon-views")
 
@@ -98,17 +98,17 @@
 With no argument, the request is accepted. Argument REJECT means
 reject the request. Can be called in notifications view or in
 follow-requests view."
-  (if (not (mastodon-tl--find-property-range 'toot-json (point)))
+  (if (not (mastodon-tl--find-property-range 'item-json (point)))
       (message "No follow request at point?")
-    (let* ((toot-json (mastodon-tl--property 'toot-json))
+    (let* ((item-json (mastodon-tl--property 'item-json))
            (f-reqs-view-p (string= "follow_requests"
                                    (plist-get mastodon-tl--buffer-spec 'endpoint)))
-           (f-req-p (or (string= "follow_request" (alist-get 'type toot-json)) ;notifs
+           (f-req-p (or (string= "follow_request" (alist-get 'type item-json)) ;notifs
                         f-reqs-view-p)))
       (if (not f-req-p)
           (message "No follow request at point?")
-        (let-alist (or (alist-get 'account toot-json) ;notifs
-                       toot-json) ;f-reqs
+        (let-alist (or (alist-get 'account item-json) ;notifs
+                       item-json) ;f-reqs
           (if .id
               (let ((response
                      (mastodon-http--post
@@ -116,7 +116,7 @@ follow-requests view."
                        (mastodon-http--api "follow_requests")
                        (format "/%s/%s" .id (if reject "reject" "authorize"))))))
                 (mastodon-http--triage response
-                                       (lambda ()
+                                       (lambda (_)
                                          (if f-reqs-view-p
                                              (mastodon-views--view-follow-requests)
                                            (mastodon-tl--reload-timeline-or-profile))
@@ -311,7 +311,7 @@ Status notifications are created when you call
     (let ((response
            (mastodon-http--post (mastodon-http--api "notifications/clear"))))
       (mastodon-http--triage
-       response (lambda ()
+       response (lambda (_)
                   (when mastodon-tl--buffer-spec
                     (mastodon-tl--reload-timeline-or-profile))
                   (message "All notifications cleared!"))))))
@@ -319,14 +319,14 @@ Status notifications are created when you call
 (defun mastodon-notifications--clear-current ()
   "Dismiss the notification at point."
   (interactive)
-  (let* ((id (or (mastodon-tl--property 'toot-id)
+  (let* ((id (or (mastodon-tl--property 'item-id)
                  (mastodon-tl--field 'id
-                                     (mastodon-tl--property 'toot-json))))
+                                     (mastodon-tl--property 'item-json))))
          (response
           (mastodon-http--post (mastodon-http--api
                                 (format "notifications/%s/dismiss" id)))))
     (mastodon-http--triage
-     response (lambda ()
+     response (lambda (_)
                 (when mastodon-tl--buffer-spec
                   (mastodon-tl--reload-timeline-or-profile))
                 (message "Notification dismissed!")))))

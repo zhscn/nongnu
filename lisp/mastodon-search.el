@@ -89,7 +89,7 @@ QUERY is the string to search."
   "Display a list of tags trending on your instance."
   (interactive)
   (mastodon-search--view-trending "tags"
-                                  #'mastodon-search--print-tags-list))
+                                  #'mastodon-search--print-tags))
 
 (defun mastodon-search--trending-statuses ()
   "Display a list of statuses trending on your instance."
@@ -109,35 +109,27 @@ PRINT-FUN is the function used to print the data from the response."
                   '("limit" . "20")))
          (offset '(("offset" . "0")))
          (params (push limit offset))
-         (response (mastodon-http--get-json url params))
-         (data (cond ((equal type "tags")
-                      (mapcar #'mastodon-search--get-hashtag-info response))
-                     ((equal type "statuses")
-                      response) ; no longer needs further processing
-                     ((equal type "links")
-                      (message "todo"))))
+         (data (mastodon-http--get-json url params))
          (buffer (get-buffer-create (format "*mastodon-trending-%s*" type))))
     (with-mastodon-buffer buffer #'mastodon-mode nil
       (mastodon-tl--set-buffer-spec (buffer-name buffer)
                                     (format "trends/%s" type)
                                     print-fun nil
                                     params)
-      (insert (mastodon-tl--set-face
-               (concat "\n " mastodon-tl--horiz-bar "\n"
-                       (upcase (format " TRENDING %s\n" type))
-                       " " mastodon-tl--horiz-bar "\n\n")
-               'success))
+      (mastodon-search--insert-heading "trending" type)
       (funcall print-fun data)
       (unless (equal type "statuses")
         (goto-char (point-min))))))
 
 ;; functions for mastodon search
 
-(defun mastodon-search--format-heading (heading)
-  "Format HEADING as a heading."
+(defun mastodon-search--insert-heading (heading &optional type)
+  "Format HEADING as a heading.
+Optionally add string TYPE after HEADING."
   (insert
    (mastodon-tl--set-face (concat "\n " mastodon-tl--horiz-bar "\n "
-                                  heading "\n"
+                                  (upcase heading) " "
+                                  (if type (upcase type) "") "\n"
                                   " " mastodon-tl--horiz-bar "\n")
                           'success)))
 
@@ -186,7 +178,7 @@ is used for pagination."
                      (alist-get 'statuses response))))
     (with-mastodon-buffer buffer #'mastodon-mode nil
       (mastodon-search-mode)
-      (mastodon-search--format-heading (upcase type))
+      (mastodon-search--insert-heading type)
       ;; user results:
       (cond ((equal type "accounts")
              (mastodon-search--render-response accts type buffer params
@@ -269,7 +261,8 @@ If NOTE is non-nil, include user's profile note. This is also
       (propertize (car user)
                   'face 'mastodon-display-name-face
                   'byline t
-                  'toot-id id) ; for prev/next nav
+                  'item-type 'user
+                  'item-id id) ; for prev/next nav
       " : \n : "
       (propertize (concat "@" (cadr user))
                   'face 'mastodon-handle-face
@@ -283,7 +276,7 @@ If NOTE is non-nil, include user's profile note. This is also
           (mastodon-tl--render-text (cadddr user) acct)
         "")
       "\n")
-     'toot-json acct))) ; for compat w other processing functions
+     'item-json acct))) ; for compat w other processing functions
 
 (defun mastodon-search--print-tags (tags)
   "Print TAGS data as returned from a \"hashtags\" search query."
@@ -300,6 +293,8 @@ If NOTE is non-nil, include user's profile note. This is also
                        'mouse-face 'highlight
                        'mastodon-tag (car el)
                        'mastodon-tab-stop 'hashtag
+                       'item-type 'tag ; for next/prev nav
+                       'byline t ; for next/prev nav
                        'help-echo (concat "Browse tag #" (car el))
                        'keymap mastodon-tl--link-keymap)
            " : \n\n"))

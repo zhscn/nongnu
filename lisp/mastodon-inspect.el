@@ -62,21 +62,21 @@
   (interactive)
   (mastodon-inspect--dump-json-in-buffer
    (concat "*mastodon-inspect-toot-"
-           (mastodon-tl--as-string (mastodon-tl--property 'toot-id))
+           (mastodon-tl--as-string (mastodon-tl--property 'item-id))
            "*")
-   (mastodon-tl--property 'toot-json)))
+   (mastodon-tl--property 'item-json)))
 
-(defun mastodon-inspect--download-single-toot (toot-id)
-  "Download the toot/status represented by TOOT-ID."
+(defun mastodon-inspect--download-single-toot (item-id)
+  "Download the toot/status represented by ITEM-ID."
   (mastodon-http--get-json
-   (mastodon-http--api (concat "statuses/" toot-id))))
+   (mastodon-http--api (concat "statuses/" item-id))))
 
-(defun mastodon-inspect--view-single-toot (toot-id)
-  "View the toot/status represented by TOOT-ID."
+(defun mastodon-inspect--view-single-toot (item-id)
+  "View the toot/status represented by ITEM-ID."
   (interactive "s Toot ID: ")
-  (let ((buffer (get-buffer-create (concat "*mastodon-status-" toot-id "*"))))
+  (let ((buffer (get-buffer-create (concat "*mastodon-status-" item-id "*"))))
     (with-current-buffer buffer
-      (let ((toot (mastodon-inspect--download-single-toot toot-id )))
+      (let ((toot (mastodon-inspect--download-single-toot item-id )))
         (mastodon-tl--toot toot)
         (goto-char (point-min))
         (while (search-forward "\n\n\n | " nil t)
@@ -85,12 +85,12 @@
     (switch-to-buffer-other-window buffer)
     (mastodon-mode)))
 
-(defun mastodon-inspect--view-single-toot-source (toot-id)
-  "View the ess source of a toot/status represented by TOOT-ID."
+(defun mastodon-inspect--view-single-toot-source (item-id)
+  "View the ess source of a toot/status represented by ITEM-ID."
   (interactive "s Toot ID: ")
   (mastodon-inspect--dump-json-in-buffer
-   (concat "*mastodon-status-raw-" toot-id "*")
-   (mastodon-inspect--download-single-toot toot-id)))
+   (concat "*mastodon-status-raw-" item-id "*")
+   (mastodon-inspect--download-single-toot item-id)))
 
 
 (defvar mastodon-inspect--search-query-accounts-result)

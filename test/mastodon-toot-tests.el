@@ -40,7 +40,7 @@ Transfer-Encoding: chunked")
 
 (defconst mastodon-toot--mock-toot
   (propertize "here is a mock toot text."
-              'toot-json mastodon-toot-test-base-toot))
+              'item-json mastodon-toot-test-base-toot))
 
 (defconst mastodon-toot--multi-mention
   '((mentions .
@@ -143,7 +143,7 @@ mention string."
     (with-mock
      (mock (mastodon-auth--user-acct) => "joebogus")
      ;; (mock (mastodon-toot--own-toot-p toot) => nil)
-     (mock (mastodon-tl--property 'toot-json) => mastodon-toot-test-base-toot)
+     (mock (mastodon-tl--property 'item-json) => mastodon-toot-test-base-toot)
      (mock (mastodon-tl--property 'base-toot) => toot)
      (should (equal (mastodon-toot--delete-toot)
                     "You can only delete (and redraft) your own toots.")))))
@@ -155,7 +155,7 @@ mention string."
     (let ((delete-response (current-buffer))
           (toot mastodon-toot-test-base-toot))
       (with-mock
-       (mock (mastodon-tl--property 'toot-json) => toot)
+       (mock (mastodon-tl--property 'item-json) => toot)
        (mock (mastodon-tl--property 'base-toot) => toot)
        ;; (mock (mastodon-toot--own-toot-p toot) => t)
        (mock (mastodon-auth--user-acct) => "acct42@example.space")
@@ -175,12 +175,12 @@ mention string."
           (toot mastodon-toot-test-base-toot)
           (id 61208))
       (with-mock
-       (mock (mastodon-tl--property 'base-toot-id) => id)
+       (mock (mastodon-tl--property 'base-item-id) => id)
        (mock (mastodon-http--api "statuses/61208/pin")
              => "https://example.space/statuses/61208/pin")
        (mock (mastodon-http--post "https://example.space/statuses/61208/pin")
              => pin-response)
-       (should (equal (mastodon-toot--action "pin" (lambda ()
+       (should (equal (mastodon-toot--action "pin" (lambda (_)
                                                      (message "Toot pinned!")))
                       "Toot pinned!"))))))
 
@@ -190,7 +190,7 @@ mention string."
     (let ((pin-response (current-buffer))
           (toot mastodon-toot-test-base-toot))
       (with-mock
-       (mock (mastodon-tl--property 'toot-json) => toot)
+       (mock (mastodon-tl--property 'item-json) => toot)
        (mock (mastodon-tl--property 'base-toot) => toot)
        (mock (mastodon-auth--user-acct) => "joebogus@example.space")
        (should (equal (mastodon-toot--pin-toot-toggle)

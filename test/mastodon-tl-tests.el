@@ -168,16 +168,16 @@ Strict-Transport-Security: max-age=31536000
   (let ((input "foobar</p>"))
     (should (string= (mastodon-tl--remove-html input) "foobar\n\n"))))
 
-(ert-deftest mastodon-tl--toot-id-boosted ()
+(ert-deftest mastodon-tl--item-id-boosted ()
   "If a toot is boostedm, return the reblog id."
   (should (string= (mastodon-tl--as-string
-                    (mastodon-tl--toot-id mastodon-tl-test-base-boosted-toot))
+                    (mastodon-tl--item-id mastodon-tl-test-base-boosted-toot))
                    "4543919")))
 
-(ert-deftest mastodon-tl--toot-id ()
+(ert-deftest mastodon-tl--item-id ()
   "If a toot is boostedm, return the reblog id."
   (should (string= (mastodon-tl--as-string
-                    (mastodon-tl--toot-id mastodon-tl-test-base-toot))
+                    (mastodon-tl--item-id mastodon-tl-test-base-toot))
                    "61208")))
 
 (ert-deftest mastodon-tl--as-string-1 ()
@@ -849,12 +849,10 @@ Strict-Transport-Security: max-age=31536000
               (should (equal (list 'next test-name expected-next)
                              (list 'next test-name (point)))))))))))
 
-
 (defun tl-tests--property-values-at (property ranges)
   "Returns a list with property values at the given ranges.
-
-                       The property value for PROPERTY within a region is assumed to be
-                       constant."
+The property value for PROPERTY within a region is assumed to be
+constant."
   (let (result)
     (dolist (range ranges (nreverse result))
       (push (get-text-property (car range) property) result))))
@@ -928,19 +926,19 @@ Strict-Transport-Security: max-age=31536000
       (insert "some text before\n")
       (setq toot-start (point))
       (with-mock
-        (mock (mastodon-profile--get-preferences-pref
-               'reading:expand:spoilers)
-              => :json-false)
-        (stub create-image => '(image "fake data"))
-        (stub shr-render-region => nil) ;; Travis's Emacs doesn't have libxml
-        (insert
-         (mastodon-tl--spoiler normal-toot-with-spoiler)))
+       (mock (mastodon-profile--get-preferences-pref
+              'reading:expand:spoilers)
+             => :json-false)
+       (stub create-image => '(image "fake data"))
+       (stub shr-render-region => nil) ;; Travis's Emacs doesn't have libxml
+       (insert
+        (mastodon-tl--spoiler normal-toot-with-spoiler)))
       (setq toot-end (point))
       (insert "\nsome more text.")
       (add-text-properties
        toot-start toot-end
-       (list 'toot-json normal-toot-with-spoiler
-	         'toot-id (cdr (assoc 'id normal-toot-with-spoiler))))
+       (list 'item-json normal-toot-with-spoiler
+	     'item-id (cdr (assoc 'id normal-toot-with-spoiler))))
 
       (goto-char toot-start)
       ;; (should (eq t (looking-at "This is the spoiler warning text")))
@@ -1092,56 +1090,68 @@ correct value for following, as well as notifications enabled or disabled."
       (let ((response-buffer-true (current-buffer)))
         (insert mastodon-tl--follow-notify-true-response)
         (with-mock
-         (mock (mastodon-http--post url-follow-only nil)
-               => response-buffer-true)
-         (should
-          (equal
-           (mastodon-tl--do-user-action-function url-follow-only
-                                                 user-name
-                                                 user-handle
-                                                 "follow")
-           "User some-user (@some-user@instance.url) followed!"))
-         (mock (mastodon-http--post url-mute nil)
-               => response-buffer-true)
-         (should
-          (equal
-           (mastodon-tl--do-user-action-function url-mute
-                                                 user-name
-                                                 user-handle
-                                                 "mute")
-           "User some-user (@some-user@instance.url) muted!"))
-         (mock (mastodon-http--post url-block nil)
-               => response-buffer-true)
-         (should
-          (equal
-           (mastodon-tl--do-user-action-function url-block
-                                                 user-name
-                                                 user-handle
-                                                 "block")
-           "User some-user (@some-user@instance.url) blocked!")))
+          (mock (mastodon-http--post url-follow-only nil)
+                => response-buffer-true)
+          (should
+           (equal
+            (mastodon-tl--do-user-action-function url-follow-only
+                                                  user-name
+                                                  user-handle
+                                                  "follow")
+            "User some-user (@some-user@instance.url) followed!")))))
+    (with-temp-buffer
+      (let ((response-buffer-true (current-buffer)))
+        (insert mastodon-tl--follow-notify-true-response)
         (with-mock
-         (mock (mastodon-http--post url-true nil) => response-buffer-true)
-         (should
-          (equal
-           (mastodon-tl--do-user-action-function url-true
-                                                 user-name
-                                                 user-handle
-                                                 "follow"
-                                                 "true")
-           "Receiving notifications for user some-user (@some-user@instance.url)!")))))
+          (mock (mastodon-http--post url-mute nil)
+                => response-buffer-true)
+          (should
+           (equal
+            (mastodon-tl--do-user-action-function url-mute
+                                                  user-name
+                                                  user-handle
+                                                  "mute")
+            "User some-user (@some-user@instance.url) muted!")))))
+    (with-temp-buffer
+      (let ((response-buffer-true (current-buffer)))
+        (insert mastodon-tl--follow-notify-true-response)
+        (with-mock
+          (mock (mastodon-http--post url-block nil)
+                => response-buffer-true)
+          (should
+           (equal
+            (mastodon-tl--do-user-action-function url-block
+                                                  user-name
+                                                  user-handle
+                                                  "block")
+            "User some-user (@some-user@instance.url) blocked!")))))
+    (with-temp-buffer
+      (let ((response-buffer-true (current-buffer)))
+        (insert mastodon-tl--follow-notify-true-response)
+        (with-mock
+          (with-mock
+            (mock (mastodon-http--post url-true nil) => response-buffer-true)
+            (should
+             (equal
+              (mastodon-tl--do-user-action-function url-true
+                                                    user-name
+                                                    user-handle
+                                                    "follow"
+                                                    "true")
+              "Receiving notifications for user some-user (@some-user@instance.url)!"))))))
     (with-temp-buffer
       (let ((response-buffer-false (current-buffer)))
         (insert mastodon-tl--follow-notify-false-response)
         (with-mock
-         (mock (mastodon-http--post url-false nil) => response-buffer-false)
-         (should
-          (equal
-           (mastodon-tl--do-user-action-function url-false
-                                                 user-name
-                                                 user-handle
-                                                 "follow"
-                                                 "false")
-           "Not receiving notifications for user some-user (@some-user@instance.url)!")))))))
+          (mock (mastodon-http--post url-false nil) => response-buffer-false)
+          (should
+           (equal
+            (mastodon-tl--do-user-action-function url-false
+                                                  user-name
+                                                  user-handle
+                                                  "follow"
+                                                  "false")
+            "Not receiving notifications for user some-user (@some-user@instance.url)!")))))))
 
 (ert-deftest mastodon-tl--report-to-mods-params-alist ()
   ""
@@ -1149,28 +1159,28 @@ correct value for following, as well as notifications enabled or disabled."
     (let* ((toot mastodon-tl-test-base-toot)
            (account (alist-get 'account toot)))
       (with-mock
-        ;; no longer needed after our refactor
-        ;; (mock (mastodon-http--api "reports") => "https://instance.url/api/v1/reports")
-        ;; (mock (mastodon-tl--toot-or-base
-        ;; (mastodon-tl--property 'toot-json :no-move))
-        ;; => mastodon-tl-test-base-toot)
-        (mock (read-string "Add comment [optional]: ") => "Dummy complaint")
-        (stub y-or-n-p => nil) ; no to all
+       ;; no longer needed after our refactor
+       ;; (mock (mastodon-http--api "reports") => "https://instance.url/api/v1/reports")
+       ;; (mock (mastodon-tl--toot-or-base
+       ;; (mastodon-tl--property 'item-json :no-move))
+       ;; => mastodon-tl-test-base-toot)
+       (mock (read-string "Add comment [optional]: ") => "Dummy complaint")
+       (stub y-or-n-p => nil) ; no to all
+       (should (equal (mastodon-tl--report-params account toot)
+                      '(("account_id" . 42)
+                        ("comment" . "Dummy complaint")
+                        ("category" . "other"))))
+       (with-mock
+        (stub y-or-n-p => t) ; yes to all
+        (mock (mastodon-tl--read-rules-ids) => '(1 2 3))
         (should (equal (mastodon-tl--report-params account toot)
-                       '(("account_id" . 42)
+                       '(("rule_ids[]" . 3)
+                         ("rule_ids[]" . 2)
+                         ("rule_ids[]" . 1)
+                         ("account_id" . 42)
                          ("comment" . "Dummy complaint")
-                         ("category" . "other"))))
-        (with-mock
-          (stub y-or-n-p => t) ; yes to all
-          (mock (mastodon-tl--read-rules-ids) => '(1 2 3))
-          (should (equal (mastodon-tl--report-params account toot)
-                         '(("rule_ids[]" . 3)
-                           ("rule_ids[]" . 2)
-                           ("rule_ids[]" . 1)
-                           ("account_id" . 42)
-                           ("comment" . "Dummy complaint")
-                           ("status_ids[]" . 61208)
-                           ("forward" . "true")))))))))
+                         ("status_ids[]" . 61208)
+                         ("forward" . "true")))))))))
 
 (ert-deftest mastodon-tl--report-build-params ()
   ""

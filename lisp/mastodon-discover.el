@@ -55,8 +55,8 @@
          ("c" "Toggle hidden text (CW)" mastodon-tl--toggle-spoiler-text-in-toot)
          ("k" "Bookmark toot" mastodon-toot--toggle-bookmark)
          ("v" "Vote on poll" mastodon-tl--poll-vote)
-         ("n" "Next" mastodon-tl--goto-next-toot)
-         ("p" "Prev" mastodon-tl--goto-prev-toot)
+         ("n" "Next" mastodon-tl--goto-next-item)
+         ("p" "Prev" mastodon-tl--goto-prev-item)
          ("TAB" "Next link item" mastodon-tl--next-tab-item)
          ("S-TAB" "Prev link item" mastodon-tl--previous-tab-item)
          ;; NB: (when (require 'mpv etc. calls don't work here
