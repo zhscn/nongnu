@@ -553,6 +553,15 @@ FIELDS means provide a fields vector fetched by other means."
       (when (not (equal :json-false x))
         (setq result x)))))
 
+(defun mastodon-profile--render-roles (roles)
+  "Return a propertized string of badges for ROLES."
+  (mapconcat
+   (lambda (role)
+     (propertize
+      (alist-get 'name role)
+      'face `(:box t :foreground ,(alist-get 'color role))))
+   roles))
+
 (defun mastodon-profile--make-profile-buffer-for
     (account endpoint-type update-function &optional no-reblogs headers)
   "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION.
@@ -603,6 +612,10 @@ HEADERS means also fetch link headers for pagination."
              (mastodon-profile--image-from-account account 'header_static)
              "\n"
              (propertize .display_name 'face 'mastodon-display-name-face)
+             ;; roles
+             (when .roles
+               (concat " "
+                       (mastodon-profile--render-roles .roles)))
              "\n"
              (propertize (concat "@" .acct) 'face 'default)
              (if (equal .locked t)
