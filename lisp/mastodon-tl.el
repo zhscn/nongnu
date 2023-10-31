@@ -1804,6 +1804,7 @@ view all branches of a thread."
               ;; if we have a thread:
               (with-mastodon-buffer buffer #'mastodon-mode nil
                 (let ((marker (make-marker)))
+                  (remove-overlays) ; video overlays
                   (mastodon-tl--set-buffer-spec buffer endpoint
                                                 #'mastodon-tl--thread)
                   (mastodon-tl--timeline (alist-get 'ancestors context) :thread)
