@@ -717,6 +717,8 @@ free to open an issue.
 
 PRs, issues, feature requests, and general feedback are very welcome!
 
+If you prefer emailing patches to the process described below, feel free to send them on. Ideally they'd be patches that can be applied with @samp{git am}, if you want to actually contribute a commit.
+
 @menu
 * Bug reports::
 * Fixes and features::
@@ -737,7 +739,7 @@ in emacs with no init file (i.e. @samp{emacs -q} (instructions and code for doin
 this are @uref{https://codeberg.org/martianh/mastodon.el/issues/300, here}) to see if it also happens independently of your own config
 (it probably does).
 @item
-Enable debug on error (@samp{toggle-debug-on-error}), make the bug happen again,
+Else enable debug on error (@samp{toggle-debug-on-error}), make the bug happen again,
 and copy the backtrace that appears.
 @item
 Open an issue here and explain what is going on. Provide your emacs version and what kind of server your account is on.
@@ -754,7 +756,7 @@ Fork the repository and create a branch off of @samp{develop}.
 @item
 Run the tests and ensure that your code doesn't break any of them.
 @item
-Create a pull request referencing the issue created in step 1.
+Create a pull request (to develop) referencing the issue created in step 1.
 @end enumerate
 
 @node Coding style
