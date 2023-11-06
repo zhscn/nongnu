@@ -119,6 +119,10 @@ By default fixed width fonts are used."
   :type '(boolean :tag "Enable using proportional rather than fixed \
 width fonts when rendering HTML text"))
 
+(defcustom mastodon-tl--display-media-p t
+  "A boolean value stating whether to show media in timelines."
+  :type 'boolean)
+
 (defcustom mastodon-tl--display-caption-not-url-when-no-media t
   "Display an image's caption rather than URL.
 Only has an effect when `mastodon-tl--display-media-p' is set to
@@ -199,9 +203,6 @@ If nil `(point-min)' is used instead.")
 
 (defvar-local mastodon-tl--after-update-marker nil
   "Marker defining the position of point after the update is done.")
-
-(defvar mastodon-tl--display-media-p t
-  "A boolean value stating whether to show media in timelines.")
 
 (defvar-local mastodon-tl--timestamp-next-update nil
   "The timestamp when the buffer should next be scanned to update the timestamps.")
