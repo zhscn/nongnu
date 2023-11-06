@@ -634,19 +634,36 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
        ;; TODO set new lang/scheduled props here
        nil))))
 
+(defun mastodon-toot--set-toot-media-attachments (media)
+  "Set the media attachments variables.
+MEDIA is the media_attachments data for a status from the server."
+  (mapcar (lambda (x)
+            (cl-pushnew (alist-get 'id x)
+                        mastodon-toot--media-attachment-ids)
+            (cl-pushnew `((:contents . ,(mastodon-http--read-file-as-string
+                                         (alist-get 'url x) :url))
+                          (:description . ,(alist-get 'description x)))
+                        mastodon-toot--media-attachments))
+          media))
+
 (defun mastodon-toot--set-toot-properties
-    (reply-id visibility cw lang &optional scheduled scheduled-id)
+    (reply-id visibility cw lang &optional scheduled scheduled-id media)
   "Set the toot properties for the current redrafted or edited toot.
-REPLY-ID, VISIBILITY, CW, SCHEDULED, and LANG are the properties to set."
-  (when reply-id
-    (setq mastodon-toot--reply-to-id reply-id))
-  (setq mastodon-toot--visibility visibility)
-  (setq mastodon-toot--scheduled-for scheduled)
-  (setq mastodon-toot--scheduled-id scheduled-id)
-  (when (not (string-empty-p lang))
-    (setq mastodon-toot--language lang))
-  (mastodon-toot--set-cw cw)
-  (mastodon-toot--update-status-fields))
+REPLY-ID, VISIBILITY, CW, SCHEDULED, and LANG are the properties to set.
+MEDIA is the media_attachments data for a status from the server."
+  (with-current-buffer "*edit toot*"
+    (when reply-id
+      (setq mastodon-toot--reply-to-id reply-id))
+    (setq mastodon-toot--visibility visibility)
+    (setq mastodon-toot--scheduled-for scheduled)
+    (setq mastodon-toot--scheduled-id scheduled-id)
+    (when (not (string-empty-p lang))
+      (setq mastodon-toot--language lang))
+    (mastodon-toot--set-cw cw)
+    (when media
+      (mastodon-toot--set-toot-media-attachments media))
+    (mastodon-toot--refresh-attachments-display)
+    (mastodon-toot--update-status-fields)))
 
 (defun mastodon-toot--kill (&optional cancel)
   "Kill `mastodon-toot-mode' buffer and window.
@@ -888,14 +905,15 @@ instance to edit a toot."
               (source-cw (alist-get 'spoiler_text source))
               (toot-visibility (alist-get 'visibility toot))
               (toot-language (alist-get 'language toot))
-              (reply-id (alist-get 'in_reply_to_id toot)))
-         (when (y-or-n-p "Edit this toot? (NB: attachments will be lost!) ")
+              (reply-id (alist-get 'in_reply_to_id toot))
+              (media (alist-get 'media_attachments toot)))
+         (when (y-or-n-p "Edit this toot? ")
            (mastodon-toot--compose-buffer nil reply-id nil content :edit)
            (goto-char (point-max))
-           ;; adopt reply-to-id, visibility, CW, and language:
+           ;; adopt reply-to-id, visibility, CW, language, and media:
            (mastodon-toot--set-toot-properties reply-id toot-visibility
-                                               source-cw toot-language)
-           (mastodon-toot--update-status-fields)
+                                               source-cw toot-language nil nil
+                                               media)
            (setq mastodon-toot--edit-item-id id)))))))
 
 (defun mastodon-toot--get-toot-source (id)
@@ -1178,7 +1196,8 @@ File is actually attached to the toot upon posting."
                     (:filename . ,file)))))
     (mastodon-toot--refresh-attachments-display)
     ;; upload only most recent attachment:
-    (mastodon-toot--upload-attached-media (car (last mastodon-toot--media-attachments)))))
+    (mastodon-toot--upload-attached-media
+     (car (last mastodon-toot--media-attachments)))))
 
 (defun mastodon-toot--upload-attached-media (attachment)
   "Upload a single ATTACHMENT using `mastodon-http--post-media-attachment'.

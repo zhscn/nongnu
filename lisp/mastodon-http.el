@@ -98,10 +98,14 @@ RESPONSE if unsuccessful."
                                (mastodon-http--process-json))))
           (message "Error %s: %s" status (alist-get 'error json-response)))))))
 
-(defun mastodon-http--read-file-as-string (filename)
-  "Read a file FILENAME as a string. Used to generate image preview."
+(defun mastodon-http--read-file-as-string (filename &optional url)
+  "Read a file FILENAME as a string.
+Used to generate image preview.
+URL means FILENAME is a URL."
   (with-temp-buffer
-    (insert-file-contents filename)
+    (if url
+        (url-insert-file-contents filename)
+      (insert-file-contents filename))
     (string-to-unibyte (buffer-string))))
 
 (defmacro mastodon-http--authorized-request (method body &optional unauthenticated-p)
