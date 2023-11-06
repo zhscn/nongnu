@@ -341,7 +341,7 @@ from the server and load anew."
 ;; URL lookup: should be available even if `mastodon.el' not loaded:
 
 ;;;###autoload
-(defun mastodon-url-lookup (&optional query-url)
+(defun mastodon-url-lookup (&optional query-url force)
   "If a URL resembles a mastodon link, try to load in `mastodon.el'.
 Does a WebFinger lookup.
 URL can be arg QUERY-URL, or URL at point, or provided by the user.
@@ -352,7 +352,8 @@ not, just browse the URL in the normal fashion."
                     (thing-at-point-url-at-point)
                     (mastodon-tl--property 'shr-url :no-move)
                     (read-string "Lookup URL: "))))
-    (if (not (mastodon--fedi-url-p query))
+    (if (and (not force)
+             (not (mastodon--fedi-url-p query)))
         ;; (shr-browse-url query) ; doesn't work (keep our shr keymap)
         (browse-url query)
       (message "Performing lookup...")
@@ -373,6 +374,11 @@ not, just browse the URL in the normal fashion."
                  (mastodon-profile--make-author-buffer account)))
               (t
                (browse-url query)))))))
+
+(defun mastodon-url-lookup-force ()
+  "Call `mastodon-url-lookup' without checking if URL is fedi-like."
+  (interactive)
+  (mastodon-url-lookup nil :force))
 
 (defun mastodon--fedi-url-p (query)
   "Check if QUERY resembles a fediverse URL."
