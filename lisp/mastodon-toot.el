@@ -889,7 +889,7 @@ instance to edit a toot."
               (toot-visibility (alist-get 'visibility toot))
               (toot-language (alist-get 'language toot))
               (reply-id (alist-get 'in_reply_to_id toot)))
-         (when (y-or-n-p "Edit this toot? ")
+         (when (y-or-n-p "Edit this toot? (NB: attachments will be lost!) ")
            (mastodon-toot--compose-buffer nil reply-id nil content :edit)
            (goto-char (point-max))
            ;; adopt reply-to-id, visibility, CW, and language:
