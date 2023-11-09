@@ -682,13 +682,13 @@ HEADERS means also fetch link headers for pagination."
           (when (and pinned (equal endpoint-type "statuses"))
             (mastodon-profile--insert-statuses-pinned pinned)
             (setq mastodon-tl--update-point (point))) ; updates after pinned toots
-          (funcall update-function json)))
-      (goto-char (point-min))
-      (message
-       (substitute-command-keys
-        ;; "\\[mastodon-profile--account-view-cycle]" ; not always bound?
-        "\\`C-c C-c' to cycle profile views: toots, followers, following.
-\\`C-c C-s' to search user's toots.")))))
+          (funcall update-function json))
+        (goto-char (point-min))
+        (message
+         (substitute-command-keys
+          ;; "\\[mastodon-profile--account-view-cycle]" ; not always bound?
+          "\\`C-c C-c' to cycle profile views: toots, followers, following.
+\\`C-c C-s' to search user's toots."))))))
 
 (defun mastodon-profile--format-joined-date-string (joined)
   "Format a human-readable Joined string from timestamp JOINED.
