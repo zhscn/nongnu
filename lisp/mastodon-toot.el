@@ -1100,7 +1100,7 @@ text of the toot being replied to in the compose buffer."
           (booster (when boosted
                      (alist-get 'acct
                                 (alist-get 'account toot)))))
-     (mastodon-toot
+     (mastodon-toot--compose-buffer
       (when user
         (if booster
             (if (and (not (equal user booster))
