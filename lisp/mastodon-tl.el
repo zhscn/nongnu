@@ -1578,6 +1578,8 @@ call this function after it is set or use something else."
             ;; posts inc. boosts:
             ((string-suffix-p "no-boosts*" buffer-name)
              'profile-statuses-no-boosts)
+            ((string-suffix-p "no-replies*" buffer-name)
+             'profile-statuses-no-replies)
             ((mastodon-tl--endpoint-str-= "statuses" :suffix)
              'profile-statuses)
             ;; profile followers

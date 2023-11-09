@@ -140,11 +140,12 @@ contains")
   "Get the next item-json."
   (mastodon-tl--property 'item-json))
 
-(defun mastodon-profile--make-author-buffer (account &optional no-reblogs)
+(defun mastodon-profile--make-author-buffer
+    (account &optional no-reblogs no-replies)
   "Take an ACCOUNT json and insert a user account into a new buffer.
 NO-REBLOGS means do not display boosts in statuses."
   (mastodon-profile--make-profile-buffer-for
-   account "statuses" #'mastodon-tl--timeline no-reblogs))
+   account "statuses" #'mastodon-tl--timeline no-reblogs nil no-replies))
 
 ;; TODO: we shd just load all views' data then switch coz this is slow af:
 (defun mastodon-profile--account-view-cycle ()
@@ -153,17 +154,28 @@ NO-REBLOGS means do not display boosts in statuses."
   (cond ((mastodon-tl--buffer-type-eq 'profile-statuses)
          (mastodon-profile--open-statuses-no-reblogs))
         ((mastodon-tl--buffer-type-eq 'profile-statuses-no-boosts)
+         (mastodon-profile--open-statuses-no-replies))
+        ((mastodon-tl--buffer-type-eq 'profile-statuses-no-replies)
          (mastodon-profile--open-followers))
         ((mastodon-tl--buffer-type-eq 'profile-followers)
          (mastodon-profile--open-following))
         ((mastodon-tl--buffer-type-eq 'profile-following)
          (mastodon-profile--make-author-buffer mastodon-profile--account))))
 
+(defun mastodon-profile--open-statuses-no-replies ()
+  "Open a profile buffer showing statuses including replies."
+  (interactive)
+  (if mastodon-profile--account
+      (mastodon-profile--make-author-buffer
+       mastodon-profile--account nil :no-replies)
+    (user-error "Not in a mastodon profile")))
+
 (defun mastodon-profile--open-statuses-no-reblogs ()
   "Open a profile buffer showing statuses without reblogs."
   (interactive)
   (if mastodon-profile--account
-      (mastodon-profile--make-author-buffer mastodon-profile--account :no-reblogs)
+      (mastodon-profile--make-author-buffer
+       mastodon-profile--account :no-reblogs)
     (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-following ()
@@ -171,11 +183,8 @@ NO-REBLOGS means do not display boosts in statuses."
   (interactive)
   (if mastodon-profile--account
       (mastodon-profile--make-profile-buffer-for
-       mastodon-profile--account
-       "following"
-       #'mastodon-profile--format-user
-       nil
-       :headers)
+       mastodon-profile--account "following"
+       #'mastodon-profile--format-user nil :headers)
     (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-followers ()
@@ -183,30 +192,23 @@ NO-REBLOGS means do not display boosts in statuses."
   (interactive)
   (if mastodon-profile--account
       (mastodon-profile--make-profile-buffer-for
-       mastodon-profile--account
-       "followers"
-       #'mastodon-profile--format-user
-       nil
-       :headers)
+       mastodon-profile--account "followers"
+       #'mastodon-profile--format-user nil :headers)
     (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--view-favourites ()
   "Open a new buffer displaying the user's favourites."
   (interactive)
   (message "Loading your favourited toots...")
-  (mastodon-tl--init "favourites"
-                     "favourites"
-                     'mastodon-tl--timeline
-                     :headers))
+  (mastodon-tl--init "favourites" "favourites"
+                     'mastodon-tl--timeline :headers))
 
 (defun mastodon-profile--view-bookmarks ()
   "Open a new buffer displaying the user's bookmarks."
   (interactive)
   (message "Loading your bookmarked toots...")
-  (mastodon-tl--init "bookmarks"
-                     "bookmarks"
-                     'mastodon-tl--timeline
-                     :headers))
+  (mastodon-tl--init "bookmarks" "bookmarks"
+                     'mastodon-tl--timeline :headers))
 
 (defun mastodon-profile--add-account-to-list ()
   "Add account of current profile buffer to a list."
@@ -563,19 +565,28 @@ FIELDS means provide a fields vector fetched by other means."
    roles))
 
 (defun mastodon-profile--make-profile-buffer-for
-    (account endpoint-type update-function &optional no-reblogs headers)
+    (account endpoint-type update-function
+             &optional no-reblogs headers no-replies)
   "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION.
 NO-REBLOGS means do not display boosts in statuses.
 HEADERS means also fetch link headers for pagination."
   (let-alist account
     (let* ((args `(("limit" . ,mastodon-tl--timeline-posts-count)))
-           (args (if no-reblogs (push '("exclude_reblogs" . "t") args) args))
+           (args (cond (no-reblogs
+                        (push '("exclude_reblogs" . "t") args))
+                       (no-replies
+                        (push '("exclude_replies" . "t") args))
+                       (t
+                        args)))
            (endpoint (format "accounts/%s/%s" .id endpoint-type))
            (url (mastodon-http--api endpoint))
            (buffer (concat "*mastodon-" .acct "-"
-                           (if no-reblogs
-                               (concat endpoint-type "-no-boosts")
-                             endpoint-type)
+                           (cond (no-reblogs
+                                  (concat endpoint-type "-no-boosts"))
+                                 (no-replies
+                                  (concat endpoint-type "-no-replies"))
+                                 (t
+                                  endpoint-type))
                            "*"))
            (response (if headers
                          (mastodon-http--get-response url args)
