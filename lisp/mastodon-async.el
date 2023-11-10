@@ -3,7 +3,6 @@
 ;; Copyright (C) 2017 Alex J. Griffith
 ;; Author: Alex J. Griffith <griffitaj@gmail.com>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
-;; Version: 1.0.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
