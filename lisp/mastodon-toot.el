@@ -1089,7 +1089,10 @@ Customize `mastodon-toot-display-orig-in-reply-buffer' to display
 text of the toot being replied to in the compose buffer."
   (interactive)
   (mastodon-tl--do-if-item-strict
-   (let* ((toot (mastodon-tl--property 'item-json))
+   (let* ((quote (when (region-active-p)
+                   (buffer-substring (region-beginning)
+                                     (region-end))))
+          (toot (mastodon-tl--property 'item-json))
           ;; no-move arg for base toot: don't try next toot
           (base-toot (mastodon-tl--property 'base-toot :no-move)) ; for new notifs handling
           (id (mastodon-tl--as-string (mastodon-tl--field 'id (or base-toot toot))))
@@ -1120,7 +1123,8 @@ text of the toot being replied to in the compose buffer."
             ;; user in mentions already:
             (mastodon-toot--mentions-to-string (copy-sequence mentions)))))
       id
-      (or base-toot toot)))))
+      (or base-toot toot)
+      quote))))
 
 
 ;;; COMPOSE TOOT SETTINGS
@@ -1538,7 +1542,30 @@ The default is given by `mastodon-toot--default-reply-visibility'."
       (if (member (intern reply-visibility) less-restrictive)
 	  mastodon-toot--default-reply-visibility reply-visibility))))
 
-(defun mastodon-toot--setup-as-reply (reply-to-user reply-to-id reply-json)
+(defun mastodon-toot--fill-buffer ()
+  "Mark buffer, call fill-region."
+  (mark-whole-buffer)
+  (fill-region (region-beginning) (region-end)))
+
+(defun mastodon-toot--render-reply-region-str (str)
+  "Refill STR and prefix all lines with >, as reply-quote text."
+  (with-temp-buffer
+    ;; (switch-to-buffer (current-buffer))
+    (insert str)
+    ;; unfill first:
+    (let ((fill-column (point-max)))
+      (mastodon-toot--fill-buffer))
+    ;; then fill:
+    (mastodon-toot--fill-buffer)
+    ;; add our own prefix, pauschal:
+    (save-match-data
+      (while (re-search-forward "^" nil t)
+        (replace-match " > ")))
+    (buffer-substring-no-properties (point-min)
+                                    (point-max))))
+
+(defun mastodon-toot--setup-as-reply (reply-to-user reply-to-id
+                                                    reply-json reply-region)
   "If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set `mastodon-toot--reply-to-id'.
 REPLY-JSON is the full JSON of the toot being replied to."
@@ -1548,6 +1575,10 @@ REPLY-JSON is the full JSON of the toot being replied to."
     (when reply-to-user
       (when (> (length reply-to-user) 0) ; self is "" unforch
         (insert (format "%s " reply-to-user)))
+      (when reply-region
+        (insert "\n"
+                (mastodon-toot--render-reply-region-str reply-region)
+                "\n"))
       (setq mastodon-toot--reply-to-id reply-to-id)
       (unless (equal mastodon-toot--visibility reply-visibility)
         (setq mastodon-toot--visibility reply-visibility))
@@ -1768,7 +1799,9 @@ EDIT means we are editing an existing toot, not composing a new one."
       ;; perhaps we should not always call --setup-as-reply, or make its
       ;; workings conditional on reply-to-id. currently it only checks for
       ;; reply-to-user.
-      (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json))
+      (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json
+                                     ;; only initial-text if reply (not edit):
+                                     (when reply-json initial-text)))
     (unless mastodon-toot--max-toot-chars
       ;; no need to fetch from `mastodon-profile-account-settings' as
       ;; `mastodon-toot--max-toot-chars' is set when we set it
@@ -1801,7 +1834,8 @@ EDIT means we are editing an existing toot, not composing a new one."
     (setq mastodon-toot-previous-window-config previous-window-config)
     (when mastodon-toot--proportional-fonts-compose
       (facemenu-set-face 'variable-pitch))
-    (when initial-text
+    (when (and initial-text
+               (not reply-json))
       (insert initial-text))))
 
 ;; flyspell ignore masto toot regexes:
