@@ -609,9 +609,12 @@ HEADERS means also fetch link headers for pagination."
                (is-followers (string= endpoint-type "followers"))
                (is-following (string= endpoint-type "following"))
                (endpoint-name (cond
-                               (is-statuses (if no-reblogs
-                                                "  TOOTS (no boosts)"
-                                              "    TOOTS    "))
+                               (is-statuses (cond (no-reblogs
+                                                   "  TOOTS (no boosts)")
+                                                  (no-replies
+                                                   "  TOOTS (no replies)")
+                                                  (t
+                                                   "    TOOTS    ")))
                                (is-followers "  FOLLOWERS  ")
                                (is-following "  FOLLOWING  "))))
           (insert
