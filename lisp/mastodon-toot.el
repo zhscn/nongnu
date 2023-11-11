@@ -1085,7 +1085,9 @@ If TAGS, we search for tags, else we search for handles."
 (defun mastodon-toot--reply ()
   "Reply to toot at `point'.
 Customize `mastodon-toot-display-orig-in-reply-buffer' to display
-text of the toot being replied to in the compose buffer."
+text of the toot being replied to in the compose buffer.
+If the region is active, inject it into the reply buffer,
+prefixed by >."
   (interactive)
   (mastodon-tl--do-if-item-strict
    (let* ((quote (when (region-active-p)
@@ -1542,8 +1544,9 @@ The default is given by `mastodon-toot--default-reply-visibility'."
 	  mastodon-toot--default-reply-visibility reply-visibility))))
 
 (defun mastodon-toot--fill-buffer ()
-  "Mark buffer, call fill-region."
-  (mark-whole-buffer)
+  "Mark buffer, call `fill-region'."
+  (mark-whole-buffer) ; lisp code should not set mark
+  ;; (fill-region (point-min) (point-max)) ; but this doesn't work
   (fill-region (region-beginning) (region-end)))
 
 (defun mastodon-toot--render-reply-region-str (str)
@@ -1567,7 +1570,8 @@ The default is given by `mastodon-toot--default-reply-visibility'."
                                                     reply-json reply-region)
   "If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set `mastodon-toot--reply-to-id'.
-REPLY-JSON is the full JSON of the toot being replied to."
+REPLY-JSON is the full JSON of the toot being replied to.
+REPLY-REGION is a string to be injected into the buffer."
   (let ((reply-visibility (mastodon-toot--most-restrictive-visibility
 	                   (alist-get 'visibility reply-json)))
         (reply-cw (alist-get 'spoiler_text reply-json)))
