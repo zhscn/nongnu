@@ -36,7 +36,7 @@
 
 ;; Syntactic HighLighting
 
-;; Main keywors (declarations and operators)
+;; Main keywords (declarations and operators)
 (defconst p4_16-keywords
       '("action" "apply"
         "control"
@@ -49,60 +49,60 @@
         "return"
         "select" "state" "struct" "switch"
         "table"  "transition" "tuple" "typedef"
-        "verify"
-        ))
+        "verify")
+      "P4_16 Standard Keywords")
 
 (defconst p4_16-annotations
-      '("@name" "@metadata" "@alias"
-        ))
+  '("@name" "@metadata" "@alias")
+  "P4_16 Standard Annotations")
 
 (defconst p4_16-attributes
       '("const" "in" "inout" "out"
         ;; Tables
         "key" "actions" "default_action" "entries" "implementation"
-        "counters" "meters"
-        ))
+        "counters" "meters")
+      "P4_16 Object Attributes and Access Specifiers")
 
 (defconst p4_16-variables
-      '("packet_in" "packet_out"
-       ))
+  '("packet_in" "packet_out")
+  "P4_16 Packet Types")
 
 (defconst p4_16-operations
-      '("&&&" ".." "++" "?" ":"))
+  '("&&&" ".." "++" "?" ":")
+  "P4_16 Operators")
 
 (defconst p4_16-constants
-      '(
-        ;;; Don't care
-        "_"
-        ;;; bool
-        "false" "true"
-        ;;; error
-        "NoError" "PacketTooShort" "NoMatch" "StackOutOfBounds"
-        "OverwritingHeader" "HeaderTooShort" "ParserTiimeout"
-        ;;; match_kind
-        "exact" "ternary" "lpm" "range"
-        ;;; We can add constants for supported architectures here
-        ))
+  '(;; Don't care
+    "_"
+    ;; bool
+    "false" "true"
+    ;; error
+    "NoError" "PacketTooShort" "NoMatch" "StackOutOfBounds"
+    "OverwritingHeader" "HeaderTooShort" "ParserTiimeout"
+    ;; match_kind
+    "exact" "ternary" "lpm" "range"
+    ;; We can add constants for supported architectures here
+    )
+  "P4_16 Standard Constants")
 
 (defconst p4_16-types
-      '("bit" "bool" "int" "varbit" "void" "error"
-        ))
+  '("bit" "bool" "int" "varbit" "void" "error")
+  "P4_16 Standard Datatypes")
 
 (defconst p4_16-primitives
-      '(
-        ;;; Header methods
-        "isValid" "setValid" "setInvalid"
-        ;;; Table Methods
-        "hit" "action_run"
-        ;;; packet_in methods
-        "extract" "lookahead" "advance" "length"
-        ;;; packet_out methods
-        "emit"
-        ;;; Known parser states
-        "accept" "reject"
-        ;;; misc
-        "NoAction"
-        ))
+  '(;; Header methods
+    "isValid" "setValid" "setInvalid"
+    ;; Table Methods
+    "hit" "action_run"
+    ;; packet_in methods
+    "extract" "lookahead" "advance" "length"
+    ;; packet_out methods
+    "emit"
+    ;; Known parser states
+    "accept" "reject"
+    ;; misc
+    "NoAction")
+  "P4_16 Standard Primitives")
 
 (defconst p4_16-cpp
       '("#include"
@@ -174,8 +174,7 @@
   (interactive)
   (let ((indent-col 0)
         (indentation-increasers "[{(]")
-        (indentation-decreasers "[})]")
-        )
+        (indentation-decreasers "[})]"))
     (save-excursion
       (beginning-of-line)
       (condition-case nil
