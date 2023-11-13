@@ -190,21 +190,6 @@
         (setq indent-col (- indent-col p4_16-indent-offset))))
     (indent-line-to indent-col)))
 
-;;; Imenu support
-(defun p4_16-imenu ()
-  (let (p4_16-imenu-generic-expression
-        '(("Controls"      "^ *control +\\([A-Za-z0-9_]*\\)"      1)
-          ("Externs"       "^ *extern +\\([A-Za-z0-9_]*\\) *\\([A-Za-z0-9_]*\\)" 2)
-          ("Tables"        "^ *table +\\([A-Za-z0-9_]*\\)"        1)
-          ("Actions"       "^ *action +\\([A-Za-z0-9_]*\\)"       1)
-          ("Parsers"       "^ *parser +\\([A-Za-z0-9_]*\\)"       1)
-          ("Parser States" "^ *state +\\([A-Za-z0-9_]*\\)"        1)
-          ("Headers"       "^ *header +\\([A-Za-z0-9_]*\\)"       1)
-          ("Header Unions" "^ *header_union +\\([A-Za-z0-9_]*\\)" 1)
-          ("Structs"       "^ *struct +\\([A-Za-z0-9_]*\\)"       1)))
-    (setq imenu-generic-expression p4_16-imenu-generic-expression))
-  (imenu-add-to-menubar "P4_16"))
-
 ;; Put everything together
 (defun p4_16-mode ()
   "Major mode for editing P4_16 programs"
@@ -216,7 +201,6 @@
   (set (make-local-variable 'indent-line-function) 'p4_16-indent-line)
   (setq major-mode 'p4_16-mode)
   (setq mode-name "P4_16")
-  (with-eval-after-load "imenu" (p4_16-imenu))
   (with-eval-after-load "xcscope" (cscope-minor-mode))
   (run-hooks 'p4_16-mode-hook))
 
