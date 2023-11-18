@@ -2,6 +2,7 @@
 
 ;; Author: Soham S Gumaste <sohamg2@gmail.com>
 ;; Maintainer: Soham S Gumaste <sohamg2@gmail.com>
+;; Version: 0.3
 ;; Created: 15 April 2017
 ;; Modifications bilicensed under the same license OR the MIT License.
 
