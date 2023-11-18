@@ -1,8 +1,8 @@
-;;; p4_16-mode.el --- Support for the P4_16 programming language -*- lexical-binding: t; -*-
+;;; p4-16-mode.el --- Support for the P4_16 programming language -*- lexical-binding: t; -*-
 
 ;; Author: Soham S Gumaste <sohamg2@gmail.com>
 ;; Maintainer: Soham S Gumaste <sohamg2@gmail.com>
-;; Created: 11 Nov 2023
+;; Created: 15 April 2017
 ;; Modifications bilicensed under the same license OR the MIT License.
 
 ;; Keywords: languages p4_16
@@ -37,19 +37,19 @@
 ;; Original Author: Vladimir Gurevich <vladimir.gurevich@barefootnetworks.com>
 
 ;;; Code:
-(defvar p4_16-mode-hook nil)
+(defvar p4-16-mode-hook nil)
 
 ;; Define the keymap (for now it is pretty much default)
-(defvar p4_16-mode-map
+(defvar p4-16-mode-map
   (let ((map (make-keymap)))
     (define-key map (kbd "C-j") 'newline-and-indent)
     map)
-  "Keymap for P4_16 major mode.")
+  "Keymap for p4-16 major mode.")
 
 ;;; Syntactic Highlighting
 
 ;;;; Main keywords (declarations and operators)
-(defconst p4_16-keywords
+(defconst p4-16-keywords
   '("action" "apply"
     "control"
     "default"
@@ -62,28 +62,28 @@
     "select" "state" "struct" "switch"
     "table"  "transition" "tuple" "typedef"
     "verify")
-  "P4_16 Standard Keywords.")
+  "p4-16 Standard Keywords.")
 
-(defconst p4_16-annotations
+(defconst p4-16-annotations
   '("@name" "@metadata" "@alias")
-  "P4_16 Standard Annotations.")
+  "p4-16 Standard Annotations.")
 
-(defconst p4_16-attributes
+(defconst p4-16-attributes
   '("const" "in" "inout" "out"
     ;; Tables
     "key" "actions" "default_action" "entries" "implementation"
     "counters" "meters")
-  "P4_16 Object Attributes and Access Specifiers.")
+  "p4-16 Object Attributes and Access Specifiers.")
 
-(defconst p4_16-variables
+(defconst p4-16-variables
   '("packet_in" "packet_out")
-  "P4_16 Packet Types.")
+  "p4-16 Packet Types.")
 
-(defconst p4_16-operations
+(defconst p4-16-operations
   '("&&&" ".." "++" "?" ":")
-  "P4_16 Operators.")
+  "p4-16 Operators.")
 
-(defconst p4_16-constants
+(defconst p4-16-constants
   '(;; Don't care
     "_"
     ;; bool
@@ -95,13 +95,13 @@
     "exact" "ternary" "lpm" "range"
     ;; We can add constants for supported architectures here
     )
-  "P4_16 Standard Constants.")
+  "p4-16 Standard Constants.")
 
-(defconst p4_16-types
+(defconst p4-16-types
   '("bit" "bool" "int" "varbit" "void" "error")
-  "P4_16 Standard Datatypes.")
+  "p4-16 Standard Datatypes.")
 
-(defconst p4_16-primitives
+(defconst p4-16-primitives
   '(;; Header methods
     "isValid" "setValid" "setInvalid"
     ;; Table Methods
@@ -114,9 +114,9 @@
     "accept" "reject"
     ;; misc
     "NoAction")
-  "P4_16 Standard Primitives.")
+  "p4-16 Standard Primitives.")
 
-(defconst p4_16-cpp
+(defconst p4-16-cpp
   '("#include"
     "#define" "#undef"
     "#if" "#ifdef" "#ifndef"
@@ -125,37 +125,37 @@
     "defined"
     "#line" "#file"))
 
-(defconst p4_16-cppwarn
+(defconst p4-16-cppwarn
   '("#error" "#warning"))
 
 ;; Optimize the strings
-(defvar p4_16-keywords-regexp    (regexp-opt p4_16-keywords   'words))
-(defvar p4_16-annotations-regexp (regexp-opt p4_16-annotations     1))
-(defvar p4_16-attributes-regexp  (regexp-opt p4_16-attributes 'words))
-(defvar p4_16-variables-regexp   (regexp-opt p4_16-variables  'words))
-(defvar p4_16-operations-regexp  (regexp-opt p4_16-operations 'words))
-(defvar p4_16-constants-regexp   (regexp-opt p4_16-constants  'words))
-(defvar p4_16-types-regexp       (regexp-opt p4_16-types      'words))
-(defvar p4_16-primitives-regexp  (regexp-opt p4_16-primitives 'words))
-(defvar p4_16-cpp-regexp         (regexp-opt p4_16-cpp        1))
-(defvar p4_16-cppwarn-regexp     (regexp-opt p4_16-cppwarn    1))
+(defvar p4-16-keywords-regexp    (regexp-opt p4-16-keywords   'words))
+(defvar p4-16-annotations-regexp (regexp-opt p4-16-annotations     1))
+(defvar p4-16-attributes-regexp  (regexp-opt p4-16-attributes 'words))
+(defvar p4-16-variables-regexp   (regexp-opt p4-16-variables  'words))
+(defvar p4-16-operations-regexp  (regexp-opt p4-16-operations 'words))
+(defvar p4-16-constants-regexp   (regexp-opt p4-16-constants  'words))
+(defvar p4-16-types-regexp       (regexp-opt p4-16-types      'words))
+(defvar p4-16-primitives-regexp  (regexp-opt p4-16-primitives 'words))
+(defvar p4-16-cpp-regexp         (regexp-opt p4-16-cpp        1))
+(defvar p4-16-cppwarn-regexp     (regexp-opt p4-16-cppwarn    1))
 
 ;; create the list for font-lock.
 ;; each category of keyword is given a particular face
-(defconst p4_16-font-lock-keywords
+(defconst p4-16-font-lock-keywords
   (list                                        ;Perhaps use backquoting?
-   (cons p4_16-cpp-regexp         font-lock-preprocessor-face)
-   (cons p4_16-cppwarn-regexp     font-lock-warning-face)
-   (cons p4_16-types-regexp       font-lock-type-face)
-   (cons p4_16-constants-regexp   font-lock-constant-face)
-   (cons p4_16-attributes-regexp  font-lock-builtin-face)
-   (cons p4_16-variables-regexp   font-lock-variable-name-face)
+   (cons p4-16-cpp-regexp         font-lock-preprocessor-face)
+   (cons p4-16-cppwarn-regexp     font-lock-warning-face)
+   (cons p4-16-types-regexp       font-lock-type-face)
+   (cons p4-16-constants-regexp   font-lock-constant-face)
+   (cons p4-16-attributes-regexp  font-lock-builtin-face)
+   (cons p4-16-variables-regexp   font-lock-variable-name-face)
    ;;; This is a special case to distinguish the method from the keyword
    (cons "\\.apply"               font-lock-function-name-face)
-   (cons p4_16-primitives-regexp  font-lock-function-name-face)
-   (cons p4_16-operations-regexp  font-lock-builtin-face)
-   (cons p4_16-keywords-regexp    font-lock-keyword-face)
-   (cons p4_16-annotations-regexp font-lock-keyword-face)
+   (cons p4-16-primitives-regexp  font-lock-function-name-face)
+   (cons p4-16-operations-regexp  font-lock-builtin-face)
+   (cons p4-16-keywords-regexp    font-lock-keyword-face)
+   (cons p4-16-annotations-regexp font-lock-keyword-face)
    (cons "\\(\\w*_t +\\)"      font-lock-type-face)
    (cons "[^A-Z_][A-Z] "       font-lock-type-face) ;; Total hack for templates
    (cons "<[A-Z, ]*>"          font-lock-type-face)
@@ -165,22 +165,22 @@
    (cons "\\([^_A-Za-z][+-]?\\([0-9]+w\\)?[0-9]+\\)"    font-lock-constant-face)
    ;;(cons "\\(\\w*\\)"        font-lock-variable-name-face)
    )
-  "Default Highlighting Expressions for P4_16.")
+  "Default Highlighting Expressions for p4-16.")
 
-(defvar p4_16-mode-syntax-table
+(defvar p4-16-mode-syntax-table
   (let ((st (make-syntax-table)))
     (modify-syntax-entry  ?_  "w"      st)
     (modify-syntax-entry  ?/  ". 124b" st)
     (modify-syntax-entry  ?*  ". 23"   st)
     (modify-syntax-entry  ?\n "> b"    st)
     st)
-  "Syntax table for p4_16-mode.")
+  "Syntax table for p4-16-mode.")
 
 ;;; Indentation
-(defvar p4_16-indent-offset 4
-  "Indentation offset for `p4_16-mode'.")
+(defvar p4-16-indent-offset 4
+  "Indentation offset for `p4-16-mode'.")
 
-(defun p4_16-indent-line ()
+(defun p4-16-indent-line ()
   "Indent current line for any balanced-paren-mode'."
   (interactive)
   (let ((indent-col 0)
@@ -192,28 +192,29 @@
           (while t
             (backward-up-list 1)
             (when (looking-at indentation-increasers)
-              (setq indent-col (+ indent-col p4_16-indent-offset))))
+              (setq indent-col (+ indent-col p4-16-indent-offset))))
         (error nil)))
     (save-excursion
       (back-to-indentation)
       (when (and (looking-at indentation-decreasers)
-                 (>= indent-col p4_16-indent-offset))
-        (setq indent-col (- indent-col p4_16-indent-offset))))
+                 (>= indent-col p4-16-indent-offset))
+        (setq indent-col (- indent-col p4-16-indent-offset))))
     (indent-line-to indent-col)))
 
 ;; Put everything together
-(defun p4_16-mode ()
-  "Major mode for editing P4_16 programs."
+(defun p4-16-mode ()
+  "Major mode for editing p4-16 programs."
   (interactive)
   (kill-all-local-variables)
-  (set-syntax-table p4_16-mode-syntax-table)
-  (use-local-map p4_16-mode-map)
-  (set (make-local-variable 'font-lock-defaults) '(p4_16-font-lock-keywords))
-  (set (make-local-variable 'indent-line-function) 'p4_16-indent-line)
-  (setq major-mode 'p4_16-mode)
-  (setq mode-name "P4_16")
+  (set-syntax-table p4-16-mode-syntax-table)
+  (use-local-map p4-16-mode-map)
+  (set (make-local-variable 'font-lock-defaults) '(p4-16-font-lock-keywords))
+  (set (make-local-variable 'indent-line-function) 'p4-16-indent-line)
+  (setq major-mode 'p4-16-mode)
+  (setq mode-name "p4-16")
   (when (fboundp 'cscope-minor-mode) (cscope-minor-mode))
-  (run-hooks 'p4_16-mode-hook))
+  (run-hooks 'p4-16-mode-hook))
 
-(provide 'p4_16-mode)
-;;; p4_16-mode.el ends here
+(provide 'p4-16-mode)
+;;; p4-16-mode.el ends here
+
