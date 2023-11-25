@@ -2057,8 +2057,8 @@ This variable must be set before evil is loaded."
   :set #'(lambda (sym value)
            (set-default sym value)
            (if value
-               (add-hook 'minibuffer-setup-hook 'evil-initialize)
-             (remove-hook 'minibuffer-setup-hook 'evil-initialize))))
+               (add-hook 'minibuffer-setup-hook #'evil-initialize)
+             (remove-hook 'minibuffer-setup-hook #'evil-initialize))))
 
 (defun evil--redo-placeholder (_count)
   (user-error "Customize `evil-undo-system' for redo functionality."))
