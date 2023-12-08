@@ -321,7 +321,8 @@ CAPTION is the image caption if provided."
     (concat
      (mastodon-tl--propertize-img-str-or-url
       "[img]" media-url full-remote-url type help-echo
-      (create-image mastodon-media--generic-broken-image-data nil t))
+      (create-image mastodon-media--generic-broken-image-data nil t)
+      nil caption)
      " ")))
 
 (provide 'mastodon-media)

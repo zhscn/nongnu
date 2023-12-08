@@ -1053,11 +1053,12 @@ message is a link which unhides/hides the main body."
                  (concat "Media:: " .preview_url) ; string
                  .preview_url .remote_url .type .description
                  display-str ; display
-                 'shr-link)
+                 'shr-link .description)
                 "\n")))))
 
 (defun mastodon-tl--propertize-img-str-or-url
-    (str media-url full-remote-url type help-echo &optional display face)
+    (str media-url full-remote-url type help-echo
+         &optional display face caption)
   "Propertize an media placeholder string \"[img]\" or media URL.
 STR is the string to propertize, MEDIA-URL is the preview link,
 FULL-REMOTE-URL is the link to the full resolution image on the
@@ -1074,6 +1075,7 @@ HELP-ECHO, DISPLAY, and FACE are the text properties to add."
               'mastodon-tab-stop 'image ; for do-link-action-at-point
               'image-url full-remote-url ; for shr-browse-image
               'keymap mastodon-tl--shr-image-map-replacement
+              'image-description caption
               'help-echo (if (or (string= type "image")
                                  (string= type nil)
                                  (string= type "unknown")) ; handle borked images
