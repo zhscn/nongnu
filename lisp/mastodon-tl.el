@@ -263,6 +263,7 @@ types of mastodon links and not just shr.el-generated ones.")
     (define-key map (kbd "u") #'mastodon-tl--update)
     ;; keep new my-profile binding; shr 'O' doesn't work here anyway
     (define-key map (kbd "O") #'mastodon-profile--my-profile)
+    (define-key map (kbd "C") #'mastodon-tl--copy-image-caption)
     (define-key map (kbd "<C-return>") #'mastodon-tl--mpv-play-video-at-point)
     (define-key map (kbd "<mouse-2>") #'mastodon-tl--click-image-or-video)
     map)
@@ -1289,6 +1290,15 @@ in which case play first video or gif from current toot."
               (mpv-start "--loop" url))
           (message "no moving image here?"))
       (message "no moving image here?"))))
+
+(defun mastodon-tl--copy-image-caption ()
+  "Copy the caption of the image at point."
+  (interactive)
+  (if-let ((desc (get-text-property (point) 'image-description)))
+      (progn
+        (kill-new desc)
+        (message "Image caption copied."))
+    (message "No image caption.")))
 
 
 ;;; INSERT TOOTS
