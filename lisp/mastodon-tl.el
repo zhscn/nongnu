@@ -1064,7 +1064,8 @@ message is a link which unhides/hides the main body."
 STR is the string to propertize, MEDIA-URL is the preview link,
 FULL-REMOTE-URL is the link to the full resolution image on the
 server, TYPE is the media type.
-HELP-ECHO, DISPLAY, and FACE are the text properties to add."
+HELP-ECHO, DISPLAY, and FACE are the text properties to add.
+CAPTION is the image caption, added as a text property."
   (propertize str
               'media-url media-url
               'media-state (when (string= str "[img]") 'needs-loading)
