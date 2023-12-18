@@ -1810,6 +1810,7 @@ EDIT means we are editing an existing toot, not composing a new one."
       ;; `mastodon-toot--max-toot-chars' is set when we set it
       (mastodon-toot--get-max-toot-chars))
     ;; set up completion:
+    (setq-local completion-ignore-case t)
     (when mastodon-toot--enable-completion
       (set (make-local-variable 'completion-at-point-functions)
            (add-to-list 'completion-at-point-functions
