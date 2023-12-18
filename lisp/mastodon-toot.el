@@ -842,20 +842,20 @@ instance to edit a toot."
                                 ;; Pleroma instances can't handle null-valued
                                 ;; scheduled_at args, so only add if non-nil
                                 (when scheduled `(("scheduled_at" . ,scheduled)))))
-         (args-media (when mastodon-toot--media-attachments
+         (args-media (when mastodon-toot--media-attachment-ids
                        (mastodon-http--build-array-params-alist
                         "media_ids[]"
                         mastodon-toot--media-attachment-ids)))
          (args-poll (when mastodon-toot-poll
                       (mastodon-toot--build-poll-params)))
          ;; media || polls:
-         (args (if mastodon-toot--media-attachments
+         (args (if mastodon-toot--media-attachment-ids
                    (append args-media args-no-media)
                  (if mastodon-toot-poll
                      (append args-no-media args-poll)
                    args-no-media)))
          (prev-window-config mastodon-toot-previous-window-config))
-    (cond ((and mastodon-toot--media-attachments
+    (cond ((and mastodon-toot--media-attachment-ids
                 ;; make sure we have media args
                 ;; and the same num of ids as attachments
                 (or (not args-media)
