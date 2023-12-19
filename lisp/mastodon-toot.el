@@ -239,7 +239,7 @@ send.")
       (group-n 2 ?# (+ (any "A-Z" "a-z" "0-9")))
       (| "'" word-boundary))) ; boundary or possessive
 
-(defvar mastodon-emoji-tag-regex
+(defvar mastodon-toot-emoji-regex
   (rx (| (any ?\( "\n" "\t" " ") bol)
       (group-n 2 ?: ; opening :
                (+ (any "A-Z" "a-z" "0-9" "_"))
@@ -1044,7 +1044,7 @@ TYPE is the candidate type, it may be :tags, :handles, or :emoji."
 (defun mastodon-toot--make-capf (regex type &optional annot-fun)
   "Build a completion backend for `completion-at-point-functions'.
 REGEX is the regex to match preceding text.
-Type is a keyword symbol for `mastodon-toot--fetch-completion-candidates'.
+TYPE is a keyword symbol for `mastodon-toot--fetch-completion-candidates'.
 ANNOT-FUN is a function returning an annotatation from a single
 arg, a candidate."
   (let* ((bounds (mastodon-toot--get-bounds regex))
@@ -1080,7 +1080,7 @@ arg, a candidate."
 
 (defun mastodon-toot--emoji-capf ()
   "Build an emoji completion backend for `completion-at-point-functions'."
-  (mastodon-toot--make-capf mastodon-emoji-tag-regex
+  (mastodon-toot--make-capf mastodon-toot-emoji-regex
                             #'mastodon-toot--emoji-annotation-fun
                             :emoji))
 
@@ -1094,10 +1094,10 @@ arg, a candidate."
   ;; or make it an alist and use cdr
   (cadr (assoc candidate mastodon-toot-completions)))
 
-(defun mastodon-toot--emoji-annotation-fun (candidate)
-  ""
+(defun mastodon-toot--emoji-annotation-fun (_candidate)
+  "."
   ;; TODO: emoji image as annot
-)
+  )
 
 
 ;;; REPLY
