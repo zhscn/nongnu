@@ -1024,7 +1024,7 @@ Federated user: `username@host.co`."
 (defun mastodon-toot--fetch-completion-candidates (start end &optional type)
   "Search for a completion prefix from buffer positions START to END.
 Return a list of candidates.
-If TAGS, we search for tags, else we search for handles."
+TYPE is the candidate type, it may be :tags, :handles, or :emoji."
   ;; we can't save the first two-letter search then only filter the
   ;; resulting list, as max results returned is 40.
   (setq mastodon-toot-completions
@@ -1041,9 +1041,13 @@ If TAGS, we search for tags, else we search for handles."
                (mastodon-search--search-accounts-query
                 (buffer-substring-no-properties start end))))))
 
-(defun mastodon-toot--mentions-capf ()
-  "Build a mentions completion backend for `completion-at-point-functions'."
-  (let* ((bounds (mastodon-toot--get-bounds mastodon-toot-handle-regex))
+(defun mastodon-toot--make-capf (regex type &optional annot-fun)
+  "Build a completion backend for `completion-at-point-functions'.
+REGEX is the regex to match preceding text.
+Type is a keyword symbol for `mastodon-toot--fetch-completion-candidates'.
+ANNOT-FUN is a function returning an annotatation from a single
+arg, a candidate."
+  (let* ((bounds (mastodon-toot--get-bounds regex))
          (start (car bounds))
          (end (cdr bounds)))
     (when bounds
@@ -1054,52 +1058,31 @@ If TAGS, we search for tags, else we search for handles."
                ;; Interruptible candidate computation, from minad/d mendler, thanks!
                (let ((result
                       (while-no-input
-                        (mastodon-toot--fetch-completion-candidates start end))))
+                        (mastodon-toot--fetch-completion-candidates
+                         start end type))))
                  (and (consp result) result))))
             :exclusive 'no
             :annotation-function
             (lambda (cand)
-              (concat " " (mastodon-toot--mentions-annotation-fun cand)))))))
+              (concat " " (funcall annot-fun cand)))))))
+
+(defun mastodon-toot--mentions-capf ()
+  "Build a mentions completion backend for `completion-at-point-functions'."
+  (mastodon-toot--make-capf mastodon-toot-handle-regex
+                            #'mastodon-toot--mentions-annotation-fun
+                            :handles))
 
 (defun mastodon-toot--tags-capf ()
   "Build a tags completion backend for `completion-at-point-functions'."
-  (let* ((bounds (mastodon-toot--get-bounds mastodon-toot-tag-regex))
-         (start (car bounds))
-         (end (cdr bounds)))
-    (when bounds
-      (list start
-            end
-            (completion-table-dynamic ; only search when necessary:
-             (lambda (_)
-               ;; Interruptible candidate computation, from minad/d mendler, thanks!
-               (let ((result
-                      (while-no-input
-                        (mastodon-toot--fetch-completion-candidates start end :tags))))
-                 (and (consp result) result))))
-            :exclusive 'no
-            :annotation-function
-            (lambda (cand)
-              (concat " " (mastodon-toot--tags-annotation-fun cand)))))))
+  (mastodon-toot--make-capf mastodon-toot-tag-regex
+                            #'mastodon-toot--tags-annotation-fun
+                            :tags))
 
 (defun mastodon-toot--emoji-capf ()
   "Build an emoji completion backend for `completion-at-point-functions'."
-  (let* ((bounds (mastodon-toot--get-bounds mastodon-emoji-tag-regex))
-         (start (car bounds))
-         (end (cdr bounds)))
-    (when bounds
-      (list start
-            end
-            (completion-table-dynamic ; only search when necessary:
-             (lambda (_)
-               ;; Interruptible candidate computation, from minad/d mendler, thanks!
-               (let ((result
-                      (while-no-input
-                        (mastodon-toot--fetch-completion-candidates start end :emoji))))
-                 (and (consp result) result))))
-            :exclusive 'no
-            :annotation-function
-            (lambda (cand)
-              (concat " " (mastodon-toot--emoji-annotation-fun cand)))))))
+  (mastodon-toot--make-capf mastodon-emoji-tag-regex
+                            #'mastodon-toot--emoji-annotation-fun
+                            :emoji))
 
 (defun mastodon-toot--mentions-annotation-fun (candidate)
   "Given a handle completion CANDIDATE, return its annotation string, a username."
