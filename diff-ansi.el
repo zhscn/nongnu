@@ -301,16 +301,17 @@ Additional keyword arguments may also be passed in.
             (with-current-buffer buf-dst
               (erase-buffer))
             (let* ((sentinel-called nil)
+                   (buf-dst-final
+                    (cond
+                     ;; Last command, use output.
+                     ((and (null args) (bufferp output))
+                      output)
+                     (t
+                      buf-dst)))
                    (proc
                     (make-process
                      :name "call-process-pipe-chain"
-                     :buffer
-                     (cond
-                      ;; Last command, use output.
-                      ((and (null args) (bufferp output))
-                       output)
-                      (t
-                       buf-dst))
+                     :buffer buf-dst-final
                      ;; Write to the intermediate buffer or the final output.
                      :connection-type 'pipe
                      :command arg-current
