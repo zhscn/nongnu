@@ -71,7 +71,7 @@ This must take the diff content as the `standard-input'."
 ;; Extra arguments for command presets.
 
 (defcustom diff-ansi-extra-args-for-delta
-  (list "--side-by-side" "--no-gitconfig" "--true-color=always")
+  (list "--side-by-side" "--no-gitconfig" "--true-color=always" "--paging=never")
   "Additional arguments to pass to `delta'."
   :type '(repeat string))
 
