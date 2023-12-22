@@ -122,7 +122,9 @@
 where N depends on the HMAC algorithm."
   (hmac-xor (make-string (cond ((eq algo 'sha1)   20)
                                ((eq algo 'sha256) 32)
-                               ((eq algo 'sha512) 64)) 0) "1234567890"))
+                               ((eq algo 'sha512) 64))
+                         0)
+            "1234567890"))
 
 ;; sha1 is the default algo so don't pass it:
 ;; likewise 6 is the 
