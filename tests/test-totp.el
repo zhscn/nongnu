@@ -221,9 +221,8 @@ earlier ones, whic would therefore not be returned by `assoc`)."
      (mapcar 'car test-totp-import-expected-results))
     close-enough))
 
-(totp-unwrap-otp-blob "otpauth://totp/Test%20QR%20import?secret=deadbeefdeadbeefdeadbeef&digits=7&algorithm=SHA256")
-
-(insert (pp (totp-load-file "single-otp-QR-code.png")))
+;; (totp-unwrap-otp-blob "otpauth://totp/Test%20QR%20import?secret=deadbeefdeadbeefdeadbeef&digits=7&algorithm=SHA256")
+;; (insert (pp (totp-load-file "single-otp-QR-code.png")))
 
 
 
