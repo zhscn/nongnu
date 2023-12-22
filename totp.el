@@ -63,11 +63,10 @@ for the author when/where they tested it.\n
 However if the parameter is not passed you will get a new TOTP
 secret every time you create one even if you intended to replace
 an existing one, filling up your secret store.\n
-Check this box to choose ‘replace’ when creating secrets.\n
+Turn this on to choose ‘replace’ when creating secrets.\n
 As of Debian 12 (bookworm) the parameter appears to work."
   :group 'totp
-  :type  '(choice (const :tag "On"  t)
-                  (const :tag "Off" nil)))
+  :type  'boolean)
 
 (defun totp-wrap-otpauth-url (s)
   "Take a TOTP secret S and encode it as an otpauth url. 
