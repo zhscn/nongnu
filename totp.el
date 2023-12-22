@@ -63,14 +63,14 @@ for the author when/where they tested it.\n
 However if the parameter is not passed you will get a new TOTP
 secret every time you create one even if you intended to replace
 an existing one, filling up your secret store.\n
-Turn this on to choose ‘replace’ when creating secrets.\n
+Turn this on to choose replace when creating secrets.\n
 As of Debian 12 (bookworm) the parameter appears to work."
   :group 'totp
   :type  'boolean)
 
 (defun totp-wrap-otpauth-url (s)
   "Take a TOTP secret S and encode it as an otpauth url. 
-This is not an exact reverse of `totp-unwrap-otpauth-url' since that function
+This is not an exact reverse of ‘totp-unwrap-otpauth-url’ since that function
 ignores some otpauth attributes for compatibility with other authenticators."
   (let ((service (cdr (assq :service s)))
         (user    (cdr (assq :user    s)))
@@ -232,7 +232,7 @@ same, ie probably intended for the same target."
     (or target default)))
 
 (defun totp-secret-make-label (secret)
-  "Take a `totp-unwrap-otp-blob' structure SECRET and generate a label
+  "Take a ‘totp-unwrap-otp-blob’ structure SECRET and generate a label
 from it (based on its user and service fields)."
   (let (user srv-host)
     (setq user     (cdr (assq :user secret))
@@ -249,7 +249,7 @@ from it (based on its user and service fields)."
     (cons label wrapped)))
 
 (defun totp-save-secret-to-secrets-source (source secret &optional label)
-  "Save SECRET (see `totp-unwrap-otp-blob') to the freedesktop
+  "Save SECRET (see ‘totp-unwrap-otp-blob’) to the freedesktop
 Secrets Service (eg gnome-keyring or kwallet) with description LABEL.\n
 SOURCE is an auth-source representing the Secrets Service Collection
 to save in (usually the login keyring).\n
@@ -267,7 +267,7 @@ of SECRET."
              :xdg:schema totp-xdg-schema)))
 
 (defun totp-save-secret-to-default-source (source secret &optional label)
-  "Save SECRET (see `totp-unwrap-otp-blob') to the auth-source SOURCE.\n
+  "Save SECRET (see ‘totp-unwrap-otp-blob’) to the auth-source SOURCE.\n
 SOURCE is any valid auth-source except a freedesktop Secrets Service.\n
 LABEL is used as a hint when constructing the host attribute of the
 stored secret if it is both supplied and the secret does not have a
@@ -294,11 +294,11 @@ host value."
       (message "No saver for secret %s in backend %S" (car payload) source))))
 
 (defun totp-save-secret (secret &optional backend)
-  "Save SECRET (see `totp-unwrap-otp-blob') to BACKEND.\n
+  "Save SECRET (see ‘totp-unwrap-otp-blob’) to BACKEND.\n
 If BACKEND is unspecified search the available secret sources for SECRET
 and save to the first one that contains it.\n
-If SECRET is not found (see `totp-get-backend-for-secret') then choose
-the first encrypted backend returned by `totp-storage-backends'."
+If SECRET is not found (see ‘totp-get-backend-for-secret’) then choose
+the first encrypted backend returned by ‘totp-storage-backends’."
   (if (not backend)
       (setq backend (or (totp-get-backend-for-secret secret)
                         (car (totp-storage-backends :encrypted)))))
@@ -339,7 +339,7 @@ with the highest bit forced to 0 (ie a 31 bit integer)."
 
 (defun totp-generate-otp (secret &optional digits offset chunk algo)
   "Given:
-  a string (or `totp-unwrap-otp-blob' struct) SECRET
+  a string (or ‘totp-unwrap-otp-blob’ struct) SECRET
   a TOTP length DIGITS (default 6)
   an integer time skew OFFSET (default 0)
   a time slice size CHUNK (default 30)
@@ -440,11 +440,11 @@ keys are keyword symbols, starting with a colon.  Example:
   (secrets-create-item \"Tramp collection\" \"item\" \"geheim\"
    :method \"sudo\" :user \"joe\" :host \"remote-host\")
 
-The key `:xdg:schema' determines the scope of the item to be
+The key :xdg:schema determines the scope of the item to be
 generated, i.e. for which applications the item is intended for.
 This is just a string like \"org.freedesktop.NetworkManager.Mobile\"
 or \"org.gnome.OnlineAccounts\", the other required keys are
-determined by this.  If no `:xdg:schema' is given,
+determined by this.  If no :xdg:schema is given,
 \"org.freedesktop.Secret.Generic\" is used by default.
 
 The object path of the created item is returned."
