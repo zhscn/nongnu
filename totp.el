@@ -362,6 +362,8 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
           msg     (totp-hmac-message counter)
           hash    (hmac secret msg algo)
           totp    (% (totp-truncate-hash hash) (expt 10 digits)))
+    (let ((fmt (format "%%0%dd" digits)))
+      (setq totp (format fmt totp)))
     (list totp ttl expiry)))
 
 (defun totp-display-token (token &optional label)

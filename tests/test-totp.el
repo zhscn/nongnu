@@ -109,7 +109,7 @@
         (stamp (format-time-string "%Y-%m-%d %H:%M:%S" totp-override-time t))
         have)
     (dolist (otp generated-otp)
-      (setq have (car otp))
+      (setq have (string-to-number (car otp)))
       (or (equal want have)
           (error "%s TOTP #%d @%d (%s), %S %d digits did not match: %S vs %S"
                  label i totp-override-time stamp algorithm digits want have))
