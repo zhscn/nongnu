@@ -231,18 +231,21 @@ same, ie probably intended for the same target."
           (setq target vault)))
     (or target default)))
 
+(defun totp-secret-make-label (secret)
+  "Take a `totp-unwrap-otp-blob' structure SECRET and generate a label
+from it (based on its user and service fields)."
+  (let (user srv-host)
+    (setq user     (cdr (assq :user secret))
+          srv-host (cdr (or (assq :service secret)
+                            (assq :host    secret))))
+    (if (and user srv-host)
+        (concat user "@" srv-host)
+      (or user srv-host "nobody@unknown"))))
+
 (defun totp-secret-make-label-and-wrapper (secret &optional label)
-  (let (wrapped)
+  (let ((wrapped (totp-wrap-otpauth-url secret)))
     (if (not label)
-        (let (user srv-host)
-          (setq user     (cdr (assq :user secret))
-                srv-host (cdr (or (assq :service secret)
-                                  (assq :host    secret))))
-          (setq label
-                (if (and user srv-host)
-                    (concat user "@" srv-host)
-                  (or user srv-host "nobody@unknown"))) ))
-    (setq wrapped (totp-wrap-otpauth-url secret))
+        (setq label (totp-secret-make-label secret)))
     (cons label wrapped)))
 
 (defun totp-save-secret-to-secrets-source (source secret &optional label)
