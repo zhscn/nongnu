@@ -68,6 +68,97 @@ As of Debian 12 (bookworm) the parameter appears to work."
   :group 'totp
   :type  'boolean)
 
+(defcustom totp-auth-sources nil
+  "Serves the same purpose as ‘auth-sources’, but for the TOTP
+package. If unset (the default) this will be initialised to a list
+consisting of the contents of ‘auth-sources’ with the freedesktop
+secrets service login session prepended to it, if it is available."
+  :type `(repeat :tag "Authentication Sources"
+                 (choice
+                  (string :tag "Just a file")
+                  (const :tag "Default Secrets API Collection" default)
+                  (const :tag "Login Secrets API Collection" "secrets:Login")
+
+                  (const :tag "Default internet Mac OS Keychain"
+                         macos-keychain-internet)
+
+                  (const :tag "Default generic Mac OS Keychain"
+                         macos-keychain-generic)
+
+                  (list :tag "Source definition"
+                        (const :format "" :value :source)
+                        (choice :tag "Authentication backend choice"
+                                (string :tag "Authentication Source (file)")
+                                (list
+                                 :tag "Secret Service API/KWallet/GNOME Keyring"
+                                 (const :format "" :value :secrets)
+                                 (choice :tag "Collection to use"
+                                         (string :tag "Collection name")
+                                         (const :tag "Default" default)
+                                         (const :tag "Login" "Login")
+                                         (const
+                                          :tag "Temporary" "session")))
+                                (list
+                                 :tag "Mac OS internet Keychain"
+                                 (const :format ""
+                                        :value :macos-keychain-internet)
+                                 (choice :tag "Collection to use"
+                                         (string :tag "internet Keychain path")
+                                         (const :tag "default" default)))
+                                (list
+                                 :tag "Mac OS generic Keychain"
+                                 (const :format ""
+                                        :value :macos-keychain-generic)
+                                 (choice :tag "Collection to use"
+                                         (string :tag "generic Keychain path")
+                                         (const :tag "default" default))))
+                        (repeat :tag "Extra Parameters" :inline t
+                                (choice :tag "Extra parameter"
+                                        (list
+                                         :tag "Host"
+                                         (const :format "" :value :host)
+                                         (choice :tag "Host (machine) choice"
+                                                 (const :tag "Any" t)
+                                                 (regexp
+                                                  :tag "Regular expression")))
+                                        (list
+                                         :tag "Protocol"
+                                         (const :format "" :value :port)
+                                         (choice
+                                          :tag "Protocol"
+                                          (const :tag "Any" t)
+                                          ,@auth-source-protocols-customize))
+                                        (list :tag "User" :inline t
+                                              (const :format "" :value :user)
+                                              (choice
+                                               :tag "Personality/Username"
+                                               (const :tag "Any" t)
+                                               (string
+                                                :tag "Name"))))))
+                  (sexp :tag "A data structure (external provider)"))))
+
+(defun totp-auth-sources ()
+  "Initialise ‘totp-auth-sources’ if necessary and return it."
+  (or totp-auth-sources
+      (let ((case-fold-search t) secret-collection collection-list)
+        ;; pick a freedesktop collection that matches "login" or
+        ;; "Login" or similar:
+        (setq collection-list
+              (ignore-errors (secrets-list-collections)))
+        (mapc (lambda (s)
+                (if (string-match "^login$" s)
+                    (setq secret-collection (concat "secrets:" s))))
+              collection-list)
+        ;; add the freedesktop login collection we found to our auth
+        ;; source list _if_ 'default isn't already there:
+        (setq totp-auth-sources
+              (if (and secret-collection
+                       (not (memq   'default          auth-sources))
+                       (not (member secret-collection auth-sources)))
+                  (copy-sequence (cons secret-collection auth-sources))
+                (copy-sequence auth-sources)))
+        totp-auth-sources)))
+
 (defun totp-wrap-otpauth-url (s)
   "Take a TOTP secret S and encode it as an otpauth url. 
 This is not an exact reverse of ‘totp-unwrap-otpauth-url’ since that function
@@ -158,7 +249,7 @@ Each entry is an alist of the form:
                     (list (cons :source    s)
                           (cons :handler   handler)
                           (cons :encrypted secure))))
-                (mapcar #'auth-source-backend-parse auth-sources))))
+                (mapcar #'auth-source-backend-parse (totp-auth-sources)))))
 
 (defun totp-get-secrets-from-secrets-source (source)
   "Return an alist of secrets from SOURCE (a desktop secrets API auth-source).
