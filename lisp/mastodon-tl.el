@@ -1308,11 +1308,13 @@ in which case play first video or gif from current toot."
   "Retrieve text content from TOOT.
 Runs `mastodon-tl--render-text' and fetches poll or media."
   (let* ((content (mastodon-tl--field 'content toot))
-         (poll-p (mastodon-tl--field 'poll toot)))
+         (poll-p (mastodon-tl--field 'poll toot))
+         (media-p (mastodon-tl--field 'media_attachments toot)))
     (concat (mastodon-tl--render-text content toot)
             (when poll-p
               (mastodon-tl--get-poll toot))
-            (mastodon-tl--media toot))))
+            (when media-p
+              (mastodon-tl--media toot)))))
 
 (defun mastodon-tl--prev-item-id ()
   "Return the id of the last toot inserted into the buffer."
