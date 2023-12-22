@@ -366,33 +366,65 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
       (setq totp (format fmt totp)))
     (list totp ttl expiry)))
 
-(defun totp-display-token (token &optional label)
-  (let (ui-buffer title)  
-    (setq label     (or label "???")
-          expiry    (nth 2 token)
-          expiry    (format-time-string "%F %T %z" (seconds-to-time expiry))
-          title     (format "*TOTP %s (%s)*" label expiry )
-          ui-buffer (get-buffer-create title))
+(defvar totp-display-ttl    nil)
+(defvar totp-display-label  nil)
+(defvar totp-display-expiry nil)
+(defvar totp-display-secret nil)
+
+(defun totp-cancel-timer (fun buf)
+  "Cancel timers which call FUN with buffer BUF as the first argument."
+  (dolist (timer timer-list)
+    (if (and (eq (timer--function timer) fun)
+             (eq (car (timer--args timer)) buf))
+        (cancel-timer timer))))
+
+(defun totp-update-token-display (buf &optional otp token)
+  (if (buffer-live-p buf)
+      (with-current-buffer buf
+        (erase-buffer)
+        (if (or (not totp-display-ttl)
+                (not totp-display-expiry))
+            ;; metadata unset, need to generate TOTP
+            (setq otp                 (totp-generate-otp totp-display-secret)
+                  token               (nth 0 otp)
+                  totp-display-ttl    (nth 1 otp)
+                  totp-display-expiry (nth 2 otp))
+          ;; metadata already set, work out our new ttl:
+          (setq totp-display-ttl
+                (floor (- (time-to-seconds) totp-display-expiry))))
+        ;; regenerate metadata if the ttl is <= 0
+        (if (>= 0 totp-display-ttl)
+            (setq otp (totp-generate-otp totp-display-secret)
+                  token               (nth 0 otp)
+                  totp-display-ttl    (nth 1 otp)
+                  totp-display-expiry (nth 2 otp)))
+        (insert (format "TOTP %s [%02ds]: %s\n"
+                        totp-display-label totp-display-ttl token)))
+    (totp-cancel-timer #'totp-update-token-display buf)))
+
+(defun totp-display-token (secret &optional label)
+  (let (ui-buffer)
+    (or label
+        (setq label (totp-secret-make-label secret)))
+    (setq ui-buffer (get-buffer-create (format "*TOTP %s*" label)))
     (set-buffer ui-buffer)
-    (insert (format "%s:  %s\n" title (nth 0 token)))
-    (pop-to-buffer ui-buffer)))
+    (mapc 'make-local-variable '(totp-display-ttl
+                                 totp-display-label
+                                 totp-display-expiry
+                                 totp-display-secret))
+    (setq totp-display-label  label
+          totp-display-secret (cdr (assq :secret secret))
+          totp-display-ttl    nil
+          totp-display-expiry nil)
+    (pop-to-buffer ui-buffer)
+    (run-with-timer 0 1 #'totp-update-token-display ui-buffer)))
 
 (defun totp (&optional secret label)
   (interactive
    (let ((secrets (totp-secrets)) key)
      (setq key (completing-read "Generate TOTP: " secrets))
      (list (cdr (assoc key secrets)) key)))
-  (let ((token (totp-generate-otp (cdr (assq :secret secret))))
-        ttl expiry)
-    (if (not token)
-        (error "Could not generate TOTP for %s" label))
-    (setq ttl    (nth 1 token)
-          expiry (nth 2 token))
-    (if (>= ttl totp-minimum-ui-grace)
-        (totp-display-token token label)
-      (display-message-or-buffer
-       (format "Token %s expires in %d seconds…" label ttl)))
-    (nth 0 token)))
+  (totp-display-token secret label))
 
 (provide 'totp)
 
