@@ -1,0 +1,3 @@
+otpauth://totp/moomins%3Asnork-maiden?secret=deadbeefdeadbeefdeadbeefdeadbeef&digits=6
+some junk
+otpauth://totp/smurfs%3Agargamel?secret=abadideaabadideaabadideaabadidea&digits=8&supplier=smurfs
