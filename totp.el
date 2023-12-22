@@ -339,13 +339,15 @@ with the highest bit forced to 0 (ie a 31 bit integer)."
 
 (defun totp-generate-otp (secret &optional digits offset chunk algo)
   "Given:
-  a string SECRET
+  a string (or `totp-unwrap-otp-blob' struct) SECRET
   a TOTP length DIGITS (default 6)
   an integer time skew OFFSET (default 0)
   a time slice size CHUNK (default 30)
 Return (TOTP TTL EXPIRY) where TOTP is the time-based one time password,
 TTL is the number of seconds the password is good for at the time of generation
 and EXPIRY is the seconds after the epoch when the TOTP expires."
+  (if (listp secret)
+      (setq secret (cdr (assq :secret secret))))
   (let ((digits     (or digits   6))
         (offset     (or offset   0))
         (chunk      (or chunk   30))
