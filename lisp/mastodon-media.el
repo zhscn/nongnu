@@ -182,39 +182,39 @@ with the image."
 MEDIA-TYPE is a symbol and either `avatar' or `media-link'.
 START is the position where we start loading the image.
 REGION-LENGTH is the range from start to propertize."
-  (let ((image-options (when (or (image-type-available-p 'imagemagick)
-                                 (image-transforms-p)) ; inbuilt scaling in 27.1
-                         (cond
-                          ((eq media-type 'avatar)
-                           `(:height ,mastodon-media--avatar-height))
-                          ((eq media-type 'media-link)
-                           `(:max-height ,mastodon-media--preview-max-height))))))
-    (let ((buffer (current-buffer))
-          (marker (copy-marker start))
-	  (url-show-status nil)) ; stop url.el from spamming us about connecting
-      (condition-case nil
-          ;; catch any errors in url-retrieve so as to not abort
-          ;; whatever called us
-          (if (and mastodon-media--enable-image-caching
-                   (url-is-cached url))
-              ;; if image url is cached, decompress and use it
-              (with-current-buffer (url-fetch-from-cache url)
-                (set-buffer-multibyte nil)
-                (goto-char (point-min))
-                (zlib-decompress-region
-                 (goto-char (search-forward "\n\n")) (point-max))
-                (mastodon-media--process-image-response
-                 nil marker image-options region-length url))
-            ;; else fetch as usual and process-image-response will cache it
-            (url-retrieve url #'mastodon-media--process-image-response
-                          (list marker image-options region-length url)))
-        (error (with-current-buffer buffer
-                 ;; TODO: Consider adding retries
-                 (put-text-property marker
-                                    (+ marker region-length)
-                                    'media-state
-                                    'loading-failed)
-                 :loading-failed))))))
+  (let ((image-options
+         (when (or (image-type-available-p 'imagemagick)
+                   (image-transforms-p)) ; inbuilt scaling in 27.1
+           (cond ((eq media-type 'avatar)
+                  `(:height ,mastodon-media--avatar-height))
+                 ((eq media-type 'media-link)
+                  `(:max-height ,mastodon-media--preview-max-height)))))
+        (buffer (current-buffer))
+        (marker (copy-marker start))
+	(url-show-status nil)) ; stop url.el from spamming us about connecting
+    (condition-case nil
+        ;; catch any errors in url-retrieve so as to not abort
+        ;; whatever called us
+        (if (and mastodon-media--enable-image-caching
+                 (url-is-cached url))
+            ;; if image url is cached, decompress and use it
+            (with-current-buffer (url-fetch-from-cache url)
+              (set-buffer-multibyte nil)
+              (goto-char (point-min))
+              (zlib-decompress-region
+               (goto-char (search-forward "\n\n")) (point-max))
+              (mastodon-media--process-image-response
+               nil marker image-options region-length url))
+          ;; else fetch as usual and process-image-response will cache it
+          (url-retrieve url #'mastodon-media--process-image-response
+                        (list marker image-options region-length url)))
+      (error (with-current-buffer buffer
+               ;; TODO: Consider adding retries
+               (put-text-property marker
+                                  (+ marker region-length)
+                                  'media-state
+                                  'loading-failed)
+               :loading-failed)))))
 
 (defun mastodon-media--select-next-media-line (end-pos)
   "Find coordinates of the next media to load before END-POS.
@@ -259,11 +259,13 @@ Replace them with the referenced image."
                (media-type (cadr (cdr line-details)))
                (type (get-text-property start 'mastodon-media-type))
                (image-url (get-text-property start 'media-url)))
+          ;; (sensitive (get-text-property start 'sensitive)))
           (if (not (mastodon-media--valid-link-p image-url))
               ;; mark it at least as not needing loading any more
               (put-text-property start end 'media-state 'invalid-url)
             ;; proceed to load this image asynchronously
             (put-text-property start end 'media-state 'loading)
+            ;; TODO: only load-image if not sensitive:
             (mastodon-media--load-image-from-url
              image-url media-type start (- end start))
             (when (or (equal type "gifv")
@@ -274,7 +276,8 @@ Replace them with the referenced image."
 ;;   "Holds a list of overlays in the buffer.")
 
 (defun mastodon-media--moving-image-overlay (start end)
-  "Add play symbol overlay to moving image media items."
+  "Add play symbol overlay to moving image media items.
+START and END are the beginning and end of the media item to overlay."
   (let ((ov (make-overlay start end)))
     (overlay-put
      ov
@@ -306,11 +309,12 @@ Replace them with the referenced image."
      " ")))
 
 (defun mastodon-media--get-media-link-rendering
-    (media-url &optional full-remote-url type caption)
+    (media-url &optional full-remote-url type caption sensitive)
   "Return the string to be written that renders the image at MEDIA-URL.
 FULL-REMOTE-URL is used for `shr-browse-image'.
 TYPE is the attachment's type field on the server.
-CAPTION is the image caption if provided."
+CAPTION is the image caption if provided.
+SENSITIVE is a flag from the item's JSON data."
   (let* ((help-echo-base
           "RET/i: load full image (prefix: copy URL), +/-: zoom,\
  r: rotate, o: save preview")
@@ -322,7 +326,7 @@ CAPTION is the image caption if provided."
      (mastodon-tl--propertize-img-str-or-url
       "[img]" media-url full-remote-url type help-echo
       (create-image mastodon-media--generic-broken-image-data nil t)
-      nil caption)
+      nil caption sensitive)
      " ")))
 
 (provide 'mastodon-media)

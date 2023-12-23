@@ -1031,15 +1031,19 @@ message is a link which unhides/hides the main body."
 (defun mastodon-tl--media (toot)
   "Retrieve a media attachment link for TOOT if one exists."
   (let* ((media-attachments (mastodon-tl--field 'media_attachments toot))
-         (media-string (mapconcat #'mastodon-tl--media-attachment
-                                  media-attachments "")))
+         (sensitive (mastodon-tl--field 'sensitive toot))
+         (media-string (mapconcat
+                        (lambda (x)
+                          (mastodon-tl--media-attachment x sensitive))
+                        media-attachments "")))
     (if (not (and mastodon-tl--display-media-p
                   (string-empty-p media-string)))
         (concat "\n" media-string)
       "")))
 
-(defun mastodon-tl--media-attachment (media-attachment)
-  "Return a propertized string for MEDIA-ATTACHMENT."
+(defun mastodon-tl--media-attachment (media-attachment sensitive)
+  "Return a propertized string for MEDIA-ATTACHMENT.
+SENSITIVE is a flag from the item's JSON data."
   (let-alist media-attachment
     (let ((display-str
            (if (and mastodon-tl--display-caption-not-url-when-no-media
@@ -1048,24 +1052,25 @@ message is a link which unhides/hides the main body."
              (concat "Media:: " .preview_url))))
       (if mastodon-tl--display-media-p
           (mastodon-media--get-media-link-rendering ; placeholder: "[img]"
-           .preview_url (or .remote_url .url) .type .description) ; 2nd arg for shr-browse-url
+           .preview_url (or .remote_url .url) .type .description sensitive) ; 2nd arg for shr-browse-url
         ;; return URL/caption:
         (concat (mastodon-tl--propertize-img-str-or-url
                  (concat "Media:: " .preview_url) ; string
                  .preview_url .remote_url .type .description
                  display-str ; display
-                 'shr-link .description)
+                 'shr-link .description sensitive)
                 "\n")))))
 
 (defun mastodon-tl--propertize-img-str-or-url
     (str media-url full-remote-url type help-echo
-         &optional display face caption)
+         &optional display face caption sensitive)
   "Propertize an media placeholder string \"[img]\" or media URL.
 STR is the string to propertize, MEDIA-URL is the preview link,
 FULL-REMOTE-URL is the link to the full resolution image on the
 server, TYPE is the media type.
 HELP-ECHO, DISPLAY, and FACE are the text properties to add.
-CAPTION is the image caption, added as a text property."
+CAPTION is the image caption, added as a text property.
+SENSITIVE is a flag from the item's JSON data."
   (propertize str
               'media-url media-url
               'media-state (when (string= str "[img]") 'needs-loading)
@@ -1078,6 +1083,7 @@ CAPTION is the image caption, added as a text property."
               'image-url full-remote-url ; for shr-browse-image
               'keymap mastodon-tl--shr-image-map-replacement
               'image-description caption
+              'sensitive sensitive
               'help-echo (if (or (string= type "image")
                                  (string= type nil)
                                  (string= type "unknown")) ; handle borked images
