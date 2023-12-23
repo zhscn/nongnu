@@ -149,7 +149,6 @@ for use in the return value of `totp-unwrap-otp-blob`"
     (setq offset (or pos 0)
           i      0
           what   :tag)
-    ;;(protobuf-debug-data "raw" (cons buf (length buf)))
     (while (< offset (length buf))
       (setq pb-item  (cond
                       ((eq what :tag)    (totp-pb-read-tag buf offset))
@@ -159,7 +158,6 @@ for use in the return value of `totp-unwrap-otp-blob`"
             pb-value (car pb-item)
             offset   (+ (cdr pb-item) offset)
             next     (if (eq what :tag) (cdr pb-value) :tag))
-      (protobuf-debug-data (format "%03d" i) pb-item)
       (if (eq what :len)
           (when (setq item (totp-pb-decode-migration-item pb-value))
             (setq result (cons item result))))
