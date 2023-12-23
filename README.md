@@ -32,7 +32,15 @@ Once you have at least one secret available, invoke:
   M-x totp RET
 
 You can tab-complete based on the label of the secret and a
-buffer displaying the token will be displayed (unless that
-token is about to expire - right now you just get a placeholder
-message but next TODO is to make that automatically delay and
-then generate a new token for you).
+buffer displaying the token will be displayed (and updated as
+the displayed token expires).
+
+## Security
+
+Your secrets can be fetched from any auth-source source.
+
+Your secrets will only ever be stored by this package in
+auth-source backends that are encrypted.
+
+You secret(s) are only held in memory while a TOTP is being
+generated, or while a TOTP display buffer is being updated.
