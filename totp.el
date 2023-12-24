@@ -311,14 +311,14 @@ same, ie probably intended for the same target."
 
 (defun totp-get-backend-for-secret (s)
   "Return the backend in which secret S is store, or the default backend."
-  (let (backends vault default target secrets secret)
+  (let (backends vault default target secrets)
     (setq backends (totp-storage-backends)
           default  (car backends))
     (while (and (not target) backends)
       (setq vault    (car backends)
             secrets  (totp-get-secrets-from-backend vault)
             backends (cdr backends))
-      (if (member* s secrets :test 'totp-same-secret)
+      (if (cl-member s secrets :test 'totp-same-secret)
           (setq target vault)))
     (or target default)))
 
