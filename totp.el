@@ -531,7 +531,7 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
 
 (defun totp (&optional secret label)
   (interactive
-   (let ((secrets (totp-secrets)) key)
+   (let ((secrets (totp-secrets)) (completion-styles '(substring)) key)
      (setq key (completing-read "Generate TOTP: " secrets))
      (list (cdr (assoc key secrets)) key)))
   (totp-display-token secret label))
