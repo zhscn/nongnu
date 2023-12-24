@@ -137,7 +137,7 @@ for use in the return value of `totp-unwrap-otp-blob`"
         (when slot
           (if (consp (cdr slot))
               (setq res (cons (car slot)
-                              (cons (cdr slot)
+                              (cons (cadr slot)
                                     res)))
             (setq res (cons slot res)))) ))
     ;;(with-current-buffer (get-buffer-create "*migrate*")
