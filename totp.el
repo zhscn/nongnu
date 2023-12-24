@@ -57,14 +57,11 @@ as well."
   :type  '(repeat string))
 
 (defcustom totp-secrets-create-item-workaround t
-  "As of emacs 28.2 auth-sources does not pass the replace parameter
-to org.freedesktop.Secrets.CreateItem as it apparently did not work
-for the author when/where they tested it.\n
-However if the parameter is not passed you will get a new TOTP
-secret every time you create one even if you intended to replace
-an existing one, filling up your secret store.\n
-Turn this on to choose replace when creating secrets.\n
-As of Debian 12 (bookworm) the parameter appears to work."
+  "The replace parameter of org.freedesktop.Secrets.CreateItem
+is unreliable. If this option is on (the default) then we attempt
+delete duplicated secrets when we save a secret via this API.\n
+If it is off then you are likely to end up with multiple copies of
+a secret if you ever re-import it."
   :group 'totp
   :type  'boolean)
 
@@ -339,6 +336,10 @@ from it (based on its user and service fields)."
         (setq label (totp-secret-make-label secret)))
     (cons label wrapped)))
 
+(defun totp-get-item-attribute (item attribute)
+  (ignore-errors
+    (cadr (assoc attribute (cdr (assoc "Attributes" item))))))
+
 (defun totp-save-secret-to-secrets-source (source secret &optional label)
   "Save SECRET (see ‘totp-unwrap-otp-blob’) to the freedesktop
 Secrets Service (eg gnome-keyring or kwallet) with description LABEL.\n
@@ -346,16 +347,34 @@ SOURCE is an auth-source representing the Secrets Service Collection
 to save in (usually the login keyring).\n
 If LABEL is not supplied, one is constructed based on the contents
 of SECRET."
-  (let (payload create)
+  (let (payload vault created)
     (setq payload (totp-secret-make-label-and-wrapper secret label)
-          create  (if totp-secrets-create-item-workaround
-                      #'totp-secrets-create-item
-                    #'secrets-create-item))
-    (funcall create
-             (slot-value source 'source)
-             (car payload)
-             (cdr payload)
-             :xdg:schema totp-xdg-schema)))
+          vault   (slot-value source 'source))
+    ;; (message "(secrets-create-item %S %S %S :xdg:schema %S)"
+    ;;          vault
+    ;;          (car payload)
+    ;;          (cdr payload)
+    ;;          totp-xdg-schema)
+    (setq created (secrets-create-item vault
+                                       (car payload)
+                                       (cdr payload)
+                                       :xdg:schema totp-xdg-schema))
+    ;; de-duplicate by hand:
+    (when totp-secrets-create-item-workaround
+      (let (path props schema maybe-dup)
+        (setq stored (cdr (assq :secret secret)) ;; secret we just stored
+              path   (secrets-collection-path vault))
+        (dolist (item-path (secrets-get-items path))
+          (when (not (equal created item-path))
+            (setq props  (secrets-get-item-properties item-path)
+                  schema (totp-get-item-attribute props "xdg:schema"))
+            (when (equal totp-xdg-schema schema)
+              (setq maybe-dup (secrets-get-secret vault item-path)
+                    maybe-dup (totp-unwrap-otp-blob maybe-dup)
+                    maybe-dup (cdr (assq :secret maybe-dup))) ;; another secret
+              (when (equal stored maybe-dup) ;; new and old secrets are equal
+                (secrets-delete-item vault item-path)))))))
+    created))
 
 (defun totp-save-secret-to-default-source (source secret &optional label)
   "Save SECRET (see ‘totp-unwrap-otp-blob’) to the auth-source SOURCE.\n
@@ -518,69 +537,3 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
   (totp-display-token secret label))
 
 (provide 'totp)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; combatability hacks
-;; the shipped secrets-create-item suppresses the 
-(defun totp-secrets-create-item (collection item password &rest attributes)
-  "Create a new item in COLLECTION with label ITEM and password PASSWORD.
-The label ITEM does not have to be unique in COLLECTION.
-ATTRIBUTES are key-value pairs set for the created item.  The
-keys are keyword symbols, starting with a colon.  Example:
-
-  (secrets-create-item \"Tramp collection\" \"item\" \"geheim\"
-   :method \"sudo\" :user \"joe\" :host \"remote-host\")
-
-The key :xdg:schema determines the scope of the item to be
-generated, i.e. for which applications the item is intended for.
-This is just a string like \"org.freedesktop.NetworkManager.Mobile\"
-or \"org.gnome.OnlineAccounts\", the other required keys are
-determined by this.  If no :xdg:schema is given,
-\"org.freedesktop.Secret.Generic\" is used by default.
-
-The object path of the created item is returned."
-  (let ((collection-path (secrets-unlock-collection collection))
-	result props)
-    (unless (secrets-empty-path collection-path)
-      ;; Set default type if needed.
-      (unless (member :xdg:schema attributes)
-        (setq attributes
-              (append
-               attributes `(:xdg:schema ,secrets-interface-item-type-generic))))
-      ;; Create attributes list.
-      (while (consp (cdr attributes))
-	(unless (keywordp (car attributes))
-	  (error 'wrong-type-argument (car attributes)))
-        (unless (stringp (cadr attributes))
-          (error 'wrong-type-argument (cadr attributes)))
-	(setq props (append
-		     props
-		     `((:dict-entry
-			,(substring (symbol-name (car attributes)) 1)
-			,(cadr attributes))))
-	      attributes (cddr attributes)))
-      ;; Create the item.
-      (setq result
-	    (dbus-call-method
-	     :session secrets-service collection-path
-	     secrets-interface-collection "CreateItem"
-	     ;; Properties.
-	     (append
-	      `(:array
-		(:dict-entry ,(concat secrets-interface-item ".Label")
-			     (:variant ,item)))
-	      (when props
-		`((:dict-entry ,(concat secrets-interface-item ".Attributes")
-			       (:variant ,(append '(:array) props))))))
-	     ;; Secret.
-	     (append
-	      `(:struct :object-path ,secrets-session-path
-			(:array :signature "y") ;; No parameters.
-			,(dbus-string-to-byte-array password))
-	      ;; We add the content_type.  In backward compatibility
-	      ;; mode, nil is appended, which means nothing.
-	      secrets-struct-secret-content-type)
-	     t)) ;; HACK. This is it. It's nil as shipped.
-      (secrets-prompt (cadr result))
-      ;; Return the object path.
-      (car result))))
