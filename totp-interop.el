@@ -145,7 +145,7 @@ for use in the return value of `totp-unwrap-otp-blob`"
     res))
 
 (defun totp-pb-decode-migration-data (buf &optional pos)
-  (let (offset pb-item pb-value pb-field what next result item i)
+  (let (offset pb-item pb-value what next result item i)
     (setq offset (or pos 0)
           i      0
           what   :tag)
@@ -154,7 +154,7 @@ for use in the return value of `totp-unwrap-otp-blob`"
                       ((eq what :tag)    (totp-pb-read-tag buf offset))
                       ((eq what :len)    (totp-pb-read-len buf offset))
                       ((eq what :varint) (totp-pb-read-varint buf offset))
-                      (t (error "Unhandled type: %S" pb-field)))
+                      (t (error "Unhandled type: %S" what)))
             pb-value (car pb-item)
             offset   (+ (cdr pb-item) offset)
             next     (if (eq what :tag) (cdr pb-value) :tag))
