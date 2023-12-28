@@ -1,0 +1,40 @@
+totp.el - Time-based One Time Password support for emacs
+
+This package generates RFC6238 Time-based One Time Passwords
+and displays them (as well as optionally copying them to
+the clipbpoard/primary selection), updating them as they expire.
+
+It stores and retrieves the shared secrets used to generate TOTP
+tokens based on ‘auth-sources’ and/or the freedesktop secrets API
+(aka Gnome Keyring or KWallet).
+
+You can call it with the command ‘totp’, ie:
+
+   M-x totp RET
+
+You can tab-complete based on the label of the secret and a
+buffer displaying the token will be displayed (and updated as
+the displayed token expires).
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+If you want to import TOTP secrets from other apps you can call:
+
+  M-x totp-import-file RET
+
+This supports:
+
+  - simple base32 encoded TOTP secrets (max 1 per file)
+  - otpauth:// scheme URLs in a text file (any number per file)
+  - otpauth-migration:// scheme URLs in a text file (any number per file)
+  - a mix of the above URL schemes in a text file
+  - QR codes encoding any mix of the URL schemes above
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Your secrets can be fetched from any auth-source source.
+
+Your secrets will only ever be stored by this package in
+auth-source backends that are encrypted.
+
+You secret(s) are only held in memory while a TOTP is being
+generated, or while a TOTP display buffer is being updated.

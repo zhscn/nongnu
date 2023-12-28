@@ -3,7 +3,10 @@
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; Author: Vivek Das Mohapatra <vivek@etla.org>
-;; Keywords: 2FA two-factor totp otp
+;; Keywords: 2FA two-factor totp otp password
+;; URL: https://gitlab.com/fledermaus/totp.el
+;; Version: 0.1
+;; Package-Requires: ((emacs "27.1"))
 
 ;;; Commentary:
 ;; Import TOTP secrets, store and fetch them from auth-sources, and
@@ -577,6 +580,7 @@ OTP and TOKEN are used internally and need not be passed."
     (pop-to-buffer ui-buffer)
     (run-with-timer 0 1 #'totp-update-token-display ui-buffer)))
 
+;;;###autoload
 (defun totp (&optional secret label)
   "Generate a TOTP token for SECRET, identified by LABEL, and show it."
   (interactive
