@@ -66,11 +66,28 @@ a secret if you ever re-import it."
   :group 'totp
   :type  'boolean)
 
+(defcustom totp-auto-copy-password nil
+  "If set then ‘totp’ and other interactive functions that generate
+TOTP tokens will automatically copy the generated token into the selected
+copy/paste backends, ready for pasting (eg into other applications or buffers).
+The behaviour is as follows:
+ - When the token is generated, it is placed in the selected copy areas
+ - If the copy area still contains the previous value when the token
+   expires and is regenerated, it is replaced with the new value."
+  :group 'totp
+  :type '(choice
+          (const :tag "Off" nil)
+          (set :tag "Choose Copy Method(s)"
+           (const :tag "Primary (middle-click etc)"  PRIMARY)
+           (const :tag "Clipboard (Paste, c-y, V-v)" CLIPBOARD)
+           (const :tag "Secondary"                   SECONDARY))))
+
 (defcustom totp-auth-sources nil
   "Serves the same purpose as ‘auth-sources’, but for the TOTP
 package. If unset (the default) this will be initialised to a list
 consisting of the contents of ‘auth-sources’ with the freedesktop
 secrets service login session prepended to it, if it is available."
+  :group 'totp
   :type `(repeat :tag "Authentication Sources"
                  (choice
                   (string :tag "Just a file")
@@ -481,6 +498,18 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
 (defvar totp-display-label  nil)
 (defvar totp-display-expiry nil)
 (defvar totp-display-secret nil)
+(defvar totp-display-oldpwd nil)
+
+(defun totp-update-paste-buffers (old new)
+  "For each copy/paste buffer selected by ‘totp-auto-copy-password’
+update the contents to password NEW (if it contains password OLD,
+or if OLD is unset)."
+  ;;(message "totp-update-paste-buffers %S (%S)" old new totp-auto-copy-password)
+  (mapc (lambda (type &optional ok)
+          (with-demoted-errors "gui get/set selection error: %S"
+            (setq ok (if old (equal old (gui-get-selection type)) t))
+            (if ok (gui-set-selection type (or new "")))))
+        totp-auto-copy-password))
 
 (defun totp-cancel-this-timer ()
   "Cancel the timer whose callback this is called from."
@@ -518,6 +547,10 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
                   token               (nth 0 otp)
                   totp-display-ttl    (nth 1 otp)
                   totp-display-expiry (nth 2 otp)))
+        ;; update the copy/paste buffers if necessary:
+        (totp-update-paste-buffers totp-display-oldpwd token)
+        (setq totp-display-oldpwd token)
+        ;; display the current token
         (insert (format "TOTP %s [%02ds]: %s\n"
                         totp-display-label totp-display-ttl token)))
     (totp-cancel-this-timer)))
@@ -531,9 +564,11 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
     (mapc 'make-local-variable '(totp-display-ttl
                                  totp-display-label
                                  totp-display-expiry
+                                 totp-display-oldpwd
                                  totp-display-secret))
     (setq totp-display-label  label
           totp-display-secret (cdr (assq :secret secret))
+          totp-display-oldpwd nil
           totp-display-ttl    nil
           totp-display-expiry nil)
     (pop-to-buffer ui-buffer)
