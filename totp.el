@@ -481,12 +481,21 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
 (defvar totp-display-expiry nil)
 (defvar totp-display-secret nil)
 
-(defun totp-cancel-timer (fun buf)
-  "Cancel timers which call FUN with buffer BUF as the first argument."
-  (dolist (timer timer-list)
-    (if (and (eq (timer--function timer) fun)
-             (eq (car (timer--args timer)) buf))
-        (cancel-timer timer))))
+(defun totp-cancel-this-timer ()
+  "Cancel the timer whose callback this is called from."
+  (let ((n 1) (cancelled 0) f cb cb-args)
+    (while (and (setq f (backtrace-frame n #'totp-cancel-this-timer))
+                (not (car f)))
+      (setq n (1+ n)))
+    (when (and f (car f))
+      (setq cb      (cadr f)
+            cb-args (cddr f))
+      (dolist (timer timer-list)
+        (when (and (eq (timer--function timer) cb)
+                   (equal (timer--args timer) cb-args))
+          (cancel-timer timer)
+          (setq cancelled (1+ cancelled)))))
+    cancelled))
 
 (defun totp-update-token-display (buf &optional otp token)
   (if (buffer-live-p buf)
@@ -510,7 +519,7 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
                   totp-display-expiry (nth 2 otp)))
         (insert (format "TOTP %s [%02ds]: %s\n"
                         totp-display-label totp-display-ttl token)))
-    (totp-cancel-timer #'totp-update-token-display buf)))
+    (totp-cancel-this-timer)))
 
 (defun totp-display-token (secret &optional label)
   (let (ui-buffer)
