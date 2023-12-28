@@ -14,8 +14,7 @@ but for now either:
 totp.el will look find its copies of base32.el and hmac.el in
 its own directory by default.
 
-If you want to import TOTP secrets you can load totp-interop
-and invoke:
+If you want to import TOTP secrets you can invoke:
 
   M-x totp-import-file RET
 
@@ -24,8 +23,8 @@ This supports:
   - simple base32 encoded TOTP secrets (max 1 per file)
   - otpauth:// scheme URLs in a text file (any number per file)
   - otpauth-migration:// scheme URLs in a text file (any number per file)
-  - a mix of the above URL scemes in a text file
-  - QR codes encoding any mix of the URLs above
+  - a mix of the above URL schemes in a text file
+  - QR codes encoding any mix of the URL schemes above
 
 Once you have at least one secret available, invoke:
 

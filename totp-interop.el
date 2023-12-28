@@ -194,6 +194,8 @@ OTP secrets+metadata by calling `totp-unwrap-otp-blob' on them."
     result))
 
 (defun totp-load-image-file (file)
+  "Use `totp-file-import-command' to extract the contents of FILE
+and process the results with `totp-parse-buffer-otp-urls'."
   (let ((args (mapcar (lambda (a) (if (equal "@file@" a) file a))
                       (cdr totp-file-import-command))))
     (with-temp-buffer
@@ -211,13 +213,14 @@ OTP secrets+metadata by calling `totp-unwrap-otp-blob' on them."
         (totp-find-hmac-key-by-class b32-class 64))))
 
 (defun totp-load-file (file)
-  "Load secret(s) from FILE. The file may be a text file containing:
-  - A bare base32 encoded secret (the filename will be used for the label)
-  - Any number of otpauth:// URLs
-Or 
-  - A QR code image understood by `totp-file-import-command`\n
-Returns a list of TOTP secret alists - that is: Each element of 
-the returned list is the same structure returned by `totp-unwrap-otp-blob'."
+  "Load secret(s) from FILE. FILE may be:
+  - a single base32 encoded TOTP secret
+  - any number of otpauth:// scheme URLs
+  - any number of otpauth-migration:// scheme URLs
+  - a mix of entries encoded in the above URL schemes
+  - a QR code understood by `totp-file-import-command'.\n
+Returns a list of TOTP secret alists - that is: Each element of
+the returned list is a structure returned by `totp-unwrap-otp-blob'."
   (let (mime-type result)
     (setq file      (expand-file-name file)
           mime-type (mailcap-extension-to-mime (file-name-extension file)))
