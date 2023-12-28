@@ -227,10 +227,10 @@ The secret will NOT be base32 decoded."
 ;; "something")
 
 (defun totp-storage-backends (&optional encrypted)
-  "Return a list of available storage backends based on `auth-sources`.
+  "Return a list of available storage backends based on ‘auth-sources’.
 If ENCRYPTED is true then only encrypted backends are considered.
 Each entry is an alist of the form:
-  ((:source    . `auth-source-backend` object)
+  ((:source    . ‘auth-source-backend’ object)
    (:handler   . :secrets for a desktop secrets API or :default)
    (:encrypted . t if the backend is nontrivially encrypted, nil otherwise))"
   (delq nil
@@ -251,7 +251,7 @@ Each entry is an alist of the form:
 (defun totp-get-secrets-from-secrets-source (source)
   "Return an alist of secrets from SOURCE (a desktop secrets API auth-source).
 The car of each cell will be the label by which the secrets API identifies 
-this secret, the cdr will be an alist as returned by `totp-unwrap-otp-blob`."
+this secret, the cdr will be an alist as returned by ‘totp-unwrap-otp-blob’."
   (let (found vault next)
     (setq vault (slot-value source 'source))
     (mapc
@@ -547,8 +547,8 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
 
 (autoload 'totp-import-file "totp-interop"
   "Import an RFC6238 TOTP secret or secrets from FILE.
-FILE is processed by `totp-load-file' and each secret extracted
-is passed to `totp-save-secret'."
+FILE is processed by ‘totp-load-file’ and each secret extracted
+is passed to ‘totp-save-secret’."
   t)
 
 (provide 'totp)

@@ -237,8 +237,8 @@ the returned list is a structure returned by `totp-unwrap-otp-blob'."
 
 (defun totp-import-file (file)
   "Import an RFC6238 TOTP secret or secrets from FILE.
-FILE is processed by `totp-load-file' and each secret extracted
-is passed to `totp-save-secret'."
+FILE is processed by ‘totp-load-file’ and each secret extracted
+is passed to ‘totp-save-secret’."
   (interactive "fImport OTP Secret(s) from: ")
   (mapc #'totp-save-secret (totp-load-file file)))
 
