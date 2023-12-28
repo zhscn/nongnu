@@ -33,7 +33,7 @@
   :type '(repeat string)
   :group 'totp)
 
-(defcustom totp-minimum-ui-grace 5
+(defcustom totp-minimum-ui-grace 3
   "The minimum time to expiry a TOTP must have for the interactive
 UI to show it to you. If the generated token has less then this much time 
 to live then UI code should instead generate the next TOTP in sequence
