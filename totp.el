@@ -536,4 +536,10 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
      (list (cdr (assoc key secrets)) key)))
   (totp-display-token secret label))
 
+(autoload 'totp-import-file "totp-interop"
+  "Import an RFC6238 TOTP secret or secrets from FILE.
+FILE is processed by `totp-load-file' and each secret extracted
+is passed to `totp-save-secret'."
+  t)
+
 (provide 'totp)
