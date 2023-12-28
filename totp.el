@@ -29,7 +29,8 @@
 
 (defcustom totp-alt-xdg-schemas
   '("com.github.bilelmoussaoui.Authenticator")
-  "A list of fallback XDG schemas which are associated with TOTP secrets."
+  "A list of fallback XDG schemas which are associated with TOTP secrets.
+This is used only to read TOTP secrets stored by other applications."
   :type '(repeat string)
   :group 'totp)
 
