@@ -1,7 +1,11 @@
-;; -*- mode: emacs-lisp; lexical-binding: t; -*-
-;; Copyright © 2022 Vivek Das Moapatra <vivek@etla.org>
+;;; base32.el --- Base32 support -*- mode: emacs-lisp; lexical-binding: t; -*-
+;; Copyright © 2022,2023 Vivek Das Moapatra <vivek@etla.org>
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
+;;; Commentary:
+;; RFC6238 requires a base32 encodeer/decoder.
+
+;;; Code:
 (defconst base32-dictionary
   [?A ?B ?C ?D ?E ?F ?G ?H ?I ?J ?K ?L ?M ?N ?O ?P
    ?Q ?R ?S ?T ?U ?V ?W ?X ?Y ?Z ?2 ?3 ?4 ?5 ?6 ?7 ?=]
@@ -11,10 +15,11 @@ possible 5bit value (0-31) at that index, plus a padding character
 at index 32.")
 
 (defun base32-thesaurus (&optional dictionary)
-  "Make a reverse lookup base32 dictionary with the 5bit value corresponding
-to each encoding character at the index of that character. The padding character
-is mapped to 0.
-Dictionary should match `base32-dictionary` in format."
+  "Make a reverse lookup base32 for DICTIONARY.
+The 5bit value corresponding to each encoding character is stored at the
+index of that character.
+The padding character is mapped to 0.
+Dictionary should match ‘base32-dictionary’ in format."
   (or dictionary (setq dictionary base32-dictionary))
   (let ((b32-max 0) b32-values)
     (dotimes (i (length dictionary))
@@ -86,6 +91,8 @@ Dictionary should match `base32-dictionary` in format."
     str))
 
 (defun base32-encode (input &optional dictionary)
+  "Encode INPUT bytes according to DICTIONARY.
+DICTIONARY defaults to ‘base32-dictionary’."
   (or dictionary (setq dictionary base32-dictionary))
   (let (input-byte-count input-shortfall output-padding output output-length)
     (setq input-byte-count (length input)
@@ -108,6 +115,8 @@ Dictionary should match `base32-dictionary` in format."
     (concat output)))
 
 (defun base32-decode (input &optional dictionary)
+  "Decode INPUT bytes according to DICTIONARY.
+DICTIONARY defaults to ‘base32-dictionary’."
   (let ((thesaurus
          (base32-thesaurus (or dictionary base32-dictionary)))
         input-byte-count input-shortfall
@@ -140,3 +149,4 @@ Dictionary should match `base32-dictionary` in format."
     (if (< output-shorten 0) (substring output 0 output-shorten) output)))
 
 (provide 'base32)
+;;; base32.el ends here

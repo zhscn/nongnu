@@ -1,9 +1,15 @@
-;; -*- mode: emacs-lisp; lexical-binding: t; -*-
+;;; totp.el --- RFC6238 TOTP -*- mode: emacs-lisp; lexical-binding: t; -*-
 ;; Copyright © 2022,2023 Vivek Das Mohapatra <vivek@etla.org>
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; Author: Vivek Das Mohapatra <vivek@etla.org>
 ;; Keywords: 2FA two-factor totp otp
+
+;;; Commentary:
+;; Import TOTP secrets, store and fetch them from auth-sources, and
+;; generate TOTP (time-based one time password) tokens from them.
+
+;;; Code:
 
 (eval-and-compile
   (let ((load-path load-path)
@@ -21,7 +27,7 @@
   (require 'url-util)
   (require 'mailcap))
 
-(defgroup totp nil "Time-based One Time Passwords"
+(defgroup totp nil "Time-based One Time Passwords."
   :prefix "totp"
   :group 'data)
 
@@ -46,8 +52,8 @@ This is used only to read TOTP secrets stored by other applications."
   :type  '(repeat string))
 
 (defcustom totp-secrets-create-item-workaround t
-  "The replace parameter of org.freedesktop.Secrets.CreateItem
-is unreliable. If this option is on (the default) then we attempt
+  "The replace parame of freedesktop secrets CreateItem is unreliable.
+If this option is on (the default) then we attempt
 delete duplicated secrets when we save a secret via this API.\n
 If it is off then you are likely to end up with multiple copies of
 a secret if you ever re-import it."
@@ -55,9 +61,7 @@ a secret if you ever re-import it."
   :type  'boolean)
 
 (defcustom totp-auto-copy-password nil
-  "If set then ‘totp’ and other interactive functions that generate
-TOTP tokens will automatically copy the generated token into the selected
-copy/paste backends, ready for pasting (eg into other applications or buffers).
+  "If set \\[totp] will copy tokens into the selected copy/paste backends.
 The behaviour is as follows:
  - When the token is generated, it is placed in the selected copy areas
  - If the copy area still contains the previous value when the token
@@ -71,8 +75,8 @@ The behaviour is as follows:
            (const :tag "Secondary"                   SECONDARY))))
 
 (defcustom totp-auth-sources nil
-  "Serves the same purpose as ‘auth-sources’, but for the TOTP
-package. If unset (the default) this will be initialised to a list
+  "Serves the same purpose as ‘auth-sources’, but for the TOTP package.
+If unset (the default) this will be initialised to a list
 consisting of the contents of ‘auth-sources’ with the freedesktop
 secrets service login session prepended to it, if it is available."
   :group 'totp
@@ -141,7 +145,7 @@ secrets service login session prepended to it, if it is available."
                   (sexp :tag "A data structure (external provider)"))))
 
 (defun totp-auth-sources ()
-  "Initialise ‘totp-auth-sources’ if necessary and return it."
+  "Initialise variable ‘totp-auth-sources’ if necessary and return it."
   (or totp-auth-sources
       (let ((case-fold-search t) secret-collection collection-list)
         ;; pick a freedesktop collection that matches "login" or
@@ -163,7 +167,7 @@ secrets service login session prepended to it, if it is available."
         totp-auth-sources)))
 
 (defun totp-wrap-otpauth-url (s)
-  "Take a TOTP secret S and encode it as an otpauth url. 
+  "Take a TOTP secret S and encode it as an otpauth url.
 This is not an exact reverse of ‘totp-unwrap-otpauth-url’ since that function
 ignores some otpauth attributes for compatibility with other authenticators."
   (let ((service (cdr (assq :service s)))
@@ -183,7 +187,7 @@ ignores some otpauth attributes for compatibility with other authenticators."
               (url-hexify-string secret  allowed) digits)) ))
 
 (defun totp-unwrap-otpauth-url (u)
-  "Unpack an otpauth url and extract the bits we care about.
+  "Unpack an otpauth url U and extract the bits we care about.
 Some settings (eg the chunk size) are ignored because they've
 never been handled by google authenticator either, which just uses
 the default."
@@ -206,15 +210,16 @@ the default."
       (:digits  . ,digits )) ))
 
 (defun totp-unwrap-otp-blob (blob &optional label)
-  "Unwrap a stored TOTP BLOB - either an otpauth URL or a bare
-base32 encoded TOTP secret, and return an alist of the form:\n
+  "Unwrap a stored TOTP BLOB.
+BLOB may be either an otpauth URL or a bare base32 encoded TOTP secret
+Returns an alist of the form:\n
   ((:service . \"SOME-SERVICE-LABEL\")
    (:user    . \"SOME-USER-IDENT\")
    (:secret  . \"deadbeefdeadbeefdeadbeefdeadbeef\")
    (:digits  . 6))\n
 Note that :user may be nil, :digits defaults to 6 if unspecified,
 and service will default to LABEL if the stored blob was simply the
-base32 encoded secret.\n 
+base32 encoded secret.\n
 The secret will NOT be base32 decoded."
   (let ((u (url-generic-parse-url blob)))
     (if (equal (url-type u) "otpauth")
@@ -236,7 +241,7 @@ The secret will NOT be base32 decoded."
   "Return a list of available storage backends based on ‘auth-sources’.
 If ENCRYPTED is true then only encrypted backends are considered.
 Each entry is an alist of the form:
-  ((:source    . ‘auth-source-backend’ object)
+  ((:source    . function ‘auth-source-backend’ object)
    (:handler   . :secrets for a desktop secrets API or :default)
    (:encrypted . t if the backend is nontrivially encrypted, nil otherwise))"
   (delq nil
@@ -256,7 +261,7 @@ Each entry is an alist of the form:
 
 (defun totp-get-secrets-from-secrets-source (source)
   "Return an alist of secrets from SOURCE (a desktop secrets API auth-source).
-The car of each cell will be the label by which the secrets API identifies 
+The car of each cell will be the label by which the secrets API identifies
 this secret, the cdr will be an alist as returned by ‘totp-unwrap-otp-blob’."
   (let (found vault next)
     (setq vault (slot-value source 'source))
@@ -276,7 +281,7 @@ this secret, the cdr will be an alist as returned by ‘totp-unwrap-otp-blob’.
 
 (defun totp-get-secrets-from-default-source (source)
   "Return an alist of secrets from SOURCE (an auth-secrets source).
-The car of each cell will be a [user@]host label and the cdr will be the 
+The car of each cell will be a [user@]host label and the cdr will be the
 TOTP secret."
   (let (found)
     (mapc (lambda (x &optional host user secret label otpmeta)
@@ -296,6 +301,7 @@ TOTP secret."
     found))
 
 (defun totp-get-secrets-from-backend (backend)
+  "Fetch secrets from a specific auth-source BACKEND."
   (when (cdr (assq :encrypted backend))
     (let (source)
       (setq source (cdr (assq :source  backend)))
@@ -305,8 +311,8 @@ TOTP secret."
              (totp-get-secrets-from-default-source source))) )))
 
 (defun totp-same-secret (a b)
-  "Test whether secrets A and B are the same.\n
-NOTE: This is not a strict test of equality - rather we are checking to 
+  "Test whether secrets A and B are the same.
+\nNOTE: This is not a strict test of equality - rather we are checking to
 see if the user and service components of the secret identifier are the
 same, ie probably intended for the same target."
   (and (equal (assq :service a) (assq :service b))
@@ -326,8 +332,8 @@ same, ie probably intended for the same target."
     (or target default)))
 
 (defun totp-secret-make-label (secret)
-  "Take a ‘totp-unwrap-otp-blob’ structure SECRET and generate a label
-from it (based on its user and service fields)."
+  "Take a ‘totp-unwrap-otp-blob’ structure SECRET and generate a label from it.
+The label will be based on its user and service fields."
   (let (user srv-host)
     (setq user     (cdr (assq :user secret))
           srv-host (cdr (or (assq :service secret)
@@ -337,22 +343,27 @@ from it (based on its user and service fields)."
       (or user srv-host "nobody@unknown"))))
 
 (defun totp-secret-make-label-and-wrapper (secret &optional label)
+  "Take a ‘totp-unwrap-otp-blob’ SECRET and generate a LABEL and otpauth URL.
+LABEL is used as the default label.  If not supplied, ine is generated for you
+by ‘totp-secret-make-label’."
   (let ((wrapped (totp-wrap-otpauth-url secret)))
     (if (not label)
         (setq label (totp-secret-make-label secret)))
     (cons label wrapped)))
 
 (defun totp-get-item-attribute (item attribute)
+  "Take a freedesktop secrets ITEM and return its ATTRIBUTE value."
   (ignore-errors
     (cadr (assoc attribute (cdr (assoc "Attributes" item))))))
 
 (defun totp-save-secret-to-secrets-source (source secret &optional label)
-  "Save SECRET (see ‘totp-unwrap-otp-blob’) to the freedesktop
-Secrets Service (eg gnome-keyring or kwallet) with description LABEL.\n
+  "Save SECRET (see ‘totp-unwrap-otp-blob’) to the freedesktop Secrets Service.
+The secret is saved with the with description LABEL.\n
 SOURCE is an auth-source representing the Secrets Service Collection
 to save in (usually the login keyring).\n
 If LABEL is not supplied, one is constructed based on the contents
-of SECRET."
+of SECRET.
+Gnome Keyring and KWallet are examples of the freedesktop secrets services."
   (let (payload vault created)
     (setq payload (totp-secret-make-label-and-wrapper secret label)
           vault   (slot-value source 'source))
@@ -383,8 +394,8 @@ of SECRET."
     created))
 
 (defun totp-save-secret-to-default-source (source secret &optional label)
-  "Save SECRET (see ‘totp-unwrap-otp-blob’) to the auth-source SOURCE.\n
-SOURCE is any valid auth-source except a freedesktop Secrets Service.\n
+  "Save SECRET (see ‘totp-unwrap-otp-blob’) to the auth-source SOURCE.
+\nSOURCE is any valid auth-source except a freedesktop Secrets Service.\n
 LABEL is used as a hint when constructing the host attribute of the
 stored secret if it is both supplied and the secret does not have a
 host value."
@@ -410,8 +421,8 @@ host value."
       (message "No saver for secret %s in backend %S" (car payload) source))))
 
 (defun totp-save-secret (secret &optional backend)
-  "Save SECRET (see ‘totp-unwrap-otp-blob’) to BACKEND.\n
-If BACKEND is unspecified search the available secret sources for SECRET
+  "Save SECRET (see ‘totp-unwrap-otp-blob’) to BACKEND.
+\nIf BACKEND is unspecified search the available secret sources for SECRET
 and save to the first one that contains it.\n
 If SECRET is not found (see ‘totp-get-backend-for-secret’) then choose
 the first encrypted backend returned by ‘totp-storage-backends’."
@@ -429,8 +440,7 @@ the first encrypted backend returned by ‘totp-storage-backends’."
   (apply 'nconc (mapcar #'totp-get-secrets-from-backend (totp-storage-backends))))
 
 (defun totp-hmac-message (counter)
-  "Take counter (an integer) and return an 8-byte string containing
-its big-endian (highest-to-lowest byte) representation."
+  "Take COUNTER (an integer) and return its 8-byte big-endian representation."
   (let ((hi-4 (logand #xffffffff (lsh counter -32)))
         (lo-4 (logand #xffffffff counter)))
     (bindat-pack '((:hi4 u32) (:lo4 u32))
@@ -438,7 +448,7 @@ its big-endian (highest-to-lowest byte) representation."
                    (:lo4 . ,lo-4)))))
 
 (defun totp-truncate-hash (hmac-hash)
-  "Given a 20 byte string or vector:
+  "Given a 20 byte string or vector HMAC-HASH:
 Use the lowest 4 bits of the final byteas an offset,
 Read 4 bytes starting at that offset as a big-endian 32-bit integer,
 with the highest bit forced to 0 (ie a 31 bit integer)."
@@ -454,11 +464,12 @@ with the highest bit forced to 0 (ie a 31 bit integer)."
   "This value is used instead of the seconds since epoch if it is set.")
 
 (defun totp-generate-otp (secret &optional digits offset chunk algo)
-  "Given:
-  a string (or ‘totp-unwrap-otp-blob’ struct) SECRET
-  a TOTP length DIGITS (default 6)
-  an integer time skew OFFSET (default 0)
-  a time slice size CHUNK (default 30)
+  "Given the following:
+- a string (or ‘totp-unwrap-otp-blob’ struct) SECRET
+- a length DIGITS (default 6)
+- an integer time skew OFFSET (default 0)
+- a time slice size CHUNK (default 30)
+- a cryptographic hash algorithm ALGO (default sha1)
 Return (TOTP TTL EXPIRY) where TOTP is the time-based one time password,
 TTL is the number of seconds the password is good for at the time of generation
 and EXPIRY is the seconds after the epoch when the TOTP expires."
@@ -489,8 +500,8 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
 (defvar totp-display-oldpwd nil)
 
 (defun totp-update-paste-buffers (old new)
-  "For each copy/paste buffer selected by ‘totp-auto-copy-password’
-update the contents to password NEW (if it contains password OLD,
+  "For each copy/paste buffer selected by ‘totp-auto-copy-password’:
+Update the contents to password NEW (if it contains password OLD,
 or if OLD is unset)."
   ;;(message "totp-update-paste-buffers %S (%S)" old new totp-auto-copy-password)
   (mapc (lambda (type &optional ok)
@@ -516,6 +527,9 @@ or if OLD is unset)."
     cancelled))
 
 (defun totp-update-token-display (buf &optional otp token)
+  "Update a TOTP token display buffer BUF with the lifespan and current token.
+Will also call ‘totp-update-paste-buffers’.
+OTP and TOKEN are used internally and need not be passed."
   (if (buffer-live-p buf)
       (with-current-buffer buf
         (erase-buffer)
@@ -544,6 +558,7 @@ or if OLD is unset)."
     (totp-cancel-this-timer)))
 
 (defun totp-display-token (secret &optional label)
+  "Display the current token for SECRET with label LABEL."
   (let (ui-buffer)
     (or label
         (setq label (totp-secret-make-label secret)))
@@ -563,6 +578,7 @@ or if OLD is unset)."
     (run-with-timer 0 1 #'totp-update-token-display ui-buffer)))
 
 (defun totp (&optional secret label)
+  "Generate a TOTP token for SECRET, identified by LABEL, and show it."
   (interactive
    (let ((secrets (totp-secrets)) (completion-styles '(substring)) key)
      (setq key (completing-read "Generate TOTP: " secrets))
@@ -576,3 +592,4 @@ is passed to ‘totp-save-secret’."
   t)
 
 (provide 'totp)
+;;; totp.el ends here

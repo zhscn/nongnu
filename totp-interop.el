@@ -1,7 +1,12 @@
-;; -*- mode: emacs-lisp; lexical-binding: t; -*-
+;;; totp-interop.el --- Import secrets -*- mode: emacs-lisp; lexical-binding: t; -*-
 ;; Copyright © 2022,2023 Vivek Das Mohapatra <vivek@etla.org>
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
+;;; Commentary:
+;; Allows easy import of RFC6238 secrets from text files, otpauth
+;; and otpauth-migration URLs, and standard OTP QR code images.
+
+;;; Code:
 (eval-and-compile
   (let ((load-path load-path)
         (this-file (or load-file-name
@@ -25,13 +30,12 @@
 (defconst totp-pb-types [:varint :i64 :len :start :end :i32])
 
 (defun totp-pb-type (n)
-  "Look up the protobuffer type by its serialisation numeric code."
+  "Look up the protobuffer type by its serialisation numeric code N."
   (when (< n (length totp-pb-types))
     (aref totp-pb-types n)))
 
 (defun totp-pb-read-varint (bytes &optional pos)
-  "Reads a varint from a protobuffer-compliant  array, vector or string BYTES 
-starting at offset POS.
+  "Read a varint from a protobuffer  array, vector or string BYTES at offset POS.
 Returns a cons of (VALUE . BYTES-READ)"
   (let ((u64 0)
         b10 byte collected vbyte-count)
@@ -50,7 +54,7 @@ Returns a cons of (VALUE . BYTES-READ)"
       (when (= vbyte-count 10)
         ;; If there are 10 bytes then the first byte must be 0x1
         ;; as 9 varint encoding bytes gives 9×7 = 63 bits, which
-        ;; only leaves 1 bit. 
+        ;; only leaves 1 bit.
         (setq b10 (aref collected 9)))
       (dotimes (i (length collected))
         (setq u64 (+ u64 (lsh (aref collected i) (* i 7)))))
@@ -60,7 +64,7 @@ Returns a cons of (VALUE . BYTES-READ)"
 
 (defun totp-pb-read-tag (buf &optional pos)
   "Read a protobuffer tag, which is (field-number << 3 | type).
-from array, vector or string BUF at offset POS.
+Reads from an array, vector or string BUF at offset POS.
 Returns a structure: ((FIELD . TYPE) . BYTES-READ)
 Where TYPE should be :varint :i64 :len or :i32"
   (let ((decoded (totp-pb-read-varint buf pos)) type field)
@@ -80,8 +84,7 @@ Returns a unibyte string containing those bytes."
     (string-make-unibyte raw)))
 
 (defun totp-pb-read-len (buf &optional pos)
-  "Read a variable-length byte string from a protobuffer compliant
-source string or vector BUF at offset POS."
+  "Read a variable-length byte string from a string or vector BUF at offset POS."
   (let (pb len bytes offset read)
     (setq offset (or pos 0)
           pb     (totp-pb-read-varint buf offset)
@@ -92,12 +95,12 @@ source string or vector BUF at offset POS."
           bytes  (totp-pb-read-raw buf len offset))
     (cons bytes (+ read len))))
 
-(defconst totp-pb-otpauth-migration-field-map 
+(defconst totp-pb-otpauth-migration-field-map
   [nil :secret (:service . :user) :service :algo :digits :type nil])
 
 (defun totp-pb-otpauth-migration-translate-field (field val)
-  "Translate a FIELD number (1-6) and VAL into cons cell(s) suitable
-for use in the return value of `totp-unwrap-otp-blob`"
+  "Translate a FIELD number (1-6) and VAL into cons cell(s).
+The cell(s) are suitable for use in the return value of `totp-unwrap-otp-blob`"
   (let (key)
     (setq key (and (< 0 field)
                    (> (length totp-pb-otpauth-migration-field-map) field)
@@ -145,6 +148,7 @@ for use in the return value of `totp-unwrap-otp-blob`"
     res))
 
 (defun totp-pb-decode-migration-data (buf &optional pos)
+  "Decode the payload of an otpauth-migration url in BUF at offset POS."
   (let (offset pb-item pb-value what next result item i)
     (setq offset (or pos 0)
           i      0
@@ -177,9 +181,10 @@ and returns a list of 0 or more secret srtuctures instead of just one."
     (totp-pb-decode-migration-data data)))
 
 (defun totp-parse-buffer-otp-urls (&optional buffer)
-  "Search for otpauth and otpauth-migration URLs in BUFFER
-(the current buffer by default) and return a list of all the 
-OTP secrets+metadata by calling `totp-unwrap-otp-blob' on them."
+  "Search for otpauth and otpauth-migration URLs in BUFFER.
+BUFFER defaults to the current buffer.
+Returns a list of all the OTP secrets+metadata by calling
+`totp-unwrap-otp-blob' on them."
   (let (result url-string url)
     (with-current-buffer (or buffer (current-buffer))
       (goto-char (point-min))
@@ -194,8 +199,8 @@ OTP secrets+metadata by calling `totp-unwrap-otp-blob' on them."
     result))
 
 (defun totp-load-image-file (file)
-  "Use `totp-file-import-command' to extract the contents of FILE
-and process the results with `totp-parse-buffer-otp-urls'."
+  "Use `totp-file-import-command' to extract the contents of FILE.
+The contents are passed to `totp-parse-buffer-otp-urls'."
   (let ((args (mapcar (lambda (a) (if (equal "@file@" a) file a))
                       (cdr totp-file-import-command))))
     (with-temp-buffer
@@ -203,17 +208,21 @@ and process the results with `totp-parse-buffer-otp-urls'."
       (totp-parse-buffer-otp-urls)) ))
 
 (defun totp-find-hmac-key-by-class (class len)
+  "Search for an HMAC key based on the regex character class CLASS.
+The expected length of the key is LEN."
   (let ((pattern (format "\\b%s\\{%d\\}\\b" class len)))
     (and (re-search-forward pattern nil t) (match-string 0))))
 
 (defun totp-find-hmac-key ()
+  "Find one of the common base32 encoded TOTP HMAC keys."
   (let ((b32-class (concat "[" base32-dictionary "]")))
     (or (totp-find-hmac-key-by-class b32-class 20)
         (totp-find-hmac-key-by-class b32-class 32)
         (totp-find-hmac-key-by-class b32-class 64))))
 
 (defun totp-load-file (file)
-  "Load secret(s) from FILE. FILE may be:
+  "Load secret(s) from FILE.
+FILE may be:
   - a single base32 encoded TOTP secret
   - any number of otpauth:// scheme URLs
   - any number of otpauth-migration:// scheme URLs
@@ -243,3 +252,4 @@ is passed to ‘totp-save-secret’."
   (mapc #'totp-save-secret (totp-load-file file)))
 
 (provide 'totp-interop)
+;;; totp-interop.el ends here
