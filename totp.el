@@ -34,18 +34,6 @@ This is used only to read TOTP secrets stored by other applications."
   :type '(repeat string)
   :group 'totp)
 
-(defcustom totp-minimum-ui-grace 3
-  "The minimum time to expiry a TOTP must have for the interactive
-UI to show it to you. If the generated token has less then this much time 
-to live then UI code should instead generate the next TOTP in sequence
-and wait until it is valid before showing it to the user.\n
-Noninteractive TOTP code must return TOTP values along with their 
-lifespan (at the time of generation) and their absolute expiry time,
-and may also return the next TOTP value and the same information for that
-as well."
-  :type  'integer
-  :group 'totp)
-
 (defcustom totp-max-tokens 1024
   "The maximum number of tokens totp will try to fetch and process."
   :group 'totp
