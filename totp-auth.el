@@ -1,4 +1,4 @@
-;;; totp.el --- RFC6238 TOTP -*- mode: emacs-lisp; lexical-binding: t; -*-
+;;; totp-auth.el --- RFC6238 TOTP -*- mode: emacs-lisp; lexical-binding: t; -*-
 ;; Copyright © 2022,2023 Vivek Das Mohapatra <vivek@etla.org>
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -13,7 +13,6 @@
 ;; generate TOTP (time-based one time password) tokens from them.
 
 ;;; Code:
-
 (eval-and-compile
   (let ((load-path load-path)
         (this-file (or load-file-name
@@ -30,7 +29,7 @@
   (require 'url-util)
   (require 'mailcap))
 
-(defgroup totp nil "Time-based One Time Passwords."
+(defgroup totp-auth nil "Time-based One Time Passwords."
   :prefix "totp"
   :group 'data)
 
@@ -41,17 +40,17 @@
   "A list of fallback XDG schemas which are associated with TOTP secrets.
 This is used only to read TOTP secrets stored by other applications."
   :type '(repeat string)
-  :group 'totp)
+  :group 'totp-auth)
 
 (defcustom totp-max-tokens 1024
   "The maximum number of tokens totp will try to fetch and process."
-  :group 'totp
+  :group 'totp-auth
   :type  'integer)
 
 (defcustom totp-file-import-command '("zbarimg" "-q" "@file@")
   "The command and parameters used to parse a QR code image.
 @file@ is a placeholder for the file name."
-  :group 'totp
+  :group 'totp-auth
   :type  '(repeat string))
 
 (defcustom totp-secrets-create-item-workaround t
@@ -60,7 +59,7 @@ If this option is on (the default) then we attempt
 delete duplicated secrets when we save a secret via this API.\n
 If it is off then you are likely to end up with multiple copies of
 a secret if you ever re-import it."
-  :group 'totp
+  :group 'totp-auth
   :type  'boolean)
 
 (defcustom totp-auto-copy-password nil
@@ -69,7 +68,7 @@ The behaviour is as follows:
  - When the token is generated, it is placed in the selected copy areas
  - If the copy area still contains the previous value when the token
    expires and is regenerated, it is replaced with the new value."
-  :group 'totp
+  :group 'totp-auth
   :type '(choice
           (const :tag "Off" nil)
           (set :tag "Choose Copy Method(s)"
@@ -82,7 +81,7 @@ The behaviour is as follows:
 If unset (the default) this will be initialised to a list
 consisting of the contents of ‘auth-sources’ with the freedesktop
 secrets service login session prepended to it, if it is available."
-  :group 'totp
+  :group 'totp-auth
   :type `(repeat :tag "Authentication Sources"
                  (choice
                   (string :tag "Just a file")
@@ -595,5 +594,5 @@ FILE is processed by ‘totp-load-file’ and each secret extracted
 is passed to ‘totp-save-secret’."
   t)
 
-(provide 'totp)
-;;; totp.el ends here
+(provide 'totp-auth)
+;;; totp-auth.el ends here

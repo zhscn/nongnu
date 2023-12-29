@@ -15,7 +15,7 @@
     (when (not (and (locate-library "base32")
                     (locate-library "hmac")))
       (add-to-list 'load-path (file-name-directory this-file)))
-    (require 'totp))
+    (require 'totp-auth))
   (require 'mailcap))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
