@@ -1,12 +1,12 @@
-totp.el - Time-based One Time Password support for emacs
+totp-auth.el - Time-based One Time Password support for emacs
 
 This package generates RFC6238 Time-based One Time Passwords
 and displays them (as well as optionally copying them to
-the clipbpoard/primary selection), updating them as they expire.
+the clipboard/primary selection), updating them as they expire.
 
-It stores and retrieves the shared secrets used to generate TOTP
-tokens based on ‘auth-sources’ and/or the freedesktop secrets API
-(aka Gnome Keyring or KWallet).
+It retrieves the shared secrets used to generate TOTP tokens
+with ‘auth-sources’ and/or the freedesktop secrets API (aka
+Gnome Keyring or KWallet).
 
 You can call it with the command ‘totp’, ie:
 
