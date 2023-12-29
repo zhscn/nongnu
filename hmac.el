@@ -4,6 +4,7 @@
 
 ;;; Commentary:
 ;; HMAC message hashing for RFC6238 support.
+;; TODO - check if this can be dropped for gnutls-hash-mac et al
 
 ;;; Code:
 (defun hmac-algo-block-size (algo)
@@ -74,7 +75,4 @@ human-readable."
     (secure-hash algo (concat outer inner) nil nil (not human))))
 
 (provide 'hmac)
-
-(provide 'hmac)
-
 ;;; hmac.el ends here
