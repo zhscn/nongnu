@@ -255,13 +255,6 @@ The secret will NOT be base32 decoded."
         (:digits  . 6)
         (:service . ,label))) ))
 
-;; (totp-unwrap-otp-blob
-;;  (concat "otpauth://totp/"
-;;          "moomins%3Avivek@example.org"
-;;          "?secret=deadbeefdeadbeefdeadbeefdeadbeef&digits=6"))
-;; (totp-unwrap-otp-blob "deadbeefdeadbeefdeadbeefdeadbeef"
-;; "something")
-
 (defun totp-storage-backends (&optional encrypted)
   "Return a list of available storage backends based on ‘auth-sources’.
 If ENCRYPTED is true then only encrypted backends are considered.
