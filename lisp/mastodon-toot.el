@@ -1042,7 +1042,7 @@ TYPE is the candidate type, it may be :tags, :handles, or :emoji."
                (mastodon-search--search-accounts-query
                 (buffer-substring-no-properties start end))))))
 
-(defun mastodon-toot--make-capf (regex type &optional annot-fun)
+(defun mastodon-toot--make-capf (regex annot-fun type)
   "Build a completion backend for `completion-at-point-functions'.
 REGEX is the regex to match preceding text.
 TYPE is a keyword symbol for `mastodon-toot--fetch-completion-candidates'.
