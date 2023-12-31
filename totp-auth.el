@@ -87,16 +87,16 @@ a secret if you ever re-import it."
 
 (defcustom totp-auto-copy-password nil
   "If set \\[totp] will copy tokens into the selected copy/paste backends.
-The behaviour is as follows:
+The behaviour is implemented by ‘totp-update-paste-buffers’ as follows:
  - When the token is generated, it is placed in the selected copy areas
  - If the copy area still contains the previous value when the token
-   expires and is regenerated, it is replaced with the new value."
+   expires and is regenerated it is replaced with the new value."
   :group 'totp-auth
   :type '(choice
           (const :tag "Off" nil)
           (set :tag "Choose Copy Method(s)"
            (const :tag "Primary (middle-click etc)"  PRIMARY)
-           (const :tag "Clipboard (Paste, c-y, V-v)" CLIPBOARD)
+           (const :tag "Clipboard (Paste, C-y, C-v)" CLIPBOARD)
            (const :tag "Secondary"                   SECONDARY))))
 
 (defcustom totp-auth-sources nil
