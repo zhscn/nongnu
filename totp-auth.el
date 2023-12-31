@@ -467,7 +467,7 @@ the first encrypted backend returned by ‘totp-storage-backends’."
 
 (defun totp-truncate-hash (hmac-hash)
   "Given a 20 byte string or vector HMAC-HASH:
-Use the lowest 4 bits of the final byteas an offset,
+Use the lowest 4 bits of the final byte as an offset,
 Read 4 bytes starting at that offset as a big-endian 32-bit integer,
 with the highest bit forced to 0 (ie a 31 bit integer)."
   (let (offset b0 b1 b2 b3)
