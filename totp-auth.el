@@ -641,7 +641,8 @@ then wait until it is time to renew the token before doing anything."
         (sit-for ttl)
         (setq otp (totp-generate-otp secret)))
       (setq token (nth 0 otp))
-      (totp-update-paste-buffers nil token))
+      (let ((totp-auto-copy-password (or totp-auto-copy-password '(PRIMARY))))
+        (totp-update-paste-buffers nil token)))
     (notifications-close-notification id)))
 
 (defun totp-update-token-notification (id label secret)
