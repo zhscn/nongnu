@@ -552,14 +552,16 @@ OTP and TOKEN are used internally and need not be passed."
       (with-current-buffer buf
         (erase-buffer)
         (if (or (not totp-display-ttl)
-                (not totp-display-expiry))
+                (not totp-display-expiry)
+                (not totp-display-oldpwd))
             ;; metadata unset, need to generate TOTP
             (setq otp                 (totp-generate-otp totp-display-secret)
                   token               (nth 0 otp)
                   totp-display-ttl    (nth 1 otp)
                   totp-display-expiry (nth 2 otp))
           ;; metadata already set, work out our new ttl:
-          (setq totp-display-ttl
+          (setq token totp-display-oldpwd
+                totp-display-ttl
                 (floor (- (time-to-seconds) totp-display-expiry))))
         ;; regenerate metadata if the ttl is <= 0
         (if (>= 0 totp-display-ttl)
