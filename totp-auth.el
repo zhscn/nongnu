@@ -23,9 +23,10 @@
 ;;
 ;;    M-x totp RET
 ;;
-;; You can tab-complete based on the label of the secret and a
-;; buffer displaying the token will be displayed (and updated as
-;; the displayed token expires).
+;; You can tab-complete based on the label of the secret.
+;; Depending on the setting of ‘totp-display-token-method’ the
+;; TOTP token will be displayed (and kept up to date) either in
+;; an emacs buffer or a freedesktop notification.
 ;;
 ;; If you want to import TOTP secrets from other apps you can call:
 ;;
