@@ -85,7 +85,7 @@ a secret if you ever re-import it."
   :group 'totp-auth
   :type  'boolean)
 
-(defcustom totp-auto-copy-password nil
+(defcustom totp-auto-copy-password '(PRIMARY CLIPBOARD)
   "If set \\[totp] will copy tokens into the selected copy/paste backends.
 The behaviour is implemented by ‘totp-update-paste-buffers’ as follows:
  - When the token is generated, it is placed in the selected copy areas
