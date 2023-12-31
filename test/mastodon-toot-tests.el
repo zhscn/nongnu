@@ -117,9 +117,9 @@ mention string."
          (list (current-window-configuration)
                (point-marker))))
     (with-mock
-      (mock (kill-buffer-and-window))
-      (mastodon-toot--kill)
-      (mock-verify))))
+     (mock (mastodon--kill-window))
+     (mastodon-toot--kill)
+     (mock-verify))))
 
 (ert-deftest mastodon-toot--own-toot-p-fail ()
   "Should not return t if not own toot."
