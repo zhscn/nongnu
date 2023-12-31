@@ -65,6 +65,16 @@ This is used only to read TOTP secrets stored by other applications."
   :type '(repeat string)
   :group 'totp-auth)
 
+(defcustom totp-minimum-ui-grace 3
+  "The minimum time to expiry a TOTP must have for interactive use.
+If the generated token has less then this much time to live then
+interactive code MAY instead generate the next TOTP in sequence
+and wait until it is valid before giving it to the user.
+Noninteractive TOTP code MUST return TOTP values along with their
+lifespan (at the time of generation) and their absolute expiry time."
+  :type  'integer
+  :group 'totp)
+
 (defcustom totp-max-tokens 1024
   "The maximum number of tokens totp will try to fetch and process."
   :group 'totp-auth
@@ -98,6 +108,17 @@ The behaviour is implemented by ‘totp-update-paste-buffers’ as follows:
            (const :tag "Primary (middle-click etc)"  PRIMARY)
            (const :tag "Clipboard (Paste, C-y, C-v)" CLIPBOARD)
            (const :tag "Secondary"                   SECONDARY))))
+
+(defcustom totp-display-token-method nil
+  "Choose the TOTP token display mechanism.
+A Custom function it must accept a ‘totp-generate-otp’ SECRET
+and optional LABEL as its first two arguments."
+  :group 'totp-auth
+  :type '(choice
+          (const :tag "Notification if possible, otherwise TOTP buffer" nil)
+          (const :tag "Desktop notification" totp-display-token-notification)
+          (const :tag "TOTP buffer" totp-display-token-buffer)
+          (function :tag "Custom function")))
 
 (defcustom totp-auth-sources nil
   "Serves the same purpose as ‘auth-sources’, but for the TOTP package.
@@ -511,6 +532,8 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
       (setq totp (format fmt totp)))
     (list totp ttl expiry)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; UI code
 (defvar totp-display-ttl    nil)
 (defvar totp-display-label  nil)
 (defvar totp-display-expiry nil)
@@ -544,6 +567,8 @@ or if OLD is unset)."
           (setq cancelled (1+ cancelled)))))
     cancelled))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; TOTP buffer based UI
 (defun totp-update-token-display (buf &optional otp token)
   "Update a TOTP token display buffer BUF with the lifespan and current token.
 Will also call ‘totp-update-paste-buffers’.
@@ -577,8 +602,8 @@ OTP and TOKEN are used internally and need not be passed."
                         totp-display-label totp-display-ttl token)))
     (totp-cancel-this-timer)))
 
-(defun totp-display-token (secret &optional label)
-  "Display the current token for SECRET with label LABEL."
+(defun totp-display-token-buffer (secret &optional label)
+  "Display buffer with the current token for SECRET with label LABEL."
   (let (ui-buffer)
     (or label
         (setq label (totp-secret-make-label secret)))
@@ -596,6 +621,81 @@ OTP and TOKEN are used internally and need not be passed."
           totp-display-expiry nil)
     (pop-to-buffer ui-buffer)
     (run-with-timer 0 1 #'totp-update-token-display ui-buffer)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Desktop Notification based UI
+(defun totp-notification-action (id key secret)
+  "Handle a desktop notification “copy” action.
+ID is the freedesktop notification id.
+KEY is the action (we currently only handle \"copy\").
+SECRET is a suitable argument for ‘totp-generate-otp’.
+\nCopy the current OTP token for SECRET with `totp-update-paste-buffers',
+then close the notification.
+\nIf the current token is about to expire (see ‘totp-minimum-ui-grace’)
+then wait until it is time to renew the token before doing anything."
+  (when (equal "copy" key)
+    (let (otp ttl token)
+      (setq otp (totp-generate-otp secret)
+            ttl (nth 1 otp))
+      (when (>= totp-minimum-ui-grace ttl)
+        (sit-for ttl)
+        (setq otp (totp-generate-otp secret)))
+      (setq token (nth 0 otp))
+      (totp-update-paste-buffers nil token))
+    (notifications-close-notification id)))
+
+(defun totp-update-token-notification (id label secret)
+  (let (otp text ttl)
+    (setq otp  (totp-generate-otp secret)
+          ttl  (nth 1 otp)
+          text (if (>= totp-minimum-ui-grace ttl)
+                   "Generating…  [⌛]"
+                 (format "%s  [%02ds]" (nth 0 otp) ttl)))
+    (notifications-notify
+     :title       label
+     :replaces-id id
+     :body        text
+     :actions    '("default" "Close" "copy" "Copy")
+     :timeout     0
+     :resident    t)))
+
+(defun totp-display-token-notification (secret &optional label)
+  "Display a notification with the current token for SECRET with label LABEL."
+  (or label
+      (setq label (totp-secret-make-label secret)))
+  (let (nid update)
+    (setq update (timer-create)
+          nid    (notifications-notify
+                  :title     label
+                  :body      "Generating…  [⌛]"
+                  :actions  '("default" "Close" "copy" "Copy")
+                  :timeout   0
+                  :resident  t
+                  :on-action (lambda (id key)
+                               (totp-notification-action id key secret))
+                  :on-close  (lambda (_id _key) (cancel-timer update))))
+    (timer-set-time     update (current-time) 1)
+    (timer-set-function update
+                        #'totp-update-token-notification (list nid label secret))
+    (timer-activate     update)
+    update))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Generic UI
+(defun totp-display-token (secret &optional label)
+  "Display the TOTP token for secret according to ‘totp-display-token-method’.
+SECRET is a string or structure consumable by ‘totp-generate-otp’,
+LABEL is a label or description of the secret (eg its user and service
+information).
+LABEL will be initialised by ‘totp-secret-make-label’ if unset."
+  (or label
+      (setq label (totp-secret-make-label secret)))
+  (if totp-display-token-method
+      (funcall totp-display-token-method secret label)
+    (if (ignore-errors (and (require 'notifications)
+                            (notifications-get-server-information)))
+        (totp-display-token-notification secret label)
+      (totp-display-token-buffer secret label))))
 
 ;;;###autoload
 (defun totp (&optional secret label)
