@@ -12,7 +12,7 @@
           (expand-file-name (concat (file-name-directory this-file) "/..")))
     (message "running tests in %s" test-totp-source-dir)
     (add-to-list 'load-path test-totp-source-dir)
-    (require 'totp)
+    (require 'totp-auth)
     (require 'totp-interop)))
 
 (defun 0b (byte)
