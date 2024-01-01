@@ -48,6 +48,7 @@
     (require 'base32)
     (require 'hmac))
   (require 'auth-source)
+  (require 'secrets)
   (require 'bindat)
   (require 'url-parse)
   (require 'url-util)
@@ -238,7 +239,7 @@ ignores some otpauth attributes for compatibility with other authenticators."
 Some settings (eg the chunk size) are ignored because they've
 never been handled by google authenticator either, which just uses
 the default."
-  (let (srv query secret digits user)
+  (let (srv service query secret digits user)
     (setq u       (url-path-and-query u)
           srv     (replace-regexp-in-string "^/" "" (car u))
           srv     (url-unhex-string srv)
@@ -418,7 +419,7 @@ Gnome Keyring and KWallet are examples of the freedesktop secrets services."
                                        :xdg:schema totp-xdg-schema))
     ;; de-duplicate by hand:
     (when totp-secrets-create-item-workaround
-      (let (path props schema maybe-dup)
+      (let (path props schema maybe-dup stored)
         (setq stored (cdr (assq :secret secret)) ;; secret we just stored
               path   (secrets-collection-path vault))
         (dolist (item-path (secrets-get-items path))
@@ -663,6 +664,10 @@ then wait until it is time to renew the token before doing anything."
 
 (defun totp-display-token-notification (secret &optional label)
   "Display a notification with the current token for SECRET with label LABEL."
+  ;; this is only required if the user has explicitly configured display
+  ;; via notifications - the default path checks to see if notifications
+  ;; support can be loaded before we get here:
+  (require 'notifications)
   (or label
       (setq label (totp-secret-make-label secret)))
   (let (nid update)
