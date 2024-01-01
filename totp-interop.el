@@ -81,7 +81,7 @@ Returns a unibyte string containing those bytes."
         (offset (or pos 0)))
     (dotimes (i len)
       (aset raw i (logand #xff (aref buf (+ i offset)))))
-    (string-make-unibyte raw)))
+    (encode-coding-string raw 'raw-text)))
 
 (defun totp-pb-read-len (buf &optional pos)
   "Read a variable-length byte string from a string or vector BUF at offset POS."
