@@ -9,7 +9,7 @@
 ;; Package-Requires: ((emacs "27.1"))
 
 ;;; Commentary:
-;; totp-auth.el - Time-based One Time Password support for emacs
+;; totp-auth.el - Time-based One Time Password support for Emacs
 ;;
 ;; This package generates RFC6238 Time-based One Time Passwords
 ;; and displays them (as well as optionally copying them to
@@ -26,7 +26,7 @@
 ;; You can tab-complete based on the label of the secret.
 ;; Depending on the setting of ‘totp-display-token-method’ the
 ;; TOTP token will be displayed (and kept up to date) either in
-;; an emacs buffer or a freedesktop notification.
+;; an Emacs buffer or a freedesktop notification.
 ;;
 ;; If you want to import TOTP secrets from other apps you can call:
 ;;
