@@ -6,7 +6,7 @@
 ;; Keywords: 2FA two-factor totp otp password
 ;; URL: https://gitlab.com/fledermaus/totp.el
 ;; Version: 0.2
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "27.1") (base32 "0.1"))
 
 ;;; Commentary:
 ;; totp-auth.el - Time-based One Time Password support for Emacs
@@ -46,7 +46,7 @@
                     (locate-library "hmac")))
       (add-to-list 'load-path (file-name-directory this-file)))
     (require 'base32)
-    (require 'hmac))
+    (require 'totp-auth-hmac))
   ;; this is to reduce warnings for melpa - it's not actually necessary
   (ignore-errors (require 'notifications))
   (require 'auth-source)
@@ -536,7 +536,7 @@ and EXPIRY is the seconds after the epoch when the TOTP expires."
           ttl     (- chunk (% now  chunk))
           expiry  (+ now  chunk)
           msg     (totp-auth-hmac-message counter)
-          hash    (hmac secret msg algo)
+          hash    (totp-auth-hmac secret msg algo)
           totp    (% (totp-auth-truncate-hash hash) (expt 10 digits)))
     (let ((fmt (format "%%0%dd" digits)))
       (setq totp (format fmt totp)))
