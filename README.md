@@ -16,7 +16,7 @@ its own directory by default.
 
 If you want to import TOTP secrets you can invoke:
 
-  M-x totp-import-file RET
+  M-x totp-auth-import-file RET
 
 This supports:
 

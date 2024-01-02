@@ -30,7 +30,7 @@
 ;;
 ;; If you want to import TOTP secrets from other apps you can call:
 ;;
-;;   M-x totp-import-file RET
+;;   M-x totp-auth-import-file RET
 ;;
 ;; If you want the latest generated token automatically
 ;; copied to your GUI's selection for easy pasting, you
@@ -726,7 +726,7 @@ LABEL will be initialised by ‘totp-auth-secret-make-label’ if unset."
      (list (cdr (assoc key secrets)) key)))
   (totp-auth-display-token secret label))
 
-(autoload 'totp-import-file "totp-interop"
+(autoload 'totp-auth-import-file "totp-interop"
   "Import an RFC6238 TOTP secret or secrets from FILE.
 FILE is processed by ‘totp-load-file’ and each secret extracted
 is passed to ‘totp-save-secret’."
