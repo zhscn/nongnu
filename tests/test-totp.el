@@ -106,21 +106,22 @@
 (defun totp-check-results (label target digits algorithm &rest generated-otp)
   (let ((i 0)
         (want  (string-to-number (substring target (- digits))))
-        (stamp (format-time-string "%Y-%m-%d %H:%M:%S" totp-override-time t))
+        (stamp (format-time-string "%Y-%m-%d %H:%M:%S"
+                                   totp-auth-override-time t))
         have)
     (dolist (otp generated-otp)
       (setq have (string-to-number (car otp)))
       (or (equal want have)
           (error "%s TOTP #%d @%d (%s), %S %d digits did not match: %S vs %S"
-                 label i totp-override-time stamp algorithm digits want have))
+                 label i totp-auth-override-time stamp algorithm digits want have))
       (setq i (1+ i)))
-    (message "%8s TOTP @%d (%s) OK" label totp-override-time stamp)
+    (message "%8s TOTP @%d (%s) OK" label totp-auth-override-time stamp)
     i))
 
 (defun test-totp-secret (algo)
   "The TOTP RFC test secret is the digits repeated up to N bytes,
 where N depends on the HMAC algorithm."
-  (hmac-xor (make-string (cond ((eq algo 'sha1)   20)
+  (totp-auth-hmac-xor (make-string (cond ((eq algo 'sha1)   20)
                                ((eq algo 'sha256) 32)
                                ((eq algo 'sha512) 64))
                          0)
@@ -129,31 +130,31 @@ where N depends on the HMAC algorithm."
 ;; sha1 is the default algo so don't pass it:
 ;; likewise 6 is the 
 (defun test-totp-check-parameters (params)
-  (let ((totp-override-time (nth 0 params))
-        (algorithm          (nth 1 params))
-        (result-8           (nth 2 params))
+  (let ((totp-auth-override-time (nth 0 params))
+        (algorithm               (nth 1 params))
+        (result-8                (nth 2 params))
         key)
     (setq key (base32-encode (test-totp-secret algorithm)))
     (dolist (digits '(8 7 6))
       (cond
        ((and (eq digits 6) (eq algorithm 'sha1))
         (totp-check-results "sha1:6" result-8 digits algorithm
-                            (totp-generate-otp key)
-                            (totp-generate-otp key digits)
-                            (totp-generate-otp key nil    nil nil algorithm)
-                            (totp-generate-otp key digits nil nil algorithm)))
+                            (totp-auth-generate-otp key)
+                            (totp-auth-generate-otp key digits)
+                            (totp-auth-generate-otp key nil    nil nil algorithm)
+                            (totp-auth-generate-otp key digits nil nil algorithm)))
        ((eq digits 6)
         (totp-check-results (format "%s:6" algorithm) result-8 digits algorithm
-                            (totp-generate-otp key nil    nil nil algorithm)
-                            (totp-generate-otp key digits nil nil algorithm)))
+                            (totp-auth-generate-otp key nil    nil nil algorithm)
+                            (totp-auth-generate-otp key digits nil nil algorithm)))
        ((eq algorithm 'sha1)
         (totp-check-results (format "sha1:%d" digits) result-8 digits algorithm
-                            (totp-generate-otp key digits nil nil)
-                            (totp-generate-otp key digits nil nil algorithm)))
+                            (totp-auth-generate-otp key digits nil nil)
+                            (totp-auth-generate-otp key digits nil nil algorithm)))
        (t
         (totp-check-results (format "%s:%d" algorithm digits)
                             result-8 digits algorithm
-                            (totp-generate-otp key digits nil nil algorithm)))))
+                            (totp-auth-generate-otp key digits nil nil algorithm)))))
     t))
 
 (defconst test-totp-import-expected-results
@@ -213,7 +214,7 @@ earlier ones, whic would therefore not be returned by `assoc`)."
     (mapc
      (lambda (test-file &optional expected actual)
        (setq expected (cdr (assoc test-file test-totp-import-expected-results))
-             actual   (totp-load-file
+             actual   (totp-auth-load-file
                        (expand-file-name test-file test-totp-source-dir)))
        (if (test-totp-compare-alist-list expected actual test-file)
            (message "%s imported OK" test-file)
