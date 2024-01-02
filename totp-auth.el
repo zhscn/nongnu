@@ -650,6 +650,11 @@ then wait until it is time to renew the token before doing anything."
     (notifications-close-notification id)))
 
 (defun totp-update-token-notification (id label secret)
+  "Update a notification displaying a TOTP token.
+ID is the freedesktop notifications id (an unsigned 32 but integer).
+LABEL is the descriptive label of the OTP secret.
+SECRET is a suitable secret usable by ‘totp-generate-otp’.
+Usually called from a timer set by ‘totp-display-token-notification’."
   (let (otp text ttl)
     (setq otp  (totp-generate-otp secret)
           ttl  (nth 1 otp)
