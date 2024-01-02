@@ -9,8 +9,8 @@
 (defconst base32-dictionary
   [?A ?B ?C ?D ?E ?F ?G ?H ?I ?J ?K ?L ?M ?N ?O ?P
    ?Q ?R ?S ?T ?U ?V ?W ?X ?Y ?Z ?2 ?3 ?4 ?5 ?6 ?7 ?=]
-  "The default base32 dictionary.\n
-Takes the form of a vector which contains a character for each
+  "The default base32 dictionary.
+\nTakes the form of a vector which contains a character for each
 possible 5bit value (0-31) at that index, plus a padding character
 at index 32.")
 
