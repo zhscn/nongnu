@@ -186,12 +186,11 @@ determined by `assoc`).
 The alists may have 'masked' entries (having later keys that match
 earlier ones, whic would therefore not be returned by `assoc`)."
   (when (equal (length a) (length b))
-    (let ((ok t) (i 0) item-a item-b)
+    (let ((ok t) (i 0) item-a item-b key-lol j)
       (while (and ok (< i (length a)))
         (setq item-a   (nth i a)
               item-b   (nth i b)
               key-lol  (list (mapcar 'car item-a) (mapcar 'car item-b))
-              key-list nil
               i        (1+ i)
               j        nil)
         (dolist (key-list key-lol)
