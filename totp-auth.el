@@ -5,7 +5,7 @@
 ;; Author: Vivek Das Mohapatra <vivek@etla.org>
 ;; Keywords: 2FA two-factor totp otp password
 ;; URL: https://gitlab.com/fledermaus/totp.el
-;; Version: 0.2
+;; Version: 0.4
 ;; Package-Requires: ((emacs "27.1") (base32 "0.1"))
 
 ;;; Commentary:

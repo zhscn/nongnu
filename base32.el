@@ -2,8 +2,14 @@
 ;; Copyright © 2022,2023 Vivek Das Moapatra <vivek@etla.org>
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
+;; Author: Vivek Das Mohapatra <vivek@etla.org>
+;; Keywords: tools
+;; URL: https://gitlab.com/fledermaus/totp.el
+;; Version: 0.2
+;; Package-Requires: ((emacs "27.1"))
+
 ;;; Commentary:
-;; RFC6238 requires a base32 encodeer/decoder.
+;; A base32 encoder/decoder.
 
 ;;; Code:
 (defconst base32-dictionary
