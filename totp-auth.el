@@ -484,7 +484,7 @@ the first encrypted backend returned by ‘totp-auth-storage-backends’."
 
 (defun totp-auth-secrets ()
   "Fetch a list of all known TOTP secrets."
-  (apply 'nconc
+  (apply #'nconc
          (mapcar #'totp-auth-get-secrets-from-backend
                  (totp-auth-storage-backends))))
 
