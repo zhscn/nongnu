@@ -24,7 +24,7 @@
 ;;    M-x totp RET
 ;;
 ;; You can tab-complete based on the label of the secret.
-;; Depending on the setting of ‘totp-display-token-method’ the
+;; Depending on the setting of ‘totp-auth-display-token-method’ the
 ;; TOTP token will be displayed (and kept up to date) either in
 ;; an Emacs buffer or a freedesktop notification.
 ;;
@@ -34,7 +34,7 @@
 ;;
 ;; If you want the latest generated token automatically
 ;; copied to your GUI's selection for easy pasting, you
-;; can customize ‘totp-auto-copy-password’.
+;; can customize ‘totp-auth-auto-copy-password’.
 
 ;;; Code:
 (eval-and-compile
