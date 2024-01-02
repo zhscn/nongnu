@@ -47,6 +47,8 @@
       (add-to-list 'load-path (file-name-directory this-file)))
     (require 'base32)
     (require 'hmac))
+  ;; this is to reduce warnings for melpa - it's not actually necessary
+  (ignore-errors (require 'notifications))
   (require 'auth-source)
   (require 'secrets)
   (require 'bindat)
