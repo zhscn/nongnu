@@ -9,7 +9,7 @@
 ;;; Code:
 (defun hmac-algo-block-size (algo)
   "Return the expected block size of the given hash algorithm ALGO.
-ALGO may be one of: '(md5 sha1 sha224 sha256 sha384 sha512)."
+ALGO may be one of: \\='(md5 sha1 sha224 sha256 sha384 sha512)."
   (cl-case algo
     ((md5 sha1 sha224 sha256)  64)
     ((sha384 sha512)          128)))
