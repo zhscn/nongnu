@@ -1,5 +1,8 @@
 # totp.el - Time-based One Time Password support for emacs
 
+This generates RFC6238 Time-based One Time Passwords,
+(in other words, what Google Authenticator implements).
+
 ## Getting started
 
 This will be an elpa/melpa/marmalade style package at some point,
