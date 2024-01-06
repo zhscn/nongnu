@@ -240,7 +240,6 @@ Callback to `mastodon-http--get-response-async', usually
 
 (defun mastodon-http--process-headers ()
   "Return an alist of http response headers."
-  (switch-to-buffer (current-buffer))
   (goto-char (point-min))
   (let* ((head-str (buffer-substring-no-properties
                     (point-min)
