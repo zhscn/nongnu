@@ -289,7 +289,7 @@ See `mastodon-toot-display-orig-in-reply-buffer'.")
                               (buffer-list))))) ; catch any other masto buffer
     (mastodon-return-credential-account :force)
     (if buffer
-        (display-buffer buffer)
+        (display-buffer buffer '(display-buffer-same-window))
       (mastodon-tl--get-home-timeline)
       (message "Loading Mastodon account %s on %s..."
                (mastodon-auth--user-acct)
@@ -335,7 +335,7 @@ from the server and load anew."
                   "*mastodon-notifications*")))
     (if (and (not force)
              (get-buffer buffer))
-        (progn (display-buffer buffer)
+        (progn (display-buffer buffer '(display-buffer-same-window))
                (mastodon-tl--update))
       (message "Loading your notifications...")
       (mastodon-tl--init-sync (or buffer-name "notifications")
