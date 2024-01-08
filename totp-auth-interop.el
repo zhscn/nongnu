@@ -105,7 +105,7 @@ The cell(s) are suitable for use in the return value of `totp-unwrap-otp-blob`"
     (setq key (and (< 0 field)
                    (> (length totp-auth-pb-otpauth-migration-field-map) field)
                    (aref totp-auth-pb-otpauth-migration-field-map field)))
-    (cond ((eq key nil)     nil)
+    (cond ((not key)        nil)
           ((eq key :algo)   nil) ;; not yet handled
           ((eq key :type)   nil) ;; can only be TOTP or HOTP, so unimportant
           ((eq key :digits) (when (numberp val)
@@ -206,7 +206,7 @@ The contents are passed to `totp-auth-parse-buffer-otp-urls'."
   (let ((args (mapcar (lambda (a) (if (equal "@file@" a) file a))
                       (cdr totp-auth-file-import-command))))
     (with-temp-buffer
-      (apply 'call-process (car totp-auth-file-import-command) nil t nil args)
+      (apply #'call-process (car totp-auth-file-import-command) nil t nil args)
       (totp-auth-parse-buffer-otp-urls)) ))
 
 (defun totp-auth-find-hmac-key-by-class (class len)
