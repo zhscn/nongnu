@@ -4,6 +4,7 @@
 (defvar test-totp-source-dir nil)
 
 (eval-and-compile
+  (require 'loadhist)
   (let ((load-path load-path)
         (this-file (or load-file-name
                        byte-compile-current-file
@@ -13,7 +14,10 @@
     (message "running tests in %s" test-totp-source-dir)
     (add-to-list 'load-path test-totp-source-dir)
     (require 'totp-auth)
-    (require 'totp-auth-interop)))
+    (message "totp-auth loaded from %S" (feature-file 'totp-auth))
+    (require 'totp-auth-interop)
+    (message "totp-auth-interop loaded from %S"
+             (feature-file 'totp-auth-interop))))
 
 (defun 0b (byte)
   "Byte to 8-character string formatter."
