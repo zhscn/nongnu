@@ -1,5 +1,5 @@
-;;; totp-interop.el --- Import secrets -*- mode: emacs-lisp; lexical-binding: t; -*-
-;; Copyright © 2022,2023 Vivek Das Mohapatra <vivek@etla.org>
+;;; totp-auth-interop.el --- Import secrets -*- mode: emacs-lisp; lexical-binding: t; -*-
+;; Copyright © 2022-2024 Vivek Das Mohapatra <vivek@etla.org>
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;;; Commentary:
@@ -254,5 +254,5 @@ is passed to ‘totp-auth-save-secret’."
   (require 'totp-auth)
   (mapc #'totp-auth-save-secret (totp-auth-load-file file)))
 
-(provide 'totp-interop)
-;;; totp-interop.el ends here
+(provide 'totp-auth-interop)
+;;; totp-auth-interop.el ends here

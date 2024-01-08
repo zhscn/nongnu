@@ -13,7 +13,7 @@
     (message "running tests in %s" test-totp-source-dir)
     (add-to-list 'load-path test-totp-source-dir)
     (require 'totp-auth)
-    (require 'totp-interop)))
+    (require 'totp-auth-interop)))
 
 (defun 0b (byte)
   "Byte to 8-character string formatter."

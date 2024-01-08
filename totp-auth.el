@@ -734,7 +734,7 @@ LABEL will be initialised by ‘totp-auth-secret-make-label’ if unset."
      (list (cdr (assoc key secrets)) key)))
   (totp-auth-display-token secret label))
 
-(autoload 'totp-auth-import-file "totp-interop"
+(autoload 'totp-auth-import-file "totp-auth-interop"
   "Import an RFC6238 TOTP secret or secrets from FILE.
 FILE is processed by ‘totp-load-file’ and each secret extracted
 is passed to ‘totp-save-secret’."
