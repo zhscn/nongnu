@@ -187,9 +187,9 @@ where N depends on the HMAC algorithm."
   "Compare two lists of alists. 
 The lists must have the same number of elements, in the same order. 
 The alists need only have the same keys returning the same values (as 
-determined by `assoc`).
-The alists may have 'masked' entries (having later keys that match
-earlier ones, whic would therefore not be returned by `assoc`)."
+determined by ‘assoc’).
+The alists may have “masked” entries (having later keys that match
+earlier ones, which would therefore not be returned by ‘assoc’)."
   (when (equal (length a) (length b))
     (let ((ok t) (i 0) item-a item-b key-lol j)
       (while (and ok (< i (length a)))
