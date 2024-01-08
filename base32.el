@@ -20,6 +20,11 @@
 possible 5bit value (0-31) at that index, plus a padding character
 at index 32.")
 
+(defun base32-lsh (v c)
+  "Suppress opinionated (and in our case wrong) warning about ’lsh’."
+  (with-suppressed-warnings ((suspicious lsh))
+    (lsh v c)))
+
 (defun base32-thesaurus (&optional dictionary)
   "Make a reverse lookup base32 for DICTIONARY.
 The 5bit value corresponding to each encoding character is stored at the
@@ -49,8 +54,8 @@ Dictionary should match ‘base32-dictionary’ in format."
     ;; discard the 0th and 1st bits).
     ;; then right shift by 3 bits so we have the highest 3
     ;; bits set to zero (since we want a 5-bit value):
-    (setq result (logand #xff (lsh op-char start-bit))
-          result (logand #xff (lsh result -3)))
+    (setq result (logand #xff (base32-lsh op-char start-bit))
+          result (logand #xff (base32-lsh result -3)))
     ;; now check to see if we need some bits from the next vyte:
     (when (> end-bit 7)
       (setq end-bit (- end-bit 7) ;; work out the first bit we don't want
@@ -59,7 +64,7 @@ Dictionary should match ‘base32-dictionary’ in format."
             ;; eg if we wanted 2 bits from byte 0 (rightmost bits 6 and 7)
             ;; then we want bits 8, 9, and 10, aka bits 0, 1, and 2
             ;; from byte 1. which means we discard 5 bits by right shifting:
-            r2      (logand #xff (lsh op-char (- end-bit 8)))
+            r2      (logand #xff (base32-lsh op-char (- end-bit 8)))
             ;; combine the wanted bits:
             result  (logior (logand result #x1f) (logand r2 #x1f))))
     result))
@@ -76,8 +81,8 @@ Dictionary should match ‘base32-dictionary’ in format."
     ;; but lefwards by 3 bits because we're writing into the start
     ;; of an 8-bit slot.
     ;; mask is five contiguous set bits starting at the same offset
-    (setq set-bits (logand #xff (lsh value (- 0 -3 start-bit)))
-          mask     (logand #xff (lsh #x1f  (- 0 -3 start-bit)))
+    (setq set-bits (logand #xff (base32-lsh value (- 0 -3 start-bit)))
+          mask     (logand #xff (base32-lsh #x1f  (- 0 -3 start-bit)))
           ;; turn off the masked bits in the target
           op-char  (logand op-char (lognot mask))
           ;; set the target bits to set-bits
@@ -89,7 +94,7 @@ Dictionary should match ‘base32-dictionary’ in format."
             ;; number of bits from value we have dealt with
             discard    (- 12 end-bit)
             ;; discard the 3 dead bits and the dealt with bits
-            set-bits   (logand #xff (lsh value (+ 3 discard)))
+            set-bits   (logand #xff (base32-lsh value (+ 3 discard)))
             op-char    (logand #xff (aref str start-char))
             op-char    (logand op-char (lognot #xf8))
             op-char    (logior op-char set-bits))
