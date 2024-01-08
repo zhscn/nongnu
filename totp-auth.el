@@ -3,7 +3,7 @@
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; Author: Vivek Das Mohapatra <vivek@etla.org>
-;; Keywords: 2FA two-factor totp otp password
+;; Keywords: 2FA two-factor totp otp password comm
 ;; URL: https://gitlab.com/fledermaus/totp.el
 ;; Version: 0.4
 ;; Package-Requires: ((emacs "27.1") (base32 "0.1"))
