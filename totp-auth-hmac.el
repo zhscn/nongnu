@@ -75,4 +75,4 @@ human-readable."
     (secure-hash algo (concat outer inner) nil nil (not human))))
 
 (provide 'totp-auth-hmac)
-;;; hmac.el ends here
+;;; totp-auth-hmac.el ends here
