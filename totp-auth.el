@@ -726,7 +726,7 @@ LABEL will be initialised by ‘totp-auth-secret-make-label’ if unset."
       (totp-auth-display-token-buffer secret label))))
 
 ;;;###autoload
-(defun totp (&optional secret label)
+(defun totp-auth (&optional secret label)
   "Generate a TOTP token for SECRET, identified by LABEL, and show it."
   (interactive
    (let ((secrets (totp-auth-secrets)) (completion-styles '(substring)) key)
