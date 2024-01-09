@@ -170,6 +170,103 @@ value of ‘totp-auth-unwrap-otp-blob’."
             (setq result (cons item result))))
       (setq what next i (1+ i)))
     result))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; partial protobuffer write support
+(defun totp-auth-pb-encode-varint (u64)
+  "Encode an unsigned 64 bit uint U64 as a protobuf varint.
+Varints are 1-10 bytes in length, with all but the last byte having
+the high bit set."
+  ;; a varint is base 128, with the high bit used as a continuation bit
+  ;; therefore to encode it we need to know how many 7 bit blocks are
+  ;; required to encode the integer in question
+  ;; NOTE: ash is safe here as we've forbidden negative inputs
+  (when (> 0 u64)
+    (error "Cannot varint-encode negative numbers %S" u64))
+  (let ((blocks 1) (tmp u64) (varint (list)))
+    (while (not (zerop (setq tmp (ash tmp -7))))
+      (setq blocks (1+ blocks)))
+    (cond ((eq blocks 1 ) (setq varint (format "%c" u64)))
+          ((>  blocks 10) (error "Number %S too large for varint" u64))
+          (t
+           (dotimes (i blocks)
+             (setq varint
+                   (cons (logior (logand #x7f (ash u64 (* -7 i)))
+                                 (if (eq (1- blocks) i) #x00 #x80))
+                         varint)))
+           (setq varint (mapconcat #'byte-to-string (nreverse varint) ""))))
+    (encode-coding-string varint 'raw-text)))
+
+(defun totp-auth-pb-encode-len (bytes)
+  "Encode BYTES as a protobuf len type.
+A protobuf len which consists of a protobuf varint (giving the length)
+followed by a sequence of bytes of that length."
+  (let (payload size)
+    (setq payload (encode-coding-string bytes 'raw-text)
+          size    (string-bytes payload))
+    (concat (totp-auth-pb-encode-varint size)
+            payload)))
+
+(defun totp-auth-pb-type-int (type)
+  "Translate a symbol TYPE (see ‘totp-auth-pb-types’) to its numeric value."
+  (let ((i 0) res)
+    (while (and (not res) (> (length totp-auth-pb-types) i))
+      (if (eq (aref totp-auth-pb-types i) type) (setq res i))
+      (setq i (1+ i)))
+    res))
+
+(defun totp-auth-pb-encode-tag (field type)
+  "Encode a protobuffer tag (FIELD << 3 | TYPE) to a byte.
+Type should be a value from ‘totp-auth-pb-types’ translated to
+an integer by ‘totp-auth-pb-type-int’."
+  (totp-auth-pb-encode-varint
+   (logior (ash field 3)
+           (logand #x7
+                   (if (integerp type)
+                       type
+                     (totp-auth-pb-type-int type))))))
+
+(defun totp-auth-pb-encode-secret (s)
+  "Take a ‘totp-auth-unwrap-otp-blob’ secret S and protobuf encode it.
+The return value will be the raw byte sequence encoding that secret."
+  (let (encoded issuer)
+    (mapc
+     (lambda (x &optional val from field as)
+       (setq from    (car    x)
+             field   (cadr   x)
+             as      (caddr  x))
+       (setq val (if (consp from)
+                     (let ((a (cdr (assq (car from) s)))
+                           (b (cdr (assq (cdr from) s))))
+                       ;; remember the issuer so we don't repeat it
+                       (if (stringp a) (setq issuer a))
+                       (if (and (stringp a) (stringp b))
+                           (concat a ":" b)
+                         (if (stringp a)
+                             a
+                           (if (stringp b)
+                               b
+                             nil))))
+                   (cdr (assq from s)))
+             val (or val (nth 3 x)))
+       (if (and (eq :service from) (equal issuer val))
+           (setq val nil))
+       (when val
+         ;; secret should be in raw binary form, not its b32 wrapper
+         (if (eq :secret from)
+             (setq val (base32-decode val)))
+         (push (totp-auth-pb-encode-tag field as) encoded)
+         (push (cond ((eq :varint as) (totp-auth-pb-encode-varint val))
+                     ((eq :len    as) (totp-auth-pb-encode-len    val))
+                     (t (error "Unhandled encode type %S" as)))
+               encoded)))
+   '((:secret            1 :len)
+     ((:service . :user) 2 :len)
+     (:service           3 :len)
+     (:algo              4 :varint)
+     (:digits            5 :varint 6)
+     (:type              6 :varint 2)))
+    (mapconcat 'identity (nreverse encoded) "")))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun totp-auth-unwrap-otpauth-migration-url (u)
   "Unpack an otpauth-migration url U and extract the parts we care about.
@@ -248,6 +345,96 @@ the returned list is a structure returned by `totp-unwrap-otp-blob'."
                    (setq result (totp-auth-find-hmac-key))
                    (list (totp-auth-unwrap-otp-blob result)))) )) )))
 
+(defun totp-auth-b64-len (n)
+  "Return the number of bytes required to base64 encode N bytes."
+  (let (rem pad)
+    (setq rem (% n 3)
+          pad (if (zerop rem) 0 (- 3 rem)))
+    (* (/ (+ n pad) 3) 4)))
+
+(defun totp-auth-make-export-suffix (size nth id)
+  "Make an otpauth-migration URL protobuf suffix.
+SIZE is the number or otpauth URLs in this URL.
+NTH is the index (0 based) of this URL in the current export batch.
+ID is the unique-ish id of this export batch."
+  (concat ;;version
+          (totp-auth-pb-encode-tag 2 :varint)
+          (totp-auth-pb-encode-varint 1)
+          ;;batch size
+          (totp-auth-pb-encode-tag 3 :varint)
+          (totp-auth-pb-encode-varint size)
+          ;;nth chunk
+          (totp-auth-pb-encode-tag 4 :varint)
+          (totp-auth-pb-encode-varint nth)
+          ;; batch uid
+          (totp-auth-pb-encode-tag 5 :varint)
+          (totp-auth-pb-encode-varint id)))
+
+(defun totp-auth-wrap-otpauth-migration-url (secrets &optional chunk)
+  "Wrap list SECRETS in otpauth-migration URLs.
+The TOTP secrets structure is described by ‘totp-unwrap-otp-blob’.
+URLs will not exceed CHUNK in length.
+CHUNK defaults to ‘totp-auth-export-url-max-size’.
+Returns a list of otpauth-migration:// URLs."
+  (let ((limit    (or chunk totp-auth-export-url-max-size))
+        (stub     "otpauth-migration://offline?data=")
+        (batch-id (+ (* (floor (time-to-seconds) 1000))
+                     (random 1000)))
+        ;; -len is used for things that are ok as ascii
+        ;; -bytes is used for things that need to be base64 encoded
+        (enc-data       nil)
+        (chunk-data      "")
+        (chunk-data-bytes 0)
+        (chunk-count      0)
+        (secret-count     0)
+        next-data-bytes
+        stub-len
+        suffix
+        suffix-bytes
+        url-data
+        urls)
+    ;; the suffix is actually a placeholder but as the fields that
+    ;; can vary will never exceed 1 byte in the pb encoding we can use
+    ;; this initial value in our size calculations:
+    (setq suffix       (totp-auth-make-export-suffix 1 0 batch-id)
+          suffix-bytes (string-bytes suffix)
+          stub-len     (string-bytes stub)
+          url-data     (mapcar (lambda (x)
+                                 (concat (totp-auth-pb-encode-tag 1 :len )
+                                         (totp-auth-pb-encode-len x)))
+                               (mapcar #'totp-auth-pb-encode-secret secrets)))
+    (dolist (secret-data url-data)
+      (setq chunk-data-bytes (string-bytes chunk-data)
+            next-data-bytes  (string-bytes secret-data))
+      (if (<= (+ stub-len
+                 (totp-auth-b64-len (+ chunk-data-bytes
+                                       next-data-bytes
+                                       suffix-bytes)))
+              limit)
+          (setq chunk-data   (concat chunk-data secret-data)
+                secret-count (1+ secret-count))
+        (setq enc-data      (cons chunk-data enc-data)
+              secret-count  0
+              chunk-count   (1+ chunk-count)
+              chunk-data    "")
+        (if (<= (+ stub-len (totp-auth-b64-len (+ next-data-bytes
+                                                  suffix-bytes)))
+                limit)
+            (setq chunk-data   secret-data
+                  secret-count 1)
+          (error "Secret %d in chunk %d will not fit in chunk size %d"
+                 secret-count chunk-count limit)) ))
+    (if (and (stringp chunk-data) (not (zerop (string-bytes chunk-data))))
+        (setq enc-data      (cons chunk-data enc-data)
+              chunk-count   (length enc-data)))
+    (dotimes (i chunk-count)
+      (setq chunk-data (nth (- chunk-count i 1) enc-data)
+            suffix     (totp-auth-make-export-suffix i chunk-count batch-id)
+            urls       (cons (concat stub
+                                     (base64-encode-string
+                                      (concat chunk-data suffix)))
+                             urls)))
+    (nreverse urls)))
 
 (defun totp-auth-import-file (file)
   "Import an RFC6238 TOTP secret or secrets from FILE.

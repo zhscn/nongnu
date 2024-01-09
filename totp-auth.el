@@ -91,6 +91,13 @@ lifespan (at the time of generation) and their absolute expiry time."
   :group 'totp-auth
   :type  '(repeat string))
 
+(defcustom totp-auth-export-url-max-size 1536
+  "Export byte size limit for otpauth-migration URLs.
+The total size of any generated otpauth-migration scheme URL
+will not exceed this size."
+  :group 'totp-auth
+  :type 'integer)
+
 (defcustom totp-auth-secrets-create-item-workaround t
   "The replace parame of freedesktop secrets CreateItem is unreliable.
 If this option is on (the default) then we attempt
