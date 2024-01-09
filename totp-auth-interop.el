@@ -100,7 +100,8 @@ Returns a unibyte string containing those bytes."
 
 (defun totp-auth-pb-otpauth-migration-translate-field (field val)
   "Translate a FIELD number (1-6) and VAL into cons cell(s).
-The cell(s) are suitable for use in the return value of ‘totp-auth-unwrap-otp-blob’"
+The cell(s) returned are suitable for use in the return
+value of ‘totp-auth-unwrap-otp-blob’."
   (let (key)
     (setq key (and (< 0 field)
                    (> (length totp-auth-pb-otpauth-migration-field-map) field)
