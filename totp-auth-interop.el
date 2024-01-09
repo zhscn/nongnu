@@ -111,6 +111,8 @@ The cell(s) are suitable for use in the return value of ‘totp-auth-unwrap-otp-
           ((eq key :digits) (when (numberp val)
                               (setq val (+ (* val 2) 4))
                               (cons :digits (if (memq val '(6 8)) val 6))))
+          ;; field #2 is either a "service:user" string or just a "service" one
+          ;; we have to inspect the contents and guess.
           ((consp key)      (if (and (stringp val)
                                      (string-match "^\\(.+\\)?:\\(.+\\)" val))
                                 (list (cons (car key) (match-string 1 val))
