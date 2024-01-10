@@ -445,6 +445,53 @@ Returns a list of otpauth-migration:// URLs."
                              urls)))
     (nreverse urls)))
 
+(defun totp-auth-export-text (file-or-buffer &optional type secrets)
+  "Export OTP secrets to FILE-OR-BUFFER.
+If the target is a file it should be an epa target (eg a gpg or asc file),
+although that is not enforced by this function.
+TYPE is :otpauth or :otpauth-migration (and defaults to :otpauth).
+SECRETS is a list of ‘totp-auth-unwrap-otp-blob’ secrets, or nil,
+in which case all available secrets are exported."
+  (or type    (setq type :otpauth))
+  (or secrets (setq secrets (mapcar #'cdr (totp-auth-secrets))))
+  (with-current-buffer (if (bufferp file-or-buffer)
+                           file-or-buffer
+                         (find-file-noselect file-or-buffer))
+    (message "exporting %S" secrets)
+    (mapc (lambda (s) (insert s "\n"))
+          (cond ((eq type :otpauth)
+                 (mapcar #'totp-auth-wrap-otpauth-url secrets))
+                ((eq type :otpauth-migration)
+                 (totp-auth-wrap-otpauth-migration-url secrets))
+                (t (error "Unsupported TOTP export type %S" type))))
+    (if (buffer-file-name (current-buffer))
+        (progn (save-buffer 0) (kill-buffer))
+      (display-buffer (current-buffer)))))
+
+(defun totp-auth-export-file (file &optional type secrets)
+  "Export TOTP secrets to FILE.
+FILE is a destination file.
+If it matches ‘epa-file-name-regexp’ then a text file is saved.
+If ‘image-type-from-file-name’ returns an image type for file then
+a QR code is generated instead.
+TYPE may be :otpauth-migration or :otpauth - which URL scheme to use.
+SECRETS is a list of ‘totp-auth-unwrap-otp-blob’ secrets, or nil for all."
+  (interactive (list (read-file-name "Export to:" nil "totp-auth-export.gpg")
+                     (if (y-or-n-p "Use otpauth-migration format? ")
+                         :otpauth-migration
+                       :otpauth)
+                     nil))
+  (setq file (expand-file-name file)
+        type (if (memq type '(:otpauth :otpauth-migration)) type :otpauth))
+  (when (file-exists-p file)
+    (error "Export file %S already exists" file))
+  (let (img-type epa-ok)
+    (setq epa-ok   (string-match epa-file-name-regexp file)
+          img-type (image-type-from-file-name file))
+    (cond (epa-ok   (totp-auth-export-text  file type secrets))
+          (img-type (totp-auth-export-image file img-type type secrets))
+          (t (error "%S is not an EPA file or supported image format" file)))))
+
 (defun totp-auth-import-file (file)
   "Import an RFC6238 TOTP secret or secrets from FILE.
 FILE is processed by ‘totp-auth-load-file’ and each secret extracted
