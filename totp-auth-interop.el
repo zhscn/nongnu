@@ -300,9 +300,18 @@ Returns a list of all the OTP secrets+metadata by calling
                 (cons (totp-auth-unwrap-otp-blob url-string) result)))))
     result))
 
+(defun totp-auth-check-command (cmd-list)
+  "Return the full path to the execuyable specified in CMD-LIST.
+Returns nil if no command is found."
+  (let ((target (if (listp cmd-list) (car cmd-list) cmd-list)))
+    (and target (stringp target) (executable-find target))))
+
 (defun totp-auth-load-image-file (file)
   "Use ‘totp-auth-file-import-command’ to extract the contents of FILE.
 The contents are passed to ’totp-auth-parse-buffer-otp-urls’."
+  (unless (totp-auth-check-command totp-auth-file-import-command)
+    (error "Command %s not available for QR code import"
+           (car totp-auth-file-import-command)))
   (let ((args (mapcar (lambda (a) (if (equal "@file@" a) file a))
                       (cdr totp-auth-file-import-command))))
     (with-temp-buffer
