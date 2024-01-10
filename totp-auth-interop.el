@@ -441,7 +441,7 @@ Returns a list of otpauth-migration:// URLs."
             suffix     (totp-auth-make-export-suffix i chunk-count batch-id)
             urls       (cons (concat stub
                                      (base64-encode-string
-                                      (concat chunk-data suffix)))
+                                      (concat chunk-data suffix) t))
                              urls)))
     (nreverse urls)))
 
