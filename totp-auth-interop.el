@@ -270,7 +270,7 @@ The return value will be the raw byte sequence encoding that secret."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun totp-auth-unwrap-otpauth-migration-url (u)
   "Unpack an otpauth-migration url U and extract the parts we care about.
-Similar to `totp-auth-unwrap-otpauth-url' except:
+Similar to ‘totp-auth-unwrap-otpauth-url’ except:
  - for otpauth-migration:// URLs
  - returns a list of 0 or more secret srtuctures instead of just one."
   (let (query data)
@@ -285,7 +285,7 @@ Similar to `totp-auth-unwrap-otpauth-url' except:
   "Search for otpauth and otpauth-migration URLs in BUFFER.
 BUFFER defaults to the current buffer.
 Returns a list of all the OTP secrets+metadata by calling
-`totp-unwrap-otp-blob' on them."
+‘totp-unwrap-otp-blob’ on them."
   (let (result url-string url)
     (with-current-buffer (or buffer (current-buffer))
       (goto-char (point-min))
@@ -301,8 +301,8 @@ Returns a list of all the OTP secrets+metadata by calling
     result))
 
 (defun totp-auth-load-image-file (file)
-  "Use `totp-auth-file-import-command' to extract the contents of FILE.
-The contents are passed to `totp-auth-parse-buffer-otp-urls'."
+  "Use ‘totp-auth-file-import-command’ to extract the contents of FILE.
+The contents are passed to ’totp-auth-parse-buffer-otp-urls’."
   (let ((args (mapcar (lambda (a) (if (equal "@file@" a) file a))
                       (cdr totp-auth-file-import-command))))
     (with-temp-buffer
@@ -329,9 +329,9 @@ FILE may be:
   - any number of otpauth:// scheme URLs
   - any number of otpauth-migration:// scheme URLs
   - a mix of entries encoded in the above URL schemes
-  - a QR code understood by `totp-file-import-command'.\n
+  - a QR code understood by ‘totp-file-import-command’.\n
 Returns a list of TOTP secret alists - that is: Each element of
-the returned list is a structure returned by `totp-unwrap-otp-blob'."
+the returned list is a structure returned by ‘totp-unwrap-otp-blob’."
   (let (mime-type result)
     (setq file      (expand-file-name file)
           mime-type (mailcap-extension-to-mime (file-name-extension file)))
