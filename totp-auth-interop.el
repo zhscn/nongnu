@@ -379,6 +379,13 @@ ID is the unique-ish id of this export batch."
           (totp-auth-pb-encode-tag 5 :varint)
           (totp-auth-pb-encode-varint id)))
 
+(defun totp-auth-url-length (stub-len &rest data-len)
+  "Calculate the length of an ASCII stub followed by base64 encoded blobs.
+STUB-LEN is the length of the ASCII-safe part of the URL.
+DATA-LEN is the byte lengths of all the binary blobs which will be
+concatenated and base64 encoded."
+  (+ stub-len (totp-auth-b64-len (apply #'+ data-len))))
+
 (defun totp-auth-wrap-otpauth-migration-url (secrets &optional chunk)
   "Wrap list SECRETS in otpauth-migration URLs.
 The TOTP secrets structure is described by ‘totp-unwrap-otp-blob’.
@@ -397,6 +404,7 @@ Returns a list of otpauth-migration:// URLs."
         (chunk-count      0)
         (secret-count     0)
         next-data-bytes
+        blob-data-bytes
         stub-len
         suffix
         suffix-bytes
@@ -414,20 +422,16 @@ Returns a list of otpauth-migration:// URLs."
                                (mapcar #'totp-auth-pb-encode-secret secrets)))
     (dolist (secret-data url-data)
       (setq chunk-data-bytes (string-bytes chunk-data)
-            next-data-bytes  (string-bytes secret-data))
-      (if (<= (+ stub-len
-                 (totp-auth-b64-len (+ chunk-data-bytes
-                                       next-data-bytes
-                                       suffix-bytes)))
-              limit)
+            next-data-bytes  (string-bytes secret-data)
+            blob-data-bytes  (+ chunk-data-bytes next-data-bytes suffix-bytes))
+      (if (<= (totp-auth-url-length stub-len blob-data-bytes) limit)
           (setq chunk-data   (concat chunk-data secret-data)
                 secret-count (1+ secret-count))
         (setq enc-data      (cons chunk-data enc-data)
               secret-count  0
               chunk-count   (1+ chunk-count)
               chunk-data    "")
-        (if (<= (+ stub-len (totp-auth-b64-len (+ next-data-bytes
-                                                  suffix-bytes)))
+        (if (<= (totp-auth-url-length stub-len next-data-bytes suffix-bytes)
                 limit)
             (setq chunk-data   secret-data
                   secret-count 1)
@@ -445,19 +449,99 @@ Returns a list of otpauth-migration:// URLs."
                              urls)))
     (nreverse urls)))
 
+(defun totp-auth-nthify-file-name (file nth)
+  "Transform a filaneme FILE to be an NTH numbered version.
+FILE is the original filename.
+NTH is positive integer.
+eg “foo.png” → “foo.01.png”"
+  (save-match-data
+    (if (string-match "\\(\\.[^.+]+\\'\\)" file)
+        (replace-match (format ".%02d\\1" (abs nth)) nil nil file)
+      (format "%s.%02d.otp" file (abs nth)))))
+
+(defun totp-auth-file-export-type-arg (img-type)
+  "Return a command line argument list matching IMG-TYPE (a symbol).
+IMG-TYPE is an image type symbol, eg \\='png.
+Returns a list of command line arguments from ‘totp-auth-file-export-type-map’.
+May legitimately return nil, but will signal an error of that image type
+has no entry at all."
+  (let ((cell (assq img-type totp-auth-file-export-type-map)))
+    (if cell
+        (cdr cell)
+      (error "Image type %S not supported" img-type))))
+
+(defun totp-auth-export-image (file img-type &optional type secrets)
+  "Export OTP secrets to FILE as image format IMG-TYPE.
+FILE is a path to a file which may or may not exist yet.
+IMG-TYPE is a symbol representingh an image type.
+\(see ‘image-type-from-file-name’ for details).
+FILE should match IMG-TYPEs well known extension but this is not enforced.
+TYPE is :otpauth or :otpauth-migration, and defaults to :otpauth.
+SECRETS is a list of ‘totp-auth-unwrap-otp-blob’ secrets, or nil for all.
+\nQR encoding is done by ‘totp-auth-file-export-command’ with the assistance
+of ‘totp-auth-file-export-type-map’."
+  (unless (totp-auth-check-command totp-auth-file-export-command)
+    (error "Command %s not available for QR code import"
+           (car totp-auth-file-export-command)))
+  (or img-type (error "An image export type (eg 'png) must be specified"))
+  (let ((nth 0)
+        (export-count 0)
+        type-arg arg-list args cmd travel nth-file created)
+    (setq type-arg (if (functionp totp-auth-file-export-type-map)
+                       (funcall totp-auth-file-export-type-map img-type)
+                     (totp-auth-file-export-type-arg img-type))
+          arg-list (flatten-list
+                    (mapcar (lambda (a)
+                              (if (equal "@type@" a) type-arg a))
+                            (cdr totp-auth-file-export-command))))
+    (with-temp-buffer
+      (totp-auth-export-text (current-buffer) type secrets)
+      (setq export-count (count-lines (point-min) (point-max)))
+      (cond ((zerop export-count) t)
+            ((eq export-count 1)
+             (goto-char (point-min))
+             (setq cmd  (car totp-auth-file-export-command)
+                   args (mapcar (lambda (a)
+                                  (if (equal "@file@" a) file a))
+                                arg-list))
+             (apply #'call-process-region (point-at-bol) (point-at-eol)
+                    cmd nil t nil args)
+             (setq created (list file)))
+            (t
+             (goto-char (point-min))
+             (setq travel (forward-line 0))
+             (while (zerop travel)
+               (setq nth-file (totp-auth-nthify-file-name file nth)
+                     cmd      (car totp-auth-file-export-command)
+                     args     (mapcar (lambda (a)
+                                        (if (equal "@file@" a) nth-file a))
+                                      arg-list))
+               (apply #'call-process-region (point-at-bol) (point-at-eol)
+                      cmd nil t nil args)
+               (setq created (cons nth-file created)
+                     travel (forward-line)
+                     nth (1+ nth)))
+             (setq created (nreverse created)))))
+    created))
+
 (defun totp-auth-export-text (file-or-buffer &optional type secrets)
   "Export OTP secrets to FILE-OR-BUFFER.
 If the target is a file it should be an epa target (eg a gpg or asc file),
 although that is not enforced by this function.
 TYPE is :otpauth or :otpauth-migration (and defaults to :otpauth).
-SECRETS is a list of ‘totp-auth-unwrap-otp-blob’ secrets, or nil,
-in which case all available secrets are exported."
-  (or type    (setq type :otpauth))
-  (or secrets (setq secrets (mapcar #'cdr (totp-auth-secrets))))
+SECRETS is a list of ‘totp-auth-unwrap-otp-blob’ secrets or nil,
+or a match parameter to ‘totp-auth-secrets’.
+If it is nil, all available secrets are exported."
+  (or type (setq type :otpauth))
+  ;; if it's a string or nil we need to call totp-auth-secrets
+  ;; if already a list we assume the caller passed something sensible
+  (if (stringp secrets)
+      (setq secrets (mapcar #'cdr (totp-auth-secrets secrets)))
+    (if (not secrets)
+        (setq secrets (mapcar #'cdr (totp-auth-secrets)))))
   (with-current-buffer (if (bufferp file-or-buffer)
                            file-or-buffer
                          (find-file-noselect file-or-buffer))
-    (message "exporting %S" secrets)
     (mapc (lambda (s) (insert s "\n"))
           (cond ((eq type :otpauth)
                  (mapcar #'totp-auth-wrap-otpauth-url secrets))
@@ -469,14 +553,19 @@ in which case all available secrets are exported."
       (display-buffer (current-buffer)))))
 
 (defun totp-auth-export-file (file &optional type secrets)
-  "Export TOTP secrets to FILE.
+  "Export TOTP SECRETS to FILE.
 FILE is a destination file.
 If it matches ‘epa-file-name-regexp’ then a text file is saved.
 If ‘image-type-from-file-name’ returns an image type for file then
 a QR code is generated instead.
 TYPE may be :otpauth-migration or :otpauth - which URL scheme to use.
-SECRETS is a list of ‘totp-auth-unwrap-otp-blob’ secrets, or nil for all."
-  (interactive (list (read-file-name "Export to:" nil "totp-auth-export.gpg")
+\nSECRETS is a list of ‘totp-auth-unwrap-otp-blob’ secrets, or a string, or nil.
+If it is nil all secrets are exported.
+If it is a string beginning with ~ or / it is used as a regular expression
+to match the labels of the secrets to export from ‘totp-auth-secrets’.
+If it begins with = the rest of the string is used as an exact match.
+Any other string is used as a substring to look for in the labels."
+  (interactive (list (read-file-name "Export to: " nil "totp-auth-export.gpg")
                      (if (y-or-n-p "Use otpauth-migration format? ")
                          :otpauth-migration
                        :otpauth)

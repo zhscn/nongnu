@@ -91,6 +91,28 @@ lifespan (at the time of generation) and their absolute expiry time."
   :group 'totp-auth
   :type  '(repeat string))
 
+(defcustom totp-auth-file-export-command
+  '("qrencode" "-l" "M" "@type@" "-o" "@file@")
+  "The command and parameters used to convert a data stream  to a QR code.
+@file@ is a placeholder for the target filename.
+@type@ is a placeholder for a supported output type and will be determined by
+‘totp-auth-file-export-type-map’."
+  :group 'totp-auth
+  :type  '(repeat string))
+
+(defcustom totp-auth-file-export-type-map '((png  "-t" "PNG")
+                                            (svg  "-t" "SVG")
+                                            (eps  "-t" "EPS"))
+  "A mapping from image type (as per function ‘image-type’) to export argument.
+Defaults to a map usable by qrencode (see ‘totp-auth-file-export-command’).
+May also be a function, which should take one argument (the image type symbol)
+and return a list of arguments to pass to the QR encoder."
+  :group 'totp-auth
+  :type  '(choice (alist :tag "Fixed type map"
+                         :key-type symbol
+                         :value-type (repeat string))
+                  (function :tag "Function (func (image-type-symbol) …)")))
+
 (defcustom totp-auth-export-url-max-size 1536
   "Export byte size limit for otpauth-migration URLs.
 The total size of any generated otpauth-migration scheme URL
@@ -490,11 +512,34 @@ the first encrypted backend returned by ‘totp-auth-storage-backends’."
           (t
            (totp-auth-save-secret-to-default-source source secret)))))
 
-(defun totp-auth-secrets ()
-  "Fetch a list of all known TOTP secrets."
-  (apply #'nconc
-         (mapcar #'totp-auth-get-secrets-from-backend
-                 (totp-auth-storage-backends))))
+(defun totp-auth-secrets (&optional match)
+  "Return a list of TOTP secrets with their labels.
+MATCH may be a STRING, or nil.
+If MATCH is nil, all available secrets are returned.
+If it is a string starting with ~ or / it is used as a regular expression
+to choose secrets based on their labels (see below).
+If it is a string starting with = then the label must match exactly (note
+that labels do not have to be unique to a single secret).
+Any other value is used for a simple substring match with the label.
+\nEach Item of the returned list is a cons of a label and
+a structure conforming to ‘totp-auth-unwrap-otp-blob’."
+  (let (secrets)
+    (setq secrets
+          (apply #'nconc
+                 (mapcar #'totp-auth-get-secrets-from-backend
+                         (totp-auth-storage-backends))))
+    ;; If we were given a filter, apply it:
+    (if (and (stringp match) (not (zerop (length match))))
+        (let (filter)
+          (if (eq (aref match 0) ?=)
+              (setq match  (substring match 1)
+                    filter (lambda (a) (if (equal (car a) match) a nil)))
+            (if (memq (aref match 0) '(?/ ?~))
+                (setq match (substring match 1)))
+            (setq filter (lambda (a) (if (string-match match (car a)) a nil))))
+          (delq nil (mapcar filter secrets)))
+      ;; no filter, return it all:
+      secrets)))
 
 (defun totp-auth-hmac-message (counter)
   "Take COUNTER (an integer) and return its 8-byte big-endian representation."
