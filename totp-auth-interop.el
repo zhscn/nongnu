@@ -254,7 +254,7 @@ The return value will be the raw byte sequence encoding that secret."
        (when val
          ;; secret should be in raw binary form, not its b32 wrapper
          (if (eq :secret from)
-             (setq val (base32-decode val)))
+             (setq val (base32-decode (upcase val))))
          (push (totp-auth-pb-encode-tag field as) encoded)
          (push (cond ((eq :varint as) (totp-auth-pb-encode-varint val))
                      ((eq :len    as) (totp-auth-pb-encode-len    val))
