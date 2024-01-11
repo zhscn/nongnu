@@ -20,6 +20,12 @@
 possible 5bit value (0-31) at that index, plus a padding character
 at index 32.")
 
+(defconst base32-hex-dictionary
+  [?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?A ?B ?C ?D ?E ?F
+   ?G ?H ?I ?J ?K ?L ?M ?N ?O ?P ?Q ?R ?S ?T ?U ?V ?=]
+  "The default base32hex dictionary.
+\nLike ‘base32-dictionary’ but for the base32hex encoding.")
+
 (defun base32-lsh (v c)
   "Shift integer V by C bits to the left.
 Shift rightwards if C is negative.
@@ -161,6 +167,14 @@ DICTIONARY defaults to ‘base32-dictionary’."
       ;;(message "b32 de %03d %c 0x%02x" i (aref input i) chunk)
       (base32--nth-5bit-set output i chunk))
     (if (< output-shorten 0) (substring output 0 output-shorten) output)))
+
+(defun base32-hex-encode (input)
+  "Encode INPUT bytes as base32hex."
+  (base32-encode input base32-hex-dictionary))
+
+(defun base32-hex-decode (input)
+  "Decode INPUT bytes as base32hex."
+  (base32-decode input base32-hex-dictionary))
 
 (provide 'base32)
 ;;; base32.el ends here
