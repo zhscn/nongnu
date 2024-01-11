@@ -21,7 +21,10 @@ possible 5bit value (0-31) at that index, plus a padding character
 at index 32.")
 
 (defun base32-lsh (v c)
-  "Suppress opinionated (and in our case wrong) warning about ’lsh’."
+  "Shift integer V by C bits to the left.
+Shift rightwards if C is negative.
+Any bits shifted in are 0.
+Suppress opinionated (and in our case wrong) warning about ’lsh’."
   (with-suppressed-warnings ((suspicious lsh))
     (lsh v c)))
 
