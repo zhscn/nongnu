@@ -489,14 +489,9 @@ the first encrypted backend returned by ‘totp-auth-storage-backends’."
          (mapcar #'totp-auth-get-secrets-from-backend
                  (totp-auth-storage-backends))))
 
-(defun totp-auth-lsh (v c)
-  "Suppress opinionated (and in our case wrong) warning about ’lsh’."
-  (with-suppressed-warnings ((suspicious lsh))
-    (lsh v c)))
-
 (defun totp-auth-hmac-message (counter)
   "Take COUNTER (an integer) and return its 8-byte big-endian representation."
-  (let ((hi-4 (logand #xffffffff (totp-auth-lsh counter -32)))
+  (let ((hi-4 (logand #xffffffff (base32-lsh counter -32)))
         (lo-4 (logand #xffffffff counter)))
     (bindat-pack '((:hi4 u32) (:lo4 u32))
                  `((:hi4 . ,hi-4)
@@ -513,9 +508,9 @@ with the highest bit forced to 0 (ie a 31 bit integer)."
           b1     (logand #xff (aref hmac-hash (+ 1 offset)))
           b2     (logand #xff (aref hmac-hash (+ 2 offset)))
           b3     (logand #xff (aref hmac-hash (+ 3 offset))))
-    (logior (totp-auth-lsh b0 24)
-            (totp-auth-lsh b1 16)
-            (totp-auth-lsh b2 8) b3)))
+    (logior (base32-lsh b0 24)
+            (base32-lsh b1 16)
+            (base32-lsh b2 8) b3)))
 
 (defvar totp-auth-override-time nil
   "This value is used instead of the seconds since epoch if it is set.")
