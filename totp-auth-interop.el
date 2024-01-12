@@ -16,6 +16,13 @@
                     (locate-library "hmac")))
       (add-to-list 'load-path (file-name-directory this-file)))
     (require 'totp-auth))
+  ;; function declared obsolete in 29.x
+  ;; do not use #' forms here as that will trigger a different warning
+  (if (fboundp 'image-supported-file-p)
+      (defalias 'totp-auth-image-type-from-filename
+        'image-supported-file-p)
+    (defalias 'totp-auth-image-type-from-filename
+      'image-type-from-file-name))
   (require 'mailcap))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -474,7 +481,7 @@ has no entry at all."
   "Export OTP secrets to FILE as image format IMG-TYPE.
 FILE is a path to a file which may or may not exist yet.
 IMG-TYPE is a symbol representingh an image type.
-\(see ‘image-type-from-file-name’ for details).
+\(see ‘totp-auth-image-type-from-filename’ for details).
 FILE should match IMG-TYPEs well known extension but this is not enforced.
 TYPE is :otpauth or :otpauth-migration, and defaults to :otpauth.
 SECRETS is a list of ‘totp-auth-unwrap-otp-blob’ secrets, or nil for all.
@@ -504,7 +511,9 @@ of ‘totp-auth-file-export-type-map’."
                    args (mapcar (lambda (a)
                                   (if (equal "@file@" a) file a))
                                 arg-list))
-             (apply #'call-process-region (point-at-bol) (point-at-eol)
+             (apply #'call-process-region
+                    (line-beginning-position)
+                    (line-end-position)
                     cmd nil t nil args)
              (setq created (list file)))
             (t
@@ -516,7 +525,9 @@ of ‘totp-auth-file-export-type-map’."
                      args     (mapcar (lambda (a)
                                         (if (equal "@file@" a) nth-file a))
                                       arg-list))
-               (apply #'call-process-region (point-at-bol) (point-at-eol)
+               (apply #'call-process-region
+                      (line-beginning-position)
+                      (line-end-position)
                       cmd nil t nil args)
                (setq created (cons nth-file created)
                      travel (forward-line)
@@ -556,7 +567,7 @@ If it is nil, all available secrets are exported."
   "Export TOTP SECRETS to FILE.
 FILE is a destination file.
 If it matches ‘epa-file-name-regexp’ then a text file is saved.
-If ‘image-type-from-file-name’ returns an image type for file then
+If ‘totp-auth-image-type-from-filename’ returns an image type for file then
 a QR code is generated instead.
 TYPE may be :otpauth-migration or :otpauth - which URL scheme to use.
 \nSECRETS is a list of ‘totp-auth-unwrap-otp-blob’ secrets, or a string, or nil.
@@ -576,7 +587,7 @@ Any other string is used as a substring to look for in the labels."
     (error "Export file %S already exists" file))
   (let (img-type epa-ok)
     (setq epa-ok   (string-match epa-file-name-regexp file)
-          img-type (image-type-from-file-name file))
+          img-type (totp-auth-image-type-from-filename file))
     (cond (epa-ok   (totp-auth-export-text  file type secrets))
           (img-type (totp-auth-export-image file img-type type secrets))
           (t (error "%S is not an EPA file or supported image format" file)))))
