@@ -706,7 +706,8 @@ Usually called from a timer set by ‘totp-auth-display-token-notification’."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Generic UI
 (defun totp-auth-display-token (secret &optional label)
-  "Display the TOTP token for secret according to ‘totp-auth-display-token-method’.
+  "Display the TOTP token for secret.
+Display method is determined by ‘totp-auth-display-token-method’.
 SECRET is a string or structure consumable by ‘totp-auth-generate-otp’,
 LABEL is a label or description of the secret (eg its user and service
 information).
