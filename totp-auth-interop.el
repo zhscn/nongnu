@@ -57,7 +57,7 @@ Returns a cons of (VALUE . BYTES-READ)"
         ;; only leaves 1 bit.
         (setq b10 (aref collected 9)))
       (dotimes (i (length collected))
-        (setq u64 (+ u64 (totp-auth-lsh (aref collected i) (* i 7)))))
+        (setq u64 (+ u64 (base32-lsh (aref collected i) (* i 7)))))
       (if (and b10 (not (eq b10 1)))
           (cons nil vbyte-count)
         (cons u64 vbyte-count))) ))
@@ -70,7 +70,7 @@ Where TYPE should be :varint :i64 :len or :i32"
   (let ((decoded (totp-auth-pb-read-varint buf pos)) type field)
     (setq field (car decoded)
           type  (totp-auth-pb-type (logand #x7 field))
-          field (totp-auth-lsh field -3))
+          field (base32-lsh field -3))
     (setcar decoded (cons field type))
     decoded))
 
