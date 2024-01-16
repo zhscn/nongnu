@@ -225,6 +225,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "G") #'mastodon-views--view-follow-suggestions)
     (define-key map (kbd "X") #'mastodon-views--view-lists)
     (define-key map (kbd "SPC") #'mastodon-tl--scroll-up-command)
+    (define-key map (kbd "z") #'bury-buffer)
     map)
   "Keymap for `mastodon-mode'.")
 
