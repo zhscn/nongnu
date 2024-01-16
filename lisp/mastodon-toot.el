@@ -517,6 +517,11 @@ base toot."
     (kill-new url)
     (message "Toot URL copied to the clipboard.")))
 
+(defun mastodon-toot--open-toot-url ()
+  "Open URL of toot at point."
+  (interactive)
+  (browse-url (mastodon-toot--toot-url)))
+
 (defun mastodon-toot--toot-url ()
   "Return the URL of the base toot at point."
   (let* ((toot (or (mastodon-tl--property 'base-toot)
