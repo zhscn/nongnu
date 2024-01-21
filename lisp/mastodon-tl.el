@@ -190,6 +190,11 @@ re-load mastodon.el, or restart Emacs."
   :type '(choice (const :tag "true" t)
                  (const :tag "false" nil)
                  (const :tag "follow server setting" server)))
+
+(defcustom mastodon-tl--tag-timeline-tags nil
+  "A list of up to four tags for use with `mastodon-tl--followed-tags-timeline'."
+  :type '(repeat string))
+
 
 ;;; VARIABLES
 
@@ -2206,13 +2211,14 @@ PREFIX is sent to `mastodon-tl--get-tag-timeline', which see."
       (mastodon-tl--get-tag-timeline prefix tag))))
 
 (defun mastodon-tl--followed-tags-timeline (&optional prefix)
-  "Open a timeline of all your followed tags.
+  "Open a timeline of multiple tags.
 PREFIX is sent to `mastodon-tl--show-tag-timeline', which see.
-Note that the number of tags supported is undocumented, and from
-manual testing appears to be limited to a total of four tags."
+If `mastodon-tl--tag-timeline-tags' is set, use its tags, else
+fetch followed tags and load the first four of them."
   (interactive "p")
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
-         (tags (mastodon-tl--map-alist 'name followed-tags-json)))
+         (tags (or mastodon-tl--tag-timeline-tags
+                   (mastodon-tl--map-alist 'name followed-tags-json))))
     (mastodon-tl--show-tag-timeline prefix tags)))
 
 (defun mastodon-tl--some-followed-tags-timeline (&optional prefix)
