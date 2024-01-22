@@ -788,5 +788,20 @@ FILE is processed by ‘totp-load-file’ and each secret extracted
 is passed to ‘totp-save-secret’."
   t)
 
+(autoload 'totp-auth-export-file "totp-auth-interop"
+  "Export TOTP SECRETS to FILE.
+FILE is a destination file.
+If it matches ‘epa-file-name-regexp’ then a text file is saved.
+If ‘totp-auth-image-type-from-filename’ returns an image type for file then
+a QR code is generated instead.
+TYPE may be :otpauth-migration or :otpauth - which URL scheme to use.
+\nSECRETS is a list of ‘totp-auth-unwrap-otp-blob’ secrets, or a string, or nil.
+If it is nil all secrets are exported.
+If it is a string beginning with ~ or / it is used as a regular expression
+to match the labels of the secrets to export from ‘totp-auth-secrets’.
+If it begins with = the rest of the string is used as an exact match.
+Any other string is used as a substring to look for in the labels."
+  t)
+
 (provide 'totp-auth)
 ;;; totp-auth.el ends here
