@@ -488,7 +488,7 @@ SECRETS is a list of ‘totp-auth-unwrap-otp-blob’ secrets, or nil for all.
 \nQR encoding is done by ‘totp-auth-file-export-command’ with the assistance
 of ‘totp-auth-file-export-type-map’."
   (unless (totp-auth-check-command totp-auth-file-export-command)
-    (error "Command %s not available for QR code import"
+    (error "Command %s not available for QR code export"
            (car totp-auth-file-export-command)))
   (or img-type (error "An image export type (eg 'png) must be specified"))
   (let ((nth 0)
