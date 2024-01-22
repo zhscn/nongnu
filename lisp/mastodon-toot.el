@@ -1225,6 +1225,30 @@ File is actually attached to the toot upon posting."
     (mastodon-toot--upload-attached-media
      (car (last mastodon-toot--media-attachments)))))
 
+(defun mastodon-toot--attachment-descriptions ()
+  "Return a list of image descriptions for current attachments."
+  (mapcar (lambda (a)
+            (alist-get :description a))
+          mastodon-toot--media-attachments))
+
+(defun mastodon-toot--attachment-from-desc (desc)
+  "Return an attachment based on its description DESC."
+  (car
+   (cl-member-if (lambda (x)
+                   (rassoc desc x))
+                 mastodon-toot--media-attachments)))
+
+(defun mastodon-toot--edit-media-description ()
+  "Prompt for an attachment, and update its description."
+  (interactive)
+  (let* ((descs (mastodon-toot--attachment-descriptions))
+         (choice (completing-read "Attachment: " descs nil :match))
+         (attachment (mastodon-toot--attachment-from-desc choice))
+         (desc-new (read-string "Description: " choice)))
+    (setf (alist-get :description attachment)
+          desc-new)
+    (mastodon-toot--refresh-attachments-display)))
+
 (defun mastodon-toot--upload-attached-media (attachment)
   "Upload a single ATTACHMENT using `mastodon-http--post-media-attachment'.
 The item's id is added to `mastodon-toot--media-attachment-ids',
