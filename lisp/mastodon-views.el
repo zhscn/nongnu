@@ -572,14 +572,14 @@ NO-CONFIRM means there is no ask or message, there is only do."
       (let* ((toot (mastodon-tl--property 'scheduled-json :no-move))
              (scheduled (alist-get 'scheduled_at toot)))
         (let-alist (alist-get 'params toot)
+          ;; TODO: preserve polls
           ;; (poll (alist-get 'poll params))
-          ;; (media (alist-get 'media_attachments toot)))
-          (mastodon-toot--compose-buffer)
+          (mastodon-toot--compose-buffer nil .in_reply_to_id nil .text :edit)
           (goto-char (point-max))
-          (insert .text)
           ;; adopt properties from scheduled toot:
           (mastodon-toot--set-toot-properties
-           .in_reply_to_id .visibility .spoiler_text .language scheduled id))))))
+           .in_reply_to_id .visibility .spoiler_text .language
+           scheduled id (alist-get 'media_attachments toot)))))))
 
 
 ;;; FILTERS
