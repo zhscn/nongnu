@@ -15,7 +15,8 @@
     (when (not (and (locate-library "base32")
                     (locate-library "hmac")))
       (add-to-list 'load-path (file-name-directory this-file)))
-    (require 'totp-auth))
+    (require 'totp-auth)
+    (require 'epa-hook))
   ;; function declared obsolete in 29.x
   ;; do not use #' forms here as that will trigger a different warning
   (if (fboundp 'image-supported-file-p)
