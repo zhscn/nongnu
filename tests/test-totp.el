@@ -1,5 +1,5 @@
 ;; -*- mode: emacs-lisp; lexical-binding: t; -*-
-;; Copyright © 2022 Vivek Das Moapatra <vivek@etla.org>
+;; Copyright © 2022-2024 Vivek Das Moapatra <vivek@etla.org>
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 (defvar test-totp-source-dir nil)
 
@@ -13,11 +13,8 @@
           (expand-file-name (concat (file-name-directory this-file) "/..")))
     (message "running tests in %s" test-totp-source-dir)
     (add-to-list 'load-path test-totp-source-dir)
-    (require 'totp-auth)
-    (message "totp-auth loaded from %S" (feature-file 'totp-auth))
-    (require 'totp-auth-interop)
-    (message "totp-auth-interop loaded from %S"
-             (feature-file 'totp-auth-interop))))
+    (mapc #'require '(totp-auth-hmac totp-auth totp-auth-interop))
+    (mapcar (lambda (F) (message "%S loaded from %S" F (feature-file F))) features)))
 
 (defun 0b (byte)
   "Byte to 8-character string formatter."
