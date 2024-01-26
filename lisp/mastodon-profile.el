@@ -777,13 +777,13 @@ If the handle does not match a search return then retun NIL."
   (let* ((handle (if (string= "@" (substring handle 0 1))
                      (substring handle 1 (length handle))
                    handle))
-         (args `(("q" . ,handle)))
+         (args `(("q" . ,handle)
+                 ("type" . "accounts")))
+         (result (mastodon-http--get-json (mastodon-http--api-search) args))
          (matching-account (seq-remove
                             (lambda (x)
                               (not (string= (alist-get 'acct x) handle)))
-                            (mastodon-http--get-json
-                             (mastodon-http--api "accounts/search")
-                             args))))
+                            (alist-get 'accounts result))))
     (when (equal 1 (length matching-account))
       (elt matching-account 0))))
 
