@@ -234,7 +234,7 @@ BUFFER, PARAMS, and UPDATE-FUN are for `mastodon-tl--buffer-spec'."
           ((equal type "statuses")
            (mastodon-search--query query "hashtags")))))
 
-(defun mastodon-serach--query-accounts-followed (query)
+(defun mastodon-search--query-accounts-followed (query)
   "Run an accounts search QUERY, limited to your followers."
   (interactive "sSearch mastodon for: ")
   (mastodon-search--query query "accounts" :following))
