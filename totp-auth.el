@@ -163,15 +163,16 @@ secrets service login session prepended to it, if it is available."
   :group 'totp-auth
   :type `(repeat :tag "Authentication Sources"
                  (choice
-                  (string :tag "Just a file")
-                  (const :tag "Default Secrets API Collection" default)
-                  (const :tag "Login Secrets API Collection" "secrets:Login")
+                  (const :tag "TOTP Secrets Collection" "secrets:TOTP")
+                  (const :tag "Default Secrets Collection" default)
+                  (const :tag "Login Secrets Collection" "secrets:login")
 
                   (const :tag "Default internet Mac OS Keychain"
                          macos-keychain-internet)
 
                   (const :tag "Default generic Mac OS Keychain"
                          macos-keychain-generic)
+                  (string :tag "Just a file")
 
                   (list :tag "Source definition"
                         (const :format "" :value :source)
@@ -228,23 +229,27 @@ secrets service login session prepended to it, if it is available."
 (defun totp-auth-sources ()
   "Initialise variable ‘totp-auth-sources’ if necessary and return it."
   (or totp-auth-sources
-      (let ((case-fold-search t) secret-collection collection-list)
-        ;; pick a freedesktop collection that matches "login" or
-        ;; "Login" or similar:
+      (let ((case-fold-search t) collection-list login totp)
+        ;; find "login" and "TOTP" collections
         (setq collection-list
               (ignore-errors (secrets-list-collections)))
         (mapc (lambda (s)
-                (if (string-match "^login$" s)
-                    (setq secret-collection (concat "secrets:" s))))
+                (cond ((string-match "^login$" s) (setq login (concat "secrets:" s)))
+                      ((string-match "^totp$"  s) (setq totp  (concat "secrets:" s)))))
               collection-list)
+
         ;; add the freedesktop login collection we found to our auth
-        ;; source list _if_ 'default isn't already there:
+        ;; source list _if_ it isn't there (remembering that it may be
+        ;; referred to as 'default):
         (setq totp-auth-sources
-              (if (and secret-collection
-                       (not (memq   'default          auth-sources))
-                       (not (member secret-collection auth-sources)))
-                  (copy-sequence (cons secret-collection auth-sources))
+              (if (and login
+                       (not (memq   'default auth-sources))
+                       (not (member login    auth-sources)))
+                  (copy-sequence (cons login auth-sources))
                 (copy-sequence auth-sources)))
+        ;; and prepend the TOTP collection if it exists
+        (if (and totp (not (member totp totp-auth-sources)))
+            (setq totp-auth-sources (cons totp totp-auth-sources)))
         totp-auth-sources)))
 
 (defun totp-auth-wrap-otpauth-url (s)
