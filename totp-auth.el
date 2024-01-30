@@ -229,15 +229,12 @@ secrets service login session prepended to it, if it is available."
 (defun totp-auth-sources ()
   "Initialise variable ‘totp-auth-sources’ if necessary and return it."
   (or totp-auth-sources
-      (let ((case-fold-search t) collection-list login totp)
+      (let ((case-fold-search t) login totp)
         ;; find "login" and "TOTP" collections
-        (setq collection-list
-              (ignore-errors (secrets-list-collections)))
         (mapc (lambda (s)
                 (cond ((string-match "^login$" s) (setq login (concat "secrets:" s)))
                       ((string-match "^totp$"  s) (setq totp  (concat "secrets:" s)))))
-              collection-list)
-
+              (ignore-errors (secrets-list-collections)))
         ;; add the freedesktop login collection we found to our auth
         ;; source list _if_ it isn't there (remembering that it may be
         ;; referred to as 'default):
