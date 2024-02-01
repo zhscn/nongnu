@@ -142,6 +142,12 @@ The default value \"%F %T\" prints ISO8601-style YYYY-mm-dd HH:MM:SS.
 Use. e.g. \"%c\" for your locale's date and time format."
   :type 'string)
 
+
+(defun mastodon-kill-window ()
+  "Quit window and delete helper."
+  (interactive)
+  (quit-window 'kill))
+
 (defvar mastodon-mode-map
   (let ((map (make-sparse-keymap)))
     ;; navigation inside a timeline
@@ -169,7 +175,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "/") #'mastodon-switch-to-buffer)
     ;; quitting mastodon
     (define-key map (kbd "q") #'kill-current-buffer)
-    (define-key map (kbd "Q") #'kill-buffer-and-window)
+    (define-key map (kbd "Q") #'mastodon-kill-window)
     (define-key map (kbd "M-C-q") #'mastodon-kill-all-buffers)
     ;; toot actions
     (define-key map (kbd "c") #'mastodon-tl--toggle-spoiler-text-in-toot)
@@ -178,9 +184,11 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "k") #'mastodon-toot--toggle-bookmark)
     (define-key map (kbd "r") #'mastodon-toot--reply)
     (define-key map (kbd "C") #'mastodon-toot--copy-toot-url)
+    (define-key map (kbd "o") #'mastodon-toot--open-toot-url)
     (define-key map (kbd "v") #'mastodon-tl--poll-vote)
     (define-key map (kbd "E") #'mastodon-toot--view-toot-edits)
     (define-key map (kbd "T") #'mastodon-tl--thread)
+    (define-key map (kbd "RET") #'mastodon-tl--thread)
     (define-key map (kbd "m") #'mastodon-tl--dm-user)
     (when (require 'lingva nil :no-error)
       (define-key map (kbd "a") #'mastodon-toot--translate-toot-text))
@@ -218,6 +226,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "G") #'mastodon-views--view-follow-suggestions)
     (define-key map (kbd "X") #'mastodon-views--view-lists)
     (define-key map (kbd "SPC") #'mastodon-tl--scroll-up-command)
+    (define-key map (kbd "z") #'bury-buffer)
     map)
   "Keymap for `mastodon-mode'.")
 
@@ -341,7 +350,7 @@ from the server and load anew."
 ;; URL lookup: should be available even if `mastodon.el' not loaded:
 
 ;;;###autoload
-(defun mastodon-url-lookup (&optional query-url)
+(defun mastodon-url-lookup (&optional query-url force)
   "If a URL resembles a mastodon link, try to load in `mastodon.el'.
 Does a WebFinger lookup.
 URL can be arg QUERY-URL, or URL at point, or provided by the user.
@@ -352,7 +361,8 @@ not, just browse the URL in the normal fashion."
                     (thing-at-point-url-at-point)
                     (mastodon-tl--property 'shr-url :no-move)
                     (read-string "Lookup URL: "))))
-    (if (not (mastodon--fedi-url-p query))
+    (if (and (not force)
+             (not (mastodon--fedi-url-p query)))
         ;; (shr-browse-url query) ; doesn't work (keep our shr keymap)
         (browse-url query)
       (message "Performing lookup...")
@@ -373,6 +383,11 @@ not, just browse the URL in the normal fashion."
                  (mastodon-profile--make-author-buffer account)))
               (t
                (browse-url query)))))))
+
+(defun mastodon-url-lookup-force ()
+  "Call `mastodon-url-lookup' without checking if URL is fedi-like."
+  (interactive)
+  (mastodon-url-lookup nil :force))
 
 (defun mastodon--fedi-url-p (query)
   "Check if QUERY resembles a fediverse URL."

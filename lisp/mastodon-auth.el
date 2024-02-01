@@ -4,7 +4,6 @@
 ;; Copyright (C) 2021 Abhiseck Paira <abhiseckpaira@disroot.org>
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
-;; Version: 1.0.0
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -173,13 +172,13 @@ When ASK is absent return nil."
 Generate/save token if none known yet."
   (cond (mastodon-auth--token-alist
          ;; user variables are known and initialised.
-         (alist-get mastodon-instance-url mastodon-auth--token-alist))
+         (alist-get mastodon-instance-url mastodon-auth--token-alist nil nil #'equal))
         ((plist-get (mastodon-client--active-user) :access_token)
          ;; user variables need to be read from plstore.
          (push (cons mastodon-instance-url
                      (plist-get (mastodon-client--active-user) :access_token))
                mastodon-auth--token-alist)
-         (alist-get mastodon-instance-url mastodon-auth--token-alist))
+         (alist-get mastodon-instance-url mastodon-auth--token-alist nil nil #'equal))
         ((null mastodon-active-user)
          ;; user not aware of 2FA-related changes and has not set
          ;; `mastodon-active-user'. Make user aware and error out.

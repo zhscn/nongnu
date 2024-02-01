@@ -5,7 +5,6 @@
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
-;; Version: 1.0.0
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -36,6 +35,8 @@
 
 (declare-function discover-add-context-menu "discover")
 
+(autoload 'mastodon-kill-window "mastodon")
+
 (defun mastodon-discover ()
   "Plug Mastodon functionality into `discover'."
   (interactive)
@@ -64,6 +65,7 @@
          ("t" "New toot" mastodon-toot)
          ("r" "Reply" mastodon-toot--reply)
          ("C" "Copy toot URL" mastodon-toot--copy-toot-url)
+         ("o" "Open toot URL" mastodon-toot--open-toot-url)
          ("d" "Delete (your) toot" mastodon-toot--delete-toot)
          ("D" "Delete and redraft (your) toot" mastodon-toot--delete-toot)
          ("e" "Edit (your) toot" mastodon-toot--edit-toot-at-point)
@@ -116,7 +118,7 @@
          ("C-c C-c" "Cycle profile views" mastodon-profile--account-view-cycle))
         ("Quit"
          ("q" "Quit mastodon and bury buffer." kill-this-buffer)
-         ("Q" "Quit mastodon buffer and kill window." kill-buffer-and-window)
+         ("Q" "Quit mastodon buffer and kill window." mastodon--kill-window)
          ("M-C-q" "Quit mastodon and kill all buffers." mastodon-kill-all-buffers)))))))
 
 (provide 'mastodon-discover)

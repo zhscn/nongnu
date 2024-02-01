@@ -5,7 +5,6 @@
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
-;; Version: 1.0.0
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -51,6 +50,7 @@
 (autoload 'mastodon-http--patch-json "mastodon-http")
 (autoload 'mastodon-http--post "mastodon-http.el")
 (autoload 'mastodon-http--triage "mastodon-http.el")
+(autoload 'mastodon-kill-window "mastodon")
 (autoload 'mastodon-media--get-media-link-rendering "mastodon-media.el")
 (autoload 'mastodon-media--inline-images "mastodon-media.el")
 (autoload 'mastodon-mode "mastodon.el")
@@ -140,11 +140,12 @@ contains")
   "Get the next item-json."
   (mastodon-tl--property 'item-json))
 
-(defun mastodon-profile--make-author-buffer (account &optional no-reblogs)
+(defun mastodon-profile--make-author-buffer
+    (account &optional no-reblogs no-replies)
   "Take an ACCOUNT json and insert a user account into a new buffer.
 NO-REBLOGS means do not display boosts in statuses."
   (mastodon-profile--make-profile-buffer-for
-   account "statuses" #'mastodon-tl--timeline no-reblogs))
+   account "statuses" #'mastodon-tl--timeline no-reblogs nil no-replies))
 
 ;; TODO: we shd just load all views' data then switch coz this is slow af:
 (defun mastodon-profile--account-view-cycle ()
@@ -153,17 +154,28 @@ NO-REBLOGS means do not display boosts in statuses."
   (cond ((mastodon-tl--buffer-type-eq 'profile-statuses)
          (mastodon-profile--open-statuses-no-reblogs))
         ((mastodon-tl--buffer-type-eq 'profile-statuses-no-boosts)
+         (mastodon-profile--open-statuses-no-replies))
+        ((mastodon-tl--buffer-type-eq 'profile-statuses-no-replies)
          (mastodon-profile--open-followers))
         ((mastodon-tl--buffer-type-eq 'profile-followers)
          (mastodon-profile--open-following))
         ((mastodon-tl--buffer-type-eq 'profile-following)
          (mastodon-profile--make-author-buffer mastodon-profile--account))))
 
+(defun mastodon-profile--open-statuses-no-replies ()
+  "Open a profile buffer showing statuses including replies."
+  (interactive)
+  (if mastodon-profile--account
+      (mastodon-profile--make-author-buffer
+       mastodon-profile--account nil :no-replies)
+    (user-error "Not in a mastodon profile")))
+
 (defun mastodon-profile--open-statuses-no-reblogs ()
   "Open a profile buffer showing statuses without reblogs."
   (interactive)
   (if mastodon-profile--account
-      (mastodon-profile--make-author-buffer mastodon-profile--account :no-reblogs)
+      (mastodon-profile--make-author-buffer
+       mastodon-profile--account :no-reblogs)
     (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-following ()
@@ -171,11 +183,8 @@ NO-REBLOGS means do not display boosts in statuses."
   (interactive)
   (if mastodon-profile--account
       (mastodon-profile--make-profile-buffer-for
-       mastodon-profile--account
-       "following"
-       #'mastodon-profile--format-user
-       nil
-       :headers)
+       mastodon-profile--account "following"
+       #'mastodon-profile--format-user nil :headers)
     (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-followers ()
@@ -183,30 +192,23 @@ NO-REBLOGS means do not display boosts in statuses."
   (interactive)
   (if mastodon-profile--account
       (mastodon-profile--make-profile-buffer-for
-       mastodon-profile--account
-       "followers"
-       #'mastodon-profile--format-user
-       nil
-       :headers)
+       mastodon-profile--account "followers"
+       #'mastodon-profile--format-user nil :headers)
     (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--view-favourites ()
   "Open a new buffer displaying the user's favourites."
   (interactive)
   (message "Loading your favourited toots...")
-  (mastodon-tl--init "favourites"
-                     "favourites"
-                     'mastodon-tl--timeline
-                     :headers))
+  (mastodon-tl--init "favourites" "favourites"
+                     'mastodon-tl--timeline :headers))
 
 (defun mastodon-profile--view-bookmarks ()
   "Open a new buffer displaying the user's bookmarks."
   (interactive)
   (message "Loading your bookmarked toots...")
-  (mastodon-tl--init "bookmarks"
-                     "bookmarks"
-                     'mastodon-tl--timeline
-                     :headers))
+  (mastodon-tl--init "bookmarks" "bookmarks"
+                     'mastodon-tl--timeline :headers))
 
 (defun mastodon-profile--add-account-to-list ()
   "Add account of current profile buffer to a list."
@@ -293,7 +295,7 @@ NO-REBLOGS means do not display boosts in statuses."
   "Cancel updating user profile and kill buffer and window."
   (interactive)
   (when (y-or-n-p "Cancel updating your profile note?")
-    (kill-buffer-and-window)))
+    (mastodon-kill-window)))
 
 (defun mastodon-profile--note-remove-header ()
   "Get the body of a toot from the current compose buffer."
@@ -309,9 +311,9 @@ Ask for confirmation if length > 500 characters."
          (url (mastodon-http--api "accounts/update_credentials")))
     (if (> (mastodon-toot--count-toot-chars note) 500)
         (when (y-or-n-p "Note is over mastodon's max for profile notes (500). Proceed?")
-          (kill-buffer-and-window)
+          (quit-window 'kill)
           (mastodon-profile--user-profile-send-updated-do url note))
-      (kill-buffer-and-window)
+      (quit-window 'kill)
       (mastodon-profile--user-profile-send-updated-do url note))))
 
 (defun mastodon-profile--user-profile-send-updated-do (url note)
@@ -553,20 +555,38 @@ FIELDS means provide a fields vector fetched by other means."
       (when (not (equal :json-false x))
         (setq result x)))))
 
+(defun mastodon-profile--render-roles (roles)
+  "Return a propertized string of badges for ROLES."
+  (mapconcat
+   (lambda (role)
+     (propertize
+      (alist-get 'name role)
+      'face `(:box t :foreground ,(alist-get 'color role))))
+   roles))
+
 (defun mastodon-profile--make-profile-buffer-for
-    (account endpoint-type update-function &optional no-reblogs headers)
+    (account endpoint-type update-function
+             &optional no-reblogs headers no-replies)
   "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION.
 NO-REBLOGS means do not display boosts in statuses.
 HEADERS means also fetch link headers for pagination."
   (let-alist account
     (let* ((args `(("limit" . ,mastodon-tl--timeline-posts-count)))
-           (args (if no-reblogs (push '("exclude_reblogs" . "t") args) args))
+           (args (cond (no-reblogs
+                        (push '("exclude_reblogs" . "t") args))
+                       (no-replies
+                        (push '("exclude_replies" . "t") args))
+                       (t
+                        args)))
            (endpoint (format "accounts/%s/%s" .id endpoint-type))
            (url (mastodon-http--api endpoint))
            (buffer (concat "*mastodon-" .acct "-"
-                           (if no-reblogs
-                               (concat endpoint-type "-no-boosts")
-                             endpoint-type)
+                           (cond (no-reblogs
+                                  (concat endpoint-type "-no-boosts"))
+                                 (no-replies
+                                  (concat endpoint-type "-no-replies"))
+                                 (t
+                                  endpoint-type))
                            "*"))
            (response (if headers
                          (mastodon-http--get-response url args)
@@ -590,9 +610,12 @@ HEADERS means also fetch link headers for pagination."
                (is-followers (string= endpoint-type "followers"))
                (is-following (string= endpoint-type "following"))
                (endpoint-name (cond
-                               (is-statuses (if no-reblogs
-                                                "  TOOTS (no boosts)"
-                                              "    TOOTS    "))
+                               (is-statuses (cond (no-reblogs
+                                                   "  TOOTS (no boosts)")
+                                                  (no-replies
+                                                   "  TOOTS (no replies)")
+                                                  (t
+                                                   "    TOOTS    ")))
                                (is-followers "  FOLLOWERS  ")
                                (is-following "  FOLLOWING  "))))
           (insert
@@ -603,6 +626,10 @@ HEADERS means also fetch link headers for pagination."
              (mastodon-profile--image-from-account account 'header_static)
              "\n"
              (propertize .display_name 'face 'mastodon-display-name-face)
+             ;; roles
+             (when .roles
+               (concat " "
+                       (mastodon-profile--render-roles .roles)))
              "\n"
              (propertize (concat "@" .acct) 'face 'default)
              (if (equal .locked t)
@@ -658,13 +685,14 @@ HEADERS means also fetch link headers for pagination."
           (when (and pinned (equal endpoint-type "statuses"))
             (mastodon-profile--insert-statuses-pinned pinned)
             (setq mastodon-tl--update-point (point))) ; updates after pinned toots
-          (funcall update-function json)))
-      (goto-char (point-min))
-      (message
-       (substitute-command-keys
-        ;; "\\[mastodon-profile--account-view-cycle]" ; not always bound?
-        "\\`C-c C-c' to cycle profile views: toots, followers, following.
-\\`C-c C-s' to search user's toots.")))))
+          (funcall update-function json))
+        (goto-char (point-min))
+        (message
+         (substitute-command-keys
+          ;; "\\[mastodon-profile--account-view-cycle]" ; not always bound?
+          "\\`C-c C-c' to cycle profile views: toots, no replies, no boosts,\
+ followers, following.
+\\`C-c C-s' to search user's toots."))))))
 
 (defun mastodon-profile--format-joined-date-string (joined)
   "Format a human-readable Joined string from timestamp JOINED.
@@ -749,13 +777,13 @@ If the handle does not match a search return then retun NIL."
   (let* ((handle (if (string= "@" (substring handle 0 1))
                      (substring handle 1 (length handle))
                    handle))
-         (args `(("q" . ,handle)))
+         (args `(("q" . ,handle)
+                 ("type" . "accounts")))
+         (result (mastodon-http--get-json (mastodon-http--api-search) args))
          (matching-account (seq-remove
                             (lambda (x)
                               (not (string= (alist-get 'acct x) handle)))
-                            (mastodon-http--get-json
-                             (mastodon-http--api "accounts/search")
-                             args))))
+                            (alist-get 'accounts result))))
     (when (equal 1 (length matching-account))
       (elt matching-account 0))))
 

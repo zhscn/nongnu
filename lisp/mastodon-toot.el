@@ -5,7 +5,6 @@
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
-;; Version: 1.0.0
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -65,6 +64,7 @@
 (autoload 'mastodon-http--put "mastodon-http")
 (autoload 'mastodon-http--read-file-as-string "mastodon-http")
 (autoload 'mastodon-http--triage "mastodon-http")
+(autoload 'mastodon-kill-window "mastodon")
 (autoload 'mastodon-profile--fetch-server-account-settings "mastodon-profile")
 (autoload 'mastodon-profile--fetch-server-account-settings-maybe "mastodon-profile")
 (autoload 'mastodon-profile--get-source-pref "mastodon-profile")
@@ -240,12 +240,20 @@ send.")
       (group-n 2 ?# (+ (any "A-Z" "a-z" "0-9")))
       (| "'" word-boundary))) ; boundary or possessive
 
+(defvar mastodon-toot-emoji-regex
+  (rx (| (any ?\( "\n" "\t" " ") bol)
+      (group-n 2 ?: ; opening :
+               (+ (any "A-Z" "a-z" "0-9" "_"))
+               (? ?:)) ; closing :
+      word-boundary)) ; boundary
+
 (defvar mastodon-toot-url-regex
   ;; adapted from ffap-url-regexp
   (concat
    "\\(?2:\\(news\\(post\\)?:\\|mailto:\\|file:\\|\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://\\)" ; uri prefix
    "[^ \n\t]*\\)" ; any old thing, that is, i.e. we allow invalid/unwise chars
    ;; "[ .,:;!?]\\b"))
+   ;; "/" ; poss an ending slash? incompat with boundary end:
    "\\>")) ; boundary end
 
 
@@ -509,6 +517,11 @@ base toot."
     (kill-new url)
     (message "Toot URL copied to the clipboard.")))
 
+(defun mastodon-toot--open-toot-url ()
+  "Open URL of toot at point."
+  (interactive)
+  (browse-url (mastodon-toot--toot-url)))
+
 (defun mastodon-toot--toot-url ()
   "Return the URL of the base toot at point."
   (let* ((toot (or (mastodon-tl--property 'base-toot)
@@ -634,19 +647,36 @@ REPLY-ID, TOOT-VISIBILITY, and TOOT-CW of deleted toot are preseved."
        ;; TODO set new lang/scheduled props here
        nil))))
 
+(defun mastodon-toot--set-toot-media-attachments (media)
+  "Set the media attachments variables.
+MEDIA is the media_attachments data for a status from the server."
+  (mapcar (lambda (x)
+            (cl-pushnew (alist-get 'id x)
+                        mastodon-toot--media-attachment-ids)
+            (cl-pushnew `((:contents . ,(mastodon-http--read-file-as-string
+                                         (alist-get 'url x) :url))
+                          (:description . ,(alist-get 'description x)))
+                        mastodon-toot--media-attachments))
+          media))
+
 (defun mastodon-toot--set-toot-properties
-    (reply-id visibility cw lang &optional scheduled scheduled-id)
+    (reply-id visibility cw lang &optional scheduled scheduled-id media)
   "Set the toot properties for the current redrafted or edited toot.
-REPLY-ID, VISIBILITY, CW, SCHEDULED, and LANG are the properties to set."
-  (when reply-id
-    (setq mastodon-toot--reply-to-id reply-id))
-  (setq mastodon-toot--visibility visibility)
-  (setq mastodon-toot--scheduled-for scheduled)
-  (setq mastodon-toot--scheduled-id scheduled-id)
-  (when (not (string-empty-p lang))
-    (setq mastodon-toot--language lang))
-  (mastodon-toot--set-cw cw)
-  (mastodon-toot--update-status-fields))
+REPLY-ID, VISIBILITY, CW, SCHEDULED, and LANG are the properties to set.
+MEDIA is the media_attachments data for a status from the server."
+  (with-current-buffer "*edit toot*"
+    (when reply-id
+      (setq mastodon-toot--reply-to-id reply-id))
+    (setq mastodon-toot--visibility visibility)
+    (setq mastodon-toot--scheduled-for scheduled)
+    (setq mastodon-toot--scheduled-id scheduled-id)
+    (when (not (string-empty-p lang))
+      (setq mastodon-toot--language lang))
+    (mastodon-toot--set-cw cw)
+    (when media
+      (mastodon-toot--set-toot-media-attachments media))
+    (mastodon-toot--refresh-attachments-display)
+    (mastodon-toot--update-status-fields)))
 
 (defun mastodon-toot--kill (&optional cancel)
   "Kill `mastodon-toot-mode' buffer and window.
@@ -658,7 +688,7 @@ CANCEL means the toot was not sent, so we save the toot text as a draft."
                     mastodon-toot-draft-toots-list :test 'equal)))
     ;; prevent some weird bug when cancelling a non-empty toot:
     (delete #'mastodon-toot--save-toot-text after-change-functions)
-    (kill-buffer-and-window)
+    (quit-window 'kill)
     (mastodon-toot--restore-previous-window-config prev-window-config)))
 
 (defun mastodon-toot--cancel ()
@@ -826,20 +856,20 @@ instance to edit a toot."
                                 ;; Pleroma instances can't handle null-valued
                                 ;; scheduled_at args, so only add if non-nil
                                 (when scheduled `(("scheduled_at" . ,scheduled)))))
-         (args-media (when mastodon-toot--media-attachments
+         (args-media (when mastodon-toot--media-attachment-ids
                        (mastodon-http--build-array-params-alist
                         "media_ids[]"
                         mastodon-toot--media-attachment-ids)))
          (args-poll (when mastodon-toot-poll
                       (mastodon-toot--build-poll-params)))
          ;; media || polls:
-         (args (if mastodon-toot--media-attachments
+         (args (if mastodon-toot--media-attachment-ids
                    (append args-media args-no-media)
                  (if mastodon-toot-poll
                      (append args-no-media args-poll)
                    args-no-media)))
          (prev-window-config mastodon-toot-previous-window-config))
-    (cond ((and mastodon-toot--media-attachments
+    (cond ((and mastodon-toot--media-attachment-ids
                 ;; make sure we have media args
                 ;; and the same num of ids as attachments
                 (or (not args-media)
@@ -888,14 +918,15 @@ instance to edit a toot."
               (source-cw (alist-get 'spoiler_text source))
               (toot-visibility (alist-get 'visibility toot))
               (toot-language (alist-get 'language toot))
-              (reply-id (alist-get 'in_reply_to_id toot)))
+              (reply-id (alist-get 'in_reply_to_id toot))
+              (media (alist-get 'media_attachments toot)))
          (when (y-or-n-p "Edit this toot? ")
            (mastodon-toot--compose-buffer nil reply-id nil content :edit)
            (goto-char (point-max))
-           ;; adopt reply-to-id, visibility, CW, and language:
+           ;; adopt reply-to-id, visibility, CW, language, and media:
            (mastodon-toot--set-toot-properties reply-id toot-visibility
-                                               source-cw toot-language)
-           (mastodon-toot--update-status-fields)
+                                               source-cw toot-language nil nil
+                                               media)
            (setq mastodon-toot--edit-item-id id)))))))
 
 (defun mastodon-toot--get-toot-source (id)
@@ -996,25 +1027,33 @@ Federated user: `username@host.co`."
         (cons (match-beginning 2)
               (match-end 2))))))
 
-(defun mastodon-toot--fetch-completion-candidates (start end &optional tags)
+(defun mastodon-toot--fetch-completion-candidates (start end &optional type)
   "Search for a completion prefix from buffer positions START to END.
 Return a list of candidates.
-If TAGS, we search for tags, else we search for handles."
+TYPE is the candidate type, it may be :tags, :handles, or :emoji."
   ;; we can't save the first two-letter search then only filter the
   ;; resulting list, as max results returned is 40.
   (setq mastodon-toot-completions
-        (if tags
-            (let ((tags-list (mastodon-search--search-tags-query
-                              (buffer-substring-no-properties start end))))
-              (cl-loop for tag in tags-list
-                       collect (cons (concat "#" (car tag))
-                                     (cdr tag))))
-          (mastodon-search--search-accounts-query
-           (buffer-substring-no-properties start end)))))
+        (cond ((eq type :tags)
+               (let ((tags-list (mastodon-search--search-tags-query
+                                 (buffer-substring-no-properties start end))))
+                 (cl-loop for tag in tags-list
+                          collect (cons (concat "#" (car tag))
+                                        (cdr tag)))))
+              ((eq type :emoji)
+               (cl-loop for e in emojify-user-emojis
+                        collect (car e)))
+              (t
+               (mastodon-search--search-accounts-query
+                (buffer-substring-no-properties start end))))))
 
-(defun mastodon-toot--mentions-capf ()
-  "Build a mentions completion backend for `completion-at-point-functions'."
-  (let* ((bounds (mastodon-toot--get-bounds mastodon-toot-handle-regex))
+(defun mastodon-toot--make-capf (regex annot-fun type)
+  "Build a completion backend for `completion-at-point-functions'.
+REGEX is the regex to match preceding text.
+TYPE is a keyword symbol for `mastodon-toot--fetch-completion-candidates'.
+ANNOT-FUN is a function returning an annotatation from a single
+arg, a candidate."
+  (let* ((bounds (mastodon-toot--get-bounds regex))
          (start (car bounds))
          (end (cdr bounds)))
     (when bounds
@@ -1025,32 +1064,31 @@ If TAGS, we search for tags, else we search for handles."
                ;; Interruptible candidate computation, from minad/d mendler, thanks!
                (let ((result
                       (while-no-input
-                        (mastodon-toot--fetch-completion-candidates start end))))
+                        (mastodon-toot--fetch-completion-candidates
+                         start end type))))
                  (and (consp result) result))))
             :exclusive 'no
             :annotation-function
             (lambda (cand)
-              (concat " " (mastodon-toot--mentions-annotation-fun cand)))))))
+              (concat " " (funcall annot-fun cand)))))))
+
+(defun mastodon-toot--mentions-capf ()
+  "Build a mentions completion backend for `completion-at-point-functions'."
+  (mastodon-toot--make-capf mastodon-toot-handle-regex
+                            #'mastodon-toot--mentions-annotation-fun
+                            :handles))
 
 (defun mastodon-toot--tags-capf ()
   "Build a tags completion backend for `completion-at-point-functions'."
-  (let* ((bounds (mastodon-toot--get-bounds mastodon-toot-tag-regex))
-         (start (car bounds))
-         (end (cdr bounds)))
-    (when bounds
-      (list start
-            end
-            (completion-table-dynamic ; only search when necessary:
-             (lambda (_)
-               ;; Interruptible candidate computation, from minad/d mendler, thanks!
-               (let ((result
-                      (while-no-input
-                        (mastodon-toot--fetch-completion-candidates start end :tags))))
-                 (and (consp result) result))))
-            :exclusive 'no
-            :annotation-function
-            (lambda (cand)
-              (concat " " (mastodon-toot--tags-annotation-fun cand)))))))
+  (mastodon-toot--make-capf mastodon-toot-tag-regex
+                            #'mastodon-toot--tags-annotation-fun
+                            :tags))
+
+(defun mastodon-toot--emoji-capf ()
+  "Build an emoji completion backend for `completion-at-point-functions'."
+  (mastodon-toot--make-capf mastodon-toot-emoji-regex
+                            #'mastodon-toot--emoji-annotation-fun
+                            :emoji))
 
 (defun mastodon-toot--mentions-annotation-fun (candidate)
   "Given a handle completion CANDIDATE, return its annotation string, a username."
@@ -1062,16 +1100,26 @@ If TAGS, we search for tags, else we search for handles."
   ;; or make it an alist and use cdr
   (cadr (assoc candidate mastodon-toot-completions)))
 
+(defun mastodon-toot--emoji-annotation-fun (_candidate)
+  "."
+  ;; TODO: emoji image as annot
+  )
+
 
 ;;; REPLY
 
 (defun mastodon-toot--reply ()
   "Reply to toot at `point'.
 Customize `mastodon-toot-display-orig-in-reply-buffer' to display
-text of the toot being replied to in the compose buffer."
+text of the toot being replied to in the compose buffer.
+If the region is active, inject it into the reply buffer,
+prefixed by >."
   (interactive)
   (mastodon-tl--do-if-item-strict
-   (let* ((toot (mastodon-tl--property 'item-json))
+   (let* ((quote (when (region-active-p)
+                   (buffer-substring (region-beginning)
+                                     (region-end))))
+          (toot (mastodon-tl--property 'item-json))
           ;; no-move arg for base toot: don't try next toot
           (base-toot (mastodon-tl--property 'base-toot :no-move)) ; for new notifs handling
           (id (mastodon-tl--as-string (mastodon-tl--field 'id (or base-toot toot))))
@@ -1082,7 +1130,7 @@ text of the toot being replied to in the compose buffer."
           (booster (when boosted
                      (alist-get 'acct
                                 (alist-get 'account toot)))))
-     (mastodon-toot
+     (mastodon-toot--compose-buffer
       (when user
         (if booster
             (if (and (not (equal user booster))
@@ -1102,7 +1150,8 @@ text of the toot being replied to in the compose buffer."
             ;; user in mentions already:
             (mastodon-toot--mentions-to-string (copy-sequence mentions)))))
       id
-      (or base-toot toot)))))
+      (or base-toot toot)
+      quote))))
 
 
 ;;; COMPOSE TOOT SETTINGS
@@ -1178,7 +1227,32 @@ File is actually attached to the toot upon posting."
                     (:filename . ,file)))))
     (mastodon-toot--refresh-attachments-display)
     ;; upload only most recent attachment:
-    (mastodon-toot--upload-attached-media (car (last mastodon-toot--media-attachments)))))
+    (mastodon-toot--upload-attached-media
+     (car (last mastodon-toot--media-attachments)))))
+
+(defun mastodon-toot--attachment-descriptions ()
+  "Return a list of image descriptions for current attachments."
+  (mapcar (lambda (a)
+            (alist-get :description a))
+          mastodon-toot--media-attachments))
+
+(defun mastodon-toot--attachment-from-desc (desc)
+  "Return an attachment based on its description DESC."
+  (car
+   (cl-member-if (lambda (x)
+                   (rassoc desc x))
+                 mastodon-toot--media-attachments)))
+
+(defun mastodon-toot--edit-media-description ()
+  "Prompt for an attachment, and update its description."
+  (interactive)
+  (let* ((descs (mastodon-toot--attachment-descriptions))
+         (choice (completing-read "Attachment: " descs nil :match))
+         (attachment (mastodon-toot--attachment-from-desc choice))
+         (desc-new (read-string "Description: " choice)))
+    (setf (alist-get :description attachment)
+          desc-new)
+    (mastodon-toot--refresh-attachments-display)))
 
 (defun mastodon-toot--upload-attached-media (attachment)
   "Upload a single ATTACHMENT using `mastodon-http--post-media-attachment'.
@@ -1519,16 +1593,45 @@ The default is given by `mastodon-toot--default-reply-visibility'."
       (if (member (intern reply-visibility) less-restrictive)
 	  mastodon-toot--default-reply-visibility reply-visibility))))
 
-(defun mastodon-toot--setup-as-reply (reply-to-user reply-to-id reply-json)
+(defun mastodon-toot--fill-buffer ()
+  "Mark buffer, call `fill-region'."
+  (mark-whole-buffer) ; lisp code should not set mark
+  ;; (fill-region (point-min) (point-max)) ; but this doesn't work
+  (fill-region (region-beginning) (region-end)))
+
+(defun mastodon-toot--render-reply-region-str (str)
+  "Refill STR and prefix all lines with >, as reply-quote text."
+  (with-temp-buffer
+    ;; (switch-to-buffer (current-buffer))
+    (insert str)
+    ;; unfill first:
+    (let ((fill-column (point-max)))
+      (mastodon-toot--fill-buffer))
+    ;; then fill:
+    (mastodon-toot--fill-buffer)
+    ;; add our own prefix, pauschal:
+    (save-match-data
+      (while (re-search-forward "^" nil t)
+        (replace-match " > ")))
+    (buffer-substring-no-properties (point-min)
+                                    (point-max))))
+
+(defun mastodon-toot--setup-as-reply (reply-to-user reply-to-id
+                                                    reply-json reply-region)
   "If REPLY-TO-USER is provided, inject their handle into the message.
 If REPLY-TO-ID is provided, set `mastodon-toot--reply-to-id'.
-REPLY-JSON is the full JSON of the toot being replied to."
+REPLY-JSON is the full JSON of the toot being replied to.
+REPLY-REGION is a string to be injected into the buffer."
   (let ((reply-visibility (mastodon-toot--most-restrictive-visibility
 	                   (alist-get 'visibility reply-json)))
         (reply-cw (alist-get 'spoiler_text reply-json)))
     (when reply-to-user
       (when (> (length reply-to-user) 0) ; self is "" unforch
         (insert (format "%s " reply-to-user)))
+      (when reply-region
+        (insert "\n"
+                (mastodon-toot--render-reply-region-str reply-region)
+                "\n"))
       (setq mastodon-toot--reply-to-id reply-to-id)
       (unless (equal mastodon-toot--visibility reply-visibility)
         (setq mastodon-toot--visibility reply-visibility))
@@ -1749,18 +1852,23 @@ EDIT means we are editing an existing toot, not composing a new one."
       ;; perhaps we should not always call --setup-as-reply, or make its
       ;; workings conditional on reply-to-id. currently it only checks for
       ;; reply-to-user.
-      (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json))
+      (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json
+                                     ;; only initial-text if reply (not edit):
+                                     (when reply-json initial-text)))
     (unless mastodon-toot--max-toot-chars
       ;; no need to fetch from `mastodon-profile-account-settings' as
       ;; `mastodon-toot--max-toot-chars' is set when we set it
       (mastodon-toot--get-max-toot-chars))
     ;; set up completion:
+    (setq-local completion-ignore-case t)
     (when mastodon-toot--enable-completion
       (set (make-local-variable 'completion-at-point-functions)
            (add-to-list 'completion-at-point-functions
                         #'mastodon-toot--mentions-capf))
       (add-to-list 'completion-at-point-functions
                    #'mastodon-toot--tags-capf)
+      (add-to-list 'completion-at-point-functions
+                   #'mastodon-toot--emoji-capf)
       ;; company
       (when (and mastodon-toot--use-company-for-completion
                  (require 'company nil :no-error))
@@ -1782,7 +1890,8 @@ EDIT means we are editing an existing toot, not composing a new one."
     (setq mastodon-toot-previous-window-config previous-window-config)
     (when mastodon-toot--proportional-fonts-compose
       (facemenu-set-face 'variable-pitch))
-    (when initial-text
+    (when (and initial-text
+               (not reply-json))
       (insert initial-text))))
 
 ;; flyspell ignore masto toot regexes:

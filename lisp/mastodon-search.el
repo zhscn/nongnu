@@ -3,7 +3,6 @@
 ;; Copyright (C) 2017-2019 Marty Hiatt
 ;; Author: Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
-;; Version: 1.0.0
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -235,7 +234,7 @@ BUFFER, PARAMS, and UPDATE-FUN are for `mastodon-tl--buffer-spec'."
           ((equal type "statuses")
            (mastodon-search--query query "hashtags")))))
 
-(defun mastodon-serach--query-accounts-followed (query)
+(defun mastodon-search--query-accounts-followed (query)
   "Run an accounts search QUERY, limited to your followers."
   (interactive "sSearch mastodon for: ")
   (mastodon-search--query query "accounts" :following))

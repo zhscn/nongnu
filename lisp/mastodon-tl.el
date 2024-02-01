@@ -5,7 +5,6 @@
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
-;; Version: 1.0.0
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -119,6 +118,10 @@ By default fixed width fonts are used."
   :type '(boolean :tag "Enable using proportional rather than fixed \
 width fonts when rendering HTML text"))
 
+(defcustom mastodon-tl--display-media-p t
+  "A boolean value stating whether to show media in timelines."
+  :type 'boolean)
+
 (defcustom mastodon-tl--display-caption-not-url-when-no-media t
   "Display an image's caption rather than URL.
 Only has an effect when `mastodon-tl--display-media-p' is set to
@@ -187,6 +190,11 @@ re-load mastodon.el, or restart Emacs."
   :type '(choice (const :tag "true" t)
                  (const :tag "false" nil)
                  (const :tag "follow server setting" server)))
+
+(defcustom mastodon-tl--tag-timeline-tags nil
+  "A list of up to four tags for use with `mastodon-tl--followed-tags-timeline'."
+  :type '(repeat string))
+
 
 ;;; VARIABLES
 
@@ -199,9 +207,6 @@ If nil `(point-min)' is used instead.")
 
 (defvar-local mastodon-tl--after-update-marker nil
   "Marker defining the position of point after the update is done.")
-
-(defvar mastodon-tl--display-media-p t
-  "A boolean value stating whether to show media in timelines.")
 
 (defvar-local mastodon-tl--timestamp-next-update nil
   "The timestamp when the buffer should next be scanned to update the timestamps.")
@@ -263,6 +268,7 @@ types of mastodon links and not just shr.el-generated ones.")
     (define-key map (kbd "u") #'mastodon-tl--update)
     ;; keep new my-profile binding; shr 'O' doesn't work here anyway
     (define-key map (kbd "O") #'mastodon-profile--my-profile)
+    (define-key map (kbd "C") #'mastodon-tl--copy-image-caption)
     (define-key map (kbd "<C-return>") #'mastodon-tl--mpv-play-video-at-point)
     (define-key map (kbd "<mouse-2>") #'mastodon-tl--click-image-or-video)
     map)
@@ -1030,15 +1036,19 @@ message is a link which unhides/hides the main body."
 (defun mastodon-tl--media (toot)
   "Retrieve a media attachment link for TOOT if one exists."
   (let* ((media-attachments (mastodon-tl--field 'media_attachments toot))
-         (media-string (mapconcat #'mastodon-tl--media-attachment
-                                  media-attachments "")))
+         (sensitive (mastodon-tl--field 'sensitive toot))
+         (media-string (mapconcat
+                        (lambda (x)
+                          (mastodon-tl--media-attachment x sensitive))
+                        media-attachments "")))
     (if (not (and mastodon-tl--display-media-p
                   (string-empty-p media-string)))
         (concat "\n" media-string)
       "")))
 
-(defun mastodon-tl--media-attachment (media-attachment)
-  "Return a propertized string for MEDIA-ATTACHMENT."
+(defun mastodon-tl--media-attachment (media-attachment sensitive)
+  "Return a propertized string for MEDIA-ATTACHMENT.
+SENSITIVE is a flag from the item's JSON data."
   (let-alist media-attachment
     (let ((display-str
            (if (and mastodon-tl--display-caption-not-url-when-no-media
@@ -1047,22 +1057,25 @@ message is a link which unhides/hides the main body."
              (concat "Media:: " .preview_url))))
       (if mastodon-tl--display-media-p
           (mastodon-media--get-media-link-rendering ; placeholder: "[img]"
-           .preview_url (or .remote_url .url) .type .description) ; 2nd arg for shr-browse-url
+           .preview_url (or .remote_url .url) .type .description sensitive) ; 2nd arg for shr-browse-url
         ;; return URL/caption:
         (concat (mastodon-tl--propertize-img-str-or-url
                  (concat "Media:: " .preview_url) ; string
                  .preview_url .remote_url .type .description
                  display-str ; display
-                 'shr-link)
+                 'shr-link .description sensitive)
                 "\n")))))
 
 (defun mastodon-tl--propertize-img-str-or-url
-    (str media-url full-remote-url type help-echo &optional display face)
+    (str media-url full-remote-url type help-echo
+         &optional display face caption sensitive)
   "Propertize an media placeholder string \"[img]\" or media URL.
 STR is the string to propertize, MEDIA-URL is the preview link,
 FULL-REMOTE-URL is the link to the full resolution image on the
 server, TYPE is the media type.
-HELP-ECHO, DISPLAY, and FACE are the text properties to add."
+HELP-ECHO, DISPLAY, and FACE are the text properties to add.
+CAPTION is the image caption, added as a text property.
+SENSITIVE is a flag from the item's JSON data."
   (propertize str
               'media-url media-url
               'media-state (when (string= str "[img]") 'needs-loading)
@@ -1074,6 +1087,8 @@ HELP-ECHO, DISPLAY, and FACE are the text properties to add."
               'mastodon-tab-stop 'image ; for do-link-action-at-point
               'image-url full-remote-url ; for shr-browse-image
               'keymap mastodon-tl--shr-image-map-replacement
+              'image-description caption
+              'sensitive sensitive
               'help-echo (if (or (string= type "image")
                                  (string= type nil)
                                  (string= type "unknown")) ; handle borked images
@@ -1288,6 +1303,15 @@ in which case play first video or gif from current toot."
           (message "no moving image here?"))
       (message "no moving image here?"))))
 
+(defun mastodon-tl--copy-image-caption ()
+  "Copy the caption of the image at point."
+  (interactive)
+  (if-let ((desc (get-text-property (point) 'image-description)))
+      (progn
+        (kill-new desc)
+        (message "Image caption copied."))
+    (message "No image caption.")))
+
 
 ;;; INSERT TOOTS
 
@@ -1295,11 +1319,13 @@ in which case play first video or gif from current toot."
   "Retrieve text content from TOOT.
 Runs `mastodon-tl--render-text' and fetches poll or media."
   (let* ((content (mastodon-tl--field 'content toot))
-         (poll-p (mastodon-tl--field 'poll toot)))
+         (poll-p (mastodon-tl--field 'poll toot))
+         (media-p (mastodon-tl--field 'media_attachments toot)))
     (concat (mastodon-tl--render-text content toot)
             (when poll-p
               (mastodon-tl--get-poll toot))
-            (mastodon-tl--media toot))))
+            (when media-p
+              (mastodon-tl--media toot)))))
 
 (defun mastodon-tl--prev-item-id ()
   "Return the id of the last toot inserted into the buffer."
@@ -1577,6 +1603,8 @@ call this function after it is set or use something else."
             ;; posts inc. boosts:
             ((string-suffix-p "no-boosts*" buffer-name)
              'profile-statuses-no-boosts)
+            ((string-suffix-p "no-replies*" buffer-name)
+             'profile-statuses-no-replies)
             ((mastodon-tl--endpoint-str-= "statuses" :suffix)
              'profile-statuses)
             ;; profile followers
@@ -1804,6 +1832,7 @@ view all branches of a thread."
               ;; if we have a thread:
               (with-mastodon-buffer buffer #'mastodon-mode nil
                 (let ((marker (make-marker)))
+                  (remove-overlays) ; video overlays
                   (mastodon-tl--set-buffer-spec buffer endpoint
                                                 #'mastodon-tl--thread)
                   (mastodon-tl--timeline (alist-get 'ancestors context) :thread)
@@ -2182,13 +2211,14 @@ PREFIX is sent to `mastodon-tl--get-tag-timeline', which see."
       (mastodon-tl--get-tag-timeline prefix tag))))
 
 (defun mastodon-tl--followed-tags-timeline (&optional prefix)
-  "Open a timeline of all your followed tags.
+  "Open a timeline of multiple tags.
 PREFIX is sent to `mastodon-tl--show-tag-timeline', which see.
-Note that the number of tags supported is undocumented, and from
-manual testing appears to be limited to a total of four tags."
+If `mastodon-tl--tag-timeline-tags' is set, use its tags, else
+fetch followed tags and load the first four of them."
   (interactive "p")
   (let* ((followed-tags-json (mastodon-tl--followed-tags))
-         (tags (mastodon-tl--map-alist 'name followed-tags-json)))
+         (tags (or mastodon-tl--tag-timeline-tags
+                   (mastodon-tl--map-alist 'name followed-tags-json))))
     (mastodon-tl--show-tag-timeline prefix tags)))
 
 (defun mastodon-tl--some-followed-tags-timeline (&optional prefix)
