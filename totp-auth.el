@@ -776,6 +776,33 @@ LABEL will be initialised by ‘totp-auth-secret-make-label’ if unset."
       (totp-auth-display-token-buffer secret label))))
 
 ;;;###autoload
+(defun totp-auth-add-secret (secret &optional service user digits)
+  "Store a SECRET for USER @ SERVICE.
+SECRET may be:
+  A base32 encoded secret string
+  An otpauth:// URL
+If SECRET is a base32 secret string then SERVICE must be supplied.
+If both a URL and SERVICE, USER or DIGITS are supplied then the explicit
+values passed in will override the URL.
+DIGITS defaults to 6 if not otherwise specified."
+  (interactive
+   (let (s u)
+     (setq s (read-string "Secret: ")
+           u (url-generic-parse-url s))
+     (if (not (equal (url-type u) "otpauth"))
+         (list s
+               (read-string "Service: ")
+               (read-string "User: " )
+               (read-string "Size: " nil nil "6"))
+       (setq s (totp-auth-unwrap-otpauth-url u))
+       (mapcar (lambda (k) (cdr (assq k s)) )
+               '(:secret :service :user :digits)))))
+  (totp-auth-save-secret `((:service . ,service)
+                           (:user    . ,user)
+                           (:secret  . ,secret)
+                           (:digits  . ,(or digits 6)))))
+
+;;;###autoload
 (defun totp-auth (&optional secret label)
   "Generate a TOTP token for SECRET, identified by LABEL, and show it."
   (interactive
