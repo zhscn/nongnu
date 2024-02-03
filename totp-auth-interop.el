@@ -293,7 +293,7 @@ Similar to ‘totp-auth-unwrap-otpauth-url’ except:
   "Search for otpauth and otpauth-migration URLs in BUFFER.
 BUFFER defaults to the current buffer.
 Returns a list of all the OTP secrets+metadata by calling
-‘totp-unwrap-otp-blob’ on them."
+‘totp-auth-unwrap-otp-blob’ on them."
   (let (result url-string url)
     (with-current-buffer (or buffer (current-buffer))
       (goto-char (point-min))
@@ -348,7 +348,7 @@ FILE may be:
   - a mix of entries encoded in the above URL schemes
   - a QR code understood by ‘totp-file-import-command’.\n
 Returns a list of TOTP secret alists - that is: Each element of
-the returned list is a structure returned by ‘totp-unwrap-otp-blob’."
+the returned list is a structure returned by ‘totp-auth-unwrap-otp-blob’."
   (let (mime-type result)
     (setq file      (expand-file-name file)
           mime-type (mailcap-extension-to-mime (file-name-extension file)))
@@ -396,7 +396,7 @@ concatenated and base64 encoded."
 
 (defun totp-auth-wrap-otpauth-migration-url (secrets &optional chunk)
   "Wrap list SECRETS in otpauth-migration URLs.
-The TOTP secrets structure is described by ‘totp-unwrap-otp-blob’.
+The TOTP secrets structure is described by ‘totp-auth-unwrap-otp-blob’.
 URLs will not exceed CHUNK in length.
 CHUNK defaults to ‘totp-auth-export-url-max-size’.
 Returns a list of otpauth-migration:// URLs."
