@@ -415,9 +415,9 @@ The label will be based on its user and service fields."
     (setq user     (cdr (assq :user secret))
           srv-host (cdr (or (assq :service secret)
                             (assq :host    secret))))
-    (if (and user srv-host)
+    (if (and user (> (length user) 0) srv-host)
         (concat user "@" srv-host)
-      (or user srv-host "nobody@unknown"))))
+      (or srv-host user "nobody@unknown"))))
 
 (defun totp-auth-secret-make-label-and-wrapper (secret &optional label)
   "Take a ‘totp-auth-unwrap-otp-blob’ SECRET and make a LABEL and otpauth URL.
