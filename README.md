@@ -54,23 +54,11 @@ The amount by which the margins are widened depends on the window width and is a
 
 ## Splitting a Window ##
 
-If you have a wide screen (more specifically, if your Emacs frame is wide),
-`visual-fill-column` has the unfortunate effect that if you pop up, say, a
-`*Help*` or `*Completions*` buffer or something similar, the window is split
-horizontally (i.e., the popup buffer appears below the active buffer), not
-vertically, as you might otherwise expect.
+If you have a wide screen (more specifically, if your Emacs frame is wide), `visual-fill-column` has the unfortunate effect that if you pop up, say, a `*Help*` or `*Completions*` buffer or something similar, the window is split horizontally (i.e., the popup buffer appears below the active buffer), not vertically, as you might otherwise expect.
 
-This is due to the fact that Emacs uses the width of the text area to determine
-whether a window can be split vertically (i.e., into two side-by-side windows),
-and since `visual-fill-column` narrows the text area, Emacs thinks there is not
-enough room to do a vertical split and so opts for a horizontal split.
+This is due to the fact that Emacs uses the width of the text area to determine whether a window can be split vertically (i.e., into two side-by-side windows), and since `visual-fill-column` narrows the text area, Emacs thinks there is not enough room to do a vertical split and so opts for a horizontal split.
 
-To remedy this situation, you can set the option
-`visual-fill-column-enable-sensible-window-split`. When this option is set, the
-variable `split-window-preferred-function` is set to the function
-`visual-fill-column-split-window-sensibly`, which first removes the margins,
-widening the text area again, and then calls `split-window-sensibly` to do the
-actual splitting.
+To remedy this situation, you can set the option `visual-fill-column-enable-sensible-window-split`. When this option is set, the variable `split-window-preferred-function` is set to the function `visual-fill-column-split-window-sensibly`, which first removes the margins, widening the text area again, and then calls `split-window-sensibly` to do the actual splitting.
 
 This option does not affect the ability to split windows manually. Even if you keep `visual-fill-column-enable-sensible-window-split` unset, you can still split a window into two side-by-side windows by invoking e.g., `split-window-right` (`C-x 3`).
 
