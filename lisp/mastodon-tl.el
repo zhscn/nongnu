@@ -2149,7 +2149,10 @@ ARGS is an alist of any parameters to send with the request."
                          (mapconcat #'cdr args " ")))
                ((and (eq notify nil)
                      (eq reblogs nil))
-                (message "User %s (@%s) %sed!" name user-handle action))))))))
+                (if (and (equal action "follow")
+                         (eq t (alist-get 'requested json)))
+                    (message "Follow requested for user %s (@%s)!" name user-handle)
+                  (message "User %s (@%s) %sed!" name user-handle action)))))))))
 
 
 ;; FOLLOW TAGS
