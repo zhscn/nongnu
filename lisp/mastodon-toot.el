@@ -1698,20 +1698,13 @@ REPLY-REGION is a string to be injected into the buffer."
 URLs always = 23, and domain names of handles are not counted.
 This is how mastodon does it.
 CW is the content warning, which contributes to the character count."
-  (with-temp-buffer
-    (switch-to-buffer (current-buffer))
-    (insert toot-string)
-    (goto-char (point-min))
-    ;; handle URLs
-    (while (search-forward-regexp mastodon-toot-url-regex nil t)
-                                        ; "\\w+://[^ \n]*" old regex
-      (replace-match "xxxxxxxxxxxxxxxxxxxxxxx")) ; 23 x's
-    ;; handle @handles
-    (goto-char (point-min))
-    (while (search-forward-regexp mastodon-toot-handle-regex nil t)
-      (replace-match (match-string 2))) ; replace with handle only
+  (let* ((url-replacement (make-string 23 ?x))
+         (count-str (replace-regexp-in-string ; handle @handles
+                     mastodon-toot-handle-regex "\2"
+                     (replace-regexp-in-string ; handle URLs
+                      mastodon-toot-url-regex url-replacement toot-string))))
     (+ (length cw)
-       (length (buffer-substring (point-min) (point-max))))))
+       (length count-str))))
 
 
 ;;; DRAFTS

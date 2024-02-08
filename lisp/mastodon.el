@@ -291,7 +291,7 @@ See `mastodon-toot-display-orig-in-reply-buffer'.")
                               (buffer-list))))) ; catch any other masto buffer
     (mastodon-return-credential-account :force)
     (if buffer
-        (switch-to-buffer buffer)
+        (pop-to-buffer buffer '(display-buffer-same-window))
       (mastodon-tl--get-home-timeline)
       (message "Loading Mastodon account %s on %s..."
                (mastodon-auth--user-acct)
@@ -337,7 +337,7 @@ from the server and load anew."
                   "*mastodon-notifications*")))
     (if (and (not force)
              (get-buffer buffer))
-        (progn (switch-to-buffer buffer)
+        (progn (pop-to-buffer buffer '(display-buffer-same-window))
                (mastodon-tl--update))
       (message "Loading your notifications...")
       (mastodon-tl--init-sync (or buffer-name "notifications")
@@ -435,10 +435,12 @@ Calls `mastodon-tl--get-buffer-type', which see."
 (defun mastodon-switch-to-buffer ()
   "Switch to a live mastodon buffer."
   (interactive)
-  (let* ((bufs (mastodon-live-buffers))
-         (buf-names (mapcar #'buffer-name bufs))
-         (choice (completing-read "Switch to mastodon buffer: "
-                                  buf-names)))
+  (let ((choice (read-buffer
+                 "Switch to mastodon buffer: " nil t
+                 (lambda (cand)
+                   (with-current-buffer
+                       (if (stringp cand) cand (car cand))
+                     (mastodon-tl--get-buffer-type))))))
     (switch-to-buffer choice)))
 
 (defun mastodon-mode-hook-fun ()

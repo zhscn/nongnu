@@ -105,30 +105,25 @@ code. Copy this code and paste it in the minibuffer prompt."
 
 (defun mastodon-auth--show-notice (notice buffer-name &optional ask)
   "Display NOTICE to user.
-NOTICE is displayed in vertical split occupying 50% of total
+By default NOTICE is displayed in vertical split occupying 50% of total
 width.  The buffer name of the buffer being displayed in the
 window is BUFFER-NAME.
 When optional argument ASK is given which should be a string, use
 ASK as the minibuffer prompt.  Return whatever user types in
 response to the prompt.
 When ASK is absent return nil."
-  (let ((buffer (get-buffer-create buffer-name))
-        (inhibit-read-only t)
-        ask-value window)
-    (set-buffer buffer)
-    (erase-buffer)
-    (insert notice)
-    (fill-region (point-min) (point-max))
-    (read-only-mode)
-    (setq window (select-window
-                  (split-window (frame-root-window) nil 'left)
-                  t))
-    (switch-to-buffer buffer t)
-    (when ask
-      (setq ask-value (read-string ask))
-      (kill-buffer buffer)
-      (delete-window window))
-    ask-value))
+  (if ask
+      (read-string ask)
+    (let ((buffer (get-buffer-create buffer-name))
+          (inhibit-read-only t))
+      (set-buffer buffer)
+      (erase-buffer)
+      (insert notice)
+      (fill-region (point-min) (point-max))
+      (read-only-mode)
+      (prog1 nil
+        (pop-to-buffer buffer '(display-buffer-in-side-window
+                                (side . left) (window-width . 0.5)))))))
 
 (defun mastodon-auth--request-authorization-code ()
   "Ask authorization code and return it."

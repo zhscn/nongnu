@@ -292,7 +292,7 @@ It is active where point is placed by `mastodon-tl--goto-next-item.'")
   "Evaluate BODY in a new or existing buffer called BUFFER.
 MODE-FUN is called to set the major mode.
 OTHER-WINDOW means call `switch-to-buffer-other-window' rather
-than `switch-to-buffer'."
+than `pop-to-buffer'."
   (declare (debug t)
            (indent 3))
   `(with-current-buffer (get-buffer-create ,buffer)
@@ -301,7 +301,7 @@ than `switch-to-buffer'."
        (funcall ,mode-fun)
        (if ,other-window
            (switch-to-buffer-other-window ,buffer)
-         (switch-to-buffer ,buffer))
+         (pop-to-buffer ,buffer '(display-buffer-same-window)))
        ,@body)))
 
 (defmacro mastodon-tl--do-if-item (&rest body)
