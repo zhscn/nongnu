@@ -7,6 +7,10 @@
 - [#21](https://github.com/bbatsov/adoc-mode/pull/21): Add support for native font-locking in code blocks.
 - [#48](https://github.com/bbatsov/adoc-mode/pull/48): Add support for displaying images.
 
+### Bugs fixed
+
+- [#49](https://github.com/bbatsov/adoc-mode/issues/49) Flyspell generates overlays for links and alike
+
 ## 0.7.0 (2023-03-09)
 
 ### New features
