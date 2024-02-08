@@ -780,9 +780,9 @@ AsciiDoc: *bold emphasis text* or _emphasis text_
   "For verbatim text.
 
 Verbatim in a sense that all its characters are to be taken
-literally. Note that does not necessarily mean that that it is in
-a typewritter font.
-For example \\='foo\\=' in the following examples. In parantheses is a
+literally.  Note that does not necessarily mean that it is in
+a typewriter font.
+For example \\='foo\\=' in the following examples.  In parentheses is a
 summary what the command is for according to the given markup
 language.
 \\=`foo\\=`     (verbatim and typewriter font)
@@ -792,7 +792,7 @@ language.
 
 (defface adoc-warning-face
   '((t :inherit (font-lock-warning-face)))
-  "For things that should stand out"
+  "For things that should stand out."
   :group 'adoc-faces)
 (defvar adoc-warning-face 'adoc-warning-face)
 
@@ -818,12 +818,12 @@ For example
 AsciiDoc: \\='->\\=' is replaced by an Unicode arrow
 It is difficult to say whether adoc-replacement-face is part of
 the group adoc-faces-meta or part of the group
-adoc-faces-text. Technically they are clearly meta characters.
+adoc-faces-text.  Technically they are clearly meta characters.
 However they are just another representation of normal text and I
-want to fontify them as such. E.g. in HTML \\='<b>foo &amp; bar</b>\\=',
+want to fontify them as such.  E.g. in HTML \\='<b>foo &amp; bar</b>\\=',
 the output \\='foo & bar\\=' is fontified bold, thus I also want \\='foo
 &amp; bar\\=' in the Emacs buffer be fontified with
-adoc-bold-face. Thus adoc-replacement-face needs to be
+adoc-bold-face.  Thus adoc-replacement-face needs to be
 something that is orthogonal to the adoc-bold-face etc faces."
   :group 'adoc-faces)
 (defvar adoc-replacement-face 'adoc-replacement-face)
