@@ -59,6 +59,7 @@ from the _AsciiDoc_ menu in the menu bar.
 This section only describes some not so obvious features.
 
 === Image Preview
+
 If you click kbd:[mouse-3] on an image link like
 `image⁣:path/to/image[]` the _Image_ context menu pops up.
 
@@ -147,10 +148,26 @@ This can be tweaked by several configuration options:
 Images are shown as preview by default when you open an AsciiDoc file.
 You can avoid this by deactivating the option `adoc-display-images`.
 
-The maximal size for the preview of images can be set by `adoc-max-image-size`.
+[source,emacs-lisp]
+----
+(setq adoc-display-images nil)
+----
+
+The maximal size (a cons cell with the format `(width . height)`) for the preview of images can be set with `adoc-max-image-size`:
+
+[source,emacs-lisp]
+----
+(setq adoc-max-image-size '(640 . 480))
+----
 
 An image link can also be given as url to a remote image. The display of remote images is switched off by default. You can activate it by the option `adoc-display-remote-images`.
-Thereby, images are only downloaded if the protocol of the url matches one of those in the list `adoc-remote-image-protocols`. This list can be customized. By default, it only contains the entry `https`.
+
+[source,emacs-lisp]
+----
+(setq adoc-display-remote-images t)
+----
+
+Images are only downloaded if the protocol of the url matches one of those in the list `adoc-remote-image-protocols`. This list can be customized. By default, it only contains the entry `https`.
 
 === Syntax Highlighting Customization
 
