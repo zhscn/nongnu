@@ -9,7 +9,7 @@
 
 ### Bugs fixed
 
-- [#49](https://github.com/bbatsov/adoc-mode/issues/49) Flyspell generates overlays for links and alike
+- [#49](https://github.com/bbatsov/adoc-mode/issues/49): Prevent Flyspell from generating overlays for links and alike.
 
 ## 0.7.0 (2023-03-09)
 
