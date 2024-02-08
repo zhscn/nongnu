@@ -312,7 +312,7 @@ When nil, use the actual size.  Otherwise, use ImageMagick to
 resize larger images to be of the given maximum dimensions.  This
 requires Emacs to be built with ImageMagick support."
   :group 'adoc
-  :package-version '(adoc-mode . "0.9.0")
+  :package-version '(adoc-mode . "0.8.0")
   :type '(choice
           (const :tag "Use actual image width" nil)
           (cons (choice (sexp :tag "Maximum width in pixels")
@@ -323,7 +323,7 @@ requires Emacs to be built with ImageMagick support."
 (defcustom adoc-display-images t
   "Run `adoc-display-images' in function `adoc-mode'."
   :group 'adoc
-  :package-version '(adoc-mode . "0.9.0")
+  :package-version '(adoc-mode . "0.8.0")
   :type 'boolean)
 
 
@@ -2920,13 +2920,15 @@ See also `adoc-image-overlays'.
 Only image URLs specified with a protocol listed in
 `adoc-remote-image-protocols' are displayed."
   :group 'adoc
-  :type 'boolean)
+  :type 'boolean
+  :package-version '(adoc-mode . "0.8.0"))
 
 (defcustom adoc-remote-image-protocols '("https")
   "List of protocols to use to download remote images.
 See also `adoc-display-remote-images'."
   :group 'adoc
-  :type '(repeat string))
+  :type '(repeat string)
+  :package-version '(adoc-mode . "0.8.0"))
 
 (defvar adoc--remote-image-cache
   (make-hash-table :test 'equal)
