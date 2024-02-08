@@ -151,6 +151,7 @@ The maximal size for the preview of images can be set by `adoc-max-image-size`.
 
 An image link can also be given as url to a remote image. The display of remote images is switched off by default. You can activate it by the option `adoc-display-remote-images`.
 Thereby, images are only downloaded if the protocol of the url matches one of those in the list `adoc-remote-image-protocols`. This list can be customized. By default, it only contains the entry `https`.
+
 === Syntax Highlighting Customization
 
 It is possible to customize the way `adoc-mode` renders different text
