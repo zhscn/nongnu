@@ -2215,7 +2215,8 @@ PREFIX is sent to `mastodon-tl--get-tag-timeline', which see."
 
 (defun mastodon-tl--followed-tags-timeline (&optional prefix)
   "Open a timeline of multiple tags.
-PREFIX is sent to `mastodon-tl--show-tag-timeline', which see.
+With a single PREFIX arg, only show posts with media.
+With a double PREFIX arg, limit results to your own instance.
 If `mastodon-tl--tag-timeline-tags' is set, use its tags, else
 fetch followed tags and load the first four of them."
   (interactive "p")
@@ -2748,7 +2749,7 @@ JSON and http headers, without it just the JSON."
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously.
-Optional arg NOTE-TYPE means only get that type of note.
+Optional arg NOTE-TYPE means only get that type of notification.
 PARAMS is an alist of any params to include in the request.
 HEADERS are any headers to send in the request.
 VIEW-NAME is a string, to be used as a heading for the view.
