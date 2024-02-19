@@ -1027,6 +1027,21 @@ Federated user: `username@host.co`."
         (cons (match-beginning 2)
               (match-end 2))))))
 
+(defun mastodon-toot--fetch-emojify-candidates ()
+  "Get the candidates to be used for emojis completion.
+The candidates are calculated according to currently active
+`emojify-emoji-styles'. Hacked off `emojify--get-completing-read-candidates'."
+  (let ((styles (mapcar #'symbol-name emojify-emoji-styles)))
+    (let ((emojis '()))
+      (emojify-emojis-each (lambda (key value)
+                             (when (seq-position styles (ht-get value "style"))
+                               (push (cons key
+                                           (format "%s (%s)"
+                                                   (ht-get value "name")
+                                                   (ht-get value "style")))
+                                     emojis))))
+      emojis)))
+
 (defun mastodon-toot--fetch-completion-candidates (start end &optional type)
   "Search for a completion prefix from buffer positions START to END.
 Return a list of candidates.
@@ -1041,8 +1056,7 @@ TYPE is the candidate type, it may be :tags, :handles, or :emoji."
                           collect (cons (concat "#" (car tag))
                                         (cdr tag)))))
               ((eq type :emoji)
-               (cl-loop for e in emojify-user-emojis
-                        collect (car e)))
+               (mastodon-toot--fetch-emojify-candidates))
               (t
                (mastodon-search--search-accounts-query
                 (buffer-substring-no-properties start end))))))
@@ -1100,10 +1114,10 @@ arg, a candidate."
   ;; or make it an alist and use cdr
   (cadr (assoc candidate mastodon-toot-completions)))
 
-(defun mastodon-toot--emoji-annotation-fun (_candidate)
+(defun mastodon-toot--emoji-annotation-fun (candidate)
   "."
   ;; TODO: emoji image as annot
-  )
+  (cdr (assoc candidate mastodon-toot-completions)))
 
 
 ;;; REPLY
