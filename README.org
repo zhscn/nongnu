@@ -250,7 +250,7 @@ value of that hook is as follows:
 | =C-c C-l= | Set toot language                |
 |---------+----------------------------------|
 
-**** Autocompletion of mentions and tags
+**** Autocompletion of mentions, tags, and emoji
 
 Autocompletion of mentions and tags is provided by
 =completion-at-point-functions= (capf) backends.
