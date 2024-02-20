@@ -299,6 +299,11 @@ See `mastodon-toot-display-orig-in-reply-buffer'.")
 
 (defvar mastodon-profile-credential-account nil)
 
+;; TODO: the get request in mastodon-http--get-response often returns nil
+;; after waking pc from sleep, not sure how to fix, or if just my pc
+;; interestingly it only happens with this function tho.
+;;we have to use :force to update the credential-account object in case things
+;; have been changed via another client.
 (defun mastodon-return-credential-account (&optional force)
   "Return the CredentialAccount entity.
 Either from `mastodon-profile-credential-account' or from the
