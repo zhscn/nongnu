@@ -812,7 +812,8 @@ to `emojify-user-emojis', and the emoji data is updated."
   "Get the body of a toot from the current compose buffer."
   (let ((header-region (mastodon-tl--find-property-range 'toot-post-header
                                                          (point-min))))
-    (buffer-substring (cdr header-region) (point-max))))
+    (string-trim-left
+     (buffer-substring (cdr header-region) (point-max)))))
 
 (defun mastodon-toot--build-poll-params ()
   "Return an alist of parameters for POSTing a poll status."
