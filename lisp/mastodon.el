@@ -315,7 +315,12 @@ FORCE means to fetch from the server and update
                nil :silent)))
     (if force
         (setq mastodon-profile-credential-account
-              (eval req))
+              ;; TODO: we should also signal a quit condition after like 5
+              ;; secs here
+              (condition-case x
+                  (eval req)
+                (t ; req fails, return old value
+                 mastodon-profile-credential-account)))
       (or mastodon-profile-credential-account
           (setq mastodon-profile-credential-account
                 (eval req))))))

@@ -180,13 +180,8 @@ SILENT means don't message.
 NO-HEADERS means don't collect http response headers.
 VECTOR means return json arrays as vectors."
   (let ((buf (mastodon-http--get url params silent)))
-    ;; (if (not buf)
-    ;; (error "Request returned nada")
-    (condition-case x
-        (with-current-buffer buf
-          (mastodon-http--process-response no-headers vector))
-      (wrong-type-argument
-       (error "Request returned nada")))))
+    (with-current-buffer buf
+      (mastodon-http--process-response no-headers vector))))
 
 (defun mastodon-http--get-json (url &optional params silent vector)
   "Return only JSON data from URL request.
