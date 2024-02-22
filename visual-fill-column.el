@@ -42,7 +42,7 @@
 
 ;;; Code:
 
-(defgroup visual-fill-column nil "Wrap lines according to `fill-column' in `visual-line-mode'."
+(defgroup visual-fill-column nil "Wrap lines according to `fill-column'."
   :group 'text
   :prefix "visual-fill-column-")
 
@@ -143,7 +143,13 @@ the text scale factor, so that the text is wrapped at
 
 ;;;###autoload
 (define-minor-mode visual-fill-column-mode
-  "Wrap lines according to `fill-column' in `visual-line-mode'."
+  "Soft-wrap lines according to `fill-column'.
+This minor mode narrows the text area.  Its primary use is in
+conjunction with `visual-line-mode', to enable soft word-wrapping
+of long lines, but it can also be used in other contexts, e.g.,
+to center the text in a window.  To activate it together with
+`visual-line-mode', it is usually best to use
+`visual-line-fill-column-mode'."
   :init-value nil :lighter nil :global nil
   (if visual-fill-column-mode
       (visual-fill-column-mode--enable)
