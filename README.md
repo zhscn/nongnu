@@ -80,20 +80,20 @@ Note that this functionality is controlled by the option `visual-fill-column-adj
 
 The customisation group `visual-fill-column` has several options that can be used to customise the package.
 
-**`visual-fill-column-width`** --- Column at which to wrap lines. If set to `nil` (the default), use the value of `fill-column` instead.
+The following options are buffer-local, the values you set in your init file are default values:
 
-**`visual-fill-column-center-text`** --- If set to `t`, centre the text area in the window. By default, the text is displayed at the window’s (left) edge, mimicking the effect of `fill-column`.
+**`visual-fill-column-width`** — Column at which to wrap lines. If set to `nil` (the default), use the value of `fill-column` instead.
 
-**`visual-fill-column-extra-text-width`** --- Extra columns added to the left and right side of the text area. This should be a cons cell of two integers `(<left> . <right>)`. If `visual-fill-column-center-text` is `t`, the text area is centred before the extra columns are added. This is currently used by `writeroom-mode` to add room for line numbers without shifting the text off-centre.
+**`visual-fill-column-center-text`** — If set to `t`, centre the text area in the window. By default, the text is displayed at the window’s (left) edge, mimicking the effect of `fill-column`.
 
-**`visual-fill-column-fringes-outside-margins`** -- If set to `t`, put the fringes outside the margins. Widening the margin would normally cause the fringes to be pushed inward, because by default, they appear between the margins and the text. This effect may be visually less appealing, therefore, `visual-fill-column-mode` places the fringes outside the margins. If you prefer to have the fringes inside the margins, unset this option.
+**`visual-fill-column-extra-text-width`** — Extra columns added to the left and right side of the text area. This should be a cons cell of two integers `(<left> . <right>)`. If `visual-fill-column-center-text` is `t`, the text area is centred before the extra columns are added. This is currently used by `writeroom-mode` to add room for line numbers without shifting the text off-centre.
 
-These options are buffer-local, so the values you set in your init file are default values. They can also be set in mode hooks or directory or file local variables in order to customise particular files or file types.
+**`visual-fill-column-fringes-outside-margins`** — If set to `t`, put the fringes outside the margins. Widening the margin would normally cause the fringes to be pushed inward, because by default, they appear between the margins and the text. This effect may be visually less appealing, therefore, `visual-fill-column-mode` places the fringes outside the margins. If you prefer to have the fringes inside the margins, unset this option.
 
-The following options apply to all buffers with `visual-fill-column-mode` enabled:
+The following options are global, so that they apply to all buffers with `visual-fill-column-mode` enabled:
 
-**`visual-fill-column-enable-sensible-window-split`** --- Allow pop-up windows to create a side-by-side window split, if possible. See the discussion above.
+**`visual-fill-column-enable-sensible-window-split`** — Allow pop-up windows to create a side-by-side window split, if possible. See the discussion above.
 
-**`visual-fill-column-adjust-for-text-scale`** --- Take text scaling into account when computing the width of the margins.
+**`visual-fill-column-adjust-for-text-scale`** — Take text scaling into account when computing the width of the margins.
 
-**`visual-fill-column-mode-map`** --- Keymap for mouse events in the left and right margins, to make sure that scrolling or clicking on the margins does what you'd expect (rather than cause an "event not bound" error).
+**`visual-fill-column-mode-map`** — Keymap for mouse events in the left and right margins, to make sure that scrolling or clicking on the margins does what you'd expect (rather than cause an "event not bound" error).
