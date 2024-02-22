@@ -8,7 +8,7 @@
 ;; Maintainer: Joost Kremers <joostkremers@fastmail.fm>
 ;; URL: https://codeberg.org/joostkremers/visual-fill-column
 ;; Created: 2015
-;; Version: 2.5.2
+;; Version: 2.6.0
 ;; Package-Requires: ((emacs "25.1"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -160,10 +160,22 @@ to center the text in a window.  To activate it together with
   :require 'visual-fill-column-mode
   :group 'visual-fill-column)
 
+;;;###autoload
+(define-minor-mode visual-line-fill-column-mode
+  "Enable `visual-line-mode' and soft-wrap lines according to `fill-column'.
+Use this mode to activate and deactivate `visual-line-mode' and
+`visual-fill-column-mode' in conjunction."
+  :init-value nil :lighter nil :global nil
+  (cond (visual-line-fill-column-mode
+	 (visual-fill-column-mode 1)
+	 (visual-line-mode 1))
+	(t
+	 (visual-fill-column-mode -1)
+	 (visual-line-mode -1))))
+
 (defun turn-on-visual-fill-column-mode ()
   "Turn on `visual-fill-column-mode'.
 Note that `visual-fill-column-mode' is only turned on in buffers
-in which Visual Line mode is active as well, and only in buffers
 that actually visit a file."
   (when buffer-file-name
     (visual-fill-column-mode 1)))
