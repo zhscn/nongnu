@@ -62,6 +62,8 @@ Global Settings
    see documentation for ``skip-syntax-forward``, use ``nil`` to skip this check.
 ``idle-highlight-exclude-point``: ``nil``
    When non-nil, don't highlight the symbol under the cursor.
+``idle-highlight-before-point``
+   When non-nil, also highlight words directly before the cursor.
 ``idle-highlight-visible-buffers``: ``nil``
    Apply the current highlighting to all visible buffers.
 ``idle-highlight-idle-time``: ``0.35``

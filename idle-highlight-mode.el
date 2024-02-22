@@ -89,6 +89,10 @@ See documentation for `skip-syntax-forward', nil to ignore."
   "Exclude the current symbol from highlighting."
   :type 'boolean)
 
+(defcustom idle-highlight-before-point nil
+  "Highlight the text directly before the cursor."
+  :type 'boolean)
+
 (defcustom idle-highlight-visible-buffers nil
   "Apply the current highlight to all other visible buffers."
   :type 'boolean)
@@ -176,7 +180,18 @@ Where RANGES is an unordered list of (min . max) cons cells."
   "Return non-nil if the symbol at POS can be used."
   (cond
    (idle-highlight-exceptions-syntax
-    (save-excursion (zerop (skip-syntax-forward idle-highlight-exceptions-syntax (1+ pos)))))
+    (save-excursion
+      (cond
+       (idle-highlight-before-point
+        (or (progn
+              (goto-char pos)
+              (zerop (skip-syntax-forward idle-highlight-exceptions-syntax (1+ pos))))
+            (progn
+              (goto-char pos)
+              (zerop (skip-syntax-backward idle-highlight-exceptions-syntax pos)))))
+       (t
+        (goto-char pos)
+        (zerop (skip-syntax-forward idle-highlight-exceptions-syntax (1+ pos)))))))
    (t
     t)))
 
