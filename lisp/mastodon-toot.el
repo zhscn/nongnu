@@ -155,7 +155,8 @@ If the original toot visibility is different we use the more restricted one."
   :type 'boolean)
 
 (defcustom mastodon-toot--emojify-in-compose-buffer nil
-  "Whether to enable `emojify' in the compose buffer.")
+  "Whether to enable `emojify' in the compose buffer."
+  :type 'boolean)
 
 (defcustom mastodon-toot--proportional-fonts-compose nil
   "Nonnil to enable using proportional fonts in the compose buffer.

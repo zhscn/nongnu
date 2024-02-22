@@ -97,6 +97,8 @@
 (autoload 'mastodon-views--view-instance-description "mastodon-views")
 (autoload 'mastodon-views--view-lists "mastodon-views")
 (autoload 'mastodon-views--view-scheduled-toots "mastodon-views")
+(autoload 'mastodon-tl--dm-user "mastodon-tl")
+(autoload 'mastodon-tl--scroll-up-command "mastodon-tl")
 (autoload 'special-mode "simple")
 
 (defvar mastodon-tl--highlight-current-toot)
@@ -317,7 +319,7 @@ FORCE means to fetch from the server and update
         (setq mastodon-profile-credential-account
               ;; TODO: we should also signal a quit condition after like 5
               ;; secs here
-              (condition-case x
+              (condition-case nil
                   (eval req)
                 (t ; req fails, return old value
                  mastodon-profile-credential-account)))
