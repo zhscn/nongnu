@@ -368,21 +368,22 @@ text, i.e. hidden spoiler text."
   "Search for item with function FIND-POS.
 If search returns nil, execute REFRESH function.
 Optionally start from POS."
-  (let* ((npos (or ; toot/user items have byline:
-                (funcall find-pos
-                         (or pos (point))
-                         ;; 'item-type ; breaks nav to last item in a view?
-                         'byline
-                         (current-buffer)))))
+  (let* ((npos ; toot/user items have byline:
+          (funcall find-pos
+                   (or pos (point))
+                   ;; FIXME: we need to fix item-type?
+                   ;; 'item-type ; breaks nav to last item in a view?
+                   'byline
+                   (current-buffer))))
     (if npos
-        (if (not (or
-                  ;; (get-text-property npos 'item-id) ; toots, users, not tags
-                  (get-text-property npos 'item-type))) ; generic
+        (if (not
+             ;; (get-text-property npos 'item-id) ; toots, users, not tags
+             (get-text-property npos 'item-type)) ; generic
             (mastodon-tl--goto-item-pos find-pos refresh npos)
           (goto-char npos)
           ;; force display of help-echo on moving to a toot byline:
           (mastodon-tl--message-help-echo))
-      ;; FIXME: this doesn't really work, as the funcall doesn't return if we
+      ;; FIXME: this doesn't work, as the funcall doesn't return if we
       ;; run into an endless refresh loop
       (condition-case nil
           (funcall refresh)
