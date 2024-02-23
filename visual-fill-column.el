@@ -199,7 +199,7 @@ that actually visit a file."
     (add-hook 'window-size-change-functions #'visual-fill-column--adjust-window 'append 'local)
     (setq visual-fill-column--use-split-window-parameter t))
 
-   ((< 27 emacs-major-version)
+   ((> emacs-major-version 27)
     (add-hook 'window-state-change-functions #'visual-fill-column--adjust-window 'append 'local)
     (setq visual-fill-column--use-min-margins t)))
 
@@ -216,7 +216,7 @@ that actually visit a file."
      ((= emacs-major-version 27)
       (remove-hook 'window-size-change-functions #'visual-fill-column--adjust-window 'local))
 
-     ((< 27 emacs-major-version)
+     ((> emacs-major-version 27)
       (remove-hook 'window-state-change-functions #'visual-fill-column--adjust-window 'local)
       (set-window-margins window 0 0)
       (set-window-parameter window 'min-margins nil)))
