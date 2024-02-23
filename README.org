@@ -252,7 +252,7 @@ value of that hook is as follows:
 
 **** Autocompletion of mentions, tags, and emoji
 
-Autocompletion of mentions, tags, and emoji is triggered =@=, =#=, and =:=
+Autocompletion of mentions, tags, and emoji is triggered by =@=, =#=, and =:=
 respectively, plus a few letters. It is provided by
 =completion-at-point-functions= (capf) backends.
 =mastodon-toot--enable-completion= is enabled by default. If you want to enable
