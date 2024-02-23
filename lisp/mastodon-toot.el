@@ -154,7 +154,7 @@ If the original toot visibility is different we use the more restricted one."
   "Whether to enable your instance's custom emoji by default."
   :type 'boolean)
 
-(defcustom mastodon-toot--emojify-in-compose-buffer nil
+(defcustom mastodon-toot--emojify-in-compose-buffer t
   "Whether to enable `emojify' in the compose buffer."
   :type 'boolean)
 
@@ -1902,6 +1902,8 @@ EDIT means we are editing an existing toot, not composing a new one."
     (setq mastodon-toot-previous-window-config previous-window-config)
     (when mastodon-toot--proportional-fonts-compose
       (facemenu-set-face 'variable-pitch))
+    (when mastodon-toot--emojify-in-compose-buffer
+      (emojify-mode))
     (when (and initial-text
                (not reply-json))
       (insert initial-text))))
