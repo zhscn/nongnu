@@ -463,7 +463,12 @@ Calls `mastodon-tl--get-buffer-type', which see."
       (mastodon-toot--enable-custom-emoji)))
   (mastodon-profile--fetch-server-account-settings)
   (when mastodon-tl--highlight-current-toot
-    (cursor-face-highlight-mode))) ; 29.1
+    (cursor-face-highlight-mode)) ; 29.1
+  ;; make `thing-at-point' functions work:
+  (setq-local thing-at-point-provider-alist
+              (append thing-at-point-provider-alist
+                      '((url . eww--url-at-point)))))
+
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook #'mastodon-mode-hook-fun)
