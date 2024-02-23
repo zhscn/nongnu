@@ -154,6 +154,10 @@ If the original toot visibility is different we use the more restricted one."
   "Whether to enable your instance's custom emoji by default."
   :type 'boolean)
 
+(defcustom mastodon-toot--emojify-in-compose-buffer nil
+  "Whether to enable `emojify' in the compose buffer."
+  :type 'boolean)
+
 (defcustom mastodon-toot--proportional-fonts-compose nil
   "Nonnil to enable using proportional fonts in the compose buffer.
 By default fixed width fonts are used."
@@ -809,7 +813,8 @@ to `emojify-user-emojis', and the emoji data is updated."
   "Get the body of a toot from the current compose buffer."
   (let ((header-region (mastodon-tl--find-property-range 'toot-post-header
                                                          (point-min))))
-    (buffer-substring (cdr header-region) (point-max))))
+    (string-trim-left
+     (buffer-substring (cdr header-region) (point-max)))))
 
 (defun mastodon-toot--build-poll-params ()
   "Return an alist of parameters for POSTing a poll status."
@@ -1027,6 +1032,21 @@ Federated user: `username@host.co`."
         (cons (match-beginning 2)
               (match-end 2))))))
 
+(defun mastodon-toot--fetch-emojify-candidates ()
+  "Get the candidates to be used for emojis completion.
+The candidates are calculated according to currently active
+`emojify-emoji-styles'. Hacked off `emojify--get-completing-read-candidates'."
+  (let ((styles (mapcar #'symbol-name emojify-emoji-styles)))
+    (let ((emojis '()))
+      (emojify-emojis-each (lambda (key value)
+                             (when (seq-position styles (ht-get value "style"))
+                               (push (cons key
+                                           (format "%s (%s)"
+                                                   (ht-get value "name")
+                                                   (ht-get value "style")))
+                                     emojis))))
+      emojis)))
+
 (defun mastodon-toot--fetch-completion-candidates (start end &optional type)
   "Search for a completion prefix from buffer positions START to END.
 Return a list of candidates.
@@ -1041,8 +1061,7 @@ TYPE is the candidate type, it may be :tags, :handles, or :emoji."
                           collect (cons (concat "#" (car tag))
                                         (cdr tag)))))
               ((eq type :emoji)
-               (cl-loop for e in emojify-user-emojis
-                        collect (car e)))
+               (mastodon-toot--fetch-emojify-candidates))
               (t
                (mastodon-search--search-accounts-query
                 (buffer-substring-no-properties start end))))))
@@ -1100,10 +1119,10 @@ arg, a candidate."
   ;; or make it an alist and use cdr
   (cadr (assoc candidate mastodon-toot-completions)))
 
-(defun mastodon-toot--emoji-annotation-fun (_candidate)
+(defun mastodon-toot--emoji-annotation-fun (candidate)
   "."
   ;; TODO: emoji image as annot
-  )
+  (cdr (assoc candidate mastodon-toot-completions)))
 
 
 ;;; REPLY
@@ -1698,20 +1717,13 @@ REPLY-REGION is a string to be injected into the buffer."
 URLs always = 23, and domain names of handles are not counted.
 This is how mastodon does it.
 CW is the content warning, which contributes to the character count."
-  (with-temp-buffer
-    (switch-to-buffer (current-buffer))
-    (insert toot-string)
-    (goto-char (point-min))
-    ;; handle URLs
-    (while (search-forward-regexp mastodon-toot-url-regex nil t)
-                                        ; "\\w+://[^ \n]*" old regex
-      (replace-match "xxxxxxxxxxxxxxxxxxxxxxx")) ; 23 x's
-    ;; handle @handles
-    (goto-char (point-min))
-    (while (search-forward-regexp mastodon-toot-handle-regex nil t)
-      (replace-match (match-string 2))) ; replace with handle only
+  (let* ((url-replacement (make-string 23 ?x))
+         (count-str (replace-regexp-in-string ; handle @handles
+                     mastodon-toot-handle-regex "\2"
+                     (replace-regexp-in-string ; handle URLs
+                      mastodon-toot-url-regex url-replacement toot-string))))
     (+ (length cw)
-       (length (buffer-substring (point-min) (point-max))))))
+       (length count-str))))
 
 
 ;;; DRAFTS

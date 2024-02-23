@@ -250,9 +250,10 @@ value of that hook is as follows:
 | =C-c C-l= | Set toot language                |
 |---------+----------------------------------|
 
-**** Autocompletion of mentions and tags
+**** Autocompletion of mentions, tags, and emoji
 
-Autocompletion of mentions and tags is provided by
+Autocompletion of mentions, tags, and emoji is triggered =@=, =#=, and =:=
+respectively, plus a few letters. It is provided by
 =completion-at-point-functions= (capf) backends.
 =mastodon-toot--enable-completion= is enabled by default. If you want to enable
 =company-mode= in the toot compose buffer, set

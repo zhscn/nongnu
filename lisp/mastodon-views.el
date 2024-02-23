@@ -509,11 +509,11 @@ JSON is the data returned by the server."
   "Insert scheduled TOOT into the buffer."
   (let-alist toot
     (insert
-     (propertize (concat .params.text
+     (propertize (concat (string-trim .params.text)
                          " | "
                          (mastodon-toot--iso-to-human .scheduled_at))
                  'byline t ; so we nav here
-                 'item-id "0" ; so we nav here
+                 'item-type 'scheduled ; so we nav here
                  'face 'font-lock-comment-face
                  'keymap mastodon-views--scheduled-map
                  'scheduled-json toot
@@ -619,6 +619,7 @@ JSON is the filters data."
     (insert
      (propertize filter-string
                  'item-id id ;for goto-next-filter compat
+                 'item-type 'filter
                  'phrase phrase
                  'byline t) ;for goto-next-filter compat
      "\n\n")))

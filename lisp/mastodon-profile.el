@@ -745,7 +745,9 @@ IMG-TYPE is the JSON key from the account data."
   "Show the profile of the currently signed in user."
   (interactive)
   (message "Loading your profile...")
-  (mastodon-profile--show-user (mastodon-auth--get-account-name)))
+  (let ((account (mastodon-profile--account-from-id
+                  (mastodon-auth--get-account-id))))
+    (mastodon-profile--make-author-buffer account)))
 
 (defun mastodon-profile--format-user (tootv)
   "Convert TOOTV into author-bylines and insert.

@@ -292,7 +292,7 @@ It is active where point is placed by `mastodon-tl--goto-next-item.'")
   "Evaluate BODY in a new or existing buffer called BUFFER.
 MODE-FUN is called to set the major mode.
 OTHER-WINDOW means call `switch-to-buffer-other-window' rather
-than `switch-to-buffer'."
+than `pop-to-buffer'."
   (declare (debug t)
            (indent 3))
   `(with-current-buffer (get-buffer-create ,buffer)
@@ -301,7 +301,7 @@ than `switch-to-buffer'."
        (funcall ,mode-fun)
        (if ,other-window
            (switch-to-buffer-other-window ,buffer)
-         (switch-to-buffer ,buffer))
+         (pop-to-buffer ,buffer '(display-buffer-same-window)))
        ,@body)))
 
 (defmacro mastodon-tl--do-if-item (&rest body)
@@ -368,21 +368,22 @@ text, i.e. hidden spoiler text."
   "Search for item with function FIND-POS.
 If search returns nil, execute REFRESH function.
 Optionally start from POS."
-  (let* ((npos (or ; toot/user items have byline:
-                (funcall find-pos
-                         (or pos (point))
-                         ;; 'item-type ; breaks nav to last item in a view?
-                         'byline
-                         (current-buffer)))))
+  (let* ((npos ; toot/user items have byline:
+          (funcall find-pos
+                   (or pos (point))
+                   ;; FIXME: we need to fix item-type?
+                   ;; 'item-type ; breaks nav to last item in a view?
+                   'byline
+                   (current-buffer))))
     (if npos
-        (if (not (or
-                  ;; (get-text-property npos 'item-id) ; toots, users, not tags
-                  (get-text-property npos 'item-type))) ; generic
+        (if (not
+             ;; (get-text-property npos 'item-id) ; toots, users, not tags
+             (get-text-property npos 'item-type)) ; generic
             (mastodon-tl--goto-item-pos find-pos refresh npos)
           (goto-char npos)
           ;; force display of help-echo on moving to a toot byline:
           (mastodon-tl--message-help-echo))
-      ;; FIXME: this doesn't really work, as the funcall doesn't return if we
+      ;; FIXME: this doesn't work, as the funcall doesn't return if we
       ;; run into an endless refresh loop
       (condition-case nil
           (funcall refresh)
@@ -2149,7 +2150,10 @@ ARGS is an alist of any parameters to send with the request."
                          (mapconcat #'cdr args " ")))
                ((and (eq notify nil)
                      (eq reblogs nil))
-                (message "User %s (@%s) %sed!" name user-handle action))))))))
+                (if (and (equal action "follow")
+                         (eq t (alist-get 'requested json)))
+                    (message "Follow requested for user %s (@%s)!" name user-handle)
+                  (message "User %s (@%s) %sed!" name user-handle action)))))))))
 
 
 ;; FOLLOW TAGS
@@ -2212,7 +2216,8 @@ PREFIX is sent to `mastodon-tl--get-tag-timeline', which see."
 
 (defun mastodon-tl--followed-tags-timeline (&optional prefix)
   "Open a timeline of multiple tags.
-PREFIX is sent to `mastodon-tl--show-tag-timeline', which see.
+With a single PREFIX arg, only show posts with media.
+With a double PREFIX arg, limit results to your own instance.
 If `mastodon-tl--tag-timeline-tags' is set, use its tags, else
 fetch followed tags and load the first four of them."
   (interactive "p")
@@ -2679,6 +2684,7 @@ This location is defined by a non-nil value of
           (mastodon-tl--buffer-type-eq 'follow-suggestions)
           (mastodon-tl--buffer-type-eq 'lists)
           (mastodon-tl--buffer-type-eq 'filters)
+          (mastodon-tl--buffer-type-eq 'scheduled-statuses)
           (mastodon-tl--search-buffer-p))
       (message "update not available in this view.")
     ;; FIXME: handle update for search and trending buffers
@@ -2745,7 +2751,7 @@ JSON and http headers, without it just the JSON."
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously.
-Optional arg NOTE-TYPE means only get that type of note.
+Optional arg NOTE-TYPE means only get that type of notification.
 PARAMS is an alist of any params to include in the request.
 HEADERS are any headers to send in the request.
 VIEW-NAME is a string, to be used as a heading for the view.
