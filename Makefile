@@ -5,7 +5,7 @@
 
 ELCS  := $(patsubst %.el,%.elc,$(wildcard *.el))
 
-.PHONY: check all elcs
+.PHONY: check all elcs check-%
 
 all: check
 
@@ -18,6 +18,11 @@ clean:
 
 elcs: $(ELCS)
 
-check: $(ELCS)
-	emacs -Q -q --batch -l tests/test-totp.el
+check-%:
+	emacs -Q -q --batch -l tests/test-$*.el
+
+check-base32: base32.elc
+check-totp: $(ELCS) check-base32
+
+check: check-totp
 
