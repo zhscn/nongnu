@@ -113,10 +113,10 @@
     (dolist (otp generated-otp)
       (setq have (string-to-number (car otp)))
       (or (equal want have)
-          (error "%s TOTP #%d @%d (%s), %S %d digits did not match: %S vs %S"
+          (error "FAIL: %s TOTP #%d @%d (%s), %S %d digits did not match: %S vs %S"
                  label i totp-auth-override-time stamp algorithm digits want have))
       (setq i (1+ i)))
-    (message "%8s TOTP @%d (%s) OK" label totp-auth-override-time stamp)
+    (message "PASS: %8s TOTP @%d (%s)" label totp-auth-override-time stamp)
     i))
 
 (defun test-totp-secret (algo)
@@ -199,8 +199,8 @@ earlier ones, which would therefore not be returned by ‘assoc’)."
           (mapc (lambda (k &optional dir)
                   (setq dir (if j "rev" "fwd"))
                   (if (equal (cdr (assoc k item-a)) (cdr (assoc k item-b)))
-                      (message "%s[%d]%-9S (%s) OK" (or label "") i k dir)
-                    (message "%s[%d]%-9S (%s) FAILED" (or label "") i k dir)
+                      (message "PASS: %s[%d]%-9S (%s)" (or label "") i k dir)
+                    (message "FAIL: %s[%d]%-9S (%s)" (or label "") i k dir)
                     (message "%S → %S vs %S"
                              k
                              (assoc k item-a)
@@ -218,8 +218,8 @@ earlier ones, which would therefore not be returned by ‘assoc’)."
              actual   (totp-auth-load-file
                        (expand-file-name test-file test-totp-source-dir)))
        (if (test-totp-compare-alist-list expected actual test-file)
-           (message "%s imported OK" test-file)
-         (message "%s import FAILED" test-file)
+           (message "PASS: %s imported" test-file)
+         (message "FAIL: %s import error" test-file)
          (setq close-enough nil)))
      (mapcar 'car test-totp-import-expected-results))
     close-enough))
