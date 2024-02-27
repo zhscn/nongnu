@@ -154,10 +154,10 @@ DICTIONARY defaults to ‘base32-dictionary’."
                                         (t 0))))
           ((eq 0 input-shortfall) ;; already padded
            (setq output-shorten
-                 (cond ((equal (substring input -6) "======") -4)
-                       ((equal (substring input -4)   "====") -3)
-                       ((equal (substring input -3)    "===") -2)
-                       ((equal (substring input -1)      "=") -1)
+                 (cond ((equal (ignore-errors (substring input -6)) "======") -4)
+                       ((equal (ignore-errors (substring input -4))   "====") -3)
+                       ((equal (ignore-errors (substring input -3))    "===") -2)
+                       ((equal (ignore-errors (substring input -1))      "=") -1)
                        (t 0))))
           (t (error "Invalid base32 payload length: %d" input-byte-count)))
     (setq output-byte-count (* (/ input-byte-count 8) 5)
