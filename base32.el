@@ -136,21 +136,24 @@ DICTIONARY defaults to ‘base32-dictionary’."
 
 (defun base32-decode (input &optional dictionary)
   "Decode INPUT bytes according to DICTIONARY.
-DICTIONARY defaults to ‘base32-dictionary’."
+DICTIONARY defaults to ‘base32-dictionary’.
+If the = padding is missing from the input it will be added before
+decoding is attempted."
   (let ((thesaurus
          (base32-thesaurus (or dictionary base32-dictionary)))
         input-byte-count input-shortfall
         output output-byte-count output-shorten chunk)
     (setq input-byte-count (length input)
           input-shortfall  (mod input-byte-count 8)
+          input-shortfall  (if (eq input-shortfall 0) 0 (- 8 input-shortfall))
           output-shorten    0)
     (cond ((memq input-shortfall '(6 4 3 1)) ;; needs padding?
            (setq input            (concat input (make-string input-shortfall ?=))
                  input-byte-count (+ input-shortfall input-byte-count)
-                 output-shorten   (cond ((eq -6 input-shortfall) -4)
-                                        ((eq -4 input-shortfall) -3)
-                                        ((eq -3 input-shortfall) -2)
-                                        ((eq -1 input-shortfall) -1)
+                 output-shorten   (cond ((eq 6 input-shortfall) -4)
+                                        ((eq 4 input-shortfall) -3)
+                                        ((eq 3 input-shortfall) -2)
+                                        ((eq 1 input-shortfall) -1)
                                         (t 0))))
           ((eq 0 input-shortfall) ;; already padded
            (setq output-shorten
