@@ -171,6 +171,18 @@ Status notifications are given when
   "Format for an `edit' NOTE."
   (mastodon-notifications--format-note note 'edit))
 
+(defun mastodon-notifications--comment-note-text (str)
+  "Add comment face to all text in STR with `shr-text' face only."
+  (with-temp-buffer
+    (switch-to-buffer (current-buffer))
+    (insert str)
+    (goto-char (point-min))
+    (while (setq prop (text-property-search-forward 'face 'shr-text t))
+      (add-text-properties (prop-match-beginning prop)
+                           (prop-match-end prop)
+                           '(face (font-lock-comment-face shr-text))))
+    (buffer-string)))
+
 (defun mastodon-notifications--format-note (note type)
   "Format for a NOTE of TYPE."
   (let ((id (alist-get 'id note))
@@ -191,17 +203,22 @@ Status notifications are given when
            (t
             status))
      ;; body
-     (if (or (equal type 'follow)
-             (equal type 'follow-request))
-         (propertize (if (equal type 'follow)
-                         "Congratulations, you have a new follower!"
-                       (format "You have a follow request from... %s"
-                               follower))
-                     'face 'default)
-       (mastodon-tl--clean-tabs-and-nl
-        (if (mastodon-tl--has-spoiler status)
-            (mastodon-tl--spoiler status)
-          (mastodon-tl--content status))))
+     (let ((body (mastodon-tl--clean-tabs-and-nl
+                  (if (mastodon-tl--has-spoiler status)
+                      (mastodon-tl--spoiler status)
+                    (mastodon-tl--content status)))))
+       (cond ((or (eq type 'follow)
+                  (eq type 'follow-request))
+              (propertize (if (equal type 'follow)
+                              "Congratulations, you have a new follower!"
+                            (format "You have a follow request from... %s"
+                                    follower))
+                          'face 'default))
+             ((or (eq type 'favourite)
+                  (eq type 'boost))
+              (mastodon-notifications--comment-note-text
+               body))
+             (t body)))
      ;; author-byline
      (if (or (equal type 'follow)
              (equal type 'follow-request)
