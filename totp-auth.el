@@ -806,7 +806,10 @@ DIGITS defaults to 6 if not otherwise specified."
 (defun totp-auth (&optional secret label)
   "Generate a TOTP token for SECRET, identified by LABEL, and show it."
   (interactive
-   (let ((secrets (totp-auth-secrets)) (completion-styles '(substring)) key)
+   (let ((secrets (totp-auth-secrets))
+         (completion-ignore-case t)
+         (completion-styles '(substring))
+         key)
      (setq key (completing-read "Generate TOTP: " secrets))
      (list (cdr (assoc key secrets)) key)))
   (totp-auth-display-token secret label))
