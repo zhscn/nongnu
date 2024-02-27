@@ -1036,8 +1036,10 @@ Federated user: `username@host.co`."
 (defun mastodon-toot--fetch-emojify-candidates ()
   "Get the candidates to be used for emojis completion.
 The candidates are calculated according to currently active
-`emojify-emoji-styles'. Hacked off `emojify--get-completing-read-candidates'."
-  (let ((styles (mapcar #'symbol-name emojify-emoji-styles)))
+`emojify-emoji-styles'. Hacked off
+`emojify--get-completing-read-candidates'."
+  (let ((styles ;'("ascii" "unicode" "github")
+         (mapcar #'symbol-name emojify-emoji-styles)))
     (let ((emojis '()))
       (emojify-emojis-each (lambda (key value)
                              (when (seq-position styles (ht-get value "style"))
@@ -1062,7 +1064,8 @@ TYPE is the candidate type, it may be :tags, :handles, or :emoji."
                           collect (cons (concat "#" (car tag))
                                         (cdr tag)))))
               ((eq type :emoji)
-               (mastodon-toot--fetch-emojify-candidates))
+               (when (bound-and-true-p emojify-mode)
+                 (mastodon-toot--fetch-emojify-candidates)))
               (t
                (mastodon-search--search-accounts-query
                 (buffer-substring-no-properties start end))))))
