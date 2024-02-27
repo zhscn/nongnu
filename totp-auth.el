@@ -811,8 +811,11 @@ DIGITS defaults to 6 if not otherwise specified."
          (completion-styles '(substring))
          key)
      (setq key (completing-read "Generate TOTP: " secrets))
-     (list (cdr (assoc key secrets)) key)))
-  (totp-auth-display-token secret label))
+     (list (or (cdr (assoc key secrets)) (length secrets)) key)))
+  (if (and (called-interactively-p 'interactive) (numberp secret))
+      (display-message-or-buffer
+       (format "No secrets for %S found (%d available)" label secret))
+    (totp-auth-display-token secret label)))
 
 (autoload 'totp-auth-import-file "totp-auth-interop"
   "Import an RFC6238 TOTP secret or secrets from FILE.
