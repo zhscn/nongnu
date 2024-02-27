@@ -787,7 +787,7 @@ values passed in will override the URL.
 DIGITS defaults to 6 if not otherwise specified."
   (interactive
    (let (s u)
-     (setq s (read-string "Secret: ")
+     (setq s (read-passwd "Secret: ")
            u (url-generic-parse-url s))
      (if (not (equal (url-type u) "otpauth"))
          (list s
