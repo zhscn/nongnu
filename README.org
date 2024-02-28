@@ -356,6 +356,8 @@ See =M-x customize-group RET mastodon= to view all customize options.
 
 An index of all user-facing commands and custom variables is available here: [[file:mastodon-index.org][mastodon-index.org]].
 
+You can also hit =?= in any =mastodon.el= buffer to see the available bindings, or run =M-X= (upper-case =X=) to view all commands in the buffer with completion, and call one.
+
 *** Alternative timeline layout
 
 The incomparable Nicholas Rougier has written an alternative timeline layout

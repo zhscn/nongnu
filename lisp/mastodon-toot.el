@@ -155,7 +155,8 @@ If the original toot visibility is different we use the more restricted one."
   :type 'boolean)
 
 (defcustom mastodon-toot--emojify-in-compose-buffer t
-  "Whether to enable `emojify' in the compose buffer."
+  "Whether to enable `emojify-mode' in the compose buffer.
+We only attempt to enable it if its bound."
   :type 'boolean)
 
 (defcustom mastodon-toot--proportional-fonts-compose nil
@@ -1035,8 +1036,10 @@ Federated user: `username@host.co`."
 (defun mastodon-toot--fetch-emojify-candidates ()
   "Get the candidates to be used for emojis completion.
 The candidates are calculated according to currently active
-`emojify-emoji-styles'. Hacked off `emojify--get-completing-read-candidates'."
-  (let ((styles (mapcar #'symbol-name emojify-emoji-styles)))
+`emojify-emoji-styles'. Hacked off
+`emojify--get-completing-read-candidates'."
+  (let ((styles ;'("ascii" "unicode" "github")
+         (mapcar #'symbol-name emojify-emoji-styles)))
     (let ((emojis '()))
       (emojify-emojis-each (lambda (key value)
                              (when (seq-position styles (ht-get value "style"))
@@ -1061,7 +1064,8 @@ TYPE is the candidate type, it may be :tags, :handles, or :emoji."
                           collect (cons (concat "#" (car tag))
                                         (cdr tag)))))
               ((eq type :emoji)
-               (mastodon-toot--fetch-emojify-candidates))
+               (when (bound-and-true-p emojify-mode)
+                 (mastodon-toot--fetch-emojify-candidates)))
               (t
                (mastodon-search--search-accounts-query
                 (buffer-substring-no-properties start end))))))
@@ -1902,7 +1906,9 @@ EDIT means we are editing an existing toot, not composing a new one."
     (setq mastodon-toot-previous-window-config previous-window-config)
     (when mastodon-toot--proportional-fonts-compose
       (facemenu-set-face 'variable-pitch))
-    (when mastodon-toot--emojify-in-compose-buffer
+    (when (and mastodon-toot--emojify-in-compose-buffer
+               ;; emojify loaded but poss not enabled in our buffer:
+               (boundp 'emojify-mode))
       (emojify-mode))
     (when (and initial-text
                (not reply-json))
