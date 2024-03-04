@@ -389,12 +389,14 @@ Optionally start from POS."
           (funcall refresh)
         (error "No more items")))))
 
-(defun mastodon-tl--goto-next-item ()
+(defun mastodon-tl--goto-next-item (&optional no-refresh)
   "Jump to next item.
-Load more items it no next item."
+Load more items it no next item.
+NO-REFRESH means do no not try to load more items if no next item
+found."
   (interactive)
   (mastodon-tl--goto-item-pos 'next-single-property-change
-                              'mastodon-tl--more))
+                              (unless no-refresh 'mastodon-tl--more)))
 
 (defun mastodon-tl--goto-prev-item ()
   "Jump to previous item.
@@ -988,6 +990,18 @@ content should be hidden."
            (message "No content warning text here"))
           (t
            (mastodon-tl--toggle-spoiler-text (car spoiler-range))))))
+
+(defun mastodon-tl--toggle-spoiler-in-thread ()
+  "Toggler content warning for all posts in current thread."
+  (interactive)
+  (let ((thread-p (eq (mastodon-tl--buffer-property 'update-function)
+                      'mastodon-tl--thread)))
+    (if (not thread-p)
+        (user-error "Not in a thread")
+      (goto-char (point-min))
+      (while (not (equal "No more items" ; improve this hack test!
+                         (mastodon-tl--goto-next-item :no-refresh)))
+        (mastodon-tl--toggle-spoiler-text-in-toot)))))
 
 (defun mastodon-tl--clean-tabs-and-nl (string)
   "Remove tabs and newlines from STRING."
