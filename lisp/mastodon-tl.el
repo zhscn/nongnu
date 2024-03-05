@@ -1010,10 +1010,14 @@ content should be hidden."
                       'mastodon-tl--thread)))
     (if (not thread-p)
         (user-error "Not in a thread")
-      (goto-char (point-min))
-      (while (not (equal "No more items" ; improve this hack test!
-                         (mastodon-tl--goto-next-item :no-refresh)))
-        (mastodon-tl--toggle-spoiler-text-in-toot)))))
+      (save-excursion
+        (goto-char (point-min))
+        (while (not (equal "No more items" ; improve this hack test!
+                           (mastodon-tl--goto-next-item :no-refresh)))
+          (let* ((json (mastodon-tl--property 'item-json :no-move))
+                 (cw (alist-get 'spoiler_text json)))
+            (when (not (equal "" cw))
+              (mastodon-tl--toggle-spoiler-text-in-toot))))))))
 
 (defun mastodon-tl--clean-tabs-and-nl (string)
   "Remove tabs and newlines from STRING."
