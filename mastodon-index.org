@@ -135,6 +135,7 @@
 |                  | mastodon-tl--single-toot                          | View toot at point in separate buffer.                                         |
 |                  | mastodon-tl--some-followed-tags-timeline          | Prompt for some tags, and open a timeline for them.                            |
 | RET, T           | mastodon-tl--thread                               | Open thread buffer for toot at point or with ID.                               |
+|                  | mastodon-tl--toggle-spoiler-in-thread             | Toggler content warning for all posts in current thread.                       |
 | c                | mastodon-tl--toggle-spoiler-text-in-toot          | Toggle the visibility of the spoiler text in the current toot.                 |
 | C-S-b            | mastodon-tl--unblock-user                         | Query for USER-HANDLE from list of blocked users and unblock that user.        |
 |                  | mastodon-tl--unfollow-tag                         | Prompt for a followed tag, and unfollow it.                                    |
@@ -142,6 +143,8 @@
 |                  | mastodon-tl--unmute-thread                        | Mute the thread displayed in the current buffer.                               |
 | S-RET            | mastodon-tl--unmute-user                          | Query for USER-HANDLE from list of muted users and unmute that user.           |
 | u, g             | mastodon-tl--update                               | Update timeline with new toots.                                                |
+|                  | mastodon-tl--view-full-image                      | Browse full-sized version of image at point in a separate emacs window.        |
+|                  | mastodon-tl--view-full-image-or-play-video        | View full sized version of image at point, or try to play video.               |
 |                  | mastodon-tl--view-whole-thread                    | From a thread view, view entire thread.                                        |
 | t                | mastodon-toot                                     | Update instance with new toot. Content is captured in a new buffer.            |
 | C-c C-a          | mastodon-toot--attach-media                       | Prompt for an attachment FILE with DESCRIPTION.                                |
