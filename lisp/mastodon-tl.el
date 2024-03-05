@@ -36,6 +36,7 @@
 (require 'cl-lib)
 (require 'mastodon-iso)
 (require 'mpv nil :no-error)
+(require 'url-cache)
 
 (autoload 'mastodon-mode "mastodon")
 (autoload 'mastodon-notifications-get "mastodon")
@@ -86,6 +87,7 @@
 (autoload 'mastodon-views--insert-users-propertized-note "mastodon-views") ; for search pagination
 (autoload 'mastodon-http--get-response "mastodon-http")
 (autoload 'mastodon-search--insert-heading "mastodon-search")
+(autoload 'mastodon-media--process-full-sized-image-response "mastodon-media")
 
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot-mode)
@@ -96,6 +98,8 @@
 (defvar mastodon-instance-url)
 (defvar mastodon-toot-timestamp-format)
 (defvar shr-use-fonts)  ;; declare it since Emacs24 didn't have this
+(defvar mastodon-media--enable-image-caching)
+
 (defvar mastodon-mode-map)
 
 
@@ -194,6 +198,14 @@ re-load mastodon.el, or restart Emacs."
 (defcustom mastodon-tl--tag-timeline-tags nil
   "A list of up to four tags for use with `mastodon-tl--followed-tags-timeline'."
   :type '(repeat string))
+
+(defcustom mastodon-tl--load-full-sized-images-in-emacs t
+  "Whether to load full-sized images inside Emacs.
+Full-sized images are loaded when you hit return on or click on
+an image in a timeline.
+If nil, mastodon.el will instead call `shr-browse-image', which
+respects the user's `browse-url' settings."
+  :type '(boolean))
 
 
 ;;; VARIABLES
@@ -1111,24 +1123,26 @@ SENSITIVE is a flag from the item's JSON data."
                            (concat help-echo "\nC-RET: play " type " with mpv"))))
 
 (defun mastodon-tl--view-full-image ()
-  "Browse full-sized version of image at point in a separate emacs window."
+  "Browse full-sized version of image at point in a new window."
   (interactive)
   (if (not (eq (mastodon-tl--property 'mastodon-tab-stop) 'image))
       (user-error "No image at point?")
     (let* ((url (mastodon-tl--property 'image-url)))
-      (if (and mastodon-media--enable-image-caching
-               (url-is-cached url))
-          ;; if image url is cached, decompress and use it
-          (with-current-buffer (url-fetch-from-cache url)
-            (set-buffer-multibyte nil)
-            (goto-char (point-min))
-            (zlib-decompress-region
-             (goto-char (search-forward "\n\n")) (point-max))
-            (mastodon-media--process-full-sized-image-response
-             nil nil url))
-        ;; else fetch and load:
-        (url-retrieve url #'mastodon-media--process-full-sized-image-response
-                      (list nil url))))))
+      (if (not mastodon-tl--load-full-sized-images-in-emacs)
+          (shr-browse-image)
+        (if (and mastodon-media--enable-image-caching
+                 (url-is-cached url))
+            ;; if image url is cached, decompress and use it
+            (with-current-buffer (url-fetch-from-cache url)
+              (set-buffer-multibyte nil)
+              (goto-char (point-min))
+              (zlib-decompress-region
+               (goto-char (search-forward "\n\n")) (point-max))
+              (mastodon-media--process-full-sized-image-response
+               nil nil url))
+          ;; else fetch and load:
+          (url-retrieve url #'mastodon-media--process-full-sized-image-response
+                        (list nil url)))))))
 
 
 ;; POLLS

@@ -205,8 +205,13 @@ IMAGE-OPTIONS are the precomputed options to apply to the image."
           (erase-buffer)
           (insert " ")
           (when image
-            (put-text-property (point-min) (point-max)
-                               'display image)
+            (add-text-properties (point-min) (point-max)
+                                 `( display ,image
+                                    keymap ,(if (boundp 'shr-image-map)
+                                                shr-image-map
+                                              shr-map)
+                                    image-url ,url
+                                    shr-url ,url))
             (image-mode)
             (goto-char (point-min))
             (switch-to-buffer-other-window (current-buffer))))))))
