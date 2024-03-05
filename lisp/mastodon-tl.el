@@ -262,7 +262,7 @@ types of mastodon links and not just shr.el-generated ones.")
     (define-key map [remap shr-previous-link] #'mastodon-tl--previous-tab-item)
     ;; browse-url loads the preview only, we want browse-image
     ;; on RET to browse full sized image URL
-    (define-key map [remap shr-browse-url] #'shr-browse-image)
+    (define-key map [remap shr-browse-url] #'mastodon-tl--view-full-image-or-play-video) ;#'shr-browse-image)
     ;; remove shr's u binding, as it the maybe-probe-and-copy-url
     ;; is already bound to w also
     (define-key map (kbd "u") #'mastodon-tl--update)
@@ -1110,6 +1110,26 @@ SENSITIVE is a flag from the item's JSON data."
                              help-echo
                            (concat help-echo "\nC-RET: play " type " with mpv"))))
 
+(defun mastodon-tl--view-full-image ()
+  "Browse full-sized version of image at point in a separate emacs window."
+  (interactive)
+  (if (not (eq (mastodon-tl--property 'mastodon-tab-stop) 'image))
+      (user-error "No image at point?")
+    (let* ((url (mastodon-tl--property 'image-url)))
+      (if (and mastodon-media--enable-image-caching
+               (url-is-cached url))
+          ;; if image url is cached, decompress and use it
+          (with-current-buffer (url-fetch-from-cache url)
+            (set-buffer-multibyte nil)
+            (goto-char (point-min))
+            (zlib-decompress-region
+             (goto-char (search-forward "\n\n")) (point-max))
+            (mastodon-media--process-full-sized-image-response
+             nil nil url))
+        ;; else fetch and load:
+        (url-retrieve url #'mastodon-media--process-full-sized-image-response
+                      (list nil url))))))
+
 
 ;; POLLS
 
@@ -1286,12 +1306,19 @@ displayed when the duration is smaller than a minute)."
          (type (plist-get video :type)))
     (mastodon-tl--mpv-play-video-at-point url type)))
 
+(defun mastodon-tl--view-full-image-or-play-video ()
+  "View full sized version of image at point, or try to play video."
+  (interactive)
+  (if (mastodon-tl--media-video-p)
+      (mastodon-tl--mpv-play-video-at-point)
+    (mastodon-tl--view-full-image)))
+
 (defun mastodon-tl--click-image-or-video (_event)
   "Click to play video with `mpv.el'."
   (interactive "e")
   (if (mastodon-tl--media-video-p)
       (mastodon-tl--mpv-play-video-at-point)
-    (shr-browse-image)))
+    (mastodon-tl--view-full-image)))
 
 (defun mastodon-tl--media-video-p (&optional type)
   "T if mastodon-media-type prop is \"gifv\" or \"video\".
