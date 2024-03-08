@@ -122,6 +122,11 @@ By default fixed width fonts are used."
   :type '(boolean :tag "Enable using proportional rather than fixed \
 width fonts when rendering HTML text"))
 
+(defcustom mastodon-tl--no-fill-on-render nil
+  "Non-nil to disable filling by shr.el while rendering toot body.
+Use this if your setup isn't compatible with shr's window width filling."
+  :type '(boolean))
+
 (defcustom mastodon-tl--display-media-p t
   "A boolean value stating whether to show media in timelines."
   :type 'boolean)
@@ -777,7 +782,9 @@ links in the text. If TOOT is nil no parsing occurs."
       (insert string)
       (let ((shr-use-fonts mastodon-tl--enable-proportional-fonts)
             (shr-width (when mastodon-tl--enable-proportional-fonts
-                         (- (window-width) 3))))
+                         (if mastodon-tl--no-fill-on-render
+                             0
+                           (- (window-width) 3)))))
         (shr-render-region (point-min) (point-max)))
       ;; Make all links a tab stop recognized by our own logic, make things point
       ;; to our own logic (e.g. hashtags), and update keymaps where needed:
