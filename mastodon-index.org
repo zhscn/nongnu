@@ -254,6 +254,8 @@
 | mastodon-tl--expand-content-warnings               | Whether to expand content warnings by default.                                |
 | mastodon-tl--hide-replies                          | Whether to hide replies from the timelines.                                   |
 | mastodon-tl--highlight-current-toot                | Whether to highlight the toot at point. Uses `cursor-face' special property.  |
+| mastodon-tl--load-full-sized-images-in-emacs       | Whether to load full-sized images inside Emacs.                               |
+| mastodon-tl--no-fill-on-render                     | Non-nil to disable filling by shr.el while rendering toot body.               |
 | mastodon-tl--show-avatars                          | Whether to enable display of user avatars in timelines.                       |
 | mastodon-tl--show-stats                            | Whether to show toot stats (faves, boosts, replies counts).                   |
 | mastodon-tl--symbols                               | A set of symbols (and fallback strings) to be used in timeline.               |
@@ -264,7 +266,7 @@
 | mastodon-toot--completion-style-for-mentions       | The company completion style to use for mentions.                             |
 | mastodon-toot--default-media-directory             | The default directory when prompting for a media file to upload.              |
 | mastodon-toot--default-reply-visibility            | Default visibility settings when replying.                                    |
-| mastodon-toot--emojify-in-compose-buffer           | Whether to enable `emojify' in the compose buffer.                            |
+| mastodon-toot--emojify-in-compose-buffer           | Whether to enable `emojify-mode' in the compose buffer.                       |
 | mastodon-toot--enable-completion                   | Whether to enable completion of mentions and hashtags.                        |
 | mastodon-toot--enable-custom-instance-emoji        | Whether to enable your instance's custom emoji by default.                    |
 | mastodon-toot--proportional-fonts-compose          | Nonnil to enable using proportional fonts in the compose buffer.              |
