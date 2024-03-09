@@ -455,6 +455,10 @@ Calls `mastodon-tl--get-buffer-type', which see."
                      (mastodon-tl--get-buffer-type))))))
     (switch-to-buffer choice)))
 
+(defun mastodon--url-at-point ()
+  "`thing-at-point' provider function."
+  (get-text-property (point) 'shr-url))
+
 (defun mastodon-mode-hook-fun ()
   "Function to add to `mastodon-mode-hook'."
   (when (require 'emojify nil :noerror)
@@ -467,8 +471,7 @@ Calls `mastodon-tl--get-buffer-type', which see."
   ;; make `thing-at-point' functions work:
   (setq-local thing-at-point-provider-alist
               (append thing-at-point-provider-alist
-                      '((url . eww--url-at-point)))))
-
+                      '((url . mastodon--url-at-point)))))
 
 ;;;###autoload
 (add-hook 'mastodon-mode-hook #'mastodon-mode-hook-fun)
