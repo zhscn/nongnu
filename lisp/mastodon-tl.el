@@ -36,6 +36,7 @@
 (require 'cl-lib)
 (require 'mastodon-iso)
 (require 'mpv nil :no-error)
+(require 'url-cache)
 
 (autoload 'mastodon-mode "mastodon")
 (autoload 'mastodon-notifications-get "mastodon")
@@ -86,6 +87,7 @@
 (autoload 'mastodon-views--insert-users-propertized-note "mastodon-views") ; for search pagination
 (autoload 'mastodon-http--get-response "mastodon-http")
 (autoload 'mastodon-search--insert-heading "mastodon-search")
+(autoload 'mastodon-media--process-full-sized-image-response "mastodon-media")
 
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot-mode)
@@ -96,6 +98,8 @@
 (defvar mastodon-instance-url)
 (defvar mastodon-toot-timestamp-format)
 (defvar shr-use-fonts)  ;; declare it since Emacs24 didn't have this
+(defvar mastodon-media--enable-image-caching)
+
 (defvar mastodon-mode-map)
 
 
@@ -117,6 +121,11 @@ keep the timestamps current as time progresses."
 By default fixed width fonts are used."
   :type '(boolean :tag "Enable using proportional rather than fixed \
 width fonts when rendering HTML text"))
+
+(defcustom mastodon-tl--no-fill-on-render nil
+  "Non-nil to disable filling by shr.el while rendering toot body.
+Use this if your setup isn't compatible with shr's window width filling."
+  :type '(boolean))
 
 (defcustom mastodon-tl--display-media-p t
   "A boolean value stating whether to show media in timelines."
@@ -195,6 +204,14 @@ re-load mastodon.el, or restart Emacs."
   "A list of up to four tags for use with `mastodon-tl--followed-tags-timeline'."
   :type '(repeat string))
 
+(defcustom mastodon-tl--load-full-sized-images-in-emacs t
+  "Whether to load full-sized images inside Emacs.
+Full-sized images are loaded when you hit return on or click on
+an image in a timeline.
+If nil, mastodon.el will instead call `shr-browse-image', which
+respects the user's `browse-url' settings."
+  :type '(boolean))
+
 
 ;;; VARIABLES
 
@@ -262,7 +279,7 @@ types of mastodon links and not just shr.el-generated ones.")
     (define-key map [remap shr-previous-link] #'mastodon-tl--previous-tab-item)
     ;; browse-url loads the preview only, we want browse-image
     ;; on RET to browse full sized image URL
-    (define-key map [remap shr-browse-url] #'shr-browse-image)
+    (define-key map [remap shr-browse-url] #'mastodon-tl--view-full-image-or-play-video) ;#'shr-browse-image)
     ;; remove shr's u binding, as it the maybe-probe-and-copy-url
     ;; is already bound to w also
     (define-key map (kbd "u") #'mastodon-tl--update)
@@ -389,12 +406,14 @@ Optionally start from POS."
           (funcall refresh)
         (error "No more items")))))
 
-(defun mastodon-tl--goto-next-item ()
+(defun mastodon-tl--goto-next-item (&optional no-refresh)
   "Jump to next item.
-Load more items it no next item."
+Load more items it no next item.
+NO-REFRESH means do no not try to load more items if no next item
+found."
   (interactive)
   (mastodon-tl--goto-item-pos 'next-single-property-change
-                              'mastodon-tl--more))
+                              (unless no-refresh 'mastodon-tl--more)))
 
 (defun mastodon-tl--goto-prev-item ()
   "Jump to previous item.
@@ -763,7 +782,9 @@ links in the text. If TOOT is nil no parsing occurs."
       (insert string)
       (let ((shr-use-fonts mastodon-tl--enable-proportional-fonts)
             (shr-width (when mastodon-tl--enable-proportional-fonts
-                         (- (window-width) 3))))
+                         (if mastodon-tl--no-fill-on-render
+                             0
+                           (- (window-width) 3)))))
         (shr-render-region (point-min) (point-max)))
       ;; Make all links a tab stop recognized by our own logic, make things point
       ;; to our own logic (e.g. hashtags), and update keymaps where needed:
@@ -989,6 +1010,22 @@ content should be hidden."
           (t
            (mastodon-tl--toggle-spoiler-text (car spoiler-range))))))
 
+(defun mastodon-tl--toggle-spoiler-in-thread ()
+  "Toggler content warning for all posts in current thread."
+  (interactive)
+  (let ((thread-p (eq (mastodon-tl--buffer-property 'update-function)
+                      'mastodon-tl--thread)))
+    (if (not thread-p)
+        (user-error "Not in a thread")
+      (save-excursion
+        (goto-char (point-min))
+        (while (not (equal "No more items" ; improve this hack test!
+                           (mastodon-tl--goto-next-item :no-refresh)))
+          (let* ((json (mastodon-tl--property 'item-json :no-move))
+                 (cw (alist-get 'spoiler_text json)))
+            (when (not (equal "" cw))
+              (mastodon-tl--toggle-spoiler-text-in-toot))))))))
+
 (defun mastodon-tl--clean-tabs-and-nl (string)
   "Remove tabs and newlines from STRING."
   (replace-regexp-in-string "[\t\n ]*\\'" "" string))
@@ -1095,6 +1132,28 @@ SENSITIVE is a flag from the item's JSON data."
                                  (string= type "unknown")) ; handle borked images
                              help-echo
                            (concat help-echo "\nC-RET: play " type " with mpv"))))
+
+(defun mastodon-tl--view-full-image ()
+  "Browse full-sized version of image at point in a new window."
+  (interactive)
+  (if (not (eq (mastodon-tl--property 'mastodon-tab-stop) 'image))
+      (user-error "No image at point?")
+    (let* ((url (mastodon-tl--property 'image-url)))
+      (if (not mastodon-tl--load-full-sized-images-in-emacs)
+          (shr-browse-image)
+        (if (and mastodon-media--enable-image-caching
+                 (url-is-cached url))
+            ;; if image url is cached, decompress and use it
+            (with-current-buffer (url-fetch-from-cache url)
+              (set-buffer-multibyte nil)
+              (goto-char (point-min))
+              (zlib-decompress-region
+               (goto-char (search-forward "\n\n")) (point-max))
+              (mastodon-media--process-full-sized-image-response
+               nil nil url))
+          ;; else fetch and load:
+          (url-retrieve url #'mastodon-media--process-full-sized-image-response
+                        (list nil url)))))))
 
 
 ;; POLLS
@@ -1272,12 +1331,19 @@ displayed when the duration is smaller than a minute)."
          (type (plist-get video :type)))
     (mastodon-tl--mpv-play-video-at-point url type)))
 
+(defun mastodon-tl--view-full-image-or-play-video ()
+  "View full sized version of image at point, or try to play video."
+  (interactive)
+  (if (mastodon-tl--media-video-p)
+      (mastodon-tl--mpv-play-video-at-point)
+    (mastodon-tl--view-full-image)))
+
 (defun mastodon-tl--click-image-or-video (_event)
   "Click to play video with `mpv.el'."
   (interactive "e")
   (if (mastodon-tl--media-video-p)
       (mastodon-tl--mpv-play-video-at-point)
-    (shr-browse-image)))
+    (mastodon-tl--view-full-image)))
 
 (defun mastodon-tl--media-video-p (&optional type)
   "T if mastodon-media-type prop is \"gifv\" or \"video\".
