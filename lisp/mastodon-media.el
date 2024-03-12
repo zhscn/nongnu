@@ -196,7 +196,7 @@ IMAGE-OPTIONS are the precomputed options to apply to the image."
                            (if (version< emacs-version "27.1")
                                (when image-options 'imagemagick)
                              nil) ; inbuilt scaling in 27.1
-                           t nil))))
+                           t `(:max-width ,(window-pixel-width))))))
       (when mastodon-media--enable-image-caching
         (unless (url-is-cached url) ;; cache if not already cached
           (url-store-in-cache url-buffer)))
