@@ -1374,7 +1374,7 @@ LENGTH is the maximum character length allowed for a poll option."
                            collect (read-string
                                     (format "Poll option [%s/%s] [max %s chars]: "
                                             x count length))))
-         (longest (cl-reduce #'max (mapcar #'length choices))))
+         (longest (apply #'max (mapcar #'length choices))))
     (if (> longest length)
         (progn
           (message "looks like you went over the max length. Try again.")

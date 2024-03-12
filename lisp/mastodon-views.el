@@ -852,7 +852,7 @@ MISSKEY means the instance is a Misskey or derived server."
 IND is the optional indentation level to print at."
   (let* ((cars (mapcar (lambda (x) (symbol-name (car x)))
                        response))
-         (pad (1+ (cl-reduce #'max (mapcar #'length cars)))))
+         (pad (1+ (apply #'max (mapcar #'length cars)))))
     (while response
       (let ((el (pop response)))
         (cond
