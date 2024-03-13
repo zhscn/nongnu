@@ -1715,7 +1715,9 @@ call this function after it is set or use something else."
           ((mastodon-tl--endpoint-str-= "instance")
            'instance-description)
           ((string= "*mastodon-toot-edits*" buffer-name)
-           'toot-edits))))
+           'toot-edits)
+          ((string= "*masto-image*" (buffer-name))
+           'mastodon-image))))
 
 (defun mastodon-tl--buffer-type-eq (type)
   "Return t if current buffer type is equal to symbol TYPE."
