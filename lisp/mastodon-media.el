@@ -189,6 +189,8 @@ STATUS-PLIST is a plist of status events as per `url-retrieve'."
     (when mastodon-media--enable-image-caching
       (unless (url-is-cached url) ;; cache if not already cached
         (url-store-in-cache)))
+    ;; thanks to rahguzar for this idea:
+    ;; https://codeberg.org/martianh/mastodon.el/issues/540
     (let* ((handle (mm-dissect-buffer t))
            (image (mm-get-image handle))
            (str (image-property image :data)))
