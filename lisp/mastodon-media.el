@@ -194,8 +194,8 @@ STATUS-PLIST is a plist of status events as per `url-retrieve'."
     (let* ((handle (mm-dissect-buffer t))
            (image (mm-get-image handle))
            (str (image-property image :data)))
-      (setf (image-property image :max-width)
-            (window-pixel-width))
+      ;; (setf (image-property image :max-width)
+      ;; (window-pixel-width))
       (with-current-buffer (get-buffer-create "*masto-image*")
         (let ((inhibit-read-only t))
           (erase-buffer)
@@ -203,7 +203,8 @@ STATUS-PLIST is a plist of status events as per `url-retrieve'."
           (special-mode) ; prevent image-mode loop bug
           (image-mode)
           (goto-char (point-min))
-          (switch-to-buffer-other-window (current-buffer)))))))
+          (switch-to-buffer-other-window (current-buffer))
+          (image-transform-fit-both))))))
 
 (defun mastodon-media--load-image-from-url (url media-type start region-length)
   "Take a URL and MEDIA-TYPE and load the image asynchronously.
