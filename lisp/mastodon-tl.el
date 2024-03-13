@@ -1149,11 +1149,10 @@ SENSITIVE is a flag from the item's JSON data."
               (goto-char (point-min))
               (zlib-decompress-region
                (goto-char (search-forward "\n\n")) (point-max))
-              (mastodon-media--process-full-sized-image-response
-               nil nil url))
+              (mastodon-media--process-full-sized-image-response nil url))
           ;; else fetch and load:
           (url-retrieve url #'mastodon-media--process-full-sized-image-response
-                        (list nil url)))))))
+                        `(,url)))))))
 
 
 ;; POLLS
