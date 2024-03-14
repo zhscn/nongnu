@@ -274,7 +274,7 @@
 (make-variable-buffer-local 'macrostep-gensym-depth)
 
 (defvar macrostep-gensyms-this-level nil
-  "t if gensyms have been encountered during current level of macro expansion.")
+  "Non-nil if gensyms have been encountered during current level of macro expansion.")
 (make-variable-buffer-local 'macrostep-gensyms-this-level)
 
 (defvar macrostep-saved-undo-list nil
@@ -525,9 +525,10 @@ Use \\[macrostep-expand] to expand, \\[macrostep-collapse] to collapse, \
       ;; Remove our post-command hook
       (remove-hook 'post-command-hook #'macrostep-command-hook t))))
 
-;; Post-command hook: bail out of macrostep-mode if the user types C-x
-;; C-q to make the buffer writable again.
 (defun macrostep-command-hook ()
+  "Hook function for use by `post-command hook'.
+Bail out of `macrostep-mode' if the user types
+`\\[read-only-mode]' to make the buffer writable again."
   (if (not buffer-read-only)
       (macrostep-mode 0)))
 
@@ -538,14 +539,15 @@ Use \\[macrostep-expand] to expand, \\[macrostep-collapse] to collapse, \
   "Expand the macro form following point by one step.
 
 Enters `macrostep-mode' if it is not already active, making the
-buffer temporarily read-only.  If `macrostep-mode' is active and the
-form following point is not a macro form, search forward in the
-buffer and expand the next macro form found, if any.
+buffer temporarily read-only.  If `macrostep-mode' is active and
+the form following point is not a macro form, search forward in
+the buffer and expand the next macro form found, if any.
 
-With a prefix argument, the expansion is displayed in a separate
-buffer instead of inline in the current buffer.  Setting
-`macrostep-expand-in-separate-buffer' to non-nil swaps these two
-behaviors."
+If optional argument TOGGLE-SEPARATE-BUFFER is non-nil (or set
+ with a prefix argument), the expansion is displayed in a
+ separate buffer instead of inline in the current buffer.
+ Setting `macrostep-expand-in-separate-buffer' to non-nil swaps
+ these two behaviors."
   (interactive "P")
   (cl-destructuring-bind (start . end)
       (funcall macrostep-sexp-bounds-function)
@@ -681,7 +683,7 @@ If no more macro expansions are visible after this, exit
   (cdr (get-char-property-and-overlay (point) 'macrostep-original-text)))
 
 (defun macrostep-collapse-overlay (overlay &optional no-restore-p)
-  "Collapse a macro-expansion overlay and restore the unexpanded source text.
+  "Collapse macro-expansion buffer OVERLAY and restore the unexpanded source text.
 
 As a minor optimization, does not restore the original source
 text if NO-RESTORE-P is non-nil.  This is safe to do when
@@ -763,7 +765,8 @@ expansion, so that they can be fontified consistently.  (See
       (sexp-at-point)))
 
 (defun macrostep-macro-form-p (form environment)
-  "Return non-nil if FORM would be evaluated via macro expansion.
+  "Return non-nil if FORM would be evaluated via macro expansion;
+as considered within ENVIRONMENT.
 
 If FORM is an invocation of a macro defined by `defmacro' or an
 enclosing `cl-macrolet' form, return the symbol `macro'.
@@ -828,7 +831,9 @@ value of DEFINITION in the result will be nil."
               (void-function nil))))))))
 
 (defun macrostep-expand-1 (form environment)
-  "Return result of macro-expanding the top level of FORM by exactly one step.
+  "Return result of macro-expanding by exactly one step the top level of FORM.
+This is done within ENVIRONMENT.
+
 Unlike `macroexpand', this function does not continue macro
 expansion until a non-macro-call results."
   (cl-destructuring-bind (type . definition)
@@ -982,10 +987,11 @@ Controls the printing of sub-forms in `macrostep-print-sexp'.")
   "A list of compiler-macro forms to be highlighted in `macrostep-print-sexp'.")
 
 (defun macrostep-pp (sexp environment)
-  "Pretty-print SEXP, fontifying macro forms and uninterned symbols."
+  "Pretty-print SEXP, fontifying macro forms and uninterned symbols.
+This is done within ENVIRONMENT."
   (cl-destructuring-bind
-        (macrostep-collected-macro-form-alist
-         macrostep-collected-compiler-macro-forms)
+      (macrostep-collected-macro-form-alist
+       macrostep-collected-compiler-macro-forms)
       (macrostep-collect-macro-forms sexp environment)
     (let ((print-quoted t))
       (macrostep-print-sexp sexp)
