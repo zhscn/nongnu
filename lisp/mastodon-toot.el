@@ -1843,7 +1843,15 @@ a draft into the buffer.
 EDIT means we are editing an existing toot, not composing a new one."
   (let* ((buffer-name (if edit "*edit toot*" "*new toot*"))
          (buffer-exists (get-buffer buffer-name))
-         (buffer (or buffer-exists (get-buffer-create buffer-name)))
+         (buffer (if (not buffer-exists)
+                     (get-buffer-create buffer-name)
+                   ;; if a user hits reply while a compose buffer is already
+                   ;; open, we really ought to wipe it all and start over.
+                   (switch-to-buffer-other-window buffer-exists)
+                   (if (not (y-or-n-p "Overwrite existing compose buffer?"))
+                       (user-error "Aborting")
+                     (kill-buffer-and-window)
+                     (get-buffer-create buffer-name))))
          (inhibit-read-only t)
          (reply-text (alist-get 'content
                                 (or (alist-get 'reblog reply-json)
@@ -1851,29 +1859,25 @@ EDIT means we are editing an existing toot, not composing a new one."
          (previous-window-config (list (current-window-configuration)
                                        (point-marker))))
     (switch-to-buffer-other-window buffer)
-    ;; if a user hits reply while a compose buffer is already open,
-    ;; we really ought to wipe it all and start over.
-    (unless buffer-exists ; don't nuke buffer-local vars
-      (text-mode)
-      (mastodon-toot-mode t))
+    (text-mode)
+    (mastodon-toot-mode t)
     (setq mastodon-toot--visibility
           (or (plist-get mastodon-profile-account-settings 'privacy)
               ;; use toot visibility setting from the server:
               (mastodon-profile--get-source-pref 'privacy)
               "public")) ; fallback
-    (unless buffer-exists
-      (if mastodon-toot-display-orig-in-reply-buffer
-          (progn
-            (mastodon-toot--display-docs-and-status-fields reply-text)
-            (mastodon-toot--fill-reply-in-compose))
-        (mastodon-toot--display-docs-and-status-fields))
-      ;; `reply-to-user' (alone) is also used by `mastodon-tl--dm-user', so
-      ;; perhaps we should not always call --setup-as-reply, or make its
-      ;; workings conditional on reply-to-id. currently it only checks for
-      ;; reply-to-user.
-      (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json
-                                     ;; only initial-text if reply (not edit):
-                                     (when reply-json initial-text)))
+    (if mastodon-toot-display-orig-in-reply-buffer
+        (progn
+          (mastodon-toot--display-docs-and-status-fields reply-text)
+          (mastodon-toot--fill-reply-in-compose))
+      (mastodon-toot--display-docs-and-status-fields))
+    ;; `reply-to-user' (alone) is also used by `mastodon-tl--dm-user', so
+    ;; perhaps we should not always call --setup-as-reply, or make its
+    ;; workings conditional on reply-to-id. currently it only checks for
+    ;; reply-to-user.
+    (mastodon-toot--setup-as-reply reply-to-user reply-to-id reply-json
+                                   ;; only initial-text if reply (not edit):
+                                   (when reply-json initial-text))
     (unless mastodon-toot--max-toot-chars
       ;; no need to fetch from `mastodon-profile-account-settings' as
       ;; `mastodon-toot--max-toot-chars' is set when we set it
