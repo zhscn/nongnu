@@ -1851,8 +1851,11 @@ EDIT means we are editing an existing toot, not composing a new one."
          (previous-window-config (list (current-window-configuration)
                                        (point-marker))))
     (switch-to-buffer-other-window buffer)
-    (text-mode)
-    (mastodon-toot-mode t)
+    ;; if a user hits reply while a compose buffer is already open,
+    ;; we really ought to wipe it all and start over.
+    (unless buffer-exists ; don't nuke buffer-local vars
+      (text-mode)
+      (mastodon-toot-mode t))
     (setq mastodon-toot--visibility
           (or (plist-get mastodon-profile-account-settings 'privacy)
               ;; use toot visibility setting from the server:
