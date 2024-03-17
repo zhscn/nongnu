@@ -1365,7 +1365,11 @@ in which case play first video or gif from current toot."
         (if (mastodon-tl--media-video-p type)
             (progn
               (message "'q' to kill mpv.")
-              (mpv-start "--loop" url))
+              (condition-case x
+                  (mpv-start "--loop" url)
+                (void-function
+                 (message "Looks like mpv.el not installed. Error: %s"
+                          (error-message-string x)))))
           (message "no moving image here?"))
       (message "no moving image here?"))))
 
