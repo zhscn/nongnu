@@ -316,10 +316,14 @@ and `text-scale-mode-step'."
                     (with-current-buffer buffer
                       (expt text-scale-mode-step
                             text-scale-mode-amount))
-                  1.0)))
-    (truncate (/ (+ (window-width window)
-                    (or (car margins) 0)
-                    (or (cdr margins) 0))
+                  1.0))
+         (remap-scale
+          (if (>= emacs-major-version 29)
+              (/ (window-width window 'remap) (float (window-width window)))
+            1.0)))
+    (truncate (/ (+ (window-width window (and (>= emacs-major-version 29) 'remap))
+                    (* (or (car margins) 0) remap-scale)
+                    (* (or (cdr margins) 0) remap-scale))
                  (float scale)))))
 
 (defun visual-fill-column--add-extra-width (left right add-width)
@@ -334,11 +338,15 @@ cell of the new margins, which will never be less than zero."
   "Set window margins for WINDOW."
   ;; Calculate left & right margins.
   (let* ((total-width (visual-fill-column--window-max-text-width window))
+         (remap-scale
+          (if (>= emacs-major-version 29)
+              (/ (window-width window 'remap) (float (window-width window)))
+            1.0))
          (width (or visual-fill-column-width
                     fill-column))
          (margins (if (< (- total-width width) 0) ; margins must be >= 0
                       0
-                    (- total-width width)))
+                    (round (/ (- total-width width) remap-scale))))
          (left (if visual-fill-column-center-text
                    (/ margins 2)
                  0))
