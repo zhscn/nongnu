@@ -549,16 +549,18 @@ base toot."
   "Translate text of toot at point.
 Uses `lingva.el'."
   (interactive)
-  (if (not (require 'lingva nil :no-error))
-      (message "Looks like you need to install lingva.el first.")
-    (if mastodon-tl--buffer-spec
-        (if-let ((toot (mastodon-tl--property 'item-json)))
-            (lingva-translate nil
-                              (mastodon-tl--content toot)
-                              (when mastodon-tl--enable-proportional-fonts
-                                t))
-          (message "No toot to translate?"))
-      (message "No mastodon buffer?"))))
+  (if mastodon-tl--buffer-spec
+      (if-let ((toot (mastodon-tl--property 'item-json)))
+          (condition-case x
+              (lingva-translate nil
+                                (mastodon-tl--content toot)
+                                (when mastodon-tl--enable-proportional-fonts
+                                  t))
+            (void-function
+             (message "Looks like you need to install lingva.el. Error: %s"
+                      (error-message-string x))))
+        (message "No toot to translate?"))
+    (message "No mastodon buffer?")))
 
 (defun mastodon-toot--own-toot-p (toot)
   "Check if TOOT is user's own, for deleting, editing, or pinning it."
