@@ -1141,7 +1141,4 @@ fontified using the same face (modulo the number of faces; see
 
 
 (provide 'macrostep)
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
 ;;; macrostep.el ends here
