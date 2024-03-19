@@ -474,25 +474,23 @@ The default value, `macrostep-macro-form-p', is specific to Emacs Lisp.")
 ;;; Define keymap and minor mode
 (define-obsolete-variable-alias 'macrostep-mode-keymap 'macrostep-mode-map "2023")
 (define-obsolete-variable-alias 'macrostep-keymap 'macrostep-mode-map "2022")
-(defvar macrostep-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") #'macrostep-expand)
-    (define-key map "=" #'macrostep-expand)
-    (define-key map "e" #'macrostep-expand)
+(defvar-keymap macrostep-mode-map
+  :doc "Keymap for `macrostep-mode'."
+  "RET"     #'macrostep-expand
+  "="       #'macrostep-expand
+  "e"       #'macrostep-expand
 
-    (define-key map (kbd "DEL") #'macrostep-collapse)
-    (define-key map "u" #'macrostep-collapse)
-    (define-key map "c" #'macrostep-collapse)
+  "DEL"     #'macrostep-collapse
+  "u"       #'macrostep-collapse
+  "c"       #'macrostep-collapse
 
-    (define-key map (kbd "TAB") #'macrostep-next-macro)
-    (define-key map "n" #'macrostep-next-macro)
-    (define-key map (kbd "M-TAB") #'macrostep-prev-macro)
-    (define-key map "p" #'macrostep-prev-macro)
-
-    (define-key map "q" #'macrostep-collapse-all)
-    (define-key map (kbd "C-c C-c") #'macrostep-collapse-all)
-    map)
-  "Keymap for `macrostep-mode'.")
+  "TAB"     #'macrostep-next-macro
+  "n"       #'macrostep-next-macro
+  "M-TAB"   #'macrostep-prev-macro
+  "p"       #'macrostep-prev-macro
+  
+  "q"       #'macrostep-collapse-all
+  "C-c C-c" #'macrostep-collapse-all)
 
 ;;;###autoload
 (define-minor-mode macrostep-mode
