@@ -309,31 +309,36 @@ buffer.")
   '((((min-colors 16581375)) :foreground "#8080c0" :box t :bold t)
     (((min-colors 8)) :background "cyan")
     (t :inverse-video t))
-  "Face for gensyms created in the first level of macro expansion.")
+  "Face for gensyms created in the first level of macro expansion."
+  :version "1.0")
 
 (defface macrostep-gensym-2
   '((((min-colors 16581375)) :foreground "#8fbc8f" :box t :bold t)
     (((min-colors 8)) :background "#00cd00")
     (t :inverse-video t))
-  "Face for gensyms created in the second level of macro expansion.")
+  "Face for gensyms created in the second level of macro expansion."
+  :version "1.0")
 
 (defface macrostep-gensym-3
   '((((min-colors 16581375)) :foreground "#daa520" :box t :bold t)
     (((min-colors 8)) :background "yellow")
     (t :inverse-video t))
-  "Face for gensyms created in the third level of macro expansion.")
+  "Face for gensyms created in the third level of macro expansion."
+  :version "1.0")
 
 (defface macrostep-gensym-4
   '((((min-colors 16581375)) :foreground "#cd5c5c" :box t :bold t)
     (((min-colors 8)) :background "red")
     (t :inverse-video t))
-  "Face for gensyms created in the fourth level of macro expansion.")
+  "Face for gensyms created in the fourth level of macro expansion."
+  :version "1.0")
 
 (defface macrostep-gensym-5
   '((((min-colors 16581375)) :foreground "#da70d6" :box t :bold t)
     (((min-colors 8)) :background "magenta")
     (t :inverse-video t))
-  "Face for gensyms created in the fifth level of macro expansion.")
+  "Face for gensyms created in the fifth level of macro expansion."
+  :version "1.0")
 
 (defface macrostep-expansion-highlight-face
   `((((min-colors 16581375) (background light))
@@ -342,23 +347,28 @@ buffer.")
     (((min-colors 16581375) (background dark))
      ,@(and (>= emacs-major-version 27) '(:extend t))
      :background "#222222"))
-  "Face for macro-expansion highlight.")
+  "Face for macro-expansion highlight."
+  :version "1.0")
 
 (defface macrostep-macro-face
   '((t :underline t))
-  "Face for macros in macro-expanded code.")
+  "Face for macros in macro-expanded code."
+  :version "1.0")
 
 (defface macrostep-compiler-macro-face
   '((t :slant italic))
-  "Face for compiler macros in macro-expanded code.")
+  "Face for compiler macros in macro-expanded code."
+  :version "1.0")
 
 (defcustom macrostep-expand-in-separate-buffer nil
   "When non-nil, show expansions in a separate buffer instead of inline."
-  :type 'boolean)
+  :type 'boolean
+  :version "1.0")
 
 (defcustom macrostep-expand-compiler-macros t
   "When non-nil, also expand compiler macros."
-  :type 'boolean)
+  :type 'boolean
+  :version "1.0")
 
 ;; Need the following for making the ring of faces
 (defun macrostep-make-ring (&rest items)
