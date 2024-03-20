@@ -765,8 +765,8 @@ expansion, so that they can be fontified consistently.  (See
       (sexp-at-point)))
 
 (defun macrostep-macro-form-p (form environment)
-  "Return non-nil if FORM would be evaluated via macro expansion;
-as considered within ENVIRONMENT.
+  "Return non-nil if FORM would be evaluated via macro expansion.
+This is considered within ENVIRONMENT.
 
 If FORM is an invocation of a macro defined by `defmacro' or an
 enclosing `cl-macrolet' form, return the symbol `macro'.
