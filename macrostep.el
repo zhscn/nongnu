@@ -265,37 +265,30 @@
 
 
 ;;; Constants and dynamically bound variables
-(defvar macrostep-overlays nil
+(defvar-local macrostep-overlays nil
   "List of all macro stepper overlays in the current buffer.")
-(make-variable-buffer-local 'macrostep-overlays)
 
-(defvar macrostep-gensym-depth nil
+(defvar-local macrostep-gensym-depth nil
   "Number of macro expansion levels that have introduced gensyms so far.")
-(make-variable-buffer-local 'macrostep-gensym-depth)
 
-(defvar macrostep-gensyms-this-level nil
+(defvar-local macrostep-gensyms-this-level nil
   "Non-nil if gensyms have been encountered during current level of macro expansion.")
-(make-variable-buffer-local 'macrostep-gensyms-this-level)
 
-(defvar macrostep-saved-undo-list nil
+(defvar-local macrostep-saved-undo-list nil
   "Saved value of `buffer-undo-list' upon entering macrostep mode.")
-(make-variable-buffer-local 'macrostep-saved-undo-list)
 
-(defvar macrostep-saved-read-only nil
+(defvar-local macrostep-saved-read-only nil
   "Saved value of `buffer-read-only' upon entering macrostep mode.")
-(make-variable-buffer-local 'macrostep-saved-read-only)
 
-(defvar macrostep-expansion-buffer nil
+(defvar-local macrostep-expansion-buffer nil
   "Non-nil if the current buffer is a macro-expansion buffer.")
-(make-variable-buffer-local 'macrostep-expansion-buffer)
 
-(defvar macrostep-outer-environment nil
+(defvar-local macrostep-outer-environment nil
   "Outermost macro-expansion environment to use in macro-expansion buffers.
 
 This variable is used to save information about any enclosing
 `cl-macrolet' context when a macro form is expanded in a separate
 buffer.")
-(make-variable-buffer-local 'macrostep-outer-environment)
 
 ;;; Customization options and faces
 (defgroup macrostep nil
