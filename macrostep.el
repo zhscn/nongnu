@@ -1,7 +1,7 @@
 ;;; macrostep.el --- Interactive macro expander  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2015 Jon Oddie
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Jon Oddie <j.j.oddie@gmail.com>
 ;; Url: https://github.com/emacsorphanage/macrostep
