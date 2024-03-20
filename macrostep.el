@@ -631,8 +631,8 @@ If no more macro expansions are visible after this, exit
       (with-silent-modifications
         (atomic-change-group
           (macrostep-collapse-overlay overlay)))))
-  (if (not macrostep-overlays)
-      (macrostep-mode 0)))
+  (unless macrostep-overlays
+    (macrostep-mode 0)))
 
 (defun macrostep-collapse-all ()
   "Collapse all visible macro expansions and exit `macrostep-mode'."
