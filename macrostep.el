@@ -584,14 +584,13 @@ If optional argument TOGGLE-SEPARATE-BUFFER is non-nil (or set
             (macrostep-gensym-depth macrostep-gensym-depth)
             (macrostep-gensyms-this-level nil)
             priority)
-        (if existing-overlay
-            (progn        ; Expanding part of a previous macro-expansion
-              (setq priority (1+ (overlay-get existing-overlay 'priority)))
-              (setq macrostep-gensym-depth
-                    (overlay-get existing-overlay 'macrostep-gensym-depth)))
+        (if existing-overlay  ; Expanding part of a previous macro-expansion
+            (setq priority (1+ (overlay-get existing-overlay 'priority))
+		  macrostep-gensym-depth
+		  (overlay-get existing-overlay 'macrostep-gensym-depth))
           ;; Expanding source buffer text
-          (setq priority 1)
-          (setq macrostep-gensym-depth -1))
+          (setq priority 1
+		macrostep-gensym-depth -1))
 
         (with-silent-modifications
           (atomic-change-group
