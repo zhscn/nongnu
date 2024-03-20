@@ -296,7 +296,7 @@ buffer.")
   :group 'lisp
   :link '(emacs-commentary-link :tag "commentary" "macrostep.el")
   :link '(emacs-library-link :tag "lisp file" "macrostep.el")
-  :link '(url-link :tag "web page" "https://github.com/joddie/macrostep"))
+  :link '(url-link :tag "web page" "https://github.com/emacsorphanage/macrostep"))
 
 (defface macrostep-gensym-1
   '((((min-colors 16581375)) :foreground "#8080c0" :box t :bold t)
