@@ -110,8 +110,8 @@
   :group 'external)
 
 (defcustom mastodon-instance-url "https://mastodon.social"
-  "Base URL for the Mastodon instance you want to be active.
-For example, if your mastodon username is
+  "Base URL for the fediverse instance you want to be active.
+For example, if your username is
 \"example_user@social.instance.org\", and you want this account
 to be active, the value of this variable should be
 \"https://social.instance.org\".
@@ -125,7 +125,7 @@ changes to take effect."
 
 (defcustom mastodon-active-user nil
   "Username of the active user.
-For example, if your mastodon username is
+For example, if your username is
 \"example_user@social.instance.org\", and you want this account
 to be active, the value of this variable should be
 \"example_user\".
@@ -275,7 +275,7 @@ See `mastodon-toot-display-orig-in-reply-buffer'.")
 
 ;;;###autoload
 (defun mastodon ()
-  "Connect Mastodon client to `mastodon-instance-url' instance."
+  "Connect client to `mastodon-instance-url' instance."
   (interactive)
   (let* ((tls (list "home"
                     "local"
@@ -295,7 +295,7 @@ See `mastodon-toot-display-orig-in-reply-buffer'.")
     (if buffer
         (pop-to-buffer buffer '(display-buffer-same-window))
       (mastodon-tl--get-home-timeline)
-      (message "Loading Mastodon account %s on %s..."
+      (message "Loading fediverse account %s on %s..."
                (mastodon-auth--user-acct)
                mastodon-instance-url))))
 
@@ -477,7 +477,7 @@ Calls `mastodon-tl--get-buffer-type', which see."
 (add-hook 'mastodon-mode-hook #'mastodon-mode-hook-fun)
 
 (define-derived-mode mastodon-mode special-mode "Mastodon"
-  "Major mode for Mastodon, the federated microblogging network."
+  "Major mode for fediverse services using the Mastodon API."
   (read-only-mode 1))
 
 (provide 'mastodon)

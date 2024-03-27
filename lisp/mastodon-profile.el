@@ -131,7 +131,7 @@ is updated on entering mastodon mode and on toggle any setting it
 contains")
 
 (define-minor-mode mastodon-profile-update-mode
-  "Minor mode to update Mastodon user profile."
+  "Minor mode to update user profile."
   :group 'mastodon-profile
   :keymap mastodon-profile-update-mode-map
   :global nil)
@@ -790,7 +790,7 @@ If the handle does not match a search return then retun NIL."
       (elt matching-account 0))))
 
 (defun mastodon-profile--account-from-id (user-id)
-  "Request an account object relating to a USER-ID from Mastodon."
+  "Request an account object relating to a USER-ID."
   (mastodon-http--get-json
    (mastodon-http--api (format "accounts/%s" user-id))))
 

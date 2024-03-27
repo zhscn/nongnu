@@ -699,7 +699,7 @@ CANCEL means the toot was not sent, so we save the toot text as a draft."
     (mastodon-toot--restore-previous-window-config prev-window-config)))
 
 (defun mastodon-toot--cancel ()
-  "Kill new-toot buffer/window. Does not POST content to Mastodon.
+  "Kill new-toot buffer/window. Does not POST content.
 If toot is not empty, prompt to save text as a draft."
   (interactive)
   (if (mastodon-toot--empty-p)
@@ -840,7 +840,7 @@ to `emojify-user-emojis', and the emoji data is updated."
 ;;; SEND TOOT FUNCTION
 
 (defun mastodon-toot--send ()
-  "POST contents of new-toot buffer to Mastodon instance and kill buffer.
+  "POST contents of new-toot buffer to fediverse instance and kill buffer.
 If media items have been attached and uploaded with
 `mastodon-toot--attach-media', they are attached to the toot.
 If `mastodon-toot--edit-item-id' is non-nil, PUT contents to
@@ -1953,7 +1953,7 @@ Only text that is not one of these faces will be spell-checked."
 
 
 (define-minor-mode mastodon-toot-mode
-  "Minor mode to capture Mastodon toots."
+  "Minor mode for composing toots."
   :keymap mastodon-toot-mode-map
   :global nil)
 

@@ -216,7 +216,7 @@ respects the user's `browse-url' settings."
 ;;; VARIABLES
 
 (defvar-local mastodon-tl--buffer-spec nil
-  "A unique identifier and functions for each Mastodon buffer.")
+  "A unique identifier and functions for each mastodon buffer.")
 
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
