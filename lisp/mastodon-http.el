@@ -338,18 +338,27 @@ The upload is asynchronous. On succeeding,
 item uploaded, and `mastodon-toot--update-status-fields' is run."
   (let* ((file (file-name-nondirectory filename))
          (request-backend 'curl)
+         (desc `(("description" . ,caption)))
          (cb (cl-function
               (lambda (&key data &allow-other-keys)
                 (when data
-                  (push (alist-get 'id data)
-                        mastodon-toot--media-attachment-ids) ; add ID to list
-                  (message (alist-get 'id data))
-                  (message "Uploading %s... (done)" file)
-                  (mastodon-toot--update-status-fields))))))
+                  (let* ((id (alist-get 'id data)))
+                    ;; update ids:
+                    (push id mastodon-toot--media-attachment-ids)
+                    ;; pleroma, PUT the description:
+                    ;; this is how the mangane akkoma web client does it
+                    ;; and it seems easier than the other options!
+                    (when (and caption
+                               (not (equal caption (alist-get 'description data))))
+                      (let ((url (mastodon-http--api (format "media/%s" id))))
+                        ;; (message "PUTting image description")
+                        (mastodon-http--put url desc)))
+                    (message "Uploading %s... (done)" file)
+                    (mastodon-toot--update-status-fields)))))))
     (request
       url
       :type "POST"
-      :params `(("description" . ,caption))
+      :params desc
       :files `(("file" . (,file :file ,filename
                                 :mime-type "multipart/form-data")))
       :parser 'json-read

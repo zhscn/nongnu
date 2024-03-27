@@ -216,7 +216,7 @@ respects the user's `browse-url' settings."
 ;;; VARIABLES
 
 (defvar-local mastodon-tl--buffer-spec nil
-  "A unique identifier and functions for each Mastodon buffer.")
+  "A unique identifier and functions for each mastodon buffer.")
 
 (defvar-local mastodon-tl--update-point nil
   "When updating a mastodon buffer this is where new toots will be inserted.
@@ -1149,11 +1149,10 @@ SENSITIVE is a flag from the item's JSON data."
               (goto-char (point-min))
               (zlib-decompress-region
                (goto-char (search-forward "\n\n")) (point-max))
-              (mastodon-media--process-full-sized-image-response
-               nil nil url))
+              (mastodon-media--process-full-sized-image-response nil url))
           ;; else fetch and load:
           (url-retrieve url #'mastodon-media--process-full-sized-image-response
-                        (list nil url)))))))
+                        `(,url)))))))
 
 
 ;; POLLS
@@ -1366,7 +1365,11 @@ in which case play first video or gif from current toot."
         (if (mastodon-tl--media-video-p type)
             (progn
               (message "'q' to kill mpv.")
-              (mpv-start "--loop" url))
+              (condition-case x
+                  (mpv-start "--loop" url)
+                (void-function
+                 (message "Looks like mpv.el not installed. Error: %s"
+                          (error-message-string x)))))
           (message "no moving image here?"))
       (message "no moving image here?"))))
 
@@ -1716,7 +1719,9 @@ call this function after it is set or use something else."
           ((mastodon-tl--endpoint-str-= "instance")
            'instance-description)
           ((string= "*mastodon-toot-edits*" buffer-name)
-           'toot-edits))))
+           'toot-edits)
+          ((string= "*masto-image*" (buffer-name))
+           'mastodon-image))))
 
 (defun mastodon-tl--buffer-type-eq (type)
   "Return t if current buffer type is equal to symbol TYPE."

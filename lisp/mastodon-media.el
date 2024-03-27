@@ -34,6 +34,7 @@
 
 ;;; Code:
 (require 'url-cache)
+(require 'mm-decode)
 
 (autoload 'mastodon-tl--propertize-img-str-or-url "mastodon-tl")
 
@@ -177,44 +178,33 @@ with the image."
               (set-marker marker nil)))
           (kill-buffer url-buffer))))))
 
-(defun mastodon-media--process-full-sized-image-response
-    (status-plist image-options url)
+(defun mastodon-media--process-full-sized-image-response (status-plist url)
   ;; FIXME: refactor this with but not into
   ;; `mastodon-media--process-image-response'.
   "Callback function processing the `url-retrieve' response for URL.
 URL is a full-sized image URL attached to a timeline image.
-STATUS-PLIST is a plist of status events as per `url-retrieve'.
-IMAGE-OPTIONS are the precomputed options to apply to the image."
-  (let ((url-buffer (current-buffer))
-        (is-error-response-p (eq :error (car status-plist))))
-    (let* ((data (unless is-error-response-p
-                   (goto-char (point-min))
-                   (search-forward "\n\n")
-                   (buffer-substring (point) (point-max))))
-           (image (when data
-                    (apply #'create-image data
-                           (if (version< emacs-version "27.1")
-                               (when image-options 'imagemagick)
-                             nil) ; inbuilt scaling in 27.1
-                           t nil))))
-      (when mastodon-media--enable-image-caching
-        (unless (url-is-cached url) ;; cache if not already cached
-          (url-store-in-cache url-buffer)))
+STATUS-PLIST is a plist of status events as per `url-retrieve'."
+  (if-let (error-response (plist-get status-plist :error))
+      (message "error in loading image: %S" error-response)
+    (when mastodon-media--enable-image-caching
+      (unless (url-is-cached url) ;; cache if not already cached
+        (url-store-in-cache)))
+    ;; thanks to rahguzar for this idea:
+    ;; https://codeberg.org/martianh/mastodon.el/issues/540
+    (let* ((handle (mm-dissect-buffer t))
+           (image (mm-get-image handle))
+           (str (image-property image :data)))
+      ;; (setf (image-property image :max-width)
+      ;; (window-pixel-width))
       (with-current-buffer (get-buffer-create "*masto-image*")
         (let ((inhibit-read-only t))
           (erase-buffer)
-          (insert " ")
-          (when image
-            (add-text-properties (point-min) (point-max)
-                                 `( display ,image
-                                    keymap ,(if (boundp 'shr-image-map)
-                                                shr-image-map
-                                              shr-map)
-                                    image-url ,url
-                                    shr-url ,url))
-            (image-mode)
-            (goto-char (point-min))
-            (switch-to-buffer-other-window (current-buffer))))))))
+          (insert-image image str)
+          (special-mode) ; prevent image-mode loop bug
+          (image-mode)
+          (goto-char (point-min))
+          (switch-to-buffer-other-window (current-buffer))
+          (image-transform-fit-both))))))
 
 (defun mastodon-media--load-image-from-url (url media-type start region-length)
   "Take a URL and MEDIA-TYPE and load the image asynchronously.
