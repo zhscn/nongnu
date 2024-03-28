@@ -362,17 +362,10 @@ buffer.")
   :type 'boolean
   :version "1.0")
 
-;; Need the following for making the ring of faces
-(defun macrostep-make-ring (&rest items)
-  "Make a ring containing all of ITEMS with no empty slots."
-  (let ((ring (make-ring (length items))))
-    (mapc (lambda (item) (ring-insert ring item)) (reverse items))
-    ring))
-
 (defvar macrostep-gensym-faces
-  (macrostep-make-ring
-   'macrostep-gensym-1 'macrostep-gensym-2 'macrostep-gensym-3
-   'macrostep-gensym-4 'macrostep-gensym-5)
+  (ring-convert-sequence-to-ring
+   (list 'macrostep-gensym-1 'macrostep-gensym-2 'macrostep-gensym-3
+	 'macrostep-gensym-4 'macrostep-gensym-5))
   "Ring of all macrostepper faces for fontifying gensyms.")
 
 ;; Other modes can enable macrostep by redefining these functions to
