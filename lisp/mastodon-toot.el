@@ -459,7 +459,7 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
   (interactive)
   (mastodon-tl--do-if-item-strict
    (let* ((id (mastodon-tl--property 'base-item-id))
-          (bookmarked-p (mastodon-tl--property 'bookmarked-p))
+          (bookmarked-p (mastodon-tl--property 'bookmarked-p :no-move))
           (byline-region (when id
                            (mastodon-tl--find-property-range 'byline (point))))
           (action (if bookmarked-p "unbookmark" "bookmark"))

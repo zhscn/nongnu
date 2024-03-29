@@ -1803,6 +1803,8 @@ Move forward (down) the timeline unless NO-MOVE is non-nil.
 BACKWARD means move backward (up) the timeline."
   (if no-move
       (get-text-property (point) prop)
+    ;; NB: this doesn't differentiate absence of property from
+    ;; property set to zero, making flag props fraught:
     (or (get-text-property (point) prop)
         (save-excursion
           (if backward
