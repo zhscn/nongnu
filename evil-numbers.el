@@ -8,6 +8,7 @@
 ;; Contributors: Matthew Fidler <matthew.fidler@gmail.com>
 ;;               Michael Markert <markert.michael@gmail.com>
 ;;               Julia Path <julia@jpath.de>
+;;               Campbell Barton <ideasman42@gmail.com>
 ;; URL: http://github.com/juliapath/evil-numbers
 ;; Git-Repository: git://github.com/juliapath/evil-numbers.git
 ;; Created: 2011-09-02
