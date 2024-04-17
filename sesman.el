@@ -625,7 +625,8 @@ types to consider. Defaults to the list returned from `sesman-context-types'."
   "Get the most relevant current session for the SYSTEM.
 CXT-TYPES is a list of context types to consider."
   (or (car (sesman--linked-sessions system 'sort cxt-types))
-      (car (sesman--friendly-sessions system 'sort))))
+      (when sesman-use-friendly-sessions
+        (car (sesman--friendly-sessions system 'sort)))))
 
 (defun sesman-ensure-session (system &optional cxt-types)
   "Get the most relevant linked session for SYSTEM or throw if none exists.
