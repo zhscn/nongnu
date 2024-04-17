@@ -448,8 +448,22 @@ Moe, moe, kyun!")
    `(diredp-exec-priv ((,class (:foreground ,red-3 :background ,orange-0))))
 
    ;; Transient (Mainly used in Magit)
-   `(transient-argument ((,class (:foreground ,orange-3 :background ,orange-000 :bold t))))
+   `(transient-argument ((,class (:foreground ,orange-3 :background ,orange-000 :weight bold))))
+   `(transient-inactive-argument ((,class (:foreground ,white-2 :background unspecified :weight bold))))
+   `(transient-value ((,class (:foreground ,magenta-3 :background ,magenta-00 :weight bold))))
+   `(transient-inactive-value ((,class (:foreground ,white-2 :background unspecified :weight bold))))
    `(transient-heading ((,class (:foreground ,green-3 :background unspecified :underline t))))
+   `(transient-higher-level ((,class (:foreground ,black-6 :background unspecified :underline t))))
+   `(transient-key ((,class (:foreground ,purple-2 :background unspecified :weight bold))))
+   `(transient-key-exit ((,class (:foreground ,blue-2 :background unspecified :weight bold))))
+   `(transient-key-stay ((,class (:foreground ,orange-2 :background unspecified :weight bold))))
+   `(transient-key-return ((,class (:foreground ,green-2 :background unspecified :weight bold))))
+   `(transient-unreachable ((,class (:foreground ,white-4 :background unspecified :strike-through t))))
+   `(transient-unreachable-key ((,class (:foreground ,white-4 :background unspecified :strike-through t))))
+   `(transient-inapt-suffix ((,class (:foreground ,white-4 :background unspecified :strike-through t :slant italic))))
+   `(transient-mismatched-key ((,class (:foreground unspecified :background unspecified :box (:line-width (1 . 1) :color ,magenta-3)))))
+   `(transient-nonstandard-key ((,class (:foreground unspecified :background unspecified :box (:line-width (1 . 1) :color ,cyan-1)))))
+
 
    ;; Magit >= 2.1.0
    `(magit-bisect-bad ((,class (:foreground ,red-3 :background ,red-00))))
