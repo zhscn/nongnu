@@ -10,7 +10,7 @@
 ;; Created: 2008-05-13
 ;; Keywords: convenience
 ;; EmacsWiki: IdleHighlight
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1"))
 
 ;;; Commentary:
 
@@ -39,22 +39,6 @@
 ;; Require Dependencies
 
 (require 'thingatpt)
-
-
-;; ---------------------------------------------------------------------------
-;; Compatibility
-
-(when (and (version< emacs-version "29.1") (not (and (fboundp 'pos-bol) (fboundp 'pos-eol))))
-  (defun pos-bol (&optional n)
-    "Return the position at the line beginning."
-    (declare (side-effect-free t))
-    (let ((inhibit-field-text-motion t))
-      (line-beginning-position n)))
-  (defun pos-eol (&optional n)
-    "Return the position at the line end."
-    (declare (side-effect-free t))
-    (let ((inhibit-field-text-motion t))
-      (line-end-position n))))
 
 
 ;; ---------------------------------------------------------------------------
