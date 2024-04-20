@@ -149,9 +149,9 @@ Where RANGES is an unordered list of (min . max) cons cells."
    ((cdr ranges)
     ;; Simple < sorting of cons cells.
     (setq ranges
-          (sort
-           ranges
-           (lambda (x y) (or (< (car x) (car y)) (and (= (car x) (car y)) (< (cdr x) (cdr y)))))))
+          (sort ranges
+                (lambda (x y)
+                  (or (< (car x) (car y)) (and (= (car x) (car y)) (< (cdr x) (cdr y)))))))
     ;; Step over `ranges', de-duplicating & adjusting elements as needed.
     (let ((ranges-iter ranges)
           (ranges-next (cdr ranges)))
