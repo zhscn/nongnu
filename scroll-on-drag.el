@@ -94,6 +94,7 @@ while scrolling, as a complex mode-line can interfere with smooth scrolling."
 Argument WINDOW The window to scroll.
 Argument LINES The number of lines to scroll (signed).
 Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
+  (declare (important-return-value nil))
   (let ((lines-remainder 0))
     (when also-move-point
       (let ((lines-point-remainder (forward-line lines)))
@@ -119,6 +120,7 @@ Argument WINDOW The window to scroll.
 Argument CHAR-HEIGHT The result of `frame-char-height'.
 Argument DELTA-PX The number of pixels to scroll (signed).
 Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
+  (declare (important-return-value nil))
   (cond
    ((< delta-px 0)
     (let* ((scroll-px-prev (- char-height (window-vscroll nil t))) ; flip.
@@ -164,6 +166,7 @@ Argument ALSO-MOVE-POINT When non-nil, move the POINT as well."
 
 (defun scroll-on-drag--evil-visual-line-data ()
   "Return data associated with visual line mode or nil when none is found."
+  (declare (important-return-value t))
   ;; The checks are written so as not to require evil mode as a dependency.
   (when (and (fboundp 'evil-visual-state-p)
              (funcall #'evil-visual-state-p)
@@ -192,6 +195,7 @@ VISUAL-LINE-DATA is the result of `scroll-on-drag--evil-visual-line-data'."
 (defun scroll-on-drag--goal-column-setup ()
   "Initialize `goal-column'.
 The result should be passed to `scroll-on-drag--goal-column-restore'."
+  (declare (important-return-value t))
   (cons
    (current-column)
    (or goal-column
@@ -208,6 +212,7 @@ The result should be passed to `scroll-on-drag--goal-column-restore'."
 
 (defun scroll-on-drag--goal-column-restore (data)
   "Restore the goal column from DATA."
+  (declare (important-return-value nil))
   (pcase-let ((`(,this-column . ,restore-column) data))
     (unless restore-column
       (setq temporary-goal-column this-column)
@@ -224,6 +229,7 @@ The result should be passed to `scroll-on-drag--goal-column-restore'."
 (defun scroll-on-drag--impl ()
   "Interactively scroll (typically on click event).
 Returns true when scrolling took place, otherwise nil."
+  (declare (important-return-value t))
   (let* ((scroll-timer nil)
 
          ; Don't run unnecessary logic when scrolling.
@@ -490,6 +496,7 @@ Returns true when scrolling took place, otherwise nil."
 (defun scroll-on-drag--impl-with-evil-mode-workaround ()
   "Workaround for evil mode visual line selection.
 This requires a separate code path to run pre/post logic."
+  (declare (important-return-value nil))
   (let ((visual-line-data (scroll-on-drag--evil-visual-line-data)))
     (cond
      (visual-line-data
@@ -507,6 +514,7 @@ This requires a separate code path to run pre/post logic."
 
 (defun scroll-on-drag--impl-with-mode-line-format ()
   "Call `mode-line-format' with mode-line override."
+  (declare (important-return-value nil))
 
   (cond
    (scroll-on-drag-mode-line-format
@@ -518,6 +526,7 @@ This requires a separate code path to run pre/post logic."
 
 (defun scroll-on-drag--impl-with-window (scroll-win)
   "Scroll on drag function that takes an optional SCROLL-WIN."
+  (declare (important-return-value nil))
   (cond
    (scroll-win
     (with-selected-window scroll-win
@@ -530,6 +539,7 @@ This requires a separate code path to run pre/post logic."
 
 EVENT is optionally used to find the active window
 when `scroll-on-drag-follow-mouse' is non-nil."
+  (declare (important-return-value nil))
   (interactive "e")
   (let ((scroll-win nil))
     (when scroll-on-drag-follow-mouse
