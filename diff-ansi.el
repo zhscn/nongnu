@@ -215,6 +215,7 @@ Additional keyword arguments may also be passed in.
 - t: output is returned as a string.
 - string: output is written to file-name.
 - buffer: output is written to the buffer."
+  (declare (important-return-value nil))
   (let ((is-first t)
 
         ;; Keywords.
@@ -370,6 +371,7 @@ Optional keywords in KEYWORDS.
 
 `:progress-message' STRING
   When set, show progress percentage."
+  (declare (important-return-value nil))
   ;; Keyword arguments.
   (let ((idle nil)
         (jobs nil)
@@ -544,6 +546,7 @@ Optional keywords in KEYWORDS.
 
 (defun diff-ansi--face-attr-to-hex-literal (face attr)
   "Return the HEX color from FACE and ATTR."
+  (declare (important-return-value t))
   (apply #'format
          (cons
           "#%02x%02x%02x"
@@ -558,6 +561,7 @@ Optional keywords in KEYWORDS.
 
 (defun diff-ansi--ansi-color-apply-on-region-with-bg (beg end)
   "Wrapper function for `ansi-color-apply-on-region', applying color in (BEG END)."
+  (declare (important-return-value nil))
   (setq diff-ansi--ansi-color-bg
         (list
          :background (diff-ansi--face-attr-to-hex-literal 'diff-ansi-default-face :background)
@@ -566,6 +570,7 @@ Optional keywords in KEYWORDS.
 
 (defun diff-ansi--ansi-color-apply-on-region-with-bg-str (black-color)
   "Create string that can be passed to a sub-process using BLACK-COLOR."
+  (declare (important-return-value t))
   (format "(progn %s %s %s %s %s)"
           "(require 'ansi-color)"
           (format "(defconst diff-ansi--ansi-color-bg (list :background \"%s\" :extend t))"
@@ -580,6 +585,7 @@ Optional keywords in KEYWORDS.
 
 (defun diff-ansi--command-preset-impl ()
   "Return the command to run delta."
+  (declare (important-return-value t))
   (pcase diff-ansi-tool
     ('delta
      (append
@@ -603,6 +609,7 @@ Optional keywords in KEYWORDS.
 (defun diff-ansi--immediate-impl (beg end &optional target-buf)
   "Colorize the text between BEG and END immediately.
 Store the result in TARGET-BUF when non-nil."
+  (declare (important-return-value nil))
   (let ((diff-command (diff-ansi--command-preset-impl))
         (diff-str (buffer-substring-no-properties beg end)))
 
@@ -624,12 +631,14 @@ Store the result in TARGET-BUF when non-nil."
 
 (defun diff-ansi--ansi-color-timer-cancel ()
   "Cancel the timer."
+  (declare (important-return-value nil))
   (cancel-timer diff-ansi--ansi-color-timer)
   (setq diff-ansi--ansi-color-timer nil))
 
 (defun diff-ansi-progressive-highlight-impl (buf beg range timer)
   "Callback to update colors for BUF in RANGE for TIMER.
 Argument BEG is only used to calculate the progress percentage."
+  (declare (important-return-value nil))
   (cond
    ((not (buffer-live-p buf))
     ;; The buffer was closed (most likely by the user) while the timer was running,  cancel it.
@@ -689,6 +698,7 @@ Argument BEG is only used to calculate the progress percentage."
 (defun diff-ansi--progressive-impl (beg end &optional target-buf)
   "Colorize the text between BEG and END using a timer.
 Store the result in TARGET-BUF when non-nil."
+  (declare (important-return-value nil))
   (let ((diff-command (diff-ansi--command-preset-impl))
         (diff-str (buffer-substring-no-properties beg end)))
 
@@ -721,6 +731,7 @@ Store the result in TARGET-BUF when non-nil."
 (defun diff-ansi--multiprocess-impl (beg end &optional target-buf)
   "Colorize the text between BEG and END using multiple processes.
 Store the result in TARGET-BUF when non-nil."
+  (declare (important-return-value nil))
   (let ((diff-command (diff-ansi--command-preset-impl))
         (diff-str (buffer-substring-no-properties beg end))
         (per-chunk-args nil))
@@ -778,6 +789,7 @@ Store the result in TARGET-BUF when non-nil."
   "Internal function use to advise using `diff-ansi-advice-add'.
 
 This calls OLD-FN with ARGS."
+  (declare (important-return-value nil))
   (let ((point-begin (point)))
     (diff-ansi--with-advice #'magit-wash-sequence :override (lambda (&rest _) nil)
 
@@ -789,6 +801,7 @@ This calls OLD-FN with ARGS."
 
 (defun diff-ansi--enable ()
   "Enable the buffer local minor mode."
+  (declare (important-return-value nil))
   (when diff-ansi-use-magit-revision-diff
     (require 'magit-diff)
     (advice-add
@@ -797,6 +810,7 @@ This calls OLD-FN with ARGS."
 
 (defun diff-ansi--disable ()
   "Disable the buffer local minor mode."
+  (declare (important-return-value nil))
   (when diff-ansi-use-magit-revision-diff
     (require 'magit-diff)
     (advice-remove 'magit-insert-revision-diff #'diff-ansi--magit-insert-revision-diff-advice-fn)))
@@ -820,6 +834,7 @@ Optional keywords in ARGS.
   an exact match for the current line).
 
 Return the buffer used to write data into on success."
+  (declare (important-return-value nil))
 
   ;; Keyword arguments.
   (let ((create-buffer nil)
@@ -929,6 +944,7 @@ Return the buffer used to write data into on success."
 ;;;###autoload
 (defun diff-ansi-buffer ()
   "Create an ANSI-diff buffer from the existing plain-diff buffer."
+  (declare (important-return-value nil))
   (interactive)
   (let ((buf (diff-ansi-region (point-min) (point-max) :create-buffer t :preserve-point t)))
     (switch-to-buffer buf)))
