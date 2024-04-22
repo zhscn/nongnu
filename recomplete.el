@@ -127,6 +127,7 @@ When undo is disabled this behaves like `progn'."
 
 (defun recomplete--rotate-list-by-elt-and-remove (seq elt)
   "Split SEQ at ELT, removing it, so the elements after it are positioned first."
+  (declare (important-return-value t))
   (let ((p (seq-position seq elt)))
     (cond
      ((null p)
@@ -138,6 +139,7 @@ When undo is disabled this behaves like `progn'."
 
 (defun recomplete--rotate-list-by-elt (seq elt)
   "Split SEQ at ELT, so the elements after it are positioned first."
+  (declare (important-return-value t))
   (let ((p (seq-position seq elt)))
     (cond
      ((null p)
@@ -150,6 +152,7 @@ When undo is disabled this behaves like `progn'."
   "Get the next undo step in LIST.
 
 Argument LIST compatible list `buffer-undo-list'."
+  (declare (important-return-value t))
   (while (car list)
     (setq list (cdr list)))
   (while (and list (null (car list)))
@@ -163,6 +166,7 @@ Argument LIST compatible list `buffer-undo-list'."
 ;; Since this stores undo-data, we only want to keep the information between successive calls.
 (defun recomplete--alist-clear-hook ()
   "Clear internal `recomplete' data after running an incompatible function."
+  (declare (important-return-value nil))
 
   ;; Should always be true, harmless if it's not.
   (cond
@@ -200,6 +204,7 @@ Argument LIST compatible list `buffer-undo-list'."
 (defun recomplete-impl-ispell (cycle-index fn-cache)
   "Run `ispell-word', using the choice at CYCLE-INDEX.
 Argument FN-CACHE stores the result for reuse."
+  (declare (important-return-value t))
   (pcase-let ((`(,result-choices ,word-beg ,word-end) (or fn-cache '(nil nil nil))))
 
     (unless result-choices
@@ -230,6 +235,7 @@ Argument FN-CACHE stores the result for reuse."
 (defun recomplete-impl-case-style (cycle-index fn-cache)
   "Cycle case styles using the choice at CYCLE-INDEX.
 Argument FN-CACHE stores the result for reuse."
+  (declare (important-return-value t))
   (pcase-let ((`(,result-choices ,word-beg ,word-end) (or fn-cache '(nil nil nil))))
 
     (unless result-choices
@@ -304,6 +310,7 @@ Argument FN-CACHE stores the result for reuse."
 (defun recomplete-impl-case-style-symbol (cycle-index fn-cache)
   "Cycle case styles using the choice at CYCLE-INDEX.
 Argument FN-CACHE stores the result for reuse."
+  (declare (important-return-value t))
   (pcase-let ((`(,result-choices ,word-beg ,word-end) (or fn-cache '(nil nil nil))))
 
     (unless result-choices
@@ -381,6 +388,7 @@ Argument FN-CACHE stores the result for reuse."
 (defun recomplete-impl-dabbrev (cycle-index fn-cache)
   "Cycle case styles using the choice at CYCLE-INDEX.
 Argument FN-CACHE stores the result for reuse."
+  (declare (important-return-value t))
   (pcase-let ((`(,result-choices ,word-beg ,word-end) (or fn-cache '(nil nil nil))))
 
     ;; Call `dabbrev' when not cached.
@@ -426,6 +434,7 @@ Argument FN-CACHE stores the result for reuse."
 (defun recomplete-replace-in-region (str beg end)
   "Utility to replace region from BEG to END with STR.
 Return the region replaced."
+  (declare (important-return-value nil))
   (let ((len (length str))
         (i-beg nil)
         (i-end nil)
@@ -484,6 +493,7 @@ Optional argument CYCLE-INDEX-INIT The initial index to use,
 defaulting to zero (which makes sense for corrections) you may wish to set
 the value to 1 when the current symbol is included in the list (so as to
 step onto the next item)."
+  (declare (important-return-value nil))
 
   ;; Default to 1 (one step forward).
   (setq cycle-offset (or cycle-offset 1))
@@ -679,6 +689,7 @@ step onto the next item)."
 (defun recomplete-ispell-word (arg)
   "Run `ispell-word', using the first suggestion, or cycle forward.
 ARG is the offset to cycle, default is 1, -1 to cycle backwards."
+  (declare (important-return-value nil))
   (interactive "p")
   (recomplete-with-callback 'recomplete-impl-ispell arg))
 
@@ -687,6 +698,7 @@ ARG is the offset to cycle, default is 1, -1 to cycle backwards."
 (defun recomplete-case-style (arg)
   "Cycles over common case-styles.
 ARG is the offset to cycle, default is 1, -1 to cycle backwards."
+  (declare (important-return-value nil))
   (interactive "p")
   (recomplete-with-callback 'recomplete-impl-case-style arg))
 
@@ -695,6 +707,7 @@ ARG is the offset to cycle, default is 1, -1 to cycle backwards."
 (defun recomplete-case-style-symbol (arg)
   "Cycles over common case-styles.
 ARG is the offset to cycle, default is 1, -1 to cycle backwards."
+  (declare (important-return-value nil))
   (interactive "p")
   (recomplete-with-callback 'recomplete-impl-case-style-symbol arg))
 
@@ -703,6 +716,7 @@ ARG is the offset to cycle, default is 1, -1 to cycle backwards."
 (defun recomplete-dabbrev (arg)
   "Run `dabbrev', using the first suggestion, or cycle forward.
 ARG is the offset to cycle, default is 1, -1 to cycle backwards."
+  (declare (important-return-value nil))
   (interactive "p")
   (recomplete-with-callback 'recomplete-impl-dabbrev arg))
 
