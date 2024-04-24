@@ -1434,7 +1434,8 @@ THREAD means the status will be displayed in a thread view."
          (reply-to-id (alist-get 'in_reply_to_id toot))
          (after-reply-status-p
           (when (and thread reply-to-id)
-            (mastodon-tl--after-reply-status reply-to-id))))
+            (mastodon-tl--after-reply-status reply-to-id)))
+         (type (alist-get 'type toot)))
     (insert
      (propertize
       (concat
@@ -1461,7 +1462,8 @@ THREAD means the status will be displayed in a thread view."
                          toot)) ; else normal toot with reblog check
       'item-json    toot
       'base-toot    base-toot
-      'cursor-face 'mastodon-cursor-highlight-face)
+      'cursor-face 'mastodon-cursor-highlight-face
+      'notification-type type)
      "\n")
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
