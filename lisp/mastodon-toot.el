@@ -459,7 +459,14 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
   (interactive)
   (mastodon-tl--do-if-item-strict
    (let* ((id (mastodon-tl--property 'base-item-id))
-          (bookmarked-p (mastodon-tl--property 'bookmarked-p :no-move))
+          (bookmarked-p
+           (mastodon-tl--property
+            'bookmarked-p
+            (if (mastodon-tl--property 'byline :no-move)
+                ;; no move if not in byline, the idea being if in body, we do
+                ;; move forward to byline to toggle correctly.
+                ;; alternatively we could bookmarked-p whole posts.
+                :no-move)))
           (byline-region (when id
                            (mastodon-tl--find-property-range 'byline (point))))
           (action (if bookmarked-p "unbookmark" "bookmark"))
