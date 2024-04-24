@@ -37,6 +37,7 @@
 (require 'cl-lib)
 (require 'persist)
 (require 'parse-time)
+(require 'mastodon-http)
 (eval-when-compile
   (require 'mastodon-tl))
 
