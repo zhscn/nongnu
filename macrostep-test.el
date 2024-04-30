@@ -1,7 +1,7 @@
 ;;; macrostep-test.el --- tests for macrostep.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2014-2015 Jon Oddie <j.j.oddie@gmail.com>
-;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Jon Oddie <j.j.oddie@gmail.com>
 ;; Url: https://github.com/emacsorphanage/macrostep
