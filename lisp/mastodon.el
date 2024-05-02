@@ -370,8 +370,8 @@ If a status or account is found, load it in `mastodon.el', if
 not, just browse the URL in the normal fashion."
   (interactive)
   (let* ((query (or query-url
-                    (thing-at-point-url-at-point)
                     (mastodon-tl--property 'shr-url :no-move)
+                    (thing-at-point-url-at-point)
                     (read-string "Lookup URL: "))))
     (if (and (not force)
              (not (mastodon--fedi-url-p query)))
