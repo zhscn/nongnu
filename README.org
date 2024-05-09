@@ -200,4 +200,10 @@
    - v0.3, 2012-10-30: print dotted lists correctly. autoload
      definitions.
 
+* Contributions
+
+Please note that as this package will be part of Emacs soon,
+non-trivial code contributions require FSF copyright assignment prior
+to acceptance.
+
 #+OPTIONS: author:nil email:nil toc:nil timestamp:nil
