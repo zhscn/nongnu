@@ -8,7 +8,7 @@
 ;; Keywords: lisp, languages, macro, debugging
 
 ;; Package-Version: 0.9.3
-;; Package-Requires: ((cl-lib "0.5"))
+;; Package-Requires: ((cl-lib "0.5") (compat "29"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -257,6 +257,8 @@
 ;;     definitions.
 
 ;;; Code:
+
+(require 'compat)
 
 (require 'pp)
 (require 'ring)
