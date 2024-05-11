@@ -206,4 +206,10 @@ Please note that as this package will be part of Emacs soon,
 non-trivial code contributions require FSF copyright assignment prior
 to acceptance.
 
+The copyright assigment policy is at
+https://www.fsf.org/licensing/contributor-faq
+
+Any legally significant contributions can only be merged after the
+author has completed their paperwork.
+https://www.gnu.org/prep/maintain/html_node/Legally-Significant.html#Legally-Significant
 #+OPTIONS: author:nil email:nil toc:nil timestamp:nil
