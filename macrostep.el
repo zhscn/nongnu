@@ -4,6 +4,7 @@
 ;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Jon Oddie <j.j.oddie@gmail.com>
+;; Maintainer: Jeremy Bryant <jb@jeremybryant.net>
 ;; Url: https://github.com/emacsorphanage/macrostep
 ;; Keywords: lisp, languages, macro, debugging
 
