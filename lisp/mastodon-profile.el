@@ -142,11 +142,12 @@ contains")
   (mastodon-tl--property 'item-json))
 
 (defun mastodon-profile--make-author-buffer
-    (account &optional no-reblogs no-replies)
+    (account &optional no-reblogs no-replies only-media)
   "Take an ACCOUNT json and insert a user account into a new buffer.
 NO-REBLOGS means do not display boosts in statuses."
   (mastodon-profile--make-profile-buffer-for
-   account "statuses" #'mastodon-tl--timeline no-reblogs nil no-replies))
+   account "statuses" #'mastodon-tl--timeline no-reblogs nil
+   no-replies only-media))
 
 ;; TODO: we shd just load all views' data then switch coz this is slow af:
 (defun mastodon-profile--account-view-cycle ()
@@ -157,6 +158,8 @@ NO-REBLOGS means do not display boosts in statuses."
         ((mastodon-tl--buffer-type-eq 'profile-statuses-no-boosts)
          (mastodon-profile--open-statuses-no-replies))
         ((mastodon-tl--buffer-type-eq 'profile-statuses-no-replies)
+         (mastodon-profile--open-statuses-only-media))
+        ((mastodon-tl--buffer-type-eq 'profile-statuses-only-media)
          (mastodon-profile--open-followers))
         ((mastodon-tl--buffer-type-eq 'profile-followers)
          (mastodon-profile--open-following))
@@ -177,6 +180,14 @@ NO-REBLOGS means do not display boosts in statuses."
   (if mastodon-profile--account
       (mastodon-profile--make-author-buffer
        mastodon-profile--account :no-reblogs)
+    (user-error "Not in a mastodon profile")))
+
+(defun mastodon-profile--open-statuses-only-media ()
+  "Open a profile buffer showing only statuses with media."
+  (interactive)
+  (if mastodon-profile--account
+      (mastodon-profile--make-author-buffer
+       mastodon-profile--account nil nil :only-media)
     (user-error "Not in a mastodon profile")))
 
 (defun mastodon-profile--open-following ()
@@ -567,7 +578,7 @@ FIELDS means provide a fields vector fetched by other means."
 
 (defun mastodon-profile--make-profile-buffer-for
     (account endpoint-type update-function
-             &optional no-reblogs headers no-replies)
+             &optional no-reblogs headers no-replies only-media)
   "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION.
 NO-REBLOGS means do not display boosts in statuses.
 HEADERS means also fetch link headers for pagination."
@@ -577,17 +588,18 @@ HEADERS means also fetch link headers for pagination."
                         (push '("exclude_reblogs" . "t") args))
                        (no-replies
                         (push '("exclude_replies" . "t") args))
+                       (only-media
+                        (push '("only_media" . "t") args))
                        (t
                         args)))
            (endpoint (format "accounts/%s/%s" .id endpoint-type))
            (url (mastodon-http--api endpoint))
            (buffer (concat "*mastodon-" .acct "-"
-                           (cond (no-reblogs
-                                  (concat endpoint-type "-no-boosts"))
-                                 (no-replies
-                                  (concat endpoint-type "-no-replies"))
-                                 (t
-                                  endpoint-type))
+                           (concat endpoint-type
+                                   (cond (no-reblogs "-no-boosts")
+                                         (no-replies "-no-replies")
+                                         (only-media "-only-media")
+                                         (t "")))
                            "*"))
            (response (if headers
                          (mastodon-http--get-response url args)
