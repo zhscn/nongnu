@@ -627,6 +627,8 @@ HEADERS means also fetch link headers for pagination."
                                                    "  TOOTS (no boosts)")
                                                   (no-replies
                                                    "  TOOTS (no replies)")
+                                                  (only-media
+                                                   "  TOOTS (media only)")
                                                   (t
                                                    "    TOOTS    ")))
                                (is-followers "  FOLLOWERS  ")
