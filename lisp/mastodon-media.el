@@ -35,6 +35,7 @@
 ;;; Code:
 (require 'url-cache)
 (require 'mm-decode)
+(require 'image-mode)
 
 (autoload 'mastodon-tl--propertize-img-str-or-url "mastodon-tl")
 

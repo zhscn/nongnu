@@ -1434,7 +1434,8 @@ THREAD means the status will be displayed in a thread view."
          (reply-to-id (alist-get 'in_reply_to_id toot))
          (after-reply-status-p
           (when (and thread reply-to-id)
-            (mastodon-tl--after-reply-status reply-to-id))))
+            (mastodon-tl--after-reply-status reply-to-id)))
+         (type (alist-get 'type toot)))
     (insert
      (propertize
       (concat
@@ -1461,7 +1462,8 @@ THREAD means the status will be displayed in a thread view."
                          toot)) ; else normal toot with reblog check
       'item-json    toot
       'base-toot    base-toot
-      'cursor-face 'mastodon-cursor-highlight-face)
+      'cursor-face 'mastodon-cursor-highlight-face
+      'notification-type type)
      "\n")
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
@@ -1675,6 +1677,8 @@ call this function after it is set or use something else."
              'profile-statuses-no-boosts)
             ((string-suffix-p "no-replies*" buffer-name)
              'profile-statuses-no-replies)
+            ((string-suffix-p "only-media*" buffer-name)
+             'profile-statuses-only-media)
             ((mastodon-tl--endpoint-str-= "statuses" :suffix)
              'profile-statuses)
             ;; profile followers
@@ -1803,6 +1807,8 @@ Move forward (down) the timeline unless NO-MOVE is non-nil.
 BACKWARD means move backward (up) the timeline."
   (if no-move
       (get-text-property (point) prop)
+    ;; NB: this doesn't differentiate absence of property from
+    ;; property set to zero, making flag props fraught:
     (or (get-text-property (point) prop)
         (save-excursion
           (if backward

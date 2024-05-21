@@ -112,18 +112,24 @@ When optional argument ASK is given which should be a string, use
 ASK as the minibuffer prompt.  Return whatever user types in
 response to the prompt.
 When ASK is absent return nil."
-  (if ask
-      (read-string ask)
-    (let ((buffer (get-buffer-create buffer-name))
-          (inhibit-read-only t))
-      (set-buffer buffer)
-      (erase-buffer)
-      (insert notice)
-      (fill-region (point-min) (point-max))
-      (read-only-mode)
-      (prog1 nil
-        (pop-to-buffer buffer '(display-buffer-in-side-window
-                                (side . left) (window-width . 0.5)))))))
+  (let ((buffer (get-buffer-create buffer-name))
+        (inhibit-read-only t)
+        ask-value window)
+    (set-buffer buffer)
+    (erase-buffer)
+    (insert notice)
+    (fill-region (point-min) (point-max))
+    (read-only-mode)
+
+    (setq window (select-window
+                  (split-window (frame-root-window) nil 'below)
+                  t))
+    (switch-to-buffer buffer t)
+    (when ask
+      (setq ask-value (read-string ask))
+      (kill-buffer buffer)
+      (delete-window window))
+    ask-value))
 
 (defun mastodon-auth--request-authorization-code ()
   "Ask authorization code and return it."
