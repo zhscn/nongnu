@@ -97,6 +97,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-profile--account-view-cycle)
     (define-key map (kbd "C-c C-s") #'mastodon-profile--account-search)
+    (define-key map (kbd "C-c #") #'mastodon-profile--open-statuses-tagged)
     map)
   "Keymap for `mastodon-profile-mode'.")
 
@@ -142,12 +143,15 @@ contains")
   (mastodon-tl--property 'item-json))
 
 (defun mastodon-profile--make-author-buffer
-    (account &optional no-reblogs no-replies only-media)
+    (account &optional no-reblogs no-replies only-media tag)
   "Take an ACCOUNT json and insert a user account into a new buffer.
-NO-REBLOGS means do not display boosts in statuses."
+NO-REBLOGS means do not display boosts in statuses.
+NO-REPLIES means to exlude replies.
+ONLY-MEDIA means show only posts containing attachments.
+TAG is a hashtag to restrict posts to."
   (mastodon-profile--make-profile-buffer-for
    account "statuses" #'mastodon-tl--timeline no-reblogs nil
-   no-replies only-media))
+   no-replies only-media tag))
 
 ;; TODO: we shd just load all views' data then switch coz this is slow af:
 (defun mastodon-profile--account-view-cycle ()
@@ -189,6 +193,15 @@ NO-REBLOGS means do not display boosts in statuses."
       (mastodon-profile--make-author-buffer
        mastodon-profile--account nil nil :only-media)
     (user-error "Not in a mastodon profile")))
+
+(defun mastodon-profile--open-statuses-tagged ()
+  "Prompt for a hashtag and display a profile with only statuses containing it."
+  (interactive)
+  (let ((tag (read-string "Statuses containing tag: ")))
+    (if mastodon-profile--account
+        (mastodon-profile--make-author-buffer
+         mastodon-profile--account nil nil nil tag)
+      (user-error "Not in a mastodon profile"))))
 
 (defun mastodon-profile--open-following ()
   "Open a profile buffer showing the accounts that current profile follows."
@@ -578,10 +591,13 @@ FIELDS means provide a fields vector fetched by other means."
 
 (defun mastodon-profile--make-profile-buffer-for
     (account endpoint-type update-function
-             &optional no-reblogs headers no-replies only-media)
+             &optional no-reblogs headers no-replies only-media tag)
   "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION.
 NO-REBLOGS means do not display boosts in statuses.
-HEADERS means also fetch link headers for pagination."
+HEADERS means also fetch link headers for pagination.
+NO-REPLIES means to exlude replies.
+ONLY-MEDIA means show only posts containing attachments.
+TAG is a hashtag to restrict posts to."
   (let-alist account
     (let* ((args `(("limit" . ,mastodon-tl--timeline-posts-count)))
            (args (cond (no-reblogs
@@ -590,6 +606,8 @@ HEADERS means also fetch link headers for pagination."
                         (push '("exclude_replies" . "t") args))
                        (only-media
                         (push '("only_media" . "t") args))
+                       (tag
+                        (push `("tagged" . ,tag) args))
                        (t
                         args)))
            (endpoint (format "accounts/%s/%s" .id endpoint-type))
@@ -599,6 +617,7 @@ HEADERS means also fetch link headers for pagination."
                                    (cond (no-reblogs "-no-boosts")
                                          (no-replies "-no-replies")
                                          (only-media "-only-media")
+                                         (tag (format "-tagged-%s" tag))
                                          (t "")))
                            "*"))
            (response (if headers
@@ -629,6 +648,8 @@ HEADERS means also fetch link headers for pagination."
                                                    "  TOOTS (no replies)")
                                                   (only-media
                                                    "  TOOTS (media only)")
+                                                  (tag
+                                                   (format "  TOOTS (containing #%s)" tag))
                                                   (t
                                                    "    TOOTS    ")))
                                (is-followers "  FOLLOWERS  ")
@@ -707,7 +728,7 @@ HEADERS means also fetch link headers for pagination."
           ;; "\\[mastodon-profile--account-view-cycle]" ; not always bound?
           "\\`C-c C-c' to cycle profile views: toots, no replies, no boosts,\
  only media, followers, following.
-\\`C-c C-s' to search user's toots."))))))
+\\`C-c C-s' to search user's toots, \\`C-c \#' to search user's posts for a hashtag."))))))
 
 (defun mastodon-profile--format-joined-date-string (joined)
   "Format a human-readable Joined string from timestamp JOINED.
