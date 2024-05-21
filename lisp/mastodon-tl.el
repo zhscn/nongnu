@@ -1679,6 +1679,8 @@ call this function after it is set or use something else."
              'profile-statuses-no-replies)
             ((string-suffix-p "only-media*" buffer-name)
              'profile-statuses-only-media)
+            ((string-match-p "-tagged-" buffer-name)
+             'profile-statuses-tagged)
             ((mastodon-tl--endpoint-str-= "statuses" :suffix)
              'profile-statuses)
             ;; profile followers
