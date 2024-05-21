@@ -704,7 +704,7 @@ HEADERS means also fetch link headers for pagination."
          (substitute-command-keys
           ;; "\\[mastodon-profile--account-view-cycle]" ; not always bound?
           "\\`C-c C-c' to cycle profile views: toots, no replies, no boosts,\
- followers, following.
+ only media, followers, following.
 \\`C-c C-s' to search user's toots."))))))
 
 (defun mastodon-profile--format-joined-date-string (joined)
