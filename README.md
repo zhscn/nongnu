@@ -33,6 +33,10 @@ should get it installed, and this is the recommended method.
 
 ## From source
 
+Geiser and Geiser-STklos are developed in Gitlab:
+* [Geiser](https://gitlab.com/emacs-geiser/geiser)
+* [Geiser-STklos](https://gitlab.com/emacs-geiser/stklos/-/issues)
+
 There are other ways to install Geiser and Geiser-STklos. One possibility is
 to add this to your Emacs configuration (Guile is used here as an example
 of another supported implementation, used along with Geiser-STklos):
@@ -71,7 +75,7 @@ STklos, load geiser on it, and feed it some forms before starting the tests.
 
 # Bugs
 
-See the issue tracker in Gitlab.
+See the issue [tracker in Gitlab](https://gitlab.com/emacs-geiser/stklos/-/issues).
 
 IMPORTANT: when writing STklos keywords, use the sharp sign (`:#a` instead of `:a`),
 otherwise Geiser will treat is as a symbol (`|:a|`), not a keyword.
