@@ -1141,7 +1141,7 @@ arg, a candidate."
   (cadr (assoc candidate mastodon-toot-completions)))
 
 (defun mastodon-toot--emoji-annotation-fun (candidate)
-  "."
+  "CANDIDATE."
   ;; TODO: emoji image as annot
   (cdr (assoc candidate mastodon-toot-completions)))
 
