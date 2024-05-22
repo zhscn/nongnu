@@ -186,9 +186,13 @@ Status notifications are given when
 
 (defun mastodon-notifications--format-note (note type)
   "Format for a NOTE of TYPE."
-  (let ((id (alist-get 'id note))
-        (status (mastodon-tl--field 'status note))
-        (follower (alist-get 'username (alist-get 'account note))))
+  (let* ((id (alist-get 'id note))
+         (profile-note (when (equal 'follow-request type)
+                         (mastodon-tl--field
+                          'note
+                          (mastodon-tl--field 'account note))))
+         (status (mastodon-tl--field 'status note))
+         (follower (alist-get 'username (alist-get 'account note))))
     (mastodon-notifications--insert-status
      ;; toot
      (cond ((or (equal type 'follow)
@@ -207,14 +211,22 @@ Status notifications are given when
      (let ((body (mastodon-tl--clean-tabs-and-nl
                   (if (mastodon-tl--has-spoiler status)
                       (mastodon-tl--spoiler status)
-                    (mastodon-tl--content status)))))
+                    (if (equal 'follow-request type)
+                        (mastodon-tl--render-text profile-note)
+                      (mastodon-tl--content status))))))
        (cond ((or (eq type 'follow)
                   (eq type 'follow-request))
-              (propertize (if (equal type 'follow)
-                              "Congratulations, you have a new follower!"
-                            (format "You have a follow request from... %s"
-                                    follower))
-                          'face 'default))
+              (propertize
+               (if (equal type 'follow)
+                   (propertize
+                    "Congratulations, you have a new follower!"
+                    'face 'default)
+                 (concat
+                  (propertize
+                   (format "You have a follow request from... %s:\n"
+                           follower)
+                   'face 'default)
+                  (mastodon-notifications--comment-note-text body)))))
              ((or (eq type 'favourite)
                   (eq type 'boost))
               (mastodon-notifications--comment-note-text
