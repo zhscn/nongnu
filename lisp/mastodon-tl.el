@@ -463,6 +463,17 @@ With a single prefix ARG, hide replies."
                      `(("limit" . ,mastodon-tl--timeline-posts-count))
                      (when (eq arg 4) t)))
 
+(defun mastodon-tl--get-remote-local-timeline ()
+  ""
+  (interactive)
+  (let* ((domain (read-string "Domain for remote local tl: "))
+         (params `(("limit" . ,mastodon-tl--timeline-posts-count)
+                   ("local" . "true")))
+         (buf (concat "remote-local-" domain)))
+    (mastodon-tl--init buf
+                       "timelines/public" 'mastodon-tl--timeline nil
+                       params nil domain)))
+
 (defun mastodon-tl--get-local-timeline (&optional prefix)
   "Open local timeline.
 With a single PREFIX arg, hide-replies.
@@ -2790,14 +2801,18 @@ This location is defined by a non-nil value of
 ;;; LOADING TIMELINES
 
 (defun mastodon-tl--init (buffer-name endpoint update-function
-                                      &optional headers params hide-replies)
+                                      &optional headers params hide-replies
+                                      instance)
   "Initialize BUFFER-NAME with timeline targeted by ENDPOINT asynchronously.
 UPDATE-FUNCTION is used to recieve more toots.
 HEADERS means to also collect the response headers. Used for paginating
 favourites and bookmarks.
 PARAMS is any parameters to send with the request.
-HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
-  (let ((url (mastodon-http--api endpoint))
+HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer.
+INSTANCE is a string of another instance we are displaying a timeline from."
+  (let ((url (if instance
+                 (concat "https://" instance "/api/v1/" endpoint)
+               (mastodon-http--api endpoint)))
         (buffer (concat "*mastodon-" buffer-name "*")))
     (if headers
         (mastodon-http--get-response-async
