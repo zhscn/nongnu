@@ -473,10 +473,12 @@ With a single prefix ARG, hide replies."
          (known (member domain
                         (mastodon-http--get-json
                          (mastodon-http--api "instance/peers")))))
-    ;; TODO: refactor this:
+    ;; condition-case doesn't work here, so i added basic error handling to
+    ;; `mastodon-tl--init*' instead
     (if (not known)
         (when (y-or-n-p
                "Domain appears unknown to your instance. Proceed?")
+          ;; TODO: refactor these calls:
           (mastodon-tl--init buf
                              "timelines/public" 'mastodon-tl--timeline nil
                              params nil domain))
@@ -2855,19 +2857,22 @@ RESPONSE is the data returned from the server by
 `mastodon-http--process-json', with arg HEADERS a cons cell of
 JSON and http headers, without it just the JSON."
   (let ((json (if headers (car response) response)))
-    (if (not json) ; praying this is right here, else try "\n[]"
-	(message "Looks like nothing returned from endpoint: %s" endpoint)
-      (let* ((headers (if headers (cdr response) nil))
-             (link-header (mastodon-tl--get-link-header-from-response headers)))
-        (with-mastodon-buffer buffer #'mastodon-mode nil
-          (mastodon-tl--set-buffer-spec buffer endpoint update-function
-                                        link-header update-params hide-replies)
-          (mastodon-tl--do-init json update-function instance))))))
+    (cond ((not json) ; praying this is right here, else try "\n[]"
+	   (message "Looks like nothing returned from endpoint: %s" endpoint))
+          ((eq (caar json) 'error)
+           (user-error "Looks like the server bugged out: \"%s\"" (cdar json)))
+          (t
+           (let* ((headers (if headers (cdr response) nil))
+                  (link-header (mastodon-tl--get-link-header-from-response headers)))
+             (with-mastodon-buffer buffer #'mastodon-mode nil
+               (mastodon-tl--set-buffer-spec buffer endpoint update-function
+                                             link-header update-params hide-replies)
+               (mastodon-tl--do-init json update-function instance)))))))
 
-(defun mastodon-tl--init-sync
-    (buffer-name endpoint update-function
-                 &optional note-type params headers view-name binding-str)
-  "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
+  (defun mastodon-tl--init-sync
+      (buffer-name endpoint update-function
+                   &optional note-type params headers view-name binding-str)
+    "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously.
 Optional arg NOTE-TYPE means only get that type of notification.
