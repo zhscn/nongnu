@@ -469,10 +469,20 @@ With a single prefix ARG, hide replies."
   (let* ((domain (read-string "Domain for remote local tl: "))
          (params `(("limit" . ,mastodon-tl--timeline-posts-count)
                    ("local" . "true")))
-         (buf (concat "remote-local-" domain)))
-    (mastodon-tl--init buf
-                       "timelines/public" 'mastodon-tl--timeline nil
-                       params nil domain)))
+         (buf (concat "remote-local-" domain))
+         (known (member domain
+                        (mastodon-http--get-json
+                         (mastodon-http--api "instance/peers")))))
+    ;; TODO: refactor this:
+    (if (not known)
+        (when (y-or-n-p
+               "Domain appears unknown to your instance. Proceed?")
+          (mastodon-tl--init buf
+                             "timelines/public" 'mastodon-tl--timeline nil
+                             params nil domain))
+      (mastodon-tl--init buf
+                         "timelines/public" 'mastodon-tl--timeline nil
+                         params nil domain))))
 
 (defun mastodon-tl--get-local-timeline (&optional prefix)
   "Open local timeline.
