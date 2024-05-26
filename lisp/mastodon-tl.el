@@ -464,7 +464,7 @@ With a single prefix ARG, hide replies."
                      (when (eq arg 4) t)))
 
 (defun mastodon-tl--get-remote-local-timeline ()
-  ""
+  "Prompt for an instance domain and try to display its local timeline."
   (interactive)
   (let* ((domain (read-string "Domain for remote local tl: "))
          (params `(("limit" . ,mastodon-tl--timeline-posts-count)
@@ -531,9 +531,10 @@ Do so if type of status at poins is not follow_request/follow."
                   (string= type "follow")) ; no counts for these
         (message "%s" (mastodon-tl--property 'help-echo :no-move))))))
 
-(defun mastodon-tl--byline-author (toot &optional avatar)
+(defun mastodon-tl--byline-author (toot &optional avatar domain)
   "Propertize author of TOOT.
-With arg AVATAR, include the account's avatar image."
+With arg AVATAR, include the account's avatar image.
+When DOMAIN, force inclusion of user's domain in their handle."
   (let-alist toot
     (concat
      ;; avatar insertion moved up to `mastodon-tl--byline' by default to be
@@ -545,6 +546,7 @@ With arg AVATAR, include the account's avatar image."
                     (image-type-available-p 'imagemagick)
                   (image-transforms-p)))
        (mastodon-media--get-avatar-rendering .account.avatar))
+     ;; username:
      (propertize (if (not (string-empty-p .account.display_name))
                      .account.display_name
                    .account.username)
@@ -560,8 +562,14 @@ With arg AVATAR, include the account's avatar image."
                  (unless (or (string-suffix-p "-followers*" (buffer-name))
                              (string-suffix-p "-following*" (buffer-name)))
                    (mastodon-tl--format-byline-help-echo toot)))
+     ;; handle:
      " ("
-     (propertize (concat "@" .account.acct)
+     (propertize (concat "@" .account.acct
+                         (if domain
+                             (concat "@"
+                                     (url-host
+                                      (url-generic-parse-url .account.url)))
+                           ""))
                  'face 'mastodon-handle-face
                  'mouse-face 'highlight
 	         'mastodon-tab-stop 'user-handle
@@ -640,7 +648,7 @@ LETTER is a string, F for favourited, B for boosted, or K for bookmarked."
                         'help-echo (format "You have %s this status."
                                            help-string)))))
 
-(defun mastodon-tl--byline (toot author-byline action-byline &optional detailed-p)
+(defun mastodon-tl--byline (toot author-byline action-byline &optional detailed-p domain)
   "Generate byline for TOOT.
 AUTHOR-BYLINE is a function for adding the author portion of
 the byline that takes one variable.
@@ -648,7 +656,8 @@ ACTION-BYLINE is a function for adding an action, such as boosting,
 favouriting and following to the byline. It also takes a single function.
 By default it is `mastodon-tl--byline-boosted'.
 DETAILED-P means display more detailed info. For now
-this just means displaying toot client."
+this just means displaying toot client.
+When DOMAIN, force inclusion of user's domain in their handle."
   (let* ((created-time
           ;; bosts and faves in notifs view
           ;; (makes timestamps be for the original toot not the boost/fave):
@@ -696,7 +705,7 @@ this just means displaying toot client."
       (concat
        ;; we propertize help-echo format faves for author name
        ;; in `mastodon-tl--byline-author'
-       (funcall author-byline toot)
+       (funcall author-byline toot nil domain)
        ;; visibility:
        (cond ((equal visibility "direct")
               (propertize (concat " " (mastodon-tl--symbol 'direct))
@@ -1424,7 +1433,7 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
     (string= reply-to-id prev-id)))
 
 (defun mastodon-tl--insert-status (toot body author-byline action-byline
-                                        &optional id base-toot detailed-p thread)
+                                        &optional id base-toot detailed-p thread domain)
   "Display the content and byline of timeline element TOOT.
 BODY will form the section of the toot above the byline.
 AUTHOR-BYLINE is an optional function for adding the author
@@ -1440,13 +1449,15 @@ status is a favourite or boost notification, BASE-TOOT is the
 JSON of the toot responded to.
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client.
-THREAD means the status will be displayed in a thread view."
+THREAD means the status will be displayed in a thread view.
+When DOMAIN, force inclusion of user's domain in their handle."
   (let* ((start-pos (point))
          (reply-to-id (alist-get 'in_reply_to_id toot))
          (after-reply-status-p
           (when (and thread reply-to-id)
             (mastodon-tl--after-reply-status reply-to-id)))
          (type (alist-get 'type toot)))
+    ;; body:
     (insert
      (propertize
       (concat
@@ -1462,7 +1473,8 @@ THREAD means the status will be displayed in a thread view."
                          'wrap-prefix bar))
          body)
        " \n"
-       (mastodon-tl--byline toot author-byline action-byline detailed-p))
+       ;; byline:
+       (mastodon-tl--byline toot author-byline action-byline detailed-p domain))
       'item-type    'toot
       'item-id      (or id ; notification's own id
                         (alist-get 'id toot)) ; toot id
@@ -1539,25 +1551,27 @@ To disable showing the stats, customize
   (and (null (mastodon-tl--field 'in_reply_to_id toot))
        (not (mastodon-tl--field 'rebloged toot))))
 
-(defun mastodon-tl--toot (toot &optional detailed-p thread)
+(defun mastodon-tl--toot (toot &optional detailed-p thread domain)
   "Format TOOT and insert it into the buffer.
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client.
-THREAD means the status will be displayed in a thread view."
+THREAD means the status will be displayed in a thread view.
+When DOMAIN, force inclusion of user's domain in their handle."
   (mastodon-tl--insert-status
    toot
    (mastodon-tl--clean-tabs-and-nl (if (mastodon-tl--has-spoiler toot)
                                        (mastodon-tl--spoiler toot)
                                      (mastodon-tl--content toot)))
    'mastodon-tl--byline-author 'mastodon-tl--byline-boosted
-   nil nil detailed-p thread))
+   nil nil detailed-p thread domain))
 
-(defun mastodon-tl--timeline (toots &optional thread)
+(defun mastodon-tl--timeline (toots &optional thread domain)
   "Display each toot in TOOTS.
 This function removes replies if user required.
-THREAD means the status will be displayed in a thread view."
+THREAD means the status will be displayed in a thread view.
+When DOMAIN, force inclusion of user's domain in their handle."
   (mapc (lambda (toot)
-          (mastodon-tl--toot toot nil thread))
+          (mastodon-tl--toot toot nil thread domain))
         ;; hack to *not* filter replies on profiles:
         (if (eq (mastodon-tl--get-buffer-type) 'profile-statuses)
             toots
@@ -2809,7 +2823,8 @@ HEADERS means to also collect the response headers. Used for paginating
 favourites and bookmarks.
 PARAMS is any parameters to send with the request.
 HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer.
-INSTANCE is a string of another instance we are displaying a timeline from."
+INSTANCE is a string of another instance domain we are displaying
+a timeline from."
   (let ((url (if instance
                  (concat "https://" instance "/api/v1/" endpoint)
                (mastodon-http--api endpoint)))
@@ -2820,10 +2835,10 @@ INSTANCE is a string of another instance we are displaying a timeline from."
          buffer endpoint update-function headers params hide-replies)
       (mastodon-http--get-json-async
        url params 'mastodon-tl--init*
-       buffer endpoint update-function nil params hide-replies))))
+       buffer endpoint update-function nil params hide-replies instance))))
 
 (defun mastodon-tl--init* (response buffer endpoint update-function
-                                    &optional headers update-params hide-replies)
+                                    &optional headers update-params hide-replies instance)
   "Initialize BUFFER with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to recieve more toots.
 RESPONSE is the data returned from the server by
@@ -2837,7 +2852,7 @@ JSON and http headers, without it just the JSON."
         (with-mastodon-buffer buffer #'mastodon-mode nil
           (mastodon-tl--set-buffer-spec buffer endpoint update-function
                                         link-header update-params hide-replies)
-          (mastodon-tl--do-init json update-function))))))
+          (mastodon-tl--do-init json update-function instance))))))
 
 (defun mastodon-tl--init-sync
     (buffer-name endpoint update-function
@@ -2876,11 +2891,14 @@ BINDING-STR is a string explaining any bindins in the view."
       (mastodon-tl--do-init json update-function)
       buffer)))
 
-(defun mastodon-tl--do-init (json update-fun)
+(defun mastodon-tl--do-init (json update-fun &optional domain)
   "Utility function for `mastodon-tl--init*' and `mastodon-tl--init-sync'.
-JSON is the data to call UPDATE-FUN on."
+JSON is the data to call UPDATE-FUN on.
+When DOMAIN, force inclusion of user's domain in their handle."
   (remove-overlays) ; video overlays
-  (funcall update-fun json)
+  (if domain
+      (funcall update-fun json nil domain)
+    (funcall update-fun json))
   (setq
    ;; Initialize with a minimal interval; we re-scan at least once
    ;; every 5 minutes to catch any timestamps we may have missed
