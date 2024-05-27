@@ -212,6 +212,10 @@ If nil, mastodon.el will instead call `shr-browse-image', which
 respects the user's `browse-url' settings."
   :type '(boolean))
 
+(defcustom mastodon-tl--remote-local-domains nil
+  "A list of domains to view the local timelines of using `mastodon-tl--get-remote-local-timeline'."
+  :type '(repeat string))
+
 
 ;;; VARIABLES
 
@@ -464,9 +468,15 @@ With a single prefix ARG, hide replies."
                      (when (eq arg 4) t)))
 
 (defun mastodon-tl--get-remote-local-timeline ()
-  "Prompt for an instance domain and try to display its local timeline."
+  "Prompt for an instance domain and try to display its local timeline.
+You can enter any working instance domain. Domains that you want
+to regularly load can be stored in
+`mastodon-tl--remote-local-domains' for easy access with completion.
+Note that some instances do not make their local timelines public, in
+which case this will not work."
   (interactive)
-  (let* ((domain (read-string "Domain for remote local tl: "))
+  (let* ((domain (completing-read "Domain for remote local tl: "
+                                  mastodon-tl--remote-local-domains))
          (params `(("limit" . ,mastodon-tl--timeline-posts-count)
                    ("local" . "true")))
          (buf (concat "remote-local-" domain))
