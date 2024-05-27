@@ -47,10 +47,11 @@
 (defconst mastodon-http--timeout 15
   "HTTP request timeout, in seconds.  Has no effect on Emacs < 26.1.")
 
-(defun mastodon-http--api (endpoint)
-  "Return Mastodon API URL for ENDPOINT."
+(defun mastodon-http--api (endpoint &optional version)
+  "Return Mastodon API URL for ENDPOINT.
+Optionally specify VERSION in format vX."
   (concat mastodon-instance-url "/api/"
-          mastodon-http--api-version "/" endpoint))
+          (or version mastodon-http--api-version) "/" endpoint))
 
 (defun mastodon-http--api-search ()
   "Return Mastodon API url for the /search endpoint (v2)."

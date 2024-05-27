@@ -748,7 +748,7 @@ MISSKEY means the instance is a Misskey or derived server."
   (interactive)
   (if user
       (let ((response (mastodon-http--get-json
-                       (mastodon-http--api "instance") nil nil :vector)))
+                       (mastodon-http--api "instance" "v2") nil nil :vector)))
         (mastodon-views--instance-response-fun response brief instance))
     (mastodon-tl--do-if-item
      (let* ((toot (if (mastodon-tl--profile-buffer-p)

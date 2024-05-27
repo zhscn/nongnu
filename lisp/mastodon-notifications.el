@@ -53,6 +53,25 @@
 (autoload 'mastodon-tl--update "mastodon-tl")
 (autoload 'mastodon-views--view-follow-requests "mastodon-views")
 
+(defgroup mastodon-tl nil
+  "Nofications in mastodon.el."
+  :prefix "mastodon-notifications-"
+  :group 'mastodon)
+
+(defcustom mastodon-notifications--profile-note-in-foll-reqs t
+  "When non-nil, show some of a user's profile note in follow
+request notifications."
+  :type '(boolean))
+
+(defcustom mastodon-notifications--profile-note-in-foll-reqs-max-length nil
+  "The maximum character length for display of user profile note in
+follow requests.
+Profile notes are only displayed if
+`mastodon-notifications--profile-note-in-foll-reqs' is non-nil.
+If unset, profile notes of any size will be displayed, which may
+make them unweildy."
+  :type '(integer))
+
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--display-media-p)
 
@@ -186,9 +205,17 @@ Status notifications are given when
 
 (defun mastodon-notifications--format-note (note type)
   "Format for a NOTE of TYPE."
-  (let ((id (alist-get 'id note))
-        (status (mastodon-tl--field 'status note))
-        (follower (alist-get 'username (alist-get 'account note))))
+  (let* ((id (alist-get 'id note))
+         (profile-note
+          (when (equal 'follow-request type)
+            (let ((str (mastodon-tl--field
+                        'note
+                        (mastodon-tl--field 'account note))))
+              (if mastodon-notifications--profile-note-in-foll-reqs-max-length
+                  (string-limit str mastodon-notifications--profile-note-in-foll-reqs-max-length)
+                str))))
+         (status (mastodon-tl--field 'status note))
+         (follower (alist-get 'username (alist-get 'account note))))
     (mastodon-notifications--insert-status
      ;; toot
      (cond ((or (equal type 'follow)
@@ -207,14 +234,25 @@ Status notifications are given when
      (let ((body (mastodon-tl--clean-tabs-and-nl
                   (if (mastodon-tl--has-spoiler status)
                       (mastodon-tl--spoiler status)
-                    (mastodon-tl--content status)))))
+                    (if (equal 'follow-request type)
+                        (mastodon-tl--render-text profile-note)
+                      (mastodon-tl--content status))))))
        (cond ((or (eq type 'follow)
                   (eq type 'follow-request))
-              (propertize (if (equal type 'follow)
-                              "Congratulations, you have a new follower!"
-                            (format "You have a follow request from... %s"
-                                    follower))
-                          'face 'default))
+              (propertize
+               (if (equal type 'follow)
+                   (propertize
+                    "Congratulations, you have a new follower!"
+                    'face 'default)
+                 (concat
+                  (propertize
+                   (format "You have a follow request from... %s"
+                           follower)
+                   'face 'default)
+                  (when mastodon-notifications--profile-note-in-foll-reqs
+                    (concat
+                     ":\n"
+                     (mastodon-notifications--comment-note-text body)))))))
              ((or (eq type 'favourite)
                   (eq type 'boost))
               (mastodon-notifications--comment-note-text
@@ -225,7 +263,7 @@ Status notifications are given when
              (equal type 'follow-request)
              (equal type 'mention))
          'mastodon-tl--byline-author
-       (lambda (_status)
+       (lambda (_status &rest args) ; unbreak stuff
          (mastodon-tl--byline-author note)))
      ;; action-byline
      (lambda (_status)

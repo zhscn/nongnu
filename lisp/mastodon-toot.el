@@ -912,7 +912,15 @@ instance to edit a toot."
                   (mastodon-views--cancel-scheduled-toot
                    scheduled-id :no-confirm))
                 (mastodon-toot--restore-previous-window-config prev-window-config)
-                (when edit-id
+                ;; reload previous view in certain cases:
+                ;; we reload: - when we have been editing
+                ;;            - when we are in thread view
+                ;;            - ?
+                ;; (we don't necessarily want to reload in every posting case
+                ;; as it can sometimes be slow and we may still lose our place
+                ;; in a timeline.)
+                (when (or edit-id
+                          (equal 'thread (mastodon-tl--get-buffer-type)))
                   (let ((pos (marker-position (cadr prev-window-config))))
                     (mastodon-tl--reload-timeline-or-profile pos))))))))))
 
@@ -1133,7 +1141,7 @@ arg, a candidate."
   (cadr (assoc candidate mastodon-toot-completions)))
 
 (defun mastodon-toot--emoji-annotation-fun (candidate)
-  "."
+  "CANDIDATE."
   ;; TODO: emoji image as annot
   (cdr (assoc candidate mastodon-toot-completions)))
 
