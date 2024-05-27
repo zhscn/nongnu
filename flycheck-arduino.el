@@ -1,7 +1,7 @@
 ;;; flycheck-arduino.el --- Arduino support for flycheck.  -*- lexical-binding: t; -*-
 
 ;; Authors: stardiviner <numbchild@gmail.com>
-;; Version: 0.1
+;; Version: 0.1.1
 ;; Keywords: arduino flycheck
 
 ;; flycheck-arduino is free software; you can redistribute it and/or modify it

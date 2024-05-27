@@ -2,7 +2,7 @@
 ;;
 ;; Authors: stardiviner <numbchild@gmail.com>
 ;; Package-Requires: ((emacs "24.4") (org "24.1"))
-;; Package-Version: 1.0
+;; Package-Version: 1.1
 ;; Keywords: arduino org babel
 ;; homepage: https://repo.or.cz/arduino-mode.git
 ;;

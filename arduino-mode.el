@@ -5,7 +5,7 @@
 ;; Maintainer: stardiviner <numbchild@gmail.com>
 ;; Keywords: languages, arduino
 ;; Package-Requires: ((emacs "25.1") (spinner "1.7.3"))
-;; Package-Version: 1.3.0
+;; Version: 1.3.1
 ;; homepage: https://repo.or.cz/arduino-mode.git
 
 ;; This file is free software; you can redistribute it and/or modify
