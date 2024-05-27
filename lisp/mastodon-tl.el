@@ -473,7 +473,10 @@ You can enter any working instance domain. Domains that you want
 to regularly load can be stored in
 `mastodon-tl--remote-local-domains' for easy access with completion.
 Note that some instances do not make their local timelines public, in
-which case this will not work."
+which case this will not work.
+To interact with any item, you must view it from your own
+instance, which you can do with
+`mastodon-tl--view-item-on-own-instance'."
   (interactive)
   (let* ((domain (completing-read "Domain for remote local tl: "
                                   mastodon-tl--remote-local-domains))
@@ -495,6 +498,15 @@ which case this will not work."
       (mastodon-tl--init buf
                          "timelines/public" 'mastodon-tl--timeline nil
                          params nil domain))))
+
+(defun mastodon-tl--view-item-on-own-instance ()
+  "Load current toot on your own instance.
+Use this to re-load remote-local items in order to interact with them."
+  (interactive)
+  (mastodon-tl--do-if-item
+   (let* ((toot (mastodon-tl--property 'item-json))
+          (uri (mastodon-tl--field 'uri toot)))
+     (mastodon-url-lookup uri))))
 
 (defun mastodon-tl--get-local-timeline (&optional prefix)
   "Open local timeline.
