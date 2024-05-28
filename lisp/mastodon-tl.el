@@ -488,13 +488,9 @@ instance, which you can do with
                          (mastodon-http--api "instance/peers")))))
     ;; condition-case doesn't work here, so i added basic error handling to
     ;; `mastodon-tl--init*' instead
-    (if (not known)
-        (when (y-or-n-p
-               "Domain appears unknown to your instance. Proceed?")
-          ;; TODO: refactor these calls:
-          (mastodon-tl--init buf
-                             "timelines/public" 'mastodon-tl--timeline nil
-                             params nil domain))
+    (when (or known
+              (y-or-n-p
+               "Domain appears unknown to your instance. Proceed?"))
       (mastodon-tl--init buf
                          "timelines/public" 'mastodon-tl--timeline nil
                          params nil domain))))
