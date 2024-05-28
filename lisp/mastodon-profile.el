@@ -130,7 +130,10 @@ It contains details of the current user's account.")
 Other clients can change these settings on the server at any
 time, so this list is not the canonical source for settings. It
 is updated on entering mastodon mode and on toggle any setting it
-contains")
+contains.
+This variable is set from data in
+`mastodon-profile-credential-account' not
+`mastodon-profile-account-preferences-data'.")
 
 (define-minor-mode mastodon-profile-update-mode
   "Minor mode to update user profile."
