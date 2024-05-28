@@ -501,7 +501,7 @@ Returns the results as an alist."
   "Limit string X to 255 chars max."
   (if (> (length x) 255) (substring x 0 255) x))
 
-;; used in tl.el
+;; used in tl.el and toot.el:
 (defun mastodon-profile--get-preferences-pref (pref)
   "Fetch PREF from the endpoint \"/preferences\".
 If `mastodon-profile-acccount-preferences-data' is set, fetch

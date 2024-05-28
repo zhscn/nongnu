@@ -1892,8 +1892,7 @@ EDIT means we are editing an existing toot, not composing a new one."
     ;; `mastodon-profile-credential-account' nor in
     ;; `mastodon-profile-account-settings'!
     (setq mastodon-toot--language
-          (alist-get 'posting:default:language
-                     mastodon-profile-acccount-preferences-data))
+          (mastodon-profile--get-preferences-pref 'posting:default:language))
     ;; display original toot:
     (if mastodon-toot-display-orig-in-reply-buffer
         (progn
