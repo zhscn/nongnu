@@ -50,6 +50,7 @@
 (defvar mastodon-tl--buffer-spec)
 (defvar mastodon-tl--enable-proportional-fonts)
 (defvar mastodon-profile-account-settings)
+(defvar mastodon-profile-acccount-preferences-data)
 
 (autoload 'iso8601-parse "iso8601")
 (autoload 'mastodon-auth--user-acct "mastodon-auth")
@@ -92,6 +93,8 @@
 (autoload 'mastodon-views--view-scheduled-toots "mastodon-views")
 (autoload 'org-read-date "org")
 (autoload 'mastodon-tl--toot-or-base "mastodon-tl")
+(autoload 'mastodon-profile--get-source-value "mastodon-toot")
+(autoload 'mastodon-tl--get-buffer-type "mastodon-tl")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
