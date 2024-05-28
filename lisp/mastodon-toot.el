@@ -1881,7 +1881,7 @@ EDIT means we are editing an existing toot, not composing a new one."
     (setq mastodon-toot--visibility
           (or (plist-get mastodon-profile-account-settings 'privacy)
               ;; use toot visibility setting from the server:
-              (mastodon-profile--get-source-pref 'privacy)
+              (mastodon-profile--get-source-value 'privacy)
               "public")) ; fallback
     (if mastodon-toot-display-orig-in-reply-buffer
         (progn
