@@ -213,7 +213,8 @@ respects the user's `browse-url' settings."
   :type '(boolean))
 
 (defcustom mastodon-tl--remote-local-domains nil
-  "A list of domains to view the local timelines of using `mastodon-tl--get-remote-local-timeline'."
+  "A list of domains to view the local timelines of.
+See `mastodon-tl--get-remote-local-timeline' for view remote local domains."
   :type '(repeat string))
 
 
