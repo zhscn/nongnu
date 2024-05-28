@@ -1878,11 +1878,20 @@ EDIT means we are editing an existing toot, not composing a new one."
     (switch-to-buffer-other-window buffer)
     (text-mode)
     (mastodon-toot-mode t)
+    ;; set visibility:
     (setq mastodon-toot--visibility
           (or (plist-get mastodon-profile-account-settings 'privacy)
               ;; use toot visibility setting from the server:
               (mastodon-profile--get-source-value 'privacy)
               "public")) ; fallback
+    ;; default language:
+    ;; NB: this is not necessarily set in
+    ;; `mastodon-profile-credential-account' nor in
+    ;; `mastodon-profile-account-settings'!
+    (setq mastodon-toot--language
+          (alist-get 'posting:default:language
+                     mastodon-profile-acccount-preferences-data))
+    ;; display original toot:
     (if mastodon-toot-display-orig-in-reply-buffer
         (progn
           (mastodon-toot--display-docs-and-status-fields reply-text)
