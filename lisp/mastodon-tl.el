@@ -2093,9 +2093,11 @@ display of boosts."
   (mastodon-tl--follow-user user-handle nil nil "true"))
 
 (defun mastodon-tl--filter-user-user-posts-by-language (user-handle)
-  "Query for USER-HANDLE and enable notifications when they post.
-This feature is experimental and for now not easily varified by
-the instance API."
+  "Query for USER-HANDLE and filter display of their posts by language.
+If they are not already followed, they will be too.
+To be filtered, a post has to be marked as in the language given.
+This may mean that you will not see posts that are in your
+desired language if they are not marked as such (or as anything)."
   (interactive
    (list (mastodon-tl--user-handles-get "filter by language")))
   (let ((langs (mastodon-tl--read-filter-langs)))
