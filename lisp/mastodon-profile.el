@@ -700,12 +700,20 @@ TAG is a hashtag to restrict posts to."
             'success)
            ;; insert relationship (follows)
            (let-alist relationships
-             (let ((followsp (mastodon-profile--follows-p
-                              (list .requested_by .following .followed_by))))
+             (let* ((followsp (mastodon-profile--follows-p
+                               (list .requested_by .following .followed_by)))
+                    (rels (mastodon-profile--relationships-get .id))
+                    (langs-filtered (if-let ((langs (alist-get 'languages rels)))
+                                        (concat " ("
+                                                (mapconcat #'identity
+                                                           langs
+                                                           " ")
+                                                ")")
+                                      "")))
                (if followsp
                    (mastodon-tl--set-face
                     (concat (when (equal .following 't)
-                              " | FOLLOWED BY YOU")
+                              (format " | FOLLOWED BY YOU%s" langs-filtered))
                             (when (equal .followed_by 't)
                               " | FOLLOWS YOU")
                             (when (equal .requested_by 't)
