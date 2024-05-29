@@ -141,7 +141,7 @@ Used for API form data parameters that take an array."
                             &optional params headers unauthenticated-p json)
   "POST synchronously to URL, optionally with PARAMS and HEADERS.
 Authorization header is included by default unless
-UNAUTHENTICATED-P is non-nil.If JSON, encode PARAMS as JSON for
+UNAUTHENTICATED-P is non-nil. If JSON, encode PARAMS as JSON for
 the request data."
   (mastodon-http--authorized-request "POST"
     (let* ((url-request-data
