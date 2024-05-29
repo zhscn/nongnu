@@ -2103,12 +2103,15 @@ desired language if they are not marked as such (or as anything)."
      (mastodon-tl--follow-user user-handle nil langs))))
 
 (defun mastodon-tl--unfilter-user-languages (user-handle)
-  ""
+  "Remove any language filters for USER-HANDLE.
+This means you will receive posts of theirs marked as being in
+any or no language."
   (interactive
    (list (mastodon-tl--user-handles-get "filter by language")))
   (let ((langs "languages[]"))
     (mastodon-tl--do-if-item
-     ;; we need ("languages[]") as a param, with no "="
+     ;; we need "languages[]" as a param, with no "=" and not json-encoded as
+     ;; a string
      (mastodon-tl--follow-user user-handle nil langs nil :raw))))
 
 (defun mastodon-tl--read-filter-langs (&optional langs)

@@ -142,9 +142,10 @@ Used for API form data parameters that take an array."
   "POST synchronously to URL, optionally with PARAMS and HEADERS.
 Authorization header is included by default unless
 UNAUTHENTICATED-P is non-nil.
-
 If JSON is :json, encode PARAMS as JSON for
 the request data. If it is :raw, just use the plain params."
+  ;; NB: raw is used by `mastodon-tl--unfilter-user-languages'; not sure if
+  ;; there's a way around it?
   (mastodon-http--authorized-request "POST"
     (let* ((url-request-data
             (when params

@@ -140,7 +140,7 @@
 |                  | mastodon-tl--toggle-spoiler-in-thread             | Toggler content warning for all posts in current thread.                       |
 | c                | mastodon-tl--toggle-spoiler-text-in-toot          | Toggle the visibility of the spoiler text in the current toot.                 |
 | C-S-b            | mastodon-tl--unblock-user                         | Query for USER-HANDLE from list of blocked users and unblock that user.        |
-|                  | mastodon-tl--unfilter-user-languages              |                                                                                |
+|                  | mastodon-tl--unfilter-user-languages              | Remove any language filters for USER-HANDLE.                                   |
 |                  | mastodon-tl--unfollow-tag                         | Prompt for a followed tag, and unfollow it.                                    |
 | C-S-w            | mastodon-tl--unfollow-user                        | Query for USER-HANDLE from current status and unfollow that user.              |
 |                  | mastodon-tl--unmute-thread                        | Mute the thread displayed in the current buffer.                               |
