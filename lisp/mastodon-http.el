@@ -141,14 +141,20 @@ Used for API form data parameters that take an array."
                             &optional params headers unauthenticated-p json)
   "POST synchronously to URL, optionally with PARAMS and HEADERS.
 Authorization header is included by default unless
-UNAUTHENTICATED-P is non-nil. If JSON, encode PARAMS as JSON for
-the request data."
+UNAUTHENTICATED-P is non-nil.
+
+If JSON is :json, encode PARAMS as JSON for
+the request data. If it is :raw, just use the plain params."
   (mastodon-http--authorized-request "POST"
     (let* ((url-request-data
             (when params
-              (if json
-                  (json-encode params)
-                (mastodon-http--build-params-string params))))
+              (cond ((eq json :json)
+                     (json-encode
+                      params))
+                    ((eq json :raw)
+                     params)
+                    (t
+                     (mastodon-http--build-params-string params)))))
            (url-request-extra-headers
             (append url-request-extra-headers ; auth set in macro
                     (unless (assoc "Content-Type" headers) ; pleroma compat:

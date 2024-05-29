@@ -2109,7 +2109,7 @@ desired language if they are not marked as such (or as anything)."
   (let ((langs "languages[]"))
     (mastodon-tl--do-if-item
      ;; we need ("languages[]") as a param, with no "="
-     (mastodon-tl--follow-user user-handle nil langs nil :json))))
+     (mastodon-tl--follow-user user-handle nil langs nil :raw))))
 
 (defun mastodon-tl--read-filter-langs (&optional langs)
   "Read language choices and return an alist array parameter.
@@ -2292,6 +2292,8 @@ ARGS is an alist of any parameters to send with the request."
                ((or (string-equal action "mute")
                     (string-equal action "unmute"))
                 (message "User %s (@%s) %sd!" name user-handle action))
+               ((equal args "languages[]")
+                (message "User %s language filters removed!" name))
                ((assoc "languages[]" args #'equal)
                 (message "User %s filtered by language(s): %s" name
                          (mapconcat #'cdr args " ")))
