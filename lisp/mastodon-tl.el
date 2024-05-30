@@ -88,6 +88,7 @@
 (autoload 'mastodon-http--get-response "mastodon-http")
 (autoload 'mastodon-search--insert-heading "mastodon-search")
 (autoload 'mastodon-media--process-full-sized-image-response "mastodon-media")
+(autoload 'mastodon-search--trending-statuses "mastodon-search")
 
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot-mode)
@@ -2053,7 +2054,8 @@ If NOTIFY is \"false\", disable notifications when that user posts.
 Can be called to toggle NOTIFY on users already being followed.
 LANGS is an array parameters alist of languages to filer user's posts by.
 REBLOGS is a boolean string like NOTIFY, enabling or disabling
-display of the user's boosts in your timeline."
+display of the user's boosts in your timeline.
+JSON is a flag arg for `mastodon-http--post'."
   (interactive
    (list (mastodon-tl--user-handles-get "follow")))
   (mastodon-tl--do-if-item
@@ -2894,7 +2896,17 @@ RESPONSE is the data returned from the server by
 JSON and http headers, without it just the JSON."
   (let ((json (if headers (car response) response)))
     (cond ((not json) ; praying this is right here, else try "\n[]"
-	   (message "Looks like nothing returned from endpoint: %s" endpoint))
+           ;; this means that whatever tl was inited won't load, which is not
+           ;; always wanted, as sometimes you still need the page to load so
+           ;; you can be in eg mastodon-mode, have keymap, search etc.
+           (message "Looks like nothing returned from endpoint: %s" endpoint)
+           ;; if we are a new account, home tl may have nothing, but then
+           ;; this clause means we can never load mastodon.el at all!
+           ;; so as a fallback, load trending statuses:
+           ;; FIXME: this could possibly be a fallback for all timelines not
+           ;; just home?
+           (when (equal endpoint "timelines/home")
+             (mastodon-search--trending-statuses)))
           ((eq (caar json) 'error)
            (user-error "Looks like the server bugged out: \"%s\"" (cdar json)))
           (t
