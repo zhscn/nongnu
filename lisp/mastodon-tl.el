@@ -2102,7 +2102,9 @@ desired language if they are not marked as such (or as anything)."
    (list (mastodon-tl--user-handles-get "filter by language")))
   (let ((langs (mastodon-tl--read-filter-langs)))
     (mastodon-tl--do-if-item
-     (mastodon-tl--follow-user user-handle nil langs))))
+     (if (equal "" (cdar langs))
+         (mastodon-tl--unfilter-user-languages user-handle)
+       (mastodon-tl--follow-user user-handle nil langs)))))
 
 (defun mastodon-tl--unfilter-user-languages (user-handle)
   "Remove any language filters for USER-HANDLE.
@@ -2119,12 +2121,14 @@ any or no language."
 (defun mastodon-tl--read-filter-langs (&optional langs)
   "Read language choices and return an alist array parameter.
 LANGS is the accumulated array param alist if we re-run recursively."
-  (let* ((langs-alist langs)
+  (let* ((iso-const mastodon-iso-639-1)
+         (iso (cons '("None (all)" . "") iso-const))
+         (langs-alist langs)
          (choice (completing-read "Filter user's posts by language: "
-                                  mastodon-iso-639-1)))
+                                  iso)))
     (when choice
       (setq langs-alist
-            (push `("languages[]" . ,(alist-get choice mastodon-iso-639-1
+            (push `("languages[]" . ,(alist-get choice iso
                                                 nil nil #'string=))
                   langs-alist))
       (if (y-or-n-p "Filter by another language? ")
