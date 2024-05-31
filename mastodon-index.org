@@ -118,7 +118,7 @@
 | F                | mastodon-tl--get-federated-timeline               | Open federated timeline.                                                       |
 | H                | mastodon-tl--get-home-timeline                    | Open home timeline.                                                            |
 | L                | mastodon-tl--get-local-timeline                   | Open local timeline.                                                           |
-|                  | mastodon-tl--get-remote-local-timeline            | Prompt for an instance domain and try to display its local timeline.           |
+| \                | mastodon-tl--get-remote-local-timeline            | Prompt for an instance domain and try to display its local timeline.           |
 | #                | mastodon-tl--get-tag-timeline                     | Prompt for tag and opens its timeline.                                         |
 | n                | mastodon-tl--goto-next-item                       | Jump to next item.                                                             |
 | C-<down>         | mastodon-tl--goto-next-toot                       |                                                                                |
@@ -248,8 +248,8 @@
 | mastodon-media--enable-image-caching                         | Whether images should be cached.                                              |
 | mastodon-media--preview-max-height                           | Max height of any media attachment preview to be shown in timelines.          |
 | mastodon-mode-hook                                           | Hook run when entering Mastodon mode.                                         |
-| mastodon-notifications--profile-note-in-foll-reqs            | When non-nil, show some of a user's profile note in follow                    |
-| mastodon-notifications--profile-note-in-foll-reqs-max-length | The maximum character length for display of user profile note in              |
+| mastodon-notifications--profile-note-in-foll-reqs            | If non-nil, show a user's profile note in follow request notifications.       |
+| mastodon-notifications--profile-note-in-foll-reqs-max-length | The max character length for user profile note in follow requests.            |
 | mastodon-profile-mode-hook                                   | Hook run after entering or leaving `mastodon-profile-mode'.                   |
 | mastodon-profile-update-mode-hook                            | Hook run after entering or leaving `mastodon-profile-update-mode'.            |
 | mastodon-search-mode-hook                                    | Hook run after entering or leaving `mastodon-search-mode'.                    |
