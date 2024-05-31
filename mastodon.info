@@ -63,6 +63,10 @@ File: mastodon.info,  Node: README,  Prev: Top,  Up: Top
 that implement the Mastodon API.  For info see joinmastodon.org
 (https://joinmastodon.org/).
 
+   NB: ‘mastodon.el’ now ships this readme as an .info file, so if you
+have it installed you should be able to browse this readme inside emacs.
+‘C-h i’ for info, then ‘m masto RET’ should load it for you.
+
 * Menu:
 
 * Installation::
@@ -237,6 +241,9 @@ your ‘mastodon-token-file’ does not contain ‘:client_id’ and
 
   1. Keybindings
 
+     For a full list of commands and variables, see mastodon-index.org
+     (mastodon-index.org).
+
      Key                      Action
      -----------------------------------------------------------------------------------------------------------
                               *Help*
@@ -264,6 +271,7 @@ your ‘mastodon-token-file’ does not contain ‘:client_id’ and
      ‘,’                      view favouriters of toot at point
      ‘.’                      view boosters of toot at point
      ‘/’                      switch between mastodon buffers
+     ‘\’                      prompt for an instance domain and view its local timeline (if poss)
      ‘Z’                      report user/toot at point to instances moderators
                               *Other views*
      ‘s’                      search (posts, users, tags) (NB: only posts you have interacted with)
@@ -326,13 +334,19 @@ cancels.  Both actions kill the buffer and window.  Further keybindings
 are displayed in the buffer, and in the following subsection.
 
    Replies preserve visibility status/content warnings, and include
-boosters by default.
+boosters by default.  If the region is active when you start a reply, it
+will be yanked into the compose buffer prefixed with ‘>’ to form a rough
+reply quote.
 
-   Server’s max toot length, and attachment previews, are shown.
+   Server’s max toot length, with running char count, and attachment
+previews, are shown.
 
    You can download and use your instance’s custom emoji
 (‘mastodon-toot--download-custom-emoji’,
 ‘mastodon-toot--enable-custom-emoji’).
+
+   If you want to view some of the toot being replied to in the compose
+buffer, set ‘mastodon-toot-display-orig-in-reply-buffer’ to non-nil.
 
    The compose buffer uses ‘text-mode’ so any configuration you have for
 that mode will be enabled.  If any of your existing config conflicts
@@ -346,28 +360,33 @@ is as follows:
 
   1. Keybindings
 
-     Key         Action
-     -------------------------------------------------
-     ‘C-c C-c’   Send toot
-     ‘C-c C-k’   Cancel toot
-     ‘C-c C-w’   Add content warning
-     ‘C-c C-v’   Change toot visibility
-     ‘C-c C-n’   Add sensitive media/nsfw flag
-     ‘C-c C-a’   Upload attachment(s)
-     ‘C-c !’     Remove all attachments
-     ‘C-c C-e’   Add emoji (if ‘emojify’ installed)
-     ‘C-c C-p’   Create a poll
-     ‘C-c C-l’   Set toot language
+     Key          Action
+     --------------------------------------------------
+     ‘C-c C-c’    Send toot
+     ‘C-c C-k’    Cancel toot
+     ‘C-c C-w’    Add content warning
+     ‘C-c C-v’    Change toot visibility
+     ‘C-c C-n’    Add sensitive media/nsfw flag
+     ‘C-c C-a’    Upload attachment(s)
+     ‘C-c !’      Remove all attachments
+     ‘C-c C-e’    Add emoji (if ‘emojify’ installed)
+     ‘C-c C-p’    Create a poll
+     ‘C-c C-l’    Set toot language
+     ‘-C-c C-s’   Schedule toot
 
-  2. Autocompletion of mentions and tags
+  2. Autocompletion of mentions, tags and emoji
 
-     Autocompletion of mentions and tags is provided by
+     Autocompletion of mentions, tags, and emojis is provided by
      ‘completion-at-point-functions’ (capf) backends.
-     ‘mastodon-toot--enable-completion’ is enabled by default.  If you
-     want to enable ‘company-mode’ in the toot compose buffer, set
-     ‘mastodon-toot--use-company-for-completion’ to ‘t’.  (‘mastodon.el’
-     used to run its own native company backends, but these have been
-     removed in favour of capfs.)
+     ‘mastodon-toot--enable-completion’ is enabled by default.
+
+     To trigger completion, type a prefix followed by a few letters, ‘@’
+     for mentions, ‘#’ for tags, and ‘:’ for emoji.
+
+     If you want to enable ‘company-mode’ in the toot compose buffer,
+     set ‘mastodon-toot--use-company-for-completion’ to ‘t’.
+     (‘mastodon.el’ used to run its own native company backends, but
+     these have been removed in favour of capfs.)
 
      If you don’t run ‘company’ and want immediate, keyless completion,
      you’ll need to have another completion engine running that handles
@@ -390,7 +409,7 @@ File: mastodon.info,  Node: Other commands and account settings,  Next: Customiz
 ------------------------------------------
 
 In addition to ‘mastodon’, the following three functions are autoloaded
-and should work without first loading ‘mastodon.el’:
+and should work without first loading a ‘mastodon.el’ buffer:
    • ‘mastodon-toot’: Compose new toot
    • ‘mastodon-notifications-get’: View all notifications
    • ‘mastodon-url-lookup’: Attempt to load a URL in ‘mastodon.el’.  URL
@@ -475,6 +494,9 @@ See ‘M-x customize-group RET mastodon’ to view all customize options.
         • Display toot being replied to
         • Set default reply visibility
 
+   • Nofitication options:
+        • Display user’s profile note in follow requests
+
 
 File: mastodon.info,  Node: Commands and variables index,  Next: Alternative timeline layout,  Prev: Customization,  Up: Usage
 
@@ -483,6 +505,10 @@ File: mastodon.info,  Node: Commands and variables index,  Next: Alternative tim
 
 An index of all user-facing commands and custom variables is available
 here: mastodon-index.org (mastodon-index.org).
+
+   You can also hit ‘?’ in any ‘mastodon.el’ buffer to see the available
+bindings, or run ‘M-X’ (upper-case ‘X’) to view all commands in the
+buffer with completion, and call one.
 
 
 File: mastodon.info,  Node: Alternative timeline layout,  Next: Live-updating timelines mastodon-async-mode,  Prev: Commands and variables index,  Up: Usage
@@ -695,36 +721,36 @@ File: mastodon.info,  Node: Contributors,  Prev: Supporting mastodonel,  Up: REA
 Tag Table:
 Node: Top210
 Node: README962
-Node: Installation1378
-Node: ELPA1667
-Node: MELPA1895
-Node: Repo2275
-Node: Emoji2768
-Node: Discover3099
-Node: Usage3651
-Node: Logging in to your instance4094
-Node: Timelines5091
-Ref: Keybindings5566
-Ref: Toot byline legend10139
-Node: Composing toots10448
-Ref: Keybindings (1)11687
-Ref: Autocompletion of mentions and tags12205
-Ref: Draft toots12918
-Node: Other commands and account settings13389
-Node: Customization16547
-Node: Commands and variables index17334
-Node: Alternative timeline layout17654
-Node: Live-updating timelines mastodon-async-mode18059
-Node: Translating toots18911
-Node: Bookmarks and mastodonel20093
-Node: Dependencies20565
-Node: Network compatibility21175
-Node: Contributing22057
-Node: Bug reports22553
-Node: Fixes and features23464
-Node: Coding style23965
-Node: Supporting mastodonel24589
-Node: Contributors25156
+Node: Installation1596
+Node: ELPA1885
+Node: MELPA2113
+Node: Repo2493
+Node: Emoji2986
+Node: Discover3317
+Node: Usage3869
+Node: Logging in to your instance4312
+Node: Timelines5309
+Ref: Keybindings5784
+Ref: Toot byline legend10558
+Node: Composing toots10867
+Ref: Keybindings (1)12419
+Ref: Autocompletion of mentions tags and emoji12985
+Ref: Draft toots13851
+Node: Other commands and account settings14322
+Node: Customization17489
+Node: Commands and variables index18367
+Node: Alternative timeline layout18883
+Node: Live-updating timelines mastodon-async-mode19288
+Node: Translating toots20140
+Node: Bookmarks and mastodonel21322
+Node: Dependencies21794
+Node: Network compatibility22404
+Node: Contributing23286
+Node: Bug reports23782
+Node: Fixes and features24693
+Node: Coding style25194
+Node: Supporting mastodonel25818
+Node: Contributors26385
 
 End Tag Table
 

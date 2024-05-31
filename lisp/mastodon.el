@@ -6,7 +6,7 @@
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
-;; Version: 1.0.22
+;; Version: 1.0.23
 ;; Package-Requires: ((emacs "27.1") (request "0.3.0") (persist "0.4"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
@@ -175,6 +175,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "P") #'mastodon-profile--show-user)
     (define-key map (kbd "s") #'mastodon-search--query)
     (define-key map (kbd "/") #'mastodon-switch-to-buffer)
+    (define-key map (kbd "\\") #'mastodon-tl--get-remote-local-timeline)
     ;; quitting mastodon
     (define-key map (kbd "q") #'kill-current-buffer)
     (define-key map (kbd "Q") #'mastodon-kill-window)

@@ -75,6 +75,8 @@ Contributing
 @samp{mastodon.el} is an Emacs client for the AcitivityPub social networks that
 implement the Mastodon API@. For info see @uref{https://joinmastodon.org/, joinmastodon.org}.
 
+NB: @samp{mastodon.el} now ships this readme as an .info file, so if you have it installed you should be able to browse this readme inside emacs. @samp{C-h i} for info, then @samp{m masto RET} should load it for you.
+
 @menu
 * Installation::
 * Usage::
@@ -234,6 +236,8 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @anchor{Keybindings}Keybindings
 
 
+For a full list of commands and variables, see @uref{mastodon-index.org, mastodon-index.org}.
+
 @multitable {aaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem Key
 @tab Action
@@ -287,6 +291,8 @@ not contain @samp{:client_id} and @samp{:client_secret}.
 @tab view boosters of toot at point
 @item @samp{/}
 @tab switch between mastodon buffers
+@item @samp{\}
+@tab prompt for an instance domain and view its local timeline (if poss)
 @item @samp{Z}
 @tab report user/toot at point to instances moderators
 @item 
@@ -387,12 +393,14 @@ in @samp{text-mode} and @samp{mastodon-toot} minor mode. Enter the contents of y
 here. @samp{C-c C-c} sends the toot. @samp{C-c C-k} cancels. Both actions kill the buffer
 and window. Further keybindings are displayed in the buffer, and in the following subsection.
 
-Replies preserve visibility status/content warnings, and include boosters by default.
+Replies preserve visibility status/content warnings, and include boosters by default. If the region is active when you start a reply, it will be yanked into the compose buffer prefixed with @samp{>} to form a rough reply quote.
 
-Server's max toot length, and attachment previews, are shown.
+Server's max toot length, with running char count, and attachment previews, are shown.
 
 You can download and use your instance's custom emoji
 (@samp{mastodon-toot--download-custom-emoji}, @samp{mastodon-toot--enable-custom-emoji}).
+
+If you want to view some of the toot being replied to in the compose buffer, set @samp{mastodon-toot-display-orig-in-reply-buffer} to non-nil.
 
 The compose buffer uses @samp{text-mode} so any configuration you have for that mode
 will be enabled. If any of your existing config conflicts with @samp{mastodon-toot},
@@ -410,7 +418,7 @@ value of that hook is as follows:
 @anchor{Keybindings (1)}Keybindings
 
 
-@multitable {aaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@multitable {aaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem Key
 @tab Action
 @item @samp{C-c C-c}
@@ -433,16 +441,22 @@ value of that hook is as follows:
 @tab Create a poll
 @item @samp{C-c C-l}
 @tab Set toot language
+@item @samp{-C-c C-s}
+@tab Schedule toot
 @end multitable
 
 @item
-@anchor{Autocompletion of mentions and tags}Autocompletion of mentions and tags
+@anchor{Autocompletion of mentions tags and emoji}Autocompletion of mentions, tags and emoji
 
 
-Autocompletion of mentions and tags is provided by
+Autocompletion of mentions, tags, and emojis is provided by
 @samp{completion-at-point-functions} (capf) backends.
-@samp{mastodon-toot--enable-completion} is enabled by default. If you want to enable
-@samp{company-mode} in the toot compose buffer, set
+@samp{mastodon-toot--enable-completion} is enabled by default.
+
+To trigger completion, type a prefix followed by a few letters, @samp{@@} for
+mentions, @samp{#} for tags, and @samp{:} for emoji.
+
+If you want to enable @samp{company-mode} in the toot compose buffer, set
 @samp{mastodon-toot--use-company-for-completion} to @samp{t}. (@samp{mastodon.el} used to run its
 own native company backends, but these have been removed in favour of capfs.)
 
@@ -472,7 +486,7 @@ Compose buffer text is saved as you type, kept in @samp{mastodon-toot-current-to
 @subsection Other commands and account settings:
 
 In addition to @samp{mastodon}, the following three functions are autoloaded and should
-work without first loading @samp{mastodon.el}:
+work without first loading a @samp{mastodon.el} buffer:
 @itemize
 @item
 @samp{mastodon-toot}: Compose new toot
@@ -611,12 +625,21 @@ Display toot being replied to
 @item
 Set default reply visibility
 @end itemize
+
+@item
+Nofitication options:
+@itemize
+@item
+Display user's profile note in follow requests
+@end itemize
 @end itemize
 
 @node Commands and variables index
 @subsection Commands and variables index
 
 An index of all user-facing commands and custom variables is available here: @uref{mastodon-index.org, mastodon-index.org}.
+
+You can also hit @samp{?} in any @samp{mastodon.el} buffer to see the available bindings, or run @samp{M-X} (upper-case @samp{X}) to view all commands in the buffer with completion, and call one.
 
 @node Alternative timeline layout
 @subsection Alternative timeline layout

@@ -59,13 +59,11 @@
   :group 'mastodon)
 
 (defcustom mastodon-notifications--profile-note-in-foll-reqs t
-  "When non-nil, show some of a user's profile note in follow
-request notifications."
+  "If non-nil, show a user's profile note in follow request notifications."
   :type '(boolean))
 
 (defcustom mastodon-notifications--profile-note-in-foll-reqs-max-length nil
-  "The maximum character length for display of user profile note in
-follow requests.
+  "The max character length for user profile note in follow requests.
 Profile notes are only displayed if
 `mastodon-notifications--profile-note-in-foll-reqs' is non-nil.
 If unset, profile notes of any size will be displayed, which may

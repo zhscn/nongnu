@@ -88,6 +88,7 @@
 (autoload 'mastodon-http--get-response "mastodon-http")
 (autoload 'mastodon-search--insert-heading "mastodon-search")
 (autoload 'mastodon-media--process-full-sized-image-response "mastodon-media")
+(autoload 'mastodon-search--trending-statuses "mastodon-search")
 
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot-mode)
@@ -213,7 +214,8 @@ respects the user's `browse-url' settings."
   :type '(boolean))
 
 (defcustom mastodon-tl--remote-local-domains nil
-  "A list of domains to view the local timelines of using `mastodon-tl--get-remote-local-timeline'."
+  "A list of domains to view the local timelines of.
+See `mastodon-tl--get-remote-local-timeline' for view remote local domains."
   :type '(repeat string))
 
 
@@ -473,7 +475,10 @@ You can enter any working instance domain. Domains that you want
 to regularly load can be stored in
 `mastodon-tl--remote-local-domains' for easy access with completion.
 Note that some instances do not make their local timelines public, in
-which case this will not work."
+which case this will not work.
+To interact with any item, you must view it from your own
+instance, which you can do with
+`mastodon-tl--view-item-on-own-instance'."
   (interactive)
   (let* ((domain (completing-read "Domain for remote local tl: "
                                   mastodon-tl--remote-local-domains))
@@ -485,16 +490,21 @@ which case this will not work."
                          (mastodon-http--api "instance/peers")))))
     ;; condition-case doesn't work here, so i added basic error handling to
     ;; `mastodon-tl--init*' instead
-    (if (not known)
-        (when (y-or-n-p
-               "Domain appears unknown to your instance. Proceed?")
-          ;; TODO: refactor these calls:
-          (mastodon-tl--init buf
-                             "timelines/public" 'mastodon-tl--timeline nil
-                             params nil domain))
+    (when (or known
+              (y-or-n-p
+               "Domain appears unknown to your instance. Proceed?"))
       (mastodon-tl--init buf
                          "timelines/public" 'mastodon-tl--timeline nil
                          params nil domain))))
+
+(defun mastodon-tl--view-item-on-own-instance ()
+  "Load current toot on your own instance.
+Use this to re-load remote-local items in order to interact with them."
+  (interactive)
+  (mastodon-tl--do-if-item
+   (let* ((toot (mastodon-tl--property 'item-json))
+          (uri (mastodon-tl--field 'uri toot)))
+     (mastodon-url-lookup uri))))
 
 (defun mastodon-tl--get-local-timeline (&optional prefix)
   "Open local timeline.
@@ -2036,19 +2046,21 @@ ID is that of the post the context is currently displayed for."
 
 ;;; FOLLOW/BLOCK/MUTE, ETC
 
-(defun mastodon-tl--follow-user (user-handle &optional notify langs reblogs)
+(defun mastodon-tl--follow-user (user-handle
+                                 &optional notify langs reblogs json)
   "Query for USER-HANDLE from current status and follow that user.
 If NOTIFY is \"true\", enable notifications when that user posts.
 If NOTIFY is \"false\", disable notifications when that user posts.
 Can be called to toggle NOTIFY on users already being followed.
 LANGS is an array parameters alist of languages to filer user's posts by.
 REBLOGS is a boolean string like NOTIFY, enabling or disabling
-display of the user's boosts in your timeline."
+display of the user's boosts in your timeline.
+JSON is a flag arg for `mastodon-http--post'."
   (interactive
    (list (mastodon-tl--user-handles-get "follow")))
   (mastodon-tl--do-if-item
    (mastodon-tl--do-user-action-and-response
-    user-handle "follow" nil notify langs reblogs)))
+    user-handle "follow" nil notify langs reblogs json)))
 
 ;; TODO: make this action "enable/disable notifications"
 (defun mastodon-tl--enable-notify-user-posts (user-handle)
@@ -2081,24 +2093,42 @@ display of boosts."
   (mastodon-tl--follow-user user-handle nil nil "true"))
 
 (defun mastodon-tl--filter-user-user-posts-by-language (user-handle)
-  "Query for USER-HANDLE and enable notifications when they post.
-This feature is experimental and for now not easily varified by
-the instance API."
+  "Query for USER-HANDLE and filter display of their posts by language.
+If they are not already followed, they will be too.
+To be filtered, a post has to be marked as in the language given.
+This may mean that you will not see posts that are in your
+desired language if they are not marked as such (or as anything)."
   (interactive
    (list (mastodon-tl--user-handles-get "filter by language")))
   (let ((langs (mastodon-tl--read-filter-langs)))
     (mastodon-tl--do-if-item
-     (mastodon-tl--follow-user user-handle nil langs))))
+     (if (equal "" (cdar langs))
+         (mastodon-tl--unfilter-user-languages user-handle)
+       (mastodon-tl--follow-user user-handle nil langs)))))
+
+(defun mastodon-tl--unfilter-user-languages (user-handle)
+  "Remove any language filters for USER-HANDLE.
+This means you will receive posts of theirs marked as being in
+any or no language."
+  (interactive
+   (list (mastodon-tl--user-handles-get "filter by language")))
+  (let ((langs "languages[]"))
+    (mastodon-tl--do-if-item
+     ;; we need "languages[]" as a param, with no "=" and not json-encoded as
+     ;; a string
+     (mastodon-tl--follow-user user-handle nil langs nil :raw))))
 
 (defun mastodon-tl--read-filter-langs (&optional langs)
   "Read language choices and return an alist array parameter.
 LANGS is the accumulated array param alist if we re-run recursively."
-  (let* ((langs-alist langs)
+  (let* ((iso-const mastodon-iso-639-1)
+         (iso (cons '("None (all)" . "") iso-const))
+         (langs-alist langs)
          (choice (completing-read "Filter user's posts by language: "
-                                  mastodon-iso-639-1)))
+                                  iso)))
     (when choice
       (setq langs-alist
-            (push `("languages[]" . ,(alist-get choice mastodon-iso-639-1
+            (push `("languages[]" . ,(alist-get choice iso
                                                 nil nil #'string=))
                   langs-alist))
       (if (y-or-n-p "Filter by another language? ")
@@ -2204,7 +2234,7 @@ Action must be either \"unblock\" or \"unmute\"."
                        accts nil t)))) ; require match
 
 (defun mastodon-tl--do-user-action-and-response
-    (user-handle action &optional negp notify langs reblogs)
+    (user-handle action &optional negp notify langs reblogs json)
   "Do ACTION on user USER-HANDLE.
 NEGP is whether the action involves un-doing something.
 If NOTIFY is \"true\", enable notifications when that user posts.
@@ -2234,18 +2264,18 @@ display of the user's boosts in your timeline."
          (url (mastodon-http--api (format "accounts/%s/%s" user-id action))))
     (if account
         (if (equal action "follow") ; y-or-n for all but follow
-            (mastodon-tl--do-user-action-function url name user-handle action notify args reblogs)
+            (mastodon-tl--do-user-action-function url name user-handle action notify args reblogs json)
           (when (y-or-n-p (format "%s user %s? " action name))
             (mastodon-tl--do-user-action-function url name user-handle action args)))
       (message "Cannot find a user with handle %S" user-handle))))
 
 (defun mastodon-tl--do-user-action-function
-    (url name user-handle action &optional notify args reblogs)
+    (url name user-handle action &optional notify args reblogs json)
   "Post ACTION on user NAME/USER-HANDLE to URL.
 NOTIFY is either \"true\" or \"false\", and used when we have been called
 by `mastodon-tl--follow-user' to enable or disable notifications.
 ARGS is an alist of any parameters to send with the request."
-  (let ((response (mastodon-http--post url args)))
+  (let ((response (mastodon-http--post url args nil nil json)))
     (mastodon-http--triage
      response
      (lambda (response)
@@ -2271,6 +2301,8 @@ ARGS is an alist of any parameters to send with the request."
                ((or (string-equal action "mute")
                     (string-equal action "unmute"))
                 (message "User %s (@%s) %sd!" name user-handle action))
+               ((equal args "languages[]")
+                (message "User %s language filters removed!" name))
                ((assoc "languages[]" args #'equal)
                 (message "User %s filtered by language(s): %s" name
                          (mapconcat #'cdr args " ")))
@@ -2868,7 +2900,17 @@ RESPONSE is the data returned from the server by
 JSON and http headers, without it just the JSON."
   (let ((json (if headers (car response) response)))
     (cond ((not json) ; praying this is right here, else try "\n[]"
-	   (message "Looks like nothing returned from endpoint: %s" endpoint))
+           ;; this means that whatever tl was inited won't load, which is not
+           ;; always wanted, as sometimes you still need the page to load so
+           ;; you can be in eg mastodon-mode, have keymap, search etc.
+           (message "Looks like nothing returned from endpoint: %s" endpoint)
+           ;; if we are a new account, home tl may have nothing, but then
+           ;; this clause means we can never load mastodon.el at all!
+           ;; so as a fallback, load trending statuses:
+           ;; FIXME: this could possibly be a fallback for all timelines not
+           ;; just home?
+           (when (equal endpoint "timelines/home")
+             (mastodon-search--trending-statuses)))
           ((eq (caar json) 'error)
            (user-error "Looks like the server bugged out: \"%s\"" (cdar json)))
           (t

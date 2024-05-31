@@ -130,7 +130,10 @@ It contains details of the current user's account.")
 Other clients can change these settings on the server at any
 time, so this list is not the canonical source for settings. It
 is updated on entering mastodon mode and on toggle any setting it
-contains")
+contains.
+This variable is set from data in
+`mastodon-profile-credential-account' not
+`mastodon-profile-account-preferences-data'.")
 
 (define-minor-mode mastodon-profile-update-mode
   "Minor mode to update user profile."
@@ -498,7 +501,7 @@ Returns the results as an alist."
   "Limit string X to 255 chars max."
   (if (> (length x) 255) (substring x 0 255) x))
 
-;; used in tl.el
+;; used in tl.el and toot.el:
 (defun mastodon-profile--get-preferences-pref (pref)
   "Fetch PREF from the endpoint \"/preferences\".
 If `mastodon-profile-acccount-preferences-data' is set, fetch
@@ -697,12 +700,20 @@ TAG is a hashtag to restrict posts to."
             'success)
            ;; insert relationship (follows)
            (let-alist relationships
-             (let ((followsp (mastodon-profile--follows-p
-                              (list .requested_by .following .followed_by))))
+             (let* ((followsp (mastodon-profile--follows-p
+                               (list .requested_by .following .followed_by)))
+                    (rels (mastodon-profile--relationships-get .id))
+                    (langs-filtered (if-let ((langs (alist-get 'languages rels)))
+                                        (concat " ("
+                                                (mapconcat #'identity
+                                                           langs
+                                                           " ")
+                                                ")")
+                                      "")))
                (if followsp
                    (mastodon-tl--set-face
                     (concat (when (equal .following 't)
-                              " | FOLLOWED BY YOU")
+                              (format " | FOLLOWED BY YOU%s" langs-filtered))
                             (when (equal .followed_by 't)
                               " | FOLLOWS YOU")
                             (when (equal .requested_by 't)
