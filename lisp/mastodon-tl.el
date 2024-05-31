@@ -460,14 +460,18 @@ With a double PREFIX arg, only show posts with media."
                        params
                        (when (eq prefix 4) t))))
 
-(defun mastodon-tl--get-home-timeline (&optional arg)
+(defun mastodon-tl--get-home-timeline (&optional arg max-id)
   "Open home timeline.
 With a single prefix ARG, hide replies."
   (interactive "p")
-  (message "Loading home timeline...")
-  (mastodon-tl--init "home" "timelines/home" 'mastodon-tl--timeline nil
-                     `(("limit" . ,mastodon-tl--timeline-posts-count))
-                     (when (eq arg 4) t)))
+  (let* ((params
+          `(("limit" . ,mastodon-tl--timeline-posts-count)
+            ,(when max-id
+               `("max_id" . ,(mastodon-tl--buffer-property 'max-id))))))
+    (message "Loading home timeline...")
+    (mastodon-tl--init "home" "timelines/home" 'mastodon-tl--timeline nil
+                       params ;`(("limit" . ,mastodon-tl--timeline-posts-count))
+                       (when (eq arg 4) t))))
 
 (defun mastodon-tl--get-remote-local-timeline ()
   "Prompt for an instance domain and try to display its local timeline.
@@ -2544,10 +2548,11 @@ the current view."
 (defun mastodon-tl--reload-timeline-or-profile (&optional pos)
   "Reload the current timeline or profile page.
 For use after e.g. deleting a toot.
-POS is a number, where point will be placed."
+POS is a number, where point will be placed.
+Aims to respect any pagination in effect."
   (let ((type (mastodon-tl--get-buffer-type)))
     (cond ((eq type 'home)
-           (mastodon-tl--get-home-timeline))
+           (mastodon-tl--get-home-timeline nil :max-id))
           ((eq type 'federated)
            (mastodon-tl--get-federated-timeline))
           ((eq type 'local)
