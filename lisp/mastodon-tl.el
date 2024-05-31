@@ -1657,7 +1657,8 @@ If NO-ERROR is non-nil, do not error when property is empty."
                  property)))))
 
 (defun mastodon-tl--set-buffer-spec
-    (buffer endpoint update-fun &optional link-header update-params hide-replies)
+    (buffer endpoint update-fun
+            &optional link-header update-params hide-replies max-id)
   "Set `mastodon-tl--buffer-spec' for the current buffer.
 BUFFER is buffer name, ENDPOINT is buffer's enpoint,
 UPDATE-FUN is its update function.
@@ -1672,7 +1673,8 @@ HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
                   update-function ,update-fun
                   link-header ,link-header
                   update-params ,update-params
-                  hide-replies ,hide-replies)))
+                  hide-replies ,hide-replies
+                  max-id ,max-id)))
 
 
 ;;; BUFFERS
@@ -2622,13 +2624,14 @@ and profile pages when showing followers or accounts followed."
             (mastodon-tl--update-params)
             'mastodon-tl--more* (current-buffer) (point)))
           (t;; max_id paginate (timelines, items with ids/timestamps):
-           (mastodon-tl--more-json-async
-            (mastodon-tl--endpoint)
-            (mastodon-tl--oldest-id)
-            (mastodon-tl--update-params)
-            'mastodon-tl--more* (current-buffer) (point))))))
+           (let ((max-id (mastodon-tl--oldest-id)))
+             (mastodon-tl--more-json-async
+              (mastodon-tl--endpoint)
+              max-id
+              (mastodon-tl--update-params)
+              'mastodon-tl--more* (current-buffer) (point) nil max-id))))))
 
-(defun mastodon-tl--more* (response buffer point-before &optional headers)
+(defun mastodon-tl--more* (response buffer point-before &optional headers max-id)
   "Append older toots to timeline, asynchronously.
 Runs the timeline's update function on RESPONSE, in BUFFER.
 When done, places point at POINT-BEFORE.
@@ -2663,13 +2666,13 @@ HEADERS is the http headers returned in the response, if any."
               (message "No more results.")
             (funcall (mastodon-tl--update-function) json)
             (goto-char point-before)
-            ;; update buffer spec to new link-header:
+            ;; update buffer spec to new link-header or max-id:
             ;; (other values should just remain as they were)
-            (when headers
-              (mastodon-tl--set-buffer-spec (mastodon-tl--buffer-name)
-                                            (mastodon-tl--endpoint)
-                                            (mastodon-tl--update-function)
-                                            link-header))
+            (mastodon-tl--set-buffer-spec (mastodon-tl--buffer-name)
+                                          (mastodon-tl--endpoint)
+                                          (mastodon-tl--update-function)
+                                          link-header
+                                          nil nil max-id)
             (message "Loading... done.")))))))
 
 (defun mastodon-tl--find-property-range (property start-point
