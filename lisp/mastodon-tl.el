@@ -442,7 +442,7 @@ Used on initializing a timeline or thread."
 
 ;;; TIMELINES
 
-(defun mastodon-tl--get-federated-timeline (&optional prefix local)
+(defun mastodon-tl--get-federated-timeline (&optional prefix local max-id)
   "Open federated timeline.
 If LOCAL, get only local timeline.
 With a single PREFIX arg, hide-replies.
@@ -454,6 +454,9 @@ With a double PREFIX arg, only show posts with media."
       (push '("only_media" . "true") params))
     (when local
       (push '("local" . "true") params))
+    (when max-id
+      (push `("max_id" . ,(mastodon-tl--buffer-property 'max-id))
+            params))
     (message "Loading federated timeline...")
     (mastodon-tl--init (if local "local" "federated")
                        "timelines/public" 'mastodon-tl--timeline nil
@@ -470,7 +473,7 @@ With a single prefix ARG, hide replies."
                `("max_id" . ,(mastodon-tl--buffer-property 'max-id))))))
     (message "Loading home timeline...")
     (mastodon-tl--init "home" "timelines/home" 'mastodon-tl--timeline nil
-                       params ;`(("limit" . ,mastodon-tl--timeline-posts-count))
+                       params
                        (when (eq arg 4) t))))
 
 (defun mastodon-tl--get-remote-local-timeline ()
@@ -510,13 +513,13 @@ Use this to re-load remote-local items in order to interact with them."
           (uri (mastodon-tl--field 'uri toot)))
      (mastodon-url-lookup uri))))
 
-(defun mastodon-tl--get-local-timeline (&optional prefix)
+(defun mastodon-tl--get-local-timeline (&optional prefix max-id)
   "Open local timeline.
 With a single PREFIX arg, hide-replies.
 With a double PREFIX arg, only show posts with media."
   (interactive "p")
   (message "Loading local timeline...")
-  (mastodon-tl--get-federated-timeline prefix :local))
+  (mastodon-tl--get-federated-timeline prefix :local max-id))
 
 (defun mastodon-tl--get-tag-timeline (&optional prefix tag)
   "Prompt for tag and opens its timeline.
@@ -2554,9 +2557,9 @@ Aims to respect any pagination in effect."
     (cond ((eq type 'home)
            (mastodon-tl--get-home-timeline nil :max-id))
           ((eq type 'federated)
-           (mastodon-tl--get-federated-timeline))
+           (mastodon-tl--get-federated-timeline nil nil :max-id))
           ((eq type 'local)
-           (mastodon-tl--get-local-timeline))
+           (mastodon-tl--get-local-timeline nil :max-id))
           ((eq type 'mentions)
            (mastodon-notifications--get-mentions))
           ((eq type 'notifications)
