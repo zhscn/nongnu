@@ -2932,7 +2932,9 @@ JSON and http headers, without it just the JSON."
                   (link-header (mastodon-tl--get-link-header-from-response headers)))
              (with-mastodon-buffer buffer #'mastodon-mode nil
                (mastodon-tl--set-buffer-spec buffer endpoint update-function
-                                             link-header update-params hide-replies)
+                                             link-header update-params hide-replies
+                                             ;; awful hack to fix multiple reloads:
+                                             (alist-get "max_id" update-params nil nil #'equal))
                (mastodon-tl--do-init json update-function instance)))))))
 
 (defun mastodon-tl--init-sync
@@ -2968,7 +2970,9 @@ BINDING-STR is a string explaining any bindins in the view."
         (insert (mastodon-tl--set-face (concat "[" binding-str "]\n\n")
                                        'font-lock-comment-face)))
       (mastodon-tl--set-buffer-spec buffer endpoint update-function
-                                    link-header params)
+                                    link-header params nil
+                                    ;; awful hack to fix multiple reloads:
+                                    (alist-get "max_id" params nil nil #'equal))
       (mastodon-tl--do-init json update-function)
       buffer)))
 
