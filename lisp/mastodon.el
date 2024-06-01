@@ -358,7 +358,7 @@ from the server and load anew."
                               'mastodon-notifications--timeline
                               type
                               (when max-id
-                                `("max_id" . ,(mastodon-tl--buffer-property 'max-id))))
+                                `(("max_id" . ,(mastodon-tl--buffer-property 'max-id)))))
       (with-current-buffer buffer
         (use-local-map mastodon-notifications--map)))))
 

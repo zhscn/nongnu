@@ -2565,9 +2565,12 @@ Aims to respect any pagination in effect."
           ((eq type 'notifications)
            (mastodon-notifications-get nil nil :force :max-id))
           ((eq type 'profile-statuses-no-boosts)
+           ;; TODO: max-id arg needed here also
            (mastodon-profile--open-statuses-no-reblogs))
           ((eq type 'profile-statuses)
-           (mastodon-profile--my-profile))
+           (save-excursion
+             (goto-char (point-min))
+             (mastodon-profile--get-toot-author :max-id)))
           ((eq type 'thread)
            (save-match-data
              (let ((endpoint (mastodon-tl--endpoint)))
