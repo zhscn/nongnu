@@ -2563,7 +2563,7 @@ Aims to respect any pagination in effect."
           ((eq type 'mentions)
            (mastodon-notifications--get-mentions))
           ((eq type 'notifications)
-           (mastodon-notifications-get nil nil :force))
+           (mastodon-notifications-get nil nil :force :max-id))
           ((eq type 'profile-statuses-no-boosts)
            (mastodon-profile--open-statuses-no-reblogs))
           ((eq type 'profile-statuses)
@@ -2932,10 +2932,10 @@ JSON and http headers, without it just the JSON."
                                              link-header update-params hide-replies)
                (mastodon-tl--do-init json update-function instance)))))))
 
-  (defun mastodon-tl--init-sync
-      (buffer-name endpoint update-function
-                   &optional note-type params headers view-name binding-str)
-    "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
+(defun mastodon-tl--init-sync
+    (buffer-name endpoint update-function
+                 &optional note-type params headers view-name binding-str)
+  "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously.
 Optional arg NOTE-TYPE means only get that type of notification.
