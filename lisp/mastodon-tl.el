@@ -1232,9 +1232,9 @@ LONGEST-OPTION is the option whose length determines the formatting."
           (format "[%s votes]" (or (alist-get 'votes_count option)
                                    "0"))))
 
-(defun mastodon-tl--format-poll (toot)
+(defun mastodon-tl--format-poll (poll)
   "If TOOT includes a poll, return it as a formatted string."
-  (let-alist (mastodon-tl--field 'poll toot) ; toot or reblog
+  (let-alist poll
     (let* ((option-titles (mastodon-tl--map-alist 'title .options))
            (longest-option (car (sort option-titles
                                       (lambda (x y)
@@ -1454,7 +1454,8 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
          (media-p (mastodon-tl--field 'media_attachments toot)))
     (concat (mastodon-tl--render-text content toot)
             (when poll-p
-              (mastodon-tl--format-poll toot))
+              (mastodon-tl--format-poll
+               (mastodon-tl--field 'poll toot))) ;; toot or reblog
             (when media-p
               (mastodon-tl--media toot)))))
 
