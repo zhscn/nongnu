@@ -279,6 +279,7 @@ send.")
     (define-key map (kbd "C-c C-a") #'mastodon-toot--attach-media)
     (define-key map (kbd "C-c !") #'mastodon-toot--clear-all-attachments)
     (define-key map (kbd "C-c C-p") #'mastodon-toot--create-poll)
+    (define-key map (kbd "C-c C-o") #'mastodon-toot--clear-poll)
     (define-key map (kbd "C-c C-l") #'mastodon-toot--set-toot-language)
     (define-key map (kbd "C-c C-s") #'mastodon-toot--schedule-toot)
     map)
@@ -1428,6 +1429,14 @@ LENGTH is the maximum character length allowed for a poll option."
     ("14 days" . ,(number-to-string (* 60 60 24 14)))
     ("30 days" . ,(number-to-string (* 60 60 24 30)))))
 
+(defun mastodon-toot--clear-poll ()
+  "Remove poll from toot compose buffer.
+Sets `mastodon-toot-poll' to nil."
+  (interactive)
+  (if (not mastodon-toot-poll)
+      (user-error "No poll?")
+    (setq mastodon-toot-poll nil)
+    (mastodon-toot--update-status-fields)))
 
 ;;; SCHEDULE
 
