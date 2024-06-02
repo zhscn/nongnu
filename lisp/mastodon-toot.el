@@ -1437,6 +1437,7 @@ Sets `mastodon-toot-poll' to nil."
       (user-error "No poll?")
     (setq mastodon-toot-poll nil)
     (mastodon-toot--update-status-fields)))
+
 
 ;;; SCHEDULE
 
@@ -1751,7 +1752,8 @@ REPLY-REGION is a string to be injected into the buffer."
                                  'face 'mastodon-cw-face))
       (add-text-properties (car poll-region) (cdr poll-region)
                            (list 'display (if mastodon-toot-poll "POLL" "")
-                                 'face 'mastodon-cw-face))
+                                 'face 'mastodon-cw-face
+                                 'help-echo (prin1-to-string mastodon-toot-poll)))
       (add-text-properties (car cw-region) (cdr cw-region)
                            (list 'display (if mastodon-toot--content-warning
                                               "CW"
