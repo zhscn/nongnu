@@ -1218,14 +1218,14 @@ SENSITIVE is a flag from the item's JSON data."
 
 ;; POLLS
 
-(defun mastodon-tl--format-poll-option (option option-counter longest-option)
+(defun mastodon-tl--format-poll-option (option option-counter length)
   "Format poll OPTION. OPTION-COUNTER is just a counter.
 LONGEST-OPTION is the option whose length determines the formatting."
   (format "%s: %s%s%s\n"
           option-counter
           (propertize (alist-get 'title option)
                       'face 'success)
-          (make-string (1+ (- (length longest-option)
+          (make-string (1+ (- length
                               (length (alist-get 'title option))))
                        ?\ )
           ;; TODO: disambiguate no votes from hidden votes
@@ -1236,16 +1236,13 @@ LONGEST-OPTION is the option whose length determines the formatting."
   "If TOOT includes a poll, return it as a formatted string."
   (let-alist poll
     (let* ((option-titles (mastodon-tl--map-alist 'title .options))
-           (longest-option (car (sort option-titles
-                                      (lambda (x y)
-                                        (> (length x)
-                                           (length y))))))
+           (longest (car (sort (mapcar #'length option-titles) #'>)))
            (option-counter 0))
       (concat "\nPoll: \n\n"
               (mapconcat (lambda (option)
                            (setq option-counter (1+ option-counter))
                            (mastodon-tl--format-poll-option
-                            option option-counter longest-option))
+                            option option-counter longest))
                          .options
                          "\n")
               "\n"
