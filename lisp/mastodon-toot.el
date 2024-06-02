@@ -1387,7 +1387,8 @@ MAX is the maximum number set by their instance."
     (setq mastodon-toot-poll
           `(:options ,options :length ,length :multi ,multiple-p
                      :hide ,hide-totals :expiry ,expiry))
-    (message "poll created!")))
+    (message "poll created!")
+    (mastodon-toot--update-status-fields)))
 
 (defun mastodon-toot--read-poll-options (count length)
   "Read a list of options for poll with COUNT options.
@@ -1609,6 +1610,9 @@ REPLY-TEXT is the text of the toot being replied to."
         (propertize "CW"
                     'toot-post-cw-flag t)
         " "
+        (propertize "POLL"
+                    'toot-post-poll-flag t)
+        " "
         (propertize "NSFW"
                     'toot-post-nsfw-flag t)
         "\n"
@@ -1700,6 +1704,8 @@ REPLY-REGION is a string to be injected into the buffer."
                                                           (point-min)))
            (scheduled-region (mastodon-tl--find-property-range 'toot-post-scheduled
                                                                (point-min)))
+           (poll-region (mastodon-tl--find-property-range 'toot-post-poll-flag
+                                                          (point-min)))
            (toot-string (buffer-substring-no-properties (cdr header-region)
                                                         (point-max))))
       (add-text-properties (car count-region) (cdr count-region)
@@ -1731,11 +1737,16 @@ REPLY-REGION is a string to be injected into the buffer."
       (add-text-properties (car nsfw-region) (cdr nsfw-region)
                            (list 'display (if mastodon-toot--content-nsfw
                                               (if mastodon-toot--media-attachments
-                                                  "NSFW" "NSFW (for attachments only)")
+                                                  "NSFW" "NSFW (attachments only)")
                                             "")
                                  'face 'mastodon-cw-face))
+      (add-text-properties (car poll-region) (cdr poll-region)
+                           (list 'display (if mastodon-toot-poll "POLL" "")
+                                 'face 'mastodon-cw-face))
       (add-text-properties (car cw-region) (cdr cw-region)
-                           (list 'invisible (not mastodon-toot--content-warning)
+                           (list 'display (if mastodon-toot--content-warning
+                                              "CW"
+                                            "  ") ;; hold the blank space
                                  'face 'mastodon-cw-face)))))
 
 (defun mastodon-toot--count-toot-chars (toot-string &optional cw)
