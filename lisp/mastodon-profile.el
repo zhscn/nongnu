@@ -151,7 +151,8 @@ This variable is set from data in
 NO-REBLOGS means do not display boosts in statuses.
 NO-REPLIES means to exlude replies.
 ONLY-MEDIA means show only posts containing attachments.
-TAG is a hashtag to restrict posts to."
+TAG is a hashtag to restrict posts to.
+MAX-ID is a flag to include the max_id pagination parameter."
   (mastodon-profile--make-profile-buffer-for
    account "statuses" #'mastodon-tl--timeline no-reblogs nil
    no-replies only-media tag max-id))
@@ -600,7 +601,8 @@ NO-REBLOGS means do not display boosts in statuses.
 HEADERS means also fetch link headers for pagination.
 NO-REPLIES means to exlude replies.
 ONLY-MEDIA means show only posts containing attachments.
-TAG is a hashtag to restrict posts to."
+TAG is a hashtag to restrict posts to.
+MAX-ID is a flag to include the max_id pagination parameter."
   (let-alist account
     (let* ((max-id-str (when max-id
                          (mastodon-tl--buffer-property 'max-id)))
@@ -753,7 +755,8 @@ the format \"2000-01-31T00:00:00.000Z\"."
 
 (defun mastodon-profile--get-toot-author (&optional max-id)
   "Open profile of author of toot under point.
-If toot is a boost, opens the profile of the booster."
+If toot is a boost, opens the profile of the booster.
+MAX-ID is a flag to include the max_id pagination parameter."
   (interactive)
   (mastodon-profile--make-author-buffer
    (alist-get 'account (mastodon-profile--item-json))

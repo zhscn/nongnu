@@ -261,7 +261,7 @@ Status notifications are given when
              (equal type 'follow-request)
              (equal type 'mention))
          'mastodon-tl--byline-author
-       (lambda (_status &rest args) ; unbreak stuff
+       (lambda (_status &rest _args) ; unbreak stuff
          (mastodon-tl--byline-author note)))
      ;; action-byline
      (lambda (_status)

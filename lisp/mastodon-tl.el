@@ -465,7 +465,8 @@ With a double PREFIX arg, only show posts with media."
 
 (defun mastodon-tl--get-home-timeline (&optional arg max-id)
   "Open home timeline.
-With a single prefix ARG, hide replies."
+With a single prefix ARG, hide replies.
+MAX-ID is a flag to add the max_id pagination parameter."
   (interactive "p")
   (let* ((params
           `(("limit" . ,mastodon-tl--timeline-posts-count)
@@ -516,7 +517,8 @@ Use this to re-load remote-local items in order to interact with them."
 (defun mastodon-tl--get-local-timeline (&optional prefix max-id)
   "Open local timeline.
 With a single PREFIX arg, hide-replies.
-With a double PREFIX arg, only show posts with media."
+With a double PREFIX arg, only show posts with media.
+MAX-ID is a flag to add the max_id pagination parameter."
   (interactive "p")
   (message "Loading local timeline...")
   (mastodon-tl--get-federated-timeline prefix :local max-id))
@@ -1671,7 +1673,8 @@ BUFFER is buffer name, ENDPOINT is buffer's enpoint,
 UPDATE-FUN is its update function.
 LINK-HEADER is the http Link header if present.
 UPDATE-PARAMS is any http parameters needed for the update function.
-HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
+HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer.
+MAX-ID is the pagination parameter."
   (setq mastodon-tl--buffer-spec
         `(account ,(cons mastodon-active-user
                          mastodon-instance-url)
@@ -2646,7 +2649,8 @@ and profile pages when showing followers or accounts followed."
   "Append older toots to timeline, asynchronously.
 Runs the timeline's update function on RESPONSE, in BUFFER.
 When done, places point at POINT-BEFORE.
-HEADERS is the http headers returned in the response, if any."
+HEADERS is the http headers returned in the response, if any.
+MAX-ID is the pagination parameter, a string."
   (with-current-buffer buffer
     (if (not response)
         (message "No more results")
