@@ -442,7 +442,7 @@ Used on initializing a timeline or thread."
 
 ;;; TIMELINES
 
-(defun mastodon-tl--get-federated-timeline (&optional prefix local)
+(defun mastodon-tl--get-federated-timeline (&optional prefix local max-id)
   "Open federated timeline.
 If LOCAL, get only local timeline.
 With a single PREFIX arg, hide-replies.
@@ -454,20 +454,28 @@ With a double PREFIX arg, only show posts with media."
       (push '("only_media" . "true") params))
     (when local
       (push '("local" . "true") params))
+    (when max-id
+      (push `("max_id" . ,(mastodon-tl--buffer-property 'max-id))
+            params))
     (message "Loading federated timeline...")
     (mastodon-tl--init (if local "local" "federated")
                        "timelines/public" 'mastodon-tl--timeline nil
                        params
                        (when (eq prefix 4) t))))
 
-(defun mastodon-tl--get-home-timeline (&optional arg)
+(defun mastodon-tl--get-home-timeline (&optional arg max-id)
   "Open home timeline.
-With a single prefix ARG, hide replies."
+With a single prefix ARG, hide replies.
+MAX-ID is a flag to add the max_id pagination parameter."
   (interactive "p")
-  (message "Loading home timeline...")
-  (mastodon-tl--init "home" "timelines/home" 'mastodon-tl--timeline nil
-                     `(("limit" . ,mastodon-tl--timeline-posts-count))
-                     (when (eq arg 4) t)))
+  (let* ((params
+          `(("limit" . ,mastodon-tl--timeline-posts-count)
+            ,(when max-id
+               `("max_id" . ,(mastodon-tl--buffer-property 'max-id))))))
+    (message "Loading home timeline...")
+    (mastodon-tl--init "home" "timelines/home" 'mastodon-tl--timeline nil
+                       params
+                       (when (eq arg 4) t))))
 
 (defun mastodon-tl--get-remote-local-timeline ()
   "Prompt for an instance domain and try to display its local timeline.
@@ -506,13 +514,14 @@ Use this to re-load remote-local items in order to interact with them."
           (uri (mastodon-tl--field 'uri toot)))
      (mastodon-url-lookup uri))))
 
-(defun mastodon-tl--get-local-timeline (&optional prefix)
+(defun mastodon-tl--get-local-timeline (&optional prefix max-id)
   "Open local timeline.
 With a single PREFIX arg, hide-replies.
-With a double PREFIX arg, only show posts with media."
+With a double PREFIX arg, only show posts with media.
+MAX-ID is a flag to add the max_id pagination parameter."
   (interactive "p")
   (message "Loading local timeline...")
-  (mastodon-tl--get-federated-timeline prefix :local))
+  (mastodon-tl--get-federated-timeline prefix :local max-id))
 
 (defun mastodon-tl--get-tag-timeline (&optional prefix tag)
   "Prompt for tag and opens its timeline.
@@ -1657,13 +1666,15 @@ If NO-ERROR is non-nil, do not error when property is empty."
                  property)))))
 
 (defun mastodon-tl--set-buffer-spec
-    (buffer endpoint update-fun &optional link-header update-params hide-replies)
+    (buffer endpoint update-fun
+            &optional link-header update-params hide-replies max-id)
   "Set `mastodon-tl--buffer-spec' for the current buffer.
 BUFFER is buffer name, ENDPOINT is buffer's enpoint,
 UPDATE-FUN is its update function.
 LINK-HEADER is the http Link header if present.
 UPDATE-PARAMS is any http parameters needed for the update function.
-HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
+HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer.
+MAX-ID is the pagination parameter."
   (setq mastodon-tl--buffer-spec
         `(account ,(cons mastodon-active-user
                          mastodon-instance-url)
@@ -1672,7 +1683,8 @@ HIDE-REPLIES is a flag indicating if replies are hidden in the current buffer."
                   update-function ,update-fun
                   link-header ,link-header
                   update-params ,update-params
-                  hide-replies ,hide-replies)))
+                  hide-replies ,hide-replies
+                  max-id ,max-id)))
 
 
 ;;; BUFFERS
@@ -2542,22 +2554,26 @@ the current view."
 (defun mastodon-tl--reload-timeline-or-profile (&optional pos)
   "Reload the current timeline or profile page.
 For use after e.g. deleting a toot.
-POS is a number, where point will be placed."
+POS is a number, where point will be placed.
+Aims to respect any pagination in effect."
   (let ((type (mastodon-tl--get-buffer-type)))
     (cond ((eq type 'home)
-           (mastodon-tl--get-home-timeline))
+           (mastodon-tl--get-home-timeline nil :max-id))
           ((eq type 'federated)
-           (mastodon-tl--get-federated-timeline))
+           (mastodon-tl--get-federated-timeline nil nil :max-id))
           ((eq type 'local)
-           (mastodon-tl--get-local-timeline))
+           (mastodon-tl--get-local-timeline nil :max-id))
           ((eq type 'mentions)
            (mastodon-notifications--get-mentions))
           ((eq type 'notifications)
-           (mastodon-notifications-get nil nil :force))
+           (mastodon-notifications-get nil nil :force :max-id))
           ((eq type 'profile-statuses-no-boosts)
+           ;; TODO: max-id arg needed here also
            (mastodon-profile--open-statuses-no-reblogs))
           ((eq type 'profile-statuses)
-           (mastodon-profile--my-profile))
+           (save-excursion
+             (goto-char (point-min))
+             (mastodon-profile--get-toot-author :max-id)))
           ((eq type 'thread)
            (save-match-data
              (let ((endpoint (mastodon-tl--endpoint)))
@@ -2622,17 +2638,19 @@ and profile pages when showing followers or accounts followed."
             (mastodon-tl--update-params)
             'mastodon-tl--more* (current-buffer) (point)))
           (t;; max_id paginate (timelines, items with ids/timestamps):
-           (mastodon-tl--more-json-async
-            (mastodon-tl--endpoint)
-            (mastodon-tl--oldest-id)
-            (mastodon-tl--update-params)
-            'mastodon-tl--more* (current-buffer) (point))))))
+           (let ((max-id (mastodon-tl--oldest-id)))
+             (mastodon-tl--more-json-async
+              (mastodon-tl--endpoint)
+              max-id
+              (mastodon-tl--update-params)
+              'mastodon-tl--more* (current-buffer) (point) nil max-id))))))
 
-(defun mastodon-tl--more* (response buffer point-before &optional headers)
+(defun mastodon-tl--more* (response buffer point-before &optional headers max-id)
   "Append older toots to timeline, asynchronously.
 Runs the timeline's update function on RESPONSE, in BUFFER.
 When done, places point at POINT-BEFORE.
-HEADERS is the http headers returned in the response, if any."
+HEADERS is the http headers returned in the response, if any.
+MAX-ID is the pagination parameter, a string."
   (with-current-buffer buffer
     (if (not response)
         (message "No more results")
@@ -2663,13 +2681,13 @@ HEADERS is the http headers returned in the response, if any."
               (message "No more results.")
             (funcall (mastodon-tl--update-function) json)
             (goto-char point-before)
-            ;; update buffer spec to new link-header:
+            ;; update buffer spec to new link-header or max-id:
             ;; (other values should just remain as they were)
-            (when headers
-              (mastodon-tl--set-buffer-spec (mastodon-tl--buffer-name)
-                                            (mastodon-tl--endpoint)
-                                            (mastodon-tl--update-function)
-                                            link-header))
+            (mastodon-tl--set-buffer-spec (mastodon-tl--buffer-name)
+                                          (mastodon-tl--endpoint)
+                                          (mastodon-tl--update-function)
+                                          link-header
+                                          nil nil max-id)
             (message "Loading... done.")))))))
 
 (defun mastodon-tl--find-property-range (property start-point
@@ -2918,13 +2936,15 @@ JSON and http headers, without it just the JSON."
                   (link-header (mastodon-tl--get-link-header-from-response headers)))
              (with-mastodon-buffer buffer #'mastodon-mode nil
                (mastodon-tl--set-buffer-spec buffer endpoint update-function
-                                             link-header update-params hide-replies)
+                                             link-header update-params hide-replies
+                                             ;; awful hack to fix multiple reloads:
+                                             (alist-get "max_id" update-params nil nil #'equal))
                (mastodon-tl--do-init json update-function instance)))))))
 
-  (defun mastodon-tl--init-sync
-      (buffer-name endpoint update-function
-                   &optional note-type params headers view-name binding-str)
-    "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
+(defun mastodon-tl--init-sync
+    (buffer-name endpoint update-function
+                 &optional note-type params headers view-name binding-str)
+  "Initialize BUFFER-NAME with timeline targeted by ENDPOINT.
 UPDATE-FUNCTION is used to receive more toots.
 Runs synchronously.
 Optional arg NOTE-TYPE means only get that type of notification.
@@ -2954,7 +2974,9 @@ BINDING-STR is a string explaining any bindins in the view."
         (insert (mastodon-tl--set-face (concat "[" binding-str "]\n\n")
                                        'font-lock-comment-face)))
       (mastodon-tl--set-buffer-spec buffer endpoint update-function
-                                    link-header params)
+                                    link-header params nil
+                                    ;; awful hack to fix multiple reloads:
+                                    (alist-get "max_id" params nil nil #'equal))
       (mastodon-tl--do-init json update-function)
       buffer)))
 

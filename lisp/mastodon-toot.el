@@ -906,6 +906,7 @@ instance to edit a toot."
              (mastodon-http--triage
               response
               (lambda (_)
+                ;; kill buffer:
                 (mastodon-toot--kill)
                 (if scheduled
                     (message "Toot scheduled!")
@@ -914,6 +915,7 @@ instance to edit a toot."
                 (when scheduled-id
                   (mastodon-views--cancel-scheduled-toot
                    scheduled-id :no-confirm))
+                ;; window config:
                 (mastodon-toot--restore-previous-window-config prev-window-config)
                 ;; reload previous view in certain cases:
                 ;; we reload: - when we have been editing
