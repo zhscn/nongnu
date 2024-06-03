@@ -2554,24 +2554,25 @@ the current view."
 For use after e.g. deleting a toot.
 POS is a number, where point will be placed.
 Aims to respect any pagination in effect."
-  (let ((type (mastodon-tl--get-buffer-type)))
+  (let ((type (mastodon-tl--get-buffer-type))
+        (max-id (mastodon-tl--buffer-property 'max-id nil :no-error)))
     (cond ((eq type 'home)
-           (mastodon-tl--get-home-timeline nil :max-id))
+           (mastodon-tl--get-home-timeline nil max-id))
           ((eq type 'federated)
-           (mastodon-tl--get-federated-timeline nil nil :max-id))
+           (mastodon-tl--get-federated-timeline nil nil max-id))
           ((eq type 'local)
-           (mastodon-tl--get-local-timeline nil :max-id))
+           (mastodon-tl--get-local-timeline nil max-id))
           ((eq type 'mentions)
            (mastodon-notifications--get-mentions))
           ((eq type 'notifications)
-           (mastodon-notifications-get nil nil :force :max-id))
+           (mastodon-notifications-get nil nil :force max-id))
           ((eq type 'profile-statuses-no-boosts)
            ;; TODO: max-id arg needed here also
            (mastodon-profile--open-statuses-no-reblogs))
           ((eq type 'profile-statuses)
            (save-excursion
              (goto-char (point-min))
-             (mastodon-profile--get-toot-author :max-id)))
+             (mastodon-profile--get-toot-author max-id)))
           ((eq type 'thread)
            (save-match-data
              (let ((endpoint (mastodon-tl--endpoint)))
