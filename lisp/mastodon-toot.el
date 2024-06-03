@@ -95,6 +95,8 @@
 (autoload 'mastodon-tl--toot-or-base "mastodon-tl")
 (autoload 'mastodon-profile--get-source-value "mastodon-toot")
 (autoload 'mastodon-tl--get-buffer-type "mastodon-tl")
+(autoload 'mastodon-tl--human-duration "mastodon-tl")
+(autoload 'mastodon-profile--get-preferences-pref "mastodon-profile")
 
 ;; for mastodon-toot--translate-toot-text
 (autoload 'mastodon-tl--content "mastodon-tl")
@@ -678,7 +680,7 @@ MEDIA is the media_attachments data for a status from the server."
           media))
 
 (defun mastodon-toot--set-toot-properties
-    (reply-id visibility cw lang &optional scheduled scheduled-id media)
+    (reply-id visibility cw lang &optional scheduled scheduled-id media poll)
   "Set the toot properties for the current redrafted or edited toot.
 REPLY-ID, VISIBILITY, CW, SCHEDULED, and LANG are the properties to set.
 MEDIA is the media_attachments data for a status from the server."
@@ -693,6 +695,8 @@ MEDIA is the media_attachments data for a status from the server."
     (mastodon-toot--set-cw cw)
     (when media
       (mastodon-toot--set-toot-media-attachments media))
+    (when poll
+      (mastodon-toot--server-poll-to-local poll))
     (mastodon-toot--refresh-attachments-display)
     (mastodon-toot--update-status-fields)))
 
@@ -948,14 +952,15 @@ instance to edit a toot."
               (toot-visibility (alist-get 'visibility toot))
               (toot-language (alist-get 'language toot))
               (reply-id (alist-get 'in_reply_to_id toot))
-              (media (alist-get 'media_attachments toot)))
+              (media (alist-get 'media_attachments toot))
+              (poll (alist-get 'poll toot)))
          (when (y-or-n-p "Edit this toot? ")
            (mastodon-toot--compose-buffer nil reply-id nil content :edit)
            (goto-char (point-max))
            ;; adopt reply-to-id, visibility, CW, language, and media:
            (mastodon-toot--set-toot-properties reply-id toot-visibility
-                                               source-cw toot-language nil nil
-                                               media)
+                                               source-cw toot-language nil
+                                               nil media poll)
            (setq mastodon-toot--edit-item-id id)))))))
 
 (defun mastodon-toot--get-toot-source (id)
@@ -1384,10 +1389,12 @@ MAX is the maximum number set by their instance."
          (multiple-p (y-or-n-p "Multiple choice? "))
          (options (mastodon-toot--read-poll-options count length))
          (hide-totals (y-or-n-p "Hide votes until poll ends? "))
-         (expiry (mastodon-toot--read-poll-expiry)))
+         (expiry (mastodon-toot--read-poll-expiry))
+         (expiry-str (cdr expiry))
+         (expiry-human (car expiry)))
     (setq mastodon-toot-poll
-          `(:options ,options :length ,length :multi ,multiple-p
-                     :hide ,hide-totals :expiry ,expiry))
+          `( :options ,options :length ,length :expiry-readable ,expiry-human
+             :expiry ,expiry-str :multi ,multiple-p :hide ,hide-totals))
     (message "poll created!")
     (mastodon-toot--update-status-fields)))
 
@@ -1407,15 +1414,15 @@ LENGTH is the maximum character length allowed for a poll option."
       choices)))
 
 (defun mastodon-toot--read-poll-expiry ()
-  "Prompt for a poll expiry time."
+  "Prompt for a poll expiry time.
+Return a cons of a human readable string, and a seconds-from-now string."
   ;; API requires this in seconds
   (let* ((options (mastodon-toot--poll-expiry-options-alist))
          (response (completing-read "poll ends in [or enter seconds]: "
                                     options nil 'confirm)))
-    (or (alist-get response options nil nil #'equal)
+    (or (assoc response options #'equal)
         (if (< (string-to-number response) 600)
-            "600" ;; min 5 mins
-          response))))
+            (car options))))) ;; min 5 mins
 
 (defun mastodon-toot--poll-expiry-options-alist ()
   "Return an alist of expiry options options in seconds."
@@ -1437,6 +1444,29 @@ Sets `mastodon-toot-poll' to nil."
       (user-error "No poll?")
     (setq mastodon-toot-poll nil)
     (mastodon-toot--update-status-fields)))
+
+(defun mastodon-toot--server-poll-to-local (json)
+  "Convert server poll data JSON to a `mastodon-toot-poll' plist."
+  (let-alist json
+    (let* ((expiry-seconds-from-now
+            (time-to-seconds
+             (time-subtract
+              (encode-time
+               (parse-time-string .expires_at))
+              (current-time))))
+           (expiry-str
+            (format-time-string "%s"
+                                expiry-seconds-from-now))
+           (expiry-human (car (mastodon-tl--human-duration expiry-seconds-from-now)))
+           (options (mapcar (lambda (o)
+                              (alist-get 'title o))
+                            .options))
+           (multiple (if (eq :json-false .multiple)
+                         nil
+                       t)))
+      (setq mastodon-toot-poll
+            `( :options ,options :expiry-readable ,expiry-human
+               :expiry ,expiry-str :multi ,multiple)))))
 
 
 ;;; SCHEDULE
