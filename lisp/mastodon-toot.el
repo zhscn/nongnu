@@ -1734,61 +1734,72 @@ REPLY-REGION is a string to be injected into the buffer."
                                                             (point-min)))
            (count-region (mastodon-tl--find-property-range 'toot-post-counter
                                                            (point-min)))
-           (visibility-region (mastodon-tl--find-property-range
-                               'toot-post-visibility (point-min)))
+           (vis-region (mastodon-tl--find-property-range
+                        'toot-post-visibility (point-min)))
            (nsfw-region (mastodon-tl--find-property-range 'toot-post-nsfw-flag
                                                           (point-min)))
            (cw-region (mastodon-tl--find-property-range 'toot-post-cw-flag
                                                         (point-min)))
            (lang-region (mastodon-tl--find-property-range 'toot-post-language
                                                           (point-min)))
-           (scheduled-region (mastodon-tl--find-property-range 'toot-post-scheduled
-                                                               (point-min)))
+           (sched-region (mastodon-tl--find-property-range 'toot-post-scheduled
+                                                           (point-min)))
            (poll-region (mastodon-tl--find-property-range 'toot-post-poll-flag
                                                           (point-min)))
            (toot-string (buffer-substring-no-properties (cdr header-region)
                                                         (point-max))))
-      (add-text-properties (car count-region) (cdr count-region)
-                           (list 'display
-                                 (format "%s/%s chars"
-                                         (mastodon-toot--count-toot-chars toot-string)
-                                         (number-to-string mastodon-toot--max-toot-chars))))
-      (add-text-properties (car visibility-region) (cdr visibility-region)
-                           (list 'display
-                                 (format "%s"
-                                         (if (equal
-                                              mastodon-toot--visibility
-                                              "private")
-                                             "followers-only"
-                                           mastodon-toot--visibility))))
-      (add-text-properties (car lang-region) (cdr lang-region)
-                           (list 'display
-                                 (if mastodon-toot--language
-                                     (format "Lang: %s ⋅"
-                                             mastodon-toot--language)
-                                   "")))
-      (add-text-properties (car scheduled-region) (cdr scheduled-region)
-                           (list 'display
-                                 (if mastodon-toot--scheduled-for
-                                     (format "Scheduled: %s ⋅"
-                                             (mastodon-toot--iso-to-human
-                                              mastodon-toot--scheduled-for))
-                                   "")))
-      (add-text-properties (car nsfw-region) (cdr nsfw-region)
-                           (list 'display (if mastodon-toot--content-nsfw
-                                              (if mastodon-toot--media-attachments
-                                                  "NSFW" "NSFW (attachments only)")
-                                            "")
-                                 'face 'mastodon-cw-face))
-      (add-text-properties (car poll-region) (cdr poll-region)
-                           (list 'display (if mastodon-toot-poll "POLL" "")
-                                 'face 'mastodon-cw-face
-                                 'help-echo (prin1-to-string mastodon-toot-poll)))
-      (add-text-properties (car cw-region) (cdr cw-region)
-                           (list 'display (if mastodon-toot--content-warning
-                                              "CW"
-                                            "  ") ;; hold the blank space
-                                 'face 'mastodon-cw-face)))))
+      (mastodon-toot--apply-fields-props
+       count-region
+       (format "%s/%s chars"
+               (mastodon-toot--count-toot-chars toot-string)
+               (number-to-string mastodon-toot--max-toot-chars)))
+      (mastodon-toot--apply-fields-props
+       vis-region
+       (format "%s"
+               (if (equal
+                    mastodon-toot--visibility
+                    "private")
+                   "followers-only"
+                 mastodon-toot--visibility)))
+      (mastodon-toot--apply-fields-props
+       lang-region
+       (if mastodon-toot--language
+           (format "Lang: %s ⋅"
+                   mastodon-toot--language)
+         ""))
+      (mastodon-toot--apply-fields-props
+       sched-region
+       (if mastodon-toot--scheduled-for
+           (format "Scheduled: %s ⋅"
+                   (mastodon-toot--iso-to-human
+                    mastodon-toot--scheduled-for))
+         ""))
+      (mastodon-toot--apply-fields-props
+       nsfw-region
+       (if mastodon-toot--content-nsfw
+           (if mastodon-toot--media-attachments
+               "NSFW" "NSFW (attachments only)")
+         "")
+       'mastodon-cw-face)
+      (mastodon-toot--apply-fields-props
+       poll-region
+       (if mastodon-toot-poll "POLL" "")
+       'mastodon-cw-face
+       (prin1-to-string mastodon-toot-poll))
+      (mastodon-toot--apply-fields-props
+       cw-region
+       (if mastodon-toot--content-warning
+           "CW"
+         "  ") ;; hold the blank space
+       'mastodon-cw-face))))
+
+(defun mastodon-toot--apply-fields-props (region display &optional face help-echo)
+  ""
+  (add-text-properties (car region) (cdr region)
+                       `(display
+                         ,display
+                         ,@(when face `(face ,face))
+                         ,@(when help-echo `(help-echo ,help-echo)))))
 
 (defun mastodon-toot--count-toot-chars (toot-string &optional cw)
   "Count the characters in TOOT-STRING.
