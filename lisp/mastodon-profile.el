@@ -573,7 +573,11 @@ FIELDS means provide a fields vector fetched by other means."
 (defun mastodon-profile--insert-statuses-pinned (pinned-statuses)
   "Insert each of the PINNED-STATUSES for a given account."
   (mapc (lambda (pinned-status)
-          (insert (mastodon-tl--set-face "   :pinned: " 'success))
+          (insert
+           (concat "   "
+                   (propertize " pinned "
+                               'face '(:inherit success :box t))
+                   "   "))
           (mastodon-tl--toot pinned-status))
         pinned-statuses))
 
