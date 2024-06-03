@@ -155,6 +155,7 @@
 | C-c C-k          | mastodon-toot--cancel                             | Kill new-toot buffer/window. Does not POST content.                            |
 | C-c C-v          | mastodon-toot--change-visibility                  | Change the current visibility to the next valid value.                         |
 | C-c !            | mastodon-toot--clear-all-attachments              | Remove all attachments from a toot draft.                                      |
+| C-c C-o          | mastodon-toot--clear-poll                         | Remove poll from toot compose buffer.                                          |
 |                  | mastodon-toot--copy-toot-text                     | Copy text of toot at point.                                                    |
 | C                | mastodon-toot--copy-toot-url                      | Copy URL of toot at point.                                                     |
 | C-c C-p          | mastodon-toot--create-poll                        | Prompt for new poll options and return as a list.                              |
