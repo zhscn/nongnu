@@ -184,7 +184,8 @@ MARKER, REGION-LENGTH and IMAGE are from
 `mastodon-media--process-image-response'.
 If the image is marked sensitive, the image is stored in
 image-data prop so it can be toggled."
-  (if (not (get-text-property marker 'sensitive))
+  (if (equal :json-false
+             (get-text-property marker 'sensitive))
       ;; display image
       (put-text-property marker (+ marker region-length)
                          'display image)
