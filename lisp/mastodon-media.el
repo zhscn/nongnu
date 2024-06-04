@@ -38,6 +38,7 @@
 (require 'image-mode)
 
 (autoload 'mastodon-tl--propertize-img-str-or-url "mastodon-tl")
+(autoload 'mastodon-tl--property "mastodon-tl")
 
 (defvar url-show-status)
 
@@ -173,11 +174,49 @@ with the image."
                 ;; We only set the image to display if we could load
                 ;; it; we already have set a default image when we
                 ;; added the tag.
-                (put-text-property marker (+ marker region-length)
-                                   'display image))
+                (mastodon-media--display-image-or-sensitive marker region-length image))
               ;; We are done with the marker; release it:
               (set-marker marker nil)))
           (kill-buffer url-buffer))))))
+
+(defun mastodon-media--display-image-or-sensitive (marker region-length image)
+  "Display image using display property, or add sensitive mask.
+MARKER, REGION-LENGTH and IMAGE are from
+`mastodon-media--process-image-response'.
+If the image is marked sensitive, the image is stored in
+image-data prop so it can be toggled."
+  (if (not (get-text-property marker 'sensitive))
+      ;; display image
+      (put-text-property marker (+ marker region-length)
+                         'display image)
+    ;; display sensitive placeholder and save image data as prop:
+    (add-text-properties marker (+ marker region-length)
+                         `(display
+                           ;; TODO: use an image placeholder
+                           ;; ,(mastodon-search--format-heading "    SENSITIVE")
+                           ,(create-image mastodon-media--generic-broken-image-data nil t)
+                           sensitive-state hidden
+                           image-data ,image))))
+
+(defun mastodon-media--toggle-sensitive-image ()
+  "Toggle dislay of sensitive image at point."
+  (interactive)
+  (let ((data (mastodon-tl--property 'image-data :no-move))
+        (inhibit-read-only t)
+        (end (next-single-property-change (point) 'sensitive-state)))
+    (if (equal 'hidden (mastodon-tl--property 'sensitive-state :no-move))
+        ;; display sensitive image:
+        (add-text-properties (point) end
+                             `(display ,data
+                                       sensitive-state showing))
+      ;; hide sensitive image:
+      (add-text-properties (point) end
+                           `( sensitive-state hidden
+                              display
+                              ;; TODO: use an image placeholder
+                              ,(create-image mastodon-media--generic-broken-image-data nil t)
+                              ;; ,(mastodon-search--format-heading "    SENSITIVE")
+                              )))))
 
 (defun mastodon-media--process-full-sized-image-response (status-plist url)
   ;; FIXME: refactor this with but not into
@@ -295,7 +334,6 @@ Replace them with the referenced image."
               (put-text-property start end 'media-state 'invalid-url)
             ;; proceed to load this image asynchronously
             (put-text-property start end 'media-state 'loading)
-            ;; TODO: only load-image if not sensitive:
             (mastodon-media--load-image-from-url
              image-url media-type start (- end start))
             (when (or (equal type "gifv")
