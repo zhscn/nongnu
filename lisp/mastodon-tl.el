@@ -292,6 +292,7 @@ types of mastodon links and not just shr.el-generated ones.")
     ;; keep new my-profile binding; shr 'O' doesn't work here anyway
     (define-key map (kbd "O") #'mastodon-profile--my-profile)
     (define-key map (kbd "C") #'mastodon-tl--copy-image-caption)
+    (define-key map (kbd "S") #'mastodon-tl--toggle-sensitive-image)
     (define-key map (kbd "<C-return>") #'mastodon-tl--mpv-play-video-at-point)
     (define-key map (kbd "<mouse-2>") #'mastodon-tl--click-image-or-video)
     map)
@@ -1215,6 +1216,26 @@ SENSITIVE is a flag from the item's JSON data."
           ;; else fetch and load:
           (url-retrieve url #'mastodon-media--process-full-sized-image-response
                         `(,url)))))))
+
+(defvar mastodon-media--generic-broken-image-data)
+
+(defun mastodon-tl--toggle-sensitive-image ()
+  "Toggle dislay of sensitive image at point."
+  (interactive)
+  (let ((data (mastodon-tl--property 'image-data :no-move))
+        (inhibit-read-only t)
+        (end (next-single-property-change (point) 'sensitive-state)))
+    (if (equal 'hidden (mastodon-tl--property 'sensitive-state :no-move))
+        ;; display sensitive image:
+        (add-text-properties (point) end
+                             `(display ,data
+                                       sensitive-state showing))
+      ;; hide sensitive image:
+      (add-text-properties (point) end
+                           `( sensitive-state hidden
+                              display
+                              ,(create-image
+                                mastodon-media--sensitive-image-data nil t))))))
 
 
 ;; POLLS
