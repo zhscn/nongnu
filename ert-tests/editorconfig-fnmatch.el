@@ -130,13 +130,13 @@
     (dolist (args cases-t)
       (message "-> t: %S" `(editorconfig-fnmatch-p ,@args))
       (message "   Elapsed: %S"
-               (car (benchmark-run 3 (should (apply 'editorconfig-fnmatch-p
+               (car (benchmark-run 3 (should (apply #'editorconfig-fnmatch-p
                                                     args))))))
     (dolist (args cases-nil)
       (message "-> nil: %S"
                `(editorconfig-fnmatch-p ,@args))
       (message "   Elapsed: %S"
-               (car (benchmark-run 3 (should-not (apply 'editorconfig-fnmatch-p
+               (car (benchmark-run 3 (should-not (apply #'editorconfig-fnmatch-p
                                                         args)))))))
   )
 

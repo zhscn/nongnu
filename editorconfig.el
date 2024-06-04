@@ -5,7 +5,7 @@
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 ;; Version: 0.11.0
 ;; URL: https://github.com/editorconfig/editorconfig-emacs#readme
-;; Package-Requires: ((emacs "26.1") (nadvice "0.3"))
+;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience editorconfig
 
 ;; See
@@ -46,17 +46,8 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'pcase)
 
-(require 'nadvice)
-
-(eval-when-compile
-  (require 'rx)
-  (require 'subr-x)
-  (defvar tex-indent-basic)
-  (defvar tex-indent-item)
-  (defvar tex-indent-arg)
-  (defvar evil-shift-width))
+(eval-when-compile (require 'subr-x))
 
 (require 'editorconfig-core)
 
@@ -362,11 +353,6 @@ NOTE: Only the **buffer local** value of VARIABLE will be set."
 When variable `buffer-file-name' matches any of the regexps, then
 `editorconfig-mode-apply' will not do its work."
   :type '(repeat string))
-(with-eval-after-load 'recentf
-  (add-to-list 'editorconfig-exclude-regexps
-               (rx-to-string '(seq string-start
-                                   (eval (file-truename (expand-file-name recentf-save-file))))
-                             t)))
 
 (defcustom editorconfig-trim-whitespaces-mode nil
   "Buffer local minor-mode to use to trim trailing whitespaces.
@@ -376,7 +362,7 @@ Otherwise, use `delete-trailing-whitespace'."
   :type 'symbol)
 
 (defvar editorconfig-properties-hash nil
-  "Hash object of EditorConfig properties that was enabled for current buffer.
+  "Hashtable of EditorConfig properties that was enabled for current buffer.
 Set by `editorconfig-apply' and nil if that is not invoked in
 current buffer yet.")
 (make-variable-buffer-local 'editorconfig-properties-hash)
@@ -507,13 +493,20 @@ See `editorconfig-lisp-use-default-indent' for details."
     ,@(when (and size (featurep 'evil))
         `((evil-shift-width . ,size)))
     ,@(when size
-        (let ((parent major-mode)
-              entry)
-          ;; Find the closet parent mode of `major-mode' in
+        (let* ((parents (if (fboundp 'derived-mode-all-parents)
+                            (derived-mode-all-parents major-mode)))
+               (parent (if parents (pop parents) major-mode))
+               (entry ()))
+          ;; Find the closest parent mode of `major-mode' in
           ;; `editorconfig-indentation-alist'.
+          ;; FIXME: Rather than keep a central database of all modes and their
+          ;; indent var(s), we should have a buffer-local var and let each
+          ;; major mode set it to indicate how to set the indentation size.
           (while (and (not (setq entry
                                  (assoc parent editorconfig-indentation-alist)))
-                      (setq parent (get parent 'derived-mode-parent))))
+                      (setq parent (if (fboundp 'derived-mode-all-parents)
+                                       (pop parents)
+                                     (get parent 'derived-mode-parent)))))
           (when entry
             (let ((fn-or-list (cdr entry)))
               (cond ((functionp fn-or-list)
@@ -947,9 +940,6 @@ To disable EditorConfig in some buffers, modify
 ;;     (lm-version))
 ;;   "EditorConfig version.")
 
-(declare-function find-library-name "find-func" (library))
-(declare-function lm-version "lisp-mnt" nil)
-
 ;;;###autoload
 (defun editorconfig-version (&optional show-version)
   "Get EditorConfig version as string.
@@ -957,20 +947,27 @@ To disable EditorConfig in some buffers, modify
 If called interactively or if SHOW-VERSION is non-nil, show the
 version in the echo area and the messages buffer."
   (interactive (list t))
-  (let* ((version (with-temp-buffer
-                    (require 'find-func)
-                    (insert-file-contents (find-library-name "editorconfig"))
-                    (require 'lisp-mnt)
-                    (lm-version)))
-         (pkg (and (eval-and-compile (require 'package nil t))
-                   (cadr (assq 'editorconfig
-                               package-alist))))
-         (pkg-version (and pkg
-                           (package-version-join (package-desc-version pkg))))
-         (version-full (if (and pkg-version
-                                (not (string= version pkg-version)))
-                           (concat version "-" pkg-version)
-                         version)))
+  (let ((version-full
+         (if (fboundp 'package-get-version)
+             (package-get-version)
+           (let* ((version (with-temp-buffer
+                             (require 'find-func)
+                             (declare-function find-library-name
+                                               "find-func" (library))
+                             (insert-file-contents
+                              (find-library-name "editorconfig"))
+                             (require 'lisp-mnt)
+                             (declare-function lm-version "lisp-mnt" nil)
+                             (lm-version)))
+                  (pkg (and (eval-and-compile (require 'package nil t))
+                            (cadr (assq 'editorconfig
+                                        package-alist))))
+                  (pkg-version (and pkg (package-version-join
+                                         (package-desc-version pkg)))))
+             (if (and pkg-version
+                      (not (string= version pkg-version)))
+                 (concat version "-" pkg-version)
+               version)))))
     (when show-version
       (message "EditorConfig Emacs v%s" version-full))
     version-full))
