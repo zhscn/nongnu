@@ -645,7 +645,6 @@ MAX-ID is a flag to include the max_id pagination parameter."
            (relationships (mastodon-profile--relationships-get .id)))
       (with-mastodon-buffer buffer #'mastodon-mode nil
         (mastodon-profile-mode)
-        (remove-overlays)
         (setq mastodon-profile--account account)
         (mastodon-tl--set-buffer-spec buffer endpoint update-function
                                       link-header args nil max-id-str)

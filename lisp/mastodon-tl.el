@@ -323,6 +323,7 @@ than `pop-to-buffer'."
      (let ((inhibit-read-only t))
        (erase-buffer)
        (funcall ,mode-fun)
+       (remove-overlays) ; video overlays
        (if ,other-window
            (switch-to-buffer-other-window ,buffer)
          (pop-to-buffer ,buffer '(display-buffer-same-window)))
@@ -2000,7 +2001,6 @@ view all branches of a thread."
               ;; if we have a thread:
               (with-mastodon-buffer buffer #'mastodon-mode nil
                 (let ((marker (make-marker)))
-                  (remove-overlays) ; video overlays
                   (mastodon-tl--set-buffer-spec buffer endpoint
                                                 #'mastodon-tl--thread)
                   (mastodon-tl--timeline (alist-get 'ancestors context) :thread)
