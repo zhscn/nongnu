@@ -1233,10 +1233,8 @@ SENSITIVE is a flag from the item's JSON data."
       (add-text-properties (point) end
                            `( sensitive-state hidden
                               display
-                              ;; TODO: use an image placeholder
-                              ,(create-image mastodon-media--generic-broken-image-data nil t)
-                              ;; ,(mastodon-search--format-heading "    SENSITIVE")
-                              )))))
+                              ,(create-image
+                                mastodon-media--sensitive-image-data nil t))))))
 
 
 ;; POLLS
