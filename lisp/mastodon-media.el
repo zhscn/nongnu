@@ -38,7 +38,6 @@
 (require 'image-mode)
 
 (autoload 'mastodon-tl--propertize-img-str-or-url "mastodon-tl")
-(autoload 'mastodon-tl--property "mastodon-tl")
 
 (defvar url-show-status)
 
@@ -197,26 +196,6 @@ image-data prop so it can be toggled."
                            ,(create-image mastodon-media--generic-broken-image-data nil t)
                            sensitive-state hidden
                            image-data ,image))))
-
-(defun mastodon-media--toggle-sensitive-image ()
-  "Toggle dislay of sensitive image at point."
-  (interactive)
-  (let ((data (mastodon-tl--property 'image-data :no-move))
-        (inhibit-read-only t)
-        (end (next-single-property-change (point) 'sensitive-state)))
-    (if (equal 'hidden (mastodon-tl--property 'sensitive-state :no-move))
-        ;; display sensitive image:
-        (add-text-properties (point) end
-                             `(display ,data
-                                       sensitive-state showing))
-      ;; hide sensitive image:
-      (add-text-properties (point) end
-                           `( sensitive-state hidden
-                              display
-                              ;; TODO: use an image placeholder
-                              ,(create-image mastodon-media--generic-broken-image-data nil t)
-                              ;; ,(mastodon-search--format-heading "    SENSITIVE")
-                              )))))
 
 (defun mastodon-media--process-full-sized-image-response (status-plist url)
   ;; FIXME: refactor this with but not into
