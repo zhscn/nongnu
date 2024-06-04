@@ -5,7 +5,7 @@
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 ;; Version: 0.11.0
 ;; URL: https://github.com/editorconfig/editorconfig-emacs#readme
-;; Package-Requires: ((emacs "26.1") (nadvice "0.3"))
+;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience editorconfig
 
 ;; See
@@ -41,9 +41,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'pcase)
-
-(require 'nadvice)
 
 (eval-when-compile
   (require 'rx)
@@ -73,15 +70,14 @@ coding styles between different editors and IDEs."
   "Path to EditorConfig executable.
 
 Used by `editorconfig--execute-editorconfig-exec'."
-  :type 'string
-  :group 'editorconfig)
+  :type 'string)
 
 (define-obsolete-variable-alias
   'edconf-get-properties-function
   'editorconfig-get-properties-function
   "0.5")
 (defcustom editorconfig-get-properties-function
-  'editorconfig-core-get-properties-hash
+  #'editorconfig-core-get-properties-hash
   "A function which gets EditorConfig properties for specified file.
 
 This function will be called with one argument, full path of the target file,
@@ -107,13 +103,11 @@ Possible known values are:
     use `editorconfig-core-get-properties-hash'
 * `editorconfig-get-properties-from-exec'
   * Get properties by executing EditorConfig executable"
-  :type 'function
-  :group 'editorconfig)
+  :type 'function)
 
 (defcustom editorconfig-mode-lighter " EditorConfig"
   "Command `editorconfig-mode' lighter string."
-  :type 'string
-  :group 'editorconfig)
+  :type 'string)
 
 (define-obsolete-variable-alias
   'edconf-custom-hooks
@@ -143,8 +137,7 @@ show line numbers on the left:
 
 This hook will be run even when there are no matching sections in
 \".editorconfig\", or no \".editorconfig\" file was found at all."
-  :type 'hook
-  :group 'editorconfig)
+  :type 'hook)
 
 (defcustom editorconfig-hack-properties-functions ()
   "A list of function to alter property values before applying them.
@@ -166,8 +159,7 @@ overwrite \"indent_style\" property when current `major-mode' is a
 
 This hook will be run even when there are no matching sections in
 \".editorconfig\", or no \".editorconfig\" file was found at all."
-  :type 'hook
-  :group 'editorconfig)
+  :type 'hook)
 (make-obsolete-variable 'editorconfig-hack-properties-functions
                         "Using `editorconfig-after-apply-functions' instead is recommended,
     because since 2021/08/30 (v0.9.0) this variable cannot support all properties:
@@ -349,21 +341,18 @@ following forms:
 
 NOTE: Only the **buffer local** value of VARIABLE will be set."
   :type '(alist :key-type symbol :value-type sexp)
-  :risky t
-  :group 'editorconfig)
+  :risky t)
 
 (defcustom editorconfig-exclude-modes ()
   "Modes in which `editorconfig-mode-apply' will not run."
-  :type '(repeat (symbol :tag "Major Mode"))
-  :group 'editorconfig)
+  :type '(repeat (symbol :tag "Major Mode")))
 
 (defcustom editorconfig-exclude-regexps ()
   "List of regexp for buffer filenames `editorconfig-mode-apply' will not run.
 
 When variable `buffer-file-name' matches any of the regexps, then
 `editorconfig-mode-apply' will not do its work."
-  :type '(repeat string)
-  :group 'editorconfig)
+  :type '(repeat string))
 (with-eval-after-load 'recentf
   (add-to-list 'editorconfig-exclude-regexps
                (rx-to-string '(seq string-start
@@ -375,11 +364,10 @@ When variable `buffer-file-name' matches any of the regexps, then
 
 If set, enable that mode when `trim_trailing_whitespace` is set to true.
 Otherwise, use `delete-trailing-whitespace'."
-  :type 'symbol
-  :group 'editorconfig)
+  :type 'symbol)
 
 (defvar editorconfig-properties-hash nil
-  "Hash object of EditorConfig properties that was enabled for current buffer.
+  "Hashtable of EditorConfig properties that was enabled for current buffer.
 Set by `editorconfig-apply' and nil if that is not invoked in
 current buffer yet.")
 (make-variable-buffer-local 'editorconfig-properties-hash)
@@ -599,21 +587,24 @@ This function will revert buffer when the coding-system has been changed."
               (revert-buffer-with-coding-system coding-system)))
         (setq editorconfig--apply-coding-system-currently nil)))))
 
-(defun editorconfig-set-trailing-nl (final-newline)
-  "Set up requiring final newline by FINAL-NEWLINE.
-
-This function will set `require-final-newline' and `mode-require-final-newline'
-to non-nil when FINAL-NEWLINE is true."
-  (pcase final-newline
-    ("true"
-     ;; keep prefs around how/when the nl is added, if set - otherwise add on save
-     (setq-local require-final-newline      (or require-final-newline t))
-     (setq-local mode-require-final-newline (or mode-require-final-newline t)))
-    ("false"
-     ;; FIXME: Add functionality for actually REMOVING any trailing newlines here!
-     ;;        (rather than just making sure we don't automagically ADD a new one)
-     (setq-local require-final-newline      nil)
-     (setq-local mode-require-final-newline nil))))
+;; FIXME: This is from Johan Sundström, who didn't sign the paperwork yet
+;; (well, he didn't use `pcase').  Actually, not sure we need to
+;; set both `require-final-newline' and `mode-require-final-newline'.
+;;(defun editorconfig-set-trailing-nl (final-newline)
+;;  "Set up requiring final newline by FINAL-NEWLINE.
+;;
+;;This function will set `require-final-newline' and `mode-require-final-newline'
+;;to non-nil when FINAL-NEWLINE is true."
+;;  (pcase final-newline
+;;    ("true"
+;;     ;; keep prefs around how/when the nl is added, if set - otherwise add on save
+;;     (setq-local require-final-newline      (or require-final-newline t))
+;;     (setq-local mode-require-final-newline (or mode-require-final-newline t)))
+;;    ("false"
+;;     ;; FIXME: Add functionality for actually REMOVING any trailing newlines here!
+;;     ;;        (rather than just making sure we don't automagically ADD a new one)
+;;     (setq-local require-final-newline      nil)
+;;     (setq-local mode-require-final-newline nil))))
 
 (defun editorconfig-set-trailing-ws (trim-trailing-ws)
   "Set up trimming of trailing whitespace at end of lines by TRIM-TRAILING-WS."
@@ -679,7 +670,7 @@ to non-nil when FINAL-NEWLINE is true."
       (let ((key-val (split-string prop " *= *")))
         (when (> (length key-val) 1)
           (let ((key (intern (car key-val)))
-                (val (mapconcat 'identity (cdr key-val) "")))
+                (val (mapconcat #'identity (cdr key-val) "")))
             (puthash key val properties)))))))
 
 (defun editorconfig-get-properties-from-exec (filename)
@@ -860,6 +851,58 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
     ret))
 
 
+(defun editorconfig--get-coding-system (_size)
+  (when (and (stringp auto-coding-file-name)
+             (file-name-absolute-p auto-coding-file-name)
+             ;; FIXME: How important is it to support these `disabled-*'?
+             (not (editorconfig--disabled-for-filename auto-coding-file-name)))
+    ;; FIXME: Cache the result of `editorconfig-call-get-properties-function'?
+    (let ((props (editorconfig-call-get-properties-function
+                  auto-coding-file-name)))
+      (editorconfig-merge-coding-systems (gethash 'end_of_line props)
+                                         (gethash 'charset props)))))
+
+(defvar editorconfig-indent-vars-function
+  ;; FIXME: Obey `editorconfig-indentation-alist' as best as we can?
+  ;; Set `smie-indent-basic' if all else fails?
+  #'ignore)
+
+(defun editorconfig--get-dir-local-variables ()
+  (when (and (stringp buffer-file-name)
+             ;; FIXME: How important is it to support these `disabled-*'?
+             (not (editorconfig--disabled-for-filename buffer-file-name))
+             (not (editorconfig--disabled-for-majormode major-mode)))
+    ;; FIXME: Cache the result of `editorconfig-call-get-properties-function'?
+    (let ((props (editorconfig-call-get-properties-function filename))
+          (alist ()))
+      (maphash
+       (lambda (prop setting)
+         (pcase prop
+           ('tab_width
+            (when setting
+              (push `(tab-width . ,(string-to-number setting)) alist)))
+           ('indent-size
+            (let ((size
+                   (cond
+                    ((editorconfig-string-integer-p setting)
+                     (string-to-number setting))
+                    ((equal size "tab")
+                     (let ((tabsize (gethash 'tab_width props)))
+                      (if tabsize (string-to-number tabsize)
+                       tab-width))))))
+              (when size
+                (setq alist (nconc (funcall editorconfig-indent-vars-function
+                                    size)
+                             alist)))))
+           ;; FIXME!!
+           ))
+       props)
+      ;; FIXME: Actually, we should loop over the "editorconfig-core-handles"
+      ;; since each one comes from a different directory.
+      (cons
+       ¿DIRNAME? ;;FIXME)
+        alist))))
+
 ;;;###autoload
 (define-minor-mode editorconfig-mode
   "Toggle EditorConfig feature.
@@ -868,26 +911,45 @@ To disable EditorConfig in some buffers, modify
 `editorconfig-exclude-modes' or `editorconfig-exclude-regexps'."
   :global t
   :lighter editorconfig-mode-lighter
-  (let ((modehooks '(prog-mode-hook
-                     text-mode-hook
-                     read-only-mode-hook
-                     ;; Some modes call `kill-all-local-variables' in their init
-                     ;; code, which clears some values set by editorconfig.
-                     ;; For those modes, editorconfig-apply need to be called
-                     ;; explicitly through their hooks.
-                     rpm-spec-mode-hook)))
-    (if editorconfig-mode
-        (progn
-          (advice-add 'find-file-noselect :around 'editorconfig--advice-find-file-noselect)
-          (advice-add 'insert-file-contents :around 'editorconfig--advice-insert-file-contents)
-          (dolist (hook modehooks)
-            (add-hook hook
-                      'editorconfig-major-mode-hook
-                      t)))
-      (advice-remove 'find-file-noselect 'editorconfig--advice-find-file-noselect)
-      (advice-remove 'insert-file-contents 'editorconfig--advice-insert-file-contents)
-      (dolist (hook modehooks)
-        (remove-hook hook 'editorconfig-major-mode-hook)))))
+  (if (boundp 'hack-dir-local-get-variables-functions) ;Emacs≥30
+      (if editorconfig-mode
+          (progn
+            (add-hook 'hack-dir-local-get-variables-functions
+                      ;; Give it lower precedence than settings from
+                      ;; `dir-locals.el'.
+             #'editorconfig--get-dir-local-variables t)
+            ;; `auto-coding-functions' also exists in Emacs<30 but without
+            ;; access to the file's name via `auto-coding-file-name'.
+            (add-hook 'auto-coding-functions
+                      #'editorconfig--get-coding-system))
+        (remove-hook 'hack-dir-local-get-variables-functions
+                     #'editorconfig--get-dir-local-variables)
+        (remove-hook 'auto-coding-functions
+                     #'editorconfig--get-coding-system))
+    ;; Emacs<30
+    (let ((modehooks '(prog-mode-hook
+                       text-mode-hook
+                       read-only-mode-hook
+                       ;; Some modes call `kill-all-local-variables' in their init
+                       ;; code, which clears some values set by editorconfig.
+                       ;; For those modes, editorconfig-apply need to be called
+                       ;; explicitly through their hooks.
+                       ;; FIXME: I don't understand the above comment, because
+                       ;; *all* major modes are supposed to call
+                       ;; `kill-all-local-variables' directory or indirectly.
+                       rpm-spec-mode-hook)))
+      (if editorconfig-mode
+          (progn
+            (advice-add 'find-file-noselect :around #'editorconfig--advice-find-file-noselect)
+            (advice-add 'insert-file-contents :around #'editorconfig--advice-insert-file-contents)
+            (dolist (hook modehooks)
+              (add-hook hook
+                        'editorconfig-major-mode-hook
+                        t)))
+        (advice-remove 'find-file-noselect #'editorconfig--advice-find-file-noselect)
+        (advice-remove 'insert-file-contents #'editorconfig--advice-insert-file-contents)
+        (dolist (hook modehooks)
+          (remove-hook hook #'editorconfig-major-mode-hook))))))
 
 
 ;; (defconst editorconfig--version

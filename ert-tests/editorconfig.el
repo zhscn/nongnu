@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(require 'editorconfig)
+(require 'editorconfig "../editorconfig")
 
 (set-variable 'vc-handled-backends nil)
 
