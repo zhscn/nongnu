@@ -292,7 +292,7 @@ types of mastodon links and not just shr.el-generated ones.")
     ;; keep new my-profile binding; shr 'O' doesn't work here anyway
     (define-key map (kbd "O") #'mastodon-profile--my-profile)
     (define-key map (kbd "C") #'mastodon-tl--copy-image-caption)
-    (define-key map (kbd "C-c C-c") #'mastodon-tl--toggle-sensitive-image)
+    (define-key map (kbd "S") #'mastodon-tl--toggle-sensitive-image)
     (define-key map (kbd "<C-return>") #'mastodon-tl--mpv-play-video-at-point)
     (define-key map (kbd "<mouse-2>") #'mastodon-tl--click-image-or-video)
     map)
