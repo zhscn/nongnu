@@ -100,6 +100,7 @@
 (defvar mastodon-toot-timestamp-format)
 (defvar shr-use-fonts)  ;; declare it since Emacs24 didn't have this
 (defvar mastodon-media--enable-image-caching)
+(defvar mastodon-media--generic-broken-image-data)
 
 (defvar mastodon-mode-map)
 
@@ -1217,25 +1218,25 @@ SENSITIVE is a flag from the item's JSON data."
           (url-retrieve url #'mastodon-media--process-full-sized-image-response
                         `(,url)))))))
 
-(defvar mastodon-media--generic-broken-image-data)
-
 (defun mastodon-tl--toggle-sensitive-image ()
   "Toggle dislay of sensitive image at point."
   (interactive)
-  (let ((data (mastodon-tl--property 'image-data :no-move))
-        (inhibit-read-only t)
-        (end (next-single-property-change (point) 'sensitive-state)))
-    (if (equal 'hidden (mastodon-tl--property 'sensitive-state :no-move))
-        ;; display sensitive image:
+  (if (not (eq t (mastodon-tl--property 'sensitive)))
+      (user-error "No sensitive media at point?")
+    (let ((data (mastodon-tl--property 'image-data :no-move))
+          (inhibit-read-only t)
+          (end (next-single-property-change (point) 'sensitive-state)))
+      (if (equal 'hidden (mastodon-tl--property 'sensitive-state :no-move))
+          ;; display sensitive image:
+          (add-text-properties (point) end
+                               `(display ,data
+                                         sensitive-state showing))
+        ;; hide sensitive image:
         (add-text-properties (point) end
-                             `(display ,data
-                                       sensitive-state showing))
-      ;; hide sensitive image:
-      (add-text-properties (point) end
-                           `( sensitive-state hidden
-                              display
-                              ,(create-image
-                                mastodon-media--sensitive-image-data nil t))))))
+                             `( sensitive-state hidden
+                                display
+                                ,(create-image
+                                  mastodon-media--sensitive-image-data nil t)))))))
 
 
 ;; POLLS
