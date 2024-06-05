@@ -137,6 +137,7 @@
 |                  | mastodon-tl--single-toot                          | View toot at point in separate buffer.                                         |
 |                  | mastodon-tl--some-followed-tags-timeline          | Prompt for some tags, and open a timeline for them.                            |
 | RET, T           | mastodon-tl--thread                               | Open thread buffer for toot at point or with ID.                               |
+|                  | mastodon-tl--toggle-sensitive-image               | Toggle dislay of sensitive image at point.                                     |
 |                  | mastodon-tl--toggle-spoiler-in-thread             | Toggler content warning for all posts in current thread.                       |
 | c                | mastodon-tl--toggle-spoiler-text-in-toot          | Toggle the visibility of the spoiler text in the current toot.                 |
 | C-S-b            | mastodon-tl--unblock-user                         | Query for USER-HANDLE from list of blocked users and unblock that user.        |
@@ -247,6 +248,7 @@
 | mastodon-instance-url                                        | Base URL for the fediverse instance you want to be active.                    |
 | mastodon-media--avatar-height                                | Height of the user avatar images (if shown).                                  |
 | mastodon-media--enable-image-caching                         | Whether images should be cached.                                              |
+| mastodon-media--hide-sensitive-media                         | Whether media marked as sensitive should be hidden.                           |
 | mastodon-media--preview-max-height                           | Max height of any media attachment preview to be shown in timelines.          |
 | mastodon-mode-hook                                           | Hook run when entering Mastodon mode.                                         |
 | mastodon-notifications--profile-note-in-foll-reqs            | If non-nil, show a user's profile note in follow request notifications.       |

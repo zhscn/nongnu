@@ -60,6 +60,10 @@
   "Whether images should be cached."
   :type 'boolean)
 
+(defcustom mastodon-media--hide-sensitive-media t
+  "Whether media marked as sensitive should be hidden."
+  :type 'boolean)
+
 (defvar mastodon-media--generic-avatar-data
   (base64-decode-string
    "iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA
@@ -314,7 +318,8 @@ MARKER, REGION-LENGTH and IMAGE are from
 `mastodon-media--process-image-response'.
 If the image is marked sensitive, the image is stored in
 image-data prop so it can be toggled."
-  (if (not (equal t (get-text-property marker 'sensitive)))
+  (if (or (not (equal t (get-text-property marker 'sensitive)))
+          (not mastodon-media--hide-sensitive-media))
       ;; display image
       (put-text-property marker (+ marker region-length)
                          'display image)
