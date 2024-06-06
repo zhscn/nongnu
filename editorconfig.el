@@ -38,6 +38,11 @@
 ;; EditorConfig files are easily readable and they work nicely with
 ;; version control systems.
 
+;; News:
+
+;; In `editorconfig-indentation-alist', if a mode is associated to a function
+;; that function should not set the vars but should instead *return* them.
+
 ;;; Code:
 
 (require 'cl-lib)
@@ -244,7 +249,7 @@ This hook will be run even when there are no matching sections in
     (julia-mode julia-indent-offset)
     (kotlin-mode kotlin-tab-width)
     (kotlin-ts-mode kotlin-ts-mode-indent-offset)
-    (latex-mode . editorconfig-set-indentation-latex-mode)
+    (latex-mode . editorconfig--indentation-latex-mode)
     (lisp-mode lisp-indent-offset)
     (livescript-mode livescript-tab-width)
     (lua-mode lua-indent-level)
@@ -272,8 +277,8 @@ This hook will be run even when there are no matching sections in
     (ps-mode ps-mode-tab)
     (pug-mode pug-tab-width)
     (puppet-mode puppet-indent-level)
-    (python-mode . editorconfig-set-indentation-python-mode)
-    (python-ts-mode . editorconfig-set-indentation-python-mode)
+    (python-mode . editorconfig--indentation-python-mode)
+    (python-ts-mode . editorconfig--indentation-python-mode)
     (rjsx-mode js-indent-level sgml-basic-offset)
     (ruby-mode ruby-indent-level)
     (ruby-ts-mode ruby-indent-level)
@@ -319,7 +324,8 @@ This hook will be run even when there are no matching sections in
 Each element looks like (MODE . FUNCTION) or (MODE . INDENT-SPEC-LIST).
 
 If FUNCTION is provided, it will be called when setting the
-indentation.  The indent size will be passed.
+indentation.  The indent size will be passed and it should return
+a list of settings of the form (VAR . VAL).
 
 If INDENT-SPEC-LIST is provided, each element of it must have one of the
 following forms:
@@ -426,26 +432,21 @@ Make a message by passing ARGS to `format-message'."
   (and (stringp string)
        (string-match-p "\\`[0-9]+\\'" string)))
 
-(defun editorconfig-set-indentation-python-mode (size)
-  "Set `python-mode' indent size to SIZE."
-  (when (boundp 'python-indent-offset)
-    (setq-local python-indent-offset size))
-  ;; For https://gitlab.com/python-mode-devs/python-mode
-  (when (boundp 'py-indent-offset)
-    (setq-local py-indent-offset size)))
+(defun editorconfig--indentation-python-mode (size)
+  "Var to set `python-mode' indent size to SIZE."
+  `((python-indent-offset . ,size)
+    ;; For https://gitlab.com/python-mode-devs/python-mode
+    (py-indent-offset . ,size)))
 
-(defun editorconfig-set-indentation-latex-mode (size)
-  "Set `latex-mode' indent size to SIZE."
-  (setq-local tex-indent-basic size)
-  (setq-local tex-indent-item size)
-  (setq-local tex-indent-arg (* 2 size))
-  ;; For AUCTeX
-  (when (boundp 'TeX-brace-indent-level)
-    (setq-local TeX-brace-indent-level size))
-  (when (boundp 'LaTeX-indent-level)
-    (setq-local LaTeX-indent-level size))
-  (when (boundp 'LaTeX-item-indent)
-    (setq-local LaTeX-item-indent (- size))))
+(defun editorconfig--indentation-latex-mode (size)
+  "Vars to set `latex-mode' indent size to SIZE."
+  `((tex-indent-basic . ,size)
+    (tex-indent-item . ,size)
+    (tex-indent-arg . ,(* 2 size))
+    ;; For AUCTeX
+    (TeX-brace-indent-level . ,size)
+    (LaTeX-indent-level . ,size)
+    (LaTeX-item-indent . ,(- size))))
 
 (cl-defun editorconfig--should-set (symbol &optional size)
   "Determine if editorconfig should set SYMBOL.
@@ -516,7 +517,10 @@ See `editorconfig-lisp-use-default-indent' for details."
                   (setq parent (get parent 'derived-mode-parent))))
       (when entry
         (let ((fn-or-list (cdr entry)))
-          (cond ((functionp fn-or-list) (funcall fn-or-list size))
+          (cond ((functionp fn-or-list)
+                 (pcase-dolist (`(,var . ,val) (funcall fn-or-list size))
+                   (when (editorconfig--should-set var size)
+                     (set (make-local-variable var) val))))
                 ((listp fn-or-list)
                  (dolist (elem fn-or-list)
                    (cond ((and (symbolp elem)
@@ -865,7 +869,26 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
 (defvar editorconfig-indent-vars-function
   ;; FIXME: Obey `editorconfig-indentation-alist' as best as we can?
   ;; Set `smie-indent-basic' if all else fails?
-  #'ignore)
+  ;; FIXME: Change `editorconfig-indentation-alist' so that the functions
+  ;; therein return an list of (VAR . VAL) instead of setting the vars directly.
+  #'editorconfig--get-indent-vars)
+
+(defun editorconfig--get-indent-vars (size)
+  (let ((parents (derived-mode-all-parents major-mode))
+        (entry ()))
+    (while (and parents (not entry))
+      (setq entry (assq (pop parents) editorconfig-indentation-alist)))
+    (if (functionp (cdr entry))
+        (funcall (cdr entry))
+      (mapcar (lambda (elem)
+                (if (consp elem)
+                    (let ((spec (cdr elem)))
+                      (cons (car elem)
+                            (cond ((functionp spec) (funcall spec size))
+                                  ((integerp spec) (* spec size))
+                                  (t spec))))
+                  (cons elem size)))
+              (cdr entry)))))
 
 (defun editorconfig--get-dir-local-variables ()
   (when (and (stringp buffer-file-name)
