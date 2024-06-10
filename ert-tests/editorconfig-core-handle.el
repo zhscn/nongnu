@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(require 'editorconfig-core-handle)
+(require 'editorconfig-core-handle "../editorconfig-core-handle")
 
 (defconst fixtures (concat (file-name-directory load-file-name) "fixtures/")
   "Path to fixtures.")

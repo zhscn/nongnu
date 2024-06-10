@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(require 'editorconfig-fnmatch)
+(require 'editorconfig-fnmatch "../editorconfig-fnmatch")
 
 (set-variable 'vc-handled-backends nil)
 
