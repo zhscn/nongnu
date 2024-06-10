@@ -872,6 +872,38 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
                         (format "Error while setting variables from EditorConfig: %S" err))))
     ret))
 
+(defun editorconfig--get-coding-system (_size)
+  "Return the coding system to use according to EditorConfig.
+Meant to be used on `auto-coding-functions'."
+  (defvar auto-coding-file-name) ;; Emacs≥30
+  (when (and (stringp auto-coding-file-name)
+             (file-name-absolute-p auto-coding-file-name)
+	     ;; Don't recurse infinitely.
+	     (not (string-match-p "\\.editorconfig\\'" auto-coding-file-name))
+             ;; FIXME: How important is it to support these `disabled-*'?
+             (not (editorconfig--disabled-for-filename auto-coding-file-name)))
+    (let ((props (editorconfig-call-get-properties-function
+                  auto-coding-file-name)))
+      (editorconfig-merge-coding-systems (gethash 'end_of_line props)
+                                         (gethash 'charset props)))))
+
+(defun editorconfig--get-dir-local-variables ()
+  "Return the directory local variables specified via EditorConfig.
+Meant to be used on `hack-dir-local-get-variables-functions'."
+  (when (and (stringp buffer-file-name)
+             ;; FIXME: How important is it to support these `disabled-*'?
+             (not (editorconfig--disabled-for-filename buffer-file-name))
+             (not (editorconfig--disabled-for-majormode major-mode)))
+    (let* ((props (editorconfig-call-get-properties-function buffer-file-name))
+           (alist (editorconfig--get-local-variables props)))
+      ;; FIXME: Actually, we should loop over the "editorconfig-core-handles"
+      ;; since each one comes from a different directory.
+      (when alist
+        (cons
+         ;; FIXME: This should be the dir where we found the
+         ;; `.editorconfig' file.
+         (file-name-directory buffer-file-name)
+         alist)))))
 
 ;;;###autoload
 (define-minor-mode editorconfig-mode
@@ -881,26 +913,42 @@ To disable EditorConfig in some buffers, modify
 `editorconfig-exclude-modes' or `editorconfig-exclude-regexps'."
   :global t
   :lighter editorconfig-mode-lighter
-  (let ((modehooks '(prog-mode-hook
-                     text-mode-hook
-                     read-only-mode-hook
-                     ;; Some modes call `kill-all-local-variables' in their init
-                     ;; code, which clears some values set by editorconfig.
-                     ;; For those modes, editorconfig-apply need to be called
-                     ;; explicitly through their hooks.
-                     rpm-spec-mode-hook)))
-    (if editorconfig-mode
-        (progn
-          (advice-add 'find-file-noselect :around 'editorconfig--advice-find-file-noselect)
-          (advice-add 'insert-file-contents :around 'editorconfig--advice-insert-file-contents)
-          (dolist (hook modehooks)
-            (add-hook hook
-                      'editorconfig-major-mode-hook
-                      t)))
-      (advice-remove 'find-file-noselect 'editorconfig--advice-find-file-noselect)
-      (advice-remove 'insert-file-contents 'editorconfig--advice-insert-file-contents)
-      (dolist (hook modehooks)
-        (remove-hook hook 'editorconfig-major-mode-hook)))))
+  (if (boundp 'hack-dir-local-get-variables-functions) ;Emacs≥30
+      (if editorconfig-mode
+          (progn
+            (add-hook 'hack-dir-local-get-variables-functions
+                      ;; Give them slightly lower precedence than settings from
+                      ;; `dir-locals.el'.
+                      #'editorconfig--get-dir-local-variables t)
+            ;; `auto-coding-functions' also exists in Emacs<30 but without
+            ;; access to the file's name via `auto-coding-file-name'.
+            (add-hook 'auto-coding-functions
+                      #'editorconfig--get-coding-system))
+        (remove-hook 'hack-dir-local-get-variables-functions
+                     #'editorconfig--get-dir-local-variables)
+        (remove-hook 'auto-coding-functions
+                     #'editorconfig--get-coding-system))
+    ;; Emacs<30
+    (let ((modehooks '(prog-mode-hook
+                       text-mode-hook
+                       read-only-mode-hook
+                       ;; Some modes call `kill-all-local-variables' in their init
+                       ;; code, which clears some values set by editorconfig.
+                       ;; For those modes, editorconfig-apply need to be called
+                       ;; explicitly through their hooks.
+                       rpm-spec-mode-hook)))
+      (if editorconfig-mode
+          (progn
+            (advice-add 'find-file-noselect :around #'editorconfig--advice-find-file-noselect)
+            (advice-add 'insert-file-contents :around #'editorconfig--advice-insert-file-contents)
+            (dolist (hook modehooks)
+              (add-hook hook
+                        #'editorconfig-major-mode-hook
+                        t)))
+        (advice-remove 'find-file-noselect #'editorconfig--advice-find-file-noselect)
+        (advice-remove 'insert-file-contents #'editorconfig--advice-insert-file-contents)
+        (dolist (hook modehooks)
+          (remove-hook hook #'editorconfig-major-mode-hook))))))
 
 
 ;; (defconst editorconfig--version
