@@ -38,6 +38,11 @@
 ;; EditorConfig files are easily readable and they work nicely with
 ;; version control systems.
 
+;; News:
+
+;; In `editorconfig-indentation-alist', if a mode is associated to a function
+;; that function should not set the vars but should instead *return* them.
+
 ;;; Code:
 
 (require 'cl-lib)
@@ -252,7 +257,7 @@ This hook will be run even when there are no matching sections in
     (julia-mode julia-indent-offset)
     (kotlin-mode kotlin-tab-width)
     (kotlin-ts-mode kotlin-ts-mode-indent-offset)
-    (latex-mode . editorconfig-set-indentation-latex-mode)
+    (latex-mode . editorconfig--get-indentation-latex-mode)
     (lisp-mode lisp-indent-offset)
     (livescript-mode livescript-tab-width)
     (lua-mode lua-indent-level)
@@ -280,8 +285,8 @@ This hook will be run even when there are no matching sections in
     (ps-mode ps-mode-tab)
     (pug-mode pug-tab-width)
     (puppet-mode puppet-indent-level)
-    (python-mode . editorconfig-set-indentation-python-mode)
-    (python-ts-mode . editorconfig-set-indentation-python-mode)
+    (python-mode . editorconfig--get-indentation-python-mode)
+    (python-ts-mode . editorconfig--get-indentation-python-mode)
     (rjsx-mode js-indent-level sgml-basic-offset)
     (ruby-mode ruby-indent-level)
     (ruby-ts-mode ruby-indent-level)
@@ -327,7 +332,8 @@ This hook will be run even when there are no matching sections in
 Each element looks like (MODE . FUNCTION) or (MODE . INDENT-SPEC-LIST).
 
 If FUNCTION is provided, it will be called when setting the
-indentation.  The indent size will be passed.
+indentation.  The indent size will be passed and it should return
+a list of settings of the form (VAR . VAL).
 
 If INDENT-SPEC-LIST is provided, each element of it must have one of the
 following forms:
@@ -438,26 +444,21 @@ Make a message by passing ARGS to `format-message'."
   (and (stringp string)
        (string-match-p "\\`[0-9]+\\'" string)))
 
-(defun editorconfig-set-indentation-python-mode (size)
-  "Set `python-mode' indent size to SIZE."
-  (when (boundp 'python-indent-offset)
-    (setq-local python-indent-offset size))
-  ;; For https://gitlab.com/python-mode-devs/python-mode
-  (when (boundp 'py-indent-offset)
-    (setq-local py-indent-offset size)))
+(defun editorconfig--get-indentation-python-mode (size)
+  "Var to set `python-mode' indent size to SIZE."
+  `((python-indent-offset . ,size)
+    ;; For https://gitlab.com/python-mode-devs/python-mode
+    (py-indent-offset . ,size)))
 
-(defun editorconfig-set-indentation-latex-mode (size)
-  "Set `latex-mode' indent size to SIZE."
-  (setq-local tex-indent-basic size)
-  (setq-local tex-indent-item size)
-  (setq-local tex-indent-arg (* 2 size))
-  ;; For AUCTeX
-  (when (boundp 'TeX-brace-indent-level)
-    (setq-local TeX-brace-indent-level size))
-  (when (boundp 'LaTeX-indent-level)
-    (setq-local LaTeX-indent-level size))
-  (when (boundp 'LaTeX-item-indent)
-    (setq-local LaTeX-item-indent (- size))))
+(defun editorconfig--get-indentation-latex-mode (size)
+  "Vars to set `latex-mode' indent size to SIZE."
+  `((tex-indent-basic . ,size)
+    (tex-indent-item . ,size)
+    (tex-indent-arg . ,(* 2 size))
+    ;; For AUCTeX
+    (TeX-brace-indent-level . ,size)
+    (LaTeX-indent-level . ,size)
+    (LaTeX-item-indent . ,(- size))))
 
 (cl-defun editorconfig--should-set (symbol &optional size)
   "Determine if editorconfig should set SYMBOL.
@@ -489,58 +490,62 @@ See `editorconfig-lisp-use-default-indent' for details."
 
   t)
 
-(defun editorconfig-set-indentation (style &optional size tab_width)
-  "Set indentation type from STYLE, SIZE and TAB_WIDTH."
+(defun editorconfig--get-indentation (style &optional size tab_width)
+  "Get indentation vars according to STYLE, SIZE, and TAB_WIDTH."
+  (when tab_width
+    (setq tab_width (string-to-number tab_width)))
+
   (setq size
         (cond ((editorconfig-string-integer-p size)
                (string-to-number size))
               ((equal size "tab")
-               "tab")
+               (or tab_width tab-width))
               (t
                nil)))
 
-  (cond ((not (editorconfig--should-set 'tab-width))
-         nil)
-        (tab_width
-         (setq tab-width (string-to-number tab_width)))
-        ((numberp size)
-         (setq tab-width size)))
+  `(,@(cond (tab_width `((tab-width . ,tab_width)))
+            ;; FIXME: This seems wrong: `tab-width' controls the display width
+            ;; of TAB characters in the buffer, which is largely independent
+            ;; from the indentation step.
+            ;;((numberp size) `((tab-width . ,size)))
+            )
 
-  (when (equal size "tab")
-    (setq size tab-width))
+    ,@(cond ((equal style "space")
+             `((indent-tabs-mode . nil)))
+            ((equal style "tab")
+             `((indent-tabs-mode . t))))
 
-  (cond ((not (editorconfig--should-set 'indent-tabs-mode))
-         nil)
-        ((equal style "space")
-         (setq indent-tabs-mode nil))
-        ((equal style "tab")
-         (setq indent-tabs-mode t)))
-
-  (when size
-    (when (and (featurep 'evil)
-               (editorconfig--should-set 'evil-shift-width))
-      (setq-local evil-shift-width size))
-    (let ((parent major-mode)
-          entry)
-      ;; Find the closet parent mode of `major-mode' in
-      ;; `editorconfig-indentation-alist'.
-      (while (and (not (setq entry (assoc parent editorconfig-indentation-alist)))
-                  (setq parent (get parent 'derived-mode-parent))))
-      (when entry
-        (let ((fn-or-list (cdr entry)))
-          (cond ((functionp fn-or-list) (funcall fn-or-list size))
-                ((listp fn-or-list)
-                 (dolist (elem fn-or-list)
-                   (cond ((and (symbolp elem)
-                               (editorconfig--should-set elem size))
-                          (set (make-local-variable elem) size))
-                         ((and (consp elem)
-                               (editorconfig--should-set (car elem) size))
-                          (let ((spec (cdr elem)))
-                            (set (make-local-variable (car elem))
-                                 (cond ((functionp spec) (funcall spec size))
-                                       ((integerp spec) (* spec size))
-                                       (t spec))))))))))))))
+    ,@(when (and size (featurep 'evil))
+        `((evil-shift-width . ,size)))
+    ,@(when size
+        (let ((parent major-mode)
+              entry)
+          ;; Find the closet parent mode of `major-mode' in
+          ;; `editorconfig-indentation-alist'.
+          (while (and (not (setq entry
+                                 (assoc parent editorconfig-indentation-alist)))
+                      (setq parent (get parent 'derived-mode-parent))))
+          (when entry
+            (let ((fn-or-list (cdr entry)))
+              (cond ((functionp fn-or-list)
+                     (let ((alist (funcall fn-or-list size)))
+                       ;; Filter out settings of unknown vars.
+                       (delq nil
+                             (mapcar (lambda (elem)
+                                       (if (boundp (car elem)) elem))
+                                     alist))))
+                    ((listp fn-or-list)
+                     (mapcar
+                      (lambda (elem)
+                        (cond ((and (symbolp elem)) `(,elem . ,size))
+                              ((and (consp elem))
+                               `(,(car elem)
+                                 . ,(let ((spec (cdr elem)))
+                                      (cond ((functionp spec)
+                                             (funcall spec size))
+                                            ((integerp spec) (* spec size))
+                                            (t spec)))))))
+                      fn-or-list)))))))))
 
 (defvar-local editorconfig--apply-coding-system-currently nil
   "Used internally.")
@@ -599,46 +604,46 @@ This function will revert buffer when the coding-system has been changed."
               (revert-buffer-with-coding-system coding-system)))
         (setq editorconfig--apply-coding-system-currently nil)))))
 
-(defun editorconfig-set-trailing-nl (final-newline)
-  "Set up requiring final newline by FINAL-NEWLINE.
-
-This function will set `require-final-newline' and `mode-require-final-newline'
-to non-nil when FINAL-NEWLINE is true."
+(defun editorconfig--get-trailing-nl (final-newline)
+  "Get the vars to require final newline according to FINAL-NEWLINE."
   (pcase final-newline
     ("true"
-     ;; keep prefs around how/when the nl is added, if set - otherwise add on save
-     (setq-local require-final-newline      (or require-final-newline t))
-     (setq-local mode-require-final-newline (or mode-require-final-newline t)))
+     ;; Keep prefs around how/when the nl is added, if set - otherwise add on
+     ;; save
+     `((require-final-newline . ,(or require-final-newline t))
+       ;; FIXME: Why do we set `mode-require-final-newline'?
+       (mode-require-final-newline . ,(or mode-require-final-newline t))))
     ("false"
-     ;; FIXME: Add functionality for actually REMOVING any trailing newlines here!
-     ;;        (rather than just making sure we don't automagically ADD a new one)
-     (setq-local require-final-newline      nil)
-     (setq-local mode-require-final-newline nil))))
+     ;; FIXME: Add functionality to actually REMOVE any trailing newlines here!
+     ;; (rather than just making sure we don't automagically ADD a new one)
+     `((require-final-newline . nil)
+       (mode-require-final-newline . nil)))))
 
-(defun editorconfig-set-trailing-ws (trim-trailing-ws)
-  "Set up trimming of trailing whitespace at end of lines by TRIM-TRAILING-WS."
-  (make-local-variable 'write-file-functions) ;; just current buffer
-  (when (and (equal trim-trailing-ws "true")
-             (not buffer-read-only))
-    ;; when true we push delete-trailing-whitespace (emacs > 21)
-    ;; to write-file-functions
-    (if editorconfig-trim-whitespaces-mode
-        (funcall editorconfig-trim-whitespaces-mode 1)
-      (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
-  (when (or (equal trim-trailing-ws "false")
-            buffer-read-only)
-    ;; when false we remove every delete-trailing-whitespace
-    ;; from write-file-functions
-    (when editorconfig-trim-whitespaces-mode
-      (funcall editorconfig-trim-whitespaces-mode 0))
-    (setq write-file-functions
-          (remove 'delete-trailing-whitespace write-file-functions))))
+(defun editorconfig--get-trailing-ws (trim-trailing-ws)
+  "Get vars to trim of trailing whitespace according to TRIM-TRAILING-WS."
+  `(,@(when (and (equal trim-trailing-ws "true")
+                 ;; FIXME: Test this in `before-save-hook'?
+                 (not buffer-read-only))
+        `((eval
+           . ,(if editorconfig-trim-whitespaces-mode
+                  `(,editorconfig-trim-whitespaces-mode 1)
+                ;; Don't use #' because this specific form is recognized
+                ;; by Emacs's `safe-local-eval-forms'.
+                '(add-hook 'before-save-hook 'delete-trailing-whitespace nil t)))))
+    ,@(when (or (equal trim-trailing-ws "false")
+                buffer-read-only)
+        ;; Just do it right away rather than return a (VAR . VAL), which
+        ;; would be probably more trouble than it's worth.
+        (when editorconfig-trim-whitespaces-mode
+          (funcall editorconfig-trim-whitespaces-mode 0))
+        (remove-hook 'before-save-hook #'delete-trailing-whitespace t)
+        nil)))
 
-(defun editorconfig-set-line-length (length)
-  "Set the max line length (`fill-column') to LENGTH."
+(defun editorconfig--get-line-length (length)
+  "Get the max line length (`fill-column') to LENGTH."
   (when (and (editorconfig-string-integer-p length)
              (> (string-to-number length) 0))
-    (setq fill-column (string-to-number length))))
+    `((fill-column . ,(string-to-number length)))))
 
 
 (defun editorconfig--execute-editorconfig-exec (filename)
@@ -723,15 +728,23 @@ This function also removes `unset' properties and calls
              when (equal v "unset") do (remhash k props))
     props))
 
+(defun editorconfig--get-local-variables (props)
+  "Get variables settings according to EditorConfig PROPS."
+  (append
+   (editorconfig--get-indentation (gethash 'indent_style props)
+                                  (gethash 'indent_size props)
+                                  (gethash 'tab_width props))
+   (editorconfig--get-trailing-nl (gethash 'insert_final_newline props))
+   (editorconfig--get-trailing-ws (gethash 'trim_trailing_whitespace props))
+   (editorconfig--get-line-length (gethash 'max_line_length props))))
+
 (defun editorconfig-set-local-variables (props)
   "Set buffer variables according to EditorConfig PROPS."
-  (editorconfig-set-indentation (gethash 'indent_style props)
-                                (gethash 'indent_size props)
-                                (gethash 'tab_width props))
-  (editorconfig-set-trailing-nl (gethash 'insert_final_newline props))
-  (editorconfig-set-trailing-ws (gethash 'trim_trailing_whitespace props))
-  (editorconfig-set-line-length (gethash 'max_line_length props)))
-
+  (pcase-dolist (`(,var . ,val) (editorconfig--get-local-variables props))
+    (if (eq 'eval var)
+        (eval val t)
+      (when (editorconfig--should-set var)
+        (set (make-local-variable var) val)))))
 
 (defun editorconfig-major-mode-hook ()
   "Function to run when `major-mode' has been changed.
