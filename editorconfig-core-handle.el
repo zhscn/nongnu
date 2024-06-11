@@ -115,6 +115,7 @@ If HANDLE is nil return nil."
 The list returned will be ordered by the lines they appear.
 
 If HANDLE is nil return nil."
+  (declare (obsolete editorconfig-core-handle-get-properties-hash "0.8.0")))
   (when handle
     (let ((dir (file-name-directory (editorconfig-core-handle-path handle))))
       (cl-loop for section in (editorconfig-core-handle-sections handle)
@@ -122,10 +123,6 @@ If HANDLE is nil return nil."
                                                                             file
                                                                             dir)
                when props collect (copy-alist props)))))
-(make-obsolete 'editorconfig-core-handle-get-properties
-               'editorconfig-core-handle-get-properties-hash
-               "0.8.0")
-
 
 (defun editorconfig-core-handle-get-properties-hash (handle file)
   "Return hash of properties from HANDLE for FILE.

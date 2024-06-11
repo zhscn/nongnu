@@ -61,17 +61,6 @@ coding styles between different editors and IDEs."
   :group 'tools)
 
 (define-obsolete-variable-alias
-  'edconf-exec-path
-  'editorconfig-exec-path
-  "0.5")
-(defcustom editorconfig-exec-path
-  "editorconfig"
-  "Path to EditorConfig executable.
-
-Used by `editorconfig--execute-editorconfig-exec'."
-  :type 'string)
-
-(define-obsolete-variable-alias
   'edconf-get-properties-function
   'editorconfig-get-properties-function
   "0.5")
@@ -628,67 +617,6 @@ This function will revert buffer when the coding-system has been changed."
     `((fill-column . ,(string-to-number length)))))
 
 
-(defun editorconfig--execute-editorconfig-exec (filename)
-  "Execute EditorConfig core with FILENAME and return output."
-  (if filename
-      (with-temp-buffer
-        (let ((remote (file-remote-p filename))
-              (remote-localname (file-remote-p filename
-                                               'localname)))
-          (display-warning '(editorconfig editorconfig--execute-editorconfig-exec)
-                           (format "editorconfig--execute-editorconfig-exec: filename: %S | remote: %S | remote-localname: %S"
-                                   filename
-                                   remote
-                                   remote-localname)
-                           :debug)
-          (if remote
-              (progn
-                (cd (concat remote "/"))
-                (setq filename remote-localname))
-            (cd "/")))
-        (display-warning '(editorconfig editorconfig--execute-editorconfig-exec)
-                         (format "editorconfig--execute-editorconfig-exec: default-directory: %S | filename: %S"
-                                 default-directory
-                                 filename
-                                 )
-                         :debug)
-        (if (eq 0
-                (process-file editorconfig-exec-path nil t nil filename))
-            (buffer-string)
-          (editorconfig-error (buffer-string))))
-    ""))
-
-(defun editorconfig--parse-properties (props-string)
-  "Create properties hash table from PROPS-STRING."
-  (let ((props-list (split-string props-string "\n"))
-        (properties (make-hash-table)))
-    (dolist (prop props-list properties)
-      (let ((key-val (split-string prop " *= *")))
-        (when (> (length key-val) 1)
-          (let ((key (intern (car key-val)))
-                (val (mapconcat #'identity (cdr key-val) "")))
-            (puthash key val properties)))))))
-
-(defun editorconfig-get-properties-from-exec (filename)
-  "Get EditorConfig properties of file FILENAME.
-
-This function uses value of `editorconfig-exec-path' to get properties."
-  (if (executable-find editorconfig-exec-path)
-      (editorconfig--parse-properties (editorconfig--execute-editorconfig-exec filename))
-    (editorconfig-error "Unable to find editorconfig executable")))
-
-(defun editorconfig-get-properties (filename)
-  "Get EditorConfig properties for file FILENAME.
-
-It calls `editorconfig-get-properties-from-exec' if
-`editorconfig-exec-path' is found, otherwise
-`editorconfig-core-get-properties-hash'."
-  (if (and (executable-find editorconfig-exec-path)
-           (not (file-remote-p filename)))
-      (editorconfig-get-properties-from-exec filename)
-    (require 'editorconfig-core)
-    (editorconfig-core-get-properties-hash filename)))
-
 (defun editorconfig-call-get-properties-function (filename)
   "Call `editorconfig-get-properties-function' with FILENAME and return result.
 
@@ -974,7 +902,3 @@ version in the echo area and the messages buffer."
 
 (provide 'editorconfig)
 ;;; editorconfig.el ends here
-
-;; Local Variables:
-;; sentence-end-double-space: t
-;; End:
