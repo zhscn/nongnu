@@ -14,7 +14,7 @@ ERT_TESTS = $(wildcard $(PROJECT_ROOT_DIR)/ert-tests/*.el)
 BATCHFLAGS = -batch -q --no-site-file -L $(PROJECT_ROOT_DIR)
 
 MAIN_SRC = editorconfig.el
-SRCS = $(wildcard $(PROJECT_ROOT_DIR)/*.el)
+SRCS = $(filter-out %-autoloads.el %-pkg.el, $(wildcard $(PROJECT_ROOT_DIR)/*.el))
 OBJS = $(SRCS:.el=.elc)
 
 .PHONY: check-unix check-dos \
@@ -54,11 +54,12 @@ test: test-ert test-core
 
 # ert test
 test-ert: $(ERT_TESTS) $(OBJS)
-	$(EMACS) $(BATCHFLAGS) \
-		--eval "(setq debug-on-error t)" \
-		--eval "(require 'ert)" \
+	$(EMACS) $(BATCHFLAGS) 	 					 \
+		--eval "(setq debug-on-error t)" 			 \
+		--eval "(require 'ert)" 				 \
 		--eval "(setq metadata-el-files '($(MAIN_SRC:%=\"%\")))" \
-		$(ERT_TESTS:%=-l "%") \
+		$(OBJS:%=-l "%")					 \
+		$(ERT_TESTS:%=-l "%") 					 \
 		-f ert-run-tests-batch-and-exit
 
 

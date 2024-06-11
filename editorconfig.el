@@ -700,7 +700,7 @@ This function also removes `unset' properties and calls
       (setq filename (expand-file-name filename))
     (editorconfig-error "Invalid argument: %S" filename))
   (let ((props nil))
-    (condition-case err
+    (condition-case-unless-debug err
         (setq props (funcall editorconfig-get-properties-function
                              filename))
       (error
