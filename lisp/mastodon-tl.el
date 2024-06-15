@@ -3026,5 +3026,28 @@ When DOMAIN, force inclusion of user's domain in their handle."
   (unless (mastodon-tl--profile-buffer-p)
     (mastodon-tl--goto-first-item)))
 
+;;; BOOKMARKS
+
+(defun mastodon-tl--bookmark-handler (record)
+  "Jump to a bookmarked location in mastodon.el.
+RECORD is the bookmark record."
+  (let ((id (bookmark-prop-get record 'id)))
+    ;; we need to handle thread and single toot for starters
+    (mastodon-tl--thread id)))
+
+(defun mastodon-tl--bookmark-make-record ()
+  "Return a bookmark record for the current mastodon buffer."
+  (let ((id (mastodon-tl--property 'item-id :no-move))
+        (name (buffer-name)))
+    `(,name
+      (buf . ,name)
+      (id . ,id)
+      (handler . mastodon-tl--bookmark-handler))))
+
+(add-hook 'mastodon-mode-hook
+          (lambda ()
+            (setq-local bookmark-make-record-function
+                        #'mastodon-tl--bookmark-make-record)))
+
 (provide 'mastodon-tl)
 ;;; mastodon-tl.el ends here
