@@ -3034,7 +3034,8 @@ When DOMAIN, force inclusion of user's domain in their handle."
 RECORD is the bookmark record."
   (let ((id (bookmark-prop-get record 'id)))
     ;; we need to handle thread and single toot for starters
-    (mastodon-tl--thread id)))
+    (pop-to-buffer
+     (mastodon-tl--thread id))))
 
 (defun mastodon-tl--bookmark-make-record ()
   "Return a bookmark record for the current mastodon buffer."
