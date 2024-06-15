@@ -71,19 +71,34 @@
 (defvar-local recomplete--alist nil
   "Internal properties for repeated `recomplete' calls.")
 
+(defmacro recomplete--with-advice (advice &rest body)
+  "Execute BODY with ADVICE temporarily enabled.
 
-(defmacro recomplete--with-advice (fn-orig where fn-advice &rest body)
-  "Execute BODY with advice added.
-
-WHERE using FN-ADVICE temporarily added to FN-ORIG."
-  (declare (indent 3))
-  (let ((function-var (gensym)))
-    `(let ((,function-var ,fn-advice))
+Advice are triplets of (SYMBOL HOW FUNCTION),
+see `advice-add' documentation."
+  (declare (indent 1))
+  (let ((body-let nil)
+        (body-advice-add nil)
+        (body-advice-remove nil)
+        (item nil))
+    (while (setq item (pop advice))
+      (let ((fn-sym (gensym))
+            (fn-advise (pop item))
+            (fn-advice-ty (pop item))
+            (fn-body (pop item)))
+        ;; Build the calls for each type.
+        (push (list fn-sym fn-body) body-let)
+        (push (list 'advice-add fn-advise fn-advice-ty fn-sym) body-advice-add)
+        (push (list 'advice-remove fn-advise fn-sym) body-advice-remove)))
+    (setq body-let (nreverse body-let))
+    (setq body-advice-add (nreverse body-advice-add))
+    ;; Compose the call.
+    `(let ,body-let
        (unwind-protect
            (progn
-             (advice-add ,fn-orig ,where ,function-var)
+             ,@body-advice-add
              ,@body)
-         (advice-remove ,fn-orig ,function-var)))))
+         ,@body-advice-remove))))
 
 ;; Back-ported from emacs-29.1 (remove once older versions have beeen dropped).
 (defmacro recomplete--with-undo-amalgamate (&rest body)
@@ -113,12 +128,13 @@ When undo is disabled this behaves like `progn'."
   "Run BODY adding any message call to the MESSAGE-LIST list."
   (declare (indent 1))
   `(let ((temp-message-list (list)))
-     (recomplete--with-advice #'message
-         :override
-         (lambda (&rest args)
-           ;; Only check if non-null because this is a signal not to log at all.
-           (when message-log-max
-             (push (apply #'format-message args) temp-message-list)))
+     (recomplete--with-advice
+         ((#'message
+           :override
+           (lambda (&rest args)
+             ;; Only check if non-null because this is a signal not to log at all.
+             (when message-log-max
+               (push (apply #'format-message args) temp-message-list)))))
        (unwind-protect
            (progn
              ,@body)
@@ -208,15 +224,16 @@ Argument FN-CACHE stores the result for reuse."
   (pcase-let ((`(,result-choices ,word-beg ,word-end) (or fn-cache '(nil nil nil))))
 
     (unless result-choices
-      (recomplete--with-advice 'ispell-command-loop
-          :override
-          (lambda (miss _guess _word start end)
-            (when miss
-              (setq result-choices miss)
-              (setq word-beg (marker-position start))
-              (setq word-end (marker-position end))
-              ;; Return the word would make the correction, we do this ourselves next.
-              nil))
+      (recomplete--with-advice
+          (('ispell-command-loop
+            :override
+            (lambda (miss _guess _word start end)
+              (when miss
+                (setq result-choices miss)
+                (setq word-beg (marker-position start))
+                (setq word-end (marker-position end))
+                ;; Return the word would make the correction, we do this ourselves next.
+                nil))))
         (ispell-word))
 
       (when result-choices
