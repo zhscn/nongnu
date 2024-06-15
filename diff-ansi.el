@@ -140,17 +140,34 @@ It can be useful to show progress when viewing very large diffs."
 ;; ---------------------------------------------------------------------------
 ;; Generic functions.
 
-(defmacro diff-ansi--with-advice (fn-orig where fn-advice &rest body)
-  "Execute BODY with advice added WHERE.
-Argument FN-ADVICE temporarily added to FN-ORIG."
-  (declare (indent 3))
-  (let ((function-var (gensym)))
-    `(let ((,function-var ,fn-advice))
+(defmacro diff-ansi--with-advice (advice &rest body)
+  "Execute BODY with ADVICE temporarily enabled.
+
+Advice are triplets of (SYMBOL HOW FUNCTION),
+see `advice-add' documentation."
+  (declare (indent 1))
+  (let ((body-let nil)
+        (body-advice-add nil)
+        (body-advice-remove nil)
+        (item nil))
+    (while (setq item (pop advice))
+      (let ((fn-sym (gensym))
+            (fn-advise (pop item))
+            (fn-advice-ty (pop item))
+            (fn-body (pop item)))
+        ;; Build the calls for each type.
+        (push (list fn-sym fn-body) body-let)
+        (push (list 'advice-add fn-advise fn-advice-ty fn-sym) body-advice-add)
+        (push (list 'advice-remove fn-advise fn-sym) body-advice-remove)))
+    (setq body-let (nreverse body-let))
+    (setq body-advice-add (nreverse body-advice-add))
+    ;; Compose the call.
+    `(let ,body-let
        (unwind-protect
            (progn
-             (advice-add ,fn-orig ,where ,function-var)
+             ,@body-advice-add
              ,@body)
-         (advice-remove ,fn-orig ,function-var)))))
+         ,@body-advice-remove))))
 
 (defmacro diff-ansi--with-temp-echo-area (&rest body)
   "Run BODY with the message temporarily overwritten."
@@ -717,7 +734,7 @@ Store the result in TARGET-BUF when non-nil."
         (setq end (point))
 
         ;; Postpone activation until the timer can take it's self as an argument.
-        (diff-ansi--with-advice #'timer-activate :override (lambda (&rest _) nil)
+        (diff-ansi--with-advice ((#'timer-activate :override (lambda (&rest _) nil)))
           (setq diff-ansi--ansi-color-timer (run-at-time 0.0 0.001 nil))
           (timer-set-function diff-ansi--ansi-color-timer #'diff-ansi-progressive-highlight-impl
                               (list
@@ -791,7 +808,7 @@ Store the result in TARGET-BUF when non-nil."
 This calls OLD-FN with ARGS."
   (declare (important-return-value nil))
   (let ((point-begin (point)))
-    (diff-ansi--with-advice #'magit-wash-sequence :override (lambda (&rest _) nil)
+    (diff-ansi--with-advice ((#'magit-wash-sequence :override (lambda (&rest _) nil)))
 
       (apply old-fn args)
 
