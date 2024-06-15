@@ -570,10 +570,10 @@ Do so if type of status at poins is not follow_request/follow."
   (let ((type (alist-get 'type
                          (mastodon-tl--property 'item-json :no-move)))
         (echo (mastodon-tl--property 'help-echo :no-move)))
-    (when echo ; not for followers/following in profile
+    (when (not (equal "" echo)) ; not for followers/following in profile
       (unless (or (string= type "follow_request")
                   (string= type "follow")) ; no counts for these
-        (message "%s" (mastodon-tl--property 'help-echo :no-move))))))
+        (message "%s" echo)))))
 
 (defun mastodon-tl--byline-author (toot &optional avatar domain)
   "Propertize author of TOOT.
