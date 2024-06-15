@@ -325,10 +325,11 @@ than `pop-to-buffer'."
        (erase-buffer)
        (funcall ,mode-fun)
        (remove-overlays) ; video overlays
+       ,@body
+       ;; return result of switching buffer:
        (if ,other-window
            (switch-to-buffer-other-window ,buffer)
-         (pop-to-buffer ,buffer '(display-buffer-same-window)))
-       ,@body)))
+         (pop-to-buffer ,buffer '(display-buffer-same-window))))))
 
 (defmacro mastodon-tl--do-if-item (&rest body)
   "Execute BODY if we have an item at point."
