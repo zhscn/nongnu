@@ -167,16 +167,34 @@ When unset, the :filter property from `doc-show-inline-mode-defaults' is used.")
 ;; ---------------------------------------------------------------------------
 ;; Internal Functions / Macros
 
-(defmacro doc-show-inline--with-advice (fn-orig where fn-advice &rest body)
-  "Execute BODY with WHERE advice on FN-ORIG temporarily enabled."
-  (declare (indent 3))
-  (let ((function-var (gensym)))
-    `(let ((,function-var ,fn-advice))
+(defmacro doc-show-inline--with-advice (advice &rest body)
+  "Execute BODY with ADVICE temporarily enabled.
+
+Advice are triplets of (SYMBOL HOW FUNCTION),
+see `advice-add' documentation."
+  (declare (indent 1))
+  (let ((body-let nil)
+        (body-advice-add nil)
+        (body-advice-remove nil)
+        (item nil))
+    (while (setq item (pop advice))
+      (let ((fn-sym (gensym))
+            (fn-advise (pop item))
+            (fn-advice-ty (pop item))
+            (fn-body (pop item)))
+        ;; Build the calls for each type.
+        (push (list fn-sym fn-body) body-let)
+        (push (list 'advice-add fn-advise fn-advice-ty fn-sym) body-advice-add)
+        (push (list 'advice-remove fn-advise fn-sym) body-advice-remove)))
+    (setq body-let (nreverse body-let))
+    (setq body-advice-add (nreverse body-advice-add))
+    ;; Compose the call.
+    `(let ,body-let
        (unwind-protect
            (progn
-             (advice-add ,fn-orig ,where ,function-var)
+             ,@body-advice-add
              ,@body)
-         (advice-remove ,fn-orig ,function-var)))))
+         ,@body-advice-remove))))
 
 (defun doc-show-inline--color-highlight (color factor)
   "Tint between COLOR by FACTOR in (-1..1).
@@ -496,13 +514,15 @@ Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
   (declare (important-return-value t))
   ;; (printf "SYM: %S\n" sym)
   (let ((xref-list nil))
-    (doc-show-inline--with-advice #'xref--not-found-error :override (lambda (_kind _input) nil)
-      (doc-show-inline--with-advice #'xref--show-defs :override
+    (doc-show-inline--with-advice ((#'xref--not-found-error :override (lambda (_kind _input) nil))
+                                   (#'xref--show-defs
+                                    :override
                                     (lambda (fetcher _display-action)
-                                      (setq xref-list (funcall fetcher)))
-        (let ((xref-prompt-for-identifier nil))
-          ;; Needed to suppress `etags' from requesting a file.
-          (doc-show-inline--with-advice #'read-file-name :override
+                                      (setq xref-list (funcall fetcher)))))
+      (let ((xref-prompt-for-identifier nil))
+        ;; Needed to suppress `etags' from requesting a file.
+        (doc-show-inline--with-advice ((#'read-file-name
+                                        :override
                                         (lambda (&rest _args)
                                           (doc-show-inline--log-info
                                            "XREF lookup %S requested a file name for backend %S"
@@ -510,9 +530,9 @@ Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
                                            xref-backend)
                                           ;; File that doesn't exist.
                                           (user-error
-                                           "Doc-show-inline: ignoring request for file read"))
-            (with-demoted-errors "%S"
-              (xref-find-definitions sym))))))
+                                           "Doc-show-inline: ignoring request for file read"))))
+          (with-demoted-errors "%S"
+            (xref-find-definitions sym)))))
     xref-list))
 
 (defun doc-show-inline--doc-from-xref (sym xref-list)
@@ -528,10 +548,11 @@ Argument XREF-BACKEND is used to avoid multiple calls to `xref-find-backend'."
     ;; only for the purpose of reading their comments.
     ;; `doc-show-inline-fontify-hook' can be used to enable features needed for comment extraction.
     (save-excursion
-      (doc-show-inline--with-advice #'run-mode-hooks :override
-                                    (lambda (_hooks)
-                                      (with-demoted-errors "doc-show-inline-buffer-hook: %S"
-                                        (run-hooks 'doc-show-inline-buffer-hook)))
+      (doc-show-inline--with-advice ((#'run-mode-hooks
+                                      :override
+                                      (lambda (_hooks)
+                                        (with-demoted-errors "doc-show-inline-buffer-hook: %S"
+                                          (run-hooks 'doc-show-inline-buffer-hook)))))
 
         (dolist (item xref-list)
 
@@ -697,12 +718,13 @@ XREF-BACKEND is the back-end used to find this symbol."
                   (doc-show-inline--inhibit-mode t))
 
               ;; Track buffers loaded.
-              (doc-show-inline--with-advice #'create-file-buffer :around
-                                            (lambda (fn-orig filename)
-                                              (let ((buf (funcall fn-orig filename)))
-                                                (when buf
-                                                  (push buf temporary-buffers))
-                                                buf))
+              (doc-show-inline--with-advice ((#'create-file-buffer
+                                              :around
+                                              (lambda (fn-orig filename)
+                                                (let ((buf (funcall fn-orig filename)))
+                                                  (when buf
+                                                    (push buf temporary-buffers))
+                                                  buf))))
 
                 (while points
                   (pcase-let ((`(,sym . ,pos) (pop points)))
