@@ -365,61 +365,65 @@ boosting, or bookmarking toots."
   "Toggle boost or favourite of toot at `point'.
 TYPE is a symbol, either `favourite' or `boost.'"
   (mastodon-tl--do-if-item-strict
-   (let* ((boost-p (equal type 'boost))
-          ;;   (has-id (mastodon-tl--property 'base-item-id))
-          (byline-region ;(when has-id
-           (mastodon-tl--find-property-range 'byline (point)))
-          (id (when byline-region
-                (mastodon-tl--as-string (mastodon-tl--property 'base-item-id))))
-          (boosted (when byline-region
-                     (get-text-property (car byline-region) 'boosted-p)))
-          (faved (when byline-region
-                   (get-text-property (car byline-region) 'favourited-p)))
-          (action (if boost-p
-                      (if boosted "unreblog" "reblog")
-                    (if faved "unfavourite" "favourite")))
-          (msg (if boosted "unboosted" "boosted"))
-          (action-string (if boost-p "boost" "favourite"))
-          (remove (if boost-p (when boosted t) (when faved t)))
-          (item-json (mastodon-tl--property 'item-json))
-          (toot-type (alist-get 'type item-json))
-          (visibility (mastodon-tl--field 'visibility item-json)))
-     (if byline-region
-         (if (and (or (equal visibility "direct")
-                      (equal visibility "private"))
-                  boost-p)
-             (message "You cant boost posts with visibility: %s" visibility)
-           (cond ;; actually there's nothing wrong with faving/boosting own toots!
-            ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'item-json))
-            ;;(error "You can't %s your own toots" action-string))
-            ;; & nothing wrong with faving/boosting own toots from notifs:
-            ;; this boosts/faves the base toot, not the notif status
-            ((and (equal "reblog" toot-type)
-                  (not (mastodon-tl--buffer-type-eq 'notifications)))
-             (user-error "You can't %s boosts" action-string))
-            ((and (equal "favourite" toot-type)
-                  (not (mastodon-tl--buffer-type-eq 'notifications)))
-             (user-error "You can't %s favourites" action-string))
-            ((and (equal "private" visibility)
-                  (equal type 'boost))
-             (user-error "You can't boost private toots"))
-            (t
-             (mastodon-toot--action
-              action
-              (lambda (_)
-                (let ((inhibit-read-only t))
-                  (add-text-properties (car byline-region)
-                                       (cdr byline-region)
-                                       (if boost-p
-                                           (list 'boosted-p (not boosted))
-                                         (list 'favourited-p (not faved))))
-                  (mastodon-toot--update-stats-on-action type remove)
-                  (mastodon-toot--action-success (if boost-p
-                                                     (mastodon-tl--symbol 'boost)
-                                                   (mastodon-tl--symbol 'favourite))
-                                                 byline-region remove))
-                (message (format "%s #%s" (if boost-p msg action) id)))))))
-       (message (format "Nothing to %s here?!?" action-string))))))
+   (let ((n-type (mastodon-tl--property 'notification-type :no-move)))
+     (if (or (equal n-type "follow")
+             (equal n-type "follow_request"))
+         (user-error (format "Can't do action on %s notifications." n-type))
+       (let* ((boost-p (equal type 'boost))
+              ;;   (has-id (mastodon-tl--property 'base-item-id))
+              (byline-region ;(when has-id
+               (mastodon-tl--find-property-range 'byline (point)))
+              (id (when byline-region
+                    (mastodon-tl--as-string (mastodon-tl--property 'base-item-id))))
+              (boosted (when byline-region
+                         (get-text-property (car byline-region) 'boosted-p)))
+              (faved (when byline-region
+                       (get-text-property (car byline-region) 'favourited-p)))
+              (action (if boost-p
+                          (if boosted "unreblog" "reblog")
+                        (if faved "unfavourite" "favourite")))
+              (msg (if boosted "unboosted" "boosted"))
+              (action-string (if boost-p "boost" "favourite"))
+              (remove (if boost-p (when boosted t) (when faved t)))
+              (item-json (mastodon-tl--property 'item-json))
+              (toot-type (alist-get 'type item-json))
+              (visibility (mastodon-tl--field 'visibility item-json)))
+         (if byline-region
+             (if (and (or (equal visibility "direct")
+                          (equal visibility "private"))
+                      boost-p)
+                 (message "You cant boost posts with visibility: %s" visibility)
+               (cond ;; actually there's nothing wrong with faving/boosting own toots!
+                ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'item-json))
+                ;;(error "You can't %s your own toots" action-string))
+                ;; & nothing wrong with faving/boosting own toots from notifs:
+                ;; this boosts/faves the base toot, not the notif status
+                ((and (equal "reblog" toot-type)
+                      (not (mastodon-tl--buffer-type-eq 'notifications)))
+                 (user-error "You can't %s boosts" action-string))
+                ((and (equal "favourite" toot-type)
+                      (not (mastodon-tl--buffer-type-eq 'notifications)))
+                 (user-error "You can't %s favourites" action-string))
+                ((and (equal "private" visibility)
+                      (equal type 'boost))
+                 (user-error "You can't boost private toots"))
+                (t
+                 (mastodon-toot--action
+                  action
+                  (lambda (_)
+                    (let ((inhibit-read-only t))
+                      (add-text-properties (car byline-region)
+                                           (cdr byline-region)
+                                           (if boost-p
+                                               (list 'boosted-p (not boosted))
+                                             (list 'favourited-p (not faved))))
+                      (mastodon-toot--update-stats-on-action type remove)
+                      (mastodon-toot--action-success (if boost-p
+                                                         (mastodon-tl--symbol 'boost)
+                                                       (mastodon-tl--symbol 'favourite))
+                                                     byline-region remove))
+                    (message (format "%s #%s" (if boost-p msg action) id)))))))
+           (message (format "Nothing to %s here?!?" action-string))))))))
 
 (defun mastodon-toot--inc-or-dec (count subtract)
   "If SUBTRACT, decrement COUNT, else increment."
@@ -464,35 +468,39 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
   "Bookmark or unbookmark toot at point."
   (interactive)
   (mastodon-tl--do-if-item-strict
-   (let* ((id (mastodon-tl--property 'base-item-id))
-          (bookmarked-p
-           (mastodon-tl--property
-            'bookmarked-p
-            (if (mastodon-tl--property 'byline :no-move)
-                ;; no move if not in byline, the idea being if in body, we do
-                ;; move forward to byline to toggle correctly.
-                ;; alternatively we could bookmarked-p whole posts.
-                :no-move)))
-          (byline-region (when id
-                           (mastodon-tl--find-property-range 'byline (point))))
-          (action (if bookmarked-p "unbookmark" "bookmark"))
-          (bookmark-str (mastodon-tl--symbol 'bookmark))
-          (message (if bookmarked-p
-                       "Bookmark removed!"
-                     "Toot bookmarked!"))
-          (remove (when bookmarked-p t)))
-     (if byline-region
-         (mastodon-toot--action
-          action
-          (lambda (_)
-            (let ((inhibit-read-only t))
-              (add-text-properties (car byline-region)
-                                   (cdr byline-region)
-                                   (list 'bookmarked-p (not bookmarked-p))))
-            (mastodon-toot--action-success bookmark-str
-                                           byline-region remove)
-            (message (format "%s #%s" message id))))
-       (message (format "Nothing to %s here?!?" action))))))
+   (let ((n-type (mastodon-tl--property 'notification-type :no-move)))
+     (if (or (equal n-type "follow")
+             (equal n-type "follow_request"))
+         (user-error (format "Can't do action on %s notifications." n-type))
+       (let* ((id (mastodon-tl--property 'base-item-id))
+              (bookmarked-p
+               (mastodon-tl--property
+                'bookmarked-p
+                (if (mastodon-tl--property 'byline :no-move)
+                    ;; no move if not in byline, the idea being if in body, we do
+                    ;; move forward to byline to toggle correctly.
+                    ;; alternatively we could bookmarked-p whole posts.
+                    :no-move)))
+              (byline-region (when id
+                               (mastodon-tl--find-property-range 'byline (point))))
+              (action (if bookmarked-p "unbookmark" "bookmark"))
+              (bookmark-str (mastodon-tl--symbol 'bookmark))
+              (message (if bookmarked-p
+                           "Bookmark removed!"
+                         "Toot bookmarked!"))
+              (remove (when bookmarked-p t)))
+         (if byline-region
+             (mastodon-toot--action
+              action
+              (lambda (_)
+                (let ((inhibit-read-only t))
+                  (add-text-properties (car byline-region)
+                                       (cdr byline-region)
+                                       (list 'bookmarked-p (not bookmarked-p))))
+                (mastodon-toot--action-success bookmark-str
+                                               byline-region remove)
+                (message (format "%s #%s" message id))))
+           (message (format "Nothing to %s here?!?" action))))))))
 
 (defun mastodon-toot--list-toot-boosters ()
   "List the boosters of toot at point."
