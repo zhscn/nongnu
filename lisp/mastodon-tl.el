@@ -1853,20 +1853,18 @@ timeline."
 
 ;;; UTILITIES
 
-(defun mastodon-tl--map-alist (key alist)
+(defun mastodon-tl--map-alist (key alist &optional testfn)
   "Return a list of values extracted from ALIST with KEY.
 Key is a symbol, as with `alist-get'."
-  (mapcar (lambda (x)
-            (alist-get key x))
-          alist))
+  (cl-loop for x in alist
+           collect (alist-get key x nil nil testfn)))
 
 (defun mastodon-tl--map-alist-vals-to-alist (key1 key2 alist)
   "From ALIST, return an alist consisting of (val1 . val2) elements.
 Values are accessed by `alist-get', using KEY1 and KEY2."
-  (mapcar (lambda (x)
-            (cons (alist-get key1 x)
-                  (alist-get key2 x)))
-          alist))
+  (cl-loop for x in alist
+           collect (cons (alist-get key1 x)
+                         (alist-get key2 x))))
 
 (defun mastodon-tl--symbol (name)
   "Return the unicode symbol (as a string) corresponding to NAME.
@@ -2354,12 +2352,10 @@ ARGS is an alist of any parameters to send with the request."
   (let* ((toot (or (mastodon-tl--property 'base-toot :no-move) ; fave/boost notifs
                    (mastodon-tl--property 'item-json :no-move)))
          (tags (mastodon-tl--field 'tags toot)))
-    (mapcar (lambda (x)
-              (alist-get 'name x))
-            tags)))
+    (mastodon-tl--map-alist 'name tags)))
 
 (defun mastodon-tl--follow-tag (&optional tag)
-  "Prompt for a tag and follow it.
+  "Prompt for a tag (from post at point) and follow it.
 If TAG provided, follow it."
   (interactive)
   (let* ((tags (unless tag (mastodon-tl--get-tags-list)))
