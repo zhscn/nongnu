@@ -187,9 +187,13 @@ PARAMS is an alist of any extra parameters to send with the request.
 SILENT means don't message.
 NO-HEADERS means don't collect http response headers.
 VECTOR means return json arrays as vectors."
-  (let ((buf (mastodon-http--get url params silent)))
+(let ((buf (mastodon-http--get url params silent)))
+  ;; --get can return nil if instance unresponsive:
+  (if (not buf)
+      (user-error "Looks like the server response borked. \
+Is your instance up?")
     (with-current-buffer buf
-      (mastodon-http--process-response no-headers vector))))
+      (mastodon-http--process-response no-headers vector)))))
 
 (defun mastodon-http--get-json (url &optional params silent vector)
   "Return only JSON data from URL request.

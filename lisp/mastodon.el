@@ -6,7 +6,7 @@
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
-;; Version: 1.0.23
+;; Version: 1.0.24
 ;; Package-Requires: ((emacs "27.1") (request "0.3.0") (persist "0.4"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
@@ -338,7 +338,7 @@ If REPLY-JSON is the json of the toot being replied to."
   (mastodon-toot--compose-buffer user reply-to-id reply-json))
 
 ;;;###autoload
-(defun mastodon-notifications-get (&optional type buffer-name force)
+(defun mastodon-notifications-get (&optional type buffer-name force max-id)
   "Display NOTIFICATIONS in buffer.
 Optionally only print notifications of type TYPE, a string.
 BUFFER-NAME is added to \"*mastodon-\" to create the buffer name.
@@ -356,7 +356,9 @@ from the server and load anew."
       (mastodon-tl--init-sync (or buffer-name "notifications")
                               "notifications"
                               'mastodon-notifications--timeline
-                              type)
+                              type
+                              (when max-id
+                                `(("max_id" . ,(mastodon-tl--buffer-property 'max-id)))))
       (with-current-buffer buffer
         (use-local-map mastodon-notifications--map)))))
 

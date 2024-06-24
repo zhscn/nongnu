@@ -146,15 +146,16 @@ This variable is set from data in
   (mastodon-tl--property 'item-json))
 
 (defun mastodon-profile--make-author-buffer
-    (account &optional no-reblogs no-replies only-media tag)
+    (account &optional no-reblogs no-replies only-media tag max-id)
   "Take an ACCOUNT json and insert a user account into a new buffer.
 NO-REBLOGS means do not display boosts in statuses.
 NO-REPLIES means to exlude replies.
 ONLY-MEDIA means show only posts containing attachments.
-TAG is a hashtag to restrict posts to."
+TAG is a hashtag to restrict posts to.
+MAX-ID is a flag to include the max_id pagination parameter."
   (mastodon-profile--make-profile-buffer-for
    account "statuses" #'mastodon-tl--timeline no-reblogs nil
-   no-replies only-media tag))
+   no-replies only-media tag max-id))
 
 ;; TODO: we shd just load all views' data then switch coz this is slow af:
 (defun mastodon-profile--account-view-cycle ()
@@ -572,7 +573,11 @@ FIELDS means provide a fields vector fetched by other means."
 (defun mastodon-profile--insert-statuses-pinned (pinned-statuses)
   "Insert each of the PINNED-STATUSES for a given account."
   (mapc (lambda (pinned-status)
-          (insert (mastodon-tl--set-face "   :pinned: " 'success))
+          (insert
+           (concat "   "
+                   (propertize " pinned "
+                               'face '(:inherit success :box t))
+                   "   "))
           (mastodon-tl--toot pinned-status))
         pinned-statuses))
 
@@ -594,15 +599,20 @@ FIELDS means provide a fields vector fetched by other means."
 
 (defun mastodon-profile--make-profile-buffer-for
     (account endpoint-type update-function
-             &optional no-reblogs headers no-replies only-media tag)
+             &optional no-reblogs headers no-replies only-media tag max-id)
   "Display profile of ACCOUNT, using ENDPOINT-TYPE and UPDATE-FUNCTION.
 NO-REBLOGS means do not display boosts in statuses.
 HEADERS means also fetch link headers for pagination.
 NO-REPLIES means to exlude replies.
 ONLY-MEDIA means show only posts containing attachments.
-TAG is a hashtag to restrict posts to."
+TAG is a hashtag to restrict posts to.
+MAX-ID is a flag to include the max_id pagination parameter."
   (let-alist account
-    (let* ((args `(("limit" . ,mastodon-tl--timeline-posts-count)))
+    (let* ((max-id-str (when max-id
+                         (mastodon-tl--buffer-property 'max-id)))
+           (args `(("limit" . ,mastodon-tl--timeline-posts-count)
+                   ,(when max-id
+                      `("max_id" . ,max-id-str))))
            (args (cond (no-reblogs
                         (push '("exclude_reblogs" . "t") args))
                        (no-replies
@@ -635,11 +645,9 @@ TAG is a hashtag to restrict posts to."
            (relationships (mastodon-profile--relationships-get .id)))
       (with-mastodon-buffer buffer #'mastodon-mode nil
         (mastodon-profile-mode)
-        (remove-overlays)
         (setq mastodon-profile--account account)
-        (mastodon-tl--set-buffer-spec buffer endpoint
-                                      update-function link-header
-                                      args)
+        (mastodon-tl--set-buffer-spec buffer endpoint update-function
+                                      link-header args nil max-id-str)
         (let* ((inhibit-read-only t)
                (is-statuses (string= endpoint-type "statuses"))
                (is-followers (string= endpoint-type "followers"))
@@ -748,12 +756,14 @@ the format \"2000-01-31T00:00:00.000Z\"."
   (format-time-string "Joined: %d %B %Y"
                       (parse-iso8601-time-string joined)))
 
-(defun mastodon-profile--get-toot-author ()
+(defun mastodon-profile--get-toot-author (&optional max-id)
   "Open profile of author of toot under point.
-If toot is a boost, opens the profile of the booster."
+If toot is a boost, opens the profile of the booster.
+MAX-ID is a flag to include the max_id pagination parameter."
   (interactive)
   (mastodon-profile--make-author-buffer
-   (alist-get 'account (mastodon-profile--item-json))))
+   (alist-get 'account (mastodon-profile--item-json))
+   nil nil nil nil max-id))
 
 (defun mastodon-profile--image-from-account (account img-type)
   "Return a avatar image from ACCOUNT.
