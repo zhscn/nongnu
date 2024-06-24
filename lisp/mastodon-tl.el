@@ -1853,10 +1853,12 @@ timeline."
 
 ;;; UTILITIES
 
-(defun mastodon-tl--map-alist (key alist &optional testfn)
-  "Return a list of values extracted from ALIST with KEY.
-Key is a symbol, as with `alist-get'."
-  (cl-loop for x in alist
+(defun mastodon-tl--map-alist (key alists &optional testfn)
+  "Return a list of values extracted from ALISTS with KEY.
+Key is a symbol, as with `alist-get', or else compatible with TESTFN.
+ALISTS is a list of alists."
+  ;; this actually for a list of alists, right? so change the arg?
+  (cl-loop for x in alists
            collect (alist-get key x nil nil testfn)))
 
 (defun mastodon-tl--map-alist-vals-to-alist (key1 key2 alist)
