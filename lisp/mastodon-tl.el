@@ -1219,6 +1219,8 @@ SENSITIVE is a flag from the item's JSON data."
           (url-retrieve url #'mastodon-media--process-full-sized-image-response
                         `(,url)))))))
 
+(defvar mastodon-media--sensitive-image-data)
+
 (defun mastodon-tl--toggle-sensitive-image ()
   "Toggle dislay of sensitive image at point."
   (interactive)
@@ -3026,6 +3028,8 @@ When DOMAIN, force inclusion of user's domain in their handle."
     (mastodon-tl--goto-first-item)))
 
 ;;; BOOKMARKS
+
+(require 'bookmark)
 
 (defun mastodon-tl--bookmark-handler (record)
   "Jump to a bookmarked location in mastodon.el.
