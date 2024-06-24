@@ -1801,7 +1801,7 @@ REPLY-REGION is a string to be injected into the buffer."
        'mastodon-cw-face))))
 
 (defun mastodon-toot--apply-fields-props (region display &optional face help-echo)
-  ""
+  "Apply DISPLAY props FACE and HELP-ECHO to REGION, a cons of beg and end."
   (add-text-properties (car region) (cdr region)
                        `(display
                          ,display
