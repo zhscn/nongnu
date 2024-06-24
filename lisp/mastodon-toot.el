@@ -1291,9 +1291,10 @@ File is actually attached to the toot upon posting."
 
 (defun mastodon-toot--attachment-descriptions ()
   "Return a list of image descriptions for current attachments."
-  (mapcar (lambda (a)
-            (alist-get :description a))
-          mastodon-toot--media-attachments))
+  (mastodon-tl--map-alist :description
+                          ;; (mapcar (lambda (a)
+                          ;; (alist-get :description a))
+                          mastodon-toot--media-attachments))
 
 (defun mastodon-toot--attachment-from-desc (desc)
   "Return an attachment based on its description DESC."
@@ -1466,9 +1467,7 @@ Sets `mastodon-toot-poll' to nil."
             (format-time-string "%s"
                                 expiry-seconds-from-now))
            (expiry-human (car (mastodon-tl--human-duration expiry-seconds-from-now)))
-           (options (mapcar (lambda (o)
-                              (alist-get 'title o))
-                            .options))
+           (options (mastodon-tl--map-alist 'title .options))
            (multiple (if (eq :json-false .multiple)
                          nil
                        t)))
