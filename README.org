@@ -415,9 +415,7 @@ to your translator function as its text argument. Here's what
 
 *** Bookmarks and =mastodon.el=
 
-=mastodon.el= doesn’t currently implement its own bookmark record and handler,
-which means that emacs bookmarks will not work as is. Until we implement them,
-you can get bookmarks going immediately by using [[https://github.com/emacsmirror/emacswiki.org/blob/master/bookmark%2b.el][bookmark+.el]].
+=mastodon.el= implements a basic bookmark record and handler. Currently, this means that you can bookmark a post item and later load it in thread view. This could be expanded to any item with an id, but probably not to things like timeline views. If you want to be able to bookmark something, open an issue and ask, it's trivial to expand the bookmarking code.
 
 ** Dependencies
 
