@@ -497,8 +497,12 @@ TYPE is the attachment's type field on the server.
 CAPTION is the image caption if provided.
 SENSITIVE is a flag from the item's JSON data."
   (let* ((help-echo-base
-          "RET/i: load full image (prefix: copy URL), +/-: zoom,\
- r: rotate, o: save preview")
+          (substitute-command-keys
+           (concat "\\`RET'/\\`i': load full image (prefix: copy URL), \\`+'/\\`-': zoom,\
+ \\`r': rotate, \\`o': save preview"
+                   (if (not (eq sensitive :json-false))
+                       ", \\`S': toggle sensitive media"
+                     ""))))
          (help-echo (if caption
                         (concat help-echo-base
                                 "\n\"" caption "\"")
