@@ -339,14 +339,6 @@ than `pop-to-buffer'."
        (message "Looks like there's no item at point?")
      ,@body))
 
-(defmacro mastodon-tl--do-if-item-strict (&rest body)
-  "Execute BODY if we have a toot object at point.
-Includes boosts, and notifications that display toots."
-  (declare (debug t))
-  `(if (not (equal 'toot (mastodon-tl--property 'item-type :no-move)))
-       (message "Looks like there's no toot at point?")
-     ,@body))
-
 
 ;;; NAV
 
