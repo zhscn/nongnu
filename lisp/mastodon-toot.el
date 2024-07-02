@@ -363,7 +363,7 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
         (beginning-of-line) ;; The marker is not part of the byline
         (if (search-forward (format "(%s) " marker) eol t)
             (replace-match "")
-          (message "Oops: could not find marker '(%s)'" marker)))
+          (user-error "Oops: could not find marker '(%s)'" marker)))
       (unless remove
         (goto-char bol)
         (insert
@@ -506,18 +506,18 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
                            "Bookmark removed!"
                          "Toot bookmarked!"))
               (remove (when bookmarked-p t)))
-         (if byline-region
-             (mastodon-toot--action
-              action
-              (lambda (_)
-                (let ((inhibit-read-only t))
-                  (add-text-properties (car byline-region)
-                                       (cdr byline-region)
-                                       (list 'bookmarked-p (not bookmarked-p))))
-                (mastodon-toot--action-success bookmark-str
-                                               byline-region remove)
-                (message (format "%s #%s" message id))))
-           (message (format "Nothing to %s here?!?" action))))))))
+         (if (not byline-region)
+             (user-error "Nothing to %s here?!?" action)
+           (mastodon-toot--action
+            action
+            (lambda (_)
+              (let ((inhibit-read-only t))
+                (add-text-properties (car byline-region)
+                                     (cdr byline-region)
+                                     (list 'bookmarked-p (not bookmarked-p))))
+              (mastodon-toot--action-success bookmark-str
+                                             byline-region remove)
+              (message "%s #%s" message id)))))))))
 
 (defun mastodon-toot--list-toot-boosters ()
   "List the boosters of toot at point."
@@ -593,10 +593,10 @@ Uses `lingva.el'."
                                 (when mastodon-tl--enable-proportional-fonts
                                   t))
             (void-function
-             (message "Looks like you need to install lingva.el. Error: %s"
-                      (error-message-string x))))
-        (message "No toot to translate?"))
-    (message "No mastodon buffer?")))
+             (user-error "Looks like you need to install lingva.el. Error: %s"
+                         (error-message-string x))))
+        (user-error "No toot to translate?"))
+    (user-error "No mastodon buffer?")))
 
 (defun mastodon-toot--own-toot-p (toot)
   "Check if TOOT is user's own, for deleting, editing, or pinning it."
@@ -617,7 +617,7 @@ Uses `lingva.el'."
          (msg (if pinned-p "unpinned" "pinned"))
          (msg-y-or-n (if pinned-p "Unpin" "Pin")))
     (if (not pinnable-p)
-        (message "You can only pin your own toots.")
+        (user-error "You can only pin your own toots.")
       (when (y-or-n-p (format "%s this toot? " msg-y-or-n))
         (mastodon-toot--action action
                                (lambda (_)
@@ -647,7 +647,7 @@ NO-REDRAFT means delete toot only."
          (reply-id (alist-get 'in_reply_to_id toot))
          (pos (point)))
     (if (not (mastodon-toot--own-toot-p toot))
-        (message "You can only delete (and redraft) your own toots.")
+        (user-error "You can only delete (and redraft) your own toots.")
       (when (y-or-n-p (if no-redraft
                           (format "Delete this toot? ")
                         (format "Delete and redraft this toot? ")))
@@ -787,7 +787,7 @@ To use the downloaded emoji, run `mastodon-toot--enable-custom-emoji'."
          (custom-emoji (mastodon-http--get-json url))
          (mastodon-custom-emoji-dir (mastodon-toot--emoji-dir)))
     (if (not (file-directory-p emojify-emojis-dir))
-        (message "Looks like you need to set up emojify first.")
+        (user-error "Looks like you need to set up emojify first.")
       (unless (file-directory-p mastodon-custom-emoji-dir)
         (make-directory mastodon-custom-emoji-dir nil)) ; no add parent
       (mapc (lambda (x)
@@ -921,12 +921,12 @@ instance to edit a toot."
                 (or (not args-media)
                     (not (= (length mastodon-toot--media-attachments)
                             (length mastodon-toot--media-attachment-ids)))))
-           (message "Something is wrong with your uploads. Wait for them to complete or try again."))
+           (user-error "Something is wrong with your uploads. Wait for them to complete or try again."))
           ((and mastodon-toot--max-toot-chars
                 (> (mastodon-toot--count-toot-chars toot cw) mastodon-toot--max-toot-chars))
-           (message "Looks like your toot (inc. CW) is longer than that maximum allowed length."))
+           (user-error "Looks like your toot (inc. CW) is longer than that maximum allowed length."))
           ((mastodon-toot--empty-p)
-           (message "Empty toot. Cowardly refusing to post this."))
+           (user-error "Empty toot. Cowardly refusing to post this."))
           (t
            (let ((response (if edit-id ; we are sending an edit:
                                (mastodon-http--put endpoint args)
@@ -936,9 +936,7 @@ instance to edit a toot."
               (lambda (_)
                 ;; kill buffer:
                 (mastodon-toot--kill)
-                (if scheduled
-                    (message "Toot scheduled!")
-                  (message "Toot toot!"))
+                (message "Toot %s!" (if scheduled "scheduled" "toot"))
                 ;; cancel scheduled toot if we were editing it:
                 (when scheduled-id
                   (mastodon-views--cancel-scheduled-toot
@@ -1242,7 +1240,7 @@ prefixed by >."
   "Change the current visibility to the next valid value."
   (interactive)
   (if (mastodon-tl--buffer-type-eq 'edit-toot)
-      (message "You can't change visibility when editing toots.")
+      (user-error "You can't change visibility when editing toots.")
     (setq mastodon-toot--visibility
           (cond ((string= mastodon-toot--visibility "public")
                  "unlisted")
@@ -1286,7 +1284,7 @@ File is actually attached to the toot upon posting."
     ;; Only a max. of 4 attachments are allowed, so pop the oldest one.
     (pop mastodon-toot--media-attachments))
   (if (file-directory-p file)
-      (message "Looks like you chose a directory not a file.")
+      (user-error "Looks like you chose a directory not a file.")
     (setq mastodon-toot--media-attachments
           (nconc mastodon-toot--media-attachments
                  `(((:contents . ,(mastodon-http--read-file-as-string file))
@@ -1425,7 +1423,7 @@ LENGTH is the maximum character length allowed for a poll option."
          (longest (apply #'max (mapcar #'length choices))))
     (if (> longest length)
         (progn
-          (message "looks like you went over the max length. Try again.")
+          (user-error "looks like you went over the max length. Try again.")
           (sleep-for 2)
           (mastodon-toot--read-poll-options count length))
       choices)))
@@ -1493,10 +1491,10 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
   ;; https://codeberg.org/martianh/mastodon.el/issues/285
   (interactive)
   (cond ((mastodon-tl--buffer-type-eq 'edit-toot)
-         (message "You can't schedule toots you're editing."))
+         (user-error "You can't schedule toots you're editing."))
         ((not (or (mastodon-tl--buffer-type-eq 'new-toot)
                   (mastodon-tl--buffer-type-eq 'scheduled-statuses)))
-         (message "You can only schedule toots from the compose buffer or scheduled toots view."))
+         (user-error "You can only schedule toots from the compose buffer or scheduled toots view."))
         (t
          (let* ((id (when reschedule (mastodon-tl--property 'id :no-move)))
                 (ts (when reschedule
