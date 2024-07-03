@@ -281,7 +281,7 @@ data about the item boosted or favourited."
 (defmacro mastodon-tl--with-toot-item (&rest body)
   "Execute BODY if we have a toot object at point.
 Includes boosts, and notifications that display toots.
-This macro makes the id local variable available."
+This macro makes the local variable ID available."
   (declare (debug t))
   `(if (not (equal 'toot (mastodon-tl--property 'item-type :no-move)))
        (user-error "Looks like there's no toot at point?")
