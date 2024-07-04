@@ -1957,7 +1957,7 @@ ID is that of the toot to view."
                                       #'mastodon-tl--update-toot)
         (mastodon-tl--toot toot :detailed-p)
         (goto-char (point-min))
-        (mastodon-tl--goto-next-item)))))
+        (mastodon-tl--goto-next-item :no-refresh)))))
 
 (defun mastodon-tl--update-toot (json)
   "Call `mastodon-tl--single-toot' on id found in JSON."
