@@ -35,7 +35,6 @@
 ;;; Code:
 (require 'seq)
 (require 'cl-lib)
-(require 'persist)
 (require 'parse-time)
 (require 'mastodon-http)
 (eval-when-compile
@@ -125,8 +124,8 @@ It contains details of the current user's account.")
     map)
   "Keymap for `mastodon-profile-update-mode'.")
 
-(persist-defvar mastodon-profile-account-settings nil
-                "An alist of account settings saved from the server.
+(define-multisession-variable mastodon-profile-account-settings nil
+  "An alist of account settings saved from the server.
 Other clients can change these settings on the server at any
 time, so this list is not the canonical source for settings. It
 is updated on entering mastodon mode and on toggle any setting it
@@ -365,13 +364,16 @@ SOURCE means that the preference is in the `source' part of the account JSON."
 
 (defun mastodon-profile--get-pref (pref)
   "Return PREF from `mastodon-profile-account-settings'."
-  (plist-get mastodon-profile-account-settings pref))
+  (plist-get (multisession-value mastodon-profile-account-settings)
+             pref))
 
 (defun mastodon-profile--update-preference-plist (pref val)
   "Set local account preference plist preference PREF to VAL.
 This is done after changing the setting on the server."
-  (setq mastodon-profile-account-settings
-        (plist-put mastodon-profile-account-settings pref val)))
+  (setf (multisession-value mastodon-profile-account-settings)
+        (plist-put
+         (multisession-value mastodon-profile-account-settings)
+         pref val)))
 
 ;; used in toot.el
 (defun mastodon-profile--fetch-server-account-settings-maybe ()
@@ -384,7 +386,8 @@ Only do so if `mastodon-profile-account-settings' is nil."
 Store the values in `mastodon-profile-account-settings'.
 Run in `mastodon-mode-hook'.
 If NO-FORCE, only fetch if `mastodon-profile-account-settings' is nil."
-  (unless (and no-force mastodon-profile-account-settings)
+  (unless (and no-force
+               (multisession-value mastodon-profile-account-settings))
     (let ((keys '(locked discoverable display_name bot))
           (source-keys '(privacy sensitive language)))
       (mapc (lambda (k)
@@ -402,7 +405,7 @@ If NO-FORCE, only fetch if `mastodon-profile-account-settings' is nil."
       ;; TODO: remove now redundant vars, replace with fetchers from the plist
       (setq mastodon-toot--visibility (mastodon-profile--get-pref 'privacy)
             mastodon-toot--content-nsfw (mastodon-profile--get-pref 'sensitive))
-      mastodon-profile-account-settings)))
+      (multisession-value mastodon-profile-account-settings))))
 
 (defun mastodon-profile--account-locked-toggle ()
   "Toggle the locked status of your account.

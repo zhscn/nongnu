@@ -7,7 +7,7 @@
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 1.0.24
-;; Package-Requires: ((emacs "27.1") (request "0.3.0") (persist "0.4"))
+;; Package-Requires: ((emacs "27.1") (request "0.3.0"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
