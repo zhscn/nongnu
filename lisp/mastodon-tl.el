@@ -396,14 +396,18 @@ Optionally start from POS."
                    (current-buffer))))
     (if npos
         (if (not
-             ;; (get-text-property npos 'item-id) ; toots, users, not tags
              (get-text-property npos 'item-type)) ; generic
+            ;; FIXME let's make refresh &optional and only call refresh/recur
+            ;; if non-nil:
             (mastodon-tl--goto-item-pos find-pos refresh npos)
           (goto-char npos)
           ;; force display of help-echo on moving to a toot byline:
           (mastodon-tl--message-help-echo))
-      ;; FIXME: this doesn't work, as the funcall doesn't return if we
-      ;; run into an endless refresh loop
+      ;; FIXME: doesn't work, the funcall doesn't return if in an endless
+      ;; refresh loop.
+      ;; either let-bind `max-lisp-eval-depth' and try to error handle when it
+      ;; errors, or else set up a counter, and error when it gets to high
+      ;; (like >2 would already be too much)
       (condition-case nil
           (funcall refresh)
         (error "No more items")))))
