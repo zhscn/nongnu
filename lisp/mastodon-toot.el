@@ -31,6 +31,8 @@
 ;;; Code:
 (eval-when-compile (require 'subr-x))
 
+
+(defvar mastodon-use-emojify)
 (require 'emojify nil :noerror)
 (declare-function emojify-insert-emoji "emojify")
 (declare-function emojify-set-emoji-data "emojify")
@@ -158,11 +160,6 @@ If the original toot visibility is different we use the more restricted one."
   "Whether to enable your instance's custom emoji by default."
   :type 'boolean)
 
-(defcustom mastodon-toot--emojify-in-compose-buffer t
-  "Whether to enable `emojify-mode' in the compose buffer.
-We only attempt to enable it if its bound."
-  :type 'boolean)
-
 (defcustom mastodon-toot--proportional-fonts-compose nil
   "Nonnil to enable using proportional fonts in the compose buffer.
 By default fixed width fonts are used."
@@ -285,8 +282,7 @@ Includes boosts, and notifications that display toots."
     (define-key map (kbd "C-c C-w") #'mastodon-toot--toggle-warning)
     (define-key map (kbd "C-c C-n") #'mastodon-toot--toggle-nsfw)
     (define-key map (kbd "C-c C-v") #'mastodon-toot--change-visibility)
-    (when (require 'emojify nil :noerror)
-      (define-key map (kbd "C-c C-e") #'mastodon-toot--insert-emoji))
+    (define-key map (kbd "C-c C-e") #'mastodon-toot--insert-emoji)
     (define-key map (kbd "C-c C-a") #'mastodon-toot--attach-media)
     (define-key map (kbd "C-c !") #'mastodon-toot--clear-all-attachments)
     (define-key map (kbd "C-c C-p") #'mastodon-toot--create-poll)
@@ -764,7 +760,9 @@ TEXT-ONLY means don't check for attachments or polls."
 ;;; EMOJIS
 
 (defalias 'mastodon-toot--insert-emoji
-  #'emojify-insert-emoji
+  (if mastodon-use-emojify
+      #'emojify-insert-emoji
+    #'emoji-search)
   "Prompt to insert an emoji.")
 
 (defun mastodon-toot--emoji-dir ()
@@ -2022,7 +2020,7 @@ EDIT means we are editing an existing toot, not composing a new one."
     (setq mastodon-toot-previous-window-config previous-window-config)
     (when mastodon-toot--proportional-fonts-compose
       (facemenu-set-face 'variable-pitch))
-    (when (and mastodon-toot--emojify-in-compose-buffer
+    (when (and mastodon-use-emojify
                ;; emojify loaded but poss not enabled in our buffer:
                (boundp 'emojify-mode))
       (emojify-mode))
