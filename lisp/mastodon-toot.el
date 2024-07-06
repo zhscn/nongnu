@@ -158,10 +158,7 @@ If the original toot visibility is different we use the more restricted one."
   "Whether to enable your instance's custom emoji by default."
   :type 'boolean)
 
-(defcustom mastodon-toot--emojify-in-compose-buffer t
-  "Whether to enable `emojify-mode' in the compose buffer.
-We only attempt to enable it if its bound."
-  :type 'boolean)
+(defvar mastodon-use-emojify)
 
 (defcustom mastodon-toot--proportional-fonts-compose nil
   "Nonnil to enable using proportional fonts in the compose buffer.
