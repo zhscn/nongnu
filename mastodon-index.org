@@ -110,7 +110,7 @@
 |                  | mastodon-tl--do-link-action-at-point              | Do the action of the link at POSITION.                                         |
 |                  | mastodon-tl--enable-notify-user-posts             | Query for USER-HANDLE and enable notifications when they post.                 |
 |                  | mastodon-tl--filter-user-user-posts-by-language   | Query for USER-HANDLE and filter display of their posts by language.           |
-|                  | mastodon-tl--follow-tag                           | Prompt for a tag and follow it.                                                |
+|                  | mastodon-tl--follow-tag                           | Prompt for a tag (from post at point) and follow it.                           |
 | W                | mastodon-tl--follow-user                          | Query for USER-HANDLE from current status and follow that user.                |
 |                  | mastodon-tl--follow-user-disable-boosts           | Prompt for a USER-HANDLE, and disable display of boosts in home timeline.      |
 |                  | mastodon-tl--follow-user-enable-boosts            | Prompt for a USER-HANDLE, and enable display of boosts in home timeline.       |
@@ -121,9 +121,7 @@
 | \                | mastodon-tl--get-remote-local-timeline            | Prompt for an instance domain and try to display its local timeline.           |
 | #                | mastodon-tl--get-tag-timeline                     | Prompt for tag and opens its timeline.                                         |
 | n                | mastodon-tl--goto-next-item                       | Jump to next item.                                                             |
-| C-<down>         | mastodon-tl--goto-next-toot                       |                                                                                |
 | p                | mastodon-tl--goto-prev-item                       | Jump to previous item.                                                         |
-| C-<up>           | mastodon-tl--goto-prev-toot                       |                                                                                |
 | "                | mastodon-tl--list-followed-tags                   | List followed tags. View timeline of tag user choses.                          |
 | C-<return>       | mastodon-tl--mpv-play-video-at-point              | Play the video or gif at point with an mpv process.                            |
 |                  | mastodon-tl--mpv-play-video-from-byline           | Run `mastodon-tl--mpv-play-video-at-point' on first moving image in post.      |
