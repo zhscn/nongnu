@@ -32,7 +32,10 @@ SOURCES += example.vm
 all: vm-load.el
 	@for i in $(SUBDIRS) ; do ($(MAKE) -C $$i) || exit 1; done
 
-Makefile vm-load.el: %: config.status @srcdir@/%.in
+vm-load.el: @srcdir@/vm-load.el.in config.status
+	./config.status $@
+
+Makefile:  @srcdir@/Makefile.in config.status
 	./config.status $@
 
 @srcdir@/configure: @srcdir@/configure.ac
@@ -71,9 +74,9 @@ xemacs-package:
 	  exit 1; \
 	fi
 	-$(RM) -rf ,,package
-	cd lisp; make PACKAGEDIR=$(PKGDIR)/lisp/vm install-pkg
-	cd info; make infodir=$(PKGDIR)/info install-pkg
-	cd src; make infodir=$(PKGDIR)/bin install-pkg
+	cd lisp && $(make) PACKAGEDIR=$(PKGDIR)/lisp/vm install-pkg
+	cd info && $(make) infodir=$(PKGDIR)/info install-pkg
+	cd src && $(make) infodir=$(PKGDIR)/bin install-pkg
 	echo ";;;###autoload" > $(PKGINFO)
 	echo "(package-provide 'vm'" > $(PKGINFO)
 	echo "         :version 0.7" >> $(PKGINFO)

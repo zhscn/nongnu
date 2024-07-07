@@ -63,14 +63,16 @@ SOURCES += vcard.el
 SOURCES += tapestry.el
 SOURCES += u-vm-color.el
 
-# to list of object files
-ifeq (@EMACS_FLAVOR@,emacs)
-OBJECTS = vm-autoloads.elc vm-cus-load.elc
-else
-OBJECTS = auto-autoloads.elc custom-load.elc
-endif
+# autoloads differ depending on emacs flavor
+emacs_AUTOLOADS = vm-autoloads.el
+xemacs_AUTOLOADS = auto-autoloads.el
+AUTOLOADS = ${@EMACS_FLAVOR@_AUTOLOADS}
 
-OBJECTS += $(SOURCES:.el=.elc)
+# to list of object files
+emacs_OBJECTS = vm-autoloads.elc vm-cus-load.elc
+xemacs_OBJECTS = auto-autoloads.elc custom-load.elc
+
+OBJECTS = ${@EMACS_FLAVOR@_OBJECTS} $(SOURCES:.el=.elc)
 
 AUX_FILES = version.txt
 
@@ -80,6 +82,9 @@ INSTALL_FILES += $(AUX_FILES)
 # for autoload generation
 AUTOLOAD_PACKAGE_NAME = (setq autoload-package-name \"vm\")
 AUTOLOAD_FILE = (setq generated-autoload-file \"./auto-autoloads.el\")
+
+# for BSDmake
+.SUFFIXES: .el .elc
 
 ##############################################################################
 # location of required programms
@@ -105,18 +110,18 @@ EMACS_FLAVOR = @EMACS_FLAVOR@
 
 FLAGS = @FLAGS@
 
-EMACS_COMP = lispdir="$(lispdir)" srcdir="$(srcdir)" "$(EMACS_PROG)" $(FLAGS)
-
-export OTHERDIRS = @OTHERDIRS@
+EMACS_COMP = OTHERDIRS=@OTHERDIRS@ "$(EMACS_PROG)" $(FLAGS)
 
 SYMLINKS = @SYMLINKS@
 LINKPATH = @LINKPATH@
 
 .el.elc:
-	"$(EMACS_PROG)" $(FLAGS) -f batch-byte-compile $<
+	$(EMACS_COMP) -f batch-byte-compile $<
 
 ##############################################################################
 all: $(OBJECTS)
+
+$(OBJECTS): $(AUTOLOADS)
 
 install: install-el install-elc install-aux
 
@@ -136,7 +141,7 @@ vm-autoloads.el: $(SOURCES:%=@srcdir@/%)
 	-$(RM) -f $@
 	echo > $@
 	(build_dir="`pwd`"; cd "@srcdir@"; \
-	 "$(EMACS_PROG)" $(FLAGS) -l autoload \
+	 $(EMACS_COMP) -l autoload \
 		-f vm-built-autoloads "@abs_builddir@/$@" "`pwd`")
 	echo "(custom-add-load 'vm 'vm-cus-load)" | tr -d '\015' >> $@
 	echo "(setq vm-configure-datadir \"${etcdir}\")" | tr -d '\015' >> $@
@@ -147,11 +152,11 @@ vm-autoloads.el: $(SOURCES:%=@srcdir@/%)
 	echo "(provide 'vm-autoloads)" | tr -d '\015' >> $@
 
 vm-cus-load.el: $(SOURCES:%=@srcdir@/%)
-	"$(EMACS_PROG)" $(FLAGS) -f vm-custom-make-dependencies .
-ifeq (@EMACS_VERSION@,21)
-	sed -e "s/provide 'cus-load/provide 'vm-cus-load/" cus-load.el > $@
-	$(RM) cus-load.el
-endif
+	$(EMACS_COMP) -f vm-custom-make-dependencies .
+	if [ "@EMACS_VERSION" = "21" ] ; then \
+	    sed -e "s/provide 'cus-load/provide 'vm-cus-load/" cus-load.el > $@ ;\
+	   $(RM) cus-load.el ;\
+        fi
 
 ##############################################################################
 # XEmacs#s auto-autoloads and custom-load file
@@ -160,7 +165,7 @@ auto-autoloads.el: $(SOURCES:%=@srcdir@/%)
 #	(build_dir=`pwd`; cd "@srcdir@"; \
 #	 $(EMACS_PROG) $(FLAGS) -l autoload \
 #		-f vm-built-autoloads "@abs_builddir@/$@" "`pwd`")
-	"$(EMACS_PROG)" $(FLAGS) \
+	$(EMACS_COMP) \
                 -eval "$(AUTOLOAD_PACKAGE_NAME)" \
                 -eval "$(AUTOLOAD_FILE)" \
                 -l autoload -f batch-update-autoloads $^
@@ -178,7 +183,7 @@ auto-autoloads.el: $(SOURCES:%=@srcdir@/%)
 
 
 custom-load.el: $(SOURCES:%=@srcdir@/%)
-	"$(EMACS_PROG)" $(FLAGS) -f vm-custom-make-dependencies .
+	$(EMACS_COMP) -f vm-custom-make-dependencies .
 
 ##############################################################################
 install-pkg: all $(INSTALL_FILES)
