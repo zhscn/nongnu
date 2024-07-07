@@ -49,3 +49,5 @@ lisp/vm-cus-load.el
 package-info
 _pkg.el
 commit.msg
+
+.emacs.bak/

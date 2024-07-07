@@ -32,8 +32,7 @@ AC_DEFUN([VM_ARG_SUBST],
 [
   AC_SUBST([$1])
   AC_ARG_WITH([$2],
-    AC_HELP_STRING([--with-][$2]ifelse($3, [], [], [=$3]),
-      [$4]ifelse($5, [], [], [ [[[$5]]]])),
+    AS_HELP_STRING([--with-$2ifelse($3, , , =$3)],[$4ifelse($5, , ,  [[[$5]]])]),
     [
       ifelse($6, [], [], $6)
       $1="${withval}"
@@ -92,8 +91,7 @@ AC_DEFUN([VM_PROG_TEXI2DVI],
 # internal environment.
 AC_DEFUN([VM_PROG_EMACS],
   [ AC_ARG_WITH([emacs],
-     AC_HELP_STRING([--with-emacs=PROG],
-        [choose which flavor of Emacs to use]),
+     AS_HELP_STRING([--with-emacs=PROG],[choose which flavor of Emacs to use]),
       [ EMACS_PROG="${withval}" ],
       [ AC_CHECK_PROGS(EMACS_PROG, emacs xemacs) ])
     if test "x${EMACS_PROG}" = "x" ; then
@@ -238,7 +236,7 @@ TEST
 ])
 
 ##############################################################################
-AC_INIT([VM], [8.2.0b], [vm@lists.launchpad.net])
+AC_INIT([VM],[8.3.x],[viewmail-info@nongnu.org])
 # Name of the application
 # Version (release) number
 # Contact address
