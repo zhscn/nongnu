@@ -7857,7 +7857,7 @@ Returns marker pointing to the start of the encoded MIME part."
 	(goto-char (point-min))
 	(vm-reorder-message-headers 
 	 nil :keep-list nil
-	 :discard-regedp
+	 :discard-regexp
          "\\(Content-Type:\\|MIME-Version:\\|Content-Transfer-Encoding\\)")
 	(insert "MIME-Version: 1.0\n")
 	(insert (format
