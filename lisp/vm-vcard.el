@@ -73,7 +73,9 @@
                                layout))
          (vcard-pretty-print-function (or vm-vcard-format-function
                                           vcard-pretty-print-function)))
-    (vcard-pretty-print (vcard-parse-string raw vm-vcard-filter))))
+    (condition-case err
+        (vcard-pretty-print (vcard-parse-string raw vm-vcard-filter))
+        (error (format "Error parsing text/x-vcard MIME attachment:\nerror:%s\ndata:\n%s" err raw)))))
 
 (defun vm-vcard-decode (string layout)
   (let ((buf (generate-new-buffer " *vcard decoding*")))
