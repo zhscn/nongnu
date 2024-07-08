@@ -1396,7 +1396,7 @@ summary buffer to select a folder."
 	(mail-user-agent 'vm-user-agent)
         (varlist nil)
 	(errors 0))
-    (setq varlist (apropos-internal "^\\(vm\\|vmpc\\)-" 'user-variable-p))
+    (setq varlist (apropos-internal "^\\(vm\\|vmpc\\)-" 'custom-variable-p))
     (setq varlist (vm-delete
 		   (lambda (v)
 		     (equal (symbol-value v) (car (get v 'standard-value))))
