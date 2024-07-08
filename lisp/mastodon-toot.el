@@ -158,10 +158,7 @@ If the original toot visibility is different we use the more restricted one."
   "Whether to enable your instance's custom emoji by default."
   :type 'boolean)
 
-(defcustom mastodon-toot--emojify-in-compose-buffer t
-  "Whether to enable `emojify-mode' in the compose buffer.
-We only attempt to enable it if its bound."
-  :type 'boolean)
+(defvar mastodon-use-emojify)
 
 (defcustom mastodon-toot--proportional-fonts-compose nil
   "Nonnil to enable using proportional fonts in the compose buffer.
@@ -1964,7 +1961,9 @@ EDIT means we are editing an existing toot, not composing a new one."
     (mastodon-toot-mode t)
     ;; set visibility:
     (setq mastodon-toot--visibility
-          (or (plist-get mastodon-profile-account-settings 'privacy)
+          (or (plist-get
+               (multisession-value mastodon-profile-account-settings)
+               'privacy)
               ;; use toot visibility setting from the server:
               (mastodon-profile--get-source-value 'privacy)
               "public")) ; fallback

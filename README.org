@@ -421,7 +421,7 @@ to your translator function as its text argument. Here's what
 
 Hard dependencies (should all install with =mastodon.el=):
 - =request= (for uploading attachments), [[https://github.com/tkf/emacs-request][emacs-request]]
-- =persist= for storing some settings across sessions
+- +=persist= for storing some settings across sessions+ (we now use =multisession.el= for this)
 
 Optional dependencies (install yourself, =mastodon.el= can use them):
 - =emojify= for inserting and viewing emojis

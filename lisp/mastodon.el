@@ -7,7 +7,7 @@
 ;;         Marty Hiatt <martianhiatus@riseup.net>
 ;; Maintainer: Marty Hiatt <martianhiatus@riseup.net>
 ;; Version: 1.0.24
-;; Package-Requires: ((emacs "27.1") (request "0.3.0") (persist "0.4"))
+;; Package-Requires: ((emacs "27.1") (request "0.3.0"))
 ;; Homepage: https://codeberg.org/martianh/mastodon.el
 
 ;; This file is not part of GNU Emacs.
@@ -144,6 +144,11 @@ The default value \"%F %T\" prints ISO8601-style YYYY-mm-dd HH:MM:SS.
 Use. e.g. \"%c\" for your locale's date and time format."
   :type 'string)
 
+(defcustom mastodon-use-emojify nil
+  "Whether to use emojify.el to display emojis.
+From version 28, Emacs can display emojis natively. But
+currently, it doesn't seem to have a way to handle custom emoji,
+while emojify,el has this feature and mastodon.el implements it.")
 
 (defun mastodon-kill-window ()
   "Quit window and delete helper."
@@ -464,7 +469,8 @@ Calls `mastodon-tl--get-buffer-type', which see."
 
 (defun mastodon-mode-hook-fun ()
   "Function to add to `mastodon-mode-hook'."
-  (when (require 'emojify nil :noerror)
+  (when (and mastodon-use-emojify
+             (require 'emojify nil :noerror))
     (emojify-mode t)
     (when mastodon-toot--enable-custom-instance-emoji
       (mastodon-toot--enable-custom-emoji)))
