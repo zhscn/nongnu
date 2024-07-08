@@ -65,7 +65,7 @@ it shouldn't be very hard to get it working.
 
 *** Emoji
 
-Since Emacs 28, it has builtin emoji support with =emoji.el=. If you prefer to use [[https://github.com/iqbalansari/emacs-emojify][Emojify]], =require= it and set =mastodon-use-emojify= to non-nil to display emoji in timelines and to use it when composing toots. =Emoji.el= is the better option, but for now only =emojify= supports downloading and using custom emoji from your instance.
+Since Emacs 28, it has builtin emoji support with =emoji.el=. If you prefer to use [[https://github.com/iqbalansari/emacs-emojify][Emojify]], =require= it and set =mastodon-use-emojify= to non-nil to display emoji in timelines and to use it when composing toots. =Emoji.el= is the better option, but for now only =emojify= supports downloading and using custom emoji from your instance. From personal experience, =emojify= also tends to result in less TOFU.
 
 *** Discover
 
