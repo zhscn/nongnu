@@ -589,10 +589,7 @@ changed attributes are stuffed into the folder.        USR 2010-04-06"
     (cond
      ((and (not vm-folder-read-only)
 	   (or (not (vm-virtual-messages-of m))
-	       (not (save-excursion
-		      (set-buffer
-		       (vm-buffer-of
-			 (vm-real-message-of m)))
+	       (not (with-current-buffer (vm-buffer-of (vm-real-message-of m))
 		      vm-folder-read-only))))
       (dolist (v-m (cons (vm-real-message-of m) (vm-virtual-messages-of m)))
 	(if (eq (vm-attributes-of m) (vm-attributes-of v-m))

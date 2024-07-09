@@ -4168,8 +4168,7 @@ Same as \\[vm-recover-folder]."
 	       (find-file-noselect crash-box)))
        (if (eq (current-buffer) crash-buf)
 	   (error "folder is the same file as crash box, cannot continue"))
-       (save-excursion
-	 (set-buffer crash-buf)
+       (with-current-buffer crash-buf
 	 (setq crash-folder-type (vm-get-folder-type))
 	 (if (and crash-folder-type vm-check-folder-types)
 	     (cond ((eq crash-folder-type 'unknown)
@@ -5428,8 +5427,7 @@ during retrieval.
 Gives an error if unable to retrieve message."
   (if (not (eq (vm-message-access-method-of mm) 'imap))
       (message "External messages currently available only for imap folders.")
-    (save-excursion
-      (set-buffer (vm-buffer-of mm))
+    (with-current-buffer (vm-buffer-of mm)
       (save-restriction
        (widen)
        (narrow-to-region (marker-position (vm-headers-of mm)) 

@@ -257,8 +257,7 @@ folder selectors work."
 
 (defun  vm-biff-find-folder-window (msg)
   (let ((buf (vm-buffer-of msg)))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (or (vm-biff-get-buffer-window buf)
           (and vm-presentation-buffer
                (vm-biff-get-buffer-window  vm-presentation-buffer))

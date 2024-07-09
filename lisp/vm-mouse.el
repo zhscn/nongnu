@@ -120,7 +120,7 @@ Mouse'."
   "Use mouse button 3 to see a menu of options.")
 
 (defun vm-mouse-get-mouse-track-string (event)
-  (save-excursion
+  (save-current-buffer
     ;; go to where the event occurred
     (cond ((featurep 'xemacs)
 	   (set-buffer (window-buffer (event-window event)))
@@ -594,8 +594,7 @@ HISTORY argument is ignored."
 (defvar vm-mouse-read-string-should-delete-frame)
 
 (defun vm-mouse-read-string (prompt completion-list &optional multi-word)
-  (save-excursion
-    (set-buffer (vm-make-work-buffer " *Choices*"))
+  (with-current-buffer (vm-make-work-buffer " *Choices*")
     (use-local-map (make-sparse-keymap))
     (setq buffer-read-only t)
     (make-local-variable 'vm-mouse-read-string-prompt)

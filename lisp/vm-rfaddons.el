@@ -786,19 +786,18 @@ See the variable `vm-handle-return-receipt-mode' for customization. (Rob F)"
           "Your mail has been received on %s."
           (current-time-string)))
         (save-restriction
-          (save-excursion
-          (set-buffer (vm-buffer-of msg))
-          (widen)
-          (setq message
-              (buffer-substring
-               (vm-vheaders-of msg)
-               (let ((tp (+ vm-handle-return-receipt-peek
-                            (marker-position
-                             (vm-text-of msg))))
-                     (ep (marker-position
-                          (vm-end-of msg))))
-                 (if (< tp ep) tp ep))
-               ))))
+          (with-current-buffer (vm-buffer-of msg)
+            (widen)
+            (setq message
+                  (buffer-substring
+                   (vm-vheaders-of msg)
+                   (let ((tp (+ vm-handle-return-receipt-peek
+                                (marker-position
+                                 (vm-text-of msg))))
+                         (ep (marker-position
+                              (vm-end-of msg))))
+                     (if (< tp ep) tp ep))
+                   ))))
         (insert "\n-----------------------------------------------------------------------------\n"
                 message)
         (if (re-search-backward "^\\s-+.*" (point-min) t)
@@ -1913,8 +1912,7 @@ calls. (Rob F)"
             (error
              (message (cadr err))
              (if (and (get-buffer n)
-                      (< 0 (length (save-excursion
-				     (set-buffer (get-buffer n))
+                      (< 0 (length (with-current-buffer (get-buffer n)
 				     (buffer-substring (point-min) (point-max))))))
 		 (pop-to-buffer n))))
 	  (if stream (delete-process stream))

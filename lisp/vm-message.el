@@ -727,8 +727,7 @@ works in all VM buffers."
     mvec ))
 
 (defun vm-find-and-set-text-of (m)
-  (save-excursion
-    (set-buffer (vm-buffer-of m))
+  (with-current-buffer (vm-buffer-of m)
     (save-restriction
       (widen)
       (goto-char (vm-headers-of m))

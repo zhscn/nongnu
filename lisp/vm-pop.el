@@ -153,8 +153,7 @@ a POP server, find its cache file on the file system"
 	  (setq process (vm-pop-make-session source vm-pop-ok-to-ask))
 	  (or process (throw 'done nil))
 	  (setq process-buffer (process-buffer process))
-	  (save-excursion
-	    (set-buffer process-buffer)
+	  (with-current-buffer process-buffer
 	    ;; find out how many messages are in the box.
 	    (vm-pop-send-command process "STAT")
 	    (setq response (vm-pop-read-stat-response process)
@@ -506,8 +505,7 @@ Returns the process or nil if the session could not be created."
 	   (vm-make-trace-buffer-name session-name host)))
     (unwind-protect
 	(catch 'end-of-session
-	  (save-excursion		; = save-current-buffer? 
-	    (set-buffer pop-buffer)
+	  (with-current-buffer pop-buffer
 	    (setq vm-folder-type (or folder-type vm-default-folder-type))
 	    (buffer-disable-undo pop-buffer)
 	    (make-local-variable 'vm-pop-read-point)
@@ -679,8 +677,7 @@ is non-nil, the process buffer is retained, otherwise it is
 killed as well."
   (if (and process (memq (process-status process) '(open run))
 	   (buffer-live-p (process-buffer process)))
-      (save-excursion
-	(set-buffer (process-buffer process))
+      (with-current-buffer (process-buffer process)
 	(vm-pop-send-command process "QUIT")
 	;; Previously we did not read the QUIT response because of
 	;; TCP shutdown problems (under Windows?) that made it
@@ -977,8 +974,7 @@ popdrop
 			  (let ((attrs (file-attributes target)))
 			    (or (null attrs) (equal 0 (nth 7 attrs)))))
 			 ((bufferp target)
-			  (save-excursion
-			    (set-buffer target)
+			  (with-current-buffer target
 			    (zerop (buffer-size))))))
 	      (let ((opoint (point)))
 		(vm-convert-folder-header nil vm-folder-type)
@@ -1003,8 +999,7 @@ popdrop
 	      (selective-display nil))
 	  (write-region start end target t 0))
       (let ((b (current-buffer)))
-	(save-excursion
-	  (set-buffer target)
+	(with-current-buffer target
 	  (let ((buffer-read-only nil))
 	    (insert-buffer-substring b start end)))))
     (delete-region start end)
@@ -1047,8 +1042,7 @@ popdrop
 (defun vm-pop-get-uidl-data ()
   (let ((there (make-vector 67 0))
 	(process (vm-folder-pop-process)))
-    (save-excursion
-      (set-buffer (process-buffer process))
+    (with-current-buffer (process-buffer process)
       (vm-pop-send-command process "UIDL")
       (let ((start vm-pop-read-point)
 	    n uidl)
@@ -1178,8 +1172,7 @@ LOCAL-EXPUNGE-LIST: A list of message descriptors for messages in the
 	     (widen)
 	     (goto-char (point-max))
 	     (condition-case error-data
-		 (save-excursion
-		   (set-buffer (process-buffer process))
+		 (with-current-buffer (process-buffer process)
 		   (setq statblob (vm-pop-start-status-timer))
 		   (vm-set-pop-stat-x-box statblob safe-popdrop)
 		   (vm-set-pop-stat-x-maxmsg statblob

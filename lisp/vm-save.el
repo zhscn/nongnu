@@ -77,8 +77,7 @@ specified, use `vm-auto-folder-alist'."
 			       (result))
 			  ;; Set up a buffer that matches our cached
 			  ;; match data.
-			  (save-excursion
-			    (set-buffer buf)
+			  (with-current-buffer buf
 			    (if (not (featurep 'xemacs))
 				(set-buffer-multibyte nil)) ; for empty buffer
 			    (widen)
@@ -426,8 +425,7 @@ The saved messages are flagged as `filed'."
 		       (vm-write-string
 			folder (vm-trailing-message-separator target-type))))
 		 ;; write to folder-buffer
-		 (save-excursion
-		   (set-buffer folder-buffer)
+		 (with-current-buffer folder-buffer
 		   ;; if the buffer is a live VM folder
 		   ;; honor vm-folder-read-only.
 		   (when vm-folder-read-only
@@ -581,8 +579,7 @@ This command should NOT be used to save message to mail folders; use
 		    (vm-text-of m) (vm-text-end-of m) file t 'quiet)
 		 (let ((start (vm-text-of m))
 		       (end (vm-text-end-of m)))
-		   (save-excursion
-		     (set-buffer file-buffer)
+		   (with-current-buffer file-buffer
 		     (save-excursion
 		       (let (buffer-read-only)
 			 (save-restriction
@@ -608,7 +605,7 @@ This command should NOT be used to save message to mail folders; use
 
 (defun vm-switch-to-command-output-buffer (command buffer discard-output)
   "Eventually switch to the output buffer of the command."
-  (let ((output-bytes (save-excursion (set-buffer buffer) (buffer-size))))
+  (let ((output-bytes (with-current-buffer buffer (buffer-size))))
     (if (zerop output-bytes)
 	(vm-inform 5 "Command '%s' produced no output." command)
       (if discard-output
@@ -663,8 +660,7 @@ Output, if any, is displayed.  The message is not altered."
 	;; vm-select-operable-messages for marks and threads.
 	(mlist (vm-select-operable-messages 1 (vm-interactive-p) "Pipe")))
     (vm-retrieve-operable-messages 1 mlist :fail t)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (erase-buffer))
     (while mlist
       (setq m (vm-real-message-of (car mlist)))
@@ -689,8 +685,7 @@ Output, if any, is displayed.  The message is not altered."
   "Run a shell command with contents from the current message as input.
 This function is like `vm-pipe-message-to-command', but will not display the
 output of the command, but return it as a string."
-  (save-excursion 
-    (set-buffer (vm-pipe-message-to-command command prefix-arg t))
+  (with-current-buffer (vm-pipe-message-to-command command prefix-arg t)
     (buffer-substring-no-properties (point-min) (point-max))))
 
 ;;;###autoload
@@ -779,9 +774,7 @@ arguments after the command finished."
 	(mlist (vm-select-operable-messages 1 (vm-interactive-p) "Pipe"))
 	m process)
     (vm-retrieve-operable-messages 1 mlist :fail t)
-    (save-excursion
-      (set-buffer buffer)
-      (erase-buffer))
+    (with-current-buffer buffer      (erase-buffer))
     (setq process (start-process command buffer 
 				 (or shell-file-name "sh")
 				 shell-command-switch command))
@@ -838,8 +831,7 @@ output of the command, but return it as a string."
      (vm-select-folder-buffer)
      (list (read-string "Pipe to command: " vm-last-pipe-command)
 	   current-prefix-arg))))
-  (save-excursion 
-    (set-buffer (vm-pipe-messages-to-command command prefix-arg t))
+  (with-current-buffer (vm-pipe-messages-to-command command prefix-arg t)
     (buffer-substring-no-properties (point-min) (point-max))))
 
 ;;;###autoload
@@ -894,8 +886,7 @@ Output, if any, is displayed.  The message is not altered."
 	 (mlist (vm-select-operable-messages count (vm-interactive-p) "Print")))
     (vm-retrieve-operable-messages count mlist :fail t)
 
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (erase-buffer))
     (while mlist
       (setq m (vm-real-message-of (car mlist)))

@@ -430,8 +430,7 @@ freshly parsing the message contents."
       (progn (setq m (vm-real-message-of m))
 	     (vm-set-mime-encoded-header-flag-of
 	      m
-	      (save-excursion
-		(set-buffer (vm-buffer-of m))
+	      (with-current-buffer (vm-buffer-of m)
 		(save-excursion
 		  (save-restriction
 		    (widen)
@@ -517,8 +516,7 @@ same effect."
 			      coding-system foo))
 	  (setq start (point-min) end (point-max))
 	  (setq retval (buffer-size))
-	  (save-excursion
-	    (set-buffer b)
+	  (with-current-buffer b
 	    (goto-char b-start)
 	    (insert-buffer-substring work-buffer start end)
 	    (delete-region (point) (+ (point) oldsize))
@@ -548,8 +546,7 @@ same effect."
 			      coding-system foo))
 	  (and (not (featurep 'xemacs)) (set-buffer-multibyte t)) ; is this safe?
 	  (setq start (point-min) end (point-max))
-	  (save-excursion
-	    (set-buffer b)
+	  (with-current-buffer b
 	    (goto-char b-start)
 	    (delete-region (point) (+ (point) oldsize))
 	    (insert-buffer-substring work-buffer start end)
@@ -675,8 +672,7 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
 			((= counter 0) t)))
 		 (t (skip-chars-forward non-data-chars end)))))
 	    (and crlf
-		 (save-excursion
-		   (set-buffer work-buffer)
+		 (with-current-buffer work-buffer
 		   (vm-mime-crlf-to-lf-region (point-min) (point-max))))
 	    (goto-char start)
 	    (insert-buffer-substring work-buffer)
@@ -729,8 +725,7 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
 		  (if (not (eq status t))
 		      (vm-mime-error "base64-encode failed: %s" (cdr status)))
 		  (if B-encoding
-		      (save-excursion
-			(set-buffer work-buffer)
+		      (with-current-buffer work-buffer
 			;; if we're B encoding, strip out the line breaks
 			(goto-char (point-min))
 			(while (search-forward "\n" nil t)
@@ -821,8 +816,7 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
 		     (setq copy-point (point))
 		     (goto-char stop-point))
 		    (t (setq copy-point stop-point)))
-	      (save-excursion
-		(set-buffer work-buffer)
+	      (with-current-buffer work-buffer
 		(insert-buffer-substring buf inputpos copy-point))
 	      (cond ((= (point) end) t)
 		    ((looking-at "\n")
@@ -891,14 +885,12 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
 		(if (not (eq status t))
 		    (vm-mime-error "qp-encode failed: %s" (cdr status)))
 		(if quote-from
-		    (save-excursion
-		      (set-buffer work-buffer)
+		    (with-current-buffer work-buffer
 		      (goto-char (point-min))
 		      (while (re-search-forward "^From " nil t)
 			(replace-match "=46rom " t t))))
 		(if Q-encoding
-		    (save-excursion
-		      (set-buffer work-buffer)
+		    (with-current-buffer work-buffer
 		      ;; strip out the line breaks
 		      (goto-char (point-min))
 		      (while (search-forward "=\n" nil t)
@@ -1563,8 +1555,7 @@ shorter pieces, rebuild it from them."
 a string denoting the folder name."
   (let ((pres-buf (vm-generate-new-multibyte-buffer 
 		   (concat name " Presentation"))))
-    (save-excursion
-      (set-buffer pres-buf)
+    (with-current-buffer pres-buf
       (buffer-disable-undo (current-buffer))
       (setq mode-name "VM Presentation"
 	    major-mode 'vm-presentation-mode
@@ -1618,8 +1609,7 @@ source of the message."
     (when (fboundp 'remove-specifier)
       (remove-specifier (face-foreground 'default) pres-buf)
       (remove-specifier (face-background 'default) pres-buf))
-    (save-excursion
-      (set-buffer (vm-buffer-of real-m))
+    (with-current-buffer (vm-buffer-of real-m)
       (save-restriction
 	(widen)
 	;; must reference this now so that headers will be in
@@ -1866,8 +1856,7 @@ message body from the file into the current buffer.
 For example, 'X-VM-Storage: (file \"message-11\")' will fetch 
 the actual message from the file \"message-11\"."
   (goto-char (match-end 0))
-  (save-excursion
-    (set-buffer (marker-buffer (vm-text-of mm)))
+  (with-current-buffer (marker-buffer (vm-text-of mm))
     (let ((buffer-read-only nil)
 	  (inhibit-read-only t)
 	  (buffer-undo-list t)
@@ -3659,8 +3648,7 @@ button that this LAYOUT comes from."
 				 vm-wget-program "-q" "-O" "-" url)
 			      (error nil)))
 		       t
-		     (save-excursion
-		       (set-buffer buffer)
+		     (with-current-buffer buffer
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'w3m vm-url-retrieval-methods)
@@ -3670,8 +3658,7 @@ button that this LAYOUT comes from."
 				 vm-w3m-program "-dump_source" url)
 			      (error nil)))
 		       t
-		     (save-excursion
-		       (set-buffer buffer)
+		     (with-current-buffer buffer
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'fetch vm-url-retrieval-methods)
@@ -3681,8 +3668,7 @@ button that this LAYOUT comes from."
 				 vm-fetch-program "-o" "-" url)
 			      (error nil)))
 		       t
-		     (save-excursion
-		       (set-buffer buffer)
+		     (with-current-buffer buffer
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'curl vm-url-retrieval-methods)
@@ -3692,8 +3678,7 @@ button that this LAYOUT comes from."
 				 vm-curl-program url)
 			      (error nil)))
 		       t
-		     (save-excursion
-		       (set-buffer buffer)
+		     (with-current-buffer buffer
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'lynx vm-url-retrieval-methods)
@@ -3703,13 +3688,10 @@ button that this LAYOUT comes from."
 				 vm-lynx-program "-source" url)
 			      (error nil)))
 		       t
-		     (save-excursion
-		       (set-buffer buffer)
+		     (with-current-buffer buffer
 		       (erase-buffer)
 		       nil )))))
-    (save-excursion
-      (set-buffer buffer)
-      (not (zerop (buffer-size))))))
+    (not (zerop (buffer-size buffer)))))
 
 (defun vm-mime-internalize-local-external-bodies (layout)
   "Given a LAYOUT representing a message/external-body object, convert
@@ -3775,8 +3757,7 @@ it to an internal object by retrieving the body.       USR, 2011-03-28"
       (if (null id)
 	  (vm-mime-error
 	   "message/partial message missing id parameter"))
-      (save-excursion
-	(set-buffer (marker-buffer (vm-mm-layout-body-start layout)))
+      (with-current-buffer (marker-buffer (vm-mm-layout-body-start layout))
 	(save-excursion
 	  (save-restriction
 	    (widen)
@@ -3970,8 +3951,7 @@ describing the image type.                             USR, 2011-03-25"
 		     (vm-set-extent-property e 'vm-mime-layout layout)
 		     (vm-set-extent-property e 'vm-mime-disposable t)
 		     (vm-set-extent-property e 'keymap keymap)
-		     (save-excursion
-		       (set-buffer (process-buffer process))
+		     (with-current-buffer (process-buffer process)
 		       (set (make-local-variable 'vm-image-list) image-list)
 		       (set (make-local-variable 'vm-image-type) image-type)
 		       (set (make-local-variable 'vm-image-type-name)
@@ -4089,8 +4069,7 @@ describing the image type.                            USR, 2011-03-25"
 		     (overlay-put o 'vm-mime-disposable t)
 		     (if vm-use-menus
 			 (overlay-put o 'vm-image vm-menu-fsfemacs-image-menu))
-		     (save-excursion
-		       (set-buffer (process-buffer process))
+		     (with-current-buffer (process-buffer process)
 		       (set (make-local-variable 'vm-image-list) image-list)
 		       (set (make-local-variable 'vm-image-type) image-type)
 		       (set (make-local-variable 'vm-image-type-name)
@@ -4238,8 +4217,7 @@ describing the image type.                            USR, 2011-03-25"
       (and work-buffer (kill-buffer work-buffer)))))
 
 (defun vm-process-sentinel-display-image-strips (process what-happened)
-  (save-excursion
-    (set-buffer (process-buffer process))
+  (with-current-buffer (process-buffer process)
     (cond ((and (boundp 'vm-extent-list)
 		(boundp 'vm-image-list))
 	   (let ((strips vm-image-list)
@@ -4287,8 +4265,7 @@ describing the image type.                            USR, 2011-03-25"
 
 (defun vm-display-image-strips-on-overlay-regions (strips overlays image-type)
   (let (prop value omodified)
-    (save-excursion
-      (set-buffer (overlay-buffer (car vm-overlay-list)))
+    (with-current-buffer (overlay-buffer (car vm-overlay-list))
       (setq omodified (buffer-modified-p))
       (save-restriction
 	(widen)
@@ -4319,8 +4296,7 @@ describing the image type.                            USR, 2011-03-25"
       (setq which-strips (cons (string-to-number (match-string 1 output))
 			       which-strips)
 	    i (match-end 0)))
-    (save-excursion
-      (set-buffer (process-buffer process))
+    (with-current-buffer (process-buffer process)
       (cond ((and (boundp 'vm-extent-list)
 		  (boundp 'vm-image-list))
 	     (let ((strips vm-image-list)
@@ -4373,8 +4349,7 @@ describing the image type.                            USR, 2011-03-25"
 (defun vm-display-some-image-strips-on-overlay-regions
   (strips overlays image-type which-strips)
   (let (sss ooo prop value omodified)
-    (save-excursion
-      (set-buffer (overlay-buffer (car vm-overlay-list)))
+    (with-current-buffer (overlay-buffer (car vm-overlay-list))
       (setq omodified (buffer-modified-p))
       (save-restriction
 	(widen)
@@ -8162,10 +8137,8 @@ the first sub part of a multipart/alternative is a text/plain part."
        (when (and nuke-html
                   (member "multipart/alternative" parent-types)
                   (vm-mime-types-match "text/html" this-type))
-         (save-excursion
-           (set-buffer (vm-buffer-of m))
-           (let ((inhibit-read-only t)
-                 (buffer-read-only nil))
+         (with-current-buffer (vm-buffer-of m)
+           (let ((buffer-read-only nil))
              (save-restriction
               (widen)
               (if (vm-mm-layout-is-converted layout)

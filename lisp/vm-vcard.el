@@ -65,8 +65,7 @@
   (let* ((beg (vm-mm-layout-body-start layout))
          (end (vm-mm-layout-body-end layout))
          (buf (if (markerp beg) (marker-buffer beg) (current-buffer)))
-         (raw (vm-vcard-decode (save-excursion
-                                 (set-buffer buf)
+         (raw (vm-vcard-decode (with-current-buffer buf
                                  (save-restriction
                                    (widen)
                                    (buffer-substring beg end)))
@@ -79,8 +78,7 @@
 
 (defun vm-vcard-decode (string layout)
   (let ((buf (generate-new-buffer " *vcard decoding*")))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (insert string)
       (vm-mime-transfer-decode-region layout (point-min) (point-max))
       (setq string (buffer-substring (point-min) (point-max))))

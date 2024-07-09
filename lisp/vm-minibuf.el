@@ -176,8 +176,7 @@ to the calling program."
 (defun vm-minibuffer-show-completions (list)
   "Display LIST in a multi-column listing in the \" *Completions*\" buffer.
 LIST should be a list of strings."
-  (save-excursion
-    (set-buffer (get-buffer-create " *Completions*"))
+  (with-current-buffer (get-buffer-create " *Completions*")
     (setq buffer-read-only nil)
     (use-local-map (make-sparse-keymap))
     ;; ignore vm-mutable-* here.  the user shouldn't mind

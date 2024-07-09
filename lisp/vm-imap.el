@@ -610,8 +610,7 @@ from which mail is to be moved and DESTINATION is the VM folder."
 				      :purpose "movemail"))
 	  (or process (throw 'end-of-session nil))
 	  (setq process-buffer (process-buffer process))
-	  (save-excursion		; = save-current-buffer?
-	    (set-buffer process-buffer)
+	  (with-current-buffer process-buffer
 	    ;;--------------------------------
 	    (vm-buffer-type:enter 'process)
 	    ;;--------------------------------
@@ -1226,8 +1225,7 @@ Returns the process or nil if the session could not be created."
 
     (unwind-protect
 	(catch 'end-of-session
-	  (save-excursion		; = save-current-buffer?
-	    (set-buffer imap-buffer)
+	  (with-current-buffer imap-buffer
 	    ;;----------------------------
 	    (vm-buffer-type:enter 'process)
 	    ;;----------------------------
@@ -1489,8 +1487,7 @@ as well."
   (when (and process (memq (process-status process) '(open run))
 	     (buffer-live-p (process-buffer process)))
     (unwind-protect
-	(save-excursion			; = save-current-buffer?
-	  (set-buffer imap-buffer)
+	(with-current-buffer imap-buffer
 	  ;;----------------------------
 	  (vm-buffer-type:enter 'process)
 	  ;;----------------------------
@@ -3084,8 +3081,7 @@ server should be issued by UID, not message sequence number."
       (setq flags- (append (cdr copied-flags) flags-))
 
       (unwind-protect
-	  (save-excursion		; = save-current-buffer?
-	    (set-buffer (process-buffer process))
+	  (with-current-buffer (process-buffer process)
 	    ;;----------------------------------
 	    (vm-buffer-type:enter 'process)
 	    ;;----------------------------------
@@ -3167,8 +3163,7 @@ MAILBOX."
       ;;-------------------
       )
     (unwind-protect
-	(save-excursion			; = save-current-buffer?
-	  (set-buffer (process-buffer process))
+	(with-current-buffer (process-buffer process)
 	  ;;----------------------------
 	  (vm-buffer-type:enter 'process)
 	  ;;----------------------------
@@ -3556,8 +3551,7 @@ headers-only form."
 		     (mapcar (function cdr) retrieve-list)))
        (unwind-protect
 	   (condition-case error-data
-	       (save-excursion		; = save-current-buffer?
-		 (set-buffer (process-buffer process))
+	       (with-current-buffer (process-buffer process)
 		 ;;----------------------------
 		 (vm-buffer-type:enter 'process)
 		 ;;----------------------------
@@ -3698,8 +3692,7 @@ headers-only form."
 	      (setq d-list (vm-imap-bunch-messages
 			    (nreverse (mapcar (function cdr) m-list))))
 	      (setq expunge-count 0)	; number of messages expunged
-	      (save-excursion		; = save-current-buffer?
-		(set-buffer (process-buffer process))
+	      (with-current-buffer (process-buffer process)
 		;;---------------------------
 		(vm-buffer-type:set 'process)
 		;;---------------------------
@@ -3881,8 +3874,7 @@ otherwise.
 	      (error "Message has an invalid UID"))
 	    (setq imap-buffer (process-buffer process))
 	    (unwind-protect
-		(save-excursion		; = save-current-buffer?
-		  (set-buffer imap-buffer)
+		(with-current-buffer imap-buffer
 		  ;;----------------------------------
 		  (vm-buffer-type:enter 'process)
 		  (vm-imap-session-type:assert-active)
@@ -4235,8 +4227,7 @@ IMAP mailbox spec."
 	sep p r response need-ok)
     (vm-imap-check-connection process)
     (unwind-protect
-	(save-excursion			; = save-current-buffer?
-	  (set-buffer (process-buffer process))
+	(with-current-buffer (process-buffer process)
 	  ;;----------------------------------
 	  (vm-buffer-type:enter 'process)
 	  (vm-imap-session-type:assert-active)

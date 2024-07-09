@@ -763,8 +763,7 @@ a warning."
 (defvar vm-serial-send-mail-exit nil)
 
 (defun vm-serial-send-mail-increment (variable)
-  (save-excursion
-    (set-buffer vm-serial-source-buffer)
+  (with-current-buffer vm-serial-source-buffer
     (eval (list 'vm-increment variable))))
 
 
@@ -821,8 +820,7 @@ questions will bother you!"
                 vm-serial-killed-cnt 0)))
 
     ;; mail-extract-address-components isn't good at all! Fix it!
-    (save-excursion
-      (set-buffer work-buffer)
+    (with-current-buffer work-buffer
       (setq major-mode 'mail-mode))
     
     (while (and (not work) vm-serial-send-mail-jobs)
@@ -831,8 +829,7 @@ questions will bother you!"
                           (concat (car to) " <" (cadr to) ">")
                         (cadr to)))
       (copy-to-buffer work-buffer (point-min) (point-max))
-      (save-excursion
-        (set-buffer work-buffer)
+      (with-current-buffer work-buffer
         (goto-char (point-min))
         (vm-mail-mode-remove-header "To:")
         (mail-position-on-field "To")

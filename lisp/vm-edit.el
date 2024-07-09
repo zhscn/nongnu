@@ -272,8 +272,7 @@ thread have their cached data discarded."
       (if (not (buffer-modified-p))
 	  (vm-inform 5 "No change.")
 	(widen)
-	(save-excursion
-	  (set-buffer (vm-buffer-of (vm-real-message-of (car mp))))
+	(with-current-buffer (vm-buffer-of (vm-real-message-of (car mp)))
 	  (if (not (memq (vm-real-message-of (car mp)) vm-message-list))
 	      (error "The original copy of this message has been expunged."))
 	  (save-restriction

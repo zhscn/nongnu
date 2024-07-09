@@ -180,8 +180,7 @@ mandatory."
 	(setq vm-summary-buffer
 	      (or (get-buffer summary-buffer-name)
 		  (vm-generate-new-multibyte-buffer summary-buffer-name)))
-	(save-excursion
-	  (set-buffer vm-summary-buffer)
+	(with-current-buffer vm-summary-buffer
 	  (abbrev-mode 0)
 	  (auto-fill-mode 0)
 	  ;; Experimental code to use buffer-face-mode to change font
@@ -232,8 +231,7 @@ the messages in the current folder."
 				 (vm-mouse-support-possible-p))
 			    vm-summary-enable-faces)))
     ;; (setq mp m-list)
-    (save-excursion
-      (set-buffer vm-summary-buffer)
+    (with-current-buffer vm-summary-buffer
       (setq line-move-ignore-invisible vm-summary-show-threads)
       (let ((buffer-read-only nil)
 	    (modified (buffer-modified-p))
@@ -513,9 +511,8 @@ buffer by a regenerated summary line."
 		      (vm-mouse-support-possible-p))
 		 vm-summary-enable-faces))
 	    summary)
-	(save-excursion
+	(with-current-buffer (marker-buffer (vm-su-start-of m))
 	  (setq summary (vm-su-summary m))
-	  (set-buffer (marker-buffer (vm-su-start-of m)))
 	  (let ((buffer-read-only nil)
 		s e i
 		(selected nil)
@@ -1074,8 +1071,7 @@ of multiple header lines which might match HEADER-NAME-REGEXP.
   (let ((contents nil)
 	(regexp (concat "^\\(" header-name-regexp "\\)")))
     (setq message (vm-real-message-of message))
-    (save-excursion
-      (set-buffer (vm-buffer-of (vm-real-message-of message)))
+    (with-current-buffer (vm-buffer-of (vm-real-message-of message))
       (save-restriction
 	(widen)
 	(goto-char (vm-headers-of message))
@@ -1353,8 +1349,7 @@ field in the summary.				 	USR, 2012-10-13"
   (if (not (memq (vm-message-type-of message)
 		 '(BellFrom_ From_ From_-with-Content-Length)))
       nil
-    (save-excursion
-      (set-buffer (vm-buffer-of (vm-real-message-of message)))
+    (with-current-buffer (vm-buffer-of (vm-real-message-of message))
       (save-excursion
 	(save-restriction
 	  (widen)
@@ -1498,8 +1493,7 @@ cached-data-vector."
 (defun vm-run-user-summary-function (function message)
   ;; (condition-case nil
   (let ((m (vm-real-message-of message)))
-    (save-excursion
-      (set-buffer (vm-buffer-of m))
+    (with-current-buffer (vm-buffer-of m)
       (save-restriction
 	(widen)
 	(save-excursion
@@ -1593,8 +1587,7 @@ The result is a mime-encoded string, but this is not certain.
   (if (not (memq (vm-message-type-of message)
 		 '(From_ BellFrom_ From_-with-Content-Length)))
       nil
-    (save-excursion
-      (set-buffer (vm-buffer-of message))
+    (with-current-buffer (vm-buffer-of message)
       (save-excursion
 	(save-restriction
 	  (widen)
@@ -1834,8 +1827,7 @@ if necessary.  The result is a mime-decoded string with text properties.
 	     (and id (car (vm-parse id "[^<]*\\(<[^>]+>\\)"))))
 	   ;; try running md5 on the message body to produce an ID
 	   ;; better than nothing.
-	   (save-excursion
-	     (set-buffer (vm-buffer-of (vm-real-message-of m)))
+	   (with-current-buffer (vm-buffer-of (vm-real-message-of m))
 	     (save-restriction
 	       (widen)
 	       (condition-case nil
@@ -1854,8 +1846,7 @@ entry (`vm-line-count-of') or recalculating it if necessary.  USR 2010-05-13"
   (or (vm-line-count-of m)
       (vm-set-line-count-of
        m
-       (save-excursion
-	 (set-buffer (vm-buffer-of (vm-real-message-of m)))
+       (with-current-buffer (vm-buffer-of (vm-real-message-of m))
 	 (save-restriction
 	   (widen)
 	   (int-to-string
@@ -2306,8 +2297,7 @@ Call this function if you made changes to `vm-summary-format'."
 		      (vm-mouse-support-possible-p))
 		 vm-summary-enable-faces))
 	    summary)
-	(save-excursion
-	  (set-buffer (marker-buffer (vm-fs-start-of fs)))
+	(with-current-buffer (marker-buffer (vm-fs-start-of fs))
 	  (let ((buffer-read-only nil))
 	    (unwind-protect
 		(save-excursion
@@ -2377,8 +2367,7 @@ Call this function if you made changes to `vm-summary-format'."
 	  (do-mouse-track (or (and vm-mouse-track-summary
 				   (vm-mouse-support-possible-p))
 			      vm-summary-enable-faces)))
-      (save-excursion
-	(set-buffer vm-folders-summary-buffer)
+      (with-current-buffer vm-folders-summary-buffer
 	(erase-buffer)
 	(let ((buffer-read-only nil))
 	  (if (null vm-folders-summary-database)
@@ -2465,8 +2454,7 @@ Call this function if you made changes to `vm-summary-format'."
 (defun vm-do-needed-folders-summary-update ()
   (if (null vm-folders-summary-buffer)
       nil
-    (save-excursion
-      (set-buffer vm-folders-summary-buffer)
+    (with-current-buffer vm-folders-summary-buffer
       (if (or (eq vm-modification-counter vm-flushed-modification-counter)
 	      (null vm-folders-summary-hash))
 	  nil
@@ -2493,8 +2481,7 @@ Call this function if you made changes to `vm-summary-format'."
       (vm-set-fs-modflag-of fs t)
       (vm-check-for-killed-summary)
       (if vm-folders-summary-buffer
-	  (save-excursion
-	    (set-buffer vm-folders-summary-buffer)
+	  (with-current-buffer vm-folders-summary-buffer
 	    (vm-increment vm-modification-counter))))
     (if dont-descend
 	nil

@@ -1267,8 +1267,7 @@ summary buffer to select a folder."
 	(setq vm-folders-summary-buffer
 	      (or (get-buffer summary-buffer-name)
 		  (vm-generate-new-multibyte-buffer summary-buffer-name)))
-	(save-excursion
-	  (set-buffer vm-folders-summary-buffer)
+	(with-current-buffer vm-folders-summary-buffer
 	  (abbrev-mode 0)
 	  (auto-fill-mode 0)
 	  (vm-fsfemacs-nonmule-display-8bit-chars)

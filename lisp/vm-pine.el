@@ -428,8 +428,7 @@ creation). If DRAFT is non-nil, then do not delete the draft message."
       (goto-char (point-max))
       (if presentation-buffer
           ;; when using presentation buffer we have to
-          (save-excursion
-            (set-buffer presentation-buffer)
+          (with-current-buffer presentation-buffer
             (goto-char (point-min))
             (search-forward-regexp "\n\n")
             (setq tstart (match-end 0)
@@ -634,8 +633,7 @@ Optional argument DONT-KILL is positive, then do not kill source message."
     (setq folder-buffer (vm-get-file-buffer folder))
     (if folder-buffer
         ;; o.k. the folder is already opened
-        (save-excursion
-          (set-buffer folder-buffer)
+        (with-current-buffer folder-buffer
           (vm-error-if-folder-read-only)
           (let ((buffer-read-only nil))
             (save-restriction
@@ -745,8 +743,7 @@ Drafts in other folders are not recognized!"
       ;; postponed message in postponed folder
       (when (and (not action) (setq buffer (vm-get-file-buffer ppfolder)))
         (if (and (get-buffer-window-list buffer nil 0))
-            (when (save-excursion
-                    (set-buffer buffer)
+            (when (with-current-buffer buffer
                     (not (vm-deleted-flag (car vm-message-pointer))))
               (message "Please select a draft!")
               (select-window (car (get-buffer-window-list buffer nil 0)))
@@ -1049,8 +1046,7 @@ This function is a slightly changed version of `vm-auto-select-folder'."
                              (result))
                         ;; Set up a buffer that matches our cached
                         ;; match data.
-                        (save-excursion
-                          (set-buffer buf)
+                        (with-current-buffer buf
                           (if (not (featurep 'xemacs))
                               (set-buffer-multibyte nil)) ; for empty buffer
                           (widen)

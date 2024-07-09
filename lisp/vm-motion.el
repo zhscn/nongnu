@@ -530,8 +530,7 @@ If a new message is selected then return t, otherwise nil. USR, 2010-03-08"
   (and vm-follow-summary-cursor (eq major-mode 'vm-summary-mode)
        (let ((point (point))
 	     message-pointer message-list mp)
-	 (save-excursion
-	   (set-buffer vm-mail-buffer)
+	 (with-current-buffer vm-mail-buffer
 	   (setq message-pointer vm-message-pointer
 		 message-list vm-message-list))
 	 (cond ((or (null message-pointer)
@@ -576,8 +575,7 @@ If a new message is selected then return t, otherwise nil. USR, 2010-03-08"
 			    (+ (vm-su-start-of (car mp)) 3) 'invisible))
 		  (setq mp (cdr mp)))
 		(if (not (eq mp message-pointer))
-		    (save-excursion
-		      (set-buffer vm-mail-buffer)
+		    (with-current-buffer vm-mail-buffer
 		      ;; presentation disabled to avoid message
 		      ;; loading. USR, 2010-09-30
 		      (vm-record-and-change-message-pointer

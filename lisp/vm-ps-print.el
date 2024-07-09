@@ -387,8 +387,7 @@ for customization of the output."
 If EACH it t, then replace `vm-print-message' by
 'vm-ps-print-each-message', otherwise by `vm-ps-print-message'."
   (let ((tmpbuf (get-buffer-create "*vm-ps-print*")))
-    (save-excursion
-      (set-buffer tmpbuf)
+    (with-current-buffer tmpbuf
       (erase-buffer)
       (insert (format "(setq %s '%S)" (symbol-name menu) (symbol-value menu)))
       (if (re-search-backward "vm-\\(ps-\\)?print-\\(each-\\)?message"

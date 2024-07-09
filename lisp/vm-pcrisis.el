@@ -925,8 +925,7 @@ parameter POS means insert the pre-signature at position POS if
         (setq vmpc-auto-profiles (reverse vmpc-auto-profiles)))
     (when (and (file-exists-p vmpc-auto-profiles-file) ;
                (file-readable-p vmpc-auto-profiles-file))
-      (save-excursion
-	(set-buffer (get-buffer-create "*pcrisis-temp*"))
+      (with-current-buffer (get-buffer-create "*pcrisis-temp*")
 	(buffer-disable-undo (current-buffer))
 	(erase-buffer)
 	(insert-file-contents vmpc-auto-profiles-file)
@@ -942,8 +941,7 @@ parameter POS means insert the pre-signature at position POS if
         ;; if file is not writable, signal an error:
         (error "Error: P-Crisis could not write to file %s"
                vmpc-auto-profiles-file))
-    (save-excursion
-      (set-buffer (get-buffer-create "*pcrisis-temp*"))
+    (with-current-buffer (get-buffer-create "*pcrisis-temp*")
       (buffer-disable-undo (current-buffer))
       (erase-buffer)
       (goto-char (point-min))
@@ -1075,8 +1073,7 @@ If no email address in found in STR, returns nil."
 whitespace." 
   (let (result
         (not-separators (concat "^" separators)))
-    (save-excursion
-      (set-buffer (get-buffer-create " *split*"))
+    (with-current-buffer (get-buffer-create " *split*")
       (erase-buffer)
       (insert string)
       (goto-char (point-min))
@@ -1474,8 +1471,7 @@ buffer to which to write diagnostic output."
       (let ((form (cons 'progn (cdr form)))
 	    (results (eval (cons 'progn (cdr form)))))
 	(when verbose
-	  (save-excursion
-	    (set-buffer verbose)
+	  (with-current-buffer verbose
 	    (insert (format "Action form is:\n%S\nResults are:\n%S\n"
 			    form results))))))))
 
@@ -1524,8 +1520,7 @@ recursion nor concurrent calls."
   ;; BUGME why is the global value resurrected after making the variable
   ;; buffer local?  Is this related to defadvice?  I have no idea what is
   ;; going on here!  Thus we clear it afterwards now!
-  (save-excursion
-    (set-buffer (get-buffer-create " *vmpc-cleanup*"))
+  (with-current-buffer (get-buffer-create " *vmpc-cleanup*")
     (vmpc-init-vars)
     (setq vmpc-current-buffer nil)))
 

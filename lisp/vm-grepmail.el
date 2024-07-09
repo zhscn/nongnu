@@ -168,8 +168,7 @@ FOLDERS should be a list of files/directories to search in."
     (vm-display (current-buffer) nil nil '(reading-message))
     (vm-display (current-buffer) t nil '(vm-next-message reading-message))
 
-    (save-excursion
-      (set-buffer process-buffer)
+    (with-current-buffer process-buffer
       (setq default-directory (expand-file-name vm-folder-directory))
       (erase-buffer)
       (switch-to-buffer process-buffer)
@@ -246,8 +245,7 @@ FOLDERS should be a list of files/directories to search in."
 MESSAGE-BUFFER is the buffer of the message.
 START the start position in the process output buffer.
 END the end position in the process output buffer."
-  (save-excursion
-    (set-buffer vm-grepmail-folder-buffer)
+  (with-current-buffer vm-grepmail-folder-buffer
     (let ((buffer-read-only nil))
       (save-restriction
        (widen)

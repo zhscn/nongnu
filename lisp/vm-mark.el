@@ -200,11 +200,10 @@ previous N-1 messages."
     (setq selector (intern (concat "vm-vs-" (symbol-name selector))))
     (while mlist
       (if (if virtual
-	      (save-excursion
-		(set-buffer
-		 (vm-buffer-of
-		  (vm-real-message-of
-		   (car mlist))))
+	      (with-current-buffer
+		  (vm-buffer-of
+		   (vm-real-message-of
+		    (car mlist)))
 		(apply selector (vm-real-message-of (car mlist)) arglist))
 	    (apply selector (car mlist) arglist))
 	  (progn

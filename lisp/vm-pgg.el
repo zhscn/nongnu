@@ -490,12 +490,10 @@ If STATES is nil, clear it."
       (setq vm-pgg-state-message (car vm-message-pointer))
       (setq vm-pgg-state nil)
       (when vm-presentation-buffer
-        (save-excursion
-          (set-buffer vm-presentation-buffer)
+        (with-current-buffer vm-presentation-buffer
           (setq vm-pgg-state nil)))
       (when vm-summary-buffer
-        (save-excursion
-          (set-buffer vm-summary-buffer)
+        (with-current-buffer vm-summary-buffer
           (setq vm-pgg-state nil))))
     ;; add prefix
     (if (and states (not vm-pgg-state))
@@ -511,12 +509,10 @@ If STATES is nil, clear it."
     ;; propagate state
     (setq states vm-pgg-state)
     (when vm-presentation-buffer
-      (save-excursion
-        (set-buffer vm-presentation-buffer)
+      (with-current-buffer vm-presentation-buffer
         (setq vm-pgg-state states)))
     (when vm-summary-buffer
-      (save-excursion
-        (set-buffer vm-summary-buffer)
+      (with-current-buffer vm-summary-buffer
         (setq vm-pgg-state states)))))
 
 (defvar vm-pgg-cleartext-begin-regexp
@@ -857,8 +853,7 @@ cleanup here after verification and decoding took place."
               :layout layout)))
           (t
            ;; decode the message now
-           (save-excursion
-             (set-buffer (vm-buffer-of (vm-mm-layout-message message)))
+           (with-current-buffer (vm-buffer-of (vm-mm-layout-message message))
              (save-restriction
                (widen)
                (setq status (pgg-decrypt-region (vm-mm-layout-body-start message)
@@ -868,16 +863,14 @@ cleanup here after verification and decoding took place."
                  (vm-pgg-state-set 'error)
                  (insert-buffer-substring pgg-errors-buffer)
                  (put-text-property start (point) 'face 'vm-pgg-error))
-             (save-excursion
-               (set-buffer pgg-output-buffer)
+             (with-current-buffer pgg-output-buffer
                (vm-pgg-crlf-cleanup (point-min) (point-max))
                (setq message (vm-mime-parse-entity-safe 
 			      nil :passing-message-only t)))
              (if message
                  (vm-decode-mime-layout message)
                (insert-buffer-substring pgg-output-buffer))
-             (setq status (save-excursion
-                            (set-buffer pgg-errors-buffer)
+             (setq status (with-current-buffer pgg-errors-buffer
                             (goto-char (point-min))
                             ;; TODO: care for BADSIG
                             (when (re-search-forward "GOODSIG [^\n\r]+" (point-max) t)
@@ -1021,8 +1014,8 @@ cleanup here after verification and decoding took place."
     ;; verify
     (unless (pgg-snarf-keys)
       (error "Snarfing failed"))
-    (save-excursion
-      (set-buffer (if (not (featurep 'xemacs)) pgg-errors-buffer pgg-output-buffer))
+    (with-current-buffer
+        (if (not (featurep 'xemacs)) pgg-errors-buffer pgg-output-buffer)
       (message (buffer-substring (point-min) (point-max))))))
 
 ;;; ###autoload
@@ -1036,8 +1029,7 @@ cleanup here after verification and decoding took place."
          (description (concat "public key of " pgg-default-user-id))
          (buffer (get-buffer-create (concat " *" description "*")))
          start)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (erase-buffer)
       (setq start (point))
       (pgg-insert-key)
@@ -1084,8 +1076,7 @@ seed and thus creates the same boundery when called twice in a short period."
   (let ((composition-buffer (current-buffer))
         (undo-list-backup buffer-undo-list)
         (work-buffer (get-buffer-create " *VM-PGG-WORK*")))
-    (save-excursion
-      (set-buffer work-buffer)
+    (with-current-buffer work-buffer
       (buffer-disable-undo)
       (erase-buffer)
       (insert-buffer-substring composition-buffer)

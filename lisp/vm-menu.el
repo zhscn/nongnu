@@ -820,8 +820,7 @@ set to the command name so that window configuration will be done."
 
 (defun vm-menu--global-menubar ()
   (if (featurep 'xemacs)
-      (save-excursion
-        (set-buffer (get-buffer-create "*scratch*"))
+      (with-current-buffer (get-buffer-create "*scratch*")
         current-menubar)
     (lookup-key (current-global-map) [menu-bar])))
 

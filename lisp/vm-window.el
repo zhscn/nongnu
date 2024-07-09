@@ -100,8 +100,7 @@
      (cond ((and buffer display)
 	    (if (and vm-display-buffer-hook
 		     (null (vm-get-visible-buffer-window buffer)))
-		(progn (save-excursion
-			 (set-buffer buffer)
+		(progn (with-current-buffer buffer
 			 (run-hooks 'vm-display-buffer-hook))
 		       (switch-to-buffer buffer))
 	      (if (not (and (memq this-command commands)
@@ -111,8 +110,7 @@
 	   ((and buffer (not display))
 	    (if (and vm-undisplay-buffer-hook
 		     (vm-get-visible-buffer-window buffer))
-		(progn (save-excursion
-			 (set-buffer buffer)
+		(progn (with-current-buffer buffer
 			 (run-hooks 'vm-undisplay-buffer-hook)))
 	      (if (not (and (memq this-command commands)
 			    (apply 'vm-set-window-configuration configs)))
@@ -240,8 +238,7 @@
 					      (if (and (stringp x)
 						       (get-buffer x)
 						       (zerop
-							(save-excursion
-							  (set-buffer x)
+							(with-current-buffer x
 							  (buffer-size))))
 						  nonexistent
 						x )))))
@@ -311,8 +308,7 @@ window configurations."
     (vm-inform 5 "%s configuration recorded" tag)))
 
 (defun vm-buffer-to-label (buf)
-  (save-excursion
-    (set-buffer buf)
+  (with-current-buffer buf
     (cond ((eq major-mode 'vm-summary-mode)
 	   'summary)
 	  ((eq major-mode 'vm-folders-summary-mode)

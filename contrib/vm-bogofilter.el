@@ -338,8 +338,7 @@ vm-retrieved-spooled-mail-hook."
 	  (buffer (get-buffer-create "*Shell Command Output*"))
 	  )
           
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(erase-buffer))
       (set-buffer (vm-buffer-of message))
       (save-restriction

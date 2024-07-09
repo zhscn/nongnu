@@ -63,12 +63,10 @@ to find out how KEEP-LIST and DISCARD-REGEXP are used."
       (narrow-to-region (point) (point))
       (insert "------- start of forwarded message -------\n")
       (setq source-buffer (vm-buffer-of m))
-      (save-excursion
-	(set-buffer source-buffer)
+      (with-current-buffer source-buffer
 	(save-restriction
 	  (widen)
-	  (save-excursion
-	    (set-buffer target-buffer)
+	  (with-current-buffer target-buffer
 	    (let ((beg (point)))
 	      ;; (insert-buffer-substring 
 	      ;;  source-buffer (vm-headers-of m) (vm-text-end-of m))
@@ -335,12 +333,10 @@ to find out how KEEP-LIST and DISCARD-REGEXP are used."
 	    (insert "---------------\n")
 	    (setq m (vm-real-message-of (car mlist))
 		  source-buffer (vm-buffer-of m))
-	    (save-excursion
-	      (set-buffer source-buffer)
+	    (with-current-buffer source-buffer
 	      (save-restriction
 		(widen)
-		(save-excursion
-		  (set-buffer target-buffer)
+		(with-current-buffer target-buffer
 		  (let ((beg (point)))
 		    (insert-buffer-substring source-buffer (vm-headers-of m)
 					     (vm-text-end-of m))
@@ -430,12 +426,10 @@ to find out how KEEP-LIST and DISCARD-REGEXP are used."
 	    (insert "---------------\n\n")
 	    (setq m (vm-real-message-of (car mlist))
 		  source-buffer (vm-buffer-of m))
-	    (save-excursion
-	      (set-buffer source-buffer)
+	    (with-current-buffer source-buffer
 	      (save-restriction
 		(widen)
-		(save-excursion
-		  (set-buffer target-buffer)
+		(with-current-buffer target-buffer
 		  (let ((beg (point)))
 		    (insert-buffer-substring source-buffer (vm-headers-of m)
 					     (vm-text-end-of m))
@@ -674,8 +668,7 @@ burst."
 	(when vm-delete-after-bursting
 	     ;; if start folder was virtual, we're now in the wrong
 	     ;; buffer.  switch back.
-	     (save-excursion
-	       (set-buffer start-buffer)
+	     (with-current-buffer start-buffer
 	       ;; don't move message pointer when deleting the message
 	       (let ((vm-move-after-deleting nil))
 		 (vm-delete-message 1))))
@@ -788,8 +781,7 @@ burst."
 	    (vm-inform 5 "Bursting %s digest... done" digest-type)
             (and vm-delete-after-bursting
  		 (yes-or-no-p (format "Delete message %s? " (vm-number-of m)))
- 		 (save-excursion
- 		   (set-buffer start-buffer)
+ 		 (with-current-buffer start-buffer
  		   ;; don't move message pointer when deleting the message
  		   (let ((vm-move-after-deleting nil))
  		     (vm-delete-message 1))))
@@ -814,8 +806,7 @@ burst."
 M should be the message struct of a real message.
 Returns either \"rfc934\", \"rfc1153\" or \"mime\"."
   (catch 'return-value
-    (save-excursion
-      (set-buffer (vm-buffer-of m))
+    (with-current-buffer (vm-buffer-of m)
       (let ((layout (vm-mm-layout m)))
 	(if (and (vectorp layout)
 		 (or (vm-mime-layout-contains-type

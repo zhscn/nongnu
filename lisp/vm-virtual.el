@@ -215,9 +215,8 @@ all the real folder buffers involved."
 				    (vm-real-message-of m))
 				   message-set)))
 			 (if virtual
-			     (save-excursion
-			       (set-buffer
-				(vm-buffer-of (vm-real-message-of m)))
+			     (with-current-buffer
+				(vm-buffer-of (vm-real-message-of m))
 			       (apply 'vm-vs-or m selectors))
 			   (apply 'vm-vs-or m selectors)))
 		(when (and vm-virtual-debug
@@ -981,8 +980,7 @@ any) for this selector to detect the occurrences in the text."
            vm-spam-words-file
            (file-readable-p vm-spam-words-file)
            (not (get-file-buffer vm-spam-words-file)))
-      (save-excursion
-        (set-buffer (find-file-noselect vm-spam-words-file))
+      (with-current-buffer (find-file-noselect vm-spam-words-file)
         (goto-char (point-min))
         (while (re-search-forward "^\\s-*\\([^#;].*\\)\\s-*$" (point-max) t)
           (setq vm-spam-words (cons (match-string 1) vm-spam-words)))
@@ -1366,8 +1364,7 @@ folder buffer (which should be the virtual folder in which M occurs)."
 	(buffer-read-only nil)
 	(modified (buffer-modified-p)))
     (unwind-protect
-	(save-excursion
-	  (set-buffer (vm-buffer-of real-m))
+	(with-current-buffer (vm-buffer-of real-m)
 	  (save-restriction
 	    (widen)
 	    ;; must reference this now so that headers will be in

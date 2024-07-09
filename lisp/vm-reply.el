@@ -860,8 +860,7 @@ as replied to, forwarded, etc, if appropriate."
 	(let (list)
 	  (setq list (vm-mime-fragment-composition vm-mime-max-message-size))
 	  (while list
-	    (save-excursion
-	      (set-buffer (car list))
+	    (with-current-buffer (car list)
 	      (vm-mail-send)
 	      (kill-buffer (car list)))
 	    (setq list (cdr list)))

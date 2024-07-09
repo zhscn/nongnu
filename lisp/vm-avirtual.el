@@ -654,8 +654,7 @@ If VIRTUAL is true we check the current message and not the real one."
   (if msg
       (if virtual
           (apply 'vm-vs-or msg selector)
-        (save-excursion
-          (set-buffer (vm-buffer-of (vm-real-message-of msg)))
+        (with-current-buffer (vm-buffer-of (vm-real-message-of msg))
           (apply 'vm-vs-or msg selector)))
     (if (eq major-mode 'mail-mode)
         (apply 'vm-mail-vs-or selector))))
@@ -679,9 +678,8 @@ format:
           (vm-virtual-check-diagnostics (or vm-virtual-check-diagnostics
                                             diagnostics)))
       (with-output-to-temp-buffer "*VM virtual-folder-check*"
-       (save-excursion
-         (set-buffer "*VM virtual-folder-check*")
-         (toggle-truncate-lines t))
+        (with-current-buffer "*VM virtual-folder-check*"
+          (toggle-truncate-lines t))
         (princ (format "Checking %S on <%s> from %s\n\n" selector
                        (vm-su-subject msg) (vm-su-from msg)))
         (princ (format "\nThe virtual folder selector `%s' is %s\n"
@@ -1090,8 +1088,7 @@ This is not yet the whole story!                    USR, 2013-01-18"
   (save-excursion
     (vm-select-folder-buffer-and-validate 0 (vm-interactive-p))
     ;; remove old descriptions
-    (save-excursion
-      (set-buffer vm-summary-buffer)
+    (with-current-buffer vm-summary-buffer
       (goto-char (point-min))
       (let ((buffer-read-only nil)
             (s (point-min))
@@ -1110,8 +1107,7 @@ This is not yet the whole story!                    USR, 2013-01-18"
               f (cdr (assoc m vm-sort-compare-auto-folder-cache)))
         (when (not (equal oldf f))
           (setq m (vm-su-start-of m))
-          (save-excursion
-            (set-buffer (marker-buffer m))
+          (with-current-buffer (marker-buffer m)
             (let ((buffer-read-only nil))
               (goto-char m)
               (insert (format "%s\n" (or f "no default folder")))
