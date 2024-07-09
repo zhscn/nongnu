@@ -1361,7 +1361,7 @@ displayed when the duration is smaller than a minute)."
                                      cell))
                              options-alist)))
     (if (null poll)
-        (message "No poll here.")
+        (user-error "No poll here.")
       (list
        ;; var "option" = just the cdr, a cons of option number and desc
        (cdr (assoc (completing-read "Poll option to vote for: "
@@ -1373,7 +1373,7 @@ displayed when the duration is smaller than a minute)."
   "If there is a poll at point, prompt user for OPTION to vote on it."
   (interactive (mastodon-tl--read-poll-option))
   (if (null (mastodon-tl--field 'poll (mastodon-tl--property 'item-json)))
-      (message "No poll here.")
+      (user-error "No poll here.")
     (let* ((toot (mastodon-tl--property 'item-json))
            (poll (mastodon-tl--field 'poll toot))
            (poll-id (alist-get 'id poll))
