@@ -1,4 +1,4 @@
-;From: blueman <NOSPAM@nospam.com>
+;From: blueman <NOSPAM@nospam.com>  -*- lexical-binding: t; -*-
 ;Subject: Function to fit displayed mime images to width
 ;Newsgroups: gnu.emacs.vm.info
 ;Date: Tue, 12 Dec 2006 18:07:44 GMT
@@ -33,6 +33,8 @@
 ;; Functionality to add above function to standard attachment menu
 (add-hook 'vm-menu-setup-hook 
 	  (lambda ()
+	    (defvar vm-menu-fsfemacs-image-menu)
+	    (defvar vm-menu-fsfemacs-attachment-menu)
 		(require 'easymenu)
 		(easy-menu-add-item vm-menu-fsfemacs-image-menu
 		     nil
@@ -88,6 +90,9 @@
 
 ;Note this runs the users local fetchmail process as configured by
 ;~/.fetchmailrc
+(defvar vm-fetchmail-function "/usr/bin/fetchmail"
+"Function used to fetch remote mail (JJK)")
+
 (defun vm-fetchmail ()
 "*Fetch mail asynchronously from remote server (JJK)"
   (interactive)
@@ -99,10 +104,7 @@
 	(vm-inform 5 "Fetching new mail..."))
    (t (error "Error: Fetchmail not found on system!"))))
 
-(defvar vm-fetchmail-function "/usr/bin/fetchmail"
-"Function used to fetch remote mail (JJK)")
-
-(defun vm-fetchmail-sentinel (process status)
+(defun vm-fetchmail-sentinel (_process status)
   (beep t)
   (setq status (substring status -2 -1))
   (vm-inform 5 "Finished fetching... %s"

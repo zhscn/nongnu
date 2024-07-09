@@ -1,4 +1,4 @@
-;;; vm-window.el --- Window management code for VM
+;;; vm-window.el --- Window management code for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -177,7 +177,7 @@
 	(throw 'done nil))
     (let ((nonexistent " *vm-nonexistent*")
 	  (nonexistent-summary " *vm-nonexistent-summary*")
-	  (selected-frame (vm-selected-frame))
+	  ;; (selected-frame (vm-selected-frame))
 	  folders-summary summary message composition edit config)
       (while (and tags (null config))
 	(setq config (assq (car tags) vm-window-configurations)
@@ -489,7 +489,7 @@ Run the hooks in vm-iconify-frame-hook before doing so."
       ;; catch errors--- the selected window might be a dedicated
       ;; window or a minibuffer window.  We don't care and we
       ;; don't want to crash because of it.
-      (condition-case data
+      (condition-case _data
 	  (switch-to-buffer buffer)
 	(error nil)))))
 

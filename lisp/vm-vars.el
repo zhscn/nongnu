@@ -1,4 +1,4 @@
-;;; vm-vars.el --- VM user and internal variable initialization
+;;; vm-vars.el --- VM user and internal variable initialization  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -6294,7 +6294,7 @@ Its parent keymap is mail-mode-map.")
   "List of folders used with `vm-switch-to-folder'.")
 
 ;; for sixth arg of read-file-name in early version of Emacs 21.
-(defun vm-folder-history (&rest ignored) t)
+(defun vm-folder-history (&rest _ignored) t)
 
 ;; internal vars
 (defvar vm-skip-collapsed-sub-threads t)

@@ -1,4 +1,4 @@
-;;; vm-thread.el ---  Thread support for VM
+;;; vm-thread.el ---  Thread support for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -533,9 +533,9 @@ indentation all the way to 0."
   (interactive "p")
   (vm-follow-summary-cursor)
   (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
-  (let ((modified (buffer-modified-p))
+  (let (;; (modified (buffer-modified-p))
 	(msg (car vm-message-pointer))
-	(indent 0))
+	) ;; (indent 0)
     (if (= n 0)				; special case, set to 0
       (let ((indent (or (vm-thread-indentation-of msg) 0)))
 	(mapc (lambda (m)
@@ -559,7 +559,7 @@ indentation back to the normal indentation, i.e., no offset is used."
   (interactive "p")
   (vm-follow-summary-cursor)
   (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
-  (let ((modified (buffer-modified-p))
+  (let (;; (modified (buffer-modified-p))
 	(msg (car vm-message-pointer)))
     (if (= n 0)
 	(mapc (lambda (m) (vm-set-thread-indentation-offset-of m 0))
@@ -590,7 +590,7 @@ is nil, do it for all the messages in the folder.  USR, 2010-07-15"
 	;; no need to schedule reindents of reparented messages
 	;; unless there were already messages present.
 	(schedule-reindents message-list)
-	m parent parent-sym id id-sym date refs old-parent-sym)
+	) ;; m parent parent-sym id id-sym date refs old-parent-sym
   (when initializing
     (setq vm-thread-obarray (make-vector 641 0)
 	  vm-thread-subject-obarray (make-vector 641 0)))
@@ -623,7 +623,7 @@ being initialized."
   (let ((n 0)
 	(mp mlist)
 	modulus total
-	m parent parent-sym id id-sym date refs old-parent-sym)
+	m parent parent-sym id id-sym refs old-parent-sym) ;; date
     (setq total (* 2 (length mlist)))
     (setq modulus (max 10 (/ (length mlist) 50)))
     (while mp
@@ -705,7 +705,7 @@ being initialized."
       (if (member id vm-traced-message-ids)
 	  (vm-thread-debug 'vm-build-reference-threads-2 m))
       (if (cdr (setq refs (vm-references m)))
-	  (let (parent-sym id-sym msgs msg-syms)
+	  (let (parent-sym id-sym) ;; msgs msg-syms
 	    (setq parent-sym (intern (car refs) vm-thread-obarray)
 		  refs (cdr refs))
 	    (while refs
@@ -763,7 +763,7 @@ all its ancestors, followed via the parent links."
   ;; requires: BASIC /\ LINKS (ancestors(id-sym))
   ;; ensures: TREE0(ancestors(id-sym))
   (let ((msg (vm-th-message-of id-sym))
-	subject subject-sym)
+	subject-sym) ;; subject
     (vm-th-clear-subtree-of id-sym)
     (while (vm-th-parent-of id-sym)
       (setq id-sym (vm-th-parent-of id-sym))
@@ -922,12 +922,12 @@ whereas dates are updated for both reference and subject-based ancestors."
   (dolist (m mlist)
     (let ((done nil)
 	  (subject-thread nil)
-	  (loop-recovery-point nil)
+	  ;; (loop-recovery-point nil)
 	  (date (vm-so-sortable-datestring m))
 	  (subject (vm-so-sortable-subject m))
 	  id-sym subject-sym loop-sym 
-	  root-date root-subject youngest-date
-	  root)
+	  root-date youngest-date ;; root-subject
+	  ) ;; root
       (with-current-buffer (vm-buffer-of m)
 	;; thread trees do not have loops any more, but better to be
 	;; safe than sorry.  USR, 2011-05-13
@@ -939,7 +939,7 @@ whereas dates are updated for both reference and subject-based ancestors."
 	(while (not done)
 	  ;; save the date of the oldest message in this thread
 	  (setq root-date (vm-th-oldest-date-of id-sym))
-	  (setq root-subject (vm-th-oldest-subject-of id-sym))
+	  ;; (setq root-subject (vm-th-oldest-subject-of id-sym))
 	  (when (or (null root-date) (string< date root-date))
 	    (vm-th-set-oldest-date-of id-sym date)
 	    (unless subject-thread
@@ -976,7 +976,7 @@ whereas dates are updated for both reference and subject-based ancestors."
 		 (if (boundp loop-sym)
 		     ;; loop detected, bail...
 		     (setq done t)
-		   (setq root (vm-th-message-of id-sym))
+		   ;; (setq root (vm-th-message-of id-sym))
 		   (set loop-sym t)
 		   (setq m (vm-th-message-of id-sym))))))
 	))))
@@ -991,7 +991,7 @@ symbols interned in vm-thread-obarray."
 	(date (vm-so-sortable-datestring message))
 	(subject (vm-so-sortable-subject message))
 	m thread-list id-sym subject-sym loop-sym 
-	root-date root-subject youngest-date
+	root-date youngest-date ;; root-subject
 	root ancestors)
     (setq m message)
     (with-current-buffer (vm-buffer-of m)
@@ -1012,7 +1012,7 @@ symbols interned in vm-thread-obarray."
       (while (not done)
 	;; save the date of the oldest message in this thread
 	(setq root-date (vm-th-oldest-date-of id-sym))
-	(setq root-subject (vm-th-oldest-subject-of id-sym))
+	;; (setq root-subject (vm-th-oldest-subject-of id-sym))
 	(when (or (null root-date)
 		  (string< date root-date))
 	  (vm-th-set-oldest-date-of id-sym date)
@@ -1204,7 +1204,7 @@ been already removed from its symbol node."
 		  ;; subject thread is empty
 		  (makunbound s-sym)
 		;; subject thread nonempty
-		(let (new-sub new-s-sym)
+		(let () ;; new-sub new-s-sym
 		  (setq root-sym (vm-th-thread-symbol oldest-msg))
 		  ;; (setq children (vm-th-visible-children-of id-sym))
 		  (setq children (cons id-sym (vm-ts-members-of s-sym)))
@@ -1253,7 +1253,7 @@ been already removed from its symbol node."
   (vm-build-threads-if-unbuilt)
   (unless vm-last-message-pointer
     (error "No last message visited"))
-  (let ((new-parent (car vm-last-message-pointer))
+  (let (;; (new-parent (car vm-last-message-pointer))
 	(p-sym (vm-thread-symbol (car vm-last-message-pointer)))
 	(m (car vm-message-pointer))
 	(m-sym (vm-thread-symbol (car vm-message-pointer))))
@@ -1410,7 +1410,7 @@ See also: `vm-thread-root'."
 otherwise.  No exceptions are thrown for errors."
   ;; Threads may not be turned on.  So, ignore errors.
   ;; requires: LIST0(m)
-  (condition-case err
+  (condition-case _err
       (and (eq m (vm-thread-root m))
 	   (> (vm-thread-count m) 1))
     (vm-thread-error

@@ -1,4 +1,4 @@
-;;; vm-message.el --- Macros and functions dealing with accessing VM
+;;; vm-message.el --- Macros and functions dealing with accessing VM  -*- lexical-binding: t; -*-
 ;; message struct fields
 ;;
 ;; This file is part of VM
@@ -500,7 +500,7 @@ works in all VM buffers."
   (aset (aref message 3) 19 val))
 (defsubst vm-set-references-of (message val)
   (aset (aref message 3) 20 val))
-(defsubst vm-set-headers-to-be-retrieved-of (message val)
+(defsubst vm-set-headers-to-be-retrieved-of (_message _val)
   nil)
 (defsubst vm-set-body-to-be-discarded-of (message val)
   (aset (aref message 3) 21 val))

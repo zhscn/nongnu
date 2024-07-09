@@ -1,4 +1,4 @@
-;;; vm-undo.el --- Commands to undo message attribute changes in VM
+;;; vm-undo.el --- Commands to undo message attribute changes in VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -424,7 +424,7 @@ nil	       delete the label
   (let ((action-labels (vm-parse string
 "[\000-\040,\177-\377]*\\([^\000-\040,\177-\377]+\\)[\000-\040,\177-\377]*"))
 	(ignored-labels nil)
-	labels act-labels m mm-list)
+	labels act-labels m) ;; mm-list
     (when (and add m-list)
 	(if (eq add 'all)
 	    (progn
@@ -485,7 +485,7 @@ as the real message underlying M.
 Normally, a record of the change is kept for the purpose of undo, and
 the changed attributes are stuffed into the folder, but NORECORD
  suppresses all of this.                             USR 2010-04-06" 
-  (let ((m-list nil) vmp)
+  (let ((m-list nil)) ;; vmp
     (when (and (not vm-folder-read-only)
 	       (or (not (vm-virtual-messages-of m))
 		   (not (with-current-buffer
@@ -529,7 +529,7 @@ as the real message underlying M.
 Normally, a record of the change is kept for the purpose of undo, and
 the changed attributes are stuffed into the folder, but NORECORD
 suppresses all of this.                             USR 2010-04-06" 
-  (let ((m-list nil) vmp)
+  (let ((m-list nil)) ;; vmp
     (when
      (and (not vm-folder-read-only)
 	   (or (not (vm-virtual-messages-of m))
@@ -603,7 +603,7 @@ changed attributes are stuffed into the folder.        USR 2010-04-06"
 
 
 ;; This flag is defunct, replaced by body-to-be-discarded.  USR, 2010-06-08
-(defun vm-set-headers-to-be-retrieved-flag (m flag &optional norecord)
+(defun vm-set-headers-to-be-retrieved-flag (_m _flag &optional _norecord)
   nil)
 
 (defun vm-set-body-to-be-discarded-flag (m flag &optional norecord)

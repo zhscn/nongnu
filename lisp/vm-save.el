@@ -1,4 +1,4 @@
-;;; vm-save.el --- Saving and piping messages under VM
+;;; vm-save.el --- Saving and piping messages under VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -288,7 +288,9 @@ thread are saved."
 	 (vm-save-message-to-imap-folder folder count mlist quiet))
 	(t
 	 (vm-save-message-to-local-folder folder count mlist quiet))))
-   
+
+(defvar inhibit-local-variables) ;; FIXME: Unknown var.  XEmacs?
+
 ;;;###autoload
 (defun vm-save-message-to-local-folder (folder &optional count mlist quiet)
   "Save the current message to a mail folder.
@@ -608,7 +610,7 @@ This command should NOT be used to save message to mail folders; use
 		   command output-bytes)
 	(display-buffer buffer)))))
 
-(defun vm-pipe-message-part (m arg)
+(defun vm-pipe-message-part (m _arg)
   "Return (START END) bounds for piping to external command, based on ARG."
   (cond ((equal prefix-arg '(4))
 	 (list (vm-text-of m) (vm-text-end-of m)))
@@ -620,7 +622,7 @@ This command should NOT be used to save message to mail folders; use
 	 (list (vm-headers-of m) (vm-text-end-of m)))))
 
 ;;;###autoload
-(defun vm-pipe-message-to-command (command &optional prefix-arg discard-output)
+(defun vm-pipe-message-to-command (command &optional prefixarg discard-output)
   "Runs a shell command with contents from the current message as input.
 By default, the entire message is used.  Message separators are
 included if `vm-message-includes-separators' is non-Nil.
@@ -666,7 +668,7 @@ Output, if any, is displayed.  The message is not altered."
 	      ;; call-process-region calls write-region.
 	      ;; don't let it do CR -> LF translation.
 	      (selective-display nil)
-	      (region (vm-pipe-message-part m prefix-arg)))
+	      (region (vm-pipe-message-part m prefixarg)))
 	  (call-process-region (nth 0 region) (nth 1 region)
 			       (or shell-file-name "sh")
 			       nil buffer nil shell-command-switch command)))
@@ -676,15 +678,15 @@ Output, if any, is displayed.  The message is not altered."
     (vm-switch-to-command-output-buffer command buffer discard-output)
     buffer))
 
-(defun vm-pipe-message-to-command-to-string (command &optional prefix-arg)
+(defun vm-pipe-message-to-command-to-string (command &optional prefixarg)
   "Run a shell command with contents from the current message as input.
 This function is like `vm-pipe-message-to-command', but will not display the
 output of the command, but return it as a string."
-  (with-current-buffer (vm-pipe-message-to-command command prefix-arg t)
+  (with-current-buffer (vm-pipe-message-to-command command prefixarg t)
     (buffer-substring-no-properties (point-min) (point-max))))
 
 ;;;###autoload
-(defun vm-pipe-message-to-command-discard-output (command &optional prefix-arg)
+(defun vm-pipe-message-to-command-discard-output (command &optional prefixarg)
   "Run a shell command with contents from the current message as input.
 This function is like `vm-pipe-message-to-command', but will not display the
 output of the command."
@@ -697,7 +699,7 @@ output of the command."
      (vm-select-folder-buffer)
      (list (read-string "Pipe to command: " vm-last-pipe-command)
 	   current-prefix-arg))))
-  (vm-pipe-message-to-command command prefix-arg t))
+  (vm-pipe-message-to-command command prefixarg t))
 
 (defun vm-pipe-command-exit-handler (process command discard-output 
 					     &optional exit-handler)
@@ -728,7 +730,7 @@ If set to `t', then use the trailing message separator stored in the VM
 folder.  If set to nil, no trailing separator is included.")
 
 ;;;###autoload
-(defun vm-pipe-messages-to-command (command &optional prefix-arg 
+(defun vm-pipe-messages-to-command (command &optional prefixarg 
 					    discard-output no-wait)
   "Run a shell command with contents from messages as input.
 
@@ -795,7 +797,7 @@ arguments after the command finished."
 				    (vm-start-of m) (vm-headers-of m)))
 	      (vm-pipe-messages-to-command-start
 	       (process-send-string process vm-pipe-messages-to-command-start)))
-	(let ((region (vm-pipe-message-part m prefix-arg)))
+	(let ((region (vm-pipe-message-part m prefixarg)))
 	  (process-send-region process (nth 0 region) (nth 1 region)))
 	(cond ((eq vm-pipe-messages-to-command-end t)
 	       (process-send-region process 
@@ -813,7 +815,7 @@ arguments after the command finished."
       (vm-pipe-command-exit-handler process command discard-output))
     buffer))
 
-(defun vm-pipe-messages-to-command-to-string (command &optional prefix-arg)
+(defun vm-pipe-messages-to-command-to-string (command &optional prefixarg)
   "Runs a shell command with contents from the current message as input.
 This function is like `vm-pipe-messages-to-command', but will not display the
 output of the command, but return it as a string."
@@ -826,11 +828,11 @@ output of the command, but return it as a string."
      (vm-select-folder-buffer)
      (list (read-string "Pipe to command: " vm-last-pipe-command)
 	   current-prefix-arg))))
-  (with-current-buffer (vm-pipe-messages-to-command command prefix-arg t)
+  (with-current-buffer (vm-pipe-messages-to-command command prefixarg t)
     (buffer-substring-no-properties (point-min) (point-max))))
 
 ;;;###autoload
-(defun vm-pipe-messages-to-command-discard-output (command &optional prefix-arg)
+(defun vm-pipe-messages-to-command-discard-output (command &optional prefixarg)
   "Runs a shell command with contents from the current message as input.
 This function is like `vm-pipe-messages-to-command', but will not display the
 output of the command."
@@ -843,7 +845,7 @@ output of the command."
      (vm-select-folder-buffer)
      (list (read-string "Pipe to command: " vm-last-pipe-command)
 	   current-prefix-arg))))
-  (vm-pipe-messages-to-command command prefix-arg t))
+  (vm-pipe-messages-to-command command prefixarg t))
 
 ;;;###autoload
 (defun vm-print-message (&optional count)
@@ -939,7 +941,7 @@ Output, if any, is displayed.  The message is not altered."
     (vm-switch-to-command-output-buffer command buffer nil)))
 
 ;;;###autoload
-(defun vm-save-message-to-imap-folder (folder &optional count mlist quiet)
+(defun vm-save-message-to-imap-folder (folder &optional count mlist _quiet)
   "Save the current message to an IMAP folder.
 Prefix arg COUNT means save this message and the next COUNT-1
 messages.  A negative COUNT means save this message and the

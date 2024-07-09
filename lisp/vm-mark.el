@@ -1,4 +1,4 @@
-;;; vm-mark.el ---  Commands for handling messages marks
+;;; vm-mark.el ---  Commands for handling messages marks  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -95,7 +95,7 @@ previous N-1 messages."
   (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
   (let ((direction (if (< count 0) 'backward 'forward))
 	(count (vm-abs count))
-	(oldmp vm-message-pointer)
+	;; (oldmp vm-message-pointer)
 	(vm-message-pointer vm-message-pointer))
     (while (not (zerop count))
       (if (not (vm-mark-of (car vm-message-pointer)))

@@ -1,4 +1,4 @@
-;;; vm-mouse.el --- Mouse related functions and commands
+;;; vm-mouse.el --- Mouse related functions and commands  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -103,7 +103,7 @@ Mouse'."
 	      ((eq major-mode 'mail-mode)
 	       (vm-menu-popup-context-menu event))))))
 
-(defun vm-mouse-3-help (object)
+(defun vm-mouse-3-help (_object)
   nil
   "Use mouse button 3 to see a menu of options.")
 
@@ -346,7 +346,7 @@ Mouse'."
 	(vm-mouse-send-url-to-konqueror url t)))
   (vm-inform 5 "Sending URL to Konqueror... done"))
 
-(defun vm-mouse-send-url-to-firefox (url &optional new-window)
+(defun vm-mouse-send-url-to-firefox (url &optional _new-window)
   (vm-inform 5 "Sending URL to Mozilla Firefox...")
   (if t					; new-window parameter ignored
       (apply 'vm-run-background-command vm-firefox-program
@@ -410,6 +410,8 @@ Mouse'."
          nil
          (get-buffer-create (concat " *" command "*"))
          nil arg-list))
+
+(defvar binary-process-input) ;; FIXME: Unknown var.  XEmacs?
 
 ;; return t on zero exit status
 ;; return (exit-status . stderr-string) on nonzero exit status
@@ -617,7 +619,7 @@ HISTORY argument is ignored."
   (let ((key-doc  "Click here for keyboard interface.")
 	(bs-doc   "      .... to go back one word.")
 	(done-doc "      .... when you're done.")
-	start list)
+	start) ;; list
     (if string
 	(cond ((equal string key-doc)
 	       (condition-case nil

@@ -1,4 +1,4 @@
-;;; vm-toolbar.el --- Toolbar related functions and commands
+;;; vm-toolbar.el --- Toolbar related functions and commands  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -272,12 +272,12 @@ s-expression like this one in your .vm file:
     (error nil)))
 
 ;;;###autoload
-(defun vm-toolbar-delete/undelete-message (&optional prefix-arg)
+(defun vm-toolbar-delete/undelete-message (&optional prefixarg)
   (interactive "P")
   (vm-follow-summary-cursor)
   (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
   (vm-error-if-folder-read-only)
-  (let ((current-prefix-arg prefix-arg))
+  (let ((current-prefix-arg prefixarg))
     (if (vm-deleted-flag (car vm-message-pointer))
 	(call-interactively 'vm-undelete-message)
       (call-interactively 'vm-delete-message))))
@@ -686,7 +686,7 @@ s-expression like this one in your .vm file:
       (setq button-list (cdr button-list))))
   (setq vm-fsfemacs-toolbar-installed-p t))
 
-(defun vm-toolbar-make-fsfemacs-toolbar-image-spec (name extension dir mask)
+(defun vm-toolbar-make-fsfemacs-toolbar-image-spec (name extension dir _mask)
   (if vm-gtk-emacs-p
       ;; the GTK-toolbar will not display icons when providing a vector since
       ;; some version of GTK resp. Emacs 22 ...

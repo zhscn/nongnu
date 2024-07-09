@@ -1,4 +1,4 @@
-;;; u-vm-color.el --- Font-lock support for VM.
+;;; u-vm-color.el --- Font-lock support for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is an add-on for VM
 

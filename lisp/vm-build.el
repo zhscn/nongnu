@@ -1,4 +1,4 @@
-;; Add the current dir to the load-path
+;; Add the current dir to the load-path  -*- lexical-binding: t; -*-
 (setq load-path (cons default-directory load-path))
 ;(setq debug-on-error t)
 (setq debug-ignored-errors nil)
@@ -69,6 +69,7 @@
 
 
 (defun vm-custom-make-dependencies ()
+  (defvar generated-custom-dependencies-file)
   (if (load-library "cus-dep")
       (if (functionp 'Custom-make-dependencies)
 	  (Custom-make-dependencies)
@@ -87,6 +88,8 @@
         (error "Built directory %S does not exist!" source-dir))
     (message "Building autoloads file %S\nin directory %S." autoloads-file source-dir)
     (load-library "autoload")
+    (defvar generated-autoload-file)
+    (defvar autoload-package-name) ;; FIXME: XEmacs?
     (set-buffer (find-file-noselect autoloads-file))
     (erase-buffer)
     (setq generated-autoload-file autoloads-file)

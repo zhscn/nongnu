@@ -1,4 +1,4 @@
-;;; vm-menu.el --- Menu related functions and commands
+;;; vm-menu.el --- Menu related functions and commands  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -1001,7 +1001,7 @@ set to the command name so that window configuration will be done."
 	 (if (get-text-property (point) 'vm-mime-object)
 	     (vm-menu-popup-fsfemacs-menu
 	      event vm-menu-fsfemacs-attachment-menu)
-	   (let (o-list o menu (found nil))
+	   (let (o-list menu (found nil)) ;; o
 	     (setq o-list (overlays-at (point)))
 	     (while (and o-list (not found))
 	       (cond ((overlay-get (car o-list) 'vm-url)

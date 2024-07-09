@@ -1,4 +1,4 @@
-;;; vm-sort.el ---  Sorting and moving messages inside VM
+;;; vm-sort.el ---  Sorting and moving messages inside VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -346,7 +346,7 @@ folder in the order in which the messages arrived."
   (let (key-list key-funcs key ml-keys
 	physical-order-list old-message-list new-message-list mp-old mp-new
 	old-start
-	doomed-start doomed-end offset
+	;; doomed-start doomed-end offset
 	(order-did-change nil)
 	virtual
 	physical
@@ -616,7 +616,7 @@ that, if P1 and P2 are the oldest different ancestors of M1 and M2, then
 	;; (criterion (if vm-sort-threads-by-youngest-date 
 	;; 	       'youngest-date
 	;; 	     'oldest-date))
-	p1 p2 d1 d2)
+	p1 p2) ;; d1 d2
     (catch 'done
       (cond 
 	    ;; ((not (eq (car list1) (car list2)))
@@ -854,7 +854,7 @@ that, if P1 and P2 are the oldest different ancestors of M1 and M2, then
        (set-buffer (vm-buffer-of m))
        (goto-char (vm-start-of m))
        (while (re-search-forward "^[^: \n\t]+:" end t)
-         (add-to-list 'headers (match-string 0)))
+         (cl-pushnew (match-string 0) headers :test #'equal))
        headers))))
 
 (defun vm-sort-compare-header (m1 m2)

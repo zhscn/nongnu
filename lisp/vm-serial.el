@@ -1,4 +1,4 @@
-;;; vm-serial.el --- automatic creation of personalized message bodies
+;;; vm-serial.el --- automatic creation of personalized message bodies  -*- lexical-binding: t; -*-
 ;;                   and sending of personalized serial mails
 ;;
 ;; This file is an add-on for VM
@@ -112,8 +112,10 @@
 (defvar vm-reply-list nil)
 (defvar vm-redistribute-list nil)
 (defvar vm-forward-list)
+(defvar vm-serial-point)
 
 ;;-----------------------------------------------------------------------------
+
 (defcustom vm-serial-token-alist
   '(;; standard tokens you should not change (or need not)
     ("to"       (vm-serial-get-to)

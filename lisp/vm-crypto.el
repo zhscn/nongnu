@@ -1,4 +1,4 @@
-;;; vm-crypto.el --- Encryption and related functions for VM
+;;; vm-crypto.el --- Encryption and related functions for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;

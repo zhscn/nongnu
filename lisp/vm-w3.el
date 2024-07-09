@@ -1,4 +1,4 @@
-;;; vm-w3.el --- additional functions to make VM use w3 for HTML mails
+;;; vm-w3.el --- additional functions to make VM use w3 for HTML mails  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;

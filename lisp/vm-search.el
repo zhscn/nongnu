@@ -1,4 +1,4 @@
-;;; vm-search.el --- Incremental search through a mail folder
+;;; vm-search.el --- Incremental search through a mail folder  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;

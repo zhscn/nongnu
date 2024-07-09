@@ -1,4 +1,4 @@
-;;; vm-version.el --- Version information about VM and the Emacs running VM.
+;;; vm-version.el --- Version information about VM and the Emacs running VM.  -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) Kyle E. Jones, Robert Widhopf-Fenk
 ;; Copyright (C) 2003-2007 Robert Widhopf-Fenk

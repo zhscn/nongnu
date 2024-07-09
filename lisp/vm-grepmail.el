@@ -1,4 +1,4 @@
-;;; vm-grepmail.el --- VM interface for grepmail
+;;; vm-grepmail.el --- VM interface for grepmail  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;; 
@@ -85,7 +85,7 @@
 
 (if (not (featurep 'xemacs))
     ;; For sixth arg of read-file-name in Emacs 21. cf vm-folder-history.
-    (defun vm-grepmail-folders-history (&rest ignored) t))
+    (defun vm-grepmail-folders-history (&rest _ignored) t))
 
 ;;;###autoload
 (defun vm-grepmail (arguments folders)
@@ -113,16 +113,17 @@ FOLDERS should be a list of files/directories to search in."
                                       (if folders
                                           (concat "("
                                                   (mapconcat 'identity
-                                                             folders ", ") ")")
+                                                   folders ", ")
+                                                  ")")
                                         ""))
                               default
                               default
                               t nil 'vm-grepmail-folders-history)
                           fd (expand-file-name fd))
                     (if (not (string= fd (expand-file-name default)))
-                        (setq folders (add-to-list 'folders fd))))
+                        (cl-pushnew fd folders :test #'equal)))
                   (if (null folders)
-                      (setq folders (add-to-list 'folders fd)))
+                      (setq folders (list fd)))
                   folders)))
 
   (setq vm-grepmail-arguments arguments)

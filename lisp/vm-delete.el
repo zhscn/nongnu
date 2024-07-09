@@ -1,4 +1,4 @@
-;;; vm-delete.el --- Delete and expunge commands for VM.
+;;; vm-delete.el --- Delete and expunge commands for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;

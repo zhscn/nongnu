@@ -1,4 +1,4 @@
-;;; vm-summary-faces.el --- faces support for VM summary buffers
+;;; vm-summary-faces.el --- faces support for VM summary buffers  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;; 

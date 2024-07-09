@@ -1,4 +1,4 @@
-;;; vm-mime.el ---  MIME support functions
+;;; vm-mime.el ---  MIME support functions  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -568,6 +568,8 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
 			 (vm-mm-layout-encoding layout))
 	   (vm-mime-uuencode-decode-region start end crlf)))))
 
+(defvar binary-process-output) ;; FIXME: Unknown var.  XEmacs?
+
 (defun vm-mime-base64-decode-region (start end &optional crlf)
   (or (markerp end) (setq end (vm-marker end)))
   (and (> (- end start) 10000)
@@ -694,7 +696,7 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
   (and (> (- end start) 200)
        (vm-inform 7 "Encoding quoted-printable..."))
   (let ((work-buffer nil)
-	(buf (current-buffer))
+	;; (buf (current-buffer))
 	(cols 0)
 	(hex-digit-alist '((?0 .  0)  (?1 .  1)  (?2 .  2)  (?3 .  3)
 			   (?4 .  4)  (?5 .  5)  (?6 .  6)  (?7 .  7)
@@ -952,7 +954,7 @@ previous mime decoding."
 (fset 'vm-mime-parse-content-header 'vm-parse-structured-header)
 
 (defun vm-mime-get-header-contents (header-name-regexp)
-  (let ((contents nil)
+  (let (;; (contents nil)
 	regexp)
     (setq regexp (concat "^\\(" header-name-regexp "\\)\\|\\(^$\\)"))
     (save-excursion
@@ -984,7 +986,7 @@ PASSING-MESSAGE-ONLY is a boolean argument that says that VM is only
 	    (set-buffer (vm-buffer-of m))))
       (let ((case-fold-search t) version type qtype encoding id description
 	    disposition qdisposition boundary boundary-regexp start end
-	    multipart-list pos-list c-t c-t-e done p returnval)
+	    multipart-list pos-list c-t c-t-e done p) ;; returnval
 	(save-excursion
 	  (save-restriction
 	    (if (and m (not passing-message-only))
@@ -1422,7 +1424,7 @@ a string denoting the folder name."
   "Create a copy of the message M in the Presentation Buffer.  If
 the message is external then the copy is made from the external
 source of the message."
-  (let ((mail-buffer (current-buffer))
+  (let (;; (mail-buffer (current-buffer))
 	pres-buf mm
 	(real-m (vm-real-message-of m))
 	(modified (buffer-modified-p)))
@@ -1726,7 +1728,7 @@ The STORAGE specification is given in the same format as for
   (apply (intern (format "vm-fetch-%s-message-size" (car storage)))
 	 mm (cdr storage)))
 
-(defun vm-fetch-file-message (m filename)
+(defun vm-fetch-file-message (_m filename)
   "Insert the message with message descriptor MM stored in the given FILENAME."
   (insert-file-contents filename nil nil nil t)
   t)
@@ -2129,7 +2131,7 @@ triple (source-type target-type command).  Otherwise, return nil."
   "Finds an appropriate MIME character set for the current buffer,
 assuming that it is text."
   (let ((coding-systems
-	 (condition-case err
+	 (condition-case _err
 	     (detect-coding-region (point-min) (point-max))
 	   (error nil)))
 	(coding-system nil) (n nil))
@@ -2712,7 +2714,7 @@ possible.  Returns a boolean flag indicating success."
 	       vm-w3m-program charset charset)
        nil t))))
   
-(defun vm-mime-display-internal-lynx-text/html (start end layout)
+(defun vm-mime-display-internal-lynx-text/html (start end _layout)
   (shell-command-on-region 
    start (1- end)
    ;; (concat vm-lynx-program " -force_html /dev/stdin" )
@@ -2735,7 +2737,7 @@ possible.  Returns a boolean flag indicating success."
 		(start (point))
 		(charset (or (vm-mime-get-parameter layout "charset")
 			     "us-ascii"))
-		end buffer-size)
+		end) ;; buffer-size
 	    (vm-emit-mime-decoding-message
 	     "Inlining text/html by %s..." vm-mime-text/html-handler)
 	    (vm-mime-insert-mime-body layout)
@@ -2830,6 +2832,7 @@ in the text are highlighted and energized."
 
 (defun vm-mime-display-internal-text/enriched (layout)
   (require 'enriched)
+  (defvar enriched-verbose)
   (let ((start (point)) end
 	(buffer-read-only nil)
 	(enriched-verbose t)
@@ -2867,11 +2870,11 @@ determined by `vm-mime-external-content-types-alist'."
 		       (vm-mime-find-external-viewer
 			(car (vm-mm-layout-type layout)))))
 	(buffer-read-only nil)
-	start
+	;; start
 	(coding-system-for-read (vm-binary-coding-system))
 	(coding-system-for-write (vm-binary-coding-system))
 	(append-file t)
-	process	tempfile cache end suffix basename)
+	process	tempfile cache suffix basename) ;; end
     (setq cache (get (vm-mm-layout-cache layout)
 		     'vm-mime-display-external-generic)
 	  process (nth 0 cache)
@@ -3472,7 +3475,7 @@ button that this LAYOUT comes from."
 (defun vm-mime-fetch-url-with-programs (url buffer)
   (when
       (eq t (cond ((if (and (memq 'wget vm-url-retrieval-methods)
-			    (condition-case data
+			    (condition-case _data
 				(vm-run-command-on-region 
 				 (point) (point) buffer
 				 vm-wget-program "-q" "-O" "-" url)
@@ -3482,7 +3485,7 @@ button that this LAYOUT comes from."
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'w3m vm-url-retrieval-methods)
-			    (condition-case data
+			    (condition-case _data
 				(vm-run-command-on-region 
 				 (point) (point) buffer
 				 vm-w3m-program "-dump_source" url)
@@ -3492,7 +3495,7 @@ button that this LAYOUT comes from."
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'fetch vm-url-retrieval-methods)
-			    (condition-case data
+			    (condition-case _data
 				(vm-run-command-on-region 
 				 (point) (point) buffer
 				 vm-fetch-program "-o" "-" url)
@@ -3502,7 +3505,7 @@ button that this LAYOUT comes from."
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'curl vm-url-retrieval-methods)
-			    (condition-case data
+			    (condition-case _data
 				(vm-run-command-on-region 
 				 (point) (point) buffer
 				 vm-curl-program url)
@@ -3512,7 +3515,7 @@ button that this LAYOUT comes from."
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'lynx vm-url-retrieval-methods)
-			    (condition-case data
+			    (condition-case _data
 				(vm-run-command-on-region 
 				 (point) (point) buffer
 				 vm-lynx-program "-source" url)
@@ -3537,11 +3540,11 @@ it to an internal object by retrieving the body.       USR, 2011-03-28"
 		   (vm-make-multibyte-work-buffer
 		    (format "*%s mime object*"
 			    (car (vm-mm-layout-type child-layout))))))
-	     (let (oldsize)
+	     (let () ;;
 	       (with-current-buffer work-buffer
 		 (vm-mime-retrieve-external-body layout))
 	       (goto-char (vm-mm-layout-body-start child-layout))
-	       (setq oldsize (buffer-size))
+	       ;; (setq oldsize (buffer-size))
 	       (condition-case data
 		   (insert-buffer-substring work-buffer)
 		 (error (signal 'vm-mime-error (cdr data))))
@@ -3577,9 +3580,9 @@ it to an internal object by retrieving the body.       USR, 2011-03-28"
     (vm-inform 6 "Assembling message...")
     (let ((parts nil)
 	  (missing nil)
-	  (work-buffer nil)
-	  extent id o number total m i prev part-header-pos
-	  p-id p-number p-total p-list)
+	  ;; (work-buffer nil)
+	  extent id o total m i prev part-header-pos ;; number
+	  p-number p-total p-list)                   ;; p-id
       (setq extent layout
 	    layout (vm-extent-property extent 'vm-mime-layout)
 	    id (vm-mime-get-parameter layout "id"))
@@ -3598,7 +3601,7 @@ it to an internal object by retrieving the body.       USR, 2011-03-28"
 		  nil
 		(setq p-list (vm-mime-find-message/partials o id))
 		(while p-list
-		  (setq p-id (vm-mime-get-parameter (car p-list) "id"))
+		  ;; (setq p-id (vm-mime-get-parameter (car p-list) "id"))
 		  (setq p-total (vm-mime-get-parameter (car p-list) "total"))
 		  (if (null p-total)
 		      nil
@@ -4045,7 +4048,7 @@ describing the image type.                            USR, 2011-03-25"
 	    (nreverse image-list)))
       (and work-buffer (kill-buffer work-buffer)))))
 
-(defun vm-process-sentinel-display-image-strips (process what-happened)
+(defun vm-process-sentinel-display-image-strips (process _what-happened)
   (with-current-buffer (process-buffer process)
     (cond ((and (boundp 'vm-extent-list)
 		(boundp 'vm-image-list))
@@ -4352,7 +4355,7 @@ image when possible."
 	   vm-mime-thumbnail-max-geometry
 	   (vm-images-possible-here-p))
       ;; create a thumbnail and display it
-      (let (tempfile start end thumb-extent glyph)
+      (let (tempfile start thumb-extent glyph) ;; end
 	;; fake an extent to display the image as thumb
 	(setq start (point))
 	(insert " ")
@@ -4502,7 +4505,7 @@ If optional argument FUNCTION is given, run it instead.
   ;; where it was when the user triggered the button.
   (save-excursion
     (let ((extent (vm-find-layout-extent-at-point))
-	  retval )
+	  ) ;; retval
       (and extent
 	   (funcall 
 	    (or function (vm-extent-property extent 'vm-mime-function))
@@ -4657,7 +4660,7 @@ ACTION will get called with four arguments: MSG LAYOUT TYPE FILENAME."
     (vm-retrieve-operable-messages count mlist :fail t)
     (save-excursion
       (while mlist
-        (let (m parts layout filename type disposition o)
+        (let (parts layout filename type disposition o) ;; m
           (setq o (vm-mm-layout (car mlist)))
           (when (stringp o)
             (setq o 'none)
@@ -4753,7 +4756,7 @@ are also included."
      count
      :name "deleting"
      :action
-     (lambda (msg layout type file)
+     (lambda (_msg layout type file)
        (vm-inform 7 "Deleting `%s%s" type (if file (format " (%s)" file) ""))
        (vm-mime-discard-layout-contents layout)
        (setq successes (+ 1 successes)))
@@ -4778,7 +4781,7 @@ are also included."
 ;;;###autoload
 (defun vm-save-all-attachments (&optional count
 					  directory
-					  no-delete-after-saving)
+					  _no-delete-after-saving)
   "Save all attachments in the next COUNT messages or marked
 messages.  For the purpose of this function, an \"attachment\" is
 a mime part part which has \"attachment\" as its disposition or
@@ -4876,7 +4879,7 @@ created."
   'vm-save-all-attachments "8.2.0")
 
 (defun vm-save-attachments (&optional count
-				      no-delete-after-saving)
+				      _no-delete-after-saving)
   "Save all attachments in the next COUNT messages or marked
 messages.  For the purpose of this function, an \"attachment\" is
 a mime part part which has \"attachment\" as its disposition or
@@ -4906,7 +4909,7 @@ confirmed before creating a new directory."
      :excluded vm-mime-saveable-type-exceptions
      :name "saving"
      :action
-     (lambda (msg layout type file-name)
+     (lambda (_msg layout type file-name)
        (let ((file (vm-read-file-name
 		    (if file-name			; prompt
 			(format "Save (default %s): " file-name)
@@ -4988,7 +4991,7 @@ TYPE.                                                  USR, 2011-03-25"
 	   (> (device-bitplanes) 7))
       (let ((dir (vm-image-directory))
 	    (tuples vm-mime-type-images)
-	    glyph file sym p)
+	    glyph file sym) ;; p
 	(setq file (catch 'done
 		     (while tuples
 		       (if (vm-mime-types-match (car (car tuples)) type)
@@ -5267,6 +5270,8 @@ file with the name should be overwritten."
 	      (vm-quit-no-change)
 	      file )
 	  (when work-buffer (kill-buffer work-buffer)))))))
+
+(defvar binary-process-input) ;; FIXME: Unknown var.  XEmacs?
 
 (defun vm-mime-pipe-body-to-command (command layout &optional discard-output)
   (unless (vectorp layout)
@@ -5606,8 +5611,9 @@ Returns non-NIL value M is a plain message."
 	o ))))
 
 (defun vm-mime-find-leaf-content-id (layout id)
-  (let ((list nil)
-	(type (vm-mm-layout-type layout)))
+  (let (;; (list nil)
+	;; (type (vm-mm-layout-type layout))
+	)
     (catch 'done
       (cond ((vm-mime-composite-type-p (car (vm-mm-layout-type layout)))
 	     (let ((parts (vm-mm-layout-parts layout)) o)
@@ -5644,7 +5650,7 @@ Returns non-NIL value M is a plain message."
 
 (defun vm-mime-extract-filename-suffix (layout)
   (let ((filename (vm-mime-get-disposition-filename layout))
-	(suffix nil) i)
+	(suffix nil)) ;; i
     (if (and filename (string-match "\\.[^.]+$" filename))
 	(setq suffix (substring filename (match-beginning 0) (match-end 0))))
     suffix ))
@@ -5664,7 +5670,7 @@ Returns non-NIL value M is a plain message."
 
 
 (defun vm-attach-file (file type &optional charset description
-			    no-suggested-filename)
+			    _no-suggested-filename)
   "Attach a file to a VM composition buffer to be sent along with the message.
 The file is not inserted into the buffer and MIME encoded until
 you execute `vm-mail-send' or `vm-mail-send-and-exit'.  A visible tag
@@ -5828,7 +5834,7 @@ this case and not prompt you for it in the minibuffer."
    (let ((last-command last-command)
 	 (this-command this-command)
 	 (charset nil)
-	 description file default-type type buffer buffer-name)
+	 description default-type type buffer-name) ;; file buffer
      (unless vm-send-using-mime
        (error (concat "MIME attachments disabled, "
 		      "set vm-send-using-mime non-nil to enable.")))
@@ -6372,7 +6378,7 @@ there is no file name for this object.             USR, 2011-03-07"
 	   (setcar enc sym)))))
 
 (defun vm-disallow-overlay-endpoint-insertion 
-  (overlay after start end &optional old-size)
+  (overlay after start end &optional _old-size)
   "Hook function called before and after text is inserted at the
 endpoint of an OVERLAY.  AFTER is true if the call is being made after
 insertion.  Otherwise, it is being made before insertion.  START and
@@ -6558,7 +6564,7 @@ quoted-printable or binary).                            USR, 2011-03-27"
 	      (insert "CONTENT-TRANSFER-ENCODING: " encoding "\n"))
 	  encoding )))))
 
-(defun vm-mime-text-description (start end)
+(defun vm-mime-text-description (start _end)
   (save-excursion
     (goto-char start)
     (if (looking-at "[ \t\n]*-- \n")
@@ -6761,7 +6767,7 @@ If none is specified, quoted-printable is used."
       (goto-char end))))
 
 ;;;###autoload
-(defun vm-mime-encode-words-in-string (string &optional encoding)
+(defun vm-mime-encode-words-in-string (string &optional _encoding)
   (and string
        (vm-with-string-as-temp-buffer 
 	(vm-substring-no-properties string 0)
@@ -6780,7 +6786,7 @@ should be encoded together."
   (save-excursion 
     (let ((headers (concat "^\\(" vm-mime-encode-headers-regexp "\\):"))
           (case-fold-search nil)
-          (encoding vm-mime-encode-headers-type)
+          ;; (encoding vm-mime-encode-headers-type)
           body-start
           start end)
       (goto-char (point-min))
@@ -6851,6 +6857,7 @@ and the approriate content-type and boundary markup information is added."
 	   (setq buffer-undo-list (primitive-undo 1 buffer-undo-list))))))
 
 (defvar enriched-mode)
+(defvar enriched-initial-annotation)
 
 ;; This function was originally XEmacs-specific.  It has now been
 ;; generalized to both XEmacs and GNU Emacs.  USR, 2011-03-27
@@ -6868,7 +6875,7 @@ and the approriate content-type and boundary markup information is added."
 	  (boundary-positions nil)	; position markers for the parts
 	  text-result			; results from text encodings
 	  forward-local-refs already-mimed layout e e-list boundary
-	  type encoding charset params description disposition object
+	  type encoding params description disposition object ;; charset
 	  opoint-min encoded-attachment message-smimed)
       (when (featurep 'xemacs)
 	;;Make sure we don't double encode UTF-8 (for example) text.
@@ -7176,7 +7183,7 @@ Returns a pair consisting of a marker pointing to the start of the
 encoded MIME part and the transfer-encoding used.  But if
 WHOLE-MESSAGE is true then nil is returned."
   (let ((enriched (and (boundp 'enriched-mode) enriched-mode))
-	type encoding charset params description marker)
+	encoding charset description marker) ;; type params
     (narrow-to-region beg end)
     ;; support enriched-mode for text/enriched composition
     (when enriched
@@ -7268,7 +7275,7 @@ WHOLE-MESSAGE is true then nil is returned."
 	  (boundary-positions nil)	; markers for the start of parts
 	  marker
 	  forward-local-refs already-mimed layout e e-list boundary
-	  type encoding charset params description disposition object
+	  type encoding params description disposition object ;; charset
 	  opoint-min postponed-attachment)
       (goto-char (mail-text-start))
       (setq e-list (vm-mime-attachment-button-extents 
@@ -7518,7 +7525,7 @@ true, then encode it as the entire message.
 
 Returns marker pointing to the start of the encoded MIME part."
   (let ((enriched (and (boundp 'enriched-mode) enriched-mode))
-	type encoding charset params description marker)
+	encoding charset description marker) ;; type params
     (narrow-to-region beg end)
     ;; support enriched-mode for text/enriched composition
     (when enriched
@@ -7872,7 +7879,7 @@ Returns marker pointing to the start of the encoded MIME part."
       (vm-mime-get-parameter layout "name")
       "<no suggested filename>"))
 
-(defun vm-mf-event-for-default-action (layout)
+(defun vm-mf-event-for-default-action (_layout)
   (if (vm-mouse-support-possible-here-p)
       "Click mouse-2"
     "Press RETURN"))
@@ -7885,7 +7892,7 @@ Returns marker pointing to the start of the encoded MIME part."
 
 (defun vm-mf-default-action (layout)
   (or vm-mf-default-action
-      (let (cons)
+      (let () ;; cons
         (cond ((or (vm-mime-can-display-internal layout)
 		   (vm-mime-find-external-viewer
 		    (car (vm-mm-layout-type layout))))
@@ -7897,8 +7904,9 @@ Returns marker pointing to the start of the encoded MIME part."
 			 (throw 'done (cdr (car p)))
 		       (setq p (cdr p))))
 		   nil )))
-	      ((setq cons (vm-mime-can-convert
-			   (car (vm-mm-layout-type layout))))
+	      (;; (setq cons 
+		(vm-mime-can-convert
+			   (car (vm-mm-layout-type layout))) ;;)
 	       "convert")
 	      (t "save")))
       ;; should not be reached
@@ -7935,7 +7943,7 @@ end of the path."
 			       (vm-su-subject m))))
        (vm-mime-map-layout-parts
 	m
-	(lambda (m layout path)
+	(lambda (_m layout path)
 	  (if verbose
 	      (princ (format "%s%S\n" (make-string (length path) ? ) layout))
 	    (princ (format "%s%S%s%s%s\n" (make-string (length path) ? )
@@ -8064,7 +8072,7 @@ This is a destructive operation and cannot be undone!"
   (save-excursion
     (let* ((layout (vm-extent-property x 'vm-mime-layout))
 	   (xstart (vm-extent-start-position x))
-	   (xend   (vm-extent-end-position x))
+	   ;; (xend   (vm-extent-end-position x))
 	   (hstart (vm-mm-layout-header-start layout))
 	   (bstart (vm-mm-layout-body-start layout))
 	   (end    (vm-mm-layout-body-end   layout))

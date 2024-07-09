@@ -1,4 +1,4 @@
-;;; vm-digest.el --- Message encapsulation
+;;; vm-digest.el --- Message encapsulation  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -34,7 +34,7 @@
 (declare-function vm-yank-message "vm-reply" (message))
 
 ;;;###autoload
-(defun vm-no-frills-encapsulate-message (m keep-list discard-regexp)
+(defun vm-no-frills-encapsulate-message (m _keep-list _discard-regexp)
   "Encapsulate a message M for forwarding, simply.
 No message encapsulation standard is used.  The message is
 inserted at point in the current buffer, surrounded by two dashed
@@ -116,7 +116,7 @@ If multipart/digest encapsulation is done, the function returns
 the multipart boundary parameter (string) that should be used in
 the Content-Type header.  Otherwise nil is returned."
   (if message-list
-      (let ((target-buffer (current-buffer))
+      (let (;; (target-buffer (current-buffer))
 	    (boundary-positions nil)
 	    (mlist message-list)
 	    (boundary nil)
@@ -739,7 +739,7 @@ burst."
   (or digest-type (setq digest-type vm-digest-burst-type))
   (vm-follow-summary-cursor)
   (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
-  (let ((start-buffer (current-buffer)) m totals-blurb
+  (let ((start-buffer (current-buffer)) m ;; totals-blurb
 	(mlist (vm-select-operable-messages
 		1 (vm-interactive-p) "Burst digest of"))
 	(work-buffer nil))
@@ -822,7 +822,7 @@ Returns either \"rfc934\", \"rfc1153\" or \"mime\"."
 	      (t "rfc934"))))))
 
 (defun vm-digest-get-header-contents (header-name-regexp)
-  (let ((contents nil)
+  (let (;; (contents nil)
 	regexp)
     (setq regexp (concat "^\\(" header-name-regexp "\\)\\|\\(^$\\)"))
     (save-excursion

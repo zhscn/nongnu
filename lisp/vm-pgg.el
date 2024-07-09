@@ -1,4 +1,4 @@
-;;; vm-pgg.el --- PGP/MIME support for VM by pgg.el
+;;; vm-pgg.el --- PGP/MIME support for VM by pgg.el  -*- lexical-binding: t; -*-
 ;;
 ;; This file is an add-on for VM
 ;; 
@@ -1070,7 +1070,7 @@ seed and thus creates the same boundery when called twice in a short period."
 (defun vm-pgg-save-work (function &rest args)
   "Call FUNCTION with ARGS without messing up the composition in case of an error."
   (let ((composition-buffer (current-buffer))
-        (undo-list-backup buffer-undo-list)
+        ;; (undo-list-backup buffer-undo-list)
         (work-buffer (get-buffer-create " *VM-PGG-WORK*")))
     (with-current-buffer work-buffer
       (buffer-disable-undo)

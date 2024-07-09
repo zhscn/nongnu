@@ -1,4 +1,4 @@
-;;; vm-vcard.el --- vcard parsing and formatting routines for VM
+;;; vm-vcard.el --- vcard parsing and formatting routines for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is an add-on for VM
 

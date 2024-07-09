@@ -1,7 +1,6 @@
-;;; vm-mime-display-internal-application.el --- Display application attachments
-;;; -*-unibyte: t; coding: iso-8859-1;-*-
+;;; vm-mime-display-internal-application.el --- Display application attachments  -*- lexical-binding: t; -*-
 
-;; Copyright © 2004 Kevin Rodgers
+;; Copyright Â© 2004 Kevin Rodgers
 
 ;; Author: Kevin Rodgers <ihs_4664@yahoo.com>
 ;; Created: 11 Jun 2004
@@ -135,6 +134,7 @@ See `vm-mime-internal-application-subtypes'.")
     (put (vm-mm-layout-cache layout)
          'vm-mime-display-internal-application/xxxx
          tempfile)
+    (defvar inhibit-local-variables) ;; FIXME: Unknown var.  XEmacs, maybe?
     (let* ((inhibit-local-variables t)
            (enable-local-variables nil)
            (enable-local-eval nil)

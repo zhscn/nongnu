@@ -81,6 +81,31 @@
 (declare-function vm-decode-mime-encoded-words-in-string "vm-mime" (string))
 (declare-function vm-su-subject "vm-summary" (message))
 
+(require 'vm-vars)
+;; (defvar vm-chop-full-name-function)
+;; (defvar vm-current-warning)
+;; (defvar vm-default-new-folder-line-ending-type)
+;; (defvar vm-delete-duplicates-obarray)
+;; (defvar vm-fill-paragraphs-containing-long-lines)
+;; (defvar vm-folder-type)
+;; (defvar vm-folders-summary-buffer)
+;; (defvar vm-index-file-suffix)
+;; (defvar vm-mail-buffer)
+;; (defvar vm-message-list)
+;; (defvar vm-message-pointer)
+;; (defvar vm-parse-date-workspace)
+;; (defvar vm-paragraph-fill-column)
+;; (defvar vm-presentation-buffer)
+;; (defvar vm-presentation-buffer-handle)
+;; (defvar vm-search-other-frames)
+;; (defvar vm-sortable-date-alist)
+;; (defvar vm-startup-with-summary)
+;; (defvar vm-summary-buffer)
+;; (defvar vm-temp-file-directory)
+;; (defvar vm-tempfile-counter)
+;; (defvar vm-verbosity)
+;; (defvar vm-verbal-time)
+;; (defvar vm-word-wrap-paragraphs)
 
 ;; This file contains various low-level operations that address
 ;; incomaptibilities between Gnu and XEmacs.  Expect compiler warnings.
@@ -1283,7 +1308,7 @@ encoding/decoding, conversions, subprocess communication etc."
      (fset 'vm-insert-char 'vm-xemacs-compatible-insert-char)
      (vm-insert-char char count ignored buffer))))
 
-(defun vm-xemacs-compatible-insert-char (char &optional count ignored buffer)
+(defun vm-xemacs-compatible-insert-char (char &optional count _ignored buffer)
   (if (and buffer (eq buffer (current-buffer)))
       (insert-char char count)
     (with-current-buffer buffer

@@ -1,4 +1,4 @@
-;;; vm-edit.el --- Editing VM messages
+;;; vm-edit.el --- Editing VM messages  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -267,9 +267,9 @@ thread have their cached data discarded."
 	   (widen)
 	   (goto-char (vm-headers-of (vm-real-message-of (car mp))))
 	   (let ((vm-message-pointer mp)
-		 opoint
+		 ;; opoint
 		 (buffer-read-only nil))
-	     (setq opoint (point))
+	     ;; (setq opoint (point))
 	     (insert-buffer-substring edit-buf)
 	     (delete-region
 	      (point) (vm-text-end-of (vm-real-message-of (car mp))))

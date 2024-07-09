@@ -1,4 +1,4 @@
-;;; vm-pcrisis.el --- wide-ranging auto-setup for personalities in VM
+;;; vm-pcrisis.el --- wide-ranging auto-setup for personalities in VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is an add-on for VM
 ;;
@@ -1082,7 +1082,7 @@ whitespace."
   "Read a list of actions to run and store it in `vmpc-actions-to-run'.
 The special action \"none\" will result in an empty action list."
   (interactive (list "VMPC actions%s: "))
-  (let ((actions ()) (read-count 0) a)
+  (let ((actions ())) ;; (read-count 0) (a nil)
     (setq actions (vm-read-string 
                    (format prompt (if default (format " %s" default) ""))
                    (append '(("none")) vmpc-actions)

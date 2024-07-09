@@ -1,4 +1,4 @@
-;;; vm-dired.el --- VM interface to dired
+;;; vm-dired.el --- VM interface to dired  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;

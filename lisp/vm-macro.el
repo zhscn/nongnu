@@ -1,4 +1,4 @@
-;;; vm-macro.el ---  Random VM macros
+;;; vm-macro.el ---  Random VM macros  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -38,10 +38,10 @@
       `(save-current-buffer (set-buffer ,buf) ,@body)))
 
   (unless (fboundp 'defvaralias)
-    (defmacro defvaralias (&rest args)))
+    (defmacro defvaralias (&rest _args)))
 
   (unless (fboundp 'declare-function)
-    (defmacro declare-function (fn file &optional arglist fileonly))))
+    (defmacro declare-function (_fn _file &optional _arglist _fileonly))))
 
 (defmacro vm-interactive-p ()
   (if (featurep 'xemacs)
@@ -54,6 +54,34 @@
 (declare-function vm-check-for-killed-presentation "vm-misc" ())
 (declare-function vm-error-if-folder-empty "vm-misc" ())
 (declare-function vm-build-threads "vm-thread" (message-list))
+
+(defvar vm-assertion-checking-off)
+(defvar vm-buffer-types)
+(defvar vm-current-warning)
+(defvar vm-folder-read-only)
+(defvar vm-mail-buffer)
+(defvar vm-recognize-imap-maildrops)
+(defvar vm-recognize-pop-maildrops)
+(defvar vm-summary-buffer)
+(defvar vm-thread-obarray)
+(defvar vm-user-interaction-buffer)
+
+(defmacro vm--dlet (binders &rest body)
+  ;; Copied from `calendar-dlet'.
+  "Like `dlet' but without warnings about non-prefixed var names."
+  (declare (indent 1) (debug let))
+  (let ((vars (mapcar (lambda (binder)
+                        (if (consp binder) (car binder) binder))
+                      binders)))
+    ;; (defvar FOO) only affects the current scope, but in order for this
+    ;; not to affect code after the main `let' we need to create a new scope,
+    ;; which is what the surrounding `let' is for.
+    ;; FIXME: (let () ...) currently doesn't actually create a new scope,
+    ;; which is why we use (let (_) ...).
+    `(let (_)
+       (with-suppressed-warnings ((lexical ,@vars))
+         ,@(mapcar (lambda (var) `(defvar ,var)) vars)
+         (dlet ,binders ,@body)))))
 
 (defmacro vm-add-to-list (elem list)
   "Like add-to-list, but compares elements by `eq' rather than `equal'."
