@@ -316,27 +316,26 @@
 		    (if (> time (* 7 86400)) (setq time (* 7 86400)))
 		    (message "setting timer on msg %s in %.0f seconds"
 			     (vm-su-message-id m) time)
-		    (add-timeout time
-				 (lambda (arg)
-				   (when (buffer-live-p (car arg))
-				     (save-excursion
-				       (set-buffer (car arg))
-				       (let ((mp vm-message-list))
-					 (while (and mp 
-						     (not (equal 
-							   (vm-message-id-of
-							    (car mp))
-							   (cadr arg))))
-					   (setq mp (cdr mp)))
-					 (if mp 
-					     (vm-sumurg-check-future (car mp))))
-				       (vm-follow-summary-cursor)
-				       (vm-select-folder-buffer)
-				       (intern (buffer-name) 
-					       vm-buffers-needing-display-update)
-				       (vm-update-summary-and-mode-line))))
-				 (list (current-buffer) (vm-su-message-id m)))
-		    ))
+		    (run-with-timer
+		     time nil
+		     (lambda (buf msg-id)
+		       (when (buffer-live-p buf)
+			 (with-current-buffer buf
+			   (let ((mp vm-message-list))
+			     (while (and mp 
+					 (not (equal 
+					       (vm-message-id-of
+						(car mp))
+					       msg-id)))
+			       (setq mp (cdr mp)))
+			     (if mp 
+				 (vm-sumurg-check-future (car mp))))
+			   (vm-follow-summary-cursor)
+			   (vm-select-folder-buffer)
+			   (intern (buffer-name) 
+				   vm-buffers-needing-display-update)
+			   (vm-update-summary-and-mode-line))))
+		     (current-buffer) (vm-su-message-id m))))
 		)))
 	    (vm-labels-of m))
 )
@@ -551,7 +550,7 @@
 		 (set-face-background 'vm-sumurg-rightnow-face "magenta"))
 	(setq vm-sumurg-blinker-blink t)
 	(set-face-background 'vm-sumurg-rightnow-face "cyan"))
-    (disable-timeout vm-sumurg-blinker-timeout-id)
+    (cancel-timer vm-sumurg-blinker-timeout-id)
     (setq vm-sumurg-blinker-timeout-id nil)
     (setq vm-sumurg-blinker-blink nil)
     (set-face-background 'vm-sumurg-rightnow-face "magenta")))
@@ -561,7 +560,7 @@
   (if (and vm-sumurg-blinker-in-focus
 	   (null vm-sumurg-blinker-timeout-id))
       (setq vm-sumurg-blinker-timeout-id
-	    (add-timeout 1 'vm-sumurg-blinker-callback nil 1))))
+	    (run-with-timer 1 1 #'vm-sumurg-blinker-callback))))
 (defun vm-sumurg-blinker-deselect-frame-hook ()
   (setq vm-sumurg-blinker-in-focus nil))
 (defun vm-sumurg-blinker-enable ()

@@ -737,7 +737,7 @@ killed as well."
 (defun vm-pop-start-status-timer ()
   (let ((blob (make-vector 12 nil))
 	timer)
-    (setq timer (add-timeout 5 'vm-pop-report-retrieval-status blob 5))
+    (setq timer (run-with-timer 5 5 #'vm-pop-report-retrieval-status blob))
     (vm-set-pop-stat-timer blob timer)
     blob ))
 
