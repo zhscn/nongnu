@@ -106,9 +106,7 @@
   (require 'vm-page)
   (require 'vm-mime)
   (require 'vm-reply)
-  (require 'vm-motion)
-
-  (require 'advice))
+  (require 'vm-motion))
   
 (declare-function rfc822-addresses "ext:rfc822" (header-text))
 

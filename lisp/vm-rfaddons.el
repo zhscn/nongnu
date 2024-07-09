@@ -61,6 +61,7 @@
 (provide 'vm-rfaddons)
 
 (require 'vm-macro)
+(require 'vm-version)
 
 (eval-when-compile
   (require 'vm-misc)
@@ -101,7 +102,6 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'advice)
   (vm-load-features '(regexp-opt bbdb bbdb-vm))
   ;; gnus-group removed from features because it gives errors.  USR, 2011-01-26
   )

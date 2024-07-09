@@ -37,6 +37,7 @@
   (require 'executable))
 
 (eval-and-compile
+  (require 'vm-version)
   (vm-load-features '(w3m)))
 
 (declare-function w3m-region 

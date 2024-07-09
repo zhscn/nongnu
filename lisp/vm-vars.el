@@ -6767,7 +6767,7 @@ header line in email messages,
 (defvaralias 'vm-vs-spam-score-headers
   'vm-spam-score-headers)
 
-(defconst vm-supported-sort-keys
+(defvar vm-supported-sort-keys
   '("date" "reversed-date"
     "activity" "reversed-activity"
     "author" "reversed-author"

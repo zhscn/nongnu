@@ -27,11 +27,11 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'advice)
   (require 'vm-mime)
 )
 
 (eval-and-compile
+  (require 'vm-version)
   (vm-load-features '(w3)))
 
 (declare-function w3-region "ext:w3-display.el" (st nd))

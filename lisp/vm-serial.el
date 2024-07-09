@@ -90,8 +90,7 @@
 (eval-and-compile
   (require 'vm-pine)
   (require 'mail-utils)
-  (require 'mail-extr)
-  (require 'advice))
+  (require 'mail-extr))
 
 (declare-function bbdb-extract-address-components 
 		  "ext:bbdb-snarf" (adstring &optional ignore-errors))
