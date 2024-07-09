@@ -179,7 +179,7 @@
     ;; this fails with virtual folders: the modeline in the frame
     ;; of the original folder isn't updated.
     ;; I can see absolutely no non-horrible solution to this.
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(set-face-foreground 'modeline
 			     (aref vm-sumurg-colarray maxl)
 			     (selected-frame)))))
@@ -193,7 +193,7 @@
     (if (> level 0)
 	(progn
 	  (aset vm-sumurg-counter level (1+ (aref vm-sumurg-counter level)))
-	  (cond (vm-xemacs-p
+	  (cond ((featurep 'xemacs)
 		 ;; re-use extents, and delete them when not required
 		 (let ((e (extent-at (/ (+ start end))
 				     (current-buffer) 'vm-sumurg))) 
@@ -210,14 +210,14 @@
 		     )
 		   (set-extent-property e 'face 
 					(aref vm-sumurg-facearray level)))) 
-		(vm-fsfemacs-p
+		((not (featurep 'xemacs))
 		 ;; why 1- ? Because then the overlay gets deleted by
 		 ;; the process of summary update.
 		 (let ((e (make-overlay start (1- end))))
 		   (overlay-put e 'evaporate t)
 		   (overlay-put e 'face (aref vm-sumurg-facearray level))))))
       ;; level 0: emacs, delete the extent
-      (cond (vm-xemacs-p
+      (cond ((featurep 'xemacs)
 	     (let ((e (extent-at (/ (+ start end)) 
 				 (current-buffer) 'vm-sumurg))) 
 	       (if e (delete-extent e))))))
@@ -343,7 +343,7 @@
 
 
 (defconst vm-sumurg-pending-extent
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (let ((e (make-extent nil nil))
 	    (k (make-sparse-keymap)))
 	(set-extent-face e 'vm-sumurg-pending-face)
@@ -355,7 +355,7 @@
 	)))
 
 (defconst vm-sumurg-urgent-extent
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (let ((e (make-extent nil nil))
 	    (k (make-sparse-keymap)))
 	(set-extent-face e 'vm-sumurg-urgent-face)
@@ -367,7 +367,7 @@
 	)))
 
 (defconst vm-sumurg-veryurgent-extent
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (let ((e (make-extent nil nil))
 	    (k (make-sparse-keymap)))
 	(set-extent-face e 'vm-sumurg-veryurgent-face)
@@ -381,7 +381,7 @@
 
 
 (defconst vm-sumurg-rightnow-extent
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (let ((e (make-extent nil nil))
 	    (k (make-sparse-keymap)))
 	(set-extent-face e 'vm-sumurg-rightnow-face)
@@ -395,7 +395,7 @@
 
 
 (defconst vm-sumurg-comp-extent
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (let ((e (make-extent nil nil))
 	    (k (make-sparse-keymap)))
 	(set-extent-face e 'vm-sumurg-comp-face)
@@ -410,7 +410,7 @@
 
 ; modeline element for xemacs
 (defvar vm-sumurg-modeline-element
-  (cond (vm-xemacs-p
+  (cond ((featurep 'xemacs)
 	 (list
 	  (list 'vm-sumurg-modeline-comp
 		(list vm-sumurg-comp-extent "" 
@@ -427,7 +427,7 @@
 	  (list 'vm-sumurg-modeline-rightnow
 		(list vm-sumurg-rightnow-extent "" 
 		      'vm-sumurg-modeline-rightnow))))
-	(vm-fsfemacs-p
+	((not (featurep 'xemacs))
 	 (list
 	  (list 'vm-sumurg-modeline-comp
 		(list "" 'vm-sumurg-modeline-comp))
@@ -444,7 +444,7 @@
 
 ; stick it at the end
 (add-hook 'vm-summary-mode-hook
-	(if vm-xemacs-p
+	(if (featurep 'xemacs)
 	    (lambda ()
 	      (setq vm-sumurg-counter (vector 0 0 0 0 0))
 	      (if (memq vm-sumurg-modeline-element modeline-format)

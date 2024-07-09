@@ -949,7 +949,7 @@ cleanup here after verification and decoding took place."
                    (insert-buffer-substring pgg-errors-buffer))
                (vm-pgg-state-set 'verified)
                (insert-buffer-substring 
-                (if vm-fsfemacs-p pgg-errors-buffer pgg-output-buffer))
+                (if (not (featurep 'xemacs)) pgg-errors-buffer pgg-output-buffer))
                (vm-pgg-crlf-cleanup start (point)))
              (setq end (point))
              (put-text-property start end 'face
@@ -1022,7 +1022,7 @@ cleanup here after verification and decoding took place."
     (unless (pgg-snarf-keys)
       (error "Snarfing failed"))
     (save-excursion
-      (set-buffer (if vm-fsfemacs-p pgg-errors-buffer pgg-output-buffer))
+      (set-buffer (if (not (featurep 'xemacs)) pgg-errors-buffer pgg-output-buffer))
       (message (buffer-substring (point-min) (point-max))))))
 
 ;;; ###autoload

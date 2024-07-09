@@ -94,7 +94,7 @@
 ;;               ;; HTML only messages
 ;;               (header "^Content-Type: text/html")
 ;;               ;; for 8bit encoding "chinese" spam
-;;               (header "[¡-ÿ][¡-ÿ][¡-ÿ][¡-ÿ]")
+;;               (header "[Â¡-Ã¿][Â¡-Ã¿][Â¡-Ã¿][Â¡-Ã¿]")
 ;;               ;; for qp-encoding "chinese" spam
 ;;               (header "=[A-F][0-9A-F]=[A-F][0-9A-F]=[A-F][0-9A-F]=[A-F][0-9A-F]=[A-F][0-9A-F]")
 ;;               ))))))
@@ -717,7 +717,7 @@ format:
       (setq selector (vm-virtual-get-selector
                       (vm-read-string "Virtual folder: "
                                       vm-virtual-folder-alist)))
-      (if vm-xemacs-p
+      (if (featurep 'xemacs)
 	  (setq function 
 		(key-or-menu-binding (read-key-sequence "VM command: ")))
 	(setq function

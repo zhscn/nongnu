@@ -318,14 +318,14 @@ Negative arg means scroll forward."
 
 (defun vm-highlight-headers ()
   (cond
-   ((and vm-xemacs-p vm-use-lucid-highlighting)
+   ((and (featurep 'xemacs) vm-use-lucid-highlighting)
     (require 'highlight-headers)
     ;; disable the url marking stuff, since VM has its own interface.
     (let ((highlight-headers-mark-urls nil)
 	  (highlight-headers-regexp (or vm-highlighted-header-regexp
 					highlight-headers-regexp)))
       (highlight-headers (point-min) (point-max) t)))
-   (vm-xemacs-p
+   ((featurep 'xemacs)
     (let (e)
       (map-extents (function
 		    (lambda (e ignore)
@@ -341,7 +341,7 @@ Negative arg means scroll forward."
 	       (vm-set-extent-property e 'face vm-highlighted-header-face)
 	       (vm-set-extent-property e 'vm-highlight t)))
 	(goto-char (vm-matched-header-end)))))
-   (vm-fsfemacs-p
+   ((not (featurep 'xemacs))
     (let (o-lists p)
       (setq o-lists (overlay-lists)
 	    p (car o-lists))
@@ -377,18 +377,16 @@ Negative arg means scroll forward."
 				 (cons (- (point-max) (/ search-limit 2))
 				       (point-max))))
       (setq search-pairs (list (cons (point-min) (point-max)))))
-    (cond
-     ((or vm-xemacs-p vm-fsfemacs-p)	; should work for both cases
-      (let (e)
-	(vm-map-extents (function
-			 (lambda (e ignore)
-			   (when (vm-extent-property e 'vm-url)
-			     (vm-delete-extent e))
-			   nil))
-			(current-buffer) 
-			;; (point-min) (point-max)
-			)
-	(if clean-only (vm-inform 1 "Energy from urls removed!")
+    (let (e)
+      (vm-map-extents (function
+		       (lambda (e ignore)
+			 (when (vm-extent-property e 'vm-url)
+			   (vm-delete-extent e))
+			 nil))
+		      (current-buffer)
+		      ;; (point-min) (point-max)
+		      )
+      (if clean-only (vm-inform 1 "Energy from urls removed!")
 	(while search-pairs
 	  (goto-char (car (car search-pairs)))
 	  (while (re-search-forward vm-url-regexp (cdr (car search-pairs)) t)
@@ -407,19 +405,19 @@ Negative arg means scroll forward."
 			     (looking-at "mailto:"))
 			   'vm-menu-popup-mailto-url-browser-menu
 			 'vm-menu-popup-url-browser-menu)))
-		  (if vm-fsfemacs-p
+		  (if (not (featurep 'xemacs))
 		      (setq keymap (nconc keymap (current-local-map))))
-		  (if vm-xemacs-p
+		  (if (featurep 'xemacs)
 		      (define-key keymap 'button2 'vm-mouse-send-url-at-event)
 		    ;; nothing for fsfemacs?
 		    )
 		  (when vm-popup-menu-on-mouse-3
-		    (if vm-xemacs-p
+		    (if (featurep 'xemacs)
 			(define-key keymap 'button3 popup-function)
 		      (define-key keymap [mouse-3] popup-function)))
 		  (define-key keymap "\r"
-		    (function (lambda () (interactive)
-				(vm-mouse-send-url-at-position (point)))))
+			      (function (lambda () (interactive)
+				          (vm-mouse-send-url-at-position (point)))))
 		  (vm-set-extent-property e 'vm-button t)
 		  ;; for xemacs
 		  (vm-set-extent-property e 'keymap keymap)
@@ -433,49 +431,11 @@ Negative arg means scroll forward."
 		  ;; for vm-continue-postponed-message
 		  (vm-set-extent-property e 'duplicable t)
 		  )))
-	  (setq search-pairs (cdr search-pairs))))))
-     (vm-fsfemacs-p
-      (let (e)
-	(vm-map-extents (function
-			 (lambda (e ignore)
-			   (when (vm-extent-property e 'vm-url)
-			     (vm-delete-extent e))
-			   nil))
-			(current-buffer))
-	(while search-pairs
-	  (goto-char (car (car search-pairs)))
-	  (while (re-search-forward vm-url-regexp (cdr (car search-pairs)) t)
-	    (setq n 1)
-	    (while (null (match-beginning n))
-	      (vm-increment n))
-	    (setq e (vm-make-extent (match-beginning n) (match-end n)))
-	    (vm-set-extent-property e 'vm-url t)
-	    (if vm-highlight-url-face
-		(vm-set-extent-property e 'face vm-highlight-url-face))
-	    (if vm-url-browser
-		(let ((keymap (make-sparse-keymap))
-		      (popup-function
-		       (if (save-excursion
-			     (goto-char (match-beginning n))
-			     (looking-at "mailto:"))
-			   'vm-menu-popup-mailto-url-browser-menu
-			 'vm-menu-popup-url-browser-menu)))
-		  (setq keymap (nconc keymap (current-local-map)))
-		  (if vm-popup-menu-on-mouse-3
-		      (define-key keymap [mouse-3] popup-function))
-		  (define-key keymap "\r"
-		    (function (lambda () (interactive)
-				(vm-mouse-send-url-at-position (point)))))
-		  (vm-set-extent-property e 'vm-button t)
-		  (vm-set-extent-property e 'local-map keymap)
-		  (vm-set-extent-property e 'balloon-help 'vm-url-help)
-		  (vm-set-extent-property e 'mouse-face 'highlight)
-		  )))
-	  (setq search-pairs (cdr search-pairs))))))))
+	  (setq search-pairs (cdr search-pairs)))))))
 
 (defun vm-energize-headers ()
   (cond
-   (vm-xemacs-p
+   ((featurep 'xemacs)
     (let ((search-tuples '(("^From:" vm-menu-author-menu)
 			   ("^Subject:" vm-menu-subject-menu)))
 	  regexp menu keymap e)
@@ -509,7 +469,7 @@ Negative arg means scroll forward."
 	  (vm-set-extent-property e 'balloon-help 'vm-mouse-3-help)
 	  (vm-set-extent-property e 'highlight t))
 	(setq search-tuples (cdr search-tuples)))))
-   ((and vm-fsfemacs-p
+   ((and (not (featurep 'xemacs))
 	 (fboundp 'overlay-put))
     (let ((search-tuples '(("^From:" vm-menu-fsfemacs-author-menu)
 			   ("^Subject:" vm-menu-fsfemacs-subject-menu)))
@@ -540,8 +500,8 @@ Negative arg means scroll forward."
 	(setq search-tuples (cdr search-tuples)))))))
 
 (defun vm-display-xface ()
-  (cond (vm-xemacs-p (vm-display-xface-xemacs))
-	((and vm-fsfemacs-p
+  (cond ((featurep 'xemacs) (vm-display-xface-xemacs))
+	((and (not (featurep 'xemacs))
 	      (and (stringp vm-uncompface-program)
 		   (fboundp 'create-image)))
 	 (vm-display-xface-fsfemacs))))
@@ -694,7 +654,7 @@ Use mouse button 3 to choose a Web browser for the URL."
 (defun vm-highlight-headers-maybe ()
   ;; highlight the headers
   (if (or vm-highlighted-header-regexp
-	  (and vm-xemacs-p vm-use-lucid-highlighting))
+	  (and (featurep 'xemacs) vm-use-lucid-highlighting))
       (save-restriction
 	(widen)
 	(narrow-to-region (vm-headers-of (car vm-message-pointer))
@@ -711,8 +671,8 @@ Use mouse button 3 to choose a Web browser for the URL."
 	(vm-energize-headers)))
   ;; display xfaces, if we can
   (if (and vm-display-xfaces
-	   (or (and vm-xemacs-p (featurep 'xface))
-	       (and vm-fsfemacs-p (fboundp 'create-image)
+	   (or (and (featurep 'xemacs) (featurep 'xface))
+	       (and (not (featurep 'xemacs)) (fboundp 'create-image)
 		    (stringp vm-uncompface-program))))
       (save-restriction
 	(widen)
@@ -743,7 +703,7 @@ is necessary."
 	     ;; cutoff line one character forward, but only if
 	     ;; we're doing MIME decode for preview.
 	     (if (and (not just-passing-through)
-		      vm-xemacs-p
+		      (featurep 'xemacs)
 		      vm-mail-buffer ; in presentation buffer
 		      vm-auto-decode-mime-messages
 		      vm-mime-decode-for-preview
@@ -1043,7 +1003,7 @@ is done if necessary.  (USR, 2010-01-14)"
 			  (vm-text-end-of (car vm-message-pointer))))))
 
 (defun vm-narrow-to-page ()
-  (cond (vm-fsfemacs-p
+  (cond ((not (featurep 'xemacs))
 	 (if (not (and vm-page-end-overlay
 		       (overlay-buffer vm-page-end-overlay)))
 	     (let ((g vm-page-continuation-glyph))
@@ -1051,7 +1011,7 @@ is done if necessary.  (USR, 2010-01-14)"
 	       (vm-set-extent-property vm-page-end-overlay 'vm-glyph g)
 	       (vm-set-extent-property vm-page-end-overlay 'before-string g)
 	       (overlay-put vm-page-end-overlay 'evaporate nil))))
-	(vm-xemacs-p
+	((featurep 'xemacs)
 	 (if (not (and vm-page-end-overlay
 		       (vm-extent-end-position vm-page-end-overlay)))
 	     (let ((g vm-page-continuation-glyph))

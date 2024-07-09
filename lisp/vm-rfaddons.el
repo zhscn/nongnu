@@ -109,7 +109,7 @@
 (require 'sendmail)
 (vm-load-features '(bbdb))
 
-(if vm-xemacs-p (require 'overlay))
+(if (featurep 'xemacs) (require 'overlay))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -617,7 +617,7 @@ buffer. (Rob F)"
 		      ;; predicate, require-match
 		      nil t)
 		     current-prefix-arg))
-  (if (or vm-xemacs-mule-p vm-fsfemacs-p)
+  (if (or (featurep 'xemacs) (not (featurep 'xemacs)))
       (error "vm-mime-8bit-composition-charset has no effect in XEmacs/MULE"))
   (if buffer-local
       (set (make-local-variable 'vm-mime-8bit-composition-charset) charset)
@@ -1177,9 +1177,9 @@ headers. (Rob F)"
   :group 'vm-rfaddons)
 
 (defconst vm-shrunken-headers-keymap
-  (let ((map (if vm-xemacs-p (make-keymap) (copy-keymap vm-mode-map))))
+  (let ((map (if (featurep 'xemacs) (make-keymap) (copy-keymap vm-mode-map))))
     (define-key map [(return)]   'vm-shrunken-headers-toggle-this)
-    (if vm-xemacs-p
+    (if (featurep 'xemacs)
         (define-key map [(button2)]  'vm-shrunken-headers-toggle-this-mouse)
       (define-key map [(mouse-2)]  'vm-shrunken-headers-toggle-this-mouse))
     map)

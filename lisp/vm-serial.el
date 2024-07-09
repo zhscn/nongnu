@@ -190,16 +190,16 @@
      "a randomly selected your-style greeting")
     ;; german
     ("hallo"    ("Hi" "Griass di" "Servus" "Hallo")
-     "ein Hallo-Gruß")
+     "ein Hallo-GruÃŸ")
     ("mausl"    ("Mausl" "Liebling" "Schatzi" "Hallo")
      "die Freundin")
-    ("ciao"     ("" "Ciao " "Tschüß " "Servus " "Mach's gut " "Bis denn "
+    ("ciao"     ("" "Ciao " "TschÃ¼ÃŸ " "Servus " "Mach's gut " "Bis denn "
                  "Bis die Tage mal ")
      "Verabschiedung")
     ("sg"      ("Sehr geehrte Frau/Herr")
-     "förmliche Anrede")
-    ("mfg"     ("Mit freundlichen Grüßen")
-     "förmliche Verabschiedung")
+     "fÃ¶rmliche Anrede")
+    ("mfg"     ("Mit freundlichen GrÃ¼ÃŸen")
+     "fÃ¶rmliche Verabschiedung")
     ;; french
     ("salut" ("Salut" "Bonjour")
      "Une salutation au hasard")
@@ -687,9 +687,9 @@ a warning."
   
   (let ((token-regexp (concat (regexp-quote vm-serial-cookie)
                        "\\(" (regexp-quote vm-serial-cookie) "\\)*"
-                       "[{\(a-zA-Z]"))
+                       "[{(a-zA-Z]"))
         start end expr result vm-serial-point)
-    (if (and vm-xemacs-p
+    (if (and (featurep 'xemacs)
              (region-exists-p)
              (eq (zmacs-region-buffer) (current-buffer)))
         (setq rstart (goto-char (region-beginning)) rend (region-end))

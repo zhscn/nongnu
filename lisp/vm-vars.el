@@ -1850,7 +1850,7 @@ and when you read an email."
 		 regexp))
 
 (defcustom vm-mime-default-face-charsets
-  (if vm-fsfemacs-mule-p
+  (if (not (featurep 'xemacs))
       (if (eq window-system nil)
           '("us-ascii" "ansi_x3.4-1968" "iso-8859-1")
         '("us-ascii" "ansi_x3.4-1968"))
@@ -4397,7 +4397,7 @@ older VM installation."
                                 (expand-file-name vm-configure-datadir))
                            (expand-file-name "pixmaps" vm-dir)
 			   (expand-file-name "../pixmaps" vm-dir)
-			   (let ((d (and vm-xemacs-p 
+			   (let ((d (and (featurep 'xemacs)
 					 (xemacs-locate-data-directory "vm"))))
 			     (and d (expand-file-name "pixmaps" d)))))
          image-dir)
@@ -5114,7 +5114,7 @@ decide the face."
 (put 'vm-summary-marked-face 'face-alias 'vm-summary-marked)
 (make-obsolete 'vm-summary-marked-face 'vm-summary-marked "8.2.0")
 
-(if vm-xemacs-p
+(if (featurep 'xemacs)
     (defface vm-summary-deleted
       '(
 	(((class color) (background light))
@@ -5892,7 +5892,7 @@ The default should work on UNIX systems."
   :group 'vm-helpers
   :type '(string :tag "Shell command"))
 
-(defcustom vm-uncompface-program (and vm-fsfemacs-p
+(defcustom vm-uncompface-program (and (not (featurep 'xemacs))
 				   (fboundp 'image-type-available-p)
 				   (vm-locate-executable-file "uncompface"))
   "*Program used to convert X-Face data to Sun icon format.
@@ -5903,7 +5903,7 @@ display of X-Faces under Emacs 21."
   :type '(choice (const :tag "None" nil)
 		 file))
 
-(defcustom vm-icontopbm-program (and vm-fsfemacs-p
+(defcustom vm-icontopbm-program (and (not (featurep 'xemacs))
 				  (fboundp 'image-type-available-p)
 				  (vm-locate-executable-file "icontopbm"))
   "*Program to convert Sun icon data to a PBM file.
@@ -5915,7 +5915,7 @@ data to XBM data."
 		 file))
 
 (defvar vm-uncompface-accepts-dash-x
-  (and vm-fsfemacs-p (fboundp 'image-type-available-p)
+  (and (not (featurep 'xemacs)) (fboundp 'image-type-available-p)
        (stringp vm-uncompface-program)
        (eq 0 (string-match "#define"
 			   (shell-command-to-string
@@ -6337,7 +6337,7 @@ Its parent keymap is mail-mode-map.")
     (define-key map "$|" 'vm-mime-reader-map-pipe-to-command)
     (define-key map "$a" 'vm-mime-reader-map-attach-to-composition)
     (define-key map "$d" 'vm-delete-mime-object)
-    (cond ((vm-mouse-xemacs-mouse-p)
+    (cond ((featurep 'xemacs)
 	   (define-key map 'button3 'vm-menu-popup-mime-dispose-menu)))
     (cond ((fboundp 'set-keymap-name)
 	   (set-keymap-name map 'vm-mime-reader-map)))
@@ -7384,7 +7384,7 @@ actions to be taken to destroy them.")
 (defconst vm-mime-header-list '("MIME-Version:" "Content-"))
 (defconst vm-mime-header-regexp "\\(MIME-Version:\\|Content-\\)")
 (defconst vm-mime-mule-charset-to-coding-alist
-  (cond (vm-fsfemacs-mule-p
+  (cond ((not (featurep 'xemacs))
 	 (let ((coding-systems (coding-system-list))
 	       (alist nil)
 	       val)
@@ -7448,7 +7448,7 @@ default alist is used.")
   "Alist that maps MULE character sets to matching MIME character sets.")
 
 (defconst vm-mime-mule-coding-to-charset-alist
-  (cond (vm-fsfemacs-mule-p
+  (cond ((not (featurep 'xemacs))
 	 (let ((coding-systems (coding-system-list))
 	       (alist nil)
 	       val)

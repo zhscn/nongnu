@@ -1014,7 +1014,7 @@ popdrop
   (setq end (vm-marker end))
   (save-excursion
     ;; CRLF -> LF
-    (if vm-xemacs-mule-p
+    (if (featurep 'xemacs)
         (progn
           ;; we need this otherwise the end marker gets corrupt and
           ;; unfortunately decode-coding-region does not return the

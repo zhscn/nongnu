@@ -388,7 +388,7 @@ s-expression like this one in your .vm file:
 (defun vm-toolbar-install-or-uninstall-toolbar ()
   (and (vm-toolbar-support-possible-p) vm-use-toolbar
        (vm-toolbar-install-toolbar))
-  (if (and vm-fsfemacs-p (not vm-use-toolbar))
+  (if (and (not (featurep 'xemacs)) (not vm-use-toolbar))
       (vm-toolbar-fsfemacs-uninstall-toolbar)))
 
 (defcustom vm-toolbar-height nil
@@ -403,7 +403,7 @@ s-expression like this one in your .vm file:
   ;; save file is newer..."
   (require 'vm-save)
   (require 'vm-summary)
-  (if vm-fsfemacs-p
+  (if (not (featurep 'xemacs))
       (if (not vm-fsfemacs-toolbar-installed-p)
 	  (vm-toolbar-fsfemacs-install-toolbar))
     (if (not (vm-toolbar-pixmap-directory))
@@ -494,7 +494,7 @@ s-expression like this one in your .vm file:
 
 (defun vm-toolbar-initialize ()
   (cond
-   (vm-fsfemacs-p nil)
+   ((not (featurep 'xemacs)) nil)
    ((null vm-toolbar-help-icon)
     (let ((tuples
            (list

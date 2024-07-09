@@ -393,7 +393,7 @@ This is the XEmacs version of `vmpc-set-overlay-insertion-types'."
 In other words, EXERLAY is the name of the overlay or extent with a quote in
 front.  START and END are the equivalent of the marker insertion types for the
 start and end of the overlay/extent."
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (vmpc-set-extent-insertion-types (symbol-value exerlay) start end)
     (set exerlay (vmpc-set-overlay-insertion-types (symbol-value exerlay)
 						   start end))))
@@ -401,35 +401,35 @@ start and end of the overlay/extent."
 
 (defun vmpc-exerlay-start (exerlay)
   "Return buffer position of the start of EXERLAY."
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (vm-extent-start-position exerlay)
     (overlay-start exerlay)))
 
 
 (defun vmpc-exerlay-end (exerlay)
   "Return buffer position of the end of EXERLAY."
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (vm-extent-end-position exerlay)
     (overlay-end exerlay)))
 
 
 (defun vmpc-move-exerlay (exerlay new-start new-end)
   "Change EXERLAY to cover region from NEW-START to NEW-END."
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (vm-set-extent-endpoints exerlay new-start new-end (current-buffer))
     (move-overlay exerlay new-start new-end (current-buffer))))
 
 
 (defun vmpc-set-exerlay-detachable-property (exerlay newval)
   "Set the 'detachable or 'evaporate property for EXERLAY to NEWVAL."
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (vm-set-extent-property exerlay 'detachable newval)
     (overlay-put exerlay 'evaporate newval)))
 
 
 (defun vmpc-set-exerlay-intangible-property (exerlay newval)
   "Set the 'intangible or 'atomic property for EXERLAY to NEWVAL."
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (progn
 	(require 'atomic-extents)
 	(vm-set-extent-property exerlay 'atomic newval))
@@ -438,14 +438,14 @@ start and end of the overlay/extent."
 
 (defun vmpc-set-exerlay-face (exerlay newface)
   "Set the face used by EXERLAY to NEWFACE."
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (set-extent-face exerlay newface)
     (overlay-put exerlay 'face newface)))
 
 
 (defun vmpc-forcefully-detach-exerlay (exerlay)
   "Leave EXERLAY in memory but detaches it from the buffer."
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (vm-detach-extent exerlay)
     (delete-overlay exerlay)))
 

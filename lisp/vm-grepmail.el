@@ -89,7 +89,7 @@
 
 (defvar vm-grepmail-folder-buffer nil)
 
-(if vm-fsfemacs-p
+(if (not (featurep 'xemacs))
     ;; For sixth arg of read-file-name in Emacs 21. cf vm-folder-history.
     (defun vm-grepmail-folders-history (&rest ignored) t))
 
@@ -185,7 +185,7 @@ FOLDERS should be a list of files/directories to search in."
       (if (null process)
           (error "Cannot start grepmail"))
       ;; set the send-filter
-      (if vm-fsfemacs-p
+      (if (not (featurep 'xemacs))
           (set-buffer-process-coding-system 'raw-text-unix 'raw-text-unix))
       (set-process-filter process 'vm-grepmail-process-filter)
       (set-process-sentinel process 'vm-grepmail-process-done)
