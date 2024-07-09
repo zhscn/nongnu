@@ -100,7 +100,7 @@ to find out how KEEP-LIST and DISCARD-REGEXP are used."
     ))
 
 ;;;###autoload
-(defun* vm-mime-encapsulate-messages (message-list &key
+(cl-defun vm-mime-encapsulate-messages (message-list &key
 						   (keep-list nil)
 						   (discard-regexp "none")
 						   (always-use-digest nil))

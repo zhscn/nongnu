@@ -56,7 +56,6 @@
 ;; (put 'inhibit-local-variables 'byte-obsolete-variable nil)
 
 ;; Preload these to get macros right 
-(require 'cl)
 (require 'sendmail)
 (when (featurep 'xemacs)
   (require 'timer-funcs))

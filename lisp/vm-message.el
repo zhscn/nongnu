@@ -25,7 +25,7 @@
 (provide 'vm-message)
 
 (require 'vm-macro)
-(require 'cl)
+(eval-when-compile (require 'cl-lib))
 
 (declare-function vm-mime-encode-words-in-string "vm-mime" (string))
 (declare-function vm-reencode-mime-encoded-words-in-string
@@ -738,7 +738,7 @@ works in all VM buffers."
 (defsubst vm-virtual-message-p (m)
   (not (eq m (vm-real-message-of m))))
 
-(defun* vm-update-virtual-messages (m &key message-changing)
+(cl-defun vm-update-virtual-messages (m &key message-changing)
   "Update all the virtual messages of M to reflect the changes made to
 the headers/body of M."
   (save-excursion

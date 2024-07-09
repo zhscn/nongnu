@@ -26,6 +26,7 @@
 (require 'vm-macro)
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'vm-misc)
   (require 'vm-summary)
   (require 'vm-folder)
@@ -378,7 +379,7 @@ unmarked messages are not hashed or considerd for deletion."
     del-count))
 
 ;;;###autoload
-(defun* vm-expunge-folder (&key (quiet nil) 
+(cl-defun vm-expunge-folder (&key (quiet nil)
 				((:just-these-messages message-list)
 				 nil	; default value
 				 just-these-messages))

@@ -64,6 +64,7 @@
 (require 'vm-version)
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'vm-misc)
   (require 'vm-folder)
   (require 'vm-summary)
@@ -101,7 +102,6 @@
 (declare-function vm-folder-buffers "ext:vm" (&optional non-virtual))
 
 (eval-when-compile
-  (require 'cl)
   (vm-load-features '(regexp-opt bbdb bbdb-vm))
   ;; gnus-group removed from features because it gives errors.  USR, 2011-01-26
   )
@@ -898,9 +898,8 @@ which should be attached, when empty all files will be attached.
 When called with a prefix arg it will do a literal match instead of a regexp
 match. (Rob F)"
   (interactive
-   ;; temporarily override substitute-in-file-name. but why?
-   ;; flet is obsolete from Emacs 24.3; need to use cl-flet
-   (flet ((substitute-in-file-name (file) file))
+   ;; FIXME: Temporarily override substitute-in-file-name. but why?
+   (cl-letf (((symbol-function 'substitute-in-file-name) #'identity))
      (let ((file (vm-read-file-name
                   "Attach files matching regexp: "
                   (or vm-mime-all-attachments-directory

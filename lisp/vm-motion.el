@@ -26,6 +26,7 @@
 (require 'vm-macro)
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'vm-misc)
   (require 'vm-minibuf)
   (require 'vm-folder)
@@ -37,7 +38,7 @@
 
 (declare-function vm-so-sortable-subject "vm-sort" (message))
 
-(defun* vm-record-and-change-message-pointer (old new &key present)
+(cl-defun vm-record-and-change-message-pointer (old new &key present)
   "Change the `vm-message-pointer' of the folder from OLD to NEW, both
 of which must be pointers into the `vm-message-list'.
 If the keyword argument PRESENT is t, then update the presentation

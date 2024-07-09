@@ -111,7 +111,6 @@
 (declare-function rfc822-addresses "ext:rfc822" (header-text))
 
 (eval-when-compile
-  (require 'cl)
   ;; avoid warnings
   (defvar vm-mode-line-format)
   (defvar vm-message-pointer)

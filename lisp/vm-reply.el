@@ -69,6 +69,7 @@
 (require 'vm-macro)
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'vm-misc)
   (require 'vm-minibuf)
   (require 'vm-menu)
@@ -1679,7 +1680,7 @@ address is used."
 
 
 ;;;###autoload
-(defun* vm-mail-internal (&key buffer-name to guessed-to subject 
+(cl-defun vm-mail-internal (&key buffer-name to guessed-to subject 
 			       in-reply-to cc references newsgroups)
     "Create a message buffer and set it up according to args.
 Fills in the headers as given by the arguments.

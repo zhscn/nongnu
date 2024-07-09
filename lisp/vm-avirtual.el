@@ -145,9 +145,6 @@
   :group 'vm-ext)
 
 ;;----------------------------------------------------------------------------
-(eval-when-compile
-  (require 'cl))
-
 (eval-and-compile
   (require 'regexp-opt)
   (require 'time-date)

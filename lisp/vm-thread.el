@@ -27,6 +27,7 @@
 ;; For function declarations
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'vm-misc)
   (require 'vm-folder)
   (require 'vm-motion)
@@ -284,7 +285,7 @@ youngest or oldest date in its thread.  CRITERION must be one of
 (defsubst vm-ts-set-messages-of (subject-sym ml)
   (aset (symbol-value subject-sym) 3 ml))
 
-(defun* vm-ts-set (subject-sym &key root root-date members messages)
+(cl-defun vm-ts-set (subject-sym &key root root-date members messages)
   (let ((vec (symbol-value subject-sym)))
     (aset vec 0 root)
     (aset vec 1 root-date)
@@ -1091,7 +1092,7 @@ symbols interned in vm-thread-obarray."
 ;; message must be a real (non-virtual) message
 
 ;;;###autoload
-(defun* vm-unthread-message-and-mirrors (message &key message-changing)
+(cl-defun vm-unthread-message-and-mirrors (message &key message-changing)
   "Removes MESSAGE and all its mirrored messages from their
 current threads.  If optional argument MESSAGE-CHANGING is
 non-nil, then forget information that might be different if the
@@ -1114,7 +1115,7 @@ The full functionality of this function is not entirely clear.
      (cons message (vm-virtual-messages-of message)))))
 
 ;;;###autoload
-(defun* vm-unthread-message (m &key message-changing)
+(cl-defun vm-unthread-message (m &key message-changing)
   "Removes message M from its thread.  If optional argument
 MESSAGE-CHANGING is non-nil, then forget information that might
 be different if the message contents changed.  The message will be

@@ -8,6 +8,7 @@
 ;; Version: 8.3.0snapshot
 ;; Maintainer: viewmail-info@nongnu.org
 ;; URL: https://gitlab.com/emacs-vm/vm
+;; Package-Requires: ((cl-lib "0.5"))
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -39,6 +40,7 @@
 
 ;; For function declarations
 (eval-when-compile
+  (require 'cl-lib)
   (require 'vm-misc)
   (require 'vm-folder)
   (require 'vm-summary)
@@ -76,12 +78,11 @@
 ;; Ensure that vm-autoloads is loaded in case the user is using VM 7.x
 ;; autoloads 
 
-(eval-when (load)
-  (if (not (featurep 'xemacs))
-      (require 'vm-autoloads)))
+(if (not (featurep 'xemacs))
+    (require 'vm-autoloads))
 
 ;;;###autoload
-(defun* vm (&optional folder &key read-only interactive
+(cl-defun vm (&optional folder &key read-only interactive
 		      access-method reload just-visit)
   "Read mail under Emacs.
 Optional first arg FOLDER specifies the folder to visit.  It can
@@ -485,7 +486,7 @@ deleted messages.  Use `###' to expunge deleted messages."
   (vm-gobble-labels))
 
 ;;;###autoload
-(defun* vm-other-frame (&optional folder read-only 
+(cl-defun vm-other-frame (&optional folder read-only 
 				  &key interactive)
   "Like vm, but run in a newly created frame."
   (interactive (list nil current-prefix-arg))
@@ -502,7 +503,7 @@ deleted messages.  Use `###' to expunge deleted messages."
       (vm-set-hooks-for-frame-deletion)))
 
 ;;;###autoload
-(defun* vm-other-window (&optional folder read-only
+(cl-defun vm-other-window (&optional folder read-only
 				   &key interactive)
   "Like vm, but run in a different window."
   (interactive (list nil current-prefix-arg))
@@ -534,7 +535,7 @@ Customize VM by setting variables and store them in the `vm-init-file'."
   (vm-display nil nil '(vm-mode) '(vm-mode)))
 
 ;;;###autoload
-(defun* vm-visit-folder (folder &optional read-only 
+(cl-defun vm-visit-folder (folder &optional read-only 
 				&key interactive just-visit)
   "Visit a mail file.
 VM will parse and present its messages to you in the usual way.
@@ -600,7 +601,7 @@ message-pointer, no retrieval of new mail."
 	:just-visit just-visit)))
 
 ;;;###autoload
-(defun* vm-visit-folder-other-frame (folder &optional read-only
+(cl-defun vm-visit-folder-other-frame (folder &optional read-only
 					    &key interactive)
   "Like vm-visit-folder, but run in a newly created frame."
   (interactive
@@ -633,7 +634,7 @@ message-pointer, no retrieval of new mail."
       (vm-set-hooks-for-frame-deletion)))
 
 ;;;###autoload
-(defun* vm-visit-folder-other-window (folder &optional read-only
+(cl-defun vm-visit-folder-other-window (folder &optional read-only
 					     &key interactive)
   "Like vm-visit-folder, but run in a different window."
   (interactive
@@ -665,7 +666,7 @@ message-pointer, no retrieval of new mail."
     (vm-visit-folder folder read-only :interactive interactive)))
 
 ;;;###autoload
-(defun* vm-visit-thunderbird-folder (folder &optional read-only
+(cl-defun vm-visit-thunderbird-folder (folder &optional read-only
 					    &key interactive)
   "Visit a mail file maintained by Thunderbird.
 VM will parse and present its messages to you in the usual way.
@@ -718,7 +719,7 @@ of messages is carried out preferentially to other Thunderbird folders."
   )
 
 ;;;###autoload
-(defun* vm-visit-pop-folder (folder &optional read-only
+(cl-defun vm-visit-pop-folder (folder &optional read-only
 				    &key interactive)
   "Visit a POP mailbox.
 VM will present its messages to you in the usual way.  Messages
@@ -770,7 +771,7 @@ visited folder."
 	:interactive interactive :read-only read-only )))
 
 ;;;###autoload
-(defun* vm-visit-pop-folder-other-frame (folder &optional read-only
+(cl-defun vm-visit-pop-folder-other-frame (folder &optional read-only
 						&key interactive)
   "Like vm-visit-pop-folder, but run in a newly created frame."
   (interactive
@@ -802,7 +803,7 @@ visited folder."
       (vm-set-hooks-for-frame-deletion)))
 
 ;;;###autoload
-(defun* vm-visit-pop-folder-other-window (folder &optional read-only
+(cl-defun vm-visit-pop-folder-other-window (folder &optional read-only
 						 &key interactive)
   "Like vm-visit-pop-folder, but run in a different window."
   (interactive
@@ -833,7 +834,7 @@ visited folder."
     (vm-visit-pop-folder folder read-only :interactive interactive)))
 
 ;;;###autoload
-(defun* vm-visit-imap-folder (folder &optional read-only
+(cl-defun vm-visit-imap-folder (folder &optional read-only
 				     &key interactive)
   "Visit a IMAP mailbox.
 VM will present its messages to you in the usual way.  Messages
@@ -879,7 +880,7 @@ visited folder."
       :interactive interactive :read-only read-only))
 
 ;;;###autoload
-(defun* vm-visit-imap-folder-other-frame (folder &optional read-only
+(cl-defun vm-visit-imap-folder-other-frame (folder &optional read-only
 						 &key interactive)
   "Like vm-visit-imap-folder, but run in a newly created frame."
   (interactive
@@ -905,7 +906,7 @@ visited folder."
       (vm-set-hooks-for-frame-deletion)))
 
 ;;;###autoload
-(defun* vm-visit-imap-folder-other-window (folder &optional read-only
+(cl-defun vm-visit-imap-folder-other-window (folder &optional read-only
 						  &key interactive)
   "Like vm-visit-imap-folder, but run in a different window."
   (interactive
