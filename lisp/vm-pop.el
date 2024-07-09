@@ -1174,7 +1174,7 @@ LOCAL-EXPUNGE-LIST: A list of message descriptors for messages in the
 	   (folder-buffer (current-buffer)))
       (if (and do-retrieves retrieve-list)
 	  (save-excursion
-	    (vm-save-restriction
+	    (save-restriction
 	     (widen)
 	     (goto-char (point-max))
 	     (condition-case error-data

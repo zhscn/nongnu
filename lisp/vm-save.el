@@ -393,7 +393,7 @@ The saved messages are flagged as `filed'."
 	      (set-buffer (vm-buffer-of m))
 	      ;; FIXME the following isn't really necessary
 	      (vm-assert (vm-body-retrieved-of m))
-	      (vm-save-restriction
+	      (save-restriction
 	       (widen)
 	       ;; have to stuff the attributes in all cases because
 	       ;; the deleted attribute may have been stuffed
@@ -433,7 +433,7 @@ The saved messages are flagged as `filed'."
 		   (when vm-folder-read-only
 		     (signal 'folder-read-only (list (current-buffer))))
 		   (let ((buffer-read-only nil))
-		     (vm-save-restriction
+		     (save-restriction
 		      (widen)
 		      (save-excursion
 			(goto-char (point-max))
@@ -574,7 +574,7 @@ This command should NOT be used to save message to mail folders; use
 	      (set-buffer (vm-buffer-of m))
 	      ;; FIXME the following shouldn't be necessary any more
 	      (vm-assert (vm-body-retrieved-of m))
-	      (vm-save-restriction
+	      (save-restriction
 	       (widen)
 	       (if (null file-buffer)
 		   (write-region 
@@ -585,7 +585,7 @@ This command should NOT be used to save message to mail folders; use
 		     (set-buffer file-buffer)
 		     (save-excursion
 		       (let (buffer-read-only)
-			 (vm-save-restriction
+			 (save-restriction
 			  (widen)
 			  (save-excursion
 			    (goto-char (point-max))

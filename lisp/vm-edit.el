@@ -73,7 +73,7 @@ replace the original, use C-c C-] and the edit will be aborted."
 				     :fail t)
       (if (and edit-buf (buffer-name edit-buf))
 	  (set-buffer edit-buf)
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (setq edit-buf
 	       (generate-new-buffer
@@ -276,7 +276,7 @@ thread have their cached data discarded."
 	  (set-buffer (vm-buffer-of (vm-real-message-of (car mp))))
 	  (if (not (memq (vm-real-message-of (car mp)) vm-message-list))
 	      (error "The original copy of this message has been expunged."))
-	  (vm-save-restriction
+	  (save-restriction
 	   (widen)
 	   (goto-char (vm-headers-of (vm-real-message-of (car mp))))
 	   (let ((vm-message-pointer mp)
@@ -299,11 +299,11 @@ thread have their cached data discarded."
 		;; window.  This works well for non MIME
 		;; messages, but the cursor drifts badly for
 		;; MIME and for refilled messages.
-		(vm-save-buffer-excursion
+		(save-current-buffer
 		 (and vm-presentation-buffer
 		      (set-buffer vm-presentation-buffer))
-		 (vm-save-restriction
-		  (vm-save-buffer-excursion
+		 (save-restriction
+		  (save-current-buffer
 		   (widen)
 		   (let ((osw (selected-window))
 			 (new-win (vm-get-visible-buffer-window

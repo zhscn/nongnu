@@ -471,7 +471,7 @@ ignored."
 					   'uid)
 				     vm-imap-retrieved-messages)))))
 		(vm-increment vm-modification-counter)
-		(vm-save-restriction
+		(save-restriction
 		 (widen)
 		 (let ((buffer-read-only nil))
 		   (delete-region (vm-start-of real-m)

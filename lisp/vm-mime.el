@@ -2627,7 +2627,7 @@ in the buffer.  The function is expected to make the message
 	  (let ((vm-display-using-mime nil))
 	    (vm-show-current-message)))
 	(setq m (car vm-message-pointer))
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (goto-char (vm-text-of m))
 	 (let ((buffer-read-only nil)
@@ -3363,7 +3363,7 @@ emacs-w3m."
 			      vm-digest-identifier-header-format
 			      (vm-mm-layout-message layout))))
       (vm-mime-burst-layout layout ident-header))
-    (vm-save-buffer-excursion
+    (save-current-buffer
      (vm-goto-new-folder-frame-maybe 'folder)
      (vm-mode)
      (if (vm-should-generate-summary)
@@ -3419,7 +3419,7 @@ emacs-w3m."
     (setq vm-folder-type vm-default-folder-type)
     (vm-mime-burst-layout layout nil)
     (set-buffer-modified-p nil)
-    (vm-save-buffer-excursion
+    (save-current-buffer
      (vm-goto-new-folder-frame-maybe 'folder)
      (vm-mode)
      (if (vm-should-generate-summary)
@@ -3876,7 +3876,7 @@ it to an internal object by retrieving the body.       USR, 2011-03-28"
       (insert (vm-trailing-message-separator))
       (set-buffer-modified-p nil)
       (vm-inform 6 "Assembling message... done")
-      (vm-save-buffer-excursion
+      (save-current-buffer
        (vm-goto-new-folder-frame-maybe 'folder)
        (vm-mode)
        (if (vm-should-generate-summary)
@@ -6803,7 +6803,7 @@ describes what was deleted."
 	      opos
 	      (buffer-read-only nil))
 	  (save-excursion
-	    (vm-save-restriction
+	    (save-restriction
 	     (goto-char (vm-extent-start-position e))
 	     (setq opos (point))
 	     (setq label (vm-mime-sprintf 
@@ -6832,7 +6832,7 @@ describes what was deleted."
 		 (not (eq (marker-buffer (vm-mm-layout-body-start layout))
 			  (current-buffer))))
 	(error "MIME body is not in the message"))
-      (vm-save-restriction
+      (save-restriction
 	(widen)
 	(if (vm-mm-layout-is-converted layout)
 	    (setq layout (vm-mm-layout-unconverted-layout layout)))
@@ -6992,7 +6992,7 @@ should be encoded together."
           (setq end (or (and (re-search-forward "^[^ \t:]+:" body-start t)
                              (match-beginning 0))
                         body-start)))
-        (vm-save-restriction
+        (save-restriction
          (narrow-to-region start end)
          (vm-mime-encode-words))
         (goto-char end)))))
@@ -8166,7 +8166,7 @@ the first sub part of a multipart/alternative is a text/plain part."
            (set-buffer (vm-buffer-of m))
            (let ((inhibit-read-only t)
                  (buffer-read-only nil))
-             (vm-save-restriction
+             (save-restriction
               (widen)
               (if (vm-mm-layout-is-converted layout)
                   (setq layout (vm-mm-layout-unconverted-layout layout)))

@@ -191,7 +191,7 @@ the folder undisturbed."
 ;; and variables containg markers before you modify this code.
 (defun vm-physically-move-message (m m-dest)
   (save-excursion
-    (vm-save-restriction
+    (save-restriction
      (widen)
 
      ;; Make sure vm-headers-of and vm-text-of are non-nil in

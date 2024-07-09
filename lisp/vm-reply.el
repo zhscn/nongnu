@@ -2069,7 +2069,7 @@ message."
 	  ;; point of no return, don't kill it if the user quits
 	  (setq temp-buffer nil)
 	  (let ((vm-auto-decode-mime-messages t))
-	    (vm-save-buffer-excursion
+	    (save-current-buffer
 	     (vm-goto-new-folder-frame-maybe 'folder)
 	     (vm-mode)))
 	  (vm-inform 5

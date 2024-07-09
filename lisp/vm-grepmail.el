@@ -249,7 +249,7 @@ END the end position in the process output buffer."
   (save-excursion
     (set-buffer vm-grepmail-folder-buffer)
     (let ((buffer-read-only nil))
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (goto-char (point-max))
        (insert-buffer-substring message-buffer start end)

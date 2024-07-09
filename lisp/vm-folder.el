@@ -1244,7 +1244,7 @@ vm-folder-type is initialized here."
 	  ;;
 	  ;; For free standing messages, unwanted headers are
 	  ;; stripped from the message, unremembered.
-	  (vm-save-restriction
+	  (save-restriction
 	   (let ((header-alist (vm-build-header-order-alist keep-list))
 		 (buffer-read-only nil)
 		 (work-buffer nil)
@@ -1775,7 +1775,7 @@ Supports version 4 format of attribute storage, for backward compatibility."
 	(time nil)
 	time lim oldpoint)
     (save-excursion
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (goto-char (point-min))
        (vm-skip-past-folder-header)
@@ -1806,7 +1806,7 @@ Supports version 4 format of attribute storage, for backward compatibility."
   (let ((case-fold-search t)
 	lim)
     (save-excursion
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (if (eq vm-folder-type 'babyl)
 	   (progn
@@ -1862,7 +1862,7 @@ Supports version 4 format of attribute storage, for backward compatibility."
 	(n nil)
 	lim oldpoint)
     (save-excursion
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (goto-char (point-min))
        (vm-skip-past-folder-header)
@@ -1899,7 +1899,7 @@ Supports version 4 format of attribute storage, for backward compatibility."
   (let ((case-fold-search t)
 	ob lim oldpoint)
     (save-excursion
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (goto-char (point-min))
        (vm-skip-past-folder-header)
@@ -1929,7 +1929,7 @@ Supports version 4 format of attribute storage, for backward compatibility."
   (let ((case-fold-search t)
 	ob lim oldpoint)
     (save-excursion
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (goto-char (point-min))
        (vm-skip-past-folder-header)
@@ -1957,7 +1957,7 @@ Supports version 4 format of attribute storage, for backward compatibility."
 
 (defun vm-gobble-visible-header-variables ()
   (save-excursion
-    (vm-save-restriction
+    (save-restriction
      (let ((case-fold-search t)
 	   lim)
        (widen)
@@ -2075,7 +2075,7 @@ Supports version 4 format of attribute storage, for backward compatibility."
   (let ((case-fold-search t)
 	summary lim)
     (save-excursion
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (goto-char (point-min))
        (vm-skip-past-folder-header)
@@ -2141,7 +2141,7 @@ Supports version 4 format of attribute storage, for backward compatibility."
 message M into the folder buffer.  The optional argument
 FOR-OTHER-FOLDER indicates <someting unknown>.  USR 2010-03-06"
   (save-excursion
-    (vm-save-restriction
+    (save-restriction
      (widen)
      (let ((old-buffer-modified-p (buffer-modified-p))
 	   (vm-mime-qp-encoder-program nil) ; use internal code
@@ -2253,7 +2253,7 @@ pending input.   So, presumably this is non-interactive.  USR 2012-12-22"
     (let ((vm-key-functions '(vm-sort-compare-physical-order-r)))
       (setq mp (sort newlist 'vm-sort-compare-xxxxxx)))
     (save-excursion
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (let ((old-buffer-modified-p (buffer-modified-p))
 	     (vm-mime-qp-encoder-program nil)	  ; use internal code
@@ -2426,7 +2426,7 @@ pending input.   So, presumably this is non-interactive.  USR 2012-12-22"
 (defun vm-stuff-labels ()
   (if vm-message-list
       (save-excursion
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (let ((old-buffer-modified-p (buffer-modified-p))
 	       (case-fold-search t)
@@ -2485,7 +2485,7 @@ pending input.   So, presumably this is non-interactive.  USR 2012-12-22"
 (defun vm-stuff-bookmark ()
   (if vm-message-pointer
       (save-excursion
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (let ((old-buffer-modified-p (buffer-modified-p))
 	       (case-fold-search t)
@@ -2528,7 +2528,7 @@ pending input.   So, presumably this is non-interactive.  USR 2012-12-22"
 (defun vm-stuff-last-modified ()
   (if vm-message-list
       (save-excursion
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (let ((old-buffer-modified-p (buffer-modified-p))
 	       (case-fold-search t)
@@ -2571,7 +2571,7 @@ pending input.   So, presumably this is non-interactive.  USR 2012-12-22"
 (defun vm-stuff-pop-retrieved ()
   (if vm-message-list
       (save-excursion
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (let ((old-buffer-modified-p (buffer-modified-p))
 	       (case-fold-search t)
@@ -2624,7 +2624,7 @@ pending input.   So, presumably this is non-interactive.  USR 2012-12-22"
 (defun vm-stuff-imap-retrieved ()
   (if vm-message-list
       (save-excursion
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (let ((old-buffer-modified-p (buffer-modified-p))
 	       (case-fold-search t)
@@ -2678,7 +2678,7 @@ pending input.   So, presumably this is non-interactive.  USR 2012-12-22"
 (defun vm-stuff-summary ()
   (if vm-message-list
       (save-excursion
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (let ((old-buffer-modified-p (buffer-modified-p))
 	       (case-fold-search t)
@@ -2725,7 +2725,7 @@ pending input.   So, presumably this is non-interactive.  USR 2012-12-22"
 (defun vm-stuff-header-variables ()
   (if vm-message-list
       (save-excursion
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (let ((old-buffer-modified-p (buffer-modified-p))
 	       (case-fold-search t)
@@ -2773,7 +2773,7 @@ pending input.   So, presumably this is non-interactive.  USR 2012-12-22"
 (defun vm-stuff-message-order ()
   (if (cdr vm-message-list)
       (save-excursion
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (let ((old-buffer-modified-p (buffer-modified-p))
 	       (case-fold-search t)
@@ -2831,7 +2831,7 @@ pending input.   So, presumably this is non-interactive.  USR 2012-12-22"
 (defun vm-remove-message-order ()
   (if (cdr vm-message-list)
       (save-excursion
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (let ((old-buffer-modified-p (buffer-modified-p))
 	       (case-fold-search t)
@@ -3704,10 +3704,10 @@ This function is only used in background tasks.  USR 2012-12-22."
 ;; Note that deleted messages are not expunged.
 (defun vm-write-file-hook ()
   (if (and (eq major-mode 'vm-mode) (not vm-inhibit-write-file-hook))
-    ;; The vm-save-restriction isn't really necessary here, since
+    ;; The save-restriction isn't really necessary here, since
     ;; the stuff routines clean up after themselves, but should remain
     ;; as a safeguard against the time when other stuff is added here.
-    (vm-save-restriction
+    (save-restriction
      (let ((buffer-read-only))
        (vm-discard-fetched-messages)
        (vm-inform 7 "%s: Stuffing cached data..." (buffer-name))
@@ -4148,7 +4148,7 @@ Same as \\[vm-recover-folder]."
 
 (defun vm-gobble-crash-box (crash-box)
   (save-excursion
-    (vm-save-restriction
+    (save-restriction
      (widen)
      (let ((opoint-max (point-max)) crash-buf
 	   (buffer-read-only nil)
@@ -4692,7 +4692,7 @@ files."
 		 (error "Folder %s is not the same format as this folder."
 			folder))
 	     (save-excursion
-	       (vm-save-restriction
+	       (save-restriction
 		(widen)
 		(goto-char (point-max))
 		(let ((coding-system-for-read (vm-binary-coding-system)))
@@ -4743,7 +4743,7 @@ files."
   (let ((tail-cons (vm-last vm-message-list))
 	b-list new-messages)
     (save-excursion
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (vm-build-message-list)
        (when (or (null tail-cons) (cdr tail-cons))
@@ -5095,7 +5095,7 @@ Interactively TYPE will be read from the minibuffer."
 	(modulus (+ (% (vm-abs (random)) 11) 5))
 	text-end opoint)
     (save-excursion
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (setq vm-folder-type type)
        (goto-char (point-min))
@@ -5430,7 +5430,7 @@ Gives an error if unable to retrieve message."
       (message "External messages currently available only for imap folders.")
     (save-excursion
       (set-buffer (vm-buffer-of mm))
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (narrow-to-region (marker-position (vm-headers-of mm)) 
 			 (marker-position (vm-text-end-of mm)))
@@ -5570,7 +5570,7 @@ the folder is saved."
       (vm-set-body-to-be-discarded-flag mm nil)
     (save-current-buffer
       (set-buffer (vm-buffer-of mm))
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (let ((inhibit-read-only t)
 	     ;; (buffer-read-only nil)     ; seems redundant

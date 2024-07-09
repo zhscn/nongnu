@@ -267,7 +267,7 @@ are explicitly marked as spams by the vm-bogofilter-is-spam function."
   "The function used to do the actual filtering. It is used as a value for
 vm-retrieved-spooled-mail-hook."
   (save-excursion
-    (vm-save-restriction
+    (save-restriction
      (let ((tail-cons (vm-last vm-message-list))
 	   (buffer-read-only nil))
        (widen)
@@ -342,8 +342,8 @@ vm-retrieved-spooled-mail-hook."
 	(set-buffer buffer)
 	(erase-buffer))
       (set-buffer (vm-buffer-of message))
-      (vm-save-restriction
-       (vm-save-buffer-excursion
+      (save-restriction
+       (save-current-buffer
 	(widen)
 	(goto-char (vm-headers-of message))
 	(narrow-to-region (point) (vm-text-end-of message))

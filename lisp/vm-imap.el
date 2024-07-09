@@ -3537,7 +3537,7 @@ headers-only form."
     (save-excursion
       (vm-inform 6 "%s: Retrieving new messages... " 
 		 (buffer-name folder-buffer))
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (setq old-eob (point-max))
        (goto-char (point-max))

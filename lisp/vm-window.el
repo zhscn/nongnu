@@ -90,7 +90,7 @@
 ;; configuration is done, and only then if the value of
 ;; this-command is found in the COMMANDS list.
   (and (stringp buffer) (setq buffer (get-buffer buffer)))
-  (vm-save-buffer-excursion
+  (save-current-buffer
    (let* ((w (and buffer (vm-get-buffer-window buffer)))
 	  (wf (and w (vm-window-frame w))))
      (if (and w display (not do-not-raise))
@@ -133,7 +133,7 @@
       (switch-to-buffer buffer))))
 
 (defun vm-undisplay-buffer (buffer)
-  (vm-save-buffer-excursion
+  (save-current-buffer
    (let ((vm-mutable-frame-configuration 
 	  (and vm-mutable-frame-configuration pop-up-frames)))
      (vm-maybe-delete-windows-or-frames-on buffer))

@@ -638,7 +638,7 @@ Optional argument DONT-KILL is positive, then do not kill source message."
           (set-buffer folder-buffer)
           (vm-error-if-folder-read-only)
           (let ((buffer-read-only nil))
-            (vm-save-restriction
+            (save-restriction
              (widen)
              (goto-char (point-max))
              (vm-write-string (current-buffer) (vm-leading-message-separator))

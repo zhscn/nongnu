@@ -210,7 +210,7 @@ all of them will be burst."
 	start part-list
 	(folder-type vm-folder-type))
     (unwind-protect
-	(vm-save-restriction
+	(save-restriction
 	 (save-excursion
 	   (widen)
 	   (setq work-buffer (vm-make-work-buffer))
@@ -485,7 +485,7 @@ RFC 1153.  Otherwise assume RFC 934 digests."
 	      separator-regexp "^------------------------------\n")
       (setq prologue-separator-regexp "\\(^-[^ ].*\n+\\)+"
 	    separator-regexp "\\(^-[^ ].*\n+\\)+"))
-    (vm-save-restriction
+    (save-restriction
      (save-excursion
        (widen)
        (unwind-protect
@@ -795,7 +795,7 @@ burst."
  		     (vm-delete-message 1))))
 	    (setq mlist (cdr mlist)))
 	  (set-buffer-modified-p nil)	; work-buffer
-	  (vm-save-buffer-excursion
+	  (save-current-buffer
 	   (vm-goto-new-folder-frame-maybe 'folder)
 	   (vm-mode)
 	   (if (vm-should-generate-summary)

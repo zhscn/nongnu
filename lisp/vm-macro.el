@@ -186,46 +186,6 @@ current-buffer in `vm-user-interaction-buffer'."
 ;;; can't use defsubst where quoting is needed in some places but
 ;; not others.
 
-;; save-restriction flubs restoring the clipping region if you
-;; (widen) and modify text outside the old region.
-;; This should do it right.
-(defmacro vm-save-restriction (&rest forms)
-  (let ((vm-sr-clip (make-symbol "vm-sr-clip"))
-	(vm-sr-min (make-symbol "vm-sr-min"))
-	(vm-sr-max (make-symbol "vm-sr-max")))
-    `(let ((,vm-sr-clip (> (buffer-size) (- (point-max) (point-min))))
-	   ;; this shouldn't be necessary but the
-	   ;; byte-compiler turns these into interned symbols
-	   ;; which utterly defeats the purpose of the
-	   ;; make-symbol calls above.  Soooo, until the compiler
-	   ;; is fixed, these must be made into (let ...)
-	   ;; temporaries so that nested calls to this macros
-	   ;; won't misbehave.
-	   ,vm-sr-min ,vm-sr-max)
-	  (and ,vm-sr-clip
-	       (setq ,vm-sr-min (set-marker (make-marker) (point-min)))
-	       (setq ,vm-sr-max (set-marker (make-marker) (point-max))))
-	  (unwind-protect
-	      (progn ,@forms)
-	    (widen)
-	    (and ,vm-sr-clip
-		 (progn
-		   (narrow-to-region ,vm-sr-min ,vm-sr-max)
-		   (set-marker ,vm-sr-min nil)
-		   (set-marker ,vm-sr-max nil)))))))
-
-(put 'vm-save-restriction 'edebug-form-spec t)
-
-(defmacro vm-save-buffer-excursion (&rest forms)
-  `(let ((vm-sbe-buffer (current-buffer)))
-    (unwind-protect
-	(progn ,@forms)
-      (and (not (eq vm-sbe-buffer (current-buffer)))
-	   (buffer-name vm-sbe-buffer)
-	   (set-buffer vm-sbe-buffer)))))
-
-(put 'vm-save-buffer-excursion 'edebug-form-spec t)
-
 (defmacro vm-assert (expression)
   (list 'or 'vm-assertion-checking-off
 	(list 'or expression

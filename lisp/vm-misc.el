@@ -376,7 +376,7 @@ need to add quotes or leave them undecoded.             RWF"
 
 (defun vm-write-string (where string)
   (if (bufferp where)
-      (vm-save-buffer-excursion
+      (save-current-buffer
 	(set-buffer where)
 	(goto-char (point-max))
 	(let ((buffer-read-only nil))
@@ -822,7 +822,7 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
 
 (defun vm-run-hook-on-message (hook-variable message)
   (with-current-buffer (vm-buffer-of message)
-    (vm-save-restriction
+    (save-restriction
       (widen)
       (save-excursion
 	(narrow-to-region (vm-headers-of message) (vm-text-end-of message))
@@ -834,7 +834,7 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
 
 (defun vm-run-hook-on-message-with-args (hook-variable message &rest args)
   (with-current-buffer (vm-buffer-of message)
-    (vm-save-restriction
+    (save-restriction
       (widen)
       (save-excursion
 	(narrow-to-region (vm-headers-of message) (vm-text-end-of message))
@@ -1574,7 +1574,7 @@ filling of GNU Emacs does not work correctly here."
 	   (- (window-width (get-buffer-window (current-buffer))) 1)))
 	)
     (save-excursion
-      (vm-save-restriction
+      (save-restriction
        ;; longlines-wrap-region contains a (forward-line -1) which is causing
        ;; wrapping of headers which is wrong, so we restrict it here!
        (narrow-to-region start end)

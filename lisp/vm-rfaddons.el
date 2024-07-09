@@ -437,7 +437,7 @@ This does only work with my modified VM, i.e. a hacked
 ;;   (let ((buffer-read-only nil)
 ;;         (fill-column width))
 ;;     (save-excursion
-;;       (vm-save-restriction
+;;       (save-restriction
 ;;        ;; longlines-wrap-region contains a (forward-line -1) which is causing
 ;;        ;; wrapping of headers which is wrong, so we restrict it here!
 ;;        (narrow-to-region start end)

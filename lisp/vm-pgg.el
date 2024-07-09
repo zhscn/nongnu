@@ -425,7 +425,7 @@ Switch mode on/off according to ARG.
          (layout (vm-mm-layout m)))
     ;; make a presentation copy
     (vm-make-presentation-copy m)
-    (vm-save-buffer-excursion
+    (save-current-buffer
      (vm-replace-buffer-in-windows (current-buffer)
                                    vm-presentation-buffer))
     (set-buffer vm-presentation-buffer)
