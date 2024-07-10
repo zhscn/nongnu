@@ -471,9 +471,7 @@ US domestic telephone numbers are replaced with international format."
 ;;; Decoding methods.
 
 (defmacro vcard-hexstring-to-ascii (s)
-  (if (string-lessp emacs-version "20")
-      `(format "%c" (car (read-from-string (format "?\\x%s" ,s))))
-    `(format "%c" (string-to-number ,s 16))))
+  `(format "%c" (string-to-number ,s 16)))
 
 (defun vcard-region-decode-quoted-printable (&optional beg end)
   (save-excursion
