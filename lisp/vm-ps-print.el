@@ -60,6 +60,8 @@
 
 (provide 'vm-ps-print)
 
+(require 'cl-lib)
+
 (eval-when-compile
   (require 'ps-print)
 
@@ -430,7 +432,7 @@ pages per sheet to queried FILENAME. No prefix prints 1 page per sheet
 to printer while prefix without numerical argument simply queries for
 filename and formats 1 page per sheet. (JJK)"  
   (interactive
-   (if (and (integerp current-prefix-arg) (plusp current-prefix-arg))
+   (if (and (integerp current-prefix-arg) (cl-plusp current-prefix-arg))
        nil
      (list (ps-print-preprint current-prefix-arg))))
   (let ((last-command)
