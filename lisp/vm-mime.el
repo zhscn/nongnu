@@ -563,40 +563,20 @@ same effect."
 
 (defun vm-mime-charset-decode-region (charset start end)
   (or (markerp end) (setq end (vm-marker end)))
-  (cond ((or (featurep 'xemacs) (not (featurep 'xemacs)))
-	 (if (or (and (featurep 'xemacs) (memq (vm-device-type) '(x gtk mswindows)))
-		 (not (featurep 'xemacs))
-		 (vm-mime-tty-can-display-mime-charset charset)
-		 nil)
-	     (let ((buffer-read-only nil)
-		   (coding (vm-mime-charset-to-coding charset))
-		   (opoint (point)))
-	       ;; decode 8-bit indeterminate char to correct
-	       ;; char in correct charset.
-	       (vm-decode-coding-region start end coding)
-	       (put-text-property start end 'vm-string t)
-	       (put-text-property start end 'vm-charset charset)
-	       (put-text-property start end 'vm-coding coding)
-	       ;; In XEmacs 20.0 beta93 decode-coding-region moves point.
-	       (goto-char opoint))))
-	((not (vm-multiple-fonts-possible-p)) nil)
-	((vm-mime-default-face-charset-p charset) nil)
-	(t
-	 (let ((font (cdr (vm-string-assoc
-			   charset
-			   vm-mime-charset-font-alist)))
-	       (face (make-face (make-symbol "temp-face")))
-	       (e (vm-make-extent start end)))
-	   (put-text-property start end 'vm-string t)
-	   (put-text-property start end 'vm-charset charset)
-	   (if font
-	       (condition-case data
-		   (progn (set-face-font face font)
-			  (if (not (featurep 'xemacs))
-			      (put-text-property start end 'face face)
-			    (vm-set-extent-property e 'duplicable t)
-			    (vm-set-extent-property e 'face face)))
-		 (error nil)))))))
+  (if (or (and (featurep 'xemacs) (memq (vm-device-type) '(x gtk mswindows)))
+	  (not (featurep 'xemacs))
+	  (vm-mime-tty-can-display-mime-charset charset))
+      (let ((buffer-read-only nil)
+	    (coding (vm-mime-charset-to-coding charset))
+	    (opoint (point)))
+	;; decode 8-bit indeterminate char to correct
+	;; char in correct charset.
+	(vm-decode-coding-region start end coding)
+	(put-text-property start end 'vm-string t)
+	(put-text-property start end 'vm-charset charset)
+	(put-text-property start end 'vm-coding coding)
+	;; In XEmacs 20.0 beta93 decode-coding-region moves point.
+	(goto-char opoint))))
 
 (defun vm-mime-transfer-decode-region (layout start end)
   "Decode the body of a mime part given by LAYOUT at positions START
@@ -1958,168 +1938,155 @@ that recipient is outside of East Asia."
   (save-excursion
     (save-restriction
       (narrow-to-region beg end)
-	(if (or (featurep 'xemacs)
-		(and (not (featurep 'xemacs)) enable-multibyte-characters))
-	    ;; Okay, we're on a MULE build.
-	  (if (and (not (featurep 'xemacs))
-		   (fboundp 'check-coding-systems-region))
-	      ;; check-coding-systems-region appeared in GNU Emacs 23.
-	      (let* ((preapproved (vm-get-coding-system-priorities))
-		     (ucs-list (vm-get-mime-ucs-list))
-		     (cant-encode (check-coding-systems-region
-				   (point-min) (point-max)
-				   (cons 'us-ascii preapproved))))
-		(if (not (assq 'us-ascii cant-encode))
-		    ;; If there are only ASCII chars, we're done.
-		    "us-ascii"
-		  (while (and preapproved
-			      (assq (car preapproved) cant-encode)
-			      (not (memq (car preapproved) ucs-list)))
-		    (setq preapproved (cdr preapproved)))
-		  (if preapproved
-		      (cadr (assq (car preapproved)
-				  vm-mime-mule-coding-to-charset-alist))
-		    ;; None of the entries in vm-coding-system-priorities
-		    ;; can be used. This can only happen if no universal
-		    ;; coding system is included. Fall back to utf-8.
-		    "utf-8")))
+      (if (not (featurep 'xemacs))
+	  (let* ((preapproved (vm-get-coding-system-priorities))
+		 (ucs-list (vm-get-mime-ucs-list))
+		 (cant-encode (check-coding-systems-region
+			       (point-min) (point-max)
+			       (cons 'us-ascii preapproved))))
+	    (if (not (assq 'us-ascii cant-encode))
+		;; If there are only ASCII chars, we're done.
+		"us-ascii"
+	      (while (and preapproved
+			  (assq (car preapproved) cant-encode)
+			  (not (memq (car preapproved) ucs-list)))
+		(setq preapproved (cdr preapproved)))
+	      (if preapproved
+		  (cadr (assq (car preapproved)
+			      vm-mime-mule-coding-to-charset-alist))
+		;; None of the entries in vm-coding-system-priorities
+		;; can be used. This can only happen if no universal
+		;; coding system is included. Fall back to utf-8.
+		"utf-8")))
 
-	    (let ((charsets (delq 'ascii
-				  (vm-charsets-in-region (point-min)
-							 (point-max)))))
-	      (cond
-	       ;; No non-ASCII chars? Right, that makes it easy for us.
-	       ((null charsets) "us-ascii")
+	(let ((charsets (delq 'ascii
+			      (vm-charsets-in-region (point-min)
+						     (point-max)))))
+	  (cond
+	   ;; No non-ASCII chars? Right, that makes it easy for us.
+	   ((null charsets) "us-ascii")
 
-	       ;; Check whether the buffer can be encoded using one of the
-	       ;; vm-coding-system-priorities coding systems.
-	       ((catch 'done
+	   ;; Check whether the buffer can be encoded using one of the
+	   ;; vm-coding-system-priorities coding systems.
+	   ((catch 'done
 
-		  ;; We can't really do this intelligently unless latin-unity
-		  ;; is available.
-		  (if (featurep 'latin-unity)
-		      (let ((csetzero charsets)
-			    ;; Check what latin character sets are in the
-			    ;; buffer.
-			    (csets (latin-unity-representations-feasible-region
-				    beg end))
-			    (psets (latin-unity-representations-present-region
-				    beg end))
-			    (systems (vm-get-coding-system-priorities)))
+	      ;; We can't really do this intelligently unless latin-unity
+	      ;; is available.
+	      (if (featurep 'latin-unity)
+		  (let ((csetzero charsets)
+			;; Check what latin character sets are in the
+			;; buffer.
+			(csets (latin-unity-representations-feasible-region
+				beg end))
+			(psets (latin-unity-representations-present-region
+				beg end))
+			(systems (vm-get-coding-system-priorities)))
 
-			;; If one of the character sets is outside of latin
-			;; unity's remit, check for a universal character
-			;; set in vm-coding-system-priorities, and pass back
-			;; the first one.
+		    ;; If one of the character sets is outside of latin
+		    ;; unity's remit, check for a universal character
+		    ;; set in vm-coding-system-priorities, and pass back
+		    ;; the first one.
+		    ;;
+		    ;; Otherwise, there's no remapping that latin unity
+		    ;; can do for us, and we should default to something
+		    ;; iso-2022 based. (Since we're not defaulting to
+		    ;; Unicode, at the moment.)
+
+		    (while csetzero
+		      (if (not (memq 
+				(car csetzero) latin-unity-character-sets))
+			  (let ((ucs-list (vm-get-mime-ucs-list))
+				(preapproved
+				 (vm-get-coding-system-priorities)))
+			    (while preapproved
+			      (if (memq (car preapproved) ucs-list)
+				  (throw 'done 
+					 (car (cdr (assq (car preapproved)
+					                 vm-mime-mule-coding-to-charset-alist)))))
+			      (setq preapproved (cdr preapproved)))
+			    ;; Nothing universal in the preapproved list.
+			    (throw 'done nil)))
+		      (setq csetzero (cdr csetzero)))
+
+		    ;; Okay, we're able to remap using latin-unity. Do so.
+		    (while systems
+		      (let ((sys (latin-unity-massage-name (car systems)
+					                   'buffer-default)))
+			(when (latin-unity-maybe-remap (point-min) 
+						       (point-max) sys 
+						       csets psets t)
+			  (throw 'done
+				 (second (assq sys
+				               vm-mime-mule-coding-to-charset-alist)))))
+		      (setq systems (cdr systems)))
+		    (throw 'done nil))
+
+		;; Right, latin-unity isn't available.  If there's only
+		;; one non-ASCII character set in the region, and the
+		;; corresponding coding system is on the preapproved
+		;; list before the first universal character set, pass
+		;; it back. Otherwise, if a universal character set is
+		;; on the preapproved list, pass the first one of them
+		;; back. Otherwise, pass back nil and use the
+		;; "iso-2022-jp" entry below.
+
+		(let ((csetzero charsets)
+		      (preapproved (vm-get-coding-system-priorities))
+		      (ucs-list (vm-get-mime-ucs-list)))
+		  (if (null (cdr csetzero))
+		      (while preapproved
+			;; If we encounter a universal character set on
+			;; the preapproved list, pass it back.
+			(if (memq (car preapproved) ucs-list)
+			    (throw 'done
+				   (second (assq (car preapproved)
+				                 vm-mime-mule-coding-to-charset-alist))))
+
+			;; The preapproved entry isn't universal. Check if
+			;; it's related to the single non-ASCII MULE
+			;; charset in the buffer (that is, if the
+			;; conceptually unordered MULE list of characters
+			;; is based on a corresponding ISO character set,
+			;; and thus the ordered ISO character set can
+			;; encode all the characters in the MIME charset.)
 			;;
-			;; Otherwise, there's no remapping that latin unity
-			;; can do for us, and we should default to something
-			;; iso-2022 based. (Since we're not defaulting to
-			;; Unicode, at the moment.)
+			;; The string equivalence test is used because we
+			;; don't have another mapping that is useful
+			;; here. Nnngh.
 
-			(while csetzero
-			  (if (not (memq 
-				    (car csetzero) latin-unity-character-sets))
-			      (let ((ucs-list (vm-get-mime-ucs-list))
-				    (preapproved
-				     (vm-get-coding-system-priorities)))
-				(while preapproved
-				  (if (memq (car preapproved) ucs-list)
-				      (throw 'done 
-					     (car (cdr (assq (car preapproved)
-				      vm-mime-mule-coding-to-charset-alist)))))
-				  (setq preapproved (cdr preapproved)))
-				;; Nothing universal in the preapproved list.
-				(throw 'done nil)))
-			  (setq csetzero (cdr csetzero)))
+			(if (string=
+			     (car (cdr (assoc (car csetzero)
+				              vm-mime-mule-charset-to-charset-alist)))
+			     (car (cdr (assoc (car preapproved)
+				              vm-mime-mule-coding-to-charset-alist))))
+			    (throw 'done
+				   (car (cdr (assoc (car csetzero)
+				                    vm-mime-mule-charset-to-charset-alist)))))
+			(setq preapproved (cdr preapproved)))
 
-			;; Okay, we're able to remap using latin-unity. Do so.
-			(while systems
-			  (let ((sys (latin-unity-massage-name (car systems)
-					       'buffer-default)))
-			    (when (latin-unity-maybe-remap (point-min) 
-							   (point-max) sys 
-							   csets psets t)
-			      (throw 'done
-				     (second (assq sys
-				    vm-mime-mule-coding-to-charset-alist)))))
-			  (setq systems (cdr systems)))
-			(throw 'done nil))
+		    ;; Okay, there's more than one MULE character set in
+		    ;; the buffer. Check for a universal entry in the
+		    ;; preapproved list; if it exists pass it back,
+		    ;; otherwise fall through to the iso-2022-jp below,
+		    ;; because nothing on the preapproved list is
+		    ;; appropriate.
 
-		    ;; Right, latin-unity isn't available.  If there's only
-		    ;; one non-ASCII character set in the region, and the
-		    ;; corresponding coding system is on the preapproved
-		    ;; list before the first universal character set, pass
-		    ;; it back. Otherwise, if a universal character set is
-		    ;; on the preapproved list, pass the first one of them
-		    ;; back. Otherwise, pass back nil and use the
-		    ;; "iso-2022-jp" entry below.
-
-		    (let ((csetzero charsets)
-			  (preapproved (vm-get-coding-system-priorities))
-			  (ucs-list (vm-get-mime-ucs-list)))
-		      (if (null (cdr csetzero))
-			  (while preapproved
-			    ;; If we encounter a universal character set on
-			    ;; the preapproved list, pass it back.
-			    (if (memq (car preapproved) ucs-list)
-				(throw 'done
-				       (second (assq (car preapproved)
-				     vm-mime-mule-coding-to-charset-alist))))
-
-			    ;; The preapproved entry isn't universal. Check if
-			    ;; it's related to the single non-ASCII MULE
-			    ;; charset in the buffer (that is, if the
-			    ;; conceptually unordered MULE list of characters
-			    ;; is based on a corresponding ISO character set,
-			    ;; and thus the ordered ISO character set can
-			    ;; encode all the characters in the MIME charset.)
-			    ;;
-			    ;; The string equivalence test is used because we
-			    ;; don't have another mapping that is useful
-			    ;; here. Nnngh.
-
-			    (if (string=
-				 (car (cdr (assoc (car csetzero)
-				   vm-mime-mule-charset-to-charset-alist)))
-				 (car (cdr (assoc (car preapproved)
-				   vm-mime-mule-coding-to-charset-alist))))
-				(throw 'done
-				       (car (cdr (assoc (car csetzero)
-				    vm-mime-mule-charset-to-charset-alist)))))
-			    (setq preapproved (cdr preapproved)))
-
-			;; Okay, there's more than one MULE character set in
-			;; the buffer. Check for a universal entry in the
-			;; preapproved list; if it exists pass it back,
-			;; otherwise fall through to the iso-2022-jp below,
-			;; because nothing on the preapproved list is
-			;; appropriate.
-
-			(while preapproved
-			    ;; If we encounter a universal character set on
-			    ;; the preapproved list, pass it back.
-			    (when (memq (car preapproved) ucs-list)
-			      (throw 'done
-				     (second (assq (car preapproved)
-				     vm-mime-mule-coding-to-charset-alist))))
-			    (setq preapproved (cdr preapproved)))))
-		    (throw 'done nil))))
-	       ;; Couldn't do any magic with vm-coding-system-priorities. Pass
-	       ;; back a Japanese iso-2022 MIME character set.
-	       (t "iso-2022-jp")
-	       ;; Undo the change made in revisin 493
-	       ;; (t (or vm-mime-8bit-composition-charset "iso-2022-jp"))
-	       ;;    -- 
-	       )))
-	  ;; If we're non-MULE and there are eight bit characters, use a
-	  ;; sensible default.
-	  (goto-char (point-min))
-	  (if (re-search-forward "[^\000-\177]" nil t)
-              (or vm-mime-8bit-composition-charset "iso-8859-1")
-	  ;; We're non-MULE and there are purely 7bit characters in the
-	  ;; region. Return vm-mime-7bit-c-c.
-	  vm-mime-7bit-composition-charset)))))
+		    (while preapproved
+		      ;; If we encounter a universal character set on
+		      ;; the preapproved list, pass it back.
+		      (when (memq (car preapproved) ucs-list)
+			(throw 'done
+			       (second (assq (car preapproved)
+				             vm-mime-mule-coding-to-charset-alist))))
+		      (setq preapproved (cdr preapproved)))))
+		(throw 'done nil))))
+	   ;; Couldn't do any magic with vm-coding-system-priorities. Pass
+	   ;; back a Japanese iso-2022 MIME character set.
+	   (t "iso-2022-jp")
+	   ;; Undo the change made in revisin 493
+	   ;; (t (or vm-mime-8bit-composition-charset "iso-2022-jp"))
+	   ;;    -- 
+	   ))))))
 
 (defun vm-determine-proper-content-transfer-encoding (beg end)
   (save-excursion
@@ -5785,9 +5752,6 @@ Returns non-NIL value M is a plain message."
 	;; for GNU Emacs. So keep things simple, since there's no harm
 	;; if replacement characters are displayed.
 	((not (featurep 'xemacs)))
-	((vm-multiple-fonts-possible-p)
-	 (or (vm-mime-default-face-charset-p name)
-	     (vm-string-assoc name vm-mime-charset-font-alist)))
 
 	;; If the terminal-coding-system variable is set to something that
 	;; can encode all the characters of the given MIME character set,
@@ -8420,26 +8384,9 @@ buffer."
       (goto-char (point-max))
       (delete-char -1))))
 
-(defun vm-mime-insert-buffer-substring (buffer type)
+(defun vm-mime-insert-buffer-substring (buffer _type)
   "Safe insert the contents of BUFFER of TYPE into the current buffer."
-  (if (featurep 'xemacs)
-      (insert-buffer-substring buffer)
-    ;; Under Emacs 20.7 inserting a unibyte buffer
-    ;; contents that contain 8-bit characters into a
-    ;; multibyte buffer causes the inserted data to be
-    ;; corrupted with the dreaded \201 corruption.  So
-    ;; we write the data out to disk and let the file
-    ;; be inserted, which gets aoround the problem.
-    (let ((tempfile (vm-make-tempfile)))
-      ;; make note to delete the tempfile after insertion
-      (with-current-buffer buffer
-	(let ((buffer-file-coding-system
-	       (vm-binary-coding-system)))
-	  (write-region (point-min) (point-max) tempfile nil 0)))
-      (unwind-protect
-	  (vm-mime-insert-file-contents 
-	   tempfile type)
-	(vm-error-free-call 'delete-file tempfile)))))
+  (insert-buffer-substring buffer))
 
 
 ;;; vm-mime.el ends here
