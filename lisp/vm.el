@@ -5,6 +5,10 @@
 ;; Copyright (C) 1994-1998, 2003 Kyle E. Jones
 ;; Copyright (C) 2003-2006 Robert Widhopf-Fenk
 ;;
+;; Version: 8.3.0snapshot
+;; Maintainer: viewmail-info@nongnu.org
+;; URL: https://gitlab.com/emacs-vm/vm
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2 of the License, or
