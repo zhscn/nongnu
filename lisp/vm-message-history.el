@@ -212,12 +212,7 @@ With prefix ARG, select the ARG'th next message."
     (abbrev-mode 0)
     (auto-fill-mode 0)
     (vm-fsfemacs-nonmule-display-8bit-chars)
-    (if (fboundp 'buffer-disable-undo)
-        (buffer-disable-undo (current-buffer))
-      ;; obfuscation to make the v19 compiler not whine
-      ;; about obsolete functions.
-      (let ((x 'buffer-flush-undo))
-        (funcall x (current-buffer))))
+    (buffer-disable-undo (current-buffer))
     (setq vm-mail-buffer folder
           mode-name "VM Message History"
           major-mode 'vm-message-history-mode

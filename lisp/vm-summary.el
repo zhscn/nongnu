@@ -189,12 +189,7 @@ mandatory."
 	  ;;   (setq bufer-face-mode-face vm-summary-face)
 	  ;;   (buffer-face-mode 1))
 	  (vm-fsfemacs-nonmule-display-8bit-chars)
-	  (if (fboundp 'buffer-disable-undo)
-	      (buffer-disable-undo (current-buffer))
-	    ;; obfuscation to make the v19 compiler not whine
-	    ;; about obsolete functions.
-	    (let ((x 'buffer-flush-undo))
-	      (funcall x (current-buffer))))
+	  (buffer-disable-undo (current-buffer))
 	  (setq vm-mail-buffer b
 		vm-folder-read-only read-only)
 	  (vm-summary-mode-internal))

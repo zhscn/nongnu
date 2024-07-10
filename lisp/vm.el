@@ -1050,12 +1050,7 @@ virtual folder buffer."
 				default-directory))
     (setq first-time (not (eq major-mode 'vm-virtual-mode)))
     (when first-time
-      (if (fboundp 'buffer-disable-undo)
-	  (buffer-disable-undo (current-buffer))
-	;; obfuscation to make the v19 compiler not whine
-	;; about obsolete functions.
-	(let ((x 'buffer-flush-undo))
-	  (funcall x (current-buffer))))
+      (buffer-disable-undo (current-buffer))
       (abbrev-mode 0)
       (auto-fill-mode 0)
       (vm-fsfemacs-nonmule-display-8bit-chars)
@@ -1277,12 +1272,7 @@ summary buffer to select a folder."
 	  (abbrev-mode 0)
 	  (auto-fill-mode 0)
 	  (vm-fsfemacs-nonmule-display-8bit-chars)
-	  (if (fboundp 'buffer-disable-undo)
-	      (buffer-disable-undo (current-buffer))
-	    ;; obfuscation to make the v19 compiler not whine
-	    ;; about obsolete functions.
-	    (let ((x 'buffer-flush-undo))
-	      (funcall x (current-buffer))))
+	  (buffer-disable-undo (current-buffer))
 	  (vm-folders-summary-mode-internal))
 	(vm-make-folders-summary-associative-hashes)
 	(vm-do-folders-summary)))

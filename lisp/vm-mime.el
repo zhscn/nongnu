@@ -1565,12 +1565,7 @@ a string denoting the folder name."
 		   (concat name " Presentation"))))
     (save-excursion
       (set-buffer pres-buf)
-      (if (fboundp 'buffer-disable-undo)
-	  (buffer-disable-undo (current-buffer))
-	;; obfuscation to make the v19 compiler not whine
-	;; about obsolete functions.
-	(let ((x 'buffer-flush-undo))
-	  (funcall x (current-buffer))))
+      (buffer-disable-undo (current-buffer))
       (setq mode-name "VM Presentation"
 	    major-mode 'vm-presentation-mode
 	    vm-message-pointer (list nil)
