@@ -924,7 +924,7 @@ Add this to `vm-arrived-messages-hook'.
 
 See the function `vm-virtual-auto-delete-message' for details.
 
- (add-hook 'vm-arrived-messages-hook 'vm-virtual-auto-delete-messages)
+ (add-hook \\='vm-arrived-messages-hook #\\='vm-virtual-auto-delete-messages)
 "
   (interactive)
 
@@ -949,7 +949,7 @@ folder name and `mp' (a vm-message-pointer) to access the message.
 
 Example:
  (setq vm-virtual-auto-folder-alist
-       '((\"spam\" (concat folder \"-\"
+       \\='((\"spam\" (concat folder \"-\"
                            (format-time-string \"%y%m\" (current-time))))))
 
 This will return \"spam-0008\" as a folder name for messages matching the

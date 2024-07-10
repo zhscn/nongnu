@@ -833,8 +833,8 @@ configuration."
 (defcustom vm-save-killed-message
   'ask
   "How `vm-save-killed-message-hook' handles saving of a mail as a draft.
-If set to 'ask it will ask whether to save the mail as draft or not.
-If set to 'always it will save without asking.
+If set to `ask' it will ask whether to save the mail as draft or not.
+If set to `always' it will save without asking.
 If set to nil it will never save them nor it will ask."
   :type '(choice (const ask)
                  (const always)
@@ -1004,8 +1004,8 @@ Called with prefix ARG it just removes the FCC-header."
 (defun vm-mail-auto-fcc ()
   "Add a new FCC field, with file name guessed by `vm-mail-folder-alist'.
 You likely want to add it to `vm-reply-hook' by
-   (add-hook 'vm-reply-hook 'vm-mail-auto-fcc)
-or if sure about what you are doing you can add it to mail-send-hook."
+   (add-hook \\='vm-reply-hook #\\='vm-mail-auto-fcc)
+or if sure about what you are doing you can add it to `mail-send-hook'."
   (interactive "")
   (expand-abbrev)
   (save-excursion

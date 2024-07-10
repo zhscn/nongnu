@@ -294,7 +294,7 @@ certificate files."
 (defun vm-get-sender ()
   "Determine the sender of the message, used for determining
 which mapping of `smime-keys' to use in S/MIME signing a
-composition. If there is no 'From' header in the message,
+composition. If there is no `From' header in the message,
 `user-mail-address' will be used"
   (or (save-excursion
 	(goto-char (point-min))

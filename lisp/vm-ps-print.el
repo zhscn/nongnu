@@ -385,7 +385,7 @@ for customization of the output."
 (defun vm-ps-print-message-fix-menu (menu each)
   "Fix VM-menu MENU.
 If EACH it t, then replace `vm-print-message' by
-'vm-ps-print-each-message', otherwise by `vm-ps-print-message'."
+`vm-ps-print-each-message', otherwise by `vm-ps-print-message'."
   (let ((tmpbuf (get-buffer-create "*vm-ps-print*")))
     (with-current-buffer tmpbuf
       (erase-buffer)
@@ -421,7 +421,7 @@ t) instead of `vm-print-message'."
 print just the current message.
 Optionally write postscript output to FILENAME (default is to spool
 to printer). 
-Optionally force SEPERATE printing of each message by setting to 't'. 
+Optionally force SEPERATE printing of each message by setting to `t'. 
 Optionally also print NUP pages per sheet.
 Optionally also print in COLOR by setting to non-nil.
 

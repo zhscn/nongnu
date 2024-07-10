@@ -721,15 +721,15 @@ If non-nil call EXIT-HANDLER with the two arguments COMMAND and OUTPUT-BUFFER."
       (funcall exit-handler process-command buffer))))
 
 (defvar vm-pipe-messages-to-command-start t
-  "*The string to be used as the leading message separator by
+  "The string to be used as the leading message separator by
 `vm-pipe-messages-to-command' at the beginning of each message.
-If set to 't', then use the leading message separator stored in the VM
+If set to `t', then use the leading message separator stored in the VM
 folder.  If set to nil, then no leading separator is included.")
 
 (defvar vm-pipe-messages-to-command-end t
-  "*The string to be used as the trailing message separator by
+  "The string to be used as the trailing message separator by
 `vm-pipe-messages-to-command' at the end of each message.
-If set to 't', then use the trailing message separator stored in the VM
+If set to `t', then use the trailing message separator stored in the VM
 folder.  If set to nil, no trailing separator is included.")
 
 ;;;###autoload

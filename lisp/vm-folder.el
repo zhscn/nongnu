@@ -4408,7 +4408,7 @@ Same as \\[vm-recover-folder]."
   "Get new mail for the current folder from its spool file.
 The optional argument INTERACTIVE says whether the function can make
 interactive queries to the user.  The possible values are t,
-'password-only and nil."
+`password-only', and nil."
   (if vm-block-new-mail
       (error "Can't get new mail until you save this folder."))
   (cond ((eq vm-folder-access-method 'pop)
@@ -4944,7 +4944,7 @@ current changes of the folder before making it read-only."
 ;; this does the real major mode scutwork.
 (defun vm-mode-internal (&optional access-method reload)
   "Turn on vm-mode in the current buffer.
-ACCESS-METHOD is either 'pop or 'imap for server folders.
+ACCESS-METHOD is either `pop' or `imap' for server folders.
 If RELOAD is non-Nil, then the folder is being recovered.  So,
 folder-access-data should be preserved."
   (widen)

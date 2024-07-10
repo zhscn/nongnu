@@ -615,8 +615,8 @@ LIST2 satisfying PRED and return the position"
 
 (defun vm-fsfemacs-device-type (&optional _device)
   "An FSF Emacs emulation for XEmacs `device-type' function.  Returns
-the type of the current screen device: one of 'x, 'gtk, 'w32, 'ns and
-'pc.  The optional argument DEVICE is ignored."
+the type of the current screen device: one of `x', `gtk', `w32', `ns', and
+`pc'.  The optional argument DEVICE is ignored."
   (if (eq window-system 'x)
       (if (featurep 'gtk) 'gtk)
     window-system))
@@ -1491,7 +1491,7 @@ Returns t if there was a line longer than `fill-column'."
 
 (defun vm-fill-paragraphs-containing-long-lines (width start end)
   "Fill paragraphs spanning more than WIDTH columns in region
-START to END.  If WIDTH is 'window-width, the current width of
+START to END.  If WIDTH is `window-width', the current width of
 the Emacs window is used.  If vm-word-wrap-paragraphs is set
 non-nil, then the longlines package is used to word-wrap long
 lines without removing any existing line breaks.

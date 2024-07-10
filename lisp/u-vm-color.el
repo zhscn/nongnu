@@ -632,7 +632,7 @@ subexpressions."
   "Search the buffer for an expression and fontify it.
 Search starts at START and ends at END.  If REGEXP is found, it
 is fontified according to the argument HOW, which is a list of
-the form '((index face)...)."
+the form ((INDEX FACE)...)."
 ;;(message "Searching from %d to %d for %s" start end regexp)
   (let ((inhibit-read-only t))
     (save-excursion

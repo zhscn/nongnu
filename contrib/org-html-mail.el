@@ -29,8 +29,8 @@
 (defun orgstruct-hijacker-command-21 (arg)
   "In Structure, run `org-ctrl-c-ctrl-c'. Outside of Structure
 check for a prefix argument and if buffer name contains `mail',
-and run orgstruct-send-as-html, or run the binding of
-`\C-c\C-c'."
+and run `orgstruct-send-as-html', or run the binding of
+`C-c C-c'."
   (interactive "p")
   (vm-inform 6 "calling html send mail")
   (save-excursion

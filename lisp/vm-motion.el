@@ -142,7 +142,7 @@ given."
 
 (defun vm-move-message-pointer (direction)
   "Move vm-message-pointer along DIRECTION by one position.  DIRECTION
-is one of 'forward and 'backward.                     USR, 2011-01-18"
+is one of `forward' and `backward'.                     USR, 2011-01-18"
   (let ((mp vm-message-pointer))
     (if (eq direction 'forward)
 	(progn
@@ -200,7 +200,7 @@ value of COUNT is greater than 1, then the values of the variables
 vm-skip-deleted-messages and vm-skip-read-messages are ignored.
 
 When invoked on marked messages (via `vm-next-command-uses-marks')
-this command 'sees' marked messages as it moves."
+this command \"sees\" marked messages as it moves."
   ;; second arg RETRY non-nil means retry a failed move, giving
   ;; not nil-or-t values of the vm-skip variables a chance to
   ;; work.

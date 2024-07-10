@@ -240,8 +240,8 @@ message as spam.
   :type 'string)
 
 (defcustom vm-bogofilter-formail-program-options "-s"
-  "*Options for the 'vm-bogofilter-formail-program'. After this
-arguments, the name of the bogofilter program will be passed."
+  "Options for the `vm-bogofilter-formail-program'.
+After this arguments, the name of the bogofilter program will be passed."
   :group 'vm-bogofilter
   :type 'string)
 

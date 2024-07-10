@@ -1168,7 +1168,7 @@ of the current folder, or nil if none has been recorded."
   "Create a new IMAP session for the IMAP mail box SOURCE, attached to
 the current folder.
 INTERACTIVE says the operation has been invoked interactively.  The
-possible values are t, 'password-only and nil.
+possible values are t, `password-only', and nil.
 and the optional argument PURPOSE is inserted in the process
 buffer for tracing purposes.  Optional argument RETRY says
 whether this call is a retry.
@@ -2492,7 +2492,7 @@ May throw exceptions."
   "Checks if a REPSONSE from the IMAP server matches the pattern
 EXPR.  The syntax of patterns is:
 
-  expr ::= quoted-symbol | 'atom | 'string | ('vector expr*) | ('list expr*)
+  EXPR ::= QUOTED-SYMBOL | atom | string | (vector EXPR*) | (list EXPR*)
 
 Numbers are included among atoms."
   (let ((case-fold-search t) e r)
@@ -3305,7 +3305,7 @@ LOCAL-EXPUNGE-LIST: A list of message descriptors for messages in the
   to expunged locally.
 STALE-LIST: A list of message descriptors for messages in the
   local cache whose UIDVALIDITY values are stale.
-If the argument DO-RETRIEVES is 'full, then all the messages that
+If the argument DO-RETRIEVES is `full', then all the messages that
 are not presently in cache are retrieved.  Otherwise, the
 messages previously retrieved are ignored."
 
@@ -3384,18 +3384,18 @@ messages previously retrieved are ignored."
   "Synchronize IMAP folder with the server.
    INTERACTIVE says whether the function was invoked interactively,
    e.g., as vm-get-spooled-mail.  The possible values are t,
-   'password-only and nil.
+   `password-only', and nil.
    DO-REMOTE-EXPUNGES indicates whether the server mail box should be
-   expunged.  If it is 'all, then all messages not present in the cache folder
+   expunged.  If it is `all', then all messages not present in the cache folder
    are expunged.
    DO-LOCAL-EXPUNGES indicates whether the cache buffer should be
    expunged.
    DO-RETRIEVES indicates if new messages that are not already in the
-   cache should be retrieved from the server.  If this flag is 'full
+   cache should be retrieved from the server.  If this flag is `full'
    then messages previously retrieved but not in cache are retrieved
    as well.
    SAVE-ATTRIBUTES indicates if the message attributes should be updated on
-   the server.  If it is 'all, then the attributes of all messages are
+   the server.  If it is `all', then the attributes of all messages are
    updated irrespective of whether they were modified or not.
    RETRIEVE-ATTRIBTUES indicates if the message attributes on the server
    should be retrieved, updating the cache.
@@ -3514,7 +3514,7 @@ messages previously retrieved are ignored."
 RETRIEVE-LIST and return the list of the retrieved messages.  The
 RETRIEVE-LIST is a list of cons-pairs (uid . n) of the UID's and
 message sequence numbers of messages on the IMAP server.  If
-`vm-enable-external-messages' includes 'imap, then messages
+`vm-enable-external-messages' includes `imap', then messages
 larger than `vm-imap-max-message-size' are retrieved in
 headers-only form."
   (let* ((folder-buffer (current-buffer))

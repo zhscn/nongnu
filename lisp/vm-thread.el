@@ -168,7 +168,7 @@
 (defsubst vm-th-thread-date-of (id-sym criterion)
   "For the message with the interned symbol ID-SYM, return the
 youngest or oldest date in its thread.  CRITERION must be one of
-'youngest-date and 'oldest-date"
+`youngest-date' and `oldest-date'."
   (get id-sym criterion))
 
 (defsubst vm-th-message-of (id-sym)

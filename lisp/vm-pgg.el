@@ -1272,7 +1272,7 @@ The transfer encoding done by `vm-pgg-sign' can be controlled by the variable
 
 ;;; ###autoload
 (defun vm-pgg-ask-hook ()
-  "Hook to automatically ask for signing or encrypting outgoing messages with PGP/MIME.
+  "Function to ask to sign or encrypt outgoing messages with PGP/MIME.
 
 Put this function into `vm-mail-send-hook' to be asked each time you
 send a message whether or not you want to sign or encrypt the
@@ -1284,7 +1284,7 @@ other functions there.  Signing crucially relies on the fact that the
 message is not altered afterwards. To put it into `vm-mail-send-hook'
 put something like
 
-       (add-hook 'vm-mail-send-hook 'vm-pgg-ask-hook t)
+       (add-hook \\='vm-mail-send-hook #\\='vm-pgg-ask-hook t)
 
 into your VM init file."
   (interactive)

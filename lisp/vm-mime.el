@@ -1842,19 +1842,20 @@ etc.  Only when displaying it the actual message is fetched based
 on the storage handler.
 
 The information about the actual message is stored in the
-\"^X-VM-Storage:\" header and should be a lisp list of the
+\"^X-VM-Storage:\" header and should be a Lisp list of the
 following format.
 
-    \(HANDLER ARGS...\)
+    (HANDLER ARGS...)
 
 HANDLER should correspond to a `vm-fetch-HANDLER-message'
 function, e.g., the handler `file' corresponds to the function
 `vm-fetch-file-message' which gets two arguments, the message
 descriptor and the filename containing the message, and inserts the
-message body from the file into the current buffer. 
+message body from the file into the current buffer.  For example,
 
-For example, 'X-VM-Storage: (file \"message-11\")' will fetch 
-the actual message from the file \"message-11\"."
+    X-VM-Storage: (file \"message-11\")
+
+will fetch the actual message from the file \"message-11\"."
   (goto-char (match-end 0))
   (with-current-buffer (marker-buffer (vm-text-of mm))
     (let ((buffer-read-only nil)
@@ -2541,7 +2542,7 @@ The second time, buttons for all the objects are displayed instead.
 The third time, the raw, undecoded data is displayed.
 
 The optional argument STATE can specify which decode state to display:
-'decoded, 'button or 'undecoded.
+`decoded', `button', or `undecoded'.
 
 If decoding, the decoded objects might be displayed immediately, or
 buttons might be displayed that you need to activate to view the
@@ -2676,7 +2677,7 @@ If DONT-HONOR-C-D non-Nil, then don't honor the Content-Disposition
 declarations in the attachments and make a decision independently.
 
 LAYOUT can be a mime layout vector.  It can also be a button
-extent in the current buffer, in which case the 'vm-mime-layout
+extent in the current buffer, in which case the `vm-mime-layout'
 property of the overlay will be extracted.  The button may be
 deleted. 
 
@@ -4449,7 +4450,7 @@ The return value does not seem to be meaningful.     USR, 2011-03-25"
 
 (defun vm-mark-image-tempfile-as-message-garbage-once (layout tempfile)
   "Register image TEMPFILE used for MIME LAYOUT as a message garbage
-file, and set the 'vm-message-garbage property of LAYOUT.  This
+file, and set the `vm-message-garbage' property of LAYOUT.  This
 feature is currently not in use.                        USR, 2012-11-17"
   (if (get (vm-mm-layout-cache layout) 'vm-message-garbage)
       nil
@@ -4660,7 +4661,7 @@ expanded to display the mime object."
 
 ;;;###autoload
 (defun vm-mime-run-display-function-at-point (&optional function)
-  "Run the 'vm-mime-function for the MIME button at point.
+  "Run the `vm-mime-function' for the MIME button at point.
 If optional argument FUNCTION is given, run it instead.
 					          USR, 2011-03-07"
   (interactive)
@@ -6576,7 +6577,7 @@ extents are created for the purpose of this function.  USR, 2011-03-27"
 (defun vm-mime-fake-attachment-overlays (start end &optional prop)
   "For all attachment buttons in the region, i.e., pieces of text
 with the given text property PROP, create \"fake\" attachment
-overlays with the 'vm-mime-object property.  The list of these
+overlays with the `vm-mime-object' property.  The list of these
 overlays is returned.
 
 This function is only used with GNU Emacs, not XEmacs.  USR, 2011-02-19"
@@ -6887,9 +6888,10 @@ describes what was deleted."
 	       (vm-set-mm-layout-display-error layout nil)))))))
 
 (defun vm-mime-encode-words (&optional encoding)
-  "MIME encode all words in the current buffer.  The optional argument
-ENCODING can be 'Q or 'B (for quoted-printable and base64
-respectively).  If none is specified, quoted-printbale is used."
+  "MIME encode all words in the current buffer.
+The optional argument ENCODING can be the symbol `Q' or `B' (for
+quoted-printable and base64 respectively).
+If none is specified, quoted-printable is used."
   (goto-char (point-min))
 
   ;; find right encoding 

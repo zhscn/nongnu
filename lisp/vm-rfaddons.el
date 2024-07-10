@@ -179,8 +179,8 @@ Other EXPERIMENTAL options:
 
 If you want to use only a subset of the options then call
 `vm-rfaddons-infect-vm' like this:
-        (vm-rfaddons-infect-vm 2 '(general vm-mail-mode shrunken-headers)
-                                 '(fake-date))
+        (vm-rfaddons-infect-vm 2 \\='(general vm-mail-mode shrunken-headers)
+                                 \\='(fake-date))
 This will enable all `general' and `vm-mail-mode' options plus the
 `shrunken-headers' option, but it will exclude the `fake-date' option of the
 `vm-mail-mode' options.
@@ -626,13 +626,13 @@ buffer. (Rob F)"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun bbdb/vm-set-virtual-folder-alist ()
   "Create a `vm-virtual-folder-alist' according to the records in the bbdb.
-For each record that has a 'vm-virtual' attribute, add or modify the
+For each record that has a `vm-virtual' attribute, add or modify the
 corresponding BBDB-VM-VIRTUAL element of the `vm-virtual-folder-alist'.
 
   (BBDB-VM-VIRTUAL ((vm-primary-inbox)
                     (author-or-recipient BBDB-RECORD-NET-REGEXP)))
 
-The element gets added to the 'element-name' sublist of the
+The element gets added to the `element-name' sublist of the
 `vm-virtual-folder-alist'. (Rob F)"
   (interactive)
   (let (notes-field  email-regexp folder selector)
@@ -690,7 +690,7 @@ add/modify the corresponding VM-VIRTUAL element of the
   (BBDB-VM-VIRTUAL ((vm-primary-inbox)
                     (author-or-recipient BBDB-RECORD-NET-REGEXP)))
 
-The element gets added to the 'element-name' sublist of the
+The element gets added to the `element-name' sublist of the
 `vm-virtual-folder-alist'. (Rob F)"
   (interactive)
   (let (notes-field email-regexp mail-aliases folder selector)
@@ -738,9 +738,9 @@ The element gets added to the 'element-name' sublist of the
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defcustom vm-handle-return-receipt-mode 'edit
-  "*Tells `vm-handle-return-receipt' how to handle return receipts.
-One can choose between 'ask, 'auto, 'edit or an expression which is evaluated
-and which should return t if the return receipts should be sent. (Rob F)"
+  "Tells `vm-handle-return-receipt' how to handle return receipts.
+One can choose between `ask', `auto', `edit', or an expression which should
+return t if the return receipts should be sent. (Rob F)"
   :group 'vm-rfaddons
   :type '(choice (const :tag "Edit" edit)
                  (const :tag "Ask" ask)
@@ -845,7 +845,7 @@ For guessing mime-types we use `vm-mime-attachment-auto-type-alist'. (Rob F)"
 (defcustom vm-attach-files-in-directory-default-charset 'guess
   "*The default charset used for attached files of type `text'.
 If set to nil you will be asked for the charset.
-If set to 'guess it will be determined by `vm-determine-proper-charset', but
+If set to `guess' it will be determined by `vm-determine-proper-charset', but
 this may take some time, since the file needs to be visited. (Rob F)"
   :group 'vm-rfaddons
   :type '(choice (const :tag "Ask" nil)
@@ -978,7 +978,8 @@ date header as subdir for the attachments. (Rob F)"
 
 (defun vm-mime-auto-save-all-attachments-subdir (msg)
   "Return a subdir for the attachments of MSG.
-This will be done according to `vm-mime-auto-save-all-attachments-subdir'. (Rob F)"
+This will be done according to `vm-mime-auto-save-all-attachments-subdir'.
+(Rob F)"
   (setq msg (vm-real-message-of msg))
   (when (not (string-match 
 	      (regexp-quote (vm-reencode-mime-encoded-words-in-string
@@ -1046,7 +1047,7 @@ Root directory for saving is `vm-mime-attachment-save-directory'.
 You might add this to `vm-select-new-message-hook' in order to automatically
 save attachments.
 
-    (add-hook 'vm-select-new-message-hook 'vm-mime-auto-save-all-attachments)
+    (add-hook \\='vm-select-new-message-hook #\\='vm-mime-auto-save-all-attachments)
  (Rob F)"
   (interactive "P")
 
@@ -1581,7 +1582,8 @@ of empty lines which have been quoted. (Rob F)"
 ;;;###autoload
 (defun vm-mail-mode-elide-reply-region (b e)
   "Replace marked region or current line with `vm-mail-elide-reply-region'.
-B and E are the beginning and end of the marked region or the current line. (Rob F)"
+B and E are the beginning and end of the marked region or the current line.
+(Rob F)"
   (interactive (if (mark)
                    (if (< (mark) (point))
                        (list (mark) (point))
@@ -1626,7 +1628,8 @@ B and E are the beginning and end of the marked region or the current line. (Rob
 ;;;###autoload
 (defun vm-save-message-preview (file)
   "Save preview of a message in FILE.
-It saves the decoded message and not the raw message like `vm-save-message' (Rob F)"
+It saves the decoded message and not the raw message like `vm-save-message'
+(Rob F)"
   (interactive
    ;; protect value of last-command
    (let ((last-command last-command)
@@ -1827,7 +1830,8 @@ not end the comment.  Blank lines do not get comments. (Rob F)"
 ;; Sometimes it's handy to fake a date.
 ;; I overwrite the standard function by a slightly different version.
 (defcustom vm-mail-mode-fake-date-p t
-  "*Non-nil means `vm-mail-mode-insert-date-maybe' will not overwrite a existing date header. (Rob F)"
+  "Non-nil means `vm-mail-mode-insert-date-maybe' keeps an existing date header.
+Otherwise, overwrite existing date headers (Rob F)"
   :group 'vm-rfaddons
   :type '(boolean))
 

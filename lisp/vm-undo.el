@@ -426,8 +426,8 @@ M-LIST.  STRING is a MIME-decoded string with text properties.
 The third parameter ADD is one of:
 
 nil	       delete the label
-'all           add the label in all cases
-'existing-only add the label only if it is already existing in the folder
+`all'           add the label in all cases
+`existing-only' add the label only if it is already existing in the folder
 							USR, 2010-12-20
 "
   (vm-display nil nil '(vm-add-message-labels vm-delete-message-labels)

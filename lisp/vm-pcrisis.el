@@ -168,7 +168,7 @@ specific variables such as `vmpc-reply-rules'."
 
 (defvaralias 'vmpc-automorph-alist 'vmpc-automorph-rules)
 (defcustom vmpc-automorph-rules ()
-  "An alist associating conditions with actions from `vmpc-actions' when automorphing."
+  "Alist associating conditions with actions from `vmpc-actions' when automorphing."
   :type (vmpc-defcustom-rules-type)
 ;  :set 'vmpc-rules-set
   :group 'vmpc)
@@ -203,8 +203,8 @@ when composing."
   :group 'vmpc)
 
 (defcustom vmpc-auto-profiles-file "~/.vmpc-auto-profiles"
-  "*File in which to save information used by `vmpc-prompt-for-profile'.
-When set to the symbol 'BBDB, profiles will be stored there."
+  "File in which to save information used by `vmpc-prompt-for-profile'.
+When set to the symbol `BBDB', profiles will be stored there."
   :type '(choice (file)
                  (const BBDB))
   :group 'vmpc)
@@ -220,12 +220,12 @@ right for you will depend on how often you send email to new addresses using
 
 (defvar vmpc-current-state nil
   "The current state of pcrisis.
-It is one of 'reply, 'forward, 'resend, 'automorph, 'mail or 'newmail.
+It is one of `reply', `forward', `resend', `automorph', `mail', or `newmail'.
 It controls which actions/functions can/will be run.") 
 
 (defvar vmpc-current-buffer nil
-  "The current buffer, i.e. 'none or 'composition.
-It is 'none before running an adviced VM function and 'composition afterward,
+  "The current buffer, i.e. `none' or `composition'.
+It is `none' before running an adviced VM function and `composition' afterward,
 i.e. when within the composition buffer.")
 
 (defvar vmpc-saved-headers-alist nil
@@ -276,7 +276,7 @@ i.e. when within the composition buffer.")
   "Whether to forbid the cursor from entering the signature.")
 
 (defvar vmpc-expect-default-signature 'nil
-  "*Set this to 't if you have a signature-inserting function.
+  "Set this to `t' if you have a signature-inserting function.
 It will ensure that pcrisis correctly handles the signature .")
 
 
@@ -380,7 +380,7 @@ Overlays suck.  Extents rule.  XEmacs got this right."
 (defun vmpc-set-extent-insertion-types (extent start end)
   "Set the insertion types of EXTENT from START to END.
 START and END should be either nil or t, indicating the desired value
-of the 'start-open and 'end-closed properties of the extent
+of the `start-open' and `end-closed' properties of the extent
 respectively.
 This is the XEmacs version of `vmpc-set-overlay-insertion-types'."
   ;; pretty simple huh?
@@ -421,14 +421,14 @@ start and end of the overlay/extent."
 
 
 (defun vmpc-set-exerlay-detachable-property (exerlay newval)
-  "Set the 'detachable or 'evaporate property for EXERLAY to NEWVAL."
+  "Set the `detachable' or `evaporate' property for EXERLAY to NEWVAL."
   (if (featurep 'xemacs)
       (vm-set-extent-property exerlay 'detachable newval)
     (overlay-put exerlay 'evaporate newval)))
 
 
 (defun vmpc-set-exerlay-intangible-property (exerlay newval)
-  "Set the 'intangible or 'atomic property for EXERLAY to NEWVAL."
+  "Set the `intangible' or `atomic' property for EXERLAY to NEWVAL."
   (if (featurep 'xemacs)
       (progn
 	(require 'atomic-extents)
@@ -1156,7 +1156,7 @@ without an action.
 The association is stored in `vmpc-auto-profiles-file' and in the future the
 stored actions will automatically run for messages to that address.
 
-REMEMBER can be set to t or 'prompt.  When set to 'prompt you will be asked if
+REMEMBER can be set to t or `prompt'.  When set to `prompt' you will be asked if
 you want to store the association.  When set to t a new profile will be stored
 without asking.
 
@@ -1641,7 +1641,7 @@ current composition, then call this function."
 ;;;###autoload
 (defun vmpc-automorph ()
   "*Change contents of the current mail message based on its own headers.
-Unless `vmpc-current-state' is 'no-automorph, headers and signatures can be
+Unless `vmpc-current-state' is `no-automorph', headers and signatures can be
 changed; pre-signatures added; functions called.
 
 Call `vmpc-no-automorph' to disable it for the current buffer."

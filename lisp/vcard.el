@@ -191,12 +191,12 @@ Vcard data is normally in the form
     prop3a;prop3b:                value3a;value3b;value3c
     end:                          vcard
 
-\(Whitespace around the `:' separating properties and values is optional.\)
+\(Whitespace around the `:' separating properties and values is optional.)
 If supplied to this function an alist of the form
 
-    \(\(\(\"prop1a\"\) \"value1a\"\)
-     \(\(\"prop2a\" \"prop2b\" \(\"prop2c\" . \"param2c\"\)\) \"value2a\"\)
-     \(\(\"prop3a\" \"prop3b\"\) \"value3a\" \"value3b\" \"value3c\"\)\)
+    (((\"prop1a\") \"value1a\")
+     ((\"prop2a\" \"prop2b\" (\"prop2c\" . \"param2c\")) \"value2a\")
+     ((\"prop3a\" \"prop3b\") \"value3a\" \"value3b\" \"value3c\"))
 
 would be returned."
   (let ((vcard nil)

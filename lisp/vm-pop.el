@@ -435,7 +435,7 @@ relevant POP servers to remove the messages."
 (defun vm-pop-make-session (source interactive &optional retry)
   "Create a new POP session for the POP mail box SOURCE.
 The argument INTERACTIVE says the operation has been invoked
-interactively.  The possible values are t, 'password-only and nil.
+interactively.  The possible values are t, `password-only', and nil.
 Optional argument RETRY says whether this call is for a
 retry.
 
@@ -1134,13 +1134,13 @@ LOCAL-EXPUNGE-LIST: A list of message descriptors for messages in the
 				   (do-retrieves nil))
   "Synchronize POP folder with the server.
    INTERACTIVE says the operation has been invoked interactively.  The
-   possible values are t, 'password-only and nil.
+   possible values are t, `password-only', and nil.
    DO-REMOTE-EXPUNGES indicates whether the server mail box should be
    expunged.
    DO-LOCAL-EXPUNGES indicates whether the cache buffer should be
    expunged.
    DO-RETRIEVES indicates if new messages that are not already in the
-   cache should be retrieved from the server.  If this flag is 'full
+   cache should be retrieved from the server.  If this flag is `full'
    then messages previously retrieved but not in cache are retrieved
    as well.
 "
