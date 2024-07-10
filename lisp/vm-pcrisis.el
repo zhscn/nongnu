@@ -1529,54 +1529,59 @@ recursion nor concurrent calls."
     (vmpc-init-vars)
     (setq vmpc-current-buffer nil)))
 
-(defadvice vm-do-reply (around vmpc-reply activate)
-  "*Reply to a message with pcrisis voodoo."
+(advice-add 'vm-do-reply :around #'vmpc--reply)
+(defun vmpc--reply (orig-fun &rest args)
+  "Reply to a message with pcrisis voodoo."
   (vmpc-init-vars 'reply)
   (vmpc-build-true-conditions-list)
   (vmpc-build-actions-to-run-list)
   (vmpc-run-actions)
-  ad-do-it
+  (apply orig-fun args)
   (vmpc-create-sig-and-pre-sig-exerlays)
   (vmpc-make-vars-local)
   (vmpc-run-actions))
 
-(defadvice vm-mail-from-folder (around vmpc-mail activate)
-  "*Start a new message with pcrisis voodoo."
+(advice-add 'vm-mail-from-folder :around #'vmpc--mail)
+(defun vmpc--mail (orig-fun &rest args)
+  "Start a new message with pcrisis voodoo."
   (vm-follow-summary-cursor)
   (vm-select-folder-buffer-and-validate 1 (interactive-p))
   (vmpc-init-vars 'mail)
   (vmpc-build-true-conditions-list)
   (vmpc-build-actions-to-run-list)
   (vmpc-run-actions)
-  ad-do-it
+  (apply orig-fun args)
   (vmpc-create-sig-and-pre-sig-exerlays)
   (vmpc-make-vars-local)
   (vmpc-run-actions))
 
-(defadvice vm-mail (around vmpc-newmail activate)
-  "*Start a new message with pcrisis voodoo."
+(advice-add 'vm-mail :around #'vmpc--newmail)
+(defun vmpc--newmail (orig-fun &rest args)
+  "Start a new message with pcrisis voodoo."
   (vmpc-init-vars 'newmail)
   (vmpc-build-true-conditions-list)
   (vmpc-build-actions-to-run-list)
   (vmpc-run-actions)
-  ad-do-it
+  (apply orig-fun args)
   (vmpc-create-sig-and-pre-sig-exerlays)
   (vmpc-make-vars-local)
   (vmpc-run-actions))
 
-(defadvice vm-compose-mail (around vmpc-compose-newmail activate)
-  "*Start a new message with pcrisis voodoo."
+(advice-add 'vm-compose-mail :around #'vmpc--compose-newmail)
+(defun vmpc--compose-newmail (orig-fun &rest args)
+  "Start a new message with pcrisis voodoo."
   (vmpc-init-vars 'newmail)
   (vmpc-build-true-conditions-list)
   (vmpc-build-actions-to-run-list)
   (vmpc-run-actions)
-  ad-do-it
+  (apply orig-fun args)
   (vmpc-create-sig-and-pre-sig-exerlays)
   (vmpc-make-vars-local)
   (vmpc-run-actions))
 
-(defadvice vm-forward-message (around vmpc-forward activate)
-  "*Forward a message with pcrisis voodoo."
+(advice-add 'vm-forward-message :around #'vmpc--forward)
+(defun vmpc--forward (orig-fun &rest args)
+  "Forward a message with pcrisis voodoo."
   ;; this stuff is already done when replying, but not here:
   (vm-follow-summary-cursor)
   (vm-select-folder-buffer-and-validate 1 (interactive-p))
@@ -1585,13 +1590,14 @@ recursion nor concurrent calls."
   (vmpc-build-true-conditions-list)
   (vmpc-build-actions-to-run-list)
   (vmpc-run-actions)
-  ad-do-it
+  (apply orig-fun args)
   (vmpc-create-sig-and-pre-sig-exerlays)
   (vmpc-make-vars-local)
   (vmpc-run-actions))
 
-(defadvice vm-forward-message-plain (around vmpc-forward activate)
-  "*Forward a message in plain text with pcrisis voodoo."
+(advice-add 'vm-forward-message-plain :around #'vmpc--forward-plain)
+(defun vmpc--forward-plain (orig-fun &rest args)
+  "Forward a message in plain text with pcrisis voodoo."
   ;; this stuff is already done when replying, but not here:
   (vm-follow-summary-cursor)
   (vm-select-folder-buffer-and-validate 1 (interactive-p))
@@ -1600,13 +1606,14 @@ recursion nor concurrent calls."
   (vmpc-build-true-conditions-list)
   (vmpc-build-actions-to-run-list)
   (vmpc-run-actions)
-  ad-do-it
+  (apply orig-fun args)
   (vmpc-create-sig-and-pre-sig-exerlays)
   (vmpc-make-vars-local)
   (vmpc-run-actions))
 
-(defadvice vm-resend-message (around vmpc-resend activate)
-  "*Resent a message with pcrisis voodoo."
+(advice-add 'vm-resend-message :around #'vmpc--resend)
+(defun vmpc--resend (orig-fun &rest args)
+  "Resent a message with pcrisis voodoo."
   ;; this stuff is already done when replying, but not here:
   (vm-follow-summary-cursor)
   (vm-select-folder-buffer-and-validate 1 (interactive-p))
@@ -1615,7 +1622,7 @@ recursion nor concurrent calls."
   (vmpc-build-true-conditions-list)
   (vmpc-build-actions-to-run-list)
   (vmpc-run-actions)
-  ad-do-it
+  (apply orig-fun args)
   (vmpc-create-sig-and-pre-sig-exerlays)
   (vmpc-make-vars-local)
   (vmpc-run-actions))

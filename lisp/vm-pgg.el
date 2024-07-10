@@ -606,7 +606,9 @@ When the button is pressed ACTION is called."
               (t
                (error "This should never happen!")))))))
 
-(defadvice vm-present-current-message (after vm-pgg-cleartext-automode activate)
+(advice-add 'vm-present-current-message
+            :after #'vm-pgg--present-cleartext-automode)
+(defun vm-pgg--present-cleartext-automode (&rest _)
   "Decode or check signature on clear text messages."
   (vm-pgg-state-set)
   (when (and vm-pgg-cleartext-decoded
@@ -616,13 +618,14 @@ When the button is pressed ACTION is called."
              (not vm-mime-decoded))
     (vm-pgg-cleartext-automode)))
 
-(defadvice vm-scroll-forward (around vm-pgg-cleartext-automode activate)
+(advice-add 'vm-scroll-forward :around #'vm-pgg--scroll-cleartext-automode)
+(defun vm-pgg--scroll-cleartext-automode (orig-fun &rest args)
   "Decode or check signature on clear text messages."
   (let ((vm-system-state-was
          (save-excursion
            (vm-select-folder-buffer-if-possible)
            vm-system-state)))
-    ad-do-it
+    (apply orig-fun args)
     (vm-pgg-state-set)
     (when (and (eq vm-system-state-was 'previewing)
                (not vm-mime-decoded))
@@ -667,12 +670,15 @@ When the button is pressed ACTION is called."
 			     'vm-pgg-bad-signature
 			   'vm-pgg-good-signature)))))
   
-(defadvice vm-mime-transfer-decode-region (around vm-pgg-cleartext-automode activate)
+(advice-add 'vm-mime-transfer-decode-region
+            :around #'vm-pgg--transfer-cleartext-automode)
+(defun vm-pgg--transfer-cleartext-automode (orig-fun &optional layout
+                                                     &rest args)
   "Decode or check signature on clear text messages parts."
   (let ((vm-pgg-part-start (point)))
-    ad-do-it
+    (apply orig-fun layout args)
     ;; BUGME should we use marks here?
-    (when (and (vm-mime-text-type-layout-p (ad-get-arg 0))
+    (when (and (vm-mime-text-type-layout-p layout)
                (< vm-pgg-part-start (point)))
       (save-excursion
         (save-restriction
@@ -683,7 +689,9 @@ When the button is pressed ACTION is called."
           ;(scroll-down 1000)
           )))))
   
-(defadvice vm-mime-display-internal-text/plain (around vm-pgg-cleartext-automode activate)
+(advice-add 'vm-mime-display-internal-text/plain
+            :around #'vm-pgg--display-cleartext-automode)
+(defun vm-pgg--display-cleartext-automode (orig-fun &rest args)
   "Decode or check signature on clear text messages parts.
 We use the advice here in order to avoid overwriting VMs internal text display
 function.  Faces will get lost if a charset conversion happens thus we do the
@@ -691,7 +699,7 @@ cleanup here after verification and decoding took place."
   (let ((vm-pgg-cleartext-state nil)
         (start (point))
         end)
-    ad-do-it
+    (apply orig-fun args)
     (when vm-pgg-cleartext-state
       (setq end (point))
       (save-restriction
@@ -797,7 +805,8 @@ cleanup here after verification and decoding took place."
 (defvar vm-pgg-recursion nil
   "Detect recursive calles.")
 
-(defadvice vm-decode-mime-message (around vm-pgg-clear-state activate)
+(advice-add 'vm-decode-mime-message :around #'vm-pgg--clear-state)
+(defun vm-pgg--clear-state (orig-fun &rest args)
   "Clear the modeline state before decoding."
   (vm-select-folder-buffer)
   (when (not vm-pgg-recursion)
@@ -808,7 +817,7 @@ cleanup here after verification and decoding took place."
       (if vm-pgg-cleartext-decoded
           (vm-present-current-message))
     (let ((vm-pgg-recursion t))
-      ad-do-it)))
+      (apply orig-fun args))))
 
 (defun vm-pgg-mime-decrypt (button)
   "Replace the BUTTON with the output from `pgg-snarf-keys'."

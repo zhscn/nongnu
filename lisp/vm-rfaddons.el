@@ -128,6 +128,21 @@ nil. (Rob F)"
                                 option)
                           body)))))
 
+(defun vm-rfaddons--fake-date (orig-fun &rest args)
+  "Do not change an existing date if `vm-mail-mode-fake-date-p' is t. (Rob F)"
+  (if (not (and vm-mail-mode-fake-date-p
+                (vm-mail-mode-get-header-contents "Date:")))
+      (apply orig-fun args)))
+
+(defun vm-rfaddons--do-preview-again (&rest _)
+  (if vm-mime-delete-after-saving
+      (vm-present-current-message)))
+
+(defun vm-rfaddons--mime-auto-save-all-attachments (&optional m flag)
+  (if (and (eq flag 'expunged)
+           (not (vm-filed-flag m)))
+      (vm-mime-auto-save-all-attachments-delete-external m)))
+
 ;;;###autoload
 (defun vm-rfaddons-infect-vm (&optional sit-for
                                         option-list exclude-option-list)
@@ -244,11 +259,8 @@ or do the binding and advising on your own. (Rob F)"
   ;; This allows us to fake a date by advising vm-mail-mode-insert-date-maybe
   (vm-rfaddons-check-option
    'fake-date option-list
-   (defadvice vm-mail-mode-insert-date-maybe (around vm-fake-date activate)
-     "Do not change an existing date if `vm-mail-mode-fake-date-p' is t. (Rob F)"
-     (if (not (and vm-mail-mode-fake-date-p
-                   (vm-mail-mode-get-header-contents "Date:")))
-         ad-do-it)))
+   (advice-add 'vm-mail-mode-insert-date-maybe
+               :around #'vm-rfaddons--fake-date))
   
   (vm-rfaddons-check-option
    'open-line option-list
@@ -270,14 +282,8 @@ or do the binding and advising on your own. (Rob F)"
      ;; that a presentation buffer is used.  The visibility-widget
      ;; would cause "*"s to be inserted into the folder buffer.
      (setq vm-always-use-presentation t)
-     (defadvice vm-present-current-message
-       (after vm-shrunken-headers-pcm activate)
-       "Shrink headers when previewing a message."
-       (vm-shrunken-headers))
-     (defadvice vm-expose-hidden-headers
-       (after vm-shrunken-headers-ehh activate)
-       "Shrink headers when viewing hidden headers."
-       (vm-shrunken-headers))
+     (advice-add 'vm-present-current-message :after #'vm-shrunken-headers)
+     (advice-add 'vm-expose-hidden-headers :after #'vm-shrunken-headers)
      ;; this overrides the VM binding of "T" to `vm-toggle-thread'
      (define-key vm-mode-map "T" 'vm-shrunken-headers-toggle)))
 
@@ -301,10 +307,8 @@ or do the binding and advising on your own. (Rob F)"
    'auto-save-all-attachments option-list
    ;; In order to reflect MIME type changes when `vm-mime-delete-after-saving'
    ;; is t we preview the message again.
-   (defadvice vm-mime-send-body-to-file
-     (after vm-do-preview-again activate)
-     (if vm-mime-delete-after-saving
-         (vm-present-current-message)))
+   (advice-add 'vm-mime-send-body-to-file
+               :after #'vm-rfaddons--do-preview-again)
    (add-hook 'vm-select-new-message-hook 'vm-mime-auto-save-all-attachments))
    
    (vm-rfaddons-check-option
@@ -312,11 +316,8 @@ or do the binding and advising on your own. (Rob F)"
    ;; and their deletion when deleting a unfiled message,
    ;; this is probably a problem, since actually we should delete it
    ;; only if there remains no reference to it!!!!
-   (defadvice vm-set-deleted-flag-of
-     (before vm-mime-auto-save-all-attachments activate)
-     (if (and (eq (ad-get-arg 1) 'expunged)
-              (not (vm-filed-flag (ad-get-arg 0))))
-         (vm-mime-auto-save-all-attachments-delete-external (ad-get-arg 0)))))
+    (advice-add 'vm-set-deleted-flag-of
+                :before #'vm-rfaddons--mime-auto-save-all-attachments))
 
    (vm-rfaddons-check-option
     'return-receipt-to option-list
@@ -1420,7 +1421,7 @@ text/alternative message depending on the value of the variable
    ;; empty lines
    (cons "\n\n\n+"
          "\n\n")
-   ;; signature & -----Ursprüngliche Nachricht-----
+   ;; signature & -----UrsprÃ¼ngliche Nachricht-----
    (cons (concat "^" vm-included-text-prefix "--[^\n]*\n"
                  "\\(" vm-included-text-prefix "[^\n]*\n\\)+")
          "\n")

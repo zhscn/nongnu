@@ -59,10 +59,11 @@
           url-current-mime-headers (list (cons "content-type" type)
                                          (cons "content-encoding" encoding)))))
 
-(defadvice url-cid (around vm-w3 activate)
+(advice-add 'url-cid :around #'vm--usr-cid)
+(defun vm--usr-cid (orig-fun url &rest args)
   (if nil;(not vm-w3-text/html-message)
-      ad-do-it
-    (vm-w3-cid-retrieve (ad-get-arg 0))))
+      (apply orig-fun url args)
+    (vm-w3-cid-retrieve url)))
 
 ;;;###autoload
 (defun vm-mime-display-internal-emacs-w3-text/html (start end layout)
