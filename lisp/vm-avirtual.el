@@ -107,6 +107,7 @@
 
 (require 'vm-macro)
 (require 'vm-virtual)
+(require 'vm-vars)
 
 (eval-when-compile
   (require 'vm-misc)
@@ -144,11 +145,7 @@
   :group 'vm-ext)
 
 ;;----------------------------------------------------------------------------
-(eval-when-compile
-  (require 'cl))
-
 (eval-and-compile
-  (require 'advice)
   (require 'regexp-opt)
   (require 'time-date)
                            

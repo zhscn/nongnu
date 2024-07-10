@@ -81,17 +81,14 @@
   :group  'vm-ext)
 
 (eval-when-compile
-  (require 'cl))
-
-(eval-when-compile
+  (require 'cl-lib)
   (require 'vm-misc)
   (require 'vm-mime))
 
 (eval-and-compile
   (require 'vm-pine)
   (require 'mail-utils)
-  (require 'mail-extr)
-  (require 'advice))
+  (require 'mail-extr))
 
 (declare-function bbdb-extract-address-components 
 		  "ext:bbdb-snarf" (adstring &optional ignore-errors))
@@ -801,11 +798,8 @@ questions will bother you!"
   (let* ((work-buffer
           (save-excursion
             (let ((vm-frame-per-composition nil))
-	      ;; temporarily override vm-display; why?
-	      ;; flet is obsolete in Emacs 24.3; use cl-flet instead
-              (cl-flet ((vm-display (buffer display commands configs
-                                            &optional do-not-raise)
-                                    nil))
+	      ;; FIXME: Temporarily override vm-display; why?
+              (cl-letf (((symbol-function 'vm-display) #'ignore))
                 (vm-mail-internal :buffer-name vm-serial-send-mail-buffer))
               (get-buffer vm-serial-send-mail-buffer))))
          (source-buffer (current-buffer))

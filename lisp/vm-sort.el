@@ -25,6 +25,7 @@
 (provide 'vm-sort)
 
 (require 'vm-macro)
+(require 'vm-vars)
 
 (eval-and-compile
   (require 'vm-misc)

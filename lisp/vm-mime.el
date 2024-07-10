@@ -29,6 +29,7 @@
   (require 'vm-misc))
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'vm-minibuf)
   (require 'vm-toolbar)
   (require 'vm-mouse)
@@ -1159,7 +1160,7 @@ previous mime decoding."
 	    (vm-matched-header-contents)
 	  nil )))))
 
-(defun* vm-mime-parse-entity (&optional m &key
+(cl-defun vm-mime-parse-entity (&optional m &key
 					(default-type nil)
 					(default-encoding nil)
 					(passing-message-only nil))
@@ -1442,7 +1443,7 @@ PASSING-MESSAGE-ONLY is a boolean argument that says that VM is only
 	     'message-symbol (vm-mime-make-message-symbol m)
 	     )))))))
 
-(defun* vm-mime-parse-entity-safe (&optional m &key
+(cl-defun vm-mime-parse-entity-safe (&optional m &key
 					    (default-type nil)
 					    (default-encoding nil)
 					    (passing-message-only nil))
@@ -2474,7 +2475,7 @@ assuming that it is text."
       ;; unwind-protection
       (when work-buffer (kill-buffer work-buffer)))))
 
-(defun* vm-mime-should-display-button (layout &key ignore-content-disposition)
+(cl-defun vm-mime-should-display-button (layout &key ignore-content-disposition)
   "Checks whether MIME object with LAYOUT should be displayed as
 a button.  Optional keyword argument IGNORE-CONTENT-DISPOSITION
 says whether the Content-Disposition header of the MIME object
@@ -4861,7 +4862,7 @@ buffer for message composition is queried from the minibufer."
 ;;----------------------------------------------------------------------------
 
 ;;;###autoload
-(defun* vm-mime-operate-on-attachments (count &key 
+(cl-defun vm-mime-operate-on-attachments (count &key 
 					      ((:name action-name))
 					      ((:action action))
 					      ((:included types)) 
@@ -5280,7 +5281,7 @@ the front and placing the image there as the display text property.
 					 ':type 'xpm
 					 ':file file))))))))
 
-(defun* vm-mime-insert-button (&key caption action layout (disposable nil))
+(cl-defun vm-mime-insert-button (&key caption action layout (disposable nil))
   "Display a button for a mime object, using CAPTION as the label (a
 string) and ACTION as the default action (a function).  The mime object
 is described by LAYOUT.  If DISPOSABLE is true, then the button will
@@ -6404,7 +6405,7 @@ COMPOSITION's name will be read from the minibuffer."
 	       'vm-attach-object-to-composition "8.2.0")
 
 
-(defun* vm-attach-object (object &key type params description 
+(cl-defun vm-attach-object (object &key type params description 
 				      (mimed nil)
 				      (disposition '("unspecified"))
 				      (no-suggested-filename nil))

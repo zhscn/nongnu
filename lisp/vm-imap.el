@@ -28,6 +28,7 @@
 (require 'vm-macro)
 
 (eval-when-compile 
+  (require 'cl-lib)
   (require 'sendmail)
   (require 'vm-misc))
 
@@ -1161,7 +1162,7 @@ of the current folder, or nil if none has been recorded."
 
 
 ;;;###autoload
-(defun* vm-imap-make-session (source interactive &key 
+(cl-defun vm-imap-make-session (source interactive &key
 				     (folder-buffer nil)
 				     (purpose nil)
 				     (retry nil))
@@ -3378,7 +3379,7 @@ messages previously retrieved are ignored."
     (vm-inform 1 "VM working in offline mode")))
 
 ;;;###autoload
-(defun* vm-imap-synchronize-folder (&key 
+(cl-defun vm-imap-synchronize-folder (&key
 				    (interactive nil)
 				    (do-remote-expunges nil)
 				    (do-local-expunges nil)
@@ -3939,7 +3940,7 @@ cached tables.  If there is no cached data, return nil.  USR, 2012-10-19"
 	  (car (symbol-value uid-sym)))
       (error nil))))
 
-(defun* vm-imap-save-attributes (&optional &key
+(cl-defun vm-imap-save-attributes (&optional &key
 					   (interactive nil)
 					   (all-flags nil))
   "* Save the attributes of changed messages to the IMAP folder.

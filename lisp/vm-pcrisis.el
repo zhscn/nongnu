@@ -46,8 +46,6 @@
   (require 'vm-reply))
 (eval-when-compile
   ;; get the macros we need.
-  (require 'cl)
-  (require 'advice)
   (condition-case e
       (progn 
         (require 'regexp-opt)

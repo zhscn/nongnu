@@ -486,8 +486,6 @@
 (add-hook 'vm-mode-hook ' vm-sumurg-vm-mode-hook-fn)
 (add-hook 'vm-presentation-mode-hook ' vm-sumurg-vm-mode-hook-fn)
 
-(require 'advice)
-
 (defadvice  vm-do-needed-mode-line-update
   (before vm-sumurg-dnmlu activate compile)
   (when (and vm-message-pointer vm-ml-sumurg-extent)

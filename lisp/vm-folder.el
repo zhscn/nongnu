@@ -27,6 +27,7 @@
 (require 'vm-macro)
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'vm-misc)
   (require 'vm-summary)
   (require 'vm-window)
@@ -1204,7 +1205,7 @@ vm-folder-type is initialized here."
 ;; are ordered according to the order of the keep list.
 
 ;;;###autoload
-(defun* vm-reorder-message-headers (message ; &optional
+(cl-defun vm-reorder-message-headers (message ; &optional
 				   &key (keep-list nil)
 				   (discard-regexp nil))
   (interactive
@@ -2221,7 +2222,7 @@ FOR-OTHER-FOLDER indicates <something unknown>.  USR 2010-03-06"
 
 
   
-(defun* vm-stuff-folder-data (&key interactive abort-if-input-pending) 
+(cl-defun vm-stuff-folder-data (&key interactive abort-if-input-pending)
   "Stuff the soft and cached data of all the messages that have the
 stuff-flag set in the current folder.
 Keyword parameter INTERACTIVE says whether the stuffing is being done
@@ -4719,7 +4720,7 @@ files."
 	       (vm-inform 5 "%s: No messages gathered." folder)))))))
 
 ;; returns list of new messages if there were any new messages, nil otherwise
-(defun* vm-assimilate-new-messages (&key
+(cl-defun vm-assimilate-new-messages (&key
 				    (read-attributes t) (run-hooks t)
 				    gobble-order labels)
   ;; We are only guessing what this function does.  USR, 2010-05-20
@@ -5413,7 +5414,7 @@ thread are retrieved."
 	    (vm-update-summary-and-mode-line))))
       )))
 
-(defun* vm-retrieve-real-message-body (mm &key 
+(cl-defun vm-retrieve-real-message-body (mm &key
 					  (fetch nil) (register nil) 
 					  (fail nil))
   "Retrieve the body of a real message MM from its external

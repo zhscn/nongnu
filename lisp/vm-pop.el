@@ -27,6 +27,7 @@
 
 ;; For function declarations
 (eval-when-compile
+  (require 'cl-lib)
   (require 'vm-misc)
   (require 'vm-folder)
   (require 'vm-summary)
@@ -1132,7 +1133,7 @@ LOCAL-EXPUNGE-LIST: A list of message descriptors for messages in the
     (list retrieve-list local-expunge-list)))
 
 ;;;###autoload
-(defun* vm-pop-synchronize-folder (&key 
+(cl-defun vm-pop-synchronize-folder (&key 
 				   (interactive nil)
 				   (do-remote-expunges nil)
 				   (do-local-expunges nil)

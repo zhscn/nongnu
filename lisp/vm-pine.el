@@ -87,6 +87,7 @@
 (provide 'vm-pine)
 
 (require 'vm-macro)
+(require 'vm-vars)
  
 (eval-when-compile
   (require 'vm-misc)
