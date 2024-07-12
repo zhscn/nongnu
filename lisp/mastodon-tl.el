@@ -1979,42 +1979,43 @@ view all branches of a thread."
 (defun mastodon-tl--thread (&optional id)
   "Open thread buffer for toot at point or with ID."
   (interactive)
-  (let* ((id (or id (mastodon-tl--property 'base-item-id :no-move)))
-         (type (mastodon-tl--field 'type (mastodon-tl--property 'item-json :no-move))))
-    (if (or (string= type "follow_request")
-            (string= type "follow")) ; no can thread these
-        (user-error "No thread")
-      (let* ((endpoint (format "statuses/%s/context" id))
-             (url (mastodon-http--api endpoint))
-             (buffer (format "*mastodon-thread-%s*" id))
-             (toot (mastodon-http--get-json ; refetch in case we just faved/boosted:
-                    (mastodon-http--api (concat "statuses/" id))
-                    nil :silent))
-             (context (mastodon-http--get-json url nil :silent)))
-        (if (equal (caar toot) 'error)
-            (user-error "Error: %s" (cdar toot))
-          (when (member (alist-get 'type toot) '("reblog" "favourite"))
-            (setq toot (alist-get 'status toot)))
-          (if (> (+ (length (alist-get 'ancestors context))
-                    (length (alist-get 'descendants context)))
-                 0)
-              ;; if we have a thread:
-              (with-mastodon-buffer buffer #'mastodon-mode nil
-                (let ((marker (make-marker)))
-                  (mastodon-tl--set-buffer-spec buffer endpoint
-                                                #'mastodon-tl--thread)
-                  (mastodon-tl--timeline (alist-get 'ancestors context) :thread)
-                  (goto-char (point-max))
-                  (move-marker marker (point))
-                  ;; print re-fetched toot:
-                  (mastodon-tl--toot toot :detailed-p :thread)
-                  (mastodon-tl--timeline (alist-get 'descendants context)
-                                         :thread)
-                  ;; put point at the toot:
-                  (goto-char (marker-position marker))
-                  (mastodon-tl--goto-next-item)))
-            ;; else just print the lone toot:
-            (mastodon-tl--single-toot id)))))))
+  (mastodon-tl--with-toot-item
+   (let* ((id (or id (mastodon-tl--property 'base-item-id :no-move)))
+          (type (mastodon-tl--field 'type (mastodon-tl--property 'item-json :no-move))))
+     (if (or (string= type "follow_request")
+             (string= type "follow")) ; no can thread these
+         (user-error "No thread")
+       (let* ((endpoint (format "statuses/%s/context" id))
+              (url (mastodon-http--api endpoint))
+              (buffer (format "*mastodon-thread-%s*" id))
+              (toot (mastodon-http--get-json ; refetch in case we just faved/boosted:
+                     (mastodon-http--api (concat "statuses/" id))
+                     nil :silent))
+              (context (mastodon-http--get-json url nil :silent)))
+         (if (equal (caar toot) 'error)
+             (user-error "Error: %s" (cdar toot))
+           (when (member (alist-get 'type toot) '("reblog" "favourite"))
+             (setq toot (alist-get 'status toot)))
+           (if (> (+ (length (alist-get 'ancestors context))
+                     (length (alist-get 'descendants context)))
+                  0)
+               ;; if we have a thread:
+               (with-mastodon-buffer buffer #'mastodon-mode nil
+                 (let ((marker (make-marker)))
+                   (mastodon-tl--set-buffer-spec buffer endpoint
+                                                 #'mastodon-tl--thread)
+                   (mastodon-tl--timeline (alist-get 'ancestors context) :thread)
+                   (goto-char (point-max))
+                   (move-marker marker (point))
+                   ;; print re-fetched toot:
+                   (mastodon-tl--toot toot :detailed-p :thread)
+                   (mastodon-tl--timeline (alist-get 'descendants context)
+                                          :thread)
+                   ;; put point at the toot:
+                   (goto-char (marker-position marker))
+                   (mastodon-tl--goto-next-item)))
+             ;; else just print the lone toot:
+             (mastodon-tl--single-toot id))))))))
 
 (defun mastodon-tl--mute-thread ()
   "Mute the thread displayed in the current buffer.
