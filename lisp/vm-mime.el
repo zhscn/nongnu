@@ -578,88 +578,11 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
   (or (markerp end) (setq end (vm-marker end)))
   (and (> (- end start) 10000)
        (vm-emit-mime-decoding-message "Decoding base64..."))
-  (let ((work-buffer nil)
-	(done nil)
-	(counter 0)
-	(bits 0)
-	(lim 0) inputpos
-	(non-data-chars (concat "^=" vm-mime-base64-alphabet)))
-    (unwind-protect
-	(save-excursion
-	  (cond
-	   ((and (featurep 'base64)
-		 (fboundp 'base64-decode-region)
-		 ;; W3 reportedly has a Lisp version of this, and
-		 ;; there's no point running it.
-		 (subrp (symbol-function 'base64-decode-region))
-		 ;; The FSF Emacs version of this is unforgiving
-		 ;; of errors, which is not in the spirit of the
-		 ;; MIME spec, so avoid using it. - Kyle Jones
-		 ;; Let us try it out now.  USR, 2012-10-19
-		 ;; (not (not (featurep 'xemacs)))
-		 )
-	    (condition-case data
-		(base64-decode-region start end)
-	      (error (vm-mime-error "%S" data)))
-	    (and crlf (vm-mime-crlf-to-lf-region start end)))
-	   (t
-	    (setq work-buffer (vm-make-work-buffer))
-	    (if vm-mime-base64-decoder-program
-		(let* ((binary-process-output t) ; any text already has CRLFs
-		       ;; use binary coding system in FSF Emacs/MULE
-		       (coding-system-for-read (vm-binary-coding-system))
-		       (coding-system-for-write (vm-binary-coding-system))
-		       (status (apply 'vm-run-command-on-region
-				      start end work-buffer
-				      vm-mime-base64-decoder-program
-				      vm-mime-base64-decoder-switches)))
-		  (if (not (eq status t))
-		      (vm-mime-error "base64-decode failed: %s" (cdr status))))
-	      (goto-char start)
-	      (skip-chars-forward non-data-chars end)
-	      (while (not done)
-		(setq inputpos (point))
-		(cond
-		 ((> (skip-chars-forward vm-mime-base64-alphabet end) 0)
-		  (setq lim (point))
-		  (while (< inputpos lim)
-		    (setq bits (+ bits
-				  (aref vm-mime-base64-alphabet-decoding-vector
-					(char-after inputpos))))
-		    (vm-increment counter)
-		    (vm-increment inputpos)
-		    (cond ((= counter 4)
-			   (vm-insert-char (lsh bits -16) 1 nil work-buffer)
-			   (vm-insert-char (logand (lsh bits -8) 255) 1 nil
-					   work-buffer)
-			   (vm-insert-char (logand bits 255) 1 nil work-buffer)
-			   (setq bits 0 counter 0))
-			  (t (setq bits (lsh bits 6)))))))
-		(cond
-		 ((= (point) end)
-		  (if (not (zerop counter))
-		      (vm-mime-error "at least %d bits missing at end of base64 encoding"
-				     (* (- 4 counter) 6)))
-		  (setq done t))
-		 ((= (char-after (point)) 61) ; 61 is ASCII equals
-		  (setq done t)
-		  (cond ((= counter 1)
-			 (vm-mime-error "at least 2 bits missing at end of base64 encoding"))
-			((= counter 2)
-			 (vm-insert-char (lsh bits -10) 1 nil work-buffer))
-			((= counter 3)
-			 (vm-insert-char (lsh bits -16) 1 nil work-buffer)
-			 (vm-insert-char (logand (lsh bits -8) 255)
-					 1 nil work-buffer))
-			((= counter 0) t)))
-		 (t (skip-chars-forward non-data-chars end)))))
-	    (and crlf
-		 (with-current-buffer work-buffer
-		   (vm-mime-crlf-to-lf-region (point-min) (point-max))))
-	    (goto-char start)
-	    (insert-buffer-substring work-buffer)
-	    (delete-region (point) end))))
-      (and work-buffer (kill-buffer work-buffer))))
+  (save-excursion
+    (condition-case data
+	(base64-decode-region start end)
+      (error (vm-mime-error "%S" data)))
+    (and crlf (vm-mime-crlf-to-lf-region start end)))
   (and (> (- end start) 10000)
        (vm-emit-mime-decoding-message "Decoding base64... done")))
 
@@ -667,96 +590,28 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
   (or (markerp end) (setq end (vm-marker end)))
   (and (> (- end start) 200)
        (vm-inform 7 "Encoding base64..."))
-  (let ((work-buffer nil)
-	(buffer-undo-list t)
-	(counter 0)
-	(cols 0)
-	(bits 0)
-	(alphabet vm-mime-base64-alphabet)
-	inputpos)
-    (unwind-protect
-	(save-excursion
-	  (and crlf (vm-mime-lf-to-crlf-region start end))
-	  (cond
-	   ((and (featurep 'base64)
-		 (fboundp 'base64-encode-region)
-		 ;; W3 reportedly has a Lisp version of this, and
-		 ;; there's no point running it.
-		 (subrp (symbol-function 'base64-encode-region)))
-	    (condition-case data
-		(base64-encode-region start end B-encoding)
-	      (wrong-number-of-arguments
-	       ;; call with two args and then strip out the
-	       ;; newlines if we're doing B encoding.
-	       (condition-case data
-		   (base64-encode-region start end)
-		 (error (vm-mime-error "%S" data)))
-	       (if B-encoding
-		   (save-excursion
-		     (goto-char start)
-		     (while (search-forward "\n" end t)
-		       (delete-char -1)))))
-	      (error (vm-mime-error "%S" data))))
-	   (t
-	    (setq work-buffer (vm-make-work-buffer))
-	    (if vm-mime-base64-encoder-program
-		(let ((status (apply 'vm-run-command-on-region
-				     start end work-buffer
-				     vm-mime-base64-encoder-program
-				     vm-mime-base64-encoder-switches)))
-		  (if (not (eq status t))
-		      (vm-mime-error "base64-encode failed: %s" (cdr status)))
-		  (if B-encoding
-		      (with-current-buffer work-buffer
-			;; if we're B encoding, strip out the line breaks
-			(goto-char (point-min))
-			(while (search-forward "\n" nil t)
-			  (delete-char -1)))))
-	      (setq inputpos start)
-	      (while (< inputpos end)
-		(setq bits (+ bits (char-after inputpos)))
-		(vm-increment counter)
-		(cond ((= counter 3)
-		       (vm-insert-char (aref alphabet (lsh bits -18)) 1 nil
-				       work-buffer)
-		       (vm-insert-char (aref alphabet (logand (lsh bits -12) 63))
-				       1 nil work-buffer)
-		       (vm-insert-char (aref alphabet (logand (lsh bits -6) 63))
-				       1 nil work-buffer)
-		       (vm-insert-char (aref alphabet (logand bits 63)) 1 nil
-				       work-buffer)
-		       (setq cols (+ cols 4))
-		       (cond ((= cols 72)
-			      (setq cols 0)
-			      (if (not B-encoding)
-				  (vm-insert-char ?\n 1 nil work-buffer))))
-		       (setq bits 0 counter 0))
-		      (t (setq bits (lsh bits 8))))
-		(vm-increment inputpos))
-	      ;; write out any remaining bits with appropriate padding
-	      (if (= counter 0)
-		  nil
-		(setq bits (lsh bits (- 16 (* 8 counter))))
-		(vm-insert-char (aref alphabet (lsh bits -18)) 1 nil
-				work-buffer)
-		(vm-insert-char (aref alphabet (logand (lsh bits -12) 63))
-				1 nil work-buffer)
-		(if (= counter 1)
-		    (vm-insert-char ?= 2 nil work-buffer)
-		  (vm-insert-char (aref alphabet (logand (lsh bits -6) 63))
-				  1 nil work-buffer)
-		  (vm-insert-char ?= 1 nil work-buffer)))
-	      (if (> cols 0)
-		  (vm-insert-char ?\n 1 nil work-buffer)))
-	    (or (markerp end) (setq end (vm-marker end)))
-	    (goto-char start)
-	    (insert-buffer-substring work-buffer)
-	    (delete-region (point) end)))
-	  (and (> (- end start) 200)
-	       (vm-inform 7 "Encoding base64... done"))
-	  (- end start))
-      (and work-buffer (kill-buffer work-buffer)))))
+  (let ((buffer-undo-list t)) ;; FIXME: Really?
+    (save-excursion
+      (and crlf (vm-mime-lf-to-crlf-region start end))
+      (condition-case data
+	  (base64-encode-region start end B-encoding)
+	(wrong-number-of-arguments
+	 ;; call with two args and then strip out the
+	 ;; newlines if we're doing B encoding.
+	 (condition-case data
+	     (base64-encode-region start end)
+	   (error (vm-mime-error "%S" data)))
+	 (if B-encoding
+	     (save-excursion
+	       (goto-char start)
+	       (while (search-forward "\n" end t)
+		 (delete-char -1)))))
+	(error (vm-mime-error "%S" data)))
+      (and (> (- end start) 200)
+	   (vm-inform 7 "Encoding base64... done"))
+      (- end start))))
 
+;; FIXME: Use `quoted-printable-decode-region'!
 (defun vm-mime-qp-decode-region (start end)
   (and (> (- end start) 10000)
        (vm-emit-mime-decoding-message "Decoding quoted-printable..."))
@@ -840,6 +695,7 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
   (and (> (- end start) 10000)
        (vm-emit-mime-decoding-message "Decoding quoted-printable... done")))
 
+;; FIXME: Use `quoted-printable-encode-region'!
 (defun vm-mime-qp-encode-region (start end &optional Q-encoding quote-from)
   (and (> (- end start) 200)
        (vm-inform 7 "Encoding quoted-printable..."))

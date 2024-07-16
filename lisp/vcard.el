@@ -473,6 +473,7 @@ US domestic telephone numbers are replaced with international format."
 (defmacro vcard-hexstring-to-ascii (s)
   `(format "%c" (string-to-number ,s 16)))
 
+;; FIXME: Use `quoted-printable-decode-region'!
 (defun vcard-region-decode-quoted-printable (&optional beg end)
   (save-excursion
     (save-restriction
@@ -486,6 +487,7 @@ US domestic telephone numbers are replaced with international format."
           (let ((s (buffer-substring (1+ (match-beginning 0)) (match-end 0))))
             (replace-match (vcard-hexstring-to-ascii s) t t)))))))
 
+;; FIXME: Use `base64-decode-region'!
 (defun vcard-region-decode-base64 (&optional beg end)
   (save-restriction
     (narrow-to-region (or beg (point-min)) (or end (point-max)))
