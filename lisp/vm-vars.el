@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'vm-version)
+(require 'vm-macro)
 
 (declare-function vm-parse "vm-misc" (string regexp &optional matchn matches))
 (declare-function vm-delete-directory-names "vm-misc" (list))
@@ -7549,9 +7550,9 @@ preferences file).
 The file names may be customized via the variables `vm-init-file' and
 `vm-preferences-file'. "
   (interactive "P")
-  (when (or (not vm-init-file-loaded) (interactive-p))
+  (when (or (not vm-init-file-loaded) (vm-interactive-p))
     (when vm-init-file
-      (load vm-init-file (not (interactive-p)) (not (interactive-p)) t))
+      (load vm-init-file (not (vm-interactive-p)) (not (vm-interactive-p)) t))
     (when (and vm-preferences-file (not init-only))
       (load vm-preferences-file t t t)))
   (setq vm-init-file-loaded t)

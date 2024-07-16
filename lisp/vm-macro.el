@@ -41,15 +41,14 @@
     (defmacro defvaralias (&rest args)))
 
   (unless (fboundp 'declare-function)
-    (defmacro declare-function (fn file &optional arglist fileonly)))
+    (defmacro declare-function (fn file &optional arglist fileonly))))
 
-  (defmacro vm-interactive-p ()
-    (if (featurep 'xemacs)
-	`(interactive-p)
-      (if (> emacs-major-version 23)
-	  `(called-interactively-p 'interactive)
-	`(interactive-p))))
-  )
+(defmacro vm-interactive-p ()
+  (if (featurep 'xemacs)
+      `(interactive-p)
+    (if (fboundp 'called-interactively-p) ;; (> emacs-major-version 23)
+	`(called-interactively-p 'interactive)
+      `(interactive-p))))
 
 (declare-function vm-check-for-killed-summary "vm-misc" ())
 (declare-function vm-check-for-killed-presentation "vm-misc" ())
