@@ -825,11 +825,13 @@ See the variable `vm-handle-return-receipt-mode' for customization. (Rob F)"
       
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar vm-attach-files-in-directory-regexps-history nil
-  "Regexp history for matching files. (Rob F)")
 (defvaralias 'vm-mime-attach-files-in-directory-regexps-history
   'vm-attach-files-in-directory-regexps-history)
+(defvar vm-attach-files-in-directory-regexps-history nil
+  "Regexp history for matching files. (Rob F)")
 
+(defvaralias 'vm-mime-attach-files-in-directory-default-type
+  'vm-attach-files-in-directory-default-type)
 (defcustom vm-attach-files-in-directory-default-type nil
   "*The default MIME-type for attached files.
 If set to nil you will be asked for the type if it cannot be guessed.
@@ -837,9 +839,9 @@ For guessing mime-types we use `vm-mime-attachment-auto-type-alist'. (Rob F)"
   :group 'vm-rfaddons
   :type '(choice (const :tag "Ask" nil)
                  (string "application/octet-stream")))
-(defvaralias 'vm-mime-attach-files-in-directory-default-type
-  'vm-attach-files-in-directory-default-type)
 
+(defvaralias 'vm-mime-attach-files-in-directory-default-charset
+  'vm-attach-files-in-directory-default-charset)
 (defcustom vm-attach-files-in-directory-default-charset 'guess
   "*The default charset used for attached files of type `text'.
 If set to nil you will be asked for the charset.
@@ -848,8 +850,6 @@ this may take some time, since the file needs to be visited. (Rob F)"
   :group 'vm-rfaddons
   :type '(choice (const :tag "Ask" nil)
                  (const :tag "Guess" guess)))
-(defvaralias 'vm-mime-attach-files-in-directory-default-charset
-  'vm-attach-files-in-directory-default-charset)
 
 ;; (define-obsolete-variable-alias 'vm-mime-save-all-attachments-types
 ;;   'vm-mime-saveable-types
