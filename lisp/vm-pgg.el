@@ -1063,8 +1063,8 @@ seed and thus creates the same boundery when called twice in a short period."
     (random)
     (while (< i (length boundary))
       (aset boundary i (aref vm-mime-base64-alphabet
-			     (% (vm-abs (lsh (random) -8))
-				(length vm-mime-base64-alphabet))))
+			     (random
+			      (length vm-mime-base64-alphabet))))
       (vm-increment i))
     boundary))
 

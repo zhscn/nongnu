@@ -761,7 +761,7 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
 			 (and (= cols 0) (= char ?.)
 			      (looking-at "\\.\\(\n\\|\\'\\)")))
 		     (vm-insert-char ?= 1 nil work-buffer)
-		     (vm-insert-char (car (rassq (lsh (logand char 255) -4)
+		     (vm-insert-char (car (rassq (ash (logand char 255) -4)
 						 hex-digit-alist))
 				     1 nil work-buffer)
 		     (vm-insert-char (car (rassq (logand char 15)
@@ -5647,8 +5647,8 @@ Returns non-NIL value M is a plain message."
     (random t)
     (while (< i (length boundary))
       (aset boundary i (aref vm-mime-base64-alphabet
-			     (% (vm-abs (lsh (random) -8))
-				(length vm-mime-base64-alphabet))))
+			     (random
+			      (length vm-mime-base64-alphabet))))
       (vm-increment i))
     boundary ))
 

@@ -504,21 +504,21 @@ US domestic telephone numbers are replaced with international format."
         (delete-char 1)
         (cond ((char-equal c ?=)
                (if (= count 2)
-                   (insert (lsh n -10))
+                   (insert (ash n -10))
                  ;; count must be 3
-                 (insert (lsh n -16) (logand 255 (lsh n -8))))
+                 (insert (ash n -16) (logand 255 (ash n -8))))
                (delete-region (point) (point-max)))
               (t
                (setq n (+ n (aref vcard-region-decode-base64-table
                                   (vcard-char-to-int c))))
                (setq count (1+ count))
                (cond ((= count 4)
-                      (insert (logand 255 (lsh n -16))
-                              (logand 255 (lsh n -8))
+                      (insert (logand 255 (ash n -16))
+                              (logand 255 (ash n -8))
                               (logand 255 n))
                       (setq n 0 count 0))
                      (t
-                      (setq n (lsh n 6))))))))))
+                      (setq n (ash n 6))))))))))
 
 
 (defun vcard-split-string (string &optional separator limit)
