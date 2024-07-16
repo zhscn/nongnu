@@ -540,6 +540,7 @@ Moe, moe, kyun!")
    `(magit-tag ((,class (:foreground ,purple-4 :background ,purple-00))))
    `(magit-valid-signature ((,class (:foreground ,cyan-4 :background ,LIGHT_BG :bold t))))
    `(magit-whitespace-warning-face ((,class (:foreground ,white-0 :background ,red-2 :bold t))))
+   `(magit-refname ((,class (:foreground ,black-3 :background ,white-0 :underline unspecified :bold t))))
 
    ;; Magit
    `(magit-branch ((,class (:foreground ,green-4 :background ,green-01 :bold t :underline t))))

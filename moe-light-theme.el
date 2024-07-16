@@ -590,6 +590,7 @@ Moe, moe, kyun!")
    `(magit-tag ((,class (:foreground ,purple-4 :background ,purple-00))))
    `(magit-valid-signature ((,class (:foreground ,cyan-4 :background ,LIGHT_BG :bold t))))
    `(magit-whitespace-warning-face ((,class (:foreground ,white-0 :background ,red-2 :bold t))))
+   `(magit-refname ((,class (:foreground ,white-0 :background ,black-4 :underline unspecified :bold t))))
 
    ;; git-commit-mode
    `(git-commit-branch-face ((,class (:foreground ,blue-4 :background ,blue-0 :underline t))))
