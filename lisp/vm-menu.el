@@ -59,8 +59,6 @@
   (require 'vm-mime)
   (require 'vm-delete)
 
-  (defvar current-menubar nil))
-
 (declare-function event-window "vm-xemacs" (event))
 (declare-function event-point "vm-xemacs" (event))
 (declare-function popup-mode-menu "vm-xemacs" (&optional event))
@@ -820,13 +818,12 @@ set to the command name so that window configuration will be done."
   (vm-mail (vm-get-header-contents (car vm-message-pointer) "From:")))
 
 
-(defun vm-menu-xemacs-global-menubar ()
-  (save-excursion
-    (set-buffer (get-buffer-create "*scratch*"))
-    current-menubar))
-
-(defun vm-menu-fsfemacs-global-menubar ()
-  (lookup-key (current-global-map) [menu-bar]))
+(defun vm-menu--global-menubar ()
+  (if (featurep 'xemacs)
+      (save-excursion
+        (set-buffer (get-buffer-create "*scratch*"))
+        current-menubar)
+    (lookup-key (current-global-map) [menu-bar])))
 
 (defun vm-menu-initialize-vm-mode-menu-map ()
   (if (null vm-mode-menu-map)
@@ -1164,7 +1161,7 @@ menu bar.                                             USR, 2011-02-27"
 	   ;; copy the current menubar in case it has been changed.
 	   (make-local-variable 'vm-menu-vm-menubar)
 	   (setq vm-menu-vm-menubar (copy-sequence current-menubar))
-	   (set-buffer-menubar (copy-sequence (vm-menu-xemacs-global-menubar)))
+	   (set-buffer-menubar (copy-sequence (vm-menu--global-menubar)))
 	   (condition-case nil
 	       (add-menu-button nil vm-menu-vm-button nil)
 	     (void-function
@@ -1205,8 +1202,8 @@ menu bar.                                             USR, 2011-02-27"
 (defun vm-menu-install-menubar-item ()
   "Install VM's menu on the current - presumably the standard - menu
 bar.						     USR, 2011-02-27"
-  (cond ((and (featurep 'xemacs) (vm-menu-xemacs-global-menubar))
-	 (set-buffer-menubar (copy-sequence (vm-menu-xemacs-global-menubar)))
+  (cond ((and (featurep 'xemacs) (vm-menu--global-menubar))
+	 (set-buffer-menubar (copy-sequence (vm-menu--global-menubar)))
 	 (add-menu nil "VM" (cdr vm-menu-vm-menu)))
 	((and (not (featurep 'xemacs))
 	      ;; menus only need to be installed once for FSF Emacs
@@ -1231,10 +1228,10 @@ bar.						     USR, 2011-02-27"
 	 (if vm-popup-menu-on-mouse-3
 	     (define-key vm-mail-mode-map 'button3 'popup-mode-menu))
 	 ;; put menu on menubar also.
-	 (if (vm-menu-xemacs-global-menubar)
+	 (if (vm-menu--global-menubar)
 	     (progn
 	       (set-buffer-menubar
-		(copy-sequence (vm-menu-xemacs-global-menubar)))
+		(copy-sequence (vm-menu--global-menubar)))
 	       (add-menu nil "Mail" (cdr vm-menu-mail-menu))))
 	 t )
 	((not (featurep 'xemacs))
