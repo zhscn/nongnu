@@ -116,14 +116,14 @@
 (defun vm-get-coding-system-priorities ()
   "Return the value of `vm-coding-system-priorities', or a reasonable
 default for it if it's nil.  "
-  (if vm-coding-system-priorities
-      vm-coding-system-priorities
-    (let ((res '(iso-8859-1 iso-8859-2 iso-8859-15 iso-8859-16 utf-8)))
-      (dolist (list-item res)
-	;; Assumes iso-8859-1 is always available, which is reasonable.
-	(unless (vm-coding-system-p list-item)
-	  (delq list-item res)))
-      res)))
+  (or vm-coding-system-priorities
+      ;; FIXME: `utf-8' should be first nowadays!
+      (let ((res '(iso-8859-1 iso-8859-2 iso-8859-15 iso-8859-16 utf-8)))
+	(dolist (list-item res)
+	  ;; Assumes iso-8859-1 is always available, which is reasonable.
+	  (unless (vm-coding-system-p list-item)
+	    (setq res (remq list-item res))))
+	res)))
 
 (defun vm-mime-charset-to-coding (charset)
   "Return the Emacs coding system corresonding to the given mime CHARSET."

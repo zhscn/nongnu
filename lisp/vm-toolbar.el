@@ -566,7 +566,7 @@ s-expression like this one in your .vm file:
     (if (and (boundp 'tool-bar-map)
 	     (consp tool-bar-map))
 	(let ((map (cdr tool-bar-map))
-	      (v [tool-bar x]))
+	      (v (vector 'tool-bar 'x)))
 	  (while map
 	    (aset v 1 (car (car map)))
 	    (define-key vm-mode-map v 'undefined)
