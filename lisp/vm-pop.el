@@ -410,7 +410,7 @@ relevant POP servers to remove the messages."
 				(if (zerop delete-count) "No" delete-count)
 				(if (= delete-count 1) "" "s")))
 		(insert "VM had problems expunging messages from:\n")
-		(nreverse trouble)
+		(setq trouble (nreverse trouble))
 		(setq mp trouble)
 		(while mp
 		  (insert "   " (car mp) "\n")
