@@ -402,7 +402,7 @@ subexpressions."
 	(count 1)
 	(t-vm-summary-format vm-summary-format)
 	(u-vm-color-xemacs-workaround
-	 (string-match "XEmacs\\|Lucid" emacs-version)))
+	 (featurep 'xemacs)))
     ;; pick up all elements in the vm-summary-format
     (while (string-match
 	    (concat "%-?\\([0-9]+\\.\\)?-?\\([0-9]+\\)?"
@@ -585,8 +585,7 @@ subexpressions."
 
   ;; apparently emacs expects this statement here...
   (font-lock-mode 1)
-  (cond ((string-match "XEmacs\\|Lucid" emacs-version)
-	 ;; XEmacs
+  (cond ((featurep 'xemacs)
 	 (setq u-vm-color-summary-keywords
 	       (list (u-vm-color-make-summary-keywords)))
 	 (put 'vm-summary-mode 'font-lock-defaults

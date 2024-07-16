@@ -439,7 +439,7 @@ AddToFunc SelectWindow
                    (or force
                        (not (equal new-messages vm-biff-message-pointer))))
           (setq msg (car new-messages))
-          (backward-delete-char 1)
+          (delete-char -1)
           (goto-char (point-min))
 	  
           (setq truncate-lines t
