@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'org)
+(require 'vm-message)
 
 ;; Declare external functions and variables
 (declare-function vm-preview-current-message "ext:vm-page" ())

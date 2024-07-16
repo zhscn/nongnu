@@ -19,12 +19,9 @@
 
 ;;; Code:
 
-(provide 'vm-version)
-
 ;; Don't use vm-device-type here because it may not not be loaded yet.
 (declare-function device-type "vm-xemacs" ())
 (declare-function device-matching-specifier-tag-list "vm-xemacs" ())
-
 
 (defconst vm-version
   (condition-case nil
@@ -132,4 +129,5 @@ Return the list of loaded features."
                 feature-list))
   (delete nil feature-list))
 
+(provide 'vm-version)
 ;;; vm-version.el ends here

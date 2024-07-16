@@ -21,22 +21,10 @@
 
 ;;; Code:
 
-(provide 'vm-page)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-motion)
-  (require 'vm-menu)
-  (require 'vm-mouse)
-  (require 'vm-mime)
-  (require 'vm-undo)
-  )
+(require 'vm-window)
+(require 'vm-motion)
+(require 'vm-menu)
 
 (declare-function vm-make-virtual-copy "vm-virtual" (message))
 (declare-function vm-make-presentation-copy "vm-mime" (message))
@@ -1170,4 +1158,5 @@ exposed and marked as read."
       (goto-char old-point)
       (error "No more buttons"))))
 
+(provide 'vm-page)
 ;;; vm-page.el ends here

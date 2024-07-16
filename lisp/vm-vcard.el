@@ -28,12 +28,8 @@
 ;;; Commentary:
 ;;; Code:
 
-(provide 'vm-vcard)
-
 (require 'vcard)
-
-(eval-when-compile
-  (require 'vm-mime))
+(require 'vm-mime)
 
 (and (string-lessp vcard-api-version "2.0")
      (error "vm-vcard.el requires vcard API version 2.0 or later."))
@@ -88,4 +84,5 @@
 (defun vm-vcard-format-simple (vcard)
   (concat "\n\n--\n" (vcard-format-sample-string vcard) "\n\n"))
 
+(provide 'vm-vcard)
 ;;; vm-vcard.el ends here.

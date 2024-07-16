@@ -87,8 +87,6 @@
 
 ;;; Code:
 
-(provide 'vm-pgg)
-
 (require 'vm-macro)
 
 ;; handle missing pgg.el gracefully
@@ -97,16 +95,15 @@
       (condition-case nil
           (require 'pgg)
         (error (message "WARNING: Cannot load pgg.el, related functions may not work!")))
-    (require 'pgg))
+    (require 'pgg)))
 
-  (require 'easymenu)
-  (require 'vm-misc)
-  (require 'vm-folder)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-mime)
-  (require 'vm-reply)
-  (require 'vm-motion))
+(require 'easymenu)
+(require 'vm-misc)
+(require 'vm-folder)
+(require 'vm-window)
+(require 'vm-mime)
+(require 'vm-reply)
+(require 'vm-motion)
   
 (declare-function rfc822-addresses "ext:rfc822" (header-text))
 

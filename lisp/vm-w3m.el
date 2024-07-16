@@ -30,15 +30,10 @@
 
 ;;; Code:
 
-(provide 'vm-w3m)
+(require 'vm-mime)
+(require 'vm-version)
 
-(eval-when-compile
-  (require 'vm-mime)
-  (require 'executable))
-
-(eval-and-compile
-  (require 'vm-version)
-  (vm-load-features '(w3m)))
+(eval-and-compile (vm-load-features '(w3m)))
 
 (declare-function w3m-region 
 		  "ext:w3m" (start end &optional url charset))

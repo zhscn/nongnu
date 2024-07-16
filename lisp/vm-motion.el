@@ -21,20 +21,11 @@
 
 ;;; Code:
 
-(provide 'vm-motion)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-thread)
-  (require 'vm-window)
-  (require 'vm-page)
-  )
+(require 'vm-misc)
+(require 'vm-summary)
+(require 'vm-window)
+(eval-when-compile (require 'cl-lib))
 
 (declare-function vm-so-sortable-subject "vm-sort" (message))
 
@@ -584,4 +575,5 @@ If a new message is selected then return t, otherwise nil. USR, 2010-03-08"
 		      ;; a new message was selected.
 		      t )))))))
 
+(provide 'vm-motion)
 ;;; vm-motion.el ends here

@@ -21,8 +21,6 @@
 
 ;;; Code:
 
-(provide 'vm-macro)
-
 ;; Definitions for things that aren't in all Emacsen and that we really
 ;; prefer not to live without.
 (eval-and-compile
@@ -183,7 +181,7 @@ current-buffer in `vm-user-interaction-buffer'."
 	((featurep 'xemacs) 'no-conversion)
 	(t 'raw-text)))
 
-;;; can't use defsubst where quoting is needed in some places but
+;; can't use defsubst where quoting is needed in some places but
 ;; not others.
 
 (defmacro vm-assert (expression)
@@ -269,4 +267,5 @@ vm-buffer-types stack."
     (sleep-for 1)))
 
 
+(provide 'vm-macro)
 ;;; vm-macro.el ends here

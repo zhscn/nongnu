@@ -84,24 +84,18 @@
 
 ;;; Code:
 
-(provide 'vm-pine)
-
 (require 'vm-macro)
-(require 'vm-vars)
- 
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-minibuf)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-mime)
-  (require 'vm-reply)
-  )
+(require 'vm-vars) 
+(require 'vm-misc)
+(require 'vm-folder)
+(require 'vm-summary)
+(require 'vm-window)
+(require 'vm-minibuf)
+(require 'vm-motion)
+(require 'vm-undo)
+(require 'vm-delete)
+(require 'vm-mime)
+(require 'vm-reply)
 
 (declare-function deiconify-frame "vm-xemacs" (&optional frame))
 (declare-function frames-of-buffer "vm-xemacs" 
@@ -1125,4 +1119,6 @@ If optional argument RETURN-ONLY is t just returns FCC."
                                                fcc)))))))))
 
 ;;-----------------------------------------------------------------------------
+
+(provide 'vm-pine)
 ;;; vm-pine.el ends here

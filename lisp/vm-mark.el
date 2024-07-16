@@ -21,21 +21,15 @@
 
 ;;; Code:
 
-(provide 'vm-mark)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-folder)
-  (require 'vm-motion)
-  (require 'vm-thread)
-  (require 'vm-summary)
-  (require 'vm-sort)
-  (require 'vm-virtual)
-  (require 'vm-window)
-  )
-
+(require 'vm-misc)
+(require 'vm-folder)
+(require 'vm-motion)
+(require 'vm-thread)
+(require 'vm-summary)
+(require 'vm-sort)
+(require 'vm-virtual)
+(require 'vm-window)
 
 ;;;###autoload
 (defun vm-clear-all-marks ()
@@ -486,4 +480,5 @@ not work."
    0 
    "MM = mark, MU = unmark, Mm = mark all, Mu = unmark all, MN = use marks, ..."))
 
+(provide 'vm-mark)
 ;;; vm-mark.el ends here

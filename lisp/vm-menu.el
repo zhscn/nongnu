@@ -52,12 +52,8 @@
 
 ;;; Code:
 
-(provide 'vm-menu)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-mime)
-  (require 'vm-delete))
+(require 'vm-misc)
+(require 'vm-mime)
 
 (declare-function event-window "vm-xemacs" (event))
 (declare-function event-point "vm-xemacs" (event))
@@ -1675,4 +1671,5 @@ for the current directory (.) is inserted."
     )
   )
 
+(provide 'vm-menu)
 ;;; vm-menu.el ends here

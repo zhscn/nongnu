@@ -21,20 +21,8 @@
 
 ;;; Code:
 
-(provide 'vm-undo)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-menu)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  )
+(require 'vm-summary)
 
 ;; vm-undo-record-list is a buffer-local-variable containing
 ;; undo-records.
@@ -701,4 +689,5 @@ changed attributes are stuffed into the folder.        USR 2010-04-06"
 (defun vm-set-new-flag-in-vector (v flag)
   (aset v 0 flag))
 
+(provide 'vm-undo)
 ;;; vm-undo.el ends here

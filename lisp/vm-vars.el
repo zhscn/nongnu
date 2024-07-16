@@ -21,8 +21,6 @@
 
 ;;; Code:
 
-(provide 'vm-vars)
-
 (require 'vm-version)
 
 (declare-function vm-parse "vm-misc" (string regexp &optional matchn matches))
@@ -7559,4 +7557,5 @@ The file names may be customized via the variables `vm-init-file' and
   (setq vm-init-file-loaded t)
   (vm-display nil nil '(vm-load-init-file) '(vm-load-init-file)))
 
+(provide 'vm-vars)
 ;;; vm-vars.el ends here

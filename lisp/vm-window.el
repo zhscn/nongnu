@@ -21,14 +21,9 @@
 
 ;;; Code:
 
-(provide 'vm-window)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'tapestry)
-  )
+(require 'vm-misc)
+(require 'tapestry) ;; FIXME: Use Emacs-24's `frameset'?
 
 (declare-function frame-highest-window "vm-xemacs" (frame))
 
@@ -724,4 +719,5 @@ Run the hooks in vm-iconify-frame-hook before doing so."
        ;; others.
        (fset 'vm-select-frame 'ignore)))
 
+(provide 'vm-window)
 ;;; vm-window.el ends here

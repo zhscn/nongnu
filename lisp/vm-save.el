@@ -25,23 +25,18 @@
 
 ;;; Code:
 
-(provide 'vm-save)
-
 (require 'vm-macro)
 
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-mime)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-imap)
-  )
+(require 'vm-misc)
+(require 'vm-minibuf)
+(require 'vm-folder)
+(require 'vm-summary)
+(require 'vm-window)
+(require 'vm-motion)
+(require 'vm-mime)
+(require 'vm-undo)
+(require 'vm-delete)
+(require 'vm-imap)
 
 (declare-function vm-session-initialization "vm" ())
 
@@ -1040,4 +1035,5 @@ The saved messages are flagged as `filed'."
 	(vm-delete-message count mlist))
     folder ))
 
+(provide 'vm-save)
 ;;; vm-save.el ends here

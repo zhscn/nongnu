@@ -21,7 +21,8 @@
 
 ;;; Code:
 
-(provide 'vm-user)
+(require 'vm-vars)
+(require 'vm-message)
 
 (defun vm-user-composition-folder-buffer ()
   "Return the folder buffer associated with the current buffer.
@@ -59,4 +60,5 @@ by VM for a reply, resend or forward."
 	newlist )
     nil ))
 
+(provide 'vm-user)
 ;;; vm-user.el ends here

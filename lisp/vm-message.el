@@ -22,9 +22,8 @@
 
 ;;; Code:
 
-(provide 'vm-message)
-
 (require 'vm-macro)
+(require 'vm-vars)
 (eval-when-compile (require 'cl-lib))
 
 (declare-function vm-mime-encode-words-in-string "vm-mime" (string))
@@ -775,4 +774,5 @@ the headers/body of M."
      (vm-zip-vectors vm-mirror-data-fields (vm-mirror-data-of m))))
   nil)
 
+(provide 'vm-message)
 ;;; vm-message.el ends here

@@ -64,26 +64,9 @@
 
 ;;; Code:
 
-(provide 'vm-reply)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-menu)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-mime)
-  (require 'vm-digest)
-  (require 'vm-undo)
-  ;; (require 'vm-delete)
-  ;; (require 'vm-imap)
-  )
+(require 'vm-summary)
+(eval-when-compile (require 'cl-lib))
 
 (declare-function vm-mode "vm" (&optional read-only))
 (declare-function vm-session-initialization "vm" ())
@@ -2186,4 +2169,5 @@ that is needed for Mac and NextStep."
 
 (add-hook 'vm-mail-mode-hook 'vm-mail-mode-hide-headers-hook)
 
+(provide 'vm-reply)
 ;;; vm-reply.el ends here

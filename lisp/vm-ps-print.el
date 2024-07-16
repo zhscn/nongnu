@@ -58,17 +58,12 @@
 ;; 
 ;;; Code:
 
-(provide 'vm-ps-print)
-
 (require 'cl-lib)
-
-(eval-when-compile
-  (require 'ps-print)
-
-  (require 'vm-save)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-mime))
+(require 'ps-print)
+(require 'vm-save)
+(require 'vm-folder)
+(require 'vm-summary)
+(require 'vm-mime)
 
 (declare-function vm-marked-messages "vm-mark" ())
 
@@ -448,4 +443,5 @@ filename and formats 1 page per sheet. (JJK)"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(provide 'vm-ps-print)
 ;;; vm-ps-print.el ends here

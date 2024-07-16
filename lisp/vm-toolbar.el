@@ -21,12 +21,8 @@
 
 ;;; Code:
 
-(provide 'vm-toolbar)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-window)
-  )
+(require 'vm-misc)
+(require 'vm-window)
 
 (declare-function vm-follow-summary-cursor "vm-motion" ())
 (declare-function vm-mime-plain-message-p "vm-mime" (message))
@@ -726,4 +722,5 @@ s-expression like this one in your .vm file:
 			   name extension)
 		   dir)))))
 
+(provide 'vm-toolbar)
 ;;; vm-toolbar.el ends here

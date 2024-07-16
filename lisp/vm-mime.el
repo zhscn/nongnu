@@ -21,30 +21,12 @@
 
 ;;; Code:
 
-(provide 'vm-mime)
-
 (require 'vm-macro)
-
-(eval-and-compile
-  (require 'vm-misc))
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-minibuf)
-  (require 'vm-toolbar)
-  (require 'vm-mouse)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-menu)
-  (require 'vm-crypto)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-reply)
-  (require 'vm-digest)
-  (require 'vm-edit)
-  (require 'smime)
-  )
+(require 'vm-reply)                     ;vm-mail-mode-show-headers
+(require 'vm-summary)
+(require 'sendmail)
+(require 'smime)
+(eval-when-compile (require 'cl-lib))
 
 ;; vm-xemacs.el is a fake file to fool the Emacs 23 compiler
 (declare-function get-itimer "vm-xemacs" (name))
@@ -8359,4 +8341,5 @@ buffer."
   (insert-buffer-substring buffer))
 
 
+(provide 'vm-mime)
 ;;; vm-mime.el ends here

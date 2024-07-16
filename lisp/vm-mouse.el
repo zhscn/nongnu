@@ -21,19 +21,7 @@
 
 ;;; Code:
 
-(provide 'vm-mouse)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-thread)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-menu)
-  )
+(require 'vm-menu)
 
 (declare-function vm-mail-to-mailto-url "vm-reply" (url))
 (declare-function event-window "vm-xemacs" (event))
@@ -691,4 +679,5 @@ HISTORY argument is ignored."
       (throw 'exit nil)
     (throw 'exit t)))
 
+(provide 'vm-mouse)
 ;;; vm-mouse.el ends here

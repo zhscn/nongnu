@@ -38,12 +38,9 @@
 ;; 
 ;;; Code:
 
-(provide 'vm-biff)
-
-(eval-when-compile 
-  (require 'vm-misc)
-  (require 'vm-summary)
-)
+(require 'vm-misc)
+(require 'vm-summary)
+(require 'vm-message)
 
 ;; vm-xemacs.el is a fake file to fool the Emacs 23 compiler
 (declare-function get-itimer "vm-xemacs.el" (name))
@@ -520,3 +517,5 @@ AddToFunc SelectWindow
 
 (add-hook 'vm-arrived-messages-hook 'vm-biff-popup t)
 
+(provide 'vm-biff)
+;;; vm-biff.el ends here.

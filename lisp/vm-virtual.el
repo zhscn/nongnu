@@ -22,26 +22,14 @@
 
 ;;; Code:
 
-(provide 'vm-virtual)
-
+(require 'vm-message)
 (require 'vm-macro)
+(require 'vm-misc)
+(require 'vm-minibuf)
 
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-menu)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-save)
-  (require 'vm-reply)
-  (require 'vm-sort)
-  (require 'vm-thread)
-)
+;; FIXME: Cyclic dependence between vm-virtual.el and vm-avirtual.el
+;; prevents us from requiring `vm-avirtual' here.
+(defvar vm-virtual-message)
 
 (declare-function vm-visit-folder "vm" 
 		  (folder &optional read-only &key interactive just-visit))
@@ -92,7 +80,7 @@ all the real folder buffers involved."
 	(vbuffer (current-buffer))
 	(mirrored vm-virtual-mirror)
 	(case-fold-search t)
-	(tail-cons (if dont-finalize nil (vm-last vm-message-list)))
+	(tail-cons (if dont-finalize nil (last vm-message-list)))
 	(new-message-list nil)
 	virtual location-vector
 	message folders folder buffer
@@ -1391,4 +1379,5 @@ folder buffer (which should be the virtual folder in which M occurs)."
 ;; ;; now load vm-avirtual to avoid a loading loop
 ;; (require 'vm-avirtual)
 
+(provide 'vm-virtual)
 ;;; vm-virtual.el ends here

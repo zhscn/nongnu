@@ -23,25 +23,8 @@
 
 ;;; Code:
 
-(provide 'vm-summary)
-
 (require 'vm-macro)
-
-(eval-and-compile
-  (require 'vm-misc)
-  (require 'vm-crypto)
-  (require 'vm-folder)
-  (require 'vm-window)
-  (require 'vm-menu)
-  (require 'vm-toolbar)
-  (require 'vm-mouse)
-  (require 'vm-motion)
-  (require 'vm-mime)
-  (require 'vm-thread)
-  (require 'vm-imap)
-  (require 'vm-pop)
-  (require 'vm-summary-faces)
-)
+(require 'vm-summary-faces)
 
 (declare-function set-specifier "vm-xemacs" 
 		  (specifier value &optional locale tag-set how-to-add))
@@ -2534,4 +2517,5 @@ Call this function if you made changes to `vm-summary-format'."
       nil )))
 
 
+(provide 'vm-summary)
 ;;; vm-summary.el ends here

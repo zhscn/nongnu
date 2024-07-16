@@ -22,18 +22,10 @@
 
 ;;; Code:
 
-(provide 'vm-thread)
 
-;; For function declarations
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-folder)
-  (require 'vm-motion)
-  (require 'vm-summary)
-  (require 'vm-sort)
-)
+(require 'vm-misc)
+(require 'vm-folder)
+(eval-when-compile (require 'cl-lib))
 
 ;; --------------------------------------------------------------------------
 ;; Top-level operations
@@ -1551,4 +1543,5 @@ to the thread.  Used for testing purposes."
       ;; (setq vm-thread-subject-obarray 'bonk)
       ))))
 
+(provide 'vm-thread)
 ;;; vm-thread.el ends here

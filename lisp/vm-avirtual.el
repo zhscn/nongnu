@@ -103,28 +103,13 @@
 ;;
 ;;; Code:
 
-(provide 'vm-avirtual)
-
 (require 'vm-macro)
-(require 'vm-virtual)
 (require 'vm-vars)
+(require 'vm-thread)
 
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-save)
-  (require 'vm-reply)
-  (require 'vm-sort)
-  (require 'vm-thread)
-)
-  
+;; FIXME: Cyclic dependency, we can't require `vm-virtual'.
+(declare-function vm-vs-spam-word "vm-virtual" (m &optional part))
+
 (declare-function vm-get-folder-buffer "vm" (folder))
 ;; The following function is erroneously called for fsfemacs as well
 (declare-function key-or-menu-binding "vm-xemacs" (key &optional menu-flag))
@@ -1231,4 +1216,5 @@ with the same name."
 
 ;;----------------------------------------------------------------------------
 
+(provide 'vm-avirtual)
 ;;; vm-avirtual.el ends here

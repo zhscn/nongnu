@@ -23,31 +23,13 @@
 
 ;;; Code:
 
-(provide 'vm-imap)
-
 (require 'vm-macro)
-
-(eval-when-compile 
-  (require 'cl-lib)
-  (require 'sendmail)
-  (require 'vm-misc))
-
-;; For function declarations
-(eval-when-compile
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-crypto)
-  (require 'vm-mime)
-  (require 'vm-reply)
-)
-
-(eval-and-compile
-  (require 'utf7)
-)
+(require 'vm-misc)
+(require 'vm-motion)
+(require 'vm-reply)                     ;vm-mail-mode-remove-header
+(require 'sendmail)
+(require 'utf7)
+(eval-when-compile (require 'cl-lib))
 
 (declare-function vm-session-initialization 
 		  "vm.el" ())
@@ -4926,4 +4908,5 @@ downloaded bodies will be displayed."
    ))
 
 
+(provide 'vm-imap)
 ;;; vm-imap.el ends here

@@ -21,21 +21,9 @@
 
 ;;; Code:
 
-(provide 'vm-edit)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-thread)
-  (require 'vm-sort)
-  (require 'vm-motion)
-)
-
+(require 'vm-folder)
+(require 'vm-motion)
 
 ;;;###autoload
 (defun vm-edit-message (&optional prefix-argument)
@@ -340,4 +328,5 @@ thread have their cached data discarded."
   (kill-buffer (current-buffer))
   (vm-inform 5 "Aborted, no change."))
 
+(provide 'vm-edit)
 ;;; vm-edit.el ends here

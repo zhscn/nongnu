@@ -41,20 +41,14 @@
 
 ;;; Code:
 
-(provide 'vm-grepmail)
-
 (require 'vm-macro)
-
-(eval-and-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-undo)
-  (require 'vm-startup)
-  (require 'vm-motion)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-window)
-)
+(require 'vm-misc)
+(require 'vm-minibuf)
+(require 'vm-startup)
+(require 'vm-motion)
+(require 'vm-summary)
+(require 'vm-folder)
+(require 'vm-window)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; group already defined in vm-vars.el
@@ -259,4 +253,5 @@ END the end position in the process output buffer."
        (set-buffer-modified-p nil))))
   (sit-for 0))
 
+(provide 'vm-grepmail)
 ;;; vm-grepmail.el ends here

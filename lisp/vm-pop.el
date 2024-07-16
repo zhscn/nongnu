@@ -21,23 +21,15 @@
 
 ;;; Code:
 
-(provide 'vm-pop)
-
 (require 'vm-macro)
-
-;; For function declarations
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-crypto)
-  (require 'vm-mime)
-)
+(require 'vm-misc)
+(require 'vm-summary)
+(require 'vm-window)
+(require 'vm-motion)
+(require 'vm-undo)
+(require 'vm-crypto)
+(require 'vm-mime)
+(eval-when-compile (require 'cl-lib))
 
 (declare-function vm-submit-bug-report 
 		  "vm.el" (&optional pre-hooks post-hooks))
@@ -1373,4 +1365,5 @@ order to capture the trace of POP sessions during the occurrence."
   (vm-set-body-to-be-discarded-of m nil))
 
 
+(provide 'vm-pop)
 ;;; vm-pop.el ends here

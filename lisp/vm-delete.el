@@ -21,26 +21,13 @@
 
 ;;; Code:
 
-(provide 'vm-delete)
-
 (require 'vm-macro)
 
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-crypto)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-sort)
-  (require 'vm-thread)
-  (require 'vm-pop)
-  (require 'vm-imap)
-)
-
+(require 'vm-misc)
+(require 'vm-window)
+(require 'vm-undo)
+(require 'vm-sort)
+(eval-when-compile (require 'cl-lib))
 
 ;;;###autoload
 (defun vm-delete-message (count &optional mlist)
@@ -549,4 +536,5 @@ ignored."
       (vm-mark-folder-modified-p (current-buffer))
       (vm-increment vm-modification-counter))))
 
+(provide 'vm-delete)
 ;;; vm-delete.el ends here

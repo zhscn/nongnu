@@ -71,24 +71,18 @@
 ;; 
 ;;; Code:
 
-(provide 'vm-serial)
- 
 (require 'vm-reply)
 (require 'vm-macro)
+(require 'vm-misc)
+(require 'vm-mime)
+(require 'vm-pine)
+(require 'mail-utils)
+(require 'mail-extr)
+(eval-when-compile (require 'cl-lib))
 
 (defgroup vm-serial nil
   "Sending personalized serial mails and getting message templates."
   :group  'vm-ext)
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-mime))
-
-(eval-and-compile
-  (require 'vm-pine)
-  (require 'mail-utils)
-  (require 'mail-extr))
 
 (declare-function bbdb-extract-address-components 
 		  "ext:bbdb-snarf" (adstring &optional ignore-errors))
@@ -915,4 +909,5 @@ questions will bother you!"
       (kill-this-buffer)))
 
 ;;-----------------------------------------------------------------------------
+(provide 'vm-serial)
 ;;; vm-serial.el ends here

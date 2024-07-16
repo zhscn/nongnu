@@ -34,28 +34,14 @@
 
 ;;; Code:
 
-(provide 'vm-pcrisis)
-
-(eval-and-compile
-  (require 'timezone)
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-motion)
-  (require 'vm-reply))
-(eval-when-compile
-  ;; get the macros we need.
-  (condition-case e
-      (progn 
-        (require 'regexp-opt)
-        (require 'bbdb)
-        (require 'bbdb-com))
-    (error
-     (message "%S" e)
-     (message "Could not load bbdb.el.  Related functions may not work correctly!")
-     ;; (vm-sit-for 5)
-     )))
+(require 'timezone)
+(require 'vm-misc)
+(require 'vm-minibuf)
+(require 'vm-folder)
+(require 'vm-summary)
+(require 'vm-motion)
+(require 'vm-reply)
+(eval-when-compile (vm-load-features '(regexp-opt bbdb bbdb-com)))
 
 (declare-function set-extent-face "vm-xemacs" (extent face))
 (declare-function timezone-absolute-from-gregorian "ext:timezone" 
@@ -1653,4 +1639,5 @@ Call `vmpc-no-automorph' to disable it for the current buffer."
     (vmpc-build-actions-to-run-list)
     (vmpc-run-actions)))
 
+(provide 'vm-pcrisis)
 ;;; vm-pcrisis.el ends here

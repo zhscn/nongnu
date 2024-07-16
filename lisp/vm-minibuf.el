@@ -21,14 +21,8 @@
 
 ;;; Code:
 
-(provide 'vm-minibuf)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-mouse)
-  )
+(require 'vm-mouse)
 
 (declare-function button-press-event-p "vm-xemacs" (object))
 (declare-function button-release-event-p "vm-xemacs" (object))
@@ -378,4 +372,5 @@ click mouse triggered the current command."
    ;; predicate, require-match, initial-input, hist
    nil t nil nil))
 
+(provide 'vm-minibuf)
 ;;; vm-minibuf.el ends here

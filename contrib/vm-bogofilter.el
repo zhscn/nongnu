@@ -180,7 +180,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'vm))
+(require 'vm-vars)
+(require 'vm-message)
+(require 'vm-folder)
 
 ;;; Customisation:
 

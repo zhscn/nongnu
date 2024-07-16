@@ -22,32 +22,16 @@
 
 ;;; Code:
 
+(require 'vm-macro)
+(require 'vm-toolbar)
+(eval-when-compile (require 'cl-lib))
+
+;; FIXME: Cyclic dependency.
 (provide 'vm-folder)
 
-(require 'vm-macro)
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-minibuf)
-  (require 'vm-menu)
-  (require 'vm-toolbar)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-mark)
-  (require 'vm-virtual)
-  (require 'vm-mime)
-  (require 'vm-sort)
-  (require 'vm-thread)
-  (require 'vm-pop)
-  (require 'vm-imap)
-  (require 'vm-message)
-  (require 'vm-sort)
-)
+(require 'vm-delete)
+(require 'vm-pop)
+(require 'vm-page)
 
 ;; vm-xemacs.el is a fake file to fool the Emacs 23 compiler
 (declare-function get-itimer "vm-xemacs.el" (name))

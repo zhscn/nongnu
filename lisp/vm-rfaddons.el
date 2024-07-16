@@ -58,37 +58,33 @@
 ;;
 ;;; Code:
 
-(provide 'vm-rfaddons)
-
 (require 'vm-macro)
 (require 'vm-version)
 
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-minibuf)
-  (require 'vm-menu)
-  (require 'vm-toolbar)
-  (require 'vm-mouse)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-crypto)
-  (require 'vm-mime)
-  (require 'vm-edit)
-  (require 'vm-virtual)
-  (require 'vm-pop)
-  (require 'vm-imap)
-  (require 'vm-sort)
-  (require 'vm-reply)
-  (require 'vm-pine)
-  (require 'wid-edit)
-  (require 'vm)
-)
+(require 'vm-misc)
+(require 'vm-folder)
+(require 'vm-summary)
+(require 'vm-window)
+(require 'vm-minibuf)
+(require 'vm-menu)
+(require 'vm-toolbar)
+(require 'vm-mouse)
+(require 'vm-motion)
+(require 'vm-undo)
+(require 'vm-delete)
+(require 'vm-crypto)
+(require 'vm-message)
+(require 'vm-mime)
+(require 'vm-edit)
+(require 'vm-virtual)
+(require 'vm-pop)
+(require 'vm-imap)
+(require 'vm-sort)
+(require 'vm-reply)
+(require 'vm-pine)
+(require 'wid-edit)
+(require 'vm)
+(eval-when-compile (require 'cl-lib))
 
 (declare-function bbdb-record-raw-notes "ext:bbdb" (record))
 (declare-function bbdb-record-net "ext:bbdb " (record))
@@ -101,10 +97,7 @@
 (declare-function esmtpmail-via-smtp-server "ext:esmtpmail" ())
 (declare-function vm-folder-buffers "ext:vm" (&optional non-virtual))
 
-(eval-when-compile
-  (vm-load-features '(regexp-opt bbdb bbdb-vm))
-  ;; gnus-group removed from features because it gives errors.  USR, 2011-01-26
-  )
+(eval-when-compile (vm-load-features '(regexp-opt bbdb bbdb-vm)))
 
 (require 'sendmail)
 (vm-load-features '(bbdb))
@@ -1966,4 +1959,5 @@ calls. (Rob F)"
       (vm-decode-mime-message 'decoded)
       (message "using best internal MIME decoding"))))
 
+(provide 'vm-rfaddons)
 ;;; vm-rfaddons.el ends here

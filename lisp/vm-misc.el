@@ -22,12 +22,9 @@
 
 ;;; Code:
 
-(provide 'vm-misc)
-
 (require 'vm-macro)
-
-;; (eval-when-compile
-;;   (require 'vm-misc))
+(require 'vm-message)
+(require 'vm-vars)
 
 ;; vm-xemacs.el is a fake file to fool the Emacs 23 compiler
 (declare-function find-coding-system "vm-xemacs" (coding-system-or-name))
@@ -1733,4 +1730,5 @@ Emacs 22.1. This function used to supress compiler warnings."
 
 
 
+(provide 'vm-misc)
 ;;; vm-misc.el ends here

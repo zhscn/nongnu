@@ -21,21 +21,14 @@
 
 ;;; Code:
 
-(provide 'vm-digest)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-mime)
-  (require 'vm-undo)
-  (require 'vm-delete)
-)
+(require 'vm-misc)
+(require 'vm-summary)
+(require 'vm-folder)
+(require 'vm-window)
+(require 'vm-motion)
+(require 'vm-mime)
+(require 'vm-delete)
 
 (declare-function vm-mode "vm-mode" (&optional read-only))
 (declare-function vm-yank-message "vm-reply" (message))
@@ -841,4 +834,5 @@ Returns either \"rfc934\", \"rfc1153\" or \"mime\"."
 	    (vm-matched-header-contents)
 	  nil )))))
 
+(provide 'vm-digest)
 ;;; vm-digest.el ends here
