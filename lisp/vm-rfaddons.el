@@ -1511,7 +1511,8 @@ Add this to `vm-mail-mode-hook'. (Rob F)"
   "Flag used by `vm-mail-mode-open-line'. (Rob F)")
 
 (defcustom vm-mail-mode-open-line-regexp "[ \t]*>"
-  "Regexp matching prefix of quoted text at line start. (Rob F)")
+  "Regexp matching prefix of quoted text at line start. (Rob F)"
+  :type 'regexp)
 
 (defun vm-mail-mode-open-line (start end &optional length)
   "Opens a line when inserting into the region of a reply.
@@ -1843,7 +1844,8 @@ Otherwise, overwrite existing date headers (Rob F)"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defcustom vm-delete-message-action "vm-next-message"
   "Command to do after deleting a message. (Rob F)"
-  :group 'vm-rfaddons)
+  :group 'vm-rfaddons
+  :type 'string) ;; FIXME: `command' would be more useful, no?
 
 ;;;###autoload
 (defun vm-delete-message-action (&optional arg)

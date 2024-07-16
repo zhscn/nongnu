@@ -522,8 +522,9 @@ If STATES is nil, clear it."
 
 (defcustom vm-pgg-cleartext-search-limit 4096
   "Number of bytes to peek into the message for a PGP clear text armor."
-   :group 'vm-pgg
-   :group 'faces)
+  :type 'integer
+  :group 'vm-pgg
+  :group 'faces)
 
 (defun vm-pgg-cleartext-automode-button (label action)
   "Cleartext thing by a button with text LABEL and associate ACTION with it.

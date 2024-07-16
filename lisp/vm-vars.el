@@ -1797,8 +1797,8 @@ cid: attachments to the content viewer.")
   "*Non-nil value means that VM should attempt to verify signatures
 attached in \"multipart/signed\" parts."
   :group 'vm-mime
-  :type '(choice (const nil :tag "Do not verify")
-		 (const t :tag "Verify")))
+  :type '(choice (const :tag "Do not verify" nil)
+		 (const :tag "Verify" t)))
 
 (defcustom vm-mime-text/html-handler 'auto-select
   "*The library used for displaying HTML messages.  The possible
@@ -1811,8 +1811,8 @@ values are:
   nil        No internal display of HTML messages.
 "
   :group 'vm-mime
-  :type '(choice (const nil :tag "Do not display HTML messages.")
-                 (const auto-select :tag "Autoselect best method")
+  :type '(choice (const :tag "Do not display HTML messages." nil)
+                 (const :tag "Autoselect best method" auto-select)
                  (const emacs-w3m)
                  (const emacs-w3)
                  (const w3m)
@@ -2211,8 +2211,7 @@ in a single buffer under MULE, VM will map the file coding system
 of the buffer to a single MIME character set that can display all
 the buffer's characters."
   :group 'vm-mime
-  :type '(choice (const nil)
-                 (string :tag "iso-8859-1" "iso-8859-1")
+  :type '(choice (string :tag "iso-8859-1" "iso-8859-1")
                  (string :tag "iso-2022-jp" "iso-2022-jp")
                  (string :tag "User defined")
                  (const  :tag "Auto select" nil)))
@@ -3326,7 +3325,7 @@ A nil value means to use plain text forwarding."
           (const "mime")
           (const "rfc934")
           (const "rfc1153")
-	  (const nil :tag "Forward in plain text")))
+	  (const :tag "Forward in plain text" nil)))
 
 (defcustom vm-mime-forward-local-external-bodies nil
   "*Non-nil value means that the `message/external-body' MIME
@@ -3442,7 +3441,7 @@ A nil value means to use plain text digests."
   :type '(choice (const "mime")
 		 (const "rfc934") 
                  (const "rfc1153") 
-		 (const nil "Plain text digests")))
+		 (const :tag "Plain text digests" nil)))
 
 (defcustom vm-rfc934-digest-headers
   '("Resent-"
@@ -3648,7 +3647,7 @@ the message."
                  regexp))
 
 (defcustom vm-resend-headers nil
-  "*List of headers that should be appear in messages resent with
+  "List of headers that should appear in messages resent with
 `vm-resend-message'.  These should be listed in the order you wish them
 to appear in the message.  Regular expressions are allowed.
 There is no need to anchor patterns with \"^\", as searches always
@@ -3668,8 +3667,7 @@ appearance in that case, with headers not matching any in the
 `vm-resend-headers' list appearing last in the headers of
 the message."
   :group 'vm-forward
-  :type '(choice (const nil)
-                 repeat regexp))
+  :type '(repeat regexp))
 
 (defcustom vm-resend-discard-header-regexp "\\(\\(X400-\\)?Received:\\|Resent-\\)"
   "*Non-nil value should be a regular expression that tells
@@ -5452,7 +5450,7 @@ that `vm-decode-mime-message' would do is not done, because this
 function is expected to subsume all of it."
   :group 'vm-mime
   :type '(choice (const :tag "None" nil) 
-		'function))
+		 function))
 
 (defcustom vm-mime-deleted-object-label "[Deleted %f (%t)]\n"
   "*The label that will be inserted instead of the original mime object.
@@ -5771,7 +5769,7 @@ Older versions of stunnel used command line arguments instead."
   :group 'vm-helpers
   :type '(choice (const :tag "Yes" t)
 		 (const :tag "No" nil)
-		 (const :tag "Automatically determine" 'unknown)))
+		 (const :tag "Automatically determine" unknown)))
 
 (defcustom vm-stunnel-program-additional-configuration-file nil
   "*Name of a configuration file to append to the config file VM creates
@@ -5809,7 +5807,7 @@ tells VM to generate the random data.
 A nil value tells VM to do nothing and let stunnel find the data
 if it can."
   :group 'vm-helpers
-  :type '(choice (const "Leave it to stunnel" nil) 
+  :type '(choice (const :tag "Leave it to stunnel" nil)
 		 (const generate)))
 
 (defcustom vm-ssh-program "ssh"
