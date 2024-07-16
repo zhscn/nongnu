@@ -7116,19 +7116,6 @@ Possible values are
 `inactive' - session is inactive")
 (make-variable-buffer-local 'vm-imap-session-type)
 
-(eval-when-compile
-  (defvar current-itimer nil)
-  (defvar current-menubar nil)
-  (defvar scrollbar-height nil)
-  (defvar top-toolbar nil)
-  (defvar top-toolbar-height nil)
-  (defvar bottom-toolbar nil)
-  (defvar bottom-toolbar-height nil)
-  (defvar right-toolbar nil)
-  (defvar right-toolbar-width nil)
-  (defvar left-toolbar nil)
-  (defvar left-toolbar-width nil))
-
 (defvar vm-fsfemacs-toolbar-installed-p nil)
 ;; this defvar matches the XEmacs one so it doesn't matter if VM
 ;; is loaded before highlight-headers.el

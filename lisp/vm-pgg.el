@@ -107,15 +107,12 @@
   
 (declare-function rfc822-addresses "ext:rfc822" (header-text))
 
-(eval-when-compile
-  ;; avoid warnings
-  (defvar vm-mode-line-format)
-  (defvar vm-message-pointer)
-  (defvar vm-presentation-buffer)
-  (defvar vm-summary-buffer)
-  ;; avoid bytecompile warnings
-  (defvar vm-pgg-cleartext-state nil "For interfunction communication.")
-)
+;; avoid warnings
+(defvar vm-mode-line-format)
+(defvar vm-message-pointer)
+(defvar vm-presentation-buffer)
+(defvar vm-summary-buffer)
+(defvar vm-pgg-cleartext-state)
 
 ; group already defined in vm-vars.el
 ;(defgroup vm nil

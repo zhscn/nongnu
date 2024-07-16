@@ -90,10 +90,9 @@
 
 ;; A lot of the more complicated MIME character set processing is only
 ;; practical under MULE.
-(eval-when-compile 
-  (defvar latin-unity-ucs-list)
-  (defvar latin-unity-character-sets)
-  (defvar coding-system-list))
+(defvar latin-unity-ucs-list)
+(defvar latin-unity-character-sets)
+(defvar coding-system-list)
 
 (defun vm-get-coding-system-priorities ()
   "Return the value of `vm-coding-system-priorities', or a reasonable
@@ -141,13 +140,12 @@ default for it if it's nil.  "
 it's nil.  This is used instead of `vm-mime-ucs-list' directly in order to
 allow runtime checks for optional features like `mule-ucs' or
 `latin-unity'.  "
-  (if vm-mime-ucs-list
-      vm-mime-ucs-list
-    (if (featurep 'latin-unity)
-	latin-unity-ucs-list
-      (if (vm-coding-system-p 'utf-8)
-	  '(utf-8 iso-2022-jp ctext escape-quoted)
-	'(iso-2022-jp ctext escape-quoted)))))
+  (or vm-mime-ucs-list
+      (if (featurep 'latin-unity)
+	  latin-unity-ucs-list
+	(if (vm-coding-system-p 'utf-8)
+	    '(utf-8 iso-2022-jp ctext escape-quoted)
+	  '(iso-2022-jp ctext escape-quoted)))))
 
 (defun vm-update-mime-charset-maps ()
   "Check for the presence of certain Mule coding systems, and add
@@ -179,10 +177,6 @@ configuration.  "
   ;; Whoops, doesn't get picked up for some reason. 
   (add-to-list 'vm-mime-mule-coding-to-charset-alist 
 	       '(iso-8859-1 "iso-8859-1")))
-
-(eval-when-compile
-  (when (not (featurep 'xemacs))
-    (defvar latin-unity-character-sets nil)))
 
 (when (featurep 'xemacs)
   (require 'vm-vars)
