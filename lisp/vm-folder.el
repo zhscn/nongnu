@@ -4027,7 +4027,7 @@ Same as \\[vm-recover-folder]."
 ;; working any more.  Not on GNU Emacs.  USR, 2010-01-23
 
 (defun vm-handle-file-recovery-or-reversion (recovery)
-  (if (and vm-summary-buffer (buffer-name vm-summary-buffer))
+  (if (buffer-live-p vm-summary-buffer)
       (kill-buffer vm-summary-buffer))
   (vm-virtual-quit)
   ;; reset major mode, this will cause vm to start from scratch.
@@ -5260,16 +5260,11 @@ argument GARBAGE."
 	(error nil))
       (setq vm-message-garbage-alist (cdr vm-message-garbage-alist)))))
 
-(vm-add-write-file-hook 'vm-write-file-hook)
-(vm-add-find-file-hook 'vm-handle-file-recovery)
-(vm-add-find-file-hook 'vm-handle-file-reversion)
+(add-hook 'before-save-hook #'vm-write-file-hook)     ;FIXME: Buffer-local!
+(add-hook 'find-file-hook #'vm-handle-file-recovery)  ;FIXME: Buffer-local!
+(add-hook 'find-file-hook #'vm-handle-file-reversion) ;FIXME: Buffer-local!
 
-;; after-revert-hook is new to FSF v19.23
-(defvar after-revert-hook)
-(if (boundp 'after-revert-hook)
-    (setq after-revert-hook
-	  (cons 'vm-after-revert-buffer-hook after-revert-hook))
-  (setq after-revert-hook (list 'vm-after-revert-buffer-hook)))
+(add-hook 'after-revert-hook #'vm-after-revert-buffer-hook) ;FIXME: Buffer-local!
 
 (defun vm-message-can-be-external (m)
   "Check if the message M can be used in external (headers-only) mode."

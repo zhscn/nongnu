@@ -1708,24 +1708,6 @@ If MODES is nil the take the modes from the variable
 	   (setq vm-disable-modes-ignore (cons m vm-disable-modes-ignore)))
 	 nil)))))
 
-(defun vm-add-write-file-hook (vm-hook-fn)
-  "Add a function to the hook called during write-file.
-
-Emacs changed the name of write-file-hooks to write-file-functions as of 
-Emacs 22.1. This function is used to supress compiler warnings."
-  (if (boundp 'write-file-functions)
-      (add-hook 'write-file-functions vm-hook-fn)
-    (add-hook 'write-file-hooks vm-hook-fn)))
-
-(defun vm-add-find-file-hook (vm-hook-fn)
-  "Add a function to the hook called during find-file.
-
-Emacs changed the name of the hook find-file-hooks to find-file-hook in
-Emacs 22.1. This function used to supress compiler warnings."
-  (if (boundp 'find-file-hook)
-      (add-hook 'find-file-hook vm-hook-fn)
-    (add-hook 'find-file-hooks vm-hook-fn)))
-
 ;; Aliases for VM functions
 
 
