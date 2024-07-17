@@ -912,7 +912,8 @@ questions will bother you!"
               (if vm-serial-send-mail-exit
                   (kill-this-buffer))))))))
 
-(defadvice vm-mail-send-and-exit (after vm-serial-send-mail activate)
+(advice-add 'vm-mail-send-and-exit :after #'vm-serial--send-mail)
+(defun vm-serial--send-mail (&rest _)
   (if vm-serial-source-buffer
       (kill-this-buffer)))
 

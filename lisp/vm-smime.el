@@ -27,6 +27,7 @@
   (require 'vm-misc))
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'vm-minibuf)
   (require 'vm-toolbar)
   (require 'vm-mouse)
@@ -259,7 +260,7 @@ obtain the certificate files. Returns a list of paths to these
 certificate files."
   (let ((certfiles '())
 	(default-directory smime-certificate-directory))
-    (case vm-smime-get-recipient-certificate-method
+    (cl-case vm-smime-get-recipient-certificate-method
       (ask
        ;; this method just always asks for all certificates
        (setq certfiles 

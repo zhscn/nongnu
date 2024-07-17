@@ -75,23 +75,24 @@ attachments.")
   "*If non-nil, display application/x-SUBTYPE attachments the same as application/SUBTYPE attachments.
 See `vm-mime-internal-application-subtypes'.")
 
-(defadvice vm-mime-can-display-internal (after application/xxxx activate
-                                         compile)
+(advice-add 'vm-mime-can-display-internal :around
+            #'vm-mime--respect-internal-application-subtype)
+(defun vm-mime--respect-internal-application-subtype
+    (orig-fun &optional layout &rest args)
   "Respect `vm-mime-internal-application-subtypes'."
-  (or ad-return-value
-      (setq ad-return-value
-            (let* ((layout (ad-get-arg 0))
-                   (type (car (vm-mm-layout-type layout)))
-                   (subtype (if (vm-mime-types-match "application" type)
-                                (substring type (1+ (match-end 0)))))
-                   (mode (if subtype
-                             (vm-mime-can-display-internal-application
-                              subtype))))
-              (if mode
-                  (let ((charset (or (vm-mime-get-parameter layout "charset")
-                                     "us-ascii")))
-                    (or (vm-mime-charset-internally-displayable-p charset)
-                        (vm-mime-can-convert-charset charset))))))))
+  (or (apply orig-fun layout args)
+      (let* ((layout layout)
+             (type (car (vm-mm-layout-type layout)))
+             (subtype (if (vm-mime-types-match "application" type)
+                          (substring type (1+ (match-end 0)))))
+             (mode (if subtype
+                       (vm-mime-can-display-internal-application
+                        subtype))))
+        (if mode
+            (let ((charset (or (vm-mime-get-parameter layout "charset")
+                               "us-ascii")))
+              (or (vm-mime-charset-internally-displayable-p charset)
+                  (vm-mime-can-convert-charset charset)))))))
 
 (defun vm-mime-can-display-internal-application (subtype)
   "Return the Emacs mode for displaying \"application/SUBTYPE\" MIME objects."

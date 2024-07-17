@@ -106,14 +106,13 @@
 
 ; assuming that m is a message, highlight it in yellow, orange or red
 ; according as it has a *, **, or *** label.
-(defun vm-sumurg-highlight-message ()
+(defun vm-sumurg-highlight-message (&rest _)
   (vm-sumurg-add-highlights (string-to-number (vm-number-of m))
 			    (vm-su-start-of m) (vm-su-end-of m)
 			    (vm-sumurg-level-of m) 
 			    ))
 
-(defadvice vm-summary-highlight-region (after vm-sumurg-vshr activate compile)
-  (vm-sumurg-highlight-message))
+(advice-add 'vm-summary-highlight-region :after #'vm-sumurg-highlight-message)
 
 (defvar vm-sumurg-counter [0 0 0 0 0])
 
@@ -486,11 +485,11 @@
 (add-hook 'vm-mode-hook ' vm-sumurg-vm-mode-hook-fn)
 (add-hook 'vm-presentation-mode-hook ' vm-sumurg-vm-mode-hook-fn)
 
-(defadvice  vm-do-needed-mode-line-update
-  (before vm-sumurg-dnmlu activate compile)
+(advice-add 'vm-do-needed-mode-line-update :before #'vm-smurg--dnmlu)
+(defun vm-smurg--dnmlu (&rest _)
   (when (and vm-message-pointer vm-ml-sumurg-extent)
-    (set-extent-face vm-ml-sumurg-extent 
-	  (aref vm-sumurg-facearray 
+    (set-extent-face vm-ml-sumurg-extent
+	  (aref vm-sumurg-facearray
 		(vm-sumurg-level-of (car vm-message-pointer))))
     (if vm-presentation-buffer
 	(save-excursion
