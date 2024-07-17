@@ -57,7 +57,7 @@
 (eval-when-compile
   (require 'vm-misc)
   (require 'vm-mime)
-  (require 'vm-delete)
+  (require 'vm-delete))
 
 (declare-function event-window "vm-xemacs" (event))
 (declare-function event-point "vm-xemacs" (event))
