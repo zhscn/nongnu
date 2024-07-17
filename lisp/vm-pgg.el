@@ -299,9 +299,10 @@ Switch mode on/off according to ARG.
   (setq vm-pgg-compose-mode
 	(if (null arg) (not vm-pgg-compose-mode)
 	  (> (prefix-numeric-value arg) 0)))
-  (if vm-pgg-compose-mode
-      (easy-menu-add vm-pgg-compose-mode-menu)
-    (easy-menu-remove vm-pgg-compose-mode-menu)))
+  (when (featurep 'xemacs)
+    (if vm-pgg-compose-mode
+        (easy-menu-add vm-pgg-compose-mode-menu)
+      (easy-menu-remove vm-pgg-compose-mode-menu))))
 
 (defvar vm-pgg-compose-mode-string " vm-pgg"
   "*String to put in mode line when function `vm-pgg-compose-mode' is active.")

@@ -2051,6 +2051,11 @@ Call this function if you made changes to `vm-summary-format'."
 		 (file-truename
 		  (expand-file-name folder (or dir vm-folder-directory)))))))
 
+(declare-function open-database  "ext:berkeley-db")
+(declare-function close-database "ext:berkeley-db")
+(declare-function put-database   "ext:berkeley-db")
+(declare-function get-database   "ext:berkeley-db")
+
 (defun vm-open-folders-summary-database (mode)
   (condition-case data
       (open-database vm-folders-summary-database 'berkeley-db 'hash mode)

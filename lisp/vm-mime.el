@@ -3540,24 +3540,23 @@ it to an internal object by retrieving the body.       USR, 2011-03-28"
 		   (vm-make-multibyte-work-buffer
 		    (format "*%s mime object*"
 			    (car (vm-mm-layout-type child-layout))))))
-	     (unwind-protect
-		 (let (oldsize)
-		   (with-current-buffer work-buffer
-		     (vm-mime-retrieve-external-body layout))
-		   (goto-char (vm-mm-layout-body-start child-layout))
-		   (setq oldsize (buffer-size))
-		   (condition-case data
-		       (insert-buffer-substring work-buffer)
-		     (error (signal 'vm-mime-error (cdr data))))
-		   ;; This is redundant because insertion moves point
-		   ;; (goto-char (+ (point) (- (buffer-size) oldsize)))
-		   (if (< (point) (vm-mm-layout-body-end child-layout))
-		       (delete-region (point)
-				      (vm-mm-layout-body-end child-layout))
-		     (vm-set-mm-layout-body-end child-layout (point-marker)))
-		   (delete-region (vm-mm-layout-header-start layout)
-				  (vm-mm-layout-body-start layout))
-		   (vm-mime-copy-layout child-layout layout)))
+	     (let (oldsize)
+	       (with-current-buffer work-buffer
+		 (vm-mime-retrieve-external-body layout))
+	       (goto-char (vm-mm-layout-body-start child-layout))
+	       (setq oldsize (buffer-size))
+	       (condition-case data
+		   (insert-buffer-substring work-buffer)
+		 (error (signal 'vm-mime-error (cdr data))))
+	       ;; This is redundant because insertion moves point
+	       ;; (goto-char (+ (point) (- (buffer-size) oldsize)))
+	       (if (< (point) (vm-mm-layout-body-end child-layout))
+		   (delete-region (point)
+				  (vm-mm-layout-body-end child-layout))
+		 (vm-set-mm-layout-body-end child-layout (point-marker)))
+	       (delete-region (vm-mm-layout-header-start layout)
+			      (vm-mm-layout-body-start layout))
+	       (vm-mime-copy-layout child-layout layout))
 	     (when work-buffer (kill-buffer work-buffer)))))
 	((vm-mime-composite-type-p (car (vm-mm-layout-type layout)))
 	 (let ((p (vm-mm-layout-parts layout)))
@@ -6196,7 +6195,9 @@ there is no file name for this object.             USR, 2011-03-07"
         ;; either vm-mime-forward-local-external-bodies is t
         ;; or vm-mime-forward-saved-attachments is nil
 	;; Otherwise, expand the external-body parts
-	(fb (list (or vm-mime-forward-local-external-bodies
+	(fb (list (or (with-suppressed-warnings
+		          ((obsolete vm-mime-forward-local-external-bodies))
+		        vm-mime-forward-local-external-bodies)
 		      (not vm-mime-forward-saved-attachments)))))
     (cond ((and (stringp object) (not mimed))
 	   (if (or (vm-mime-types-match "application" type)
