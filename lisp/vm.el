@@ -224,12 +224,12 @@ deleted messages.  Use `###' to expunge deleted messages."
 
       ;; [5] Prepare the folder buffer for MULE
 
-      (if (and vm-fsfemacs-mule-p enable-multibyte-characters)
+      (if (and (not (featurep 'xemacs)) enable-multibyte-characters)
 	  (set-buffer-multibyte nil))	; is this safe?
       (defvar buffer-file-coding-system)
-      (if (or vm-xemacs-mule-p vm-xemacs-file-coding-p)
+      (if (featurep 'xemacs)
 	  (vm-setup-xemacs-folder-coding-system))
-      (if vm-fsfemacs-mule-p
+      (if (not (featurep 'xemacs))
 	  (vm-setup-fsfemacs-folder-coding-system))
 
       ;; [6] Safeguards
@@ -1050,12 +1050,7 @@ virtual folder buffer."
 				default-directory))
     (setq first-time (not (eq major-mode 'vm-virtual-mode)))
     (when first-time
-      (if (fboundp 'buffer-disable-undo)
-	  (buffer-disable-undo (current-buffer))
-	;; obfuscation to make the v19 compiler not whine
-	;; about obsolete functions.
-	(let ((x 'buffer-flush-undo))
-	  (funcall x (current-buffer))))
+      (buffer-disable-undo (current-buffer))
       (abbrev-mode 0)
       (auto-fill-mode 0)
       (vm-fsfemacs-nonmule-display-8bit-chars)
@@ -1277,12 +1272,7 @@ summary buffer to select a folder."
 	  (abbrev-mode 0)
 	  (auto-fill-mode 0)
 	  (vm-fsfemacs-nonmule-display-8bit-chars)
-	  (if (fboundp 'buffer-disable-undo)
-	      (buffer-disable-undo (current-buffer))
-	    ;; obfuscation to make the v19 compiler not whine
-	    ;; about obsolete functions.
-	    (let ((x 'buffer-flush-undo))
-	      (funcall x (current-buffer))))
+	  (buffer-disable-undo (current-buffer))
 	  (vm-folders-summary-mode-internal))
 	(vm-make-folders-summary-associative-hashes)
 	(vm-do-folders-summary)))
@@ -1528,10 +1518,10 @@ summary buffer to select a folder."
 
 (defun vm-check-emacs-version ()
   "Checks the version of Emacs and gives an error if it is unsupported."
-  (cond ((and vm-xemacs-p (< emacs-major-version 21))
+  (cond ((and (featurep 'xemacs) (< emacs-major-version 21))
 	 (error "VM %s must be run on XEmacs 21 or a later version."
 		(vm-version)))
-	((and vm-fsfemacs-p (< emacs-major-version 21))
+	((and (not (featurep 'xemacs)) (< emacs-major-version 21))
 	 (error "VM %s must be run on GNU Emacs 21 or a later version."
 		(vm-version)))))
 
@@ -1631,14 +1621,14 @@ draft messages."
 	(setq vm-buffers-needing-display-update (make-vector 29 0))
 	(setq vm-buffers-needing-undo-boundaries (make-vector 29 0))
 	(add-hook 'post-command-hook 'vm-add-undo-boundaries)
-	(if (if vm-xemacs-p
+	(if (if (featurep 'xemacs)
 		(find-face 'vm-monochrome-image)
 	      (facep 'vm-monochrome-image))
 	    nil
 	  (make-face 'vm-monochrome-image)
 	  (set-face-background 'vm-monochrome-image "white")
 	  (set-face-foreground 'vm-monochrome-image "black"))
-	(if (or (not vm-fsfemacs-p)
+	(if (or (not (not (featurep 'xemacs)))
 		;; don't need this face under Emacs 21.
 		(fboundp 'image-type-available-p)
 		(facep 'vm-image-placeholder))
@@ -1654,7 +1644,7 @@ draft messages."
 	     (vm-mouse-install-mouse))
 	(and (vm-menu-support-possible-p)
 	     vm-use-menus
-	     (vm-menu-fsfemacs-menus-p)
+	     (not (featurep 'xemacs))
 	     (vm-menu-initialize-vm-mode-menu-map))
 	(setq vm-session-beginning nil)))
   ;; check for postponed messages

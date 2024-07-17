@@ -42,7 +42,7 @@
   (require 'vm-virtual))
 
 ;; (eval-and-compile
-;;   (if vm-xemacs-p (require 'overlay)))
+;;   (if (featurep 'xemacs) (require 'overlay)))
 
 (declare-function vm-extent-property "vm-misc.el" (overlay prop) t)
 (declare-function vm-set-extent-property "vm-misc.el" (overlay prop value) t)

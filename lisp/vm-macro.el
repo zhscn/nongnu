@@ -174,13 +174,13 @@ current-buffer in `vm-user-interaction-buffer'."
       (vm-build-threads nil)))
 
 (defsubst vm-binary-coding-system ()
-  (cond (vm-xemacs-mule-p 'binary)
-	(vm-xemacs-file-coding-p 'binary)
+  (cond ((featurep 'xemacs) 'binary)
+	((featurep 'xemacs) 'binary)
 	(t 'no-conversion)))
 
 (defsubst vm-line-ending-coding-system ()
-  (cond (vm-xemacs-mule-p 'no-conversion)
-	(vm-xemacs-file-coding-p 'no-conversion)
+  (cond ((featurep 'xemacs) 'no-conversion)
+	((featurep 'xemacs) 'no-conversion)
 	(t 'raw-text)))
 
 ;;; can't use defsubst where quoting is needed in some places but

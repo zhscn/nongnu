@@ -65,10 +65,10 @@
 		  (start end &optional overlay))
 (declare-function vm-summary-faces-add "vm-summary-faces" (message))
 
-(when vm-xemacs-p
+(when (featurep 'xemacs)
   (require 'overlay))
 
-(when vm-fsfemacs-p
+(when (not (featurep 'xemacs))
   (defvar horizontal-scrollbar-visible-p nil))
 
 ; group already defined in vm-vars.el
@@ -246,12 +246,12 @@ folder selectors work."
 (defvar vm-biff--folder-window nil)
 
 (defun vm-biff-x-p ()
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (memq (console-type) '(x mswindows))
     t))
 
 (defun vm-biff-get-buffer-window (buf)
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (vm-get-buffer-window buf (vm-biff-x-p) (frame-device))
     (vm-get-buffer-window buf (vm-biff-x-p))))
 
@@ -464,7 +464,7 @@ AddToFunc SelectWindow
                                 (cons (cons 'popup ff)
                                       vm-biff-frame-properties)
                               vm-biff-frame-properties))
-                     (mf (or (and (if vm-xemacs-p
+                     (mf (or (and (if (featurep 'xemacs)
 				      (vm-get-buffer-window buf t 
 							    (frame-device))
 				    (vm-get-buffer-window buf t))
@@ -474,7 +474,7 @@ AddToFunc SelectWindow
 
                 (select-frame mf)
                 (switch-to-buffer buf)
-                (if vm-xemacs-p
+                (if (featurep 'xemacs)
                     (set-specifier horizontal-scrollbar-visible-p nil))
             
                 (if (functionp vm-biff-place-frame-function)
@@ -498,7 +498,7 @@ AddToFunc SelectWindow
               (switch-to-buffer buf)
               (if (> h vm-biff-max-height)
                   (setq h vm-biff-max-height))
-	      (if vm-xemacs-p
+	      (if (featurep 'xemacs)
 		  (setq h (- (window-displayed-height) h))
 		(setq h (- (window-height) h)))
               (if (not (one-window-p))

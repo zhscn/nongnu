@@ -200,7 +200,7 @@ using cached data."
 (defun vm-imap-start-status-timer ()
   (let ((blob (make-vector 12 nil))
 	timer)
-    (setq timer (add-timeout 2 'vm-imap-report-retrieval-status blob 2))
+    (setq timer (run-with-timer 2 2 #'vm-imap-report-retrieval-status blob))
     (vm-set-imap-status-timer blob timer)
     blob ))
 

@@ -79,7 +79,7 @@ specified, use `vm-auto-folder-alist'."
 			  ;; match data.
 			  (save-excursion
 			    (set-buffer buf)
-			    (if vm-fsfemacs-mule-p
+			    (if (not (featurep 'xemacs))
 				(set-buffer-multibyte nil)) ; for empty buffer
 			    (widen)
 			    (erase-buffer)

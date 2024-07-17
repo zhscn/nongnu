@@ -145,7 +145,7 @@ marked as modified."
 	bidi-paragraph-direction 'left-to-right)
   ;; horizontal scrollbar off by default
   ;; user can turn it on in summary hook if desired.
-  (when (and vm-xemacs-p (featurep 'scrollbar))
+  (when (and (featurep 'xemacs) (featurep 'scrollbar))
     (set-specifier scrollbar-height (cons (current-buffer) 0)))
   (use-local-map vm-summary-mode-map)
   (when (vm-menu-support-possible-p)
@@ -153,7 +153,7 @@ marked as modified."
 ;; using the 'mouse-face property gives faster highlighting than this.
 ;;  (and vm-mouse-track-summary
 ;;       (vm-mouse-support-possible-p)
-;;       (vm-mouse-xemacs-mouse-p)
+;;       (featurep 'xemacs)
 ;;       (add-hook 'mode-motion-hook 'mode-motion-highlight-line))
   (when (and vm-mutable-frame-configuration 
 	     (or vm-frame-per-folder vm-frame-per-summary))
@@ -189,12 +189,7 @@ mandatory."
 	  ;;   (setq bufer-face-mode-face vm-summary-face)
 	  ;;   (buffer-face-mode 1))
 	  (vm-fsfemacs-nonmule-display-8bit-chars)
-	  (if (fboundp 'buffer-disable-undo)
-	      (buffer-disable-undo (current-buffer))
-	    ;; obfuscation to make the v19 compiler not whine
-	    ;; about obsolete functions.
-	    (let ((x 'buffer-flush-undo))
-	      (funcall x (current-buffer))))
+	  (buffer-disable-undo (current-buffer))
 	  (setq vm-mail-buffer b
 		vm-folder-read-only read-only)
 	  (vm-summary-mode-internal))
@@ -693,14 +688,14 @@ Also move the cursor (point and window-point)."
 
 (defun vm-summary-xxxx-highlight-region (start end face var)
   (let ((ooo (symbol-value var)))
-    (cond (vm-fsfemacs-p
+    (cond ((not (featurep 'xemacs))
 	   (if (and ooo (overlay-buffer ooo))
 	       (move-overlay ooo start end)
 	     (setq ooo (make-overlay start end))
 	     (set var ooo)
 	     (overlay-put ooo 'evaporate nil)
 	     (overlay-put ooo 'face face)))
-	  (vm-xemacs-p
+	  ((featurep 'xemacs)
 	   (if (and ooo (vm-extent-end-position ooo))
 	       (vm-set-extent-endpoints ooo start end)
 	     (setq ooo (vm-make-extent start end))
@@ -2366,7 +2361,7 @@ Call this function if you made changes to `vm-summary-format'."
 	buffer-read-only t
 	buffer-offer-save nil
 	truncate-lines t)
-  (when (and vm-xemacs-p (featurep 'scrollbar))
+  (when (and (featurep 'xemacs) (featurep 'scrollbar))
     (set-specifier scrollbar-height (cons (current-buffer) 0)))
   (use-local-map vm-folders-summary-mode-map)
   (when (vm-menu-support-possible-p)

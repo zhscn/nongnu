@@ -147,7 +147,7 @@
       (unwind-protect
 	  (progn
 	    (set-buffer (setq work-buffer (get-buffer-create "*vm-wconfig*")))
-	    (if vm-fsfemacs-mule-p
+	    (if (not (featurep 'xemacs))
 		(set-buffer-multibyte nil)) ; for empty buffer
 	    (erase-buffer)
 	    (setq vm-window-configurations
@@ -166,7 +166,7 @@
       (unwind-protect
 	  (progn
 	    (set-buffer (setq work-buffer (get-buffer-create "*vm-wconfig*")))
-	    (if vm-fsfemacs-mule-p
+	    (if (not (featurep 'xemacs))
 		(set-buffer-multibyte nil)) ; for empty buffer
 	    ;; for MULE
 	    (if (fboundp 'set-buffer-file-coding-system)
@@ -486,7 +486,7 @@ Run the hooks in vm-iconify-frame-hook before doing so."
 
 (defun vm-bury-buffer (&optional buffer)
   (or buffer (setq buffer (current-buffer)))
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (if (vm-multiple-frames-possible-p)
 	  (vm-frame-loop 'bury buffer)
 	(bury-buffer buffer))
@@ -598,7 +598,7 @@ Run the hooks in vm-iconify-frame-hook before doing so."
 (defun vm-warp-mouse-to-frame-maybe (&optional frame)
   (or frame (setq frame (vm-selected-frame)))
   (if (vm-mouse-support-possible-here-p)
-      (cond ((vm-mouse-xemacs-mouse-p)
+      (cond ((featurep 'xemacs)
 	     (cond ((fboundp 'mouse-position);; XEmacs 19.12 and up
 		    (let ((mp (mouse-position)))
 		      (if (and (car mp)
@@ -626,7 +626,7 @@ Run the hooks in vm-iconify-frame-hook before doing so."
 		    ;; 	 (/ (apply 'screen-width frame) 2)
 		    ;; 	 (/ (apply 'screen-height frame) 2))))
 		    )))
-	    ((vm-fsfemacs-p)
+	    (t
 	     (let ((mp (mouse-position)))
 	       (if (and (eq (car mp) frame)
 			;; nil coordinates mean that the mouse
@@ -694,7 +694,7 @@ Run the hooks in vm-iconify-frame-hook before doing so."
 ;; 2 April 1997, frame-totally-visible-p apparently still broken
 ;; under 19.15.  I give up for now.
 ;;(if (and (fboundp 'frame-totally-visible-p)
-;;	 vm-xemacs-p
+;;	 (featurep 'xemacs)
 ;;	 (or (>= emacs-major-version 20)
 ;;	     (>= emacs-minor-version 15)))
 ;;    (fset 'vm-frame-totally-visible-p 'frame-totally-visible-p)

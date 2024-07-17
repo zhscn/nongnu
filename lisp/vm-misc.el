@@ -610,8 +610,8 @@ LIST2 satisfying PRED and return the position"
 ;; 	'interactive-p))
 
 (fset 'vm-device-type
-      (cond (vm-xemacs-p 'device-type)
-	    (vm-fsfemacs-p 'vm-fsfemacs-device-type)))
+      (cond ((featurep 'xemacs) 'device-type)
+	    ((not (featurep 'xemacs)) 'vm-fsfemacs-device-type)))
 
 (defun vm-fsfemacs-device-type (&optional _device)
   "An FSF Emacs emulation for XEmacs `device-type' function.  Returns
@@ -622,7 +622,7 @@ the type of the current screen device: one of 'x, 'gtk, 'w32, 'ns and
     window-system))
 
 (defun vm-generate-new-unibyte-buffer (name)
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (generate-new-buffer name)
     (let* (;; (default-enable-multibyte-characters nil)
 	   ;; don't need this because of set-buffer-multibyte below
@@ -633,7 +633,7 @@ the type of the current screen device: one of 'x, 'gtk, 'w32, 'ns and
       buffer)))
 
 (defun vm-generate-new-multibyte-buffer (name)
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (generate-new-buffer name)
     (let* (;; (default-enable-multibyte-characters t)
 	   ;; don't need this because of set-buffer-multibyte below
@@ -654,7 +654,7 @@ the type of the current screen device: one of 'x, 'gtk, 'w32, 'ns and
 (fset 'xemacs-abbreviate-file-name 'abbreviate-file-name)
 
 (defun vm-abbreviate-file-name (path)
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (xemacs-abbreviate-file-name path t)
     (abbreviate-file-name path)))
 
@@ -992,7 +992,7 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
 ;; The following function is not working correctly on Gnu Emacs 23.
 ;; So we do it ourselves.
 (defun vm-delete-auto-save-file-if-necessary ()
-  (if vm-xemacs-p
+  (if (featurep 'xemacs)
       (delete-auto-save-file-if-necessary)
     (when (and buffer-auto-save-file-name delete-auto-save-files
 	       (not (string= buffer-file-name buffer-auto-save-file-name))
@@ -1045,7 +1045,7 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
 (fset 'vm-buffer-substring-no-properties
   (cond ((fboundp 'buffer-substring-no-properties)
 	 (function buffer-substring-no-properties))
-	(vm-xemacs-p
+	((featurep 'xemacs)
 	 (function buffer-substring))
 	(t (function vm-default-buffer-substring-no-properties))))
 
@@ -1070,64 +1070,64 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
     (set-buffer target-buffer)))
 
 (if (not (fboundp 'vm-extent-property))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-extent-property 'overlay-get)
       (fset 'vm-extent-property 'extent-property)))
 
 (if (not (fboundp 'vm-extent-object))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-extent-object 'overlay-buffer)
       (fset 'vm-extent-object 'extent-object)))
 
 (if (not (fboundp 'vm-set-extent-property))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-set-extent-property 'overlay-put)
       (fset 'vm-set-extent-property 'set-extent-property)))
 
 (if (not (fboundp 'vm-set-extent-endpoints))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-set-extent-endpoints 'move-overlay)
       (fset 'vm-set-extent-endpoints 'set-extent-endpoints)))
 
 (if (not (fboundp 'vm-make-extent))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-make-extent 'make-overlay)
       (fset 'vm-make-extent 'make-extent)))
 
 (if (not (fboundp 'vm-extent-end-position))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-extent-end-position 'overlay-end)
       (fset 'vm-extent-end-position 'extent-end-position)))
 
 (if (not (fboundp 'vm-extent-start-position))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-extent-start-position 'overlay-start)
       (fset 'vm-extent-start-position 'extent-start-position)))
 
 (if (not (fboundp 'vm-next-extent-change))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-next-extent-change 'next-overlay-change)
       (fset 'vm-next-extent-change 'next-extent-change)))
 
 (if (not (fboundp 'vm-previous-extent-change))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-previous-extent-change 'previous-overlay-change)
       (fset 'vm-previous-extent-change 'previous-extent-change)))
 
 (if (not (fboundp 'vm-detach-extent))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-detach-extent 'delete-overlay)
       (fset 'vm-detach-extent 'detach-extent)))
 
 (if (not (fboundp 'vm-delete-extent))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	;; This doesn't actually destroy the overlay, but it is the
 	;; best there is.
 	(fset 'vm-delete-extent 'delete-overlay)
       (fset 'vm-delete-extent 'delete-extent)))
 
 (if (not (fboundp 'vm-disable-extents))
-    (if (and vm-fsfemacs-p (fboundp 'remove-overlays))
+    (if (and (not (featurep 'xemacs)) (fboundp 'remove-overlays))
 	(fset 'vm-disable-extents 'remove-overlays)
       ;; XEamcs doesn't need to disable extents because they don't
       ;; slow things down
@@ -1135,7 +1135,7 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
 	    (lambda (&optional _beg _end _name _val) nil))))
 
 (if (not (fboundp 'vm-extent-properties))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-extent-properties 'overlay-properties)
       (fset 'vm-extent-properties 'extent-properties)))
 
@@ -1164,7 +1164,7 @@ which should be ignored.  (This is included for compatibility with XEmacs)."
       (setq p (cdr p)))))
 
 (if (not (fboundp 'vm-map-extents))
-    (if vm-fsfemacs-p
+    (if (not (featurep 'xemacs))
 	(fset 'vm-map-extents 'vm-fsfemacs-map-extents)
       (fset 'vm-map-extents 'vm-xemacs-map-extents)))
 
@@ -1389,9 +1389,9 @@ encoding/decoding, conversions, subprocess communication etc."
 ;; the GNU Emacs function expects a symbol.
 ;; In the non-MULE case, return nil (is this the right fallback?).
 (defun vm-coding-system-p (name)
-  (cond (vm-xemacs-mule-p
+  (cond ((featurep 'xemacs)
 	 (coding-system-p (find-coding-system name)))
-	(vm-fsfemacs-mule-p
+	((not (featurep 'xemacs))
 	 (coding-system-p name))))
 
 (cond ((fboundp 'coding-system-name)
@@ -1407,34 +1407,32 @@ encoding/decoding, conversions, subprocess communication etc."
     (coding-system-change-eol-conversion coding-system nil)))
 
 (defun vm-get-file-line-ending-coding-system (file)
-  (if (not (or vm-fsfemacs-mule-p vm-xemacs-mule-p vm-xemacs-file-coding-p))
-      nil
-    (let ((coding-system-for-read  (vm-binary-coding-system))
-	  (work-buffer (vm-make-work-buffer)))
-      (unwind-protect
-	  (with-current-buffer work-buffer
-	    (condition-case nil
-		(insert-file-contents file nil 0 4096)
-	      (error nil))
-	    (goto-char (point-min))
-	    (cond ((re-search-forward "[^\r]\n" nil t)
-		   (if vm-fsfemacs-mule-p 'raw-text-unix 'no-conversion-unix))
-		  ((re-search-forward "\r[^\n]" nil t)
-		   (if vm-fsfemacs-mule-p 'raw-text-mac 'no-conversion-mac))
-		  ((search-forward "\r\n" nil t)
-		   (if vm-fsfemacs-mule-p 'raw-text-dos 'no-conversion-dos))
-		  (t (vm-line-ending-coding-system))))
-	(and work-buffer (kill-buffer work-buffer))))))
+  (let ((coding-system-for-read  (vm-binary-coding-system))
+	(work-buffer (vm-make-work-buffer)))
+    (unwind-protect
+	(with-current-buffer work-buffer
+	  (condition-case nil
+	      (insert-file-contents file nil 0 4096)
+	    (error nil))
+	  (goto-char (point-min))
+	  (cond ((re-search-forward "[^\r]\n" nil t)
+		 (if (not (featurep 'xemacs)) 'raw-text-unix 'no-conversion-unix))
+		((re-search-forward "\r[^\n]" nil t)
+		 (if (not (featurep 'xemacs)) 'raw-text-mac 'no-conversion-mac))
+		((search-forward "\r\n" nil t)
+		 (if (not (featurep 'xemacs)) 'raw-text-dos 'no-conversion-dos))
+		(t (vm-line-ending-coding-system))))
+      (and work-buffer (kill-buffer work-buffer)))))
 
 (defun vm-new-folder-line-ending-coding-system ()
   (cond ((eq vm-default-new-folder-line-ending-type nil)
 	 (vm-line-ending-coding-system))
 	((eq vm-default-new-folder-line-ending-type 'lf)
-	 (if vm-fsfemacs-mule-p 'raw-text-unix 'no-conversion-unix))
+	 (if (not (featurep 'xemacs)) 'raw-text-unix 'no-conversion-unix))
 	((eq vm-default-new-folder-line-ending-type 'crlf)
-	 (if vm-fsfemacs-mule-p 'raw-text-dos 'no-conversion-dos))
+	 (if (not (featurep 'xemacs)) 'raw-text-dos 'no-conversion-dos))
 	((eq vm-default-new-folder-line-ending-type 'cr)
-	 (if vm-fsfemacs-mule-p 'raw-text-mac 'no-conversion-mac))
+	 (if (not (featurep 'xemacs)) 'raw-text-mac 'no-conversion-mac))
 	(t
 	 (vm-line-ending-coding-system))))
 
@@ -1633,8 +1631,8 @@ front before adding it to the RING-VARIABLE."
 (defvar enable-multibyte-characters)
 (defvar buffer-display-table)
 (defun vm-fsfemacs-nonmule-display-8bit-chars ()
-  (cond ((and vm-fsfemacs-p
-	      (or (not vm-fsfemacs-mule-p)
+  (cond ((and (not (featurep 'xemacs))
+	      (or (not (not (featurep 'xemacs)))
 		  (and (boundp 'enable-multibyte-characters)
 		       (not enable-multibyte-characters))))
 	 (let* (tab (i 160))

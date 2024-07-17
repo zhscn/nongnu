@@ -45,19 +45,19 @@ END.  If the optional argument OVERLAY is provided then that that
 overlay is moved to cover START to END.  No new overlay is created in
 that case.                                            USR, 2010-08-01"
   (if (null overlay)
-	(cond (vm-fsfemacs-p
+	(cond ((not (featurep 'xemacs))
 	       (let ((o (make-overlay start end)))
 		 (overlay-put o 'mouse-face 'highlight)
 		 o ))
-	      (vm-xemacs-p
+	      ((featurep 'xemacs)
 	       (let ((o (vm-make-extent start end)))
 		 (vm-set-extent-property o 'start-open t)
 		 (vm-set-extent-property o 'priority 10)
 		 (vm-set-extent-property o 'highlight t)
 		 o )))
-    (cond (vm-fsfemacs-p
+    (cond ((not (featurep 'xemacs))
 	   (move-overlay overlay start end))
-	  (vm-xemacs-p
+	  ((featurep 'xemacs)
 	   (vm-set-extent-endpoints overlay start end)))))
 
 ;;;###autoload
@@ -66,10 +66,10 @@ that case.                                            USR, 2010-08-01"
 mouse is clicked.  See Info node `(VM) Using the Mouse'."
   (interactive "e")
   ;; go to where the event occurred
-  (cond ((vm-mouse-xemacs-mouse-p)
+  (cond ((featurep 'xemacs)
 	 (set-buffer (window-buffer (event-window event)))
 	 (and (event-point event) (goto-char (event-point event))))
-	((vm-mouse-fsfemacs-mouse-p)
+	((not (featurep 'xemacs))
 	 (set-buffer (window-buffer (posn-window (event-start event))))
 	 (goto-char (posn-point (event-start event)))))
   ;; now dispatch depending on where we are
@@ -97,10 +97,10 @@ Mouse'."
   (if vm-use-menus
       (progn
 	;; go to where the event occurred
-	(cond ((vm-mouse-xemacs-mouse-p)
+	(cond ((featurep 'xemacs)
 	       (set-buffer (window-buffer (event-window event)))
 	       (and (event-point event) (goto-char (event-point event))))
-	      ((vm-mouse-fsfemacs-mouse-p)
+	      ((not (featurep 'xemacs))
 	       (set-buffer (window-buffer (posn-window (event-start event))))
 	       (goto-char (posn-point (event-start event)))))
 	;; now dispatch depending on where we are
@@ -122,13 +122,13 @@ Mouse'."
 (defun vm-mouse-get-mouse-track-string (event)
   (save-excursion
     ;; go to where the event occurred
-    (cond ((vm-mouse-xemacs-mouse-p)
+    (cond ((featurep 'xemacs)
 	   (set-buffer (window-buffer (event-window event)))
 	   (and (event-point event) (goto-char (event-point event))))
-	  ((vm-mouse-fsfemacs-mouse-p)
+	  ((not (featurep 'xemacs))
 	   (set-buffer (window-buffer (posn-window (event-start event))))
 	   (goto-char (posn-point (event-start event)))))
-    (cond (vm-fsfemacs-p
+    (cond ((not (featurep 'xemacs))
 	   (let ((o-list (overlays-at (point)))
 		 (string nil))
 	     (while o-list
@@ -139,7 +139,7 @@ Mouse'."
 			 o-list nil)
 		 (setq o-list (cdr o-list))))
 	     string ))
-	  (vm-xemacs-p
+	  ((featurep 'xemacs)
 	   (let ((e (vm-extent-at (point) 'highlight)))
 	     (if e
 		 (buffer-substring (vm-extent-start-position e)
@@ -150,7 +150,7 @@ Mouse'."
 ;;;###autoload
 (defun vm-mouse-popup-or-select (event)
   (interactive "e")
-  (cond ((vm-mouse-fsfemacs-mouse-p)
+  (cond ((not (featurep 'xemacs))
 	 (set-buffer (window-buffer (posn-window (event-start event))))
 	 (goto-char (posn-point (event-start event)))
 	 (let (o-list (found nil))
@@ -170,7 +170,7 @@ Mouse'."
 	;; binding that points to a more specific function.  But
 	;; this might come in handy later if I want selectable
 	;; objects that don't have an extent keymap attached.
-	((vm-mouse-xemacs-mouse-p)
+	((featurep 'xemacs)
 	 (set-buffer (window-buffer (event-window event)))
 	 (and (event-point event) (goto-char (event-point event)))
 	 (let (e)
@@ -183,11 +183,11 @@ Mouse'."
 ;;;###autoload
 (defun vm-mouse-send-url-at-event (event)
   (interactive "e")
-  (cond ((vm-mouse-xemacs-mouse-p)
+  (cond ((featurep 'xemacs)
 	 (set-buffer (window-buffer (event-window event)))
 	 (and (event-point event) (goto-char (event-point event)))
 	 (vm-mouse-send-url-at-position (event-point event)))
-	((vm-mouse-fsfemacs-mouse-p)
+	((not (featurep 'xemacs))
 	 (set-buffer (window-buffer (posn-window (event-start event))))
 	 (goto-char (posn-point (event-start event)))
 	 (vm-mouse-send-url-at-position (posn-point (event-start event))))))
@@ -195,7 +195,7 @@ Mouse'."
 (defun vm-mouse-send-url-at-position (pos &optional browser)
   (save-restriction
     (widen)
-    (cond ((vm-mouse-xemacs-mouse-p)
+    (cond ((featurep 'xemacs)
 	   (let ((e (vm-extent-at pos 'vm-url))
 		 url)
 	     (if (null e)
@@ -203,7 +203,7 @@ Mouse'."
 	       (setq url (buffer-substring (vm-extent-start-position e)
 					   (vm-extent-end-position e)))
 	       (vm-mouse-send-url url browser))))
-	  ((vm-mouse-fsfemacs-mouse-p)
+	  ((not (featurep 'xemacs))
 	   (let (o-list url o)
 	     (setq o-list (overlays-at pos))
 	     (while (and o-list (null (overlay-get (car o-list) 'vm-url)))
@@ -398,10 +398,10 @@ Mouse'."
 
 ;;;###autoload
 (defun vm-mouse-install-mouse ()
-  (cond ((vm-mouse-xemacs-mouse-p)
+  (cond ((featurep 'xemacs)
 	 (if (null (lookup-key vm-mode-map 'button2))
 	     (define-key vm-mode-map 'button2 'vm-mouse-button-2)))
-	((vm-mouse-fsfemacs-mouse-p)
+	((not (featurep 'xemacs))
 	 (if (null (lookup-key vm-mode-map [mouse-2]))
 	     (define-key vm-mode-map [mouse-2] 'vm-mouse-button-2))
 	 (if vm-popup-menu-on-mouse-3

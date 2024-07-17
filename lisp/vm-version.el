@@ -47,85 +47,36 @@
     (message "VM version is: %s" vm-version))
   vm-version)
 
-(defconst vm-xemacs-p
-  (featurep 'xemacs))
-(defconst vm-xemacs-mule-p
-  (and vm-xemacs-p (featurep 'mule)))
-(defconst vm-xemacs-file-coding-p
-  (and vm-xemacs-p (featurep 'file-coding)
-       ;; paranoia
-       (fboundp
-	'set-buffer-file-coding-system)))
-(defconst vm-fsfemacs-p
-  (not vm-xemacs-p))
-(defconst vm-fsfemacs-mule-p
-  (and (not vm-xemacs-mule-p) (featurep 'mule)
-       (fboundp 'set-buffer-file-coding-system)))
-
-(defconst vm-fsf-threads-p
-  (and vm-fsfemacs-p
-       (string-greaterp (emacs-version) "26.0")))
-
-(defun vm-xemacs-p () vm-xemacs-p)
-(defun vm-xemacs-mule-p () vm-xemacs-mule-p)
-(defun vm-xemacs-file-coding-p () vm-xemacs-file-coding-p)
-(defun vm-fsfemacs-p () vm-fsfemacs-p)
-(defun vm-fsfemacs-mule-p () vm-fsfemacs-mule-p)
-
-(defun vm-emacs-mule-p ()
-  (or vm-xemacs-mule-p vm-fsfemacs-mule-p))
-
-(defun vm-mouse-fsfemacs-mouse-p ()
-  (and vm-fsfemacs-p
-       (fboundp 'set-mouse-position)))
-
-(defun vm-mouse-xemacs-mouse-p ()
-  (and vm-xemacs-p
-       (fboundp 'set-mouse-position)))
-
-(defun vm-menu-fsfemacs-menus-p ()
-  (and vm-fsfemacs-p
-       (fboundp 'menu-bar-mode)))
-
-(defun vm-menu-fsfemacs19-menus-p ()
-  (and vm-fsfemacs-p
-       (fboundp 'menu-bar-mode)
-       (= emacs-major-version 19)))
-
-(defun vm-menu-xemacs-menus-p ()
-  (and vm-xemacs-p
-       (fboundp 'set-buffer-menubar)))
-
 (defun vm-menu-can-eval-item-name ()
-  (and vm-xemacs-p
+  (and (featurep 'xemacs)
        (fboundp 'check-menu-syntax)
        (condition-case nil
 	   (check-menu-syntax '("bar" ((identity "foo") 'ding t)))
 	 (error nil))))
 
 (defun vm-multiple-frames-possible-p ()
-  (cond (vm-xemacs-p
+  (cond ((featurep 'xemacs)
 	 (or (memq 'win (device-matching-specifier-tag-list))
 	     (featurep 'tty-frames)))
-        (vm-fsfemacs-p
+        ((not (featurep 'xemacs))
          (fboundp 'make-frame))))
  
 (defun vm-mouse-support-possible-p ()
-  (cond (vm-xemacs-p
+  (cond ((featurep 'xemacs)
          (featurep 'window-system))
-        (vm-fsfemacs-p
+        ((not (featurep 'xemacs))
          (fboundp 'track-mouse))))
  
 (defun vm-mouse-support-possible-here-p ()
-  (cond (vm-xemacs-p
+  (cond ((featurep 'xemacs)
 	 (memq 'win (device-matching-specifier-tag-list)))
-	(vm-fsfemacs-p
+	((not (featurep 'xemacs))
 	 (memq window-system '(x mac w32 win32)))))
 
 (defun vm-menu-support-possible-p ()
-  (cond (vm-xemacs-p
+  (cond ((featurep 'xemacs)
 	 (featurep 'menubar))
-	(vm-fsfemacs-p
+	((not (featurep 'xemacs))
 	 (fboundp 'menu-bar-mode))))
  
 (defun vm-menubar-buttons-possible-p ()
@@ -133,23 +84,23 @@
 Windowing toolkits do not allow such buttons.  This says whether such
 buttons are possible under the current windowing system."
   (not
-   (cond (vm-xemacs-p (memq (device-type) '(gtk ns)))
-	 (vm-fsfemacs-p (or (and (eq window-system 'x) (featurep 'gtk))
+   (cond ((featurep 'xemacs) (memq (device-type) '(gtk ns)))
+	 ((not (featurep 'xemacs)) (or (and (eq window-system 'x) (featurep 'gtk))
 			    (eq window-system 'ns))))))
 
 (defun vm-toolbar-support-possible-p ()
-  (or (and vm-xemacs-p (featurep 'toolbar))
-      (and vm-fsfemacs-p (fboundp 'tool-bar-mode) (boundp 'tool-bar-map))))
+  (or (and (featurep 'xemacs) (featurep 'toolbar))
+      (and (not (featurep 'xemacs)) (fboundp 'tool-bar-mode) (boundp 'tool-bar-map))))
 
 (defun vm-multiple-fonts-possible-p ()
-  (cond (vm-xemacs-p
+  (cond ((featurep 'xemacs)
 	 (memq (device-type) '(x gtk mswindows)))
-	(vm-fsfemacs-p
+	((not (featurep 'xemacs))
 	 (memq window-system '(x mac w32 win32)))))
 
 (defun vm-images-possible-here-p ()
-  (or (and vm-xemacs-p (memq (device-type) '(x gtk mswindows)))
-      (and vm-fsfemacs-p window-system
+  (or (and (featurep 'xemacs) (memq (device-type) '(x gtk mswindows)))
+      (and (not (featurep 'xemacs)) window-system
 	   (or (fboundp 'image-type-available-p)
 	       (and (stringp vm-imagemagick-convert-program)
 		    (stringp vm-imagemagick-identify-program))))))

@@ -496,7 +496,7 @@ creation). If DRAFT is non-nil, then do not delete the draft message."
 	  ;; in the postponded folder expunge them right now 
 	  (when (string= (buffer-name buffer)
 			 (file-name-nondirectory vm-postponed-folder))
-	    (if (and vm-xemacs-p (frames-of-buffer buffer t))
+	    (if (and (featurep 'xemacs) (frames-of-buffer buffer t))
 		(iconify-frame (car (frames-of-buffer buffer))))
 	    (when vm-auto-expunge-postponed-folder
               (save-excursion
@@ -750,7 +750,7 @@ Drafts in other folders are not recognized!"
                     (not (vm-deleted-flag (car vm-message-pointer))))
               (message "Please select a draft!")
               (select-window (car (get-buffer-window-list buffer nil 0)))
-              (if (and vm-xemacs-p (frames-of-buffer buffer))
+              (if (and (featurep 'xemacs) (frames-of-buffer buffer))
                   (deiconify-frame (car (frames-of-buffer buffer))))
               (setq action 'none))
           (setq action 'visit)))
@@ -930,7 +930,7 @@ See the variable `vm-mail-priority'."
                (insert "\n" vm-mail-priority)))))
 
 ;;-----------------------------------------------------------------------------
-(if (not vm-xemacs-p)
+(if (not (featurep 'xemacs))
     (defun user-home-directory ()
       (getenv "HOME")))
 
@@ -1051,7 +1051,7 @@ This function is a slightly changed version of `vm-auto-select-folder'."
                         ;; match data.
                         (save-excursion
                           (set-buffer buf)
-                          (if vm-fsfemacs-mule-p
+                          (if (not (featurep 'xemacs))
                               (set-buffer-multibyte nil)) ; for empty buffer
                           (widen)
                           (erase-buffer)

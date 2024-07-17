@@ -113,14 +113,14 @@
   ;; for the Undo button on the menubar, if present
   (when (and (null vm-undo-record-list)
 	     (vm-menu-support-possible-p)
-	     (vm-menu-xemacs-menus-p))
+	     (featurep 'xemacs))
     (vm-menu-set-menubar-dirty-flag)))
 	    
 (defun vm-undo-record (sexp)
   ;; for the Undo button on the menubar, if present
   (when (and (null vm-undo-record-list)
 	     (vm-menu-support-possible-p)
-	     (vm-menu-xemacs-menus-p))
+	     (featurep 'xemacs))
     (vm-menu-set-menubar-dirty-flag))
   (setq vm-undo-record-list (cons sexp vm-undo-record-list)))
 
