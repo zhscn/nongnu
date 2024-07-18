@@ -65,8 +65,7 @@ it shouldn't be very hard to get it working.
 
 *** Emoji
 
-=mastodon-mode= will enable [[https://github.com/iqbalansari/emacs-emojify][Emojify]] if it is loaded in your Emacs environment, so
-there's no need to write your own hook anymore. =emojify-mode= is not required.
+Since Emacs 28, it has builtin emoji support with =emoji.el=. If you prefer to use [[https://github.com/iqbalansari/emacs-emojify][Emojify]], =require= it and set =mastodon-use-emojify= to non-nil to display emoji in timelines and to use it when composing toots. =Emoji.el= is the better option, but for now only =emojify= supports downloading and using custom emoji from your instance. From personal experience, =emojify= also tends to result in less TOFU.
 
 *** Discover
 
@@ -242,21 +241,21 @@ value of that hook is as follows:
 
 **** Keybindings
 
-|----------+----------------------------------|
-| Key      | Action                           |
-|----------+----------------------------------|
-| =C-c C-c=  | Send toot                        |
-| =C-c C-k=  | Cancel toot                      |
-| =C-c C-w=  | Add content warning              |
-| =C-c C-v=  | Change toot visibility           |
-| =C-c C-n=  | Add sensitive media/nsfw flag    |
-| =C-c C-a=  | Upload attachment(s)             |
-| =C-c !=    | Remove all attachments           |
-| =C-c C-e=  | Add emoji (if =emojify= installed) |
-| =C-c C-p=  | Create a poll                    |
-| =C-c C-l=  | Set toot language                |
-| =-C-c C-s= | Schedule toot                    |
-|----------+----------------------------------|
+|----------+-------------------------------|
+| Key      | Action                        |
+|----------+-------------------------------|
+| =C-c C-c=  | Send toot                     |
+| =C-c C-k=  | Cancel toot                   |
+| =C-c C-w=  | Add content warning           |
+| =C-c C-v=  | Change toot visibility        |
+| =C-c C-n=  | Add sensitive media/nsfw flag |
+| =C-c C-a=  | Upload attachment(s)          |
+| =C-c !=    | Remove all attachments        |
+| =C-c C-e=  | Insert emoji                  |
+| =C-c C-p=  | Create a poll                 |
+| =C-c C-l=  | Set toot language             |
+| =-C-c C-s= | Schedule toot                 |
+|----------+-------------------------------|
 
 **** Autocompletion of mentions, tags and emoji
 
@@ -265,7 +264,7 @@ Autocompletion of mentions, tags, and emojis is provided by
 =mastodon-toot--enable-completion= is enabled by default.
 
 To trigger completion, type a prefix followed by a few letters, =@= for
-mentions, =#= for tags, and =:= for emoji.
+mentions, =#= for tags, and =:= for emoji (for now this only works when using =emojify.el=).
 
 If you want to enable =company-mode= in the toot compose buffer, set
 =mastodon-toot--use-company-for-completion= to =t=. (=mastodon.el= used to run its
@@ -424,7 +423,7 @@ Hard dependencies (should all install with =mastodon.el=):
 - +=persist= for storing some settings across sessions+ (we now use =multisession.el= for this)
 
 Optional dependencies (install yourself, =mastodon.el= can use them):
-- =emojify= for inserting and viewing emojis
+- =emojify= to use custom emoji (else we use builtin =emoji.el=)
 - =mpv= and =mpv.el= for viewing videos and gifs
 - =lingva.el= for translating toots
 

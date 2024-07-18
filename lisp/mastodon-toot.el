@@ -31,6 +31,8 @@
 ;;; Code:
 (eval-when-compile (require 'subr-x))
 
+
+(defvar mastodon-use-emojify)
 (require 'emojify nil :noerror)
 (declare-function emojify-insert-emoji "emojify")
 (declare-function emojify-set-emoji-data "emojify")
@@ -157,8 +159,6 @@ If the original toot visibility is different we use the more restricted one."
   "Whether to enable your instance's custom emoji by default."
   :type 'boolean)
 
-(defvar mastodon-use-emojify)
-
 (defcustom mastodon-toot--proportional-fonts-compose nil
   "Nonnil to enable using proportional fonts in the compose buffer.
 By default fixed width fonts are used."
@@ -281,8 +281,7 @@ Includes boosts, and notifications that display toots."
     (define-key map (kbd "C-c C-w") #'mastodon-toot--toggle-warning)
     (define-key map (kbd "C-c C-n") #'mastodon-toot--toggle-nsfw)
     (define-key map (kbd "C-c C-v") #'mastodon-toot--change-visibility)
-    (when (require 'emojify nil :noerror)
-      (define-key map (kbd "C-c C-e") #'mastodon-toot--insert-emoji))
+    (define-key map (kbd "C-c C-e") #'mastodon-toot--insert-emoji)
     (define-key map (kbd "C-c C-a") #'mastodon-toot--attach-media)
     (define-key map (kbd "C-c !") #'mastodon-toot--clear-all-attachments)
     (define-key map (kbd "C-c C-p") #'mastodon-toot--create-poll)
@@ -764,7 +763,9 @@ TEXT-ONLY means don't check for attachments or polls."
 ;;; EMOJIS
 
 (defalias 'mastodon-toot--insert-emoji
-  #'emojify-insert-emoji
+  (if mastodon-use-emojify
+      #'emojify-insert-emoji
+    #'emoji-search)
   "Prompt to insert an emoji.")
 
 (defun mastodon-toot--emoji-dir ()
