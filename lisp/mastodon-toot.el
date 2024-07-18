@@ -2029,7 +2029,7 @@ EDIT means we are editing an existing toot, not composing a new one."
     (setq mastodon-toot-previous-window-config previous-window-config)
     (when mastodon-toot--proportional-fonts-compose
       (facemenu-set-face 'variable-pitch))
-    (when (and mastodon-toot--emojify-in-compose-buffer
+    (when (and mastodon-use-emojify
                ;; emojify loaded but poss not enabled in our buffer:
                (boundp 'emojify-mode))
       (emojify-mode))
