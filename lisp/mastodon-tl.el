@@ -239,9 +239,8 @@ If nil `(point-min)' is used instead.")
   "The timer that, when set will scan the buffer to update the timestamps.")
 
 (defvar mastodon-tl--horiz-bar
-  (if (char-displayable-p ?―)
-      (make-string 12 ?―)
-    (make-string 12 ?-)))
+  (make-string 12
+               (if (char-displayable-p ?―) ?― ?-)))
 
 
 ;;; KEYMAPS
