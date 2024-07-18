@@ -219,6 +219,13 @@ respects the user's `browse-url' settings."
 See `mastodon-tl--get-remote-local-timeline' for view remote local domains."
   :type '(repeat string))
 
+
+(defcustom mastodon-tl--fold-toots-at-length 1200
+  "Length, in characters, to fold a toot at.
+Longer toots will be folded and the remainder replaced by a
+\"read more\" button. If the value is nil, don't fold at all."
+  :type '(integer))
+
 
 ;;; VARIABLES
 
@@ -1558,16 +1565,18 @@ When DOMAIN, force inclusion of user's domain in their handle."
 
 (defun mastodon-tl--fold-body-maybe (body)
   "Fold toot BODY if it is very long."
-  (if (length> body 500)
-      (let* ((heading (mastodon-search--format-heading
-                       (mastodon-tl--make-link
-                        "READ MORE"
-                        'read-more)))
-             (display (concat (substring body 0 500)
-                              heading)))
-        (propertize display
-                    'read-more body))
-    body))
+  (if (or (eq nil mastodon-tl--fold-toots-at-length)
+          (length< body mastodon-tl--fold-toots-at-length))
+      body
+    (let* ((heading (mastodon-search--format-heading
+                     (mastodon-tl--make-link
+                      "READ MORE"
+                      'read-more)))
+           (display (concat (substring body 0
+                                       mastodon-tl--fold-toots-at-length)
+                            heading)))
+      (propertize display
+                  'read-more body))))
 
 (defun mastodon-tl--unfold-post ()
   "Unfold the toot at point if it is folded (read-more)."
