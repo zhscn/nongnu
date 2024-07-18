@@ -157,7 +157,8 @@ prefer to use Emojify (https://github.com/iqbalansari/emacs-emojify),
 ‘require’ it and set ‘mastodon-use-emojify’ to non-nil to display emoji
 in timelines and to use it when composing toots.  ‘Emoji.el’ is the
 better option, but for now only ‘emojify’ supports downloading and using
-custom emoji from your instance.
+custom emoji from your instance.  From personal experience, ‘emojify’
+also tends to result in less TOFU.
 
 
 File: mastodon.info,  Node: Discover,  Prev: Emoji,  Up: Installation
@@ -595,7 +596,8 @@ File: mastodon.info,  Node: Dependencies,  Next: Network compatibility,  Prev: U
 Hard dependencies (should all install with ‘mastodon.el’):
    • ‘request’ (for uploading attachments), emacs-request
      (https://github.com/tkf/emacs-request)
-   • ‘persist’ for storing some settings across sessions
+   • ‘persist’ for storing some settings across sessions (we now use
+     ‘multisession.el’ for this)
 
    Optional dependencies (install yourself, ‘mastodon.el’ can use them):
    • ‘emojify’ to use custom emoji (else we use builtin ‘emoji.el’)
@@ -748,32 +750,32 @@ Node: ELPA1917
 Node: MELPA2145
 Node: Repo2525
 Node: Emoji3018
-Node: Discover3536
-Node: Usage4088
-Node: Logging in to your instance4531
-Node: Timelines5528
-Ref: Keybindings6003
-Ref: Toot byline legend10777
-Node: Composing toots11086
-Ref: Keybindings (1)12638
-Ref: Autocompletion of mentions tags and emoji13173
-Ref: Draft toots14098
-Node: Other commands and account settings14569
-Node: Customization17736
-Node: Commands and variables index18614
-Node: Alternative timeline layout19130
-Node: Live-updating timelines mastodon-async-mode19535
-Node: Translating toots20387
-Node: Bookmarks and mastodonel21569
-Node: Dependencies22108
-Node: Network compatibility22742
-Node: Contributing23624
-Node: Bug reports24120
-Node: Fixes and features25031
-Node: Coding style25532
-Node: Supporting mastodonel26156
-Node: Contributors26723
-Node: screenshots27158
+Node: Discover3612
+Node: Usage4164
+Node: Logging in to your instance4607
+Node: Timelines5604
+Ref: Keybindings6079
+Ref: Toot byline legend10853
+Node: Composing toots11162
+Ref: Keybindings (1)12714
+Ref: Autocompletion of mentions tags and emoji13249
+Ref: Draft toots14174
+Node: Other commands and account settings14645
+Node: Customization17812
+Node: Commands and variables index18690
+Node: Alternative timeline layout19206
+Node: Live-updating timelines mastodon-async-mode19611
+Node: Translating toots20463
+Node: Bookmarks and mastodonel21645
+Node: Dependencies22184
+Node: Network compatibility22867
+Node: Contributing23749
+Node: Bug reports24245
+Node: Fixes and features25156
+Node: Coding style25657
+Node: Supporting mastodonel26281
+Node: Contributors26848
+Node: screenshots27283
 
 End Tag Table
 

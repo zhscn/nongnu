@@ -152,7 +152,7 @@ it shouldn't be very hard to get it working.
 @node Emoji
 @subsection Emoji
 
-Since Emacs 28, it has builtin emoji support with @samp{emoji.el}. If you prefer to use @uref{https://github.com/iqbalansari/emacs-emojify, Emojify}, @samp{require} it and set @samp{mastodon-use-emojify} to non-nil to display emoji in timelines and to use it when composing toots. @samp{Emoji.el} is the better option, but for now only @samp{emojify} supports downloading and using custom emoji from your instance.
+Since Emacs 28, it has builtin emoji support with @samp{emoji.el}. If you prefer to use @uref{https://github.com/iqbalansari/emacs-emojify, Emojify}, @samp{require} it and set @samp{mastodon-use-emojify} to non-nil to display emoji in timelines and to use it when composing toots. @samp{Emoji.el} is the better option, but for now only @samp{emojify} supports downloading and using custom emoji from your instance. From personal experience, @samp{emojify} also tends to result in less TOFU@.
 
 @node Discover
 @subsection Discover
@@ -701,7 +701,7 @@ Hard dependencies (should all install with @samp{mastodon.el}):
 @item
 @samp{request} (for uploading attachments), @uref{https://github.com/tkf/emacs-request, emacs-request}
 @item
-@samp{persist} for storing some settings across sessions
+@samp{persist} for storing some settings across sessions (we now use @samp{multisession.el} for this)
 @end itemize
 
 Optional dependencies (install yourself, @samp{mastodon.el} can use them):
