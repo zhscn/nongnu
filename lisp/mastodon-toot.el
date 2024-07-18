@@ -1041,7 +1041,7 @@ Remove empty string (self) from result and joins the sequence with whitespace."
   "Add domain to local ACCT and replace the curent user name with \"\".
 Mastodon requires the full @user@domain, even in the case of local accts.
 eg. \"user\" -> \"@user@local.social\" (when local.social is the domain of the
-mastodon-instance-url).
+`mastodon-instance-url').
 eg. \"yourusername\" -> \"\"
 eg. \"feduser@fed.social\" -> \"@feduser@fed.social\"."
   (cond ((string-match-p "@" acct) (concat "@" acct)) ; federated acct
@@ -1541,7 +1541,7 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
 ;;; DISPLAY KEYBINDINGS
 
 (defun mastodon-toot--get-mode-kbinds ()
-  "Get a list of the keybindings in the mastodon-toot-mode."
+  "Get a list of the keybindings in the `mastodon-toot-mode'."
   (let* ((binds (copy-tree mastodon-toot-mode-map))
          (prefix (car (cadr binds)))
          (bindings (remove nil (mapcar (lambda (i)
@@ -1554,7 +1554,7 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
 
 (defun mastodon-toot--format-kbind-command (cmd)
   "Format CMD to be more readable.
-e.g. mastodon-toot--send -> Send."
+e.g. `mastodon-toot--send' -> Send."
   (let* ((str (symbol-name cmd))
          (re "--\\(.*\\)$")
          (str2 (save-match-data
@@ -1610,7 +1610,7 @@ LONGEST is the length of the longest binding."
 ;;; DISPLAY DOCS
 
 (defun mastodon-toot--make-mode-docs ()
-  "Create formatted documentation text for the mastodon-toot-mode."
+  "Create formatted documentation text for the `mastodon-toot-mode'."
   (let* ((kbinds (mastodon-toot--get-mode-kbinds))
          (longest-kbind (mastodon-toot--formatted-kbinds-longest
                          (mastodon-toot--format-kbinds kbinds))))
