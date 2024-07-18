@@ -1506,7 +1506,7 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
     (string= reply-to-id prev-id)))
 
 (defun mastodon-tl--insert-status (toot body author-byline action-byline
-                                        &optional id base-toot detailed-p thread domain)
+                                        &optional id base-toot detailed-p thread domain unfolded)
   "Display the content and byline of timeline element TOOT.
 BODY will form the section of the toot above the byline.
 AUTHOR-BYLINE is an optional function for adding the author
@@ -1540,7 +1540,7 @@ When DOMAIN, force inclusion of user's domain in their handle."
                    "\n")
          "")
        (let ((bar (mastodon-tl--symbol 'reply-bar))
-             (body (mastodon-tl--fold-body-maybe body)))
+             (body (mastodon-tl--fold-body-maybe body unfolded)))
          (if (and after-reply-status-p thread)
              (propertize body
                          'line-prefix bar
@@ -1565,9 +1565,10 @@ When DOMAIN, force inclusion of user's domain in their handle."
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
 
-(defun mastodon-tl--fold-body-maybe (body)
+(defun mastodon-tl--fold-body-maybe (body &optional unfolded)
   "Fold toot BODY if it is very long."
-  (if (or (eq nil mastodon-tl--fold-toots-at-length)
+  (if (or unfolded
+          (eq nil mastodon-tl--fold-toots-at-length)
           (length< body mastodon-tl--fold-toots-at-length))
       body
     (let* ((heading (mastodon-search--format-heading
@@ -1585,22 +1586,22 @@ When DOMAIN, force inclusion of user's domain in their handle."
   (interactive)
   ;; if at byline, must search backwards:
   (let* ((byline (mastodon-tl--property 'byline :no-move))
-         (range (mastodon-tl--find-property-range
-                 'read-more (point) byline)))
-    (if (not range)
+         (read-more-p (mastodon-tl--find-property-range
+                       'read-more (point) byline)))
+    (if (not read-more-p)
         (user-error "No folded item at point?")
       (let* ((inhibit-read-only t)
-             (body (save-excursion
-                     (goto-char (car range))
-                     (mastodon-tl--property 'read-more))))
-        ;; `replace-region-contents' is much to slow, our hack from fedi.el is
-        ;; much simpler and much faster
+             (range (mastodon-tl--find-property-range
+                     'item-json (point)))
+             (toot (mastodon-tl--property 'item-json)))
+        ;; `replace-region-contents' is much to slow, our hack from fedi.el
+        ;; is much simpler and much faster
         (let ((beg (car range))
               (end (cdr range)))
           (save-excursion
             (goto-char beg)
             (delete-region beg end)
-            (insert body))
+            (mastodon-tl--toot toot nil nil nil :unfolded))
           ;; move point to line where text formerly ended:
           (goto-char end)
           (beginning-of-line))))))
@@ -1665,7 +1666,7 @@ To disable showing the stats, customize
   (and (null (mastodon-tl--field 'in_reply_to_id toot))
        (not (mastodon-tl--field 'rebloged toot))))
 
-(defun mastodon-tl--toot (toot &optional detailed-p thread domain)
+(defun mastodon-tl--toot (toot &optional detailed-p thread domain unfolded)
   "Format TOOT and insert it into the buffer.
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client.
@@ -1677,7 +1678,7 @@ When DOMAIN, force inclusion of user's domain in their handle."
                                        (mastodon-tl--spoiler toot)
                                      (mastodon-tl--content toot)))
    'mastodon-tl--byline-author 'mastodon-tl--byline-boosted
-   nil nil detailed-p thread domain))
+   nil nil detailed-p thread domain unfolded))
 
 (defun mastodon-tl--timeline (toots &optional thread domain)
   "Display each toot in TOOTS.
