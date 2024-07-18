@@ -89,6 +89,8 @@
 (autoload 'mastodon-search--insert-heading "mastodon-search")
 (autoload 'mastodon-media--process-full-sized-image-response "mastodon-media")
 (autoload 'mastodon-search--trending-statuses "mastodon-search")
+(autoload 'mastodon-search--format-heading "mastodon-search")
+(autoload 'mastodon-toot--with-toot-item "mastodon-toot")
 
 (defvar mastodon-toot--visibility)
 (defvar mastodon-toot-mode)
@@ -1371,7 +1373,7 @@ displayed when the duration is smaller than a minute)."
                                      cell))
                              options-alist)))
     (if (null poll)
-        (user-error "No poll here.")
+        (user-error "No poll here")
       (list
        ;; var "option" = just the cdr, a cons of option number and desc
        (cdr (assoc (completing-read "Poll option to vote for: "
@@ -1383,7 +1385,7 @@ displayed when the duration is smaller than a minute)."
   "If there is a poll at point, prompt user for OPTION to vote on it."
   (interactive (mastodon-tl--read-poll-option))
   (if (null (mastodon-tl--field 'poll (mastodon-tl--property 'item-json)))
-      (user-error "No poll here.")
+      (user-error "No poll here")
     (let* ((toot (mastodon-tl--property 'item-json))
            (poll (mastodon-tl--field 'poll toot))
            (poll-id (alist-get 'id poll))
@@ -2030,7 +2032,7 @@ view all branches of a thread."
 (defun mastodon-tl--thread (&optional id)
   "Open thread buffer for toot at point or with ID."
   (interactive)
-  (mastodon-tl--with-toot-item
+  (mastodon-toot--with-toot-item
    (let* ((id (or id (mastodon-tl--property 'base-item-id :no-move)))
           (type (mastodon-tl--field 'type (mastodon-tl--property 'item-json :no-move))))
      (if (or (string= type "follow_request")

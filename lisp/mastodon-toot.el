@@ -265,7 +265,7 @@ send.")
 
 ;;; MACRO
 
-(defmacro mastodon-tl--with-toot-item (&rest body)
+(defmacro mastodon-toot--with-toot-item (&rest body)
   "Execute BODY if we have a toot object at point.
 Includes boosts, and notifications that display toots."
   (declare (debug t))
@@ -370,7 +370,7 @@ boosting, or bookmarking toots."
 (defun mastodon-toot--toggle-boost-or-favourite (type)
   "Toggle boost or favourite of toot at `point'.
 TYPE is a symbol, either `favourite' or `boost.'"
-  (mastodon-tl--with-toot-item
+  (mastodon-toot--with-toot-item
    (let ((n-type (mastodon-tl--property 'notification-type :no-move)))
      (if (or (equal n-type "follow")
              (equal n-type "follow_request"))
@@ -473,7 +473,7 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
 (defun mastodon-toot--toggle-bookmark ()
   "Bookmark or unbookmark toot at point."
   (interactive)
-  (mastodon-tl--with-toot-item
+  (mastodon-toot--with-toot-item
    (let ((n-type (mastodon-tl--property 'notification-type :no-move)))
      (if (or (equal n-type "follow")
              (equal n-type "follow_request"))
@@ -521,7 +521,7 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
 (defun mastodon-toot--list-toot-boosters-or-favers (&optional favourite)
   "List the favouriters or boosters of toot at point.
 With FAVOURITE, list favouriters, else list boosters."
-  (mastodon-tl--with-toot-item
+  (mastodon-toot--with-toot-item
    (let* ((base-toot (mastodon-tl--property 'base-item-id))
           (endpoint (if favourite "favourited_by" "reblogged_by"))
           (url (mastodon-http--api (format "statuses/%s/%s" base-toot endpoint)))
@@ -954,7 +954,7 @@ instance to edit a toot."
 (defun mastodon-toot--edit-toot-at-point ()
   "Edit the user's toot at point."
   (interactive)
-  (mastodon-tl--with-toot-item
+  (mastodon-toot--with-toot-item
    (let ((toot (or (mastodon-tl--property 'base-toot) ; fave/boost notifs
                    (mastodon-tl--property 'item-json))))
      (if (not (mastodon-toot--own-toot-p toot))
@@ -1180,7 +1180,7 @@ text of the toot being replied to in the compose buffer.
 If the region is active, inject it into the reply buffer,
 prefixed by >."
   (interactive)
-  (mastodon-tl--with-toot-item
+  (mastodon-toot--with-toot-item
    (let* ((quote (when (region-active-p)
                    (buffer-substring (region-beginning)
                                      (region-end))))
