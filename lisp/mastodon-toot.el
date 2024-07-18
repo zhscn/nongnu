@@ -1849,20 +1849,20 @@ Added to `after-change-functions' in new toot buffers."
                    "Select draft toot: "
                    (multisession-value mastodon-toot-draft-toots-list)
                    nil t)))
-        (if (mastodon-toot--compose-buffer-p)
-            (when (and (not (mastodon-toot--empty-p :text-only))
-                       (y-or-n-p "Replace current text with draft?"))
-              (setf (multisession-value mastodon-toot-draft-toots-list)
-                    (cl-pushnew mastodon-toot-current-toot-text
-                                (multisession-value mastodon-toot-draft-toots-list)))
-              (goto-char
-               (cdr (mastodon-tl--find-property-range 'toot-post-header
-                                                      (point-min))))
-              (kill-region (point) (point-max))
-              ;; to not save to kill-ring:
-              ;; (delete-region (point) (point-max))
-              (insert text))
-          (mastodon-toot--compose-buffer nil nil nil text)))
+        (if (not (mastodon-toot--compose-buffer-p))
+            (mastodon-toot--compose-buffer nil nil nil text)
+          (when (and (not (mastodon-toot--empty-p :text-only))
+                     (y-or-n-p "Replace current text with draft?"))
+            (setf (multisession-value mastodon-toot-draft-toots-list)
+                  (cl-pushnew mastodon-toot-current-toot-text
+                              (multisession-value mastodon-toot-draft-toots-list)))
+            (goto-char
+             (cdr (mastodon-tl--find-property-range 'toot-post-header
+                                                    (point-min))))
+            (kill-region (point) (point-max))
+            ;; to not save to kill-ring:
+            ;; (delete-region (point) (point-max))
+            (insert text))))
     (unless (mastodon-toot--compose-buffer-p)
       (mastodon-toot--compose-buffer))
     (message "No drafts available.")))
