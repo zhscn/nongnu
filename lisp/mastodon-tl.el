@@ -979,6 +979,8 @@ the toot)."
 LINK-TYPE is the type of link to produce."
   (let ((help-text (cond ((eq link-type 'content-warning)
                           "Toggle hidden text")
+                         ((eq link-type 'read-more)
+                          "Toggle full post")
                          (t
                           (error "Unknown link type %s" link-type)))))
     (propertize string
@@ -1020,6 +1022,8 @@ Used for hitting RET on a given link."
                         "Search for account returned nothing. Perform URL lookup?")
                        (mastodon-url-lookup (get-text-property position 'shr-url))
                      (message "Unable to find account."))))))))
+          ((eq link-type 'read-more)
+           (mastodon-tl--unfold-post))
           (t
            (error "Unknown link type %s" link-type)))))
 
@@ -1526,12 +1530,13 @@ When DOMAIN, force inclusion of user's domain in their handle."
            (concat (mastodon-tl--symbol 'replied)
                    "\n")
          "")
-       (if (and after-reply-status-p thread)
-           (let ((bar (mastodon-tl--symbol 'reply-bar)))
+       (let ((bar (mastodon-tl--symbol 'reply-bar))
+             (body (mastodon-tl--fold-body-maybe body)))
+         (if (and after-reply-status-p thread)
              (propertize body
                          'line-prefix bar
-                         'wrap-prefix bar))
-         body)
+                         'wrap-prefix bar)
+           body))
        " \n"
        ;; byline:
        (mastodon-tl--byline toot author-byline action-byline detailed-p domain))
@@ -1550,6 +1555,44 @@ When DOMAIN, force inclusion of user's domain in their handle."
      "\n")
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
+
+(defun mastodon-tl--fold-body-maybe (body)
+  "Fold toot BODY if it is very long."
+  (if (length> body 500)
+      (let* ((heading (mastodon-search--format-heading
+                       (mastodon-tl--make-link
+                        "READ MORE"
+                        'read-more)))
+             (display (concat (substring body 0 500)
+                              heading)))
+        (propertize display
+                    'read-more body))
+    body))
+
+(defun mastodon-tl--unfold-post ()
+  "Unfold the toot at point if it is folded (read-more)."
+  (interactive)
+  ;; if at byline, must search backwards:
+  (let* ((byline (mastodon-tl--property 'byline :no-move))
+         (range (mastodon-tl--find-property-range
+                 'read-more (point) byline)))
+    (if (not range)
+        (user-error "No folded item at point?")
+      (let* ((inhibit-read-only t)
+             (body (save-excursion
+                     (goto-char (car range))
+                     (mastodon-tl--property 'read-more))))
+        ;; `replace-region-contents' is much to slow, our hack from fedi.el is
+        ;; much simpler and much faster
+        (let ((beg (car range))
+              (end (cdr range)))
+          (save-excursion
+            (goto-char beg)
+            (delete-region beg end)
+            (insert body))
+          ;; move point to line where text formerly ended:
+          (goto-char end)
+          (beginning-of-line))))))
 
 ;; from mastodon-alt.el:
 (defun mastodon-tl--toot-for-stats (&optional toot)
