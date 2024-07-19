@@ -762,11 +762,12 @@ TEXT-ONLY means don't check for attachments or polls."
 
 ;;; EMOJIS
 
-(defalias 'mastodon-toot--insert-emoji
+(defun mastodon-toot--insert-emoji ()
+  "Prompt to insert an emoji."
+  (interactive)
   (if mastodon-use-emojify
-      #'emojify-insert-emoji
-    #'emoji-search)
-  "Prompt to insert an emoji.")
+      (emojify-insert-emoji)
+    (emoji-search)))
 
 (defun mastodon-toot--emoji-dir ()
   "Return the file path for the mastodon custom emojis directory."
