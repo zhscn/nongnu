@@ -166,10 +166,7 @@ By default fixed width fonts are used."
 width fonts"))
 
 (defvar-local mastodon-toot--content-warning nil
-  "A flag whether the toot should be marked with a content warning.")
-
-(defvar-local mastodon-toot--content-warning-from-reply-or-redraft nil
-  "The content warning of the toot being replied to.")
+  "The content warning of the current toot.")
 
 (defvar-local mastodon-toot--content-nsfw nil
   "A flag indicating whether the toot should be marked as NSFW.")
@@ -278,7 +275,7 @@ Includes boosts, and notifications that display toots."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-toot--send)
     (define-key map (kbd "C-c C-k") #'mastodon-toot--cancel)
-    (define-key map (kbd "C-c C-w") #'mastodon-toot--toggle-warning)
+    (define-key map (kbd "C-c C-w") #'mastodon-toot--set-content-warning)
     (define-key map (kbd "C-c C-n") #'mastodon-toot--toggle-nsfw)
     (define-key map (kbd "C-c C-v") #'mastodon-toot--change-visibility)
     (define-key map (kbd "C-c C-e") #'mastodon-toot--insert-emoji)
@@ -658,8 +655,7 @@ NO-REDRAFT means delete toot only."
   "Set content warning to CW if it is non-nil."
   (unless (or (null cw) ; cw is nil for `mastodon-tl--dm-user'
               (string-empty-p cw))
-    (setq mastodon-toot--content-warning t)
-    (setq mastodon-toot--content-warning-from-reply-or-redraft cw)))
+    (setq mastodon-toot--content-warning cw)))
 
 
 ;;; REDRAFT
@@ -863,13 +859,6 @@ to `emojify-user-emojis', and the emoji data is updated."
    `(("poll[multiple]" . ,(symbol-name (plist-get mastodon-toot-poll :multi))))
    `(("poll[hide_totals]" . ,(symbol-name (plist-get mastodon-toot-poll :hide))))))
 
-(defun mastodon-toot--read-cw-string ()
-  "Read a content warning from the minibuffer."
-  (when (and (not (mastodon-toot--empty-p))
-             mastodon-toot--content-warning)
-    (read-string "Warning: "
-                 mastodon-toot--content-warning-from-reply-or-redraft)))
-
 
 ;;; SEND TOOT FUNCTION
 
@@ -887,13 +876,12 @@ instance to edit a toot."
          (endpoint (if edit-id ; we are sending an edit:
                        (mastodon-http--api (format "statuses/%s" edit-id))
                      (mastodon-http--api "statuses")))
-         (cw (mastodon-toot--read-cw-string))
          (args-no-media (append `(("status" . ,toot)
                                   ("in_reply_to_id" . ,mastodon-toot--reply-to-id)
                                   ("visibility" . ,mastodon-toot--visibility)
                                   ("sensitive" . ,(when mastodon-toot--content-nsfw
                                                     (symbol-name t)))
-                                  ("spoiler_text" . ,cw)
+                                  ("spoiler_text" . ,mastodon-toot--content-warning)
                                   ("language" . ,mastodon-toot--language))
                                 ;; Pleroma instances can't handle null-valued
                                 ;; scheduled_at args, so only add if non-nil
@@ -919,7 +907,8 @@ instance to edit a toot."
                             (length mastodon-toot--media-attachment-ids)))))
            (message "Something is wrong with your uploads. Wait for them to complete or try again."))
           ((and mastodon-toot--max-toot-chars
-                (> (mastodon-toot--count-toot-chars toot cw) mastodon-toot--max-toot-chars))
+                (> (mastodon-toot--count-toot-chars toot mastodon-toot--content-warning)
+                   mastodon-toot--max-toot-chars))
            (message "Looks like your toot (inc. CW) is longer than that maximum allowed length."))
           ((mastodon-toot--empty-p)
            (message "Empty toot. Cowardly refusing to post this."))
@@ -1226,11 +1215,11 @@ prefixed by >."
 
 ;;; COMPOSE TOOT SETTINGS
 
-(defun mastodon-toot--toggle-warning ()
-  "Toggle `mastodon-toot--content-warning'."
+(defun mastodon-toot--set-content-warning ()
+  "Set a content warning for the current toot."
   (interactive)
   (setq mastodon-toot--content-warning
-        (not mastodon-toot--content-warning))
+        (read-string "Warning: " mastodon-toot--content-warning))
   (mastodon-toot--update-status-fields))
 
 (defun mastodon-toot--toggle-nsfw ()
@@ -1806,8 +1795,9 @@ REPLY-REGION is a string to be injected into the buffer."
        (prin1-to-string mastodon-toot-poll))
       (mastodon-toot--apply-fields-props
        cw-region
-       (if mastodon-toot--content-warning
-           "CW"
+       (if (and mastodon-toot--content-warning
+                (not (equal "" mastodon-toot--content-warning)))
+           (format "CW: %s" mastodon-toot--content-warning)
          "  ") ;; hold the blank space
        'mastodon-cw-face))))
 
