@@ -1106,8 +1106,6 @@ of the current folder, or nil if none has been recorded."
 ;; -- lower level I/O
 ;; vm-imap-send-command: (process command &optional tag no-tag) ->
 ;; 				void
-;; vm-imap-send-string: (process string &optional tag no-tag) ->
-;; 				void
 ;; vm-imap-select-mailbox: (process & mailbox &optional bool bool) -> 
 ;;				(int int uid-validity bool bool (flag list))
 ;; vm-imap-read-capability-response: process -> ?
@@ -1489,58 +1487,52 @@ as well."
   (when (and process (memq (process-status process) '(open run))
 	     (buffer-live-p (process-buffer process)))
     (unwind-protect
-	(save-excursion			; = save-current-buffer?
-	  (set-buffer imap-buffer)
-	  ;;----------------------------
-	  (vm-buffer-type:enter 'process)
-	  ;;----------------------------
-	  ;; vm-imap-end-session might have already been called on
-	  ;; this process, so don't logout and schedule the killing
-	  ;; the process again if it's already been done.
-	  (unwind-protect
-	      (condition-case nil
-		  (if vm-imap-session-done
-		      ;;-------------------------------------
-		      ;; Don't bother checking because it might fail if
-		      ;; the user typed C-g.
-		      ;; (vm-imap-session-type:assert 'inactive)
-		      ;;-------------------------------------
-		      nil
-		    (vm-inform 6 "%s: Closing IMAP session to %s..."
-			       (if vm-mail-buffer
-				   (buffer-name vm-mail-buffer) 
-				 "vm")
-			       "server")
-		    (vm-imap-send-command process "LOGOUT")
-		    ;; we don't care about the response.
-		    ;; avoid waiting for it because some servers misbehave.
-		    ;; (vm-imap-read-ok-response process)
-		    )
-		(vm-imap-protocol-error ; handler
-		 nil)			; ignore errors 
-		(error nil))		; handler
-	    ;; unwind-protections
-	    (setq vm-imap-session-done t)
-	    ;;----------------------------------
-	    (vm-imap-session-type:set 'inactive)
-	    ;;----------------------------------
-	    ;; This is just for tracing purposes
-	    (goto-char (point-max))
-	    (insert "\r\n\r\n\r\n"
-		    "ending IMAP session " (current-time-string) "\r\n")
-	    ;; Schedule killing of the process after a delay to allow
-	    ;; any output to be received first
-	    (if (fboundp 'add-async-timeout)
-		(add-async-timeout 2 'delete-process process)
-	      (run-at-time 2 nil 'delete-process process))))
+      (save-excursion			; = save-current-buffer?
+	(set-buffer imap-buffer)
+	;;----------------------------
+	(vm-buffer-type:enter 'process)
+	;;----------------------------
+	;; vm-imap-end-session might have already been called on
+	;; this process, so don't logout and schedule the killing
+	;; the process again if it's already been done.
+	(unwind-protect
+	    (condition-case nil
+		(if vm-imap-session-done
+		    ;;-------------------------------------
+		    ;; Don't bother checking because it might fail if
+		    ;; the user typed C-g.
+		    ;; (vm-imap-session-type:assert 'inactive)
+		    ;;-------------------------------------
+		    nil
+		  (vm-inform 6 "%s: Closing IMAP session to %s..."
+			     (if vm-mail-buffer
+				 (buffer-name vm-mail-buffer) 
+			       "vm")
+			     "server")
+		  (vm-imap-send-command process "LOGOUT")
+		  ;; we don't care about the response.
+		  ;; avoid waiting for it because some servers misbehave.
+		  ;; (vm-imap-read-ok-response process)
+		  )
+	      (vm-imap-protocol-error ; handler
+	       nil)		      ; ignore errors 
+	      (error nil))	      ; handler
+	  ;; unwind-protections
+	  (setq vm-imap-session-done t)
+	  ;;----------------------------------
+	  (vm-imap-session-type:set 'inactive)
+	  ;;----------------------------------
+	  ;; This is just for tracing purposes
+	  (goto-char (point-max))
+	  (insert "\r\n\r\n\r\n"
+		  "ending IMAP session " (current-time-string) "\r\n")
+	  ;; Schedule killing of the process after a delay to allow
+	  ;; any output to be received first
+	  (if (fboundp 'add-async-timeout)
+	      (add-async-timeout 2 'delete-process process)
+	    (run-at-time 2 nil 'delete-process process))))
       ;; unwind-protections
       ;;----------------------------------
-      (vm-inform 6 "%s: Closing IMAP session to %s... done"
-		 (if vm-mail-buffer
-		     (buffer-name vm-mail-buffer) 
-		   "vm")
-		 "server")
-      
       (vm-buffer-type:exit)
       ;;----------------------------------
       ))
@@ -1596,29 +1588,6 @@ as well."
   (if no-tag
       (process-send-string process (format "%s\r\n" command))
     (process-send-string process (format "%s %s\r\n" (or tag "VM") command))))
-
-(defun vm-imap-send-string (process string)
-  (vm-imap-log-token 'send)
-  ;;------------------------------
-  (vm-buffer-type:assert 'process)
-  ;;------------------------------
-  (vm-imap-check-connection process)
-  (if (not (= (point) (point-max)))
-      (vm-imap-log-tokens (list 'send1 (point) (point-max))))
-  (goto-char (point-max))
-  ;; try if it makes a difference to get pending output here, use timeout
-  ;; (accept-process-output process 0 0.01)
-  ;; (if (not (= (point) (point-max)))
-  ;;     (vm-imap-log-tokens (list 'send2 (point) (point-max))))
-  ;; (goto-char (point-max))
-  (setq vm-imap-read-point (point))
-  ;; send the string line by line
-  (let ((lines (split-string string "\r\n")))
-    (mapcar (function
-	     (lambda (line)
-	       (process-send-string process (format "%s\r\n" line))))
-	    lines))
-  )
 
 (defun vm-imap-select-mailbox (process mailbox &optional 
 				       just-retrieve just-examine)
@@ -4725,7 +4694,7 @@ May throw exceptions."
 	(mailboxes nil)
 	(fcc-string (vm-mail-get-header-contents "FCC:" ","))
 	fcc-list fcc maildrop spec-list 
-	process flags response composition m
+	process flags response string m
 	(vm-imap-ok-to-ask t))
     (if (null mailbox)
 	(setq mailboxes nil)
@@ -4769,10 +4738,10 @@ May throw exceptions."
     
     (goto-char (point-min))
     (re-search-forward (concat "^" (regexp-quote mail-header-separator) "$"))
-    (setq composition (concat (buffer-substring (point-min) (match-beginning 0))
+    (setq string (concat (buffer-substring (point-min) (match-beginning 0))
 			 (buffer-substring
 			  (match-end 0) (point-max))))
-    (setq composition (vm-imap-subst-CRLF-for-LF composition))
+    (setq string (vm-imap-subst-CRLF-for-LF string))
     
     (while mailboxes
       (setq mailbox (car (car mailboxes)))
@@ -4800,7 +4769,7 @@ May throw exceptions."
 	     (format "APPEND %s %s {%d}"
 		     (vm-imap-quote-mailbox-name mailbox)
 		     (if flags flags "()")
-		     (length composition)))
+		     (length string)))
 	    ;; could these be done with vm-imap-read-boolean-response?
 	    (let ((need-plus t) response)
 	      (while need-plus
@@ -4819,7 +4788,7 @@ May throw exceptions."
 		 ((vm-imap-response-matches response '+)
 		  (setq need-plus nil)))))
 
-	    (vm-imap-send-string process composition)
+	    (vm-imap-send-command process string nil t)
 	    (let ((need-ok t) response)
 	      (while need-ok
 
