@@ -84,24 +84,18 @@
 
 ;;; Code:
 
-(provide 'vm-pine)
-
 (require 'vm-macro)
-(require 'vm-vars)
- 
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-minibuf)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-mime)
-  (require 'vm-reply)
-  )
+(require 'vm-vars) 
+(require 'vm-misc)
+(require 'vm-folder)
+(require 'vm-summary)
+(require 'vm-window)
+(require 'vm-minibuf)
+(require 'vm-motion)
+(require 'vm-undo)
+(require 'vm-delete)
+(require 'vm-mime)
+(require 'vm-reply)
 
 (declare-function deiconify-frame "vm-xemacs" (&optional frame))
 (declare-function frames-of-buffer "vm-xemacs" 
@@ -428,8 +422,7 @@ creation). If DRAFT is non-nil, then do not delete the draft message."
       (goto-char (point-max))
       (if presentation-buffer
           ;; when using presentation buffer we have to
-          (save-excursion
-            (set-buffer presentation-buffer)
+          (with-current-buffer presentation-buffer
             (goto-char (point-min))
             (search-forward-regexp "\n\n")
             (setq tstart (match-end 0)
@@ -634,11 +627,10 @@ Optional argument DONT-KILL is positive, then do not kill source message."
     (setq folder-buffer (vm-get-file-buffer folder))
     (if folder-buffer
         ;; o.k. the folder is already opened
-        (save-excursion
-          (set-buffer folder-buffer)
+        (with-current-buffer folder-buffer
           (vm-error-if-folder-read-only)
           (let ((buffer-read-only nil))
-            (vm-save-restriction
+            (save-restriction
              (widen)
              (goto-char (point-max))
              (vm-write-string (current-buffer) (vm-leading-message-separator))
@@ -745,8 +737,7 @@ Drafts in other folders are not recognized!"
       ;; postponed message in postponed folder
       (when (and (not action) (setq buffer (vm-get-file-buffer ppfolder)))
         (if (and (get-buffer-window-list buffer nil 0))
-            (when (save-excursion
-                    (set-buffer buffer)
+            (when (with-current-buffer buffer
                     (not (vm-deleted-flag (car vm-message-pointer))))
               (message "Please select a draft!")
               (select-window (car (get-buffer-window-list buffer nil 0)))
@@ -836,8 +827,8 @@ configuration."
 (defcustom vm-save-killed-message
   'ask
   "How `vm-save-killed-message-hook' handles saving of a mail as a draft.
-If set to 'ask it will ask whether to save the mail as draft or not.
-If set to 'always it will save without asking.
+If set to `ask' it will ask whether to save the mail as draft or not.
+If set to `always' it will save without asking.
 If set to nil it will never save them nor it will ask."
   :type '(choice (const ask)
                  (const always)
@@ -1007,8 +998,8 @@ Called with prefix ARG it just removes the FCC-header."
 (defun vm-mail-auto-fcc ()
   "Add a new FCC field, with file name guessed by `vm-mail-folder-alist'.
 You likely want to add it to `vm-reply-hook' by
-   (add-hook 'vm-reply-hook 'vm-mail-auto-fcc)
-or if sure about what you are doing you can add it to mail-send-hook."
+   (add-hook \\='vm-reply-hook #\\='vm-mail-auto-fcc)
+or if sure about what you are doing you can add it to `mail-send-hook'."
   (interactive "")
   (expand-abbrev)
   (save-excursion
@@ -1049,8 +1040,7 @@ This function is a slightly changed version of `vm-auto-select-folder'."
                              (result))
                         ;; Set up a buffer that matches our cached
                         ;; match data.
-                        (save-excursion
-                          (set-buffer buf)
+                        (with-current-buffer buf
                           (if (not (featurep 'xemacs))
                               (set-buffer-multibyte nil)) ; for empty buffer
                           (widen)
@@ -1129,4 +1119,6 @@ If optional argument RETURN-ONLY is t just returns FCC."
                                                fcc)))))))))
 
 ;;-----------------------------------------------------------------------------
+
+(provide 'vm-pine)
 ;;; vm-pine.el ends here

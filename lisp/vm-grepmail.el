@@ -41,20 +41,14 @@
 
 ;;; Code:
 
-(provide 'vm-grepmail)
-
 (require 'vm-macro)
-
-(eval-and-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-undo)
-  (require 'vm-startup)
-  (require 'vm-motion)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-window)
-)
+(require 'vm-misc)
+(require 'vm-minibuf)
+(require 'vm-startup)
+(require 'vm-motion)
+(require 'vm-summary)
+(require 'vm-folder)
+(require 'vm-window)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; group already defined in vm-vars.el
@@ -168,8 +162,7 @@ FOLDERS should be a list of files/directories to search in."
     (vm-display (current-buffer) nil nil '(reading-message))
     (vm-display (current-buffer) t nil '(vm-next-message reading-message))
 
-    (save-excursion
-      (set-buffer process-buffer)
+    (with-current-buffer process-buffer
       (setq default-directory (expand-file-name vm-folder-directory))
       (erase-buffer)
       (switch-to-buffer process-buffer)
@@ -186,7 +179,7 @@ FOLDERS should be a list of files/directories to search in."
           (error "Cannot start grepmail"))
       ;; set the send-filter
       (if (not (featurep 'xemacs))
-          (set-buffer-process-coding-system 'raw-text-unix 'raw-text-unix))
+          (set-process-coding-system process 'raw-text-unix 'raw-text-unix))
       (set-process-filter process 'vm-grepmail-process-filter)
       (set-process-sentinel process 'vm-grepmail-process-done)
       process)))
@@ -246,10 +239,9 @@ FOLDERS should be a list of files/directories to search in."
 MESSAGE-BUFFER is the buffer of the message.
 START the start position in the process output buffer.
 END the end position in the process output buffer."
-  (save-excursion
-    (set-buffer vm-grepmail-folder-buffer)
+  (with-current-buffer vm-grepmail-folder-buffer
     (let ((buffer-read-only nil))
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (goto-char (point-max))
        (insert-buffer-substring message-buffer start end)
@@ -261,4 +253,5 @@ END the end position in the process output buffer."
        (set-buffer-modified-p nil))))
   (sit-for 0))
 
+(provide 'vm-grepmail)
 ;;; vm-grepmail.el ends here

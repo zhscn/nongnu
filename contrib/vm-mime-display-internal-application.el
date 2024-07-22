@@ -72,7 +72,9 @@ If MODE is t, SUBTYPE-mode is used to display \"application/SUBTYPE\"
 attachments.")
 
 (defvar vm-mime-internal-application-x-subtypes nil
-  "*If non-nil, display application/x-SUBTYPE attachments the same as application/SUBTYPE attachments.
+  "If non-nil, ignore the `x-' in application/x-SUBTYPE.
+This requests to display application/x-SUBTYPE attachments
+the same as application/SUBTYPE attachments.
 See `vm-mime-internal-application-subtypes'.")
 
 (advice-add 'vm-mime-can-display-internal :around

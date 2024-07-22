@@ -87,8 +87,6 @@
 
 ;;; Code:
 
-(provide 'vm-pgg)
-
 (require 'vm-macro)
 
 ;; handle missing pgg.el gracefully
@@ -97,28 +95,24 @@
       (condition-case nil
           (require 'pgg)
         (error (message "WARNING: Cannot load pgg.el, related functions may not work!")))
-    (require 'pgg))
+    (require 'pgg)))
 
-  (require 'easymenu)
-  (require 'vm-misc)
-  (require 'vm-folder)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-mime)
-  (require 'vm-reply)
-  (require 'vm-motion))
+(require 'easymenu)
+(require 'vm-misc)
+(require 'vm-folder)
+(require 'vm-window)
+(require 'vm-mime)
+(require 'vm-reply)
+(require 'vm-motion)
   
 (declare-function rfc822-addresses "ext:rfc822" (header-text))
 
-(eval-when-compile
-  ;; avoid warnings
-  (defvar vm-mode-line-format)
-  (defvar vm-message-pointer)
-  (defvar vm-presentation-buffer)
-  (defvar vm-summary-buffer)
-  ;; avoid bytecompile warnings
-  (defvar vm-pgg-cleartext-state nil "For interfunction communication.")
-)
+;; avoid warnings
+(defvar vm-mode-line-format)
+(defvar vm-message-pointer)
+(defvar vm-presentation-buffer)
+(defvar vm-summary-buffer)
+(defvar vm-pgg-cleartext-state)
 
 ; group already defined in vm-vars.el
 ;(defgroup vm nil
@@ -305,9 +299,10 @@ Switch mode on/off according to ARG.
   (setq vm-pgg-compose-mode
 	(if (null arg) (not vm-pgg-compose-mode)
 	  (> (prefix-numeric-value arg) 0)))
-  (if vm-pgg-compose-mode
-      (easy-menu-add vm-pgg-compose-mode-menu)
-    (easy-menu-remove vm-pgg-compose-mode-menu)))
+  (when (featurep 'xemacs)
+    (if vm-pgg-compose-mode
+        (easy-menu-add vm-pgg-compose-mode-menu)
+      (easy-menu-remove vm-pgg-compose-mode-menu))))
 
 (defvar vm-pgg-compose-mode-string " vm-pgg"
   "*String to put in mode line when function `vm-pgg-compose-mode' is active.")
@@ -425,7 +420,7 @@ Switch mode on/off according to ARG.
          (layout (vm-mm-layout m)))
     ;; make a presentation copy
     (vm-make-presentation-copy m)
-    (vm-save-buffer-excursion
+    (save-current-buffer
      (vm-replace-buffer-in-windows (current-buffer)
                                    vm-presentation-buffer))
     (set-buffer vm-presentation-buffer)
@@ -490,12 +485,10 @@ If STATES is nil, clear it."
       (setq vm-pgg-state-message (car vm-message-pointer))
       (setq vm-pgg-state nil)
       (when vm-presentation-buffer
-        (save-excursion
-          (set-buffer vm-presentation-buffer)
+        (with-current-buffer vm-presentation-buffer
           (setq vm-pgg-state nil)))
       (when vm-summary-buffer
-        (save-excursion
-          (set-buffer vm-summary-buffer)
+        (with-current-buffer vm-summary-buffer
           (setq vm-pgg-state nil))))
     ;; add prefix
     (if (and states (not vm-pgg-state))
@@ -511,12 +504,10 @@ If STATES is nil, clear it."
     ;; propagate state
     (setq states vm-pgg-state)
     (when vm-presentation-buffer
-      (save-excursion
-        (set-buffer vm-presentation-buffer)
+      (with-current-buffer vm-presentation-buffer
         (setq vm-pgg-state states)))
     (when vm-summary-buffer
-      (save-excursion
-        (set-buffer vm-summary-buffer)
+      (with-current-buffer vm-summary-buffer
         (setq vm-pgg-state states)))))
 
 (defvar vm-pgg-cleartext-begin-regexp
@@ -529,8 +520,9 @@ If STATES is nil, clear it."
 
 (defcustom vm-pgg-cleartext-search-limit 4096
   "Number of bytes to peek into the message for a PGP clear text armor."
-   :group 'vm-pgg
-   :group 'faces)
+  :type 'integer
+  :group 'vm-pgg
+  :group 'faces)
 
 (defun vm-pgg-cleartext-automode-button (label action)
   "Cleartext thing by a button with text LABEL and associate ACTION with it.
@@ -857,8 +849,7 @@ cleanup here after verification and decoding took place."
               :layout layout)))
           (t
            ;; decode the message now
-           (save-excursion
-             (set-buffer (vm-buffer-of (vm-mm-layout-message message)))
+           (with-current-buffer (vm-buffer-of (vm-mm-layout-message message))
              (save-restriction
                (widen)
                (setq status (pgg-decrypt-region (vm-mm-layout-body-start message)
@@ -868,16 +859,14 @@ cleanup here after verification and decoding took place."
                  (vm-pgg-state-set 'error)
                  (insert-buffer-substring pgg-errors-buffer)
                  (put-text-property start (point) 'face 'vm-pgg-error))
-             (save-excursion
-               (set-buffer pgg-output-buffer)
+             (with-current-buffer pgg-output-buffer
                (vm-pgg-crlf-cleanup (point-min) (point-max))
                (setq message (vm-mime-parse-entity-safe 
 			      nil :passing-message-only t)))
              (if message
                  (vm-decode-mime-layout message)
                (insert-buffer-substring pgg-output-buffer))
-             (setq status (save-excursion
-                            (set-buffer pgg-errors-buffer)
+             (setq status (with-current-buffer pgg-errors-buffer
                             (goto-char (point-min))
                             ;; TODO: care for BADSIG
                             (when (re-search-forward "GOODSIG [^\n\r]+" (point-max) t)
@@ -1021,8 +1010,8 @@ cleanup here after verification and decoding took place."
     ;; verify
     (unless (pgg-snarf-keys)
       (error "Snarfing failed"))
-    (save-excursion
-      (set-buffer (if (not (featurep 'xemacs)) pgg-errors-buffer pgg-output-buffer))
+    (with-current-buffer
+        (if (not (featurep 'xemacs)) pgg-errors-buffer pgg-output-buffer)
       (message (buffer-substring (point-min) (point-max))))))
 
 ;;; ###autoload
@@ -1036,8 +1025,7 @@ cleanup here after verification and decoding took place."
          (description (concat "public key of " pgg-default-user-id))
          (buffer (get-buffer-create (concat " *" description "*")))
          start)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (erase-buffer)
       (setq start (point))
       (pgg-insert-key)
@@ -1074,8 +1062,8 @@ seed and thus creates the same boundery when called twice in a short period."
     (random)
     (while (< i (length boundary))
       (aset boundary i (aref vm-mime-base64-alphabet
-			     (% (vm-abs (lsh (random) -8))
-				(length vm-mime-base64-alphabet))))
+			     (random
+			      (length vm-mime-base64-alphabet))))
       (vm-increment i))
     boundary))
 
@@ -1084,8 +1072,7 @@ seed and thus creates the same boundery when called twice in a short period."
   (let ((composition-buffer (current-buffer))
         (undo-list-backup buffer-undo-list)
         (work-buffer (get-buffer-create " *VM-PGG-WORK*")))
-    (save-excursion
-      (set-buffer work-buffer)
+    (with-current-buffer work-buffer
       (buffer-disable-undo)
       (erase-buffer)
       (insert-buffer-substring composition-buffer)
@@ -1281,7 +1268,7 @@ The transfer encoding done by `vm-pgg-sign' can be controlled by the variable
 
 ;;; ###autoload
 (defun vm-pgg-ask-hook ()
-  "Hook to automatically ask for signing or encrypting outgoing messages with PGP/MIME.
+  "Function to ask to sign or encrypt outgoing messages with PGP/MIME.
 
 Put this function into `vm-mail-send-hook' to be asked each time you
 send a message whether or not you want to sign or encrypt the
@@ -1293,7 +1280,7 @@ other functions there.  Signing crucially relies on the fact that the
 message is not altered afterwards. To put it into `vm-mail-send-hook'
 put something like
 
-       (add-hook 'vm-mail-send-hook 'vm-pgg-ask-hook t)
+       (add-hook \\='vm-mail-send-hook #\\='vm-pgg-ask-hook t)
 
 into your VM init file."
   (interactive)

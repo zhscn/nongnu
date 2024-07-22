@@ -35,32 +35,29 @@
 
 (require 'vm-version)
 (require 'vm-macro)
+(require 'vm-misc)
+(require 'vm-folder)
+(require 'vm-summary)
+(require 'vm-window)
+(require 'vm-minibuf)
+(require 'vm-menu)
+(require 'vm-toolbar)
+(require 'vm-mouse)
+(require 'vm-page)
+(require 'vm-motion)
+(require 'vm-undo)
+(require 'vm-delete)
+(require 'vm-crypto)
+(require 'vm-mime)
+(require 'vm-virtual)
+(require 'vm-pop)
+(require 'vm-imap)
+(require 'vm-sort)
+(require 'vm-reply)
+(eval-when-compile (require 'cl-lib))
+
 
 (defvar enable-multibyte-characters)
-
-;; For function declarations
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-minibuf)
-  (require 'vm-menu)
-  (require 'vm-toolbar)
-  (require 'vm-mouse)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-crypto)
-  (require 'vm-mime)
-  (require 'vm-virtual)
-  (require 'vm-pop)
-  (require 'vm-imap)
-  (require 'vm-sort)
-  (require 'vm-reply)
-)
 
 ;; vm-xemacs.el is a non-existent file to fool the Emacs 23 compiler
 (declare-function vm-xemacs-set-face-foreground "vm-xemacs.el" 
@@ -1264,8 +1261,7 @@ summary buffer to select a folder."
 	(setq vm-folders-summary-buffer
 	      (or (get-buffer summary-buffer-name)
 		  (vm-generate-new-multibyte-buffer summary-buffer-name)))
-	(save-excursion
-	  (set-buffer vm-folders-summary-buffer)
+	(with-current-buffer vm-folders-summary-buffer
 	  (abbrev-mode 0)
 	  (auto-fill-mode 0)
 	  (vm-fsfemacs-nonmule-display-8bit-chars)

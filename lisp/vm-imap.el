@@ -23,31 +23,13 @@
 
 ;;; Code:
 
-(provide 'vm-imap)
-
 (require 'vm-macro)
-
-(eval-when-compile 
-  (require 'cl-lib)
-  (require 'sendmail)
-  (require 'vm-misc))
-
-;; For function declarations
-(eval-when-compile
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-crypto)
-  (require 'vm-mime)
-  (require 'vm-reply)
-)
-
-(eval-and-compile
-  (require 'utf7)
-)
+(require 'vm-misc)
+(require 'vm-motion)
+(require 'vm-reply)                     ;vm-mail-mode-remove-header
+(require 'sendmail)
+(require 'utf7)
+(eval-when-compile (require 'cl-lib))
 
 (declare-function vm-session-initialization 
 		  "vm.el" ())
@@ -610,8 +592,7 @@ from which mail is to be moved and DESTINATION is the VM folder."
 				      :purpose "movemail"))
 	  (or process (throw 'end-of-session nil))
 	  (setq process-buffer (process-buffer process))
-	  (save-excursion		; = save-current-buffer?
-	    (set-buffer process-buffer)
+	  (with-current-buffer process-buffer
 	    ;;--------------------------------
 	    (vm-buffer-type:enter 'process)
 	    ;;--------------------------------
@@ -959,7 +940,7 @@ on all the relevant IMAP servers and then immediately expunges."
 				(if (zerop delete-count) "No" delete-count)
 				(if (= delete-count 1) "" "s")))
 		(insert "VM had problems expunging messages from:\n")
-		(nreverse trouble)
+		(setq trouble (nreverse trouble))
 		(setq mp trouble)
 		(while mp
 		  (insert "   " (car mp) "\n")
@@ -1167,7 +1148,7 @@ of the current folder, or nil if none has been recorded."
   "Create a new IMAP session for the IMAP mail box SOURCE, attached to
 the current folder.
 INTERACTIVE says the operation has been invoked interactively.  The
-possible values are t, 'password-only and nil.
+possible values are t, `password-only', and nil.
 and the optional argument PURPOSE is inserted in the process
 buffer for tracing purposes.  Optional argument RETRY says
 whether this call is a retry.
@@ -1224,8 +1205,7 @@ Returns the process or nil if the session could not be created."
 
     (unwind-protect
 	(catch 'end-of-session
-	  (save-excursion		; = save-current-buffer?
-	    (set-buffer imap-buffer)
+	  (with-current-buffer imap-buffer
 	    ;;----------------------------
 	    (vm-buffer-type:enter 'process)
 	    ;;----------------------------
@@ -1487,8 +1467,7 @@ as well."
   (when (and process (memq (process-status process) '(open run))
 	     (buffer-live-p (process-buffer process)))
     (unwind-protect
-      (save-excursion			; = save-current-buffer?
-	(set-buffer imap-buffer)
+      (with-current-buffer imap-buffer
 	;;----------------------------
 	(vm-buffer-type:enter 'process)
 	;;----------------------------
@@ -2464,7 +2443,7 @@ May throw exceptions."
   "Checks if a REPSONSE from the IMAP server matches the pattern
 EXPR.  The syntax of patterns is:
 
-  expr ::= quoted-symbol | 'atom | 'string | ('vector expr*) | ('list expr*)
+  EXPR ::= QUOTED-SYMBOL | atom | string | (vector EXPR*) | (list EXPR*)
 
 Numbers are included among atoms."
   (let ((case-fold-search t) e r)
@@ -3053,8 +3032,7 @@ server should be issued by UID, not message sequence number."
       (setq flags- (append (cdr copied-flags) flags-))
 
       (unwind-protect
-	  (save-excursion		; = save-current-buffer?
-	    (set-buffer (process-buffer process))
+	  (with-current-buffer (process-buffer process)
 	    ;;----------------------------------
 	    (vm-buffer-type:enter 'process)
 	    ;;----------------------------------
@@ -3136,8 +3114,7 @@ MAILBOX."
       ;;-------------------
       )
     (unwind-protect
-	(save-excursion			; = save-current-buffer?
-	  (set-buffer (process-buffer process))
+	(with-current-buffer (process-buffer process)
 	  ;;----------------------------
 	  (vm-buffer-type:enter 'process)
 	  ;;----------------------------
@@ -3279,7 +3256,7 @@ LOCAL-EXPUNGE-LIST: A list of message descriptors for messages in the
   to expunged locally.
 STALE-LIST: A list of message descriptors for messages in the
   local cache whose UIDVALIDITY values are stale.
-If the argument DO-RETRIEVES is 'full, then all the messages that
+If the argument DO-RETRIEVES is `full', then all the messages that
 are not presently in cache are retrieved.  Otherwise, the
 messages previously retrieved are ignored."
 
@@ -3358,18 +3335,18 @@ messages previously retrieved are ignored."
   "Synchronize IMAP folder with the server.
    INTERACTIVE says whether the function was invoked interactively,
    e.g., as vm-get-spooled-mail.  The possible values are t,
-   'password-only and nil.
+   `password-only', and nil.
    DO-REMOTE-EXPUNGES indicates whether the server mail box should be
-   expunged.  If it is 'all, then all messages not present in the cache folder
+   expunged.  If it is `all', then all messages not present in the cache folder
    are expunged.
    DO-LOCAL-EXPUNGES indicates whether the cache buffer should be
    expunged.
    DO-RETRIEVES indicates if new messages that are not already in the
-   cache should be retrieved from the server.  If this flag is 'full
+   cache should be retrieved from the server.  If this flag is `full'
    then messages previously retrieved but not in cache are retrieved
    as well.
    SAVE-ATTRIBUTES indicates if the message attributes should be updated on
-   the server.  If it is 'all, then the attributes of all messages are
+   the server.  If it is `all', then the attributes of all messages are
    updated irrespective of whether they were modified or not.
    RETRIEVE-ATTRIBTUES indicates if the message attributes on the server
    should be retrieved, updating the cache.
@@ -3488,7 +3465,7 @@ messages previously retrieved are ignored."
 RETRIEVE-LIST and return the list of the retrieved messages.  The
 RETRIEVE-LIST is a list of cons-pairs (uid . n) of the UID's and
 message sequence numbers of messages on the IMAP server.  If
-`vm-enable-external-messages' includes 'imap, then messages
+`vm-enable-external-messages' includes `imap', then messages
 larger than `vm-imap-max-message-size' are retrieved in
 headers-only form."
   (let* ((folder-buffer (current-buffer))
@@ -3506,7 +3483,7 @@ headers-only form."
     (save-excursion
       (vm-inform 6 "%s: Retrieving new messages... " 
 		 (buffer-name folder-buffer))
-      (vm-save-restriction
+      (save-restriction
        (widen)
        (setq old-eob (point-max))
        (goto-char (point-max))
@@ -3525,8 +3502,7 @@ headers-only form."
 		     (mapcar (function cdr) retrieve-list)))
        (unwind-protect
 	   (condition-case error-data
-	       (save-excursion		; = save-current-buffer?
-		 (set-buffer (process-buffer process))
+	       (with-current-buffer (process-buffer process)
 		 ;;----------------------------
 		 (vm-buffer-type:enter 'process)
 		 ;;----------------------------
@@ -3667,8 +3643,7 @@ headers-only form."
 	      (setq d-list (vm-imap-bunch-messages
 			    (nreverse (mapcar (function cdr) m-list))))
 	      (setq expunge-count 0)	; number of messages expunged
-	      (save-excursion		; = save-current-buffer?
-		(set-buffer (process-buffer process))
+	      (with-current-buffer (process-buffer process)
 		;;---------------------------
 		(vm-buffer-type:set 'process)
 		;;---------------------------
@@ -3850,8 +3825,7 @@ otherwise.
 	      (error "Message has an invalid UID"))
 	    (setq imap-buffer (process-buffer process))
 	    (unwind-protect
-		(save-excursion		; = save-current-buffer?
-		  (set-buffer imap-buffer)
+		(with-current-buffer imap-buffer
 		  ;;----------------------------------
 		  (vm-buffer-type:enter 'process)
 		  (vm-imap-session-type:assert-active)
@@ -4204,8 +4178,7 @@ IMAP mailbox spec."
 	sep p r response need-ok)
     (vm-imap-check-connection process)
     (unwind-protect
-	(save-excursion			; = save-current-buffer?
-	  (set-buffer (process-buffer process))
+	(with-current-buffer (process-buffer process)
 	  ;;----------------------------------
 	  (vm-buffer-type:enter 'process)
 	  (vm-imap-session-type:assert-active)
@@ -4904,4 +4877,5 @@ downloaded bodies will be displayed."
    ))
 
 
+(provide 'vm-imap)
 ;;; vm-imap.el ends here

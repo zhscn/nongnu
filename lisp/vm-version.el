@@ -19,12 +19,11 @@
 
 ;;; Code:
 
-(provide 'vm-version)
+(require 'vm-macro)
 
 ;; Don't use vm-device-type here because it may not not be loaded yet.
 (declare-function device-type "vm-xemacs" ())
 (declare-function device-matching-specifier-tag-list "vm-xemacs" ())
-
 
 (defconst vm-version
   (condition-case nil
@@ -40,7 +39,7 @@
 (defun vm-version ()
   "Return the value of the variable `vm-version'."
   (interactive)
-  (when (interactive-p)
+  (when (vm-interactive-p)
     (or (and (stringp vm-version)
 	     (string-match "[0-9]" vm-version))
 	(error "Cannot determine VM version!"))
@@ -132,4 +131,5 @@ Return the list of loaded features."
                 feature-list))
   (delete nil feature-list))
 
+(provide 'vm-version)
 ;;; vm-version.el ends here

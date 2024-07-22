@@ -14,11 +14,8 @@
 
 ;;; Code
 
-(provide 'u-vm-color)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-folder))
+(require 'vm-misc)
+(require 'vm-folder)
 
 (defconst u-vm-color-version "2.10" "Version number of u-vm-color.")
 
@@ -405,7 +402,7 @@ subexpressions."
 	(count 1)
 	(t-vm-summary-format vm-summary-format)
 	(u-vm-color-xemacs-workaround
-	 (string-match "XEmacs\\|Lucid" emacs-version)))
+	 (featurep 'xemacs)))
     ;; pick up all elements in the vm-summary-format
     (while (string-match
 	    (concat "%-?\\([0-9]+\\.\\)?-?\\([0-9]+\\)?"
@@ -588,8 +585,7 @@ subexpressions."
 
   ;; apparently emacs expects this statement here...
   (font-lock-mode 1)
-  (cond ((string-match "XEmacs\\|Lucid" emacs-version)
-	 ;; XEmacs
+  (cond ((featurep 'xemacs)
 	 (setq u-vm-color-summary-keywords
 	       (list (u-vm-color-make-summary-keywords)))
 	 (put 'vm-summary-mode 'font-lock-defaults
@@ -632,7 +628,7 @@ subexpressions."
   "Search the buffer for an expression and fontify it.
 Search starts at START and ends at END.  If REGEXP is found, it
 is fontified according to the argument HOW, which is a list of
-the form '((index face)...)."
+the form ((INDEX FACE)...)."
 ;;(message "Searching from %d to %d for %s" start end regexp)
   (let ((inhibit-read-only t))
     (save-excursion
@@ -653,12 +649,12 @@ the form '((index face)...)."
 (defun u-vm-color-fontify-signature (start end)
   "Search and fontify the signature.
 Search is restricted to the region between START and END."
-(let ((inhibit-read-only t))
+  (let ((inhibit-read-only t))
     (save-excursion
       (goto-char end)
       (setq start (re-search-backward "^\\(- \\)?-- ?$" start t))
-	(when start
-	  (put-text-property start end 'face 'u-vm-color-signature-face)))))
+      (when start
+	(put-text-property start end 'face 'u-vm-color-signature-face)))))
 
 (defun u-vm-color-fontify-pgp-signature (start end)
   "Search and fontify inline PGP signatures."
@@ -750,9 +746,10 @@ Search is restricted to the region between START and END."
 ;;;###autoload
 (defun u-vm-color-fontify-buffer-even-more ()
   "Temporarily widen buffer and call `u-vm-color-fontify-buffer'."
-(save-restriction
+  (save-restriction
     (widen)
     ;;(message "u-vm-color-fontify-even-more: %d %d" (point-min) (point-max))
     (u-vm-color-fontify-buffer)))
 
+(provide 'u-vm-color)
 ;;; u-vm-color.el ends here

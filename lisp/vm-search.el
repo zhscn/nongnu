@@ -21,18 +21,14 @@
 
 ;;; Code:
 
-(provide 'vm-search)
-
-(eval-and-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-undo)
-  (require 'vm-startup)
-  (require 'vm-motion)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-window)
-)
+(require 'vm-misc)
+(require 'vm-minibuf)
+(require 'vm-undo)
+(require 'vm-startup)
+(require 'vm-motion)
+(require 'vm-summary)
+(require 'vm-folder)
+(require 'vm-window)
 
 
 ;;;###autoload
@@ -143,4 +139,5 @@ vm-search-using-regexps for this search."
 	  (intern (buffer-name) vm-buffers-needing-display-update)
 	  (vm-update-summary-and-mode-line)))))
 
+(provide 'vm-search)
 ;;; vm-search.el ends here

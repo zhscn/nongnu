@@ -284,8 +284,7 @@
 		      ;; to avoid indefinite build-up
 		      (unintern (concat (vm-su-message-id m) label) 
 			      vm-sumurg-timer-obarray)
-		      (save-excursion
-			(set-buffer (vm-buffer-of (vm-real-message-of m)))
+		      (with-current-buffer (vm-buffer-of (vm-real-message-of m))
 			(unintern label vm-label-obarray))
 		      (save-excursion (vm-sumurg-set-urgency level nil 1 m))
 		      )
@@ -302,8 +301,8 @@
 			;; copy it to the other buffer
 			;; we expect always to be in the summary
 			;; buffer here, but just in case...
-			(save-excursion
-			  (set-buffer (or vm-mail-buffer vm-summary-buffer))
+			(with-current-buffer
+			    (or vm-mail-buffer vm-summary-buffer)
 			  (setq vm-sumurg-timer-obarray o))))
 		    (intern (concat (vm-su-message-id m) label) 
 			    vm-sumurg-timer-obarray)
@@ -491,8 +490,7 @@
 	  (aref vm-sumurg-facearray
 		(vm-sumurg-level-of (car vm-message-pointer))))
     (if vm-presentation-buffer
-	(save-excursion
-	  (set-buffer vm-presentation-buffer)
+	(with-current-buffer vm-presentation-buffer
 	  (set-extent-face vm-ml-sumurg-extent 
 			   (aref vm-sumurg-facearray 
 				 (vm-sumurg-level-of 
@@ -704,9 +702,9 @@ happens later.)"
 	(mapcar (lambda (label)
 		  (when (string-match "^\\*+[-0-9:t]+$" label)
 		    (vm-add-or-delete-message-labels label count nil)
-		    (save-excursion
-		      (set-buffer (vm-buffer-of (vm-real-message-of 
-                        (car vm-message-pointer))))
+		    (with-current-buffer
+		        (vm-buffer-of (vm-real-message-of 
+		                       (car vm-message-pointer)))
 		      (unintern label vm-label-obarray))))
 		(vm-labels-of (car vm-message-pointer)))
       (if date 

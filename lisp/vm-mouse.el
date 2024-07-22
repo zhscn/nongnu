@@ -21,19 +21,7 @@
 
 ;;; Code:
 
-(provide 'vm-mouse)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-thread)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-menu)
-  )
+(require 'vm-menu)
 
 (declare-function vm-mail-to-mailto-url "vm-reply" (url))
 (declare-function event-window "vm-xemacs" (event))
@@ -120,7 +108,7 @@ Mouse'."
   "Use mouse button 3 to see a menu of options.")
 
 (defun vm-mouse-get-mouse-track-string (event)
-  (save-excursion
+  (save-current-buffer
     ;; go to where the event occurred
     (cond ((featurep 'xemacs)
 	   (set-buffer (window-buffer (event-window event)))
@@ -594,8 +582,7 @@ HISTORY argument is ignored."
 (defvar vm-mouse-read-string-should-delete-frame)
 
 (defun vm-mouse-read-string (prompt completion-list &optional multi-word)
-  (save-excursion
-    (set-buffer (vm-make-work-buffer " *Choices*"))
+  (with-current-buffer (vm-make-work-buffer " *Choices*")
     (use-local-map (make-sparse-keymap))
     (setq buffer-read-only t)
     (make-local-variable 'vm-mouse-read-string-prompt)
@@ -692,4 +679,5 @@ HISTORY argument is ignored."
       (throw 'exit nil)
     (throw 'exit t)))
 
+(provide 'vm-mouse)
 ;;; vm-mouse.el ends here

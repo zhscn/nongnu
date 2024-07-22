@@ -21,20 +21,11 @@
 
 ;;; Code:
 
-(provide 'vm-motion)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-thread)
-  (require 'vm-window)
-  (require 'vm-page)
-  )
+(require 'vm-misc)
+(require 'vm-summary)
+(require 'vm-window)
+(eval-when-compile (require 'cl-lib))
 
 (declare-function vm-so-sortable-subject "vm-sort" (message))
 
@@ -142,7 +133,7 @@ given."
 
 (defun vm-move-message-pointer (direction)
   "Move vm-message-pointer along DIRECTION by one position.  DIRECTION
-is one of 'forward and 'backward.                     USR, 2011-01-18"
+is one of `forward' and `backward'.                     USR, 2011-01-18"
   (let ((mp vm-message-pointer))
     (if (eq direction 'forward)
 	(progn
@@ -200,7 +191,7 @@ value of COUNT is greater than 1, then the values of the variables
 vm-skip-deleted-messages and vm-skip-read-messages are ignored.
 
 When invoked on marked messages (via `vm-next-command-uses-marks')
-this command 'sees' marked messages as it moves."
+this command \"sees\" marked messages as it moves."
   ;; second arg RETRY non-nil means retry a failed move, giving
   ;; not nil-or-t values of the vm-skip variables a chance to
   ;; work.
@@ -530,8 +521,7 @@ If a new message is selected then return t, otherwise nil. USR, 2010-03-08"
   (and vm-follow-summary-cursor (eq major-mode 'vm-summary-mode)
        (let ((point (point))
 	     message-pointer message-list mp)
-	 (save-excursion
-	   (set-buffer vm-mail-buffer)
+	 (with-current-buffer vm-mail-buffer
 	   (setq message-pointer vm-message-pointer
 		 message-list vm-message-list))
 	 (cond ((or (null message-pointer)
@@ -576,8 +566,7 @@ If a new message is selected then return t, otherwise nil. USR, 2010-03-08"
 			    (+ (vm-su-start-of (car mp)) 3) 'invisible))
 		  (setq mp (cdr mp)))
 		(if (not (eq mp message-pointer))
-		    (save-excursion
-		      (set-buffer vm-mail-buffer)
+		    (with-current-buffer vm-mail-buffer
 		      ;; presentation disabled to avoid message
 		      ;; loading. USR, 2010-09-30
 		      (vm-record-and-change-message-pointer
@@ -586,4 +575,5 @@ If a new message is selected then return t, otherwise nil. USR, 2010-03-08"
 		      ;; a new message was selected.
 		      t )))))))
 
+(provide 'vm-motion)
 ;;; vm-motion.el ends here

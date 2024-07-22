@@ -64,26 +64,9 @@
 
 ;;; Code:
 
-(provide 'vm-reply)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-menu)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-mime)
-  (require 'vm-digest)
-  (require 'vm-undo)
-  ;; (require 'vm-delete)
-  ;; (require 'vm-imap)
-  )
+(require 'vm-summary)
+(eval-when-compile (require 'cl-lib))
 
 (declare-function vm-mode "vm" (&optional read-only))
 (declare-function vm-session-initialization "vm" ())
@@ -860,8 +843,7 @@ as replied to, forwarded, etc, if appropriate."
 	(let (list)
 	  (setq list (vm-mime-fragment-composition vm-mime-max-message-size))
 	  (while list
-	    (save-excursion
-	      (set-buffer (car list))
+	    (with-current-buffer (car list)
 	      (vm-mail-send)
 	      (kill-buffer (car list)))
 	    (setq list (cdr list)))
@@ -2069,7 +2051,7 @@ message."
 	  ;; point of no return, don't kill it if the user quits
 	  (setq temp-buffer nil)
 	  (let ((vm-auto-decode-mime-messages t))
-	    (vm-save-buffer-excursion
+	    (save-current-buffer
 	     (vm-goto-new-folder-frame-maybe 'folder)
 	     (vm-mode)))
 	  (vm-inform 5
@@ -2187,4 +2169,5 @@ that is needed for Mac and NextStep."
 
 (add-hook 'vm-mail-mode-hook 'vm-mail-mode-hide-headers-hook)
 
+(provide 'vm-reply)
 ;;; vm-reply.el ends here

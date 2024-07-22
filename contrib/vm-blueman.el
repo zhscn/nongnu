@@ -6,6 +6,8 @@
 ;Was going through some old code and would like to share this helpful
 ;function..
 
+(require 'vm-mime)
+
 ;; Stretch/Shrink mime image to fit exactly in frame width.
 ;; The shrink functionality is particularly helpful since images displayed
 ;; by emacs look wacked when they extend past a line width

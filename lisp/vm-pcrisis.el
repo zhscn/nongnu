@@ -34,28 +34,15 @@
 
 ;;; Code:
 
-(provide 'vm-pcrisis)
-
-(eval-and-compile
-  (require 'timezone)
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-motion)
-  (require 'vm-reply))
-(eval-when-compile
-  ;; get the macros we need.
-  (condition-case e
-      (progn 
-        (require 'regexp-opt)
-        (require 'bbdb)
-        (require 'bbdb-com))
-    (error
-     (message "%S" e)
-     (message "Could not load bbdb.el.  Related functions may not work correctly!")
-     ;; (vm-sit-for 5)
-     )))
+(require 'timezone)
+(require 'vm-misc)
+(require 'vm-minibuf)
+(require 'vm-folder)
+(require 'vm-summary)
+(require 'vm-motion)
+(require 'vm-reply)
+(eval-when-compile (vm-load-features '(regexp-opt bbdb bbdb-com)))
+(eval-when-compile (require 'vm-macro))
 
 (declare-function set-extent-face "vm-xemacs" (extent face))
 (declare-function timezone-absolute-from-gregorian "ext:timezone" 
@@ -143,58 +130,58 @@ Checks if the condition and all the actions exist."
 		     ,@(mapcar (lambda (a) `(const ,(car a))) vmpc-actions)
 		     (string))))))
 
+(defvaralias 'vmpc-actions-alist 'vmpc-default-rules)
 (defcustom vmpc-default-rules ()
-  "*A default list of condition-action rules used for replying, forwarding,
+  "A default list of condition-action rules used for replying, forwarding,
 resending, composing and automorphing, unless overridden by more
 specific variables such as `vmpc-reply-rules'."
   :type (vmpc-defcustom-rules-type)
 ;  :set 'vmpc-rules-set
   :group 'vmpc)
-(defvaralias 'vmpc-actions-alist 'vmpc-default-rules)
 
-(defcustom vmpc-reply-rules ()
-  "*A list of condition-action rules used during reply."
-  :type (vmpc-defcustom-rules-type)
-;  :set 'vmpc-rules-set
-  :group 'vmpc)
 (defvaralias 'vmpc-reply-alist 'vmpc-reply-rules)
-
-(defcustom vmpc-forward-rules ()
-  "*A list of condition-action rules used when forwarding."
+(defcustom vmpc-reply-rules ()
+  "A list of condition-action rules used during reply."
   :type (vmpc-defcustom-rules-type)
 ;  :set 'vmpc-rules-set
   :group 'vmpc)
+
 (defvaralias 'vmpc-forward-alist 'vmpc-forward-rules)
-
-(defcustom vmpc-automorph-rules ()
-  "*An alist associating conditions with actions from `vmpc-actions' when automorphing."
+(defcustom vmpc-forward-rules ()
+  "A list of condition-action rules used when forwarding."
   :type (vmpc-defcustom-rules-type)
 ;  :set 'vmpc-rules-set
   :group 'vmpc)
-(defvaralias 'vmpc-automorph-alist 'vmpc-automorph-rules)
 
+(defvaralias 'vmpc-automorph-alist 'vmpc-automorph-rules)
+(defcustom vmpc-automorph-rules ()
+  "Alist associating conditions with actions from `vmpc-actions' when automorphing."
+  :type (vmpc-defcustom-rules-type)
+;  :set 'vmpc-rules-set
+  :group 'vmpc)
+
+(defvaralias 'vmpc-mail-alist 'vmpc-mail-rules)
 (defcustom vmpc-mail-rules ()
-  "*An alist associating conditions with actions from `vmpc-actions'
+  "An alist associating conditions with actions from `vmpc-actions'
 when composing a message starting from a folder."
   :type (vmpc-defcustom-rules-type)
 ;  :set 'vmpc-rules-set
   :group 'vmpc)
-(defvaralias 'vmpc-mail-alist 'vmpc-mail-rules)
 
+(defvaralias 'vmpc-newmail-alist 'vmpc-newmail-rules)
 (defcustom vmpc-newmail-rules ()
-  "*An alist associating conditions with actions from `vmpc-actions'
+  "An alist associating conditions with actions from `vmpc-actions'
 when composing." 
   :type (vmpc-defcustom-rules-type)
 ;  :set 'vmpc-rules-set
   :group 'vmpc)
-(defvaralias 'vmpc-newmail-alist 'vmpc-newmail-rules)
 
+(defvaralias 'vmpc-resend-alist 'vmpc-resend-rules)
 (defcustom vmpc-resend-rules ()
-  "*An alist associating conditions with actions from `vmpc-actions' when resending."
+  "An alist associating conditions with actions from `vmpc-actions' when resending."
   :type (vmpc-defcustom-rules-type)
 ;  :set 'vmpc-rules-set
   :group 'vmpc)
-(defvaralias 'vmpc-resend-alist 'vmpc-resend-rules)
 
 (defcustom vmpc-default-profile "default"
   "*The default profile to select if no profile was found."
@@ -203,8 +190,8 @@ when composing."
   :group 'vmpc)
 
 (defcustom vmpc-auto-profiles-file "~/.vmpc-auto-profiles"
-  "*File in which to save information used by `vmpc-prompt-for-profile'.
-When set to the symbol 'BBDB, profiles will be stored there."
+  "File in which to save information used by `vmpc-prompt-for-profile'.
+When set to the symbol `BBDB', profiles will be stored there."
   :type '(choice (file)
                  (const BBDB))
   :group 'vmpc)
@@ -220,12 +207,12 @@ right for you will depend on how often you send email to new addresses using
 
 (defvar vmpc-current-state nil
   "The current state of pcrisis.
-It is one of 'reply, 'forward, 'resend, 'automorph, 'mail or 'newmail.
+It is one of `reply', `forward', `resend', `automorph', `mail', or `newmail'.
 It controls which actions/functions can/will be run.") 
 
 (defvar vmpc-current-buffer nil
-  "The current buffer, i.e. 'none or 'composition.
-It is 'none before running an adviced VM function and 'composition afterward,
+  "The current buffer, i.e. `none' or `composition'.
+It is `none' before running an adviced VM function and `composition' afterward,
 i.e. when within the composition buffer.")
 
 (defvar vmpc-saved-headers-alist nil
@@ -276,7 +263,7 @@ i.e. when within the composition buffer.")
   "Whether to forbid the cursor from entering the signature.")
 
 (defvar vmpc-expect-default-signature 'nil
-  "*Set this to 't if you have a signature-inserting function.
+  "Set this to `t' if you have a signature-inserting function.
 It will ensure that pcrisis correctly handles the signature .")
 
 
@@ -380,7 +367,7 @@ Overlays suck.  Extents rule.  XEmacs got this right."
 (defun vmpc-set-extent-insertion-types (extent start end)
   "Set the insertion types of EXTENT from START to END.
 START and END should be either nil or t, indicating the desired value
-of the 'start-open and 'end-closed properties of the extent
+of the `start-open' and `end-closed' properties of the extent
 respectively.
 This is the XEmacs version of `vmpc-set-overlay-insertion-types'."
   ;; pretty simple huh?
@@ -421,14 +408,14 @@ start and end of the overlay/extent."
 
 
 (defun vmpc-set-exerlay-detachable-property (exerlay newval)
-  "Set the 'detachable or 'evaporate property for EXERLAY to NEWVAL."
+  "Set the `detachable' or `evaporate' property for EXERLAY to NEWVAL."
   (if (featurep 'xemacs)
       (vm-set-extent-property exerlay 'detachable newval)
     (overlay-put exerlay 'evaporate newval)))
 
 
 (defun vmpc-set-exerlay-intangible-property (exerlay newval)
-  "Set the 'intangible or 'atomic property for EXERLAY to NEWVAL."
+  "Set the `intangible' or `atomic' property for EXERLAY to NEWVAL."
   (if (featurep 'xemacs)
       (progn
 	(require 'atomic-extents)
@@ -925,8 +912,7 @@ parameter POS means insert the pre-signature at position POS if
         (setq vmpc-auto-profiles (reverse vmpc-auto-profiles)))
     (when (and (file-exists-p vmpc-auto-profiles-file) ;
                (file-readable-p vmpc-auto-profiles-file))
-      (save-excursion
-	(set-buffer (get-buffer-create "*pcrisis-temp*"))
+      (with-current-buffer (get-buffer-create "*pcrisis-temp*")
 	(buffer-disable-undo (current-buffer))
 	(erase-buffer)
 	(insert-file-contents vmpc-auto-profiles-file)
@@ -942,8 +928,7 @@ parameter POS means insert the pre-signature at position POS if
         ;; if file is not writable, signal an error:
         (error "Error: P-Crisis could not write to file %s"
                vmpc-auto-profiles-file))
-    (save-excursion
-      (set-buffer (get-buffer-create "*pcrisis-temp*"))
+    (with-current-buffer (get-buffer-create "*pcrisis-temp*")
       (buffer-disable-undo (current-buffer))
       (erase-buffer)
       (goto-char (point-min))
@@ -1075,8 +1060,7 @@ If no email address in found in STR, returns nil."
 whitespace." 
   (let (result
         (not-separators (concat "^" separators)))
-    (save-excursion
-      (set-buffer (get-buffer-create " *split*"))
+    (with-current-buffer (get-buffer-create " *split*")
       (erase-buffer)
       (insert string)
       (goto-char (point-min))
@@ -1159,7 +1143,7 @@ without an action.
 The association is stored in `vmpc-auto-profiles-file' and in the future the
 stored actions will automatically run for messages to that address.
 
-REMEMBER can be set to t or 'prompt.  When set to 'prompt you will be asked if
+REMEMBER can be set to t or `prompt'.  When set to `prompt' you will be asked if
 you want to store the association.  When set to t a new profile will be stored
 without asking.
 
@@ -1474,8 +1458,7 @@ buffer to which to write diagnostic output."
       (let ((form (cons 'progn (cdr form)))
 	    (results (eval (cons 'progn (cdr form)))))
 	(when verbose
-	  (save-excursion
-	    (set-buffer verbose)
+	  (with-current-buffer verbose
 	    (insert (format "Action form is:\n%S\nResults are:\n%S\n"
 			    form results))))))))
 
@@ -1524,8 +1507,7 @@ recursion nor concurrent calls."
   ;; BUGME why is the global value resurrected after making the variable
   ;; buffer local?  Is this related to defadvice?  I have no idea what is
   ;; going on here!  Thus we clear it afterwards now!
-  (save-excursion
-    (set-buffer (get-buffer-create " *vmpc-cleanup*"))
+  (with-current-buffer (get-buffer-create " *vmpc-cleanup*")
     (vmpc-init-vars)
     (setq vmpc-current-buffer nil)))
 
@@ -1545,7 +1527,7 @@ recursion nor concurrent calls."
 (defun vmpc--mail (orig-fun &rest args)
   "Start a new message with pcrisis voodoo."
   (vm-follow-summary-cursor)
-  (vm-select-folder-buffer-and-validate 1 (interactive-p))
+  (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
   (vmpc-init-vars 'mail)
   (vmpc-build-true-conditions-list)
   (vmpc-build-actions-to-run-list)
@@ -1584,7 +1566,7 @@ recursion nor concurrent calls."
   "Forward a message with pcrisis voodoo."
   ;; this stuff is already done when replying, but not here:
   (vm-follow-summary-cursor)
-  (vm-select-folder-buffer-and-validate 1 (interactive-p))
+  (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
   ;;  the rest is almost exactly the same as replying:
   (vmpc-init-vars 'forward)
   (vmpc-build-true-conditions-list)
@@ -1600,7 +1582,7 @@ recursion nor concurrent calls."
   "Forward a message in plain text with pcrisis voodoo."
   ;; this stuff is already done when replying, but not here:
   (vm-follow-summary-cursor)
-  (vm-select-folder-buffer-and-validate 1 (interactive-p))
+  (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
   ;;  the rest is almost exactly the same as replying:
   (vmpc-init-vars 'forward)
   (vmpc-build-true-conditions-list)
@@ -1616,7 +1598,7 @@ recursion nor concurrent calls."
   "Resent a message with pcrisis voodoo."
   ;; this stuff is already done when replying, but not here:
   (vm-follow-summary-cursor)
-  (vm-select-folder-buffer-and-validate 1 (interactive-p))
+  (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
   ;; the rest is almost exactly the same as replying:
   (vmpc-init-vars 'resend)
   (vmpc-build-true-conditions-list)
@@ -1646,7 +1628,7 @@ current composition, then call this function."
 ;;;###autoload
 (defun vmpc-automorph ()
   "*Change contents of the current mail message based on its own headers.
-Unless `vmpc-current-state' is 'no-automorph, headers and signatures can be
+Unless `vmpc-current-state' is `no-automorph', headers and signatures can be
 changed; pre-signatures added; functions called.
 
 Call `vmpc-no-automorph' to disable it for the current buffer."
@@ -1658,4 +1640,5 @@ Call `vmpc-no-automorph' to disable it for the current buffer."
     (vmpc-build-actions-to-run-list)
     (vmpc-run-actions)))
 
+(provide 'vm-pcrisis)
 ;;; vm-pcrisis.el ends here

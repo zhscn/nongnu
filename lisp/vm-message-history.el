@@ -51,17 +51,12 @@
 
 ;;; Code:
 
-(provide 'vm-message-history)
-
-(eval-and-compile
-  (require 'easymenu)
-  (require 'vm-menu)
-  (require 'vm-misc)
-  (require 'vm-summary)
-  (require 'vm-page)
-  (require 'vm-window)
-  (require 'vm-motion)
-)
+(require 'easymenu)
+(require 'vm-menu)
+(require 'vm-misc)
+(require 'vm-summary)
+(require 'vm-window)
+(require 'vm-motion)
 
 (defgroup vm-message-history nil
   "Message history for VM folders."
@@ -239,4 +234,5 @@ With prefix ARG, select the ARG'th next message."
 
 (add-hook 'vm-select-message-hook 'vm-message-history-add)
 
+(provide 'vm-message-history)
 ;;; vm-message-history.el ends here

@@ -38,12 +38,9 @@
 ;; 
 ;;; Code:
 
-(provide 'vm-biff)
-
-(eval-when-compile 
-  (require 'vm-misc)
-  (require 'vm-summary)
-)
+(require 'vm-misc)
+(require 'vm-summary)
+(require 'vm-message)
 
 ;; vm-xemacs.el is a fake file to fool the Emacs 23 compiler
 (declare-function get-itimer "vm-xemacs.el" (name))
@@ -257,8 +254,7 @@ folder selectors work."
 
 (defun  vm-biff-find-folder-window (msg)
   (let ((buf (vm-buffer-of msg)))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (or (vm-biff-get-buffer-window buf)
           (and vm-presentation-buffer
                (vm-biff-get-buffer-window  vm-presentation-buffer))
@@ -443,7 +439,7 @@ AddToFunc SelectWindow
                    (or force
                        (not (equal new-messages vm-biff-message-pointer))))
           (setq msg (car new-messages))
-          (backward-delete-char 1)
+          (delete-char -1)
           (goto-char (point-min))
 	  
           (setq truncate-lines t
@@ -521,3 +517,5 @@ AddToFunc SelectWindow
 
 (add-hook 'vm-arrived-messages-hook 'vm-biff-popup t)
 
+(provide 'vm-biff)
+;;; vm-biff.el ends here.

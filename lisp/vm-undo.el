@@ -21,20 +21,8 @@
 
 ;;; Code:
 
-(provide 'vm-undo)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-menu)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  )
+(require 'vm-summary)
 
 ;; vm-undo-record-list is a buffer-local-variable containing
 ;; undo-records.
@@ -426,8 +414,8 @@ M-LIST.  STRING is a MIME-decoded string with text properties.
 The third parameter ADD is one of:
 
 nil	       delete the label
-'all           add the label in all cases
-'existing-only add the label only if it is already existing in the folder
+`all'           add the label in all cases
+`existing-only' add the label only if it is already existing in the folder
 							USR, 2010-12-20
 "
   (vm-display nil nil '(vm-add-message-labels vm-delete-message-labels)
@@ -589,10 +577,7 @@ changed attributes are stuffed into the folder.        USR 2010-04-06"
     (cond
      ((and (not vm-folder-read-only)
 	   (or (not (vm-virtual-messages-of m))
-	       (not (save-excursion
-		      (set-buffer
-		       (vm-buffer-of
-			 (vm-real-message-of m)))
+	       (not (with-current-buffer (vm-buffer-of (vm-real-message-of m))
 		      vm-folder-read-only))))
       (dolist (v-m (cons (vm-real-message-of m) (vm-virtual-messages-of m)))
 	(if (eq (vm-attributes-of m) (vm-attributes-of v-m))
@@ -704,4 +689,5 @@ changed attributes are stuffed into the folder.        USR 2010-04-06"
 (defun vm-set-new-flag-in-vector (v flag)
   (aset v 0 flag))
 
+(provide 'vm-undo)
 ;;; vm-undo.el ends here

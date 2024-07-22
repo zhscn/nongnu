@@ -32,14 +32,8 @@
 ;;
 ;;; Code
 
-(provide 'vm-summary-faces)
-
-(eval-when-compile
-  (require 'vm-misc))
-
-(eval-and-compile
-  (require 'vm-summary)
-  (require 'vm-virtual))
+(require 'vm-misc)
+(require 'vm-avirtual)
 
 ;; (eval-and-compile
 ;;   (if (featurep 'xemacs) (require 'overlay)))
@@ -182,3 +176,5 @@ fonts and colors, for easy recogniton of the message status."
 
 (add-hook 'vm-summary-pointer-update-hook 'vm-summary-faces-fix-pointer)
 
+(provide 'vm-summary-faces)
+;;; vm-summary-faces.el ends here.
