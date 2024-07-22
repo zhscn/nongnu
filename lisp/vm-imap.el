@@ -549,7 +549,7 @@ from which mail is to be moved and DESTINATION is the VM folder."
   (let ((process nil)
 	(m-per-session vm-imap-messages-per-session)
 	(b-per-session vm-imap-bytes-per-session)
-	(handler (vm-find-file-name-handler source 'vm-imap-move-mail))
+	(handler (find-file-name-handler source 'vm-imap-move-mail))
 	(folder (or (vm-imap-folder-for-spec source)
 		    (vm-safe-imapdrop-string source)))
 	(statblob nil)
@@ -722,7 +722,7 @@ Returns a boolean value."
   (vm-buffer-type:set 'folder)
   ;;--------------------------
   (let ((process nil)
-	(handler (vm-find-file-name-handler source 'vm-imap-check-mail))
+	(handler (find-file-name-handler source 'vm-imap-check-mail))
 	(retrieved vm-imap-retrieved-messages)
 	(imapdrop (vm-imapdrop-sans-password source))
 	(count 0)

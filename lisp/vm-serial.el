@@ -869,8 +869,6 @@ questions will bother you!"
           (run-hooks 'vm-mail-hook)
           (run-hooks 'vm-mail-mode-hook)
           (setq buffer-undo-list nil)
-	  (vm-make-local-hook 'kill-buffer-hook)
-	  (vm-make-local-hook 'mail-send-hook)
           (add-hook 'kill-buffer-hook
                     (lambda ()
 		      (vm-serial-send-mail-increment 'vm-serial-killed-cnt))

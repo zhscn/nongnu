@@ -1030,7 +1030,7 @@ REGEXP."
 
 (defun vm-vs-label (m arg)
   "Virtual selector to check of ARG is a label of the message."
-  (vm-member arg (vm-decoded-labels-of m)))
+  (member arg (vm-decoded-labels-of m)))
 
 (defun vm-vs-text (m regexp)
   "Virtual selector to check if the body of the message has an

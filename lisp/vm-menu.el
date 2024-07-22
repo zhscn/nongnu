@@ -1272,7 +1272,7 @@ separate dedicated menu bar, depending on the value of
 	    folders (cdr folders)))
     (and menu (setq menu (nreverse menu)
 		    menu (nconc (list "Visit:" "---") menu)))
-    (setq tail (vm-member special vm-menu-virtual-menu))
+    (setq tail (member special vm-menu-virtual-menu))
     (if (and menu tail)
 	(progn
 	  (setcdr tail menu)
@@ -1335,7 +1335,7 @@ separate dedicated menu bar, depending on the value of
 					    ''vm-visit-folder (car folders))
 				      :suffix (car folders))))
 	    folders (cdr folders)))
-    (setq tail (vm-member special vm-menu-folder-menu))
+    (setq tail (member special vm-menu-folder-menu))
     (if (and menu tail)
 	(progn
 	  (setcdr tail menu)

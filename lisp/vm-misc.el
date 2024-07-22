@@ -30,54 +30,20 @@
 (declare-function find-coding-system "vm-xemacs" (coding-system-or-name))
 (declare-function map-extents "vm-xemacs" (function &optional buffer from to))
 
-;; Aliases for xemacs functions
-(declare-function xemacs-abbreviate-file-name "vm-misc.el" 
-		  (filename &optional hack-homedir))
-(declare-function xemacs-insert-char "vm-misc.el"
-		  (char &optional count ignored buffer))
 ;; Aliases for xemacs/fsfemacs functions with different arguments
-(declare-function emacs-find-file-name-handler "vm-misc.el"
-		  (filename &optional operation))
-(declare-function emacs-focus-frame "vm-misc.el"
-		  (&rest ignore))
-(declare-function emacs-get-buffer-window "vm-misc.el"
-		  (&optional buffer-or-name frame devices))
-
-(declare-function vm-view-file-other-frame "vm-misc.el"
-		  (file))
 ;; (declare-function vm-interactive-p "vm-misc.el"
 ;; 		  ())
-(declare-function vm-device-type "vm-misc.el"
-		  (&optional device))
 (declare-function vm-buffer-substring-no-properties "vm-misc.el"
 		  (start end))
-(declare-function substring-no-properties "vm-misc.el"
-		  (string from &optional to))
 (declare-function vm-extent-property "vm-misc.el" (overlay prop) t)
-(declare-function vm-extent-object "vm-misc.el" (overlay) t)
 (declare-function vm-set-extent-property "vm-misc.el" (overlay prop value) t)
-(declare-function vm-set-extent-endpoints "vm-misc.el"
-		  (overlay beg end &optional buffer) t)
 (declare-function vm-make-extent "vm-misc.el"
 		  (beg end &optional buffer front-advance rear-advance) t)
 (declare-function vm-extent-end-position "vm-misc.el" (overlay) t)
 (declare-function vm-extent-start-position "vm-misc.el" (overlay) t)
-(declare-function vm-next-extent-change "vm-misc.el" (pos) t)
-(declare-function vm-previous-extent-change "vm-misc.el" (pos) t)
-(declare-function vm-detach-extent "vm-misc.el" (overlay) t)
-(declare-function vm-delete-extent "vm-misc.el" (overlay) t)
-(declare-function vm-disable-extents "vm-misc.el" 
-		  (&optional beg end name val) t)
-(declare-function vm-extent-properties "vm-misc.el" (overlay) t)
-(declare-function vm-map-extents "vm-misc.el" (function buffer) t)
 
 (declare-function timezone-make-date-sortable "ext:timezone"
 		  (date &optional local timezone))
-(declare-function longlines-decode-region "ext:longlines"
-		  (start end))
-(declare-function longlines-wrap-region "ext:longlines"
-		  (start end))
-(declare-function vm-decode-mime-encoded-words "vm-mime" ())
 (declare-function vm-decode-mime-encoded-words-in-string "vm-mime" (string))
 (declare-function vm-su-subject "vm-summary" (message))
 
@@ -621,27 +587,25 @@ LIST2 satisfying PRED and return the position"
 	  (throw 'fail nil)))
       t)))
 
-(fset 'vm-view-file-other-frame
-      (if (fboundp 'view-file-other-frame)
-	  'view-file-other-frame
-	'view-file-other-window))
+(defalias 'vm-view-file-other-frame
+  (if (fboundp 'view-file-other-frame) ;XEmacs doesn't have it yet!
+      #'view-file-other-frame
+    #'view-file-other-window))
 
-;; (fset 'vm-interactive-p
+;; (defalias 'vm-interactive-p
 ;;       (if (fboundp 'called-interactively-p)	; Gnu Emacs 23.2
 ;; 	  (lambda () (called-interactively-p 'any))
 ;; 	'interactive-p))
 
-(fset 'vm-device-type
-      (cond ((featurep 'xemacs) 'device-type)
-	    ((not (featurep 'xemacs)) 'vm-fsfemacs-device-type)))
-
-(defun vm-fsfemacs-device-type (&optional _device)
-  "An FSF Emacs emulation for XEmacs `device-type' function.  Returns
+(defalias 'vm-device-type
+  (if (featurep 'xemacs) #'device-type
+    (lambda (&optional _device)
+      "An FSF Emacs emulation for XEmacs `device-type' function.  Returns
 the type of the current screen device: one of `x', `gtk', `w32', `ns', and
 `pc'.  The optional argument DEVICE is ignored."
-  (if (eq window-system 'x)
-      (if (featurep 'gtk) 'gtk)
-    window-system))
+      (if (eq window-system 'x)
+          (if (featurep 'gtk) 'gtk)
+        window-system))))
 
 (defun vm-generate-new-unibyte-buffer (name)
   (if (featurep 'xemacs)
@@ -669,69 +633,42 @@ the type of the current screen device: one of `x', `gtk', `w32', `ns', and
 	    (error "VM internal error #1922: buffer is not multibyte"))))
       buffer)))
 
-(defun vm-make-local-hook (hook)
-  (if (fboundp 'make-local-hook)	; Emacs/XEmacs 21
-      (make-local-hook hook)))
-
-(fset 'xemacs-abbreviate-file-name 'abbreviate-file-name)
-
 (defun vm-abbreviate-file-name (path)
   (if (featurep 'xemacs)
-      (xemacs-abbreviate-file-name path t)
+      (abbreviate-file-name path t)
     (abbreviate-file-name path)))
 
-(fset 'emacs-find-file-name-handler 'find-file-name-handler)
-(defun vm-find-file-name-handler (filename operation)
-  (if (fboundp 'find-file-name-handler)
-      (condition-case ()
-	  (emacs-find-file-name-handler filename operation)
-	(wrong-number-of-arguments
-	 (emacs-find-file-name-handler filename)))
-    nil))
-
-(fset 'emacs-focus-frame 'focus-frame)
 (defun vm-select-frame-set-input-focus (frame)
   (if (fboundp 'select-frame-set-input-focus)
       ;; defined in FSF Emacs 22.1
       (select-frame-set-input-focus frame)
     (select-frame frame)
-    (emacs-focus-frame frame)
+    (focus-frame frame)
     (raise-frame frame)))
 
-(fset 'emacs-get-buffer-window 'get-buffer-window)
 (defun vm-get-buffer-window (buffer &optional which-frames which-devices)
-  (condition-case nil			; try XEmacs
-      (or (emacs-get-buffer-window buffer which-frames which-devices)
+  (if (featurep 'xemacs)
+      (or (get-buffer-window buffer which-frames which-devices)
 	  (and vm-search-other-frames
-	       (emacs-get-buffer-window buffer t t)))
-    (wrong-number-of-arguments
-     (condition-case nil		; try recent Gnu Emacs
-	 (or (emacs-get-buffer-window buffer which-frames)
-	     (and vm-search-other-frames
-		  (emacs-get-buffer-window buffer t)))
-       (wrong-number-of-arguments	; baseline old Emacs
-	(emacs-get-buffer-window buffer))))))
+	       (get-buffer-window buffer t t)))
+    (or (get-buffer-window buffer which-frames)
+	(and vm-search-other-frames
+	     (get-buffer-window buffer t)))))
 
 (defun vm-get-visible-buffer-window (buffer &optional 
 					    which-frames which-devices)
-  (condition-case nil
-      (or (emacs-get-buffer-window buffer which-frames which-devices)
+  (if (featurep 'xemacs)
+      (or (get-buffer-window buffer which-frames which-devices)
 	  (and vm-search-other-frames
-	       (emacs-get-buffer-window buffer t which-devices)))
-    (wrong-number-of-arguments
-     (condition-case nil
-	 (or (emacs-get-buffer-window buffer which-frames)
-	     (and vm-search-other-frames
-		  (get-buffer-window buffer 'visible)))
-       (wrong-number-of-arguments
-	(emacs-get-buffer-window buffer))))))
+	       (get-buffer-window buffer t which-devices)))
+    (or (get-buffer-window buffer which-frames)
+	(and vm-search-other-frames
+	     (get-buffer-window buffer 'visible)))))
 
 (defun vm-force-mode-line-update ()
   "Force a mode line update in all frames."
-  (if (fboundp 'force-mode-line-update)
-      (force-mode-line-update t)
-    (with-current-buffer (other-buffer)
-      (set-buffer-modified-p (buffer-modified-p)))))
+  ;; FIXME: Do all callers really need to update *all* frames?
+  (force-mode-line-update t))
 
 (defun vm-delete-directory-file-names (list)
   (vm-delete 'file-directory-p list))
@@ -780,18 +717,6 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
 	(set sym new-list))
       (setq list (cdr list)))
     (delq nil (nreverse new-list))))
-
-(defun vm-member-0 (thing list)
-  (catch 'done
-    (while list
-      (and (equal (car list) thing)
-	   (throw 'done list))
-      (setq list (cdr list)))
-    nil ))
-
-(fset 'vm-member 
-      (symbol-function 
-       (if (fboundp 'member) 'member 'vm-member-0)))
 
 (defun vm-delqual (ob list)
   (let ((prev nil)
@@ -1050,12 +975,6 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
   (let ((e (vm-make-extent start end)))
     (vm-set-extent-property e 'face face)))
 
-(fset 'vm-xemacs-set-face-foreground (function set-face-foreground))
-(fset 'vm-fsfemacs-set-face-foreground (function set-face-foreground))
-(fset 'vm-xemacs-set-face-background (function set-face-background))
-(fset 'vm-fsfemacs-set-face-background (function set-face-background))
-
-
 (defun vm-default-buffer-substring-no-properties (beg end &optional buffer)
   (let ((s (if buffer
 	       (with-current-buffer buffer
@@ -1064,7 +983,7 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
     (set-text-properties 0 (length s) nil s)
     (copy-sequence s)))
 
-(fset 'vm-buffer-substring-no-properties
+(defalias 'vm-buffer-substring-no-properties
   (cond ((fboundp 'buffer-substring-no-properties)
 	 (function buffer-substring-no-properties))
 	((featurep 'xemacs)
@@ -1074,10 +993,10 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
 (defun vm-buffer-string-no-properties ()
   (vm-buffer-substring-no-properties (point-min) (point-max)))
 
-(fset 'vm-substring-no-properties
-      (cond ((fboundp 'substring-no-properties)
-	     (function substring-no-properties))
-	    (t (function substring))))
+(defalias 'vm-substring-no-properties
+  (cond ((fboundp 'substring-no-properties)
+	 (function substring-no-properties))
+	(t (function substring))))
 
 (defun vm-insert-region-from-buffer (buffer &optional start end)
   (let ((target-buffer (current-buffer)))
@@ -1091,104 +1010,70 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
       (set-buffer buffer))
     (set-buffer target-buffer)))
 
-(if (not (fboundp 'vm-extent-property))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-extent-property 'overlay-get)
-      (fset 'vm-extent-property 'extent-property)))
+(defalias 'vm-extent-property
+  (if (featurep 'xemacs) #'extent-property #'overlay-get))
 
-(if (not (fboundp 'vm-extent-object))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-extent-object 'overlay-buffer)
-      (fset 'vm-extent-object 'extent-object)))
+(defalias 'vm-extent-object
+  (if (featurep 'xemacs) #'extent-object #'overlay-buffer))
 
-(if (not (fboundp 'vm-set-extent-property))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-set-extent-property 'overlay-put)
-      (fset 'vm-set-extent-property 'set-extent-property)))
+(defalias 'vm-set-extent-property
+  (if (featurep 'xemacs) #'set-extent-property #'overlay-put))
 
-(if (not (fboundp 'vm-set-extent-endpoints))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-set-extent-endpoints 'move-overlay)
-      (fset 'vm-set-extent-endpoints 'set-extent-endpoints)))
+(defalias 'vm-set-extent-endpoints
+  (if (featurep 'xemacs) #'set-extent-endpoints #'move-overlay))
 
-(if (not (fboundp 'vm-make-extent))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-make-extent 'make-overlay)
-      (fset 'vm-make-extent 'make-extent)))
+(defalias 'vm-make-extent
+  (if (featurep 'xemacs) #'make-extent #'make-overlay))
 
-(if (not (fboundp 'vm-extent-end-position))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-extent-end-position 'overlay-end)
-      (fset 'vm-extent-end-position 'extent-end-position)))
+(defalias 'vm-extent-end-position
+  (if (featurep 'xemacs) #'extent-end-position #'overlay-end))
 
-(if (not (fboundp 'vm-extent-start-position))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-extent-start-position 'overlay-start)
-      (fset 'vm-extent-start-position 'extent-start-position)))
+(defalias 'vm-extent-start-position
+  (if (featurep 'xemacs) #'extent-start-position #'overlay-start))
 
-(if (not (fboundp 'vm-next-extent-change))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-next-extent-change 'next-overlay-change)
-      (fset 'vm-next-extent-change 'next-extent-change)))
+(defalias 'vm-next-extent-change
+  (if (featurep 'xemacs) #'next-extent-change #'next-overlay-change))
 
-(if (not (fboundp 'vm-previous-extent-change))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-previous-extent-change 'previous-overlay-change)
-      (fset 'vm-previous-extent-change 'previous-extent-change)))
+(defalias 'vm-previous-extent-change
+  (if (featurep 'xemacs) #'previous-extent-change #'previous-overlay-change))
 
-(if (not (fboundp 'vm-detach-extent))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-detach-extent 'delete-overlay)
-      (fset 'vm-detach-extent 'detach-extent)))
+(defalias 'vm-detach-extent
+  (if (featurep 'xemacs) #'detach-extent #'delete-overlay))
 
-(if (not (fboundp 'vm-delete-extent))
-    (if (not (featurep 'xemacs))
-	;; This doesn't actually destroy the overlay, but it is the
-	;; best there is.
-	(fset 'vm-delete-extent 'delete-overlay)
-      (fset 'vm-delete-extent 'delete-extent)))
+(defalias 'vm-delete-extent
+  (if (featurep 'xemacs) #'delete-extent #'delete-overlay))
 
-(if (not (fboundp 'vm-disable-extents))
-    (if (and (not (featurep 'xemacs)) (fboundp 'remove-overlays))
-	(fset 'vm-disable-extents 'remove-overlays)
-      ;; XEamcs doesn't need to disable extents because they don't
+(defalias 'vm-disable-extents
+  (if (featurep 'xemacs)
+      ;; XEmacs doesn't need to disable extents because they don't
       ;; slow things down
-      (fset 'vm-disable-extents
-	    (lambda (&optional _beg _end _name _val) nil))))
+      (lambda (&optional _beg _end _name _val) nil)
+    #'remove-overlays))
 
-(if (not (fboundp 'vm-extent-properties))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-extent-properties 'overlay-properties)
-      (fset 'vm-extent-properties 'extent-properties)))
+(defalias 'vm-extent-properties
+  (if (featurep 'xemacs) #'extent-properties #'overlay-properties))
 
-(defun vm-xemacs-map-extents (function &optional buffer)
-  (let (from to)
-    (with-current-buffer buffer
-      (setq from (point-min)
-	    to (point-max)))
-    (map-extents function buffer from to)))
-
-(defun vm-fsfemacs-map-extents (function &optional _buffer)
-  "Map FUNCTION over the extents in BUFFER.
+(defalias 'vm-map-extents
+  (if (featurep 'xemacs)
+      (lambda (function)
+	(map-extents function (current-buffer) (point-min) (point-max)))
+    (lambda (function)
+      "Map FUNCTION over the extents in the current buffer.
 FUNCTION is called with two arguments: an extent and a dummy argument
-which should be ignored.  (This is included for compatibility with XEmacs)."
-;; This is based on old code in vm-page.el, rev. 1335
-;; BUFFER is being ignored, possibly yet to be handled. USR, 2019-04-04
-  (let (o-lists p)
-    (setq o-lists (overlay-lists))
-    (setq p (car o-lists))
-    (while p
-      (funcall function (car p) nil)
-      (setq p (cdr p)))
-    (setq p (cdr o-lists))
-    (while p
-      (funcall function (car p) nil)
-      (setq p (cdr p)))))
+which should be ignored."
+      ;; This is based on old code in vm-page.el, rev. 1335
+      ;; BUFFER is being ignored, possibly yet to be handled. USR, 2019-04-04
+      (let (o-lists p)
+        (setq o-lists (overlay-lists))
+        (setq p (car o-lists))
+        (while p
+          (funcall function (car p) nil)
+          (setq p (cdr p)))
+        (setq p (cdr o-lists))
+        (while p
+          (funcall function (car p) nil)
+          (setq p (cdr p)))))))
 
-(if (not (fboundp 'vm-map-extents))
-    (if (not (featurep 'xemacs))
-	(fset 'vm-map-extents 'vm-fsfemacs-map-extents)
-      (fset 'vm-map-extents 'vm-xemacs-map-extents)))
 
 (defun vm-extent-at (pos &optional property)
   "Find an extent at POS in the current buffer having PROPERTY.
@@ -1298,21 +1183,14 @@ encoding/decoding, conversions, subprocess communication etc."
 ;;      (setq buffer-offer-save nil))
     work-buffer ))
 
-(fset 'xemacs-insert-char 'insert-char)
-(defun vm-insert-char (char &optional count ignored buffer)
-  (condition-case nil
-      (progn
-	(xemacs-insert-char char count ignored buffer)
-	(fset 'vm-insert-char 'insert-char))
-    (wrong-number-of-arguments
-     (fset 'vm-insert-char 'vm-xemacs-compatible-insert-char)
-     (vm-insert-char char count ignored buffer))))
-
-(defun vm-xemacs-compatible-insert-char (char &optional count _ignored buffer)
-  (if (and buffer (eq buffer (current-buffer)))
-      (insert-char char count)
-    (with-current-buffer buffer
-      (insert-char char count))))
+(defalias 'vm-insert-char
+  (if (featurep 'xemacs)
+      #'insert-char
+    (lambda (char &optional count _ignored buffer)
+      (if (and buffer (eq buffer (current-buffer)))
+          (insert-char char count)
+        (with-current-buffer buffer
+          (insert-char char count))))))
 
 (defun vm-symbol-lists-intersect-p (list1 list2)
   (catch 'done
@@ -1397,14 +1275,11 @@ encoding/decoding, conversions, subprocess communication etc."
        secs
        (/ usecs (if (featurep 'lisp-float-type) 1e6 1000000)))))
 
-(if (fboundp 'char-to-int)
-    (fset 'vm-char-to-int 'char-to-int)
-  (fset 'vm-char-to-int 'identity))
+(defalias 'vm-char-to-int
+  (if (featurep 'xeamcs) #'char-to-int #'identity))
 
-(cond ((fboundp 'charsets-in-region)
-       (fset 'vm-charsets-in-region 'charsets-in-region))
-      ((fboundp 'find-charset-region)
-       (fset 'vm-charsets-in-region 'find-charset-region)))
+(defalias 'vm-charsets-in-region
+  (if (featurep 'xemacs) #'charsets-in-region #'find-charset-region))
 
 ;; Wrapper for coding-system-p:
 ;; The XEmacs function expects a coding-system object as its argument,
@@ -1416,16 +1291,13 @@ encoding/decoding, conversions, subprocess communication etc."
 	((not (featurep 'xemacs))
 	 (coding-system-p name))))
 
-(cond ((fboundp 'coding-system-name)
-       (fset 'vm-coding-system-name 'coding-system-name))
-      (t
-       (fset 'vm-coding-system-name 'identity)))
+(defalias 'vm-coding-system-name
+  (if (featurep 'xemacs) #'coding-system-name #'identity))
 
-(if (fboundp 'coding-system-name)
-    (defun vm-coding-system-name-no-eol (coding-system)
+(defun vm-coding-system-name-no-eol (coding-system)
+  (if (featurep 'xemacs)
       (coding-system-name
-       (coding-system-change-eol-conversion coding-system nil)))
-  (defun vm-coding-system-name-no-eol (coding-system)
+       (coding-system-change-eol-conversion coding-system nil))
     (coding-system-change-eol-conversion coding-system nil)))
 
 (defun vm-get-file-line-ending-coding-system (file)
@@ -1566,6 +1438,10 @@ filling of GNU Emacs does not work correctly here."
   ;; prepare for longlines.el in XEmacs
   (require 'overlay)
   (require 'longlines)
+  (declare-function longlines-decode-region "ext:longlines"
+		    (start end))
+  (declare-function longlines-wrap-region "ext:longlines"
+		    (start end))
   (defvar fill-nobreak-predicate nil)
   (defvar undo-in-progress nil)
   (defvar longlines-mode-hook nil)
