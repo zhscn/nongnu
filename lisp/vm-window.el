@@ -225,18 +225,26 @@
       (or summary (setq summary (or vm-summary-buffer nonexistent-summary)))
       (or composition (setq composition nonexistent))
       (or edit (setq edit nonexistent))
-      (tapestry-replace-tapestry-element (nth 1 config) 'buffer-name
-					 (function
-					  (lambda (x)
-					    (if (symbolp x)
-						(symbol-value x)
-					      (if (and (stringp x)
-						       (get-buffer x)
-						       (zerop
-							(with-current-buffer x
-							  (buffer-size))))
-						  nonexistent
-						x )))))
+      (let ((label-to-buffer ;; The reverse of `vm-buffer-to-label'.
+             (lambda (label)
+               (cl-ecase label
+	         (summary summary)
+	         (folders-summary folders-summary)
+	         (composition composition)
+	         (message message)
+	         (edit edit)))))
+	(tapestry-replace-tapestry-element (nth 1 config) 'buffer-name
+					   (function
+					    (lambda (x)
+					      (if (symbolp x)
+						  (funcall label-to-buffer x)
+						(if (and (stringp x)
+						         (get-buffer x)
+						         (zerop
+							  (with-current-buffer x
+							    (buffer-size))))
+						    nonexistent
+						  x ))))))
       (set-tapestry (nth 1 config) 1)
       (and (get-buffer nonexistent)
 	   (vm-maybe-delete-windows-or-frames-on nonexistent))
@@ -292,7 +300,7 @@ window configurations."
     ;; "unreadable" read syntax appearing in the window
     ;; configuration file by way of frame-parameters.
     (setcar map nil)
-    (tapestry-replace-tapestry-element map 'buffer-name 'vm-buffer-to-label)
+    (tapestry-replace-tapestry-element map 'buffer-name #'vm-buffer-to-label)
     (tapestry-nullify-tapestry-elements map t nil t t t nil)
     (setq p (assq tag vm-window-configurations))
     (if p

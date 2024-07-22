@@ -1904,7 +1904,7 @@ available for the IMAP server."
 	       (if vm-imap-read-point
 		   (progn
 		     (vm-set-imap-status-got statblob (- end ***start))
-		     (if (zerop (% (random) 10))
+		     (if (zerop (random 10))
 			 (vm-imap-report-retrieval-status statblob)))))))
 	   ;; this seems to slow things down.  USR, 2008-04-25
 	   ;; reenabled.  USR, 2010-09-17
@@ -1994,10 +1994,11 @@ available for the IMAP server."
 	;; the CRLF or the LF newline convention is used on the inbox
 	;; associated with this crashbox.  This setting assumes the LF
 	;; newline convention is used.
-	(defvar buffer-file-type) ;; FIXME: Removed in Emacs-24.4.
-	(let ((buffer-file-type t)
-	      (selective-display nil))
-	  (write-region ***start end target t 0))
+	(progn
+	  (defvar buffer-file-type) ;; FIXME: Removed in Emacs-24.4.
+	  (let ((buffer-file-type t)
+	        (selective-display nil))
+	    (write-region ***start end target t 0)))
       (let ((b (current-buffer)))
 	(with-current-buffer target
 	  ;;----------------------------
