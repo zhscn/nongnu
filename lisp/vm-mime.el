@@ -21,30 +21,12 @@
 
 ;;; Code:
 
-(provide 'vm-mime)
-
 (require 'vm-macro)
-
-(eval-and-compile
-  (require 'vm-misc))
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-minibuf)
-  (require 'vm-toolbar)
-  (require 'vm-mouse)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-menu)
-  (require 'vm-crypto)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-reply)
-  (require 'vm-digest)
-  (require 'vm-edit)
-  (require 'smime)
-  )
+(require 'vm-reply)                     ;vm-mail-mode-show-headers
+(require 'vm-summary)
+(require 'sendmail)
+(require 'smime)
+(eval-when-compile (require 'cl-lib))
 
 ;; vm-xemacs.el is a fake file to fool the Emacs 23 compiler
 (declare-function get-itimer "vm-xemacs" (name))
@@ -108,22 +90,21 @@
 
 ;; A lot of the more complicated MIME character set processing is only
 ;; practical under MULE.
-(eval-when-compile 
-  (defvar latin-unity-ucs-list)
-  (defvar latin-unity-character-sets)
-  (defvar coding-system-list))
+(defvar latin-unity-ucs-list)
+(defvar latin-unity-character-sets)
+(defvar coding-system-list)
 
 (defun vm-get-coding-system-priorities ()
   "Return the value of `vm-coding-system-priorities', or a reasonable
 default for it if it's nil.  "
-  (if vm-coding-system-priorities
-      vm-coding-system-priorities
-    (let ((res '(iso-8859-1 iso-8859-2 iso-8859-15 iso-8859-16 utf-8)))
-      (dolist (list-item res)
-	;; Assumes iso-8859-1 is always available, which is reasonable.
-	(unless (vm-coding-system-p list-item)
-	  (delq list-item res)))
-      res)))
+  (or vm-coding-system-priorities
+      ;; FIXME: `utf-8' should be first nowadays!
+      (let ((res '(iso-8859-1 iso-8859-2 iso-8859-15 iso-8859-16 utf-8)))
+	(dolist (list-item res)
+	  ;; Assumes iso-8859-1 is always available, which is reasonable.
+	  (unless (vm-coding-system-p list-item)
+	    (setq res (remq list-item res))))
+	res)))
 
 (defun vm-mime-charset-to-coding (charset)
   "Return the Emacs coding system corresonding to the given mime CHARSET."
@@ -159,13 +140,12 @@ default for it if it's nil.  "
 it's nil.  This is used instead of `vm-mime-ucs-list' directly in order to
 allow runtime checks for optional features like `mule-ucs' or
 `latin-unity'.  "
-  (if vm-mime-ucs-list
-      vm-mime-ucs-list
-    (if (featurep 'latin-unity)
-	latin-unity-ucs-list
-      (if (vm-coding-system-p 'utf-8)
-	  '(utf-8 iso-2022-jp ctext escape-quoted)
-	'(iso-2022-jp ctext escape-quoted)))))
+  (or vm-mime-ucs-list
+      (if (featurep 'latin-unity)
+	  latin-unity-ucs-list
+	(if (vm-coding-system-p 'utf-8)
+	    '(utf-8 iso-2022-jp ctext escape-quoted)
+	  '(iso-2022-jp ctext escape-quoted)))))
 
 (defun vm-update-mime-charset-maps ()
   "Check for the presence of certain Mule coding systems, and add
@@ -197,10 +177,6 @@ configuration.  "
   ;; Whoops, doesn't get picked up for some reason. 
   (add-to-list 'vm-mime-mule-coding-to-charset-alist 
 	       '(iso-8859-1 "iso-8859-1")))
-
-(eval-when-compile
-  (when (not (featurep 'xemacs))
-    (defvar latin-unity-character-sets nil)))
 
 (when (featurep 'xemacs)
   (require 'vm-vars)
@@ -430,8 +406,7 @@ freshly parsing the message contents."
       (progn (setq m (vm-real-message-of m))
 	     (vm-set-mime-encoded-header-flag-of
 	      m
-	      (save-excursion
-		(set-buffer (vm-buffer-of m))
+	      (with-current-buffer (vm-buffer-of m)
 		(save-excursion
 		  (save-restriction
 		    (widen)
@@ -517,8 +492,7 @@ same effect."
 			      coding-system foo))
 	  (setq start (point-min) end (point-max))
 	  (setq retval (buffer-size))
-	  (save-excursion
-	    (set-buffer b)
+	  (with-current-buffer b
 	    (goto-char b-start)
 	    (insert-buffer-substring work-buffer start end)
 	    (delete-region (point) (+ (point) oldsize))
@@ -548,8 +522,7 @@ same effect."
 			      coding-system foo))
 	  (and (not (featurep 'xemacs)) (set-buffer-multibyte t)) ; is this safe?
 	  (setq start (point-min) end (point-max))
-	  (save-excursion
-	    (set-buffer b)
+	  (with-current-buffer b
 	    (goto-char b-start)
 	    (delete-region (point) (+ (point) oldsize))
 	    (insert-buffer-substring work-buffer start end)
@@ -599,89 +572,11 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
   (or (markerp end) (setq end (vm-marker end)))
   (and (> (- end start) 10000)
        (vm-emit-mime-decoding-message "Decoding base64..."))
-  (let ((work-buffer nil)
-	(done nil)
-	(counter 0)
-	(bits 0)
-	(lim 0) inputpos
-	(non-data-chars (concat "^=" vm-mime-base64-alphabet)))
-    (unwind-protect
-	(save-excursion
-	  (cond
-	   ((and (featurep 'base64)
-		 (fboundp 'base64-decode-region)
-		 ;; W3 reportedly has a Lisp version of this, and
-		 ;; there's no point running it.
-		 (subrp (symbol-function 'base64-decode-region))
-		 ;; The FSF Emacs version of this is unforgiving
-		 ;; of errors, which is not in the spirit of the
-		 ;; MIME spec, so avoid using it.
-		 ;; Let us try it out now.  USR, 2012-10-19
-		 ;; (not (not (featurep 'xemacs)))
-		 )
-	    (condition-case data
-		(base64-decode-region start end)
-	      (error (vm-mime-error "%S" data)))
-	    (and crlf (vm-mime-crlf-to-lf-region start end)))
-	   (t
-	    (setq work-buffer (vm-make-work-buffer))
-	    (if vm-mime-base64-decoder-program
-		(let* ((binary-process-output t) ; any text already has CRLFs
-		       ;; use binary coding system in FSF Emacs/MULE
-		       (coding-system-for-read (vm-binary-coding-system))
-		       (coding-system-for-write (vm-binary-coding-system))
-		       (status (apply 'vm-run-command-on-region
-				      start end work-buffer
-				      vm-mime-base64-decoder-program
-				      vm-mime-base64-decoder-switches)))
-		  (if (not (eq status t))
-		      (vm-mime-error "base64-decode failed: %s" (cdr status))))
-	      (goto-char start)
-	      (skip-chars-forward non-data-chars end)
-	      (while (not done)
-		(setq inputpos (point))
-		(cond
-		 ((> (skip-chars-forward vm-mime-base64-alphabet end) 0)
-		  (setq lim (point))
-		  (while (< inputpos lim)
-		    (setq bits (+ bits
-				  (aref vm-mime-base64-alphabet-decoding-vector
-					(char-after inputpos))))
-		    (vm-increment counter)
-		    (vm-increment inputpos)
-		    (cond ((= counter 4)
-			   (vm-insert-char (lsh bits -16) 1 nil work-buffer)
-			   (vm-insert-char (logand (lsh bits -8) 255) 1 nil
-					   work-buffer)
-			   (vm-insert-char (logand bits 255) 1 nil work-buffer)
-			   (setq bits 0 counter 0))
-			  (t (setq bits (lsh bits 6)))))))
-		(cond
-		 ((= (point) end)
-		  (if (not (zerop counter))
-		      (vm-mime-error "at least %d bits missing at end of base64 encoding"
-				     (* (- 4 counter) 6)))
-		  (setq done t))
-		 ((= (char-after (point)) 61) ; 61 is ASCII equals
-		  (setq done t)
-		  (cond ((= counter 1)
-			 (vm-mime-error "at least 2 bits missing at end of base64 encoding"))
-			((= counter 2)
-			 (vm-insert-char (lsh bits -10) 1 nil work-buffer))
-			((= counter 3)
-			 (vm-insert-char (lsh bits -16) 1 nil work-buffer)
-			 (vm-insert-char (logand (lsh bits -8) 255)
-					 1 nil work-buffer))
-			((= counter 0) t)))
-		 (t (skip-chars-forward non-data-chars end)))))
-	    (and crlf
-		 (save-excursion
-		   (set-buffer work-buffer)
-		   (vm-mime-crlf-to-lf-region (point-min) (point-max))))
-	    (goto-char start)
-	    (insert-buffer-substring work-buffer)
-	    (delete-region (point) end))))
-      (and work-buffer (kill-buffer work-buffer))))
+  (save-excursion
+    (condition-case data
+	(base64-decode-region start end)
+      (error (vm-mime-error "%S" data)))
+    (and crlf (vm-mime-crlf-to-lf-region start end)))
   (and (> (- end start) 10000)
        (vm-emit-mime-decoding-message "Decoding base64... done")))
 
@@ -689,97 +584,28 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
   (or (markerp end) (setq end (vm-marker end)))
   (and (> (- end start) 200)
        (vm-inform 7 "Encoding base64..."))
-  (let ((work-buffer nil)
-	(buffer-undo-list t)
-	(counter 0)
-	(cols 0)
-	(bits 0)
-	(alphabet vm-mime-base64-alphabet)
-	inputpos)
-    (unwind-protect
-	(save-excursion
-	  (and crlf (vm-mime-lf-to-crlf-region start end))
-	  (cond
-	   ((and (featurep 'base64)
-		 (fboundp 'base64-encode-region)
-		 ;; W3 reportedly has a Lisp version of this, and
-		 ;; there's no point running it.
-		 (subrp (symbol-function 'base64-encode-region)))
-	    (condition-case data
-		(base64-encode-region start end B-encoding)
-	      (wrong-number-of-arguments
-	       ;; call with two args and then strip out the
-	       ;; newlines if we're doing B encoding.
-	       (condition-case data
-		   (base64-encode-region start end)
-		 (error (vm-mime-error "%S" data)))
-	       (if B-encoding
-		   (save-excursion
-		     (goto-char start)
-		     (while (search-forward "\n" end t)
-		       (delete-char -1)))))
-	      (error (vm-mime-error "%S" data))))
-	   (t
-	    (setq work-buffer (vm-make-work-buffer))
-	    (if vm-mime-base64-encoder-program
-		(let ((status (apply 'vm-run-command-on-region
-				     start end work-buffer
-				     vm-mime-base64-encoder-program
-				     vm-mime-base64-encoder-switches)))
-		  (if (not (eq status t))
-		      (vm-mime-error "base64-encode failed: %s" (cdr status)))
-		  (if B-encoding
-		      (save-excursion
-			(set-buffer work-buffer)
-			;; if we're B encoding, strip out the line breaks
-			(goto-char (point-min))
-			(while (search-forward "\n" nil t)
-			  (delete-char -1)))))
-	      (setq inputpos start)
-	      (while (< inputpos end)
-		(setq bits (+ bits (char-after inputpos)))
-		(vm-increment counter)
-		(cond ((= counter 3)
-		       (vm-insert-char (aref alphabet (lsh bits -18)) 1 nil
-				       work-buffer)
-		       (vm-insert-char (aref alphabet (logand (lsh bits -12) 63))
-				       1 nil work-buffer)
-		       (vm-insert-char (aref alphabet (logand (lsh bits -6) 63))
-				       1 nil work-buffer)
-		       (vm-insert-char (aref alphabet (logand bits 63)) 1 nil
-				       work-buffer)
-		       (setq cols (+ cols 4))
-		       (cond ((= cols 72)
-			      (setq cols 0)
-			      (if (not B-encoding)
-				  (vm-insert-char ?\n 1 nil work-buffer))))
-		       (setq bits 0 counter 0))
-		      (t (setq bits (lsh bits 8))))
-		(vm-increment inputpos))
-	      ;; write out any remaining bits with appropriate padding
-	      (if (= counter 0)
-		  nil
-		(setq bits (lsh bits (- 16 (* 8 counter))))
-		(vm-insert-char (aref alphabet (lsh bits -18)) 1 nil
-				work-buffer)
-		(vm-insert-char (aref alphabet (logand (lsh bits -12) 63))
-				1 nil work-buffer)
-		(if (= counter 1)
-		    (vm-insert-char ?= 2 nil work-buffer)
-		  (vm-insert-char (aref alphabet (logand (lsh bits -6) 63))
-				  1 nil work-buffer)
-		  (vm-insert-char ?= 1 nil work-buffer)))
-	      (if (> cols 0)
-		  (vm-insert-char ?\n 1 nil work-buffer)))
-	    (or (markerp end) (setq end (vm-marker end)))
-	    (goto-char start)
-	    (insert-buffer-substring work-buffer)
-	    (delete-region (point) end)))
-	  (and (> (- end start) 200)
-	       (vm-inform 7 "Encoding base64... done"))
-	  (- end start))
-      (and work-buffer (kill-buffer work-buffer)))))
+  (let ((buffer-undo-list t)) ;; FIXME: Really?
+    (save-excursion
+      (and crlf (vm-mime-lf-to-crlf-region start end))
+      (condition-case data
+	  (base64-encode-region start end B-encoding)
+	(wrong-number-of-arguments
+	 ;; call with two args and then strip out the
+	 ;; newlines if we're doing B encoding.
+	 (condition-case data
+	     (base64-encode-region start end)
+	   (error (vm-mime-error "%S" data)))
+	 (if B-encoding
+	     (save-excursion
+	       (goto-char start)
+	       (while (search-forward "\n" end t)
+		 (delete-char -1)))))
+	(error (vm-mime-error "%S" data)))
+      (and (> (- end start) 200)
+	   (vm-inform 7 "Encoding base64... done"))
+      (- end start))))
 
+;; FIXME: Use `quoted-printable-decode-region'!
 (defun vm-mime-qp-decode-region (start end)
   (and (> (- end start) 10000)
        (vm-emit-mime-decoding-message "Decoding quoted-printable..."))
@@ -821,8 +647,7 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
 		     (setq copy-point (point))
 		     (goto-char stop-point))
 		    (t (setq copy-point stop-point)))
-	      (save-excursion
-		(set-buffer work-buffer)
+	      (with-current-buffer work-buffer
 		(insert-buffer-substring buf inputpos copy-point))
 	      (cond ((= (point) end) t)
 		    ((looking-at "\n")
@@ -864,6 +689,7 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
   (and (> (- end start) 10000)
        (vm-emit-mime-decoding-message "Decoding quoted-printable... done")))
 
+;; FIXME: Use `quoted-printable-encode-region'!
 (defun vm-mime-qp-encode-region (start end &optional Q-encoding quote-from)
   (and (> (- end start) 200)
        (vm-inform 7 "Encoding quoted-printable..."))
@@ -891,14 +717,12 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
 		(if (not (eq status t))
 		    (vm-mime-error "qp-encode failed: %s" (cdr status)))
 		(if quote-from
-		    (save-excursion
-		      (set-buffer work-buffer)
+		    (with-current-buffer work-buffer
 		      (goto-char (point-min))
 		      (while (re-search-forward "^From " nil t)
 			(replace-match "=46rom " t t))))
 		(if Q-encoding
-		    (save-excursion
-		      (set-buffer work-buffer)
+		    (with-current-buffer work-buffer
 		      ;; strip out the line breaks
 		      (goto-char (point-min))
 		      (while (search-forward "=\n" nil t)
@@ -931,7 +755,7 @@ out includes base-64, quoted-printable, uuencode and CRLF conversion."
 			 (and (= cols 0) (= char ?.)
 			      (looking-at "\\.\\(\n\\|\\'\\)")))
 		     (vm-insert-char ?= 1 nil work-buffer)
-		     (vm-insert-char (car (rassq (lsh (logand char 255) -4)
+		     (vm-insert-char (car (rassq (ash (logand char 255) -4)
 						 hex-digit-alist))
 				     1 nil work-buffer)
 		     (vm-insert-char (car (rassq (logand char 15)
@@ -1563,8 +1387,7 @@ shorter pieces, rebuild it from them."
 a string denoting the folder name."
   (let ((pres-buf (vm-generate-new-multibyte-buffer 
 		   (concat name " Presentation"))))
-    (save-excursion
-      (set-buffer pres-buf)
+    (with-current-buffer pres-buf
       (buffer-disable-undo (current-buffer))
       (setq mode-name "VM Presentation"
 	    major-mode 'vm-presentation-mode
@@ -1618,8 +1441,7 @@ source of the message."
     (when (fboundp 'remove-specifier)
       (remove-specifier (face-foreground 'default) pres-buf)
       (remove-specifier (face-background 'default) pres-buf))
-    (save-excursion
-      (set-buffer (vm-buffer-of real-m))
+    (with-current-buffer (vm-buffer-of real-m)
       (save-restriction
 	(widen)
 	;; must reference this now so that headers will be in
@@ -1852,22 +1674,22 @@ etc.  Only when displaying it the actual message is fetched based
 on the storage handler.
 
 The information about the actual message is stored in the
-\"^X-VM-Storage:\" header and should be a lisp list of the
+\"^X-VM-Storage:\" header and should be a Lisp list of the
 following format.
 
-    \(HANDLER ARGS...\)
+    (HANDLER ARGS...)
 
 HANDLER should correspond to a `vm-fetch-HANDLER-message'
 function, e.g., the handler `file' corresponds to the function
 `vm-fetch-file-message' which gets two arguments, the message
 descriptor and the filename containing the message, and inserts the
-message body from the file into the current buffer. 
+message body from the file into the current buffer.  For example,
 
-For example, 'X-VM-Storage: (file \"message-11\")' will fetch 
-the actual message from the file \"message-11\"."
+    X-VM-Storage: (file \"message-11\")
+
+will fetch the actual message from the file \"message-11\"."
   (goto-char (match-end 0))
-  (save-excursion
-    (set-buffer (marker-buffer (vm-text-of mm)))
+  (with-current-buffer (marker-buffer (vm-text-of mm))
     (let ((buffer-read-only nil)
 	  (inhibit-read-only t)
 	  (buffer-undo-list t)
@@ -2552,7 +2374,7 @@ The second time, buttons for all the objects are displayed instead.
 The third time, the raw, undecoded data is displayed.
 
 The optional argument STATE can specify which decode state to display:
-'decoded, 'button or 'undecoded.
+`decoded', `button', or `undecoded'.
 
 If decoding, the decoded objects might be displayed immediately, or
 buttons might be displayed that you need to activate to view the
@@ -2627,7 +2449,7 @@ in the buffer.  The function is expected to make the message
 	  (let ((vm-display-using-mime nil))
 	    (vm-show-current-message)))
 	(setq m (car vm-message-pointer))
-	(vm-save-restriction
+	(save-restriction
 	 (widen)
 	 (goto-char (vm-text-of m))
 	 (let ((buffer-read-only nil)
@@ -2687,7 +2509,7 @@ If DONT-HONOR-C-D non-Nil, then don't honor the Content-Disposition
 declarations in the attachments and make a decision independently.
 
 LAYOUT can be a mime layout vector.  It can also be a button
-extent in the current buffer, in which case the 'vm-mime-layout
+extent in the current buffer, in which case the `vm-mime-layout'
 property of the overlay will be extracted.  The button may be
 deleted. 
 
@@ -3360,7 +3182,7 @@ emacs-w3m."
 			      vm-digest-identifier-header-format
 			      (vm-mm-layout-message layout))))
       (vm-mime-burst-layout layout ident-header))
-    (vm-save-buffer-excursion
+    (save-current-buffer
      (vm-goto-new-folder-frame-maybe 'folder)
      (vm-mode)
      (if (vm-should-generate-summary)
@@ -3416,7 +3238,7 @@ emacs-w3m."
     (setq vm-folder-type vm-default-folder-type)
     (vm-mime-burst-layout layout nil)
     (set-buffer-modified-p nil)
-    (vm-save-buffer-excursion
+    (save-current-buffer
      (vm-goto-new-folder-frame-maybe 'folder)
      (vm-mode)
      (if (vm-should-generate-summary)
@@ -3656,8 +3478,7 @@ button that this LAYOUT comes from."
 				 vm-wget-program "-q" "-O" "-" url)
 			      (error nil)))
 		       t
-		     (save-excursion
-		       (set-buffer buffer)
+		     (with-current-buffer buffer
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'w3m vm-url-retrieval-methods)
@@ -3667,8 +3488,7 @@ button that this LAYOUT comes from."
 				 vm-w3m-program "-dump_source" url)
 			      (error nil)))
 		       t
-		     (save-excursion
-		       (set-buffer buffer)
+		     (with-current-buffer buffer
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'fetch vm-url-retrieval-methods)
@@ -3678,8 +3498,7 @@ button that this LAYOUT comes from."
 				 vm-fetch-program "-o" "-" url)
 			      (error nil)))
 		       t
-		     (save-excursion
-		       (set-buffer buffer)
+		     (with-current-buffer buffer
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'curl vm-url-retrieval-methods)
@@ -3689,8 +3508,7 @@ button that this LAYOUT comes from."
 				 vm-curl-program url)
 			      (error nil)))
 		       t
-		     (save-excursion
-		       (set-buffer buffer)
+		     (with-current-buffer buffer
 		       (erase-buffer)
 		       nil )))
 		  ((if (and (memq 'lynx vm-url-retrieval-methods)
@@ -3700,13 +3518,10 @@ button that this LAYOUT comes from."
 				 vm-lynx-program "-source" url)
 			      (error nil)))
 		       t
-		     (save-excursion
-		       (set-buffer buffer)
+		     (with-current-buffer buffer
 		       (erase-buffer)
 		       nil )))))
-    (save-excursion
-      (set-buffer buffer)
-      (not (zerop (buffer-size))))))
+    (not (zerop (buffer-size buffer)))))
 
 (defun vm-mime-internalize-local-external-bodies (layout)
   "Given a LAYOUT representing a message/external-body object, convert
@@ -3722,24 +3537,23 @@ it to an internal object by retrieving the body.       USR, 2011-03-28"
 		   (vm-make-multibyte-work-buffer
 		    (format "*%s mime object*"
 			    (car (vm-mm-layout-type child-layout))))))
-	     (unwind-protect
-		 (let (oldsize)
-		   (with-current-buffer work-buffer
-		     (vm-mime-retrieve-external-body layout))
-		   (goto-char (vm-mm-layout-body-start child-layout))
-		   (setq oldsize (buffer-size))
-		   (condition-case data
-		       (insert-buffer-substring work-buffer)
-		     (error (signal 'vm-mime-error (cdr data))))
-		   ;; This is redundant because insertion moves point
-		   ;; (goto-char (+ (point) (- (buffer-size) oldsize)))
-		   (if (< (point) (vm-mm-layout-body-end child-layout))
-		       (delete-region (point)
-				      (vm-mm-layout-body-end child-layout))
-		     (vm-set-mm-layout-body-end child-layout (point-marker)))
-		   (delete-region (vm-mm-layout-header-start layout)
-				  (vm-mm-layout-body-start layout))
-		   (vm-mime-copy-layout child-layout layout)))
+	     (let (oldsize)
+	       (with-current-buffer work-buffer
+		 (vm-mime-retrieve-external-body layout))
+	       (goto-char (vm-mm-layout-body-start child-layout))
+	       (setq oldsize (buffer-size))
+	       (condition-case data
+		   (insert-buffer-substring work-buffer)
+		 (error (signal 'vm-mime-error (cdr data))))
+	       ;; This is redundant because insertion moves point
+	       ;; (goto-char (+ (point) (- (buffer-size) oldsize)))
+	       (if (< (point) (vm-mm-layout-body-end child-layout))
+		   (delete-region (point)
+				  (vm-mm-layout-body-end child-layout))
+		 (vm-set-mm-layout-body-end child-layout (point-marker)))
+	       (delete-region (vm-mm-layout-header-start layout)
+			      (vm-mm-layout-body-start layout))
+	       (vm-mime-copy-layout child-layout layout))
 	     (when work-buffer (kill-buffer work-buffer)))))
 	((vm-mime-composite-type-p (car (vm-mm-layout-type layout)))
 	 (let ((p (vm-mm-layout-parts layout)))
@@ -3772,8 +3586,7 @@ it to an internal object by retrieving the body.       USR, 2011-03-28"
       (if (null id)
 	  (vm-mime-error
 	   "message/partial message missing id parameter"))
-      (save-excursion
-	(set-buffer (marker-buffer (vm-mm-layout-body-start layout)))
+      (with-current-buffer (marker-buffer (vm-mm-layout-body-start layout))
 	(save-excursion
 	  (save-restriction
 	    (widen)
@@ -3873,7 +3686,7 @@ it to an internal object by retrieving the body.       USR, 2011-03-28"
       (insert (vm-trailing-message-separator))
       (set-buffer-modified-p nil)
       (vm-inform 6 "Assembling message... done")
-      (vm-save-buffer-excursion
+      (save-current-buffer
        (vm-goto-new-folder-frame-maybe 'folder)
        (vm-mode)
        (if (vm-should-generate-summary)
@@ -3967,8 +3780,7 @@ describing the image type.                             USR, 2011-03-25"
 		     (vm-set-extent-property e 'vm-mime-layout layout)
 		     (vm-set-extent-property e 'vm-mime-disposable t)
 		     (vm-set-extent-property e 'keymap keymap)
-		     (save-excursion
-		       (set-buffer (process-buffer process))
+		     (with-current-buffer (process-buffer process)
 		       (set (make-local-variable 'vm-image-list) image-list)
 		       (set (make-local-variable 'vm-image-type) image-type)
 		       (set (make-local-variable 'vm-image-type-name)
@@ -4086,8 +3898,7 @@ describing the image type.                            USR, 2011-03-25"
 		     (overlay-put o 'vm-mime-disposable t)
 		     (if vm-use-menus
 			 (overlay-put o 'vm-image vm-menu-fsfemacs-image-menu))
-		     (save-excursion
-		       (set-buffer (process-buffer process))
+		     (with-current-buffer (process-buffer process)
 		       (set (make-local-variable 'vm-image-list) image-list)
 		       (set (make-local-variable 'vm-image-type) image-type)
 		       (set (make-local-variable 'vm-image-type-name)
@@ -4235,8 +4046,7 @@ describing the image type.                            USR, 2011-03-25"
       (and work-buffer (kill-buffer work-buffer)))))
 
 (defun vm-process-sentinel-display-image-strips (process what-happened)
-  (save-excursion
-    (set-buffer (process-buffer process))
+  (with-current-buffer (process-buffer process)
     (cond ((and (boundp 'vm-extent-list)
 		(boundp 'vm-image-list))
 	   (let ((strips vm-image-list)
@@ -4284,8 +4094,7 @@ describing the image type.                            USR, 2011-03-25"
 
 (defun vm-display-image-strips-on-overlay-regions (strips overlays image-type)
   (let (prop value omodified)
-    (save-excursion
-      (set-buffer (overlay-buffer (car vm-overlay-list)))
+    (with-current-buffer (overlay-buffer (car vm-overlay-list))
       (setq omodified (buffer-modified-p))
       (save-restriction
 	(widen)
@@ -4316,8 +4125,7 @@ describing the image type.                            USR, 2011-03-25"
       (setq which-strips (cons (string-to-number (match-string 1 output))
 			       which-strips)
 	    i (match-end 0)))
-    (save-excursion
-      (set-buffer (process-buffer process))
+    (with-current-buffer (process-buffer process)
       (cond ((and (boundp 'vm-extent-list)
 		  (boundp 'vm-image-list))
 	     (let ((strips vm-image-list)
@@ -4370,8 +4178,7 @@ describing the image type.                            USR, 2011-03-25"
 (defun vm-display-some-image-strips-on-overlay-regions
   (strips overlays image-type which-strips)
   (let (sss ooo prop value omodified)
-    (save-excursion
-      (set-buffer (overlay-buffer (car vm-overlay-list)))
+    (with-current-buffer (overlay-buffer (car vm-overlay-list))
       (setq omodified (buffer-modified-p))
       (save-restriction
 	(widen)
@@ -4471,7 +4278,7 @@ The return value does not seem to be meaningful.     USR, 2011-03-25"
 
 (defun vm-mark-image-tempfile-as-message-garbage-once (layout tempfile)
   "Register image TEMPFILE used for MIME LAYOUT as a message garbage
-file, and set the 'vm-message-garbage property of LAYOUT.  This
+file, and set the `vm-message-garbage' property of LAYOUT.  This
 feature is currently not in use.                        USR, 2012-11-17"
   (if (get (vm-mm-layout-cache layout) 'vm-message-garbage)
       nil
@@ -4682,7 +4489,7 @@ expanded to display the mime object."
 
 ;;;###autoload
 (defun vm-mime-run-display-function-at-point (&optional function)
-  "Run the 'vm-mime-function for the MIME button at point.
+  "Run the `vm-mime-function' for the MIME button at point.
 If optional argument FUNCTION is given, run it instead.
 					          USR, 2011-03-07"
   (interactive)
@@ -5830,8 +5637,8 @@ Returns non-NIL value M is a plain message."
     (random t)
     (while (< i (length boundary))
       (aset boundary i (aref vm-mime-base64-alphabet
-			     (% (vm-abs (lsh (random) -8))
-				(length vm-mime-base64-alphabet))))
+			     (random
+			      (length vm-mime-base64-alphabet))))
       (vm-increment i))
     boundary ))
 
@@ -6385,7 +6192,9 @@ there is no file name for this object.             USR, 2011-03-07"
         ;; either vm-mime-forward-local-external-bodies is t
         ;; or vm-mime-forward-saved-attachments is nil
 	;; Otherwise, expand the external-body parts
-	(fb (list (or vm-mime-forward-local-external-bodies
+	(fb (list (or (with-suppressed-warnings
+		          ((obsolete vm-mime-forward-local-external-bodies))
+		        vm-mime-forward-local-external-bodies)
 		      (not vm-mime-forward-saved-attachments)))))
     (cond ((and (stringp object) (not mimed))
 	   (if (or (vm-mime-types-match "application" type)
@@ -6598,7 +6407,7 @@ extents are created for the purpose of this function.  USR, 2011-03-27"
 (defun vm-mime-fake-attachment-overlays (start end &optional prop)
   "For all attachment buttons in the region, i.e., pieces of text
 with the given text property PROP, create \"fake\" attachment
-overlays with the 'vm-mime-object property.  The list of these
+overlays with the `vm-mime-object' property.  The list of these
 overlays is returned.
 
 This function is only used with GNU Emacs, not XEmacs.  USR, 2011-02-19"
@@ -6800,7 +6609,7 @@ describes what was deleted."
 	      opos
 	      (buffer-read-only nil))
 	  (save-excursion
-	    (vm-save-restriction
+	    (save-restriction
 	     (goto-char (vm-extent-start-position e))
 	     (setq opos (point))
 	     (setq label (vm-mime-sprintf 
@@ -6829,7 +6638,7 @@ describes what was deleted."
 		 (not (eq (marker-buffer (vm-mm-layout-body-start layout))
 			  (current-buffer))))
 	(error "MIME body is not in the message"))
-      (vm-save-restriction
+      (save-restriction
 	(widen)
 	(if (vm-mm-layout-is-converted layout)
 	    (setq layout (vm-mm-layout-unconverted-layout layout)))
@@ -6909,9 +6718,10 @@ describes what was deleted."
 	       (vm-set-mm-layout-display-error layout nil)))))))
 
 (defun vm-mime-encode-words (&optional encoding)
-  "MIME encode all words in the current buffer.  The optional argument
-ENCODING can be 'Q or 'B (for quoted-printable and base64
-respectively).  If none is specified, quoted-printbale is used."
+  "MIME encode all words in the current buffer.
+The optional argument ENCODING can be the symbol `Q' or `B' (for
+quoted-printable and base64 respectively).
+If none is specified, quoted-printable is used."
   (goto-char (point-min))
 
   ;; find right encoding 
@@ -6989,7 +6799,7 @@ should be encoded together."
           (setq end (or (and (re-search-forward "^[^ \t:]+:" body-start t)
                              (match-beginning 0))
                         body-start)))
-        (vm-save-restriction
+        (save-restriction
          (narrow-to-region start end)
          (vm-mime-encode-words))
         (goto-char end)))))
@@ -8159,11 +7969,9 @@ the first sub part of a multipart/alternative is a text/plain part."
        (when (and nuke-html
                   (member "multipart/alternative" parent-types)
                   (vm-mime-types-match "text/html" this-type))
-         (save-excursion
-           (set-buffer (vm-buffer-of m))
-           (let ((inhibit-read-only t)
-                 (buffer-read-only nil))
-             (vm-save-restriction
+         (with-current-buffer (vm-buffer-of m)
+           (let ((buffer-read-only nil))
+             (save-restriction
               (widen)
               (if (vm-mm-layout-is-converted layout)
                   (setq layout (vm-mm-layout-unconverted-layout layout)))
@@ -8381,4 +8189,5 @@ buffer."
   (insert-buffer-substring buffer))
 
 
+(provide 'vm-mime)
 ;;; vm-mime.el ends here

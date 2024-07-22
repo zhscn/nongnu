@@ -21,23 +21,15 @@
 
 ;;; Code:
 
-(provide 'vm-pop)
-
 (require 'vm-macro)
-
-;; For function declarations
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-crypto)
-  (require 'vm-mime)
-)
+(require 'vm-misc)
+(require 'vm-summary)
+(require 'vm-window)
+(require 'vm-motion)
+(require 'vm-undo)
+(require 'vm-crypto)
+(require 'vm-mime)
+(eval-when-compile (require 'cl-lib))
 
 (declare-function vm-submit-bug-report 
 		  "vm.el" (&optional pre-hooks post-hooks))
@@ -153,8 +145,7 @@ a POP server, find its cache file on the file system"
 	  (setq process (vm-pop-make-session source vm-pop-ok-to-ask))
 	  (or process (throw 'done nil))
 	  (setq process-buffer (process-buffer process))
-	  (save-excursion
-	    (set-buffer process-buffer)
+	  (with-current-buffer process-buffer
 	    ;; find out how many messages are in the box.
 	    (vm-pop-send-command process "STAT")
 	    (setq response (vm-pop-read-stat-response process)
@@ -419,7 +410,7 @@ relevant POP servers to remove the messages."
 				(if (zerop delete-count) "No" delete-count)
 				(if (= delete-count 1) "" "s")))
 		(insert "VM had problems expunging messages from:\n")
-		(nreverse trouble)
+		(setq trouble (nreverse trouble))
 		(setq mp trouble)
 		(while mp
 		  (insert "   " (car mp) "\n")
@@ -436,7 +427,7 @@ relevant POP servers to remove the messages."
 (defun vm-pop-make-session (source interactive &optional retry)
   "Create a new POP session for the POP mail box SOURCE.
 The argument INTERACTIVE says the operation has been invoked
-interactively.  The possible values are t, 'password-only and nil.
+interactively.  The possible values are t, `password-only', and nil.
 Optional argument RETRY says whether this call is for a
 retry.
 
@@ -506,8 +497,7 @@ Returns the process or nil if the session could not be created."
 	   (vm-make-trace-buffer-name session-name host)))
     (unwind-protect
 	(catch 'end-of-session
-	  (save-excursion		; = save-current-buffer? 
-	    (set-buffer pop-buffer)
+	  (with-current-buffer pop-buffer
 	    (setq vm-folder-type (or folder-type vm-default-folder-type))
 	    (buffer-disable-undo pop-buffer)
 	    (make-local-variable 'vm-pop-read-point)
@@ -679,8 +669,7 @@ is non-nil, the process buffer is retained, otherwise it is
 killed as well."
   (if (and process (memq (process-status process) '(open run))
 	   (buffer-live-p (process-buffer process)))
-      (save-excursion
-	(set-buffer (process-buffer process))
+      (with-current-buffer (process-buffer process)
 	(vm-pop-send-command process "QUIT")
 	;; Previously we did not read the QUIT response because of
 	;; TCP shutdown problems (under Windows?) that made it
@@ -977,8 +966,7 @@ popdrop
 			  (let ((attrs (file-attributes target)))
 			    (or (null attrs) (equal 0 (nth 7 attrs)))))
 			 ((bufferp target)
-			  (save-excursion
-			    (set-buffer target)
+			  (with-current-buffer target
 			    (zerop (buffer-size))))))
 	      (let ((opoint (point)))
 		(vm-convert-folder-header nil vm-folder-type)
@@ -1003,8 +991,7 @@ popdrop
 	      (selective-display nil))
 	  (write-region start end target t 0))
       (let ((b (current-buffer)))
-	(save-excursion
-	  (set-buffer target)
+	(with-current-buffer target
 	  (let ((buffer-read-only nil))
 	    (insert-buffer-substring b start end)))))
     (delete-region start end)
@@ -1047,8 +1034,7 @@ popdrop
 (defun vm-pop-get-uidl-data ()
   (let ((there (make-vector 67 0))
 	(process (vm-folder-pop-process)))
-    (save-excursion
-      (set-buffer (process-buffer process))
+    (with-current-buffer (process-buffer process)
       (vm-pop-send-command process "UIDL")
       (let ((start vm-pop-read-point)
 	    n uidl)
@@ -1140,13 +1126,13 @@ LOCAL-EXPUNGE-LIST: A list of message descriptors for messages in the
 				   (do-retrieves nil))
   "Synchronize POP folder with the server.
    INTERACTIVE says the operation has been invoked interactively.  The
-   possible values are t, 'password-only and nil.
+   possible values are t, `password-only', and nil.
    DO-REMOTE-EXPUNGES indicates whether the server mail box should be
    expunged.
    DO-LOCAL-EXPUNGES indicates whether the cache buffer should be
    expunged.
    DO-RETRIEVES indicates if new messages that are not already in the
-   cache should be retrieved from the server.  If this flag is 'full
+   cache should be retrieved from the server.  If this flag is `full'
    then messages previously retrieved but not in cache are retrieved
    as well.
 "
@@ -1174,12 +1160,11 @@ LOCAL-EXPUNGE-LIST: A list of message descriptors for messages in the
 	   (folder-buffer (current-buffer)))
       (if (and do-retrieves retrieve-list)
 	  (save-excursion
-	    (vm-save-restriction
+	    (save-restriction
 	     (widen)
 	     (goto-char (point-max))
 	     (condition-case error-data
-		 (save-excursion
-		   (set-buffer (process-buffer process))
+		 (with-current-buffer (process-buffer process)
 		   (setq statblob (vm-pop-start-status-timer))
 		   (vm-set-pop-stat-x-box statblob safe-popdrop)
 		   (vm-set-pop-stat-x-maxmsg statblob
@@ -1380,4 +1365,5 @@ order to capture the trace of POP sessions during the occurrence."
   (vm-set-body-to-be-discarded-of m nil))
 
 
+(provide 'vm-pop)
 ;;; vm-pop.el ends here

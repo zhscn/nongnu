@@ -21,14 +21,9 @@
 
 ;;; Code:
 
-(provide 'vm-window)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'tapestry)
-  )
+(require 'vm-misc)
+(require 'tapestry) ;; FIXME: Use Emacs-24's `frameset'?
 
 (declare-function frame-highest-window "vm-xemacs" (frame))
 
@@ -90,7 +85,7 @@
 ;; configuration is done, and only then if the value of
 ;; this-command is found in the COMMANDS list.
   (and (stringp buffer) (setq buffer (get-buffer buffer)))
-  (vm-save-buffer-excursion
+  (save-current-buffer
    (let* ((w (and buffer (vm-get-buffer-window buffer)))
 	  (wf (and w (vm-window-frame w))))
      (if (and w display (not do-not-raise))
@@ -100,8 +95,7 @@
      (cond ((and buffer display)
 	    (if (and vm-display-buffer-hook
 		     (null (vm-get-visible-buffer-window buffer)))
-		(progn (save-excursion
-			 (set-buffer buffer)
+		(progn (with-current-buffer buffer
 			 (run-hooks 'vm-display-buffer-hook))
 		       (switch-to-buffer buffer))
 	      (if (not (and (memq this-command commands)
@@ -111,8 +105,7 @@
 	   ((and buffer (not display))
 	    (if (and vm-undisplay-buffer-hook
 		     (vm-get-visible-buffer-window buffer))
-		(progn (save-excursion
-			 (set-buffer buffer)
+		(progn (with-current-buffer buffer
 			 (run-hooks 'vm-undisplay-buffer-hook)))
 	      (if (not (and (memq this-command commands)
 			    (apply 'vm-set-window-configuration configs)))
@@ -133,7 +126,7 @@
       (switch-to-buffer buffer))))
 
 (defun vm-undisplay-buffer (buffer)
-  (vm-save-buffer-excursion
+  (save-current-buffer
    (let ((vm-mutable-frame-configuration 
 	  (and vm-mutable-frame-configuration pop-up-frames)))
      (vm-maybe-delete-windows-or-frames-on buffer))
@@ -240,8 +233,7 @@
 					      (if (and (stringp x)
 						       (get-buffer x)
 						       (zerop
-							(save-excursion
-							  (set-buffer x)
+							(with-current-buffer x
 							  (buffer-size))))
 						  nonexistent
 						x )))))
@@ -311,8 +303,7 @@ window configurations."
     (vm-inform 5 "%s configuration recorded" tag)))
 
 (defun vm-buffer-to-label (buf)
-  (save-excursion
-    (set-buffer buf)
+  (with-current-buffer buf
     (cond ((eq major-mode 'vm-summary-mode)
 	   'summary)
 	  ((eq major-mode 'vm-folders-summary-mode)
@@ -728,4 +719,5 @@ Run the hooks in vm-iconify-frame-hook before doing so."
        ;; others.
        (fset 'vm-select-frame 'ignore)))
 
+(provide 'vm-window)
 ;;; vm-window.el ends here

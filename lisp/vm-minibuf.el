@@ -21,14 +21,8 @@
 
 ;;; Code:
 
-(provide 'vm-minibuf)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-mouse)
-  )
+(require 'vm-mouse)
 
 (declare-function button-press-event-p "vm-xemacs" (object))
 (declare-function button-release-event-p "vm-xemacs" (object))
@@ -176,8 +170,7 @@ to the calling program."
 (defun vm-minibuffer-show-completions (list)
   "Display LIST in a multi-column listing in the \" *Completions*\" buffer.
 LIST should be a list of strings."
-  (save-excursion
-    (set-buffer (get-buffer-create " *Completions*"))
+  (with-current-buffer (get-buffer-create " *Completions*")
     (setq buffer-read-only nil)
     (use-local-map (make-sparse-keymap))
     ;; ignore vm-mutable-* here.  the user shouldn't mind
@@ -379,4 +372,5 @@ click mouse triggered the current command."
    ;; predicate, require-match, initial-input, hist
    nil t nil nil))
 
+(provide 'vm-minibuf)
 ;;; vm-minibuf.el ends here

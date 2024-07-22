@@ -25,9 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'vm-mime)
-)
+(require 'vm-mime)
 
 (eval-and-compile
   (require 'vm-version)
@@ -73,3 +71,5 @@
   ;; remove read-only text properties
   (let ((inhibit-read-only t))
     (remove-text-properties start end '(read-only nil))))
+(provide 'vm-w3)
+;;; vm-w3.el ends here

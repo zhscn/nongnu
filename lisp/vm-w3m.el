@@ -30,15 +30,10 @@
 
 ;;; Code:
 
-(provide 'vm-w3m)
+(require 'vm-mime)
+(require 'vm-version)
 
-(eval-when-compile
-  (require 'vm-mime)
-  (require 'executable))
-
-(eval-and-compile
-  (require 'vm-version)
-  (vm-load-features '(w3m)))
+(eval-and-compile (vm-load-features '(w3m)))
 
 (declare-function w3m-region 
 		  "ext:w3m" (start end &optional url charset))
@@ -128,9 +123,7 @@ by the minor-mode-keymap for emacs-w3m text, as determined by
 
 (defun vm-w3m-cid-retrieve (url &rest args)
   "Insert a content of URL."
-  (let ((message (save-excursion
-                   (set-buffer w3m-current-buffer)
-                   (car vm-message-pointer)))
+  (let ((message (with-current-buffer w3m-current-buffer                   (car vm-message-pointer)))
         part
         type)
     (setq part (vm-mime-cid-retrieve url message))
@@ -189,8 +182,8 @@ If the prefix arg is given, all images are considered to be safe."
 		      ((eq major-mode 'vm-mode)
 		       vm-presentation-buffer))))
     (if (buffer-live-p buffer)
-	(save-excursion
-	  (set-buffer buffer)
+	(with-current-buffer buffer
 	  (w3m-safe-toggle-inline-images arg)))))
 
+(provide 'vm-w3m)
 ;;; vm-w3m.el ends here

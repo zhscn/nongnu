@@ -191,19 +191,18 @@ Vcard data is normally in the form
     prop3a;prop3b:                value3a;value3b;value3c
     end:                          vcard
 
-\(Whitespace around the `:' separating properties and values is optional.\)
+\(Whitespace around the `:' separating properties and values is optional.)
 If supplied to this function an alist of the form
 
-    \(\(\(\"prop1a\"\) \"value1a\"\)
-     \(\(\"prop2a\" \"prop2b\" \(\"prop2c\" . \"param2c\"\)\) \"value2a\"\)
-     \(\(\"prop3a\" \"prop3b\"\) \"value3a\" \"value3b\" \"value3c\"\)\)
+    (((\"prop1a\") \"value1a\")
+     ((\"prop2a\" \"prop2b\" (\"prop2c\" . \"param2c\")) \"value2a\")
+     ((\"prop3a\" \"prop3b\") \"value3a\" \"value3b\" \"value3c\"))
 
 would be returned."
   (let ((vcard nil)
         (buf (generate-new-buffer " *vcard parser work*")))
     (unwind-protect
-        (save-excursion
-          (set-buffer buf)
+        (with-current-buffer buf
           ;; Make sure last line is newline-terminated.
           ;; An extra trailing newline is harmless.
           (insert raw "\n")
@@ -472,10 +471,9 @@ US domestic telephone numbers are replaced with international format."
 ;;; Decoding methods.
 
 (defmacro vcard-hexstring-to-ascii (s)
-  (if (string-lessp emacs-version "20")
-      `(format "%c" (car (read-from-string (format "?\\x%s" ,s))))
-    `(format "%c" (string-to-number ,s 16))))
+  `(format "%c" (string-to-number ,s 16)))
 
+;; FIXME: Use `quoted-printable-decode-region'!
 (defun vcard-region-decode-quoted-printable (&optional beg end)
   (save-excursion
     (save-restriction
@@ -489,6 +487,7 @@ US domestic telephone numbers are replaced with international format."
           (let ((s (buffer-substring (1+ (match-beginning 0)) (match-end 0))))
             (replace-match (vcard-hexstring-to-ascii s) t t)))))))
 
+;; FIXME: Use `base64-decode-region'!
 (defun vcard-region-decode-base64 (&optional beg end)
   (save-restriction
     (narrow-to-region (or beg (point-min)) (or end (point-max)))
@@ -505,21 +504,21 @@ US domestic telephone numbers are replaced with international format."
         (delete-char 1)
         (cond ((char-equal c ?=)
                (if (= count 2)
-                   (insert (lsh n -10))
+                   (insert (ash n -10))
                  ;; count must be 3
-                 (insert (lsh n -16) (logand 255 (lsh n -8))))
+                 (insert (ash n -16) (logand 255 (ash n -8))))
                (delete-region (point) (point-max)))
               (t
                (setq n (+ n (aref vcard-region-decode-base64-table
                                   (vcard-char-to-int c))))
                (setq count (1+ count))
                (cond ((= count 4)
-                      (insert (logand 255 (lsh n -16))
-                              (logand 255 (lsh n -8))
+                      (insert (logand 255 (ash n -16))
+                              (logand 255 (ash n -8))
                               (logand 255 n))
                       (setq n 0 count 0))
                      (t
-                      (setq n (lsh n 6))))))))))
+                      (setq n (ash n 6))))))))))
 
 
 (defun vcard-split-string (string &optional separator limit)

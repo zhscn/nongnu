@@ -21,22 +21,10 @@
 
 ;;; Code:
 
-(provide 'vm-page)
-
 (require 'vm-macro)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-motion)
-  (require 'vm-menu)
-  (require 'vm-mouse)
-  (require 'vm-mime)
-  (require 'vm-undo)
-  )
+(require 'vm-window)
+(require 'vm-motion)
+(require 'vm-menu)
 
 (declare-function vm-make-virtual-copy "vm-virtual" (message))
 (declare-function vm-make-presentation-copy "vm-mime" (message))
@@ -740,7 +728,7 @@ preview or the full message, governed by the the variables
 ;;       (when (not need-preview)
 ;; 	(vm-inform 1 "External messages cannot be previewed")
 ;; 	(setq need-preview nil)))
-    (vm-save-buffer-excursion
+    (save-current-buffer
      (setq vm-system-state 'previewing)
      (setq vm-mime-decoded nil)
 
@@ -782,7 +770,7 @@ preview or the full message, governed by the the variables
 		 (vm-set-mime-layout-of 
 		  (car vm-message-pointer) new-layout))))
 	   (vm-make-presentation-copy (car vm-message-pointer))
-	   (vm-save-buffer-excursion
+	   (save-current-buffer
 	    (vm-replace-buffer-in-windows (current-buffer)
 					  vm-presentation-buffer))
 	   (set-buffer vm-presentation-buffer)
@@ -917,13 +905,13 @@ is done if necessary.  (USR, 2010-01-14)"
 	  ;; FIXME at this point, the folder buffer is being used for
 	  ;; display.  Filling will corrupt the folder.
 	  (debug "VM internal error #2010.  Please report it")))
-    (vm-save-restriction
+    (save-restriction
      (widen)
      (vm-fill-paragraphs-containing-long-lines
       vm-fill-paragraphs-containing-long-lines
       (vm-text-of (car vm-message-pointer))
       (vm-text-end-of (car vm-message-pointer)))))
-  (vm-save-buffer-excursion
+  (save-current-buffer
    (save-excursion
      (save-excursion
        (goto-char (point-min))
@@ -969,7 +957,7 @@ is done if necessary.  (USR, 2010-01-14)"
     (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
     (vm-display nil nil '(vm-expose-hidden-headers)
 		'(vm-expose-hidden-headers))
-    (vm-save-buffer-excursion
+    (save-current-buffer
      (vm-replace-buffer-in-windows (current-buffer) 
 				   vm-presentation-buffer))
     (and vm-presentation-buffer
@@ -1053,7 +1041,7 @@ is done if necessary.  (USR, 2010-01-14)"
   (push-mark)
   (vm-display (current-buffer) t '(vm-beginning-of-message)
 	      '(vm-beginning-of-message reading-message))
-  (vm-save-buffer-excursion
+  (save-current-buffer
     (let ((osw (selected-window)))
       (unwind-protect
 	  (progn
@@ -1080,7 +1068,7 @@ as necessary."
   (push-mark)
   (vm-display (current-buffer) t '(vm-end-of-message)
 	      '(vm-end-of-message reading-message))
-  (vm-save-buffer-excursion
+  (save-current-buffer
     (let ((osw (selected-window)))
       (unwind-protect
 	  (progn
@@ -1170,4 +1158,5 @@ exposed and marked as read."
       (goto-char old-point)
       (error "No more buttons"))))
 
+(provide 'vm-page)
 ;;; vm-page.el ends here

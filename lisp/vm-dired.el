@@ -29,26 +29,16 @@
 ;;
 ;;; Code:
 
-(provide 'vm-dired)
-
-(require 'dired) 
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-menu)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-mime)
-  (require 'vm-digest)
-  (require 'vm-undo)
-  )
-
-(eval-and-compile
-  (require 'dired))
+(require 'vm-misc)
+(require 'vm-minibuf)
+(require 'vm-menu)
+(require 'vm-folder)
+(require 'vm-summary)
+(require 'vm-window)
+(require 'vm-motion)
+(require 'vm-mime)
+(require 'vm-digest)
+(require 'dired)
 
 (declare-function vm-dired-file-name-at-point "vm-dired.el" ())
 
@@ -124,4 +114,5 @@ COMPOSITION's name will be read from the minibuffer."
        (vm-attach-file file type)))
    nil))
 
+(provide 'vm-dired)
 ;;; vm-dired.el ends here

@@ -52,12 +52,8 @@
 
 ;;; Code:
 
-(provide 'vm-menu)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-mime)
-  (require 'vm-delete))
+(require 'vm-misc)
+(require 'vm-mime)
 
 (declare-function event-window "vm-xemacs" (event))
 (declare-function event-point "vm-xemacs" (event))
@@ -820,8 +816,7 @@ set to the command name so that window configuration will be done."
 
 (defun vm-menu--global-menubar ()
   (if (featurep 'xemacs)
-      (save-excursion
-        (set-buffer (get-buffer-create "*scratch*"))
+      (with-current-buffer (get-buffer-create "*scratch*")
         current-menubar)
     (lookup-key (current-global-map) [menu-bar])))
 
@@ -1676,4 +1671,5 @@ for the current directory (.) is inserted."
     )
   )
 
+(provide 'vm-menu)
 ;;; vm-menu.el ends here

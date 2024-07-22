@@ -21,12 +21,8 @@
 
 ;;; Code:
 
-(provide 'vm-crypto)
-
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-folder)
-  )
+(require 'vm-misc)
+(require 'vm-folder)
 
 ;; compatibility
 (fset 'vm-pop-md5 'vm-md5-string)
@@ -227,4 +223,5 @@
     (vm-register-global-garbage-files (list vm-stunnel-configuration-file))
     vm-stunnel-configuration-file))
 
+(provide 'vm-crypto)
 ;;; vm-crypto.el ends here

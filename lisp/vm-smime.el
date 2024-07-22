@@ -21,29 +21,22 @@
 
 ;;; Code:
 
-(provide 'vm-smime)
-
-(eval-and-compile
-  (require 'vm-misc))
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-minibuf)
-  (require 'vm-toolbar)
-  (require 'vm-mouse)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-menu)
-  (require 'vm-crypto)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-reply)
-  (require 'vm-digest)
-  (require 'vm-edit)
-  (require 'vm-mime)
-  (require 'smime)
-  )
+(require 'vm-misc)
+(require 'vm-minibuf)
+(require 'vm-toolbar)
+(require 'vm-mouse)
+(require 'vm-summary)
+(require 'vm-folder)
+(require 'vm-menu)
+(require 'vm-crypto)
+(require 'vm-window)
+(require 'vm-motion)
+(require 'vm-reply)
+(require 'vm-digest)
+(require 'vm-edit)
+(require 'vm-mime)
+(require 'smime)
+(eval-when-compile (require 'cl-lib))
 
 (defun vm-mime-smime-extract-pkcs7-signature (layout)
   (unless (vectorp layout)
@@ -294,7 +287,7 @@ certificate files."
 (defun vm-get-sender ()
   "Determine the sender of the message, used for determining
 which mapping of `smime-keys' to use in S/MIME signing a
-composition. If there is no 'From' header in the message,
+composition. If there is no `From' header in the message,
 `user-mail-address' will be used"
   (or (save-excursion
 	(goto-char (point-min))
@@ -325,3 +318,6 @@ composition. If there is no 'From' header in the message,
 		(mail-fetch-field (car to-headers)) t)))))
 	  (setq to-headers (cdr to-headers)))))
     recips))
+
+(provide 'vm-smime)
+;;; vm-smime.el ends here.

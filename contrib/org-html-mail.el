@@ -1,4 +1,4 @@
-;; Copyright © 2008  Eric Schulte
+;; Copyright Â© 2008  Eric Schulte
 ;;
 ;; WYSWYG, html mail composition using orgmode
 ;;
@@ -26,11 +26,14 @@
 ;; For discussion see "sending html mail using VM" at
 ;; http://groups.google.com/group/gnu.emacs.vm.info/browse_frm/month/2008-01
 
+(require 'org-macs)
+(require 'vm-misc)
+
 (defun orgstruct-hijacker-command-21 (arg)
   "In Structure, run `org-ctrl-c-ctrl-c'. Outside of Structure
 check for a prefix argument and if buffer name contains `mail',
-and run orgstruct-send-as-html, or run the binding of
-`\C-c\C-c'."
+and run `orgstruct-send-as-html', or run the binding of
+`C-c C-c'."
   (interactive "p")
   (vm-inform 6 "calling html send mail")
   (save-excursion

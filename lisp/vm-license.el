@@ -21,10 +21,7 @@
 
 ;;; Code:
 
-(provide 'vm-license)
-
-(eval-when-compile
-  (require 'vm-window))
+(require 'vm-window)
 
 (declare-function Info-goto-node "ext:info" (nodename &optional fork))
 
@@ -58,4 +55,5 @@
   (interactive)
   (vm-show-copying-restrictions t))
 
+(provide 'vm-license)
 ;;; vm-license.el ends here

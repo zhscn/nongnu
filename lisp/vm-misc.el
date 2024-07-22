@@ -22,12 +22,9 @@
 
 ;;; Code:
 
-(provide 'vm-misc)
-
 (require 'vm-macro)
-
-;; (eval-when-compile
-;;   (require 'vm-misc))
+(require 'vm-message)
+(require 'vm-vars)
 
 ;; vm-xemacs.el is a fake file to fool the Emacs 23 compiler
 (declare-function find-coding-system "vm-xemacs" (coding-system-or-name))
@@ -376,7 +373,7 @@ need to add quotes or leave them undecoded.             RWF"
 
 (defun vm-write-string (where string)
   (if (bufferp where)
-      (vm-save-buffer-excursion
+      (save-current-buffer
 	(set-buffer where)
 	(goto-char (point-max))
 	(let ((buffer-read-only nil))
@@ -615,8 +612,8 @@ LIST2 satisfying PRED and return the position"
 
 (defun vm-fsfemacs-device-type (&optional _device)
   "An FSF Emacs emulation for XEmacs `device-type' function.  Returns
-the type of the current screen device: one of 'x, 'gtk, 'w32, 'ns and
-'pc.  The optional argument DEVICE is ignored."
+the type of the current screen device: one of `x', `gtk', `w32', `ns', and
+`pc'.  The optional argument DEVICE is ignored."
   (if (eq window-system 'x)
       (if (featurep 'gtk) 'gtk)
     window-system))
@@ -822,7 +819,7 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
 
 (defun vm-run-hook-on-message (hook-variable message)
   (with-current-buffer (vm-buffer-of message)
-    (vm-save-restriction
+    (save-restriction
       (widen)
       (save-excursion
 	(narrow-to-region (vm-headers-of message) (vm-text-end-of message))
@@ -834,7 +831,7 @@ If HACK-ADDRESSES is t, then the strings are considered to be mail addresses,
 
 (defun vm-run-hook-on-message-with-args (hook-variable message &rest args)
   (with-current-buffer (vm-buffer-of message)
-    (vm-save-restriction
+    (save-restriction
       (widen)
       (save-excursion
 	(narrow-to-region (vm-headers-of message) (vm-text-end-of message))
@@ -1491,7 +1488,7 @@ Returns t if there was a line longer than `fill-column'."
 
 (defun vm-fill-paragraphs-containing-long-lines (width start end)
   "Fill paragraphs spanning more than WIDTH columns in region
-START to END.  If WIDTH is 'window-width, the current width of
+START to END.  If WIDTH is `window-width', the current width of
 the Emacs window is used.  If vm-word-wrap-paragraphs is set
 non-nil, then the longlines package is used to word-wrap long
 lines without removing any existing line breaks.
@@ -1574,7 +1571,7 @@ filling of GNU Emacs does not work correctly here."
 	   (- (window-width (get-buffer-window (current-buffer))) 1)))
 	)
     (save-excursion
-      (vm-save-restriction
+      (save-restriction
        ;; longlines-wrap-region contains a (forward-line -1) which is causing
        ;; wrapping of headers which is wrong, so we restrict it here!
        (narrow-to-region start end)
@@ -1711,26 +1708,9 @@ If MODES is nil the take the modes from the variable
 	   (setq vm-disable-modes-ignore (cons m vm-disable-modes-ignore)))
 	 nil)))))
 
-(defun vm-add-write-file-hook (vm-hook-fn)
-  "Add a function to the hook called during write-file.
-
-Emacs changed the name of write-file-hooks to write-file-functions as of 
-Emacs 22.1. This function is used to supress compiler warnings."
-  (if (boundp 'write-file-functions)
-      (add-hook 'write-file-functions vm-hook-fn)
-    (add-hook 'write-file-hooks vm-hook-fn)))
-
-(defun vm-add-find-file-hook (vm-hook-fn)
-  "Add a function to the hook called during find-file.
-
-Emacs changed the name of the hook find-file-hooks to find-file-hook in
-Emacs 22.1. This function used to supress compiler warnings."
-  (if (boundp 'find-file-hook)
-      (add-hook 'find-file-hook vm-hook-fn)
-    (add-hook 'find-file-hooks vm-hook-fn)))
-
 ;; Aliases for VM functions
 
 
 
+(provide 'vm-misc)
 ;;; vm-misc.el ends here

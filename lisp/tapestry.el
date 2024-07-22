@@ -20,8 +20,6 @@
 
 ;;; Code:
 
-(provide 'tapestry)
-
 (defvar tapestry-version "1.09")
 
 ;; Pass state information between the tapestry-set-window-map
@@ -616,4 +614,5 @@ ROOT-WINDOW-EDGES will be used."
       (frame-live-p f)
     t ))
 
+(provide 'tapestry)
 ;;; tapestry.el ends here

@@ -22,22 +22,15 @@
 
 ;;; Code
 
-(provide 'vm-sort)
-
 (require 'vm-macro)
 (require 'vm-vars)
-
-(eval-and-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-folder)
-  (require 'vm-summary)
-  (require 'vm-thread)
-  (require 'vm-motion)
-  (require 'vm-page)
-  (require 'vm-window)
-  (require 'vm-undo)
-  )
+(require 'vm-misc)
+(require 'vm-minibuf)
+(require 'vm-folder)
+(require 'vm-summary)
+(require 'vm-motion)
+(require 'vm-window)
+(eval-when-compile (require 'cl-lib))
 
 (declare-function vm-sort-insert-auto-folder-names "vm-avirtual" ())
 
@@ -191,7 +184,7 @@ the folder undisturbed."
 ;; and variables containg markers before you modify this code.
 (defun vm-physically-move-message (m m-dest)
   (save-excursion
-    (vm-save-restriction
+    (save-restriction
      (widen)
 
      ;; Make sure vm-headers-of and vm-text-of are non-nil in
@@ -885,4 +878,5 @@ that, if P1 and P2 are the oldest different ancestors of M1 and M2, then
     (string< (vm-get-header-contents m1 vm-sort-compare-header)
              (vm-get-header-contents m2 vm-sort-compare-header))))
 
+(provide 'vm-sort)
 ;;; vm-sort.el ends here

@@ -21,26 +21,13 @@
 
 ;;; Code:
 
-(provide 'vm-delete)
-
 (require 'vm-macro)
 
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-crypto)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-sort)
-  (require 'vm-thread)
-  (require 'vm-pop)
-  (require 'vm-imap)
-)
-
+(require 'vm-misc)
+(require 'vm-window)
+(require 'vm-undo)
+(require 'vm-sort)
+(eval-when-compile (require 'cl-lib))
 
 ;;;###autoload
 (defun vm-delete-message (count &optional mlist)
@@ -285,7 +272,7 @@ don't move at all."
   "Delete duplicate messages in the current folder.
 This command works by comparing the message ID's.  Messages that
 are already deleted are not considered, so VM will never delete the last
-copy of a message in a folder.  'Deleting' means flagging for
+copy of a message in a folder.  `Deleting' means flagging for
 deletion; you will have to expunge the messages with
 `vm-expunge-folder' to really get rid of them, as usual.
 
@@ -336,7 +323,7 @@ This command works by computing an MD5 hash for the body of each
 non-deleted message in the folder and deleting messages that have
 a hash that has already been seen.  Messages that are already deleted
 are never hashed, so VM will never delete the last copy of a
-message in a folder.  'Deleting' means flagging for deletion; you
+message in a folder.  `Deleting' means flagging for deletion; you
 will have to expunge the messages with `vm-expunge-folder' to
 really get rid of them, as usual.
 
@@ -471,7 +458,7 @@ ignored."
 					   'uid)
 				     vm-imap-retrieved-messages)))))
 		(vm-increment vm-modification-counter)
-		(vm-save-restriction
+		(save-restriction
 		 (widen)
 		 (let ((buffer-read-only nil))
 		   (delete-region (vm-start-of real-m)
@@ -549,4 +536,5 @@ ignored."
       (vm-mark-folder-modified-p (current-buffer))
       (vm-increment vm-modification-counter))))
 
+(provide 'vm-delete)
 ;;; vm-delete.el ends here

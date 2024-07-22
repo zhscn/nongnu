@@ -103,28 +103,13 @@
 ;;
 ;;; Code:
 
-(provide 'vm-avirtual)
-
 (require 'vm-macro)
-(require 'vm-virtual)
 (require 'vm-vars)
+(require 'vm-thread)
 
-(eval-when-compile
-  (require 'vm-misc)
-  (require 'vm-minibuf)
-  (require 'vm-summary)
-  (require 'vm-folder)
-  (require 'vm-window)
-  (require 'vm-page)
-  (require 'vm-motion)
-  (require 'vm-undo)
-  (require 'vm-delete)
-  (require 'vm-save)
-  (require 'vm-reply)
-  (require 'vm-sort)
-  (require 'vm-thread)
-)
-  
+;; FIXME: Cyclic dependency, we can't require `vm-virtual'.
+(declare-function vm-vs-spam-word "vm-virtual" (m &optional part))
+
 (declare-function vm-get-folder-buffer "vm" (folder))
 ;; The following function is erroneously called for fsfemacs as well
 (declare-function key-or-menu-binding "vm-xemacs" (key &optional menu-flag))
@@ -654,8 +639,7 @@ If VIRTUAL is true we check the current message and not the real one."
   (if msg
       (if virtual
           (apply 'vm-vs-or msg selector)
-        (save-excursion
-          (set-buffer (vm-buffer-of (vm-real-message-of msg)))
+        (with-current-buffer (vm-buffer-of (vm-real-message-of msg))
           (apply 'vm-vs-or msg selector)))
     (if (eq major-mode 'mail-mode)
         (apply 'vm-mail-vs-or selector))))
@@ -679,9 +663,8 @@ format:
           (vm-virtual-check-diagnostics (or vm-virtual-check-diagnostics
                                             diagnostics)))
       (with-output-to-temp-buffer "*VM virtual-folder-check*"
-       (save-excursion
-         (set-buffer "*VM virtual-folder-check*")
-         (toggle-truncate-lines t))
+        (with-current-buffer "*VM virtual-folder-check*"
+          (toggle-truncate-lines t))
         (princ (format "Checking %S on <%s> from %s\n\n" selector
                        (vm-su-subject msg) (vm-su-from msg)))
         (princ (format "\nThe virtual folder selector `%s' is %s\n"
@@ -926,7 +909,7 @@ Add this to `vm-arrived-messages-hook'.
 
 See the function `vm-virtual-auto-delete-message' for details.
 
- (add-hook 'vm-arrived-messages-hook 'vm-virtual-auto-delete-messages)
+ (add-hook \\='vm-arrived-messages-hook #\\='vm-virtual-auto-delete-messages)
 "
   (interactive)
 
@@ -951,7 +934,7 @@ folder name and `mp' (a vm-message-pointer) to access the message.
 
 Example:
  (setq vm-virtual-auto-folder-alist
-       '((\"spam\" (concat folder \"-\"
+       \\='((\"spam\" (concat folder \"-\"
                            (format-time-string \"%y%m\" (current-time))))))
 
 This will return \"spam-0008\" as a folder name for messages matching the
@@ -1090,8 +1073,7 @@ This is not yet the whole story!                    USR, 2013-01-18"
   (save-excursion
     (vm-select-folder-buffer-and-validate 0 (vm-interactive-p))
     ;; remove old descriptions
-    (save-excursion
-      (set-buffer vm-summary-buffer)
+    (with-current-buffer vm-summary-buffer
       (goto-char (point-min))
       (let ((buffer-read-only nil)
             (s (point-min))
@@ -1110,8 +1092,7 @@ This is not yet the whole story!                    USR, 2013-01-18"
               f (cdr (assoc m vm-sort-compare-auto-folder-cache)))
         (when (not (equal oldf f))
           (setq m (vm-su-start-of m))
-          (save-excursion
-            (set-buffer (marker-buffer m))
+          (with-current-buffer (marker-buffer m)
             (let ((buffer-read-only nil))
               (goto-char m)
               (insert (format "%s\n" (or f "no default folder")))
@@ -1235,4 +1216,5 @@ with the same name."
 
 ;;----------------------------------------------------------------------------
 
+(provide 'vm-avirtual)
 ;;; vm-avirtual.el ends here

@@ -180,7 +180,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'vm))
+(require 'vm-vars)
+(require 'vm-message)
+(require 'vm-folder)
 
 ;;; Customisation:
 
@@ -240,8 +242,8 @@ message as spam.
   :type 'string)
 
 (defcustom vm-bogofilter-formail-program-options "-s"
-  "*Options for the 'vm-bogofilter-formail-program'. After this
-arguments, the name of the bogofilter program will be passed."
+  "Options for the `vm-bogofilter-formail-program'.
+After this arguments, the name of the bogofilter program will be passed."
   :group 'vm-bogofilter
   :type 'string)
 
@@ -267,7 +269,7 @@ are explicitly marked as spams by the vm-bogofilter-is-spam function."
   "The function used to do the actual filtering. It is used as a value for
 vm-retrieved-spooled-mail-hook."
   (save-excursion
-    (vm-save-restriction
+    (save-restriction
      (let ((tail-cons (vm-last vm-message-list))
 	   (buffer-read-only nil))
        (widen)
@@ -338,12 +340,11 @@ vm-retrieved-spooled-mail-hook."
 	  (buffer (get-buffer-create "*Shell Command Output*"))
 	  )
           
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(erase-buffer))
       (set-buffer (vm-buffer-of message))
-      (vm-save-restriction
-       (vm-save-buffer-excursion
+      (save-restriction
+       (save-current-buffer
 	(widen)
 	(goto-char (vm-headers-of message))
 	(narrow-to-region (point) (vm-text-end-of message))

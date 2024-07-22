@@ -71,24 +71,18 @@
 ;; 
 ;;; Code:
 
-(provide 'vm-serial)
- 
 (require 'vm-reply)
 (require 'vm-macro)
+(require 'vm-misc)
+(require 'vm-mime)
+(require 'vm-pine)
+(require 'mail-utils)
+(require 'mail-extr)
+(eval-when-compile (require 'cl-lib))
 
 (defgroup vm-serial nil
   "Sending personalized serial mails and getting message templates."
   :group  'vm-ext)
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-mime))
-
-(eval-and-compile
-  (require 'vm-pine)
-  (require 'mail-utils)
-  (require 'mail-extr))
 
 (declare-function bbdb-extract-address-components 
 		  "ext:bbdb-snarf" (adstring &optional ignore-errors))
@@ -763,8 +757,7 @@ a warning."
 (defvar vm-serial-send-mail-exit nil)
 
 (defun vm-serial-send-mail-increment (variable)
-  (save-excursion
-    (set-buffer vm-serial-source-buffer)
+  (with-current-buffer vm-serial-source-buffer
     (eval (list 'vm-increment variable))))
 
 
@@ -821,8 +814,7 @@ questions will bother you!"
                 vm-serial-killed-cnt 0)))
 
     ;; mail-extract-address-components isn't good at all! Fix it!
-    (save-excursion
-      (set-buffer work-buffer)
+    (with-current-buffer work-buffer
       (setq major-mode 'mail-mode))
     
     (while (and (not work) vm-serial-send-mail-jobs)
@@ -831,8 +823,7 @@ questions will bother you!"
                           (concat (car to) " <" (cadr to) ">")
                         (cadr to)))
       (copy-to-buffer work-buffer (point-min) (point-max))
-      (save-excursion
-        (set-buffer work-buffer)
+      (with-current-buffer work-buffer
         (goto-char (point-min))
         (vm-mail-mode-remove-header "To:")
         (mail-position-on-field "To")
@@ -918,4 +909,5 @@ questions will bother you!"
       (kill-this-buffer)))
 
 ;;-----------------------------------------------------------------------------
+(provide 'vm-serial)
 ;;; vm-serial.el ends here

@@ -22,18 +22,10 @@
 
 ;;; Code:
 
-(provide 'vm-thread)
 
-;; For function declarations
-
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'vm-misc)
-  (require 'vm-folder)
-  (require 'vm-motion)
-  (require 'vm-summary)
-  (require 'vm-sort)
-)
+(require 'vm-misc)
+(require 'vm-folder)
+(eval-when-compile (require 'cl-lib))
 
 ;; --------------------------------------------------------------------------
 ;; Top-level operations
@@ -168,7 +160,7 @@
 (defsubst vm-th-thread-date-of (id-sym criterion)
   "For the message with the interned symbol ID-SYM, return the
 youngest or oldest date in its thread.  CRITERION must be one of
-'youngest-date and 'oldest-date"
+`youngest-date' and `oldest-date'."
   (get id-sym criterion))
 
 (defsubst vm-th-message-of (id-sym)
@@ -1551,4 +1543,5 @@ to the thread.  Used for testing purposes."
       ;; (setq vm-thread-subject-obarray 'bonk)
       ))))
 
+(provide 'vm-thread)
 ;;; vm-thread.el ends here

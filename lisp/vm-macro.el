@@ -21,8 +21,6 @@
 
 ;;; Code:
 
-(provide 'vm-macro)
-
 ;; Definitions for things that aren't in all Emacsen and that we really
 ;; prefer not to live without.
 (eval-and-compile
@@ -43,15 +41,14 @@
     (defmacro defvaralias (&rest args)))
 
   (unless (fboundp 'declare-function)
-    (defmacro declare-function (fn file &optional arglist fileonly)))
+    (defmacro declare-function (fn file &optional arglist fileonly))))
 
-  (defmacro vm-interactive-p ()
-    (if (featurep 'xemacs)
-	`(interactive-p)
-      (if (> emacs-major-version 23)
-	  `(called-interactively-p 'interactive)
-	`(interactive-p))))
-  )
+(defmacro vm-interactive-p ()
+  (if (featurep 'xemacs)
+      `(interactive-p)
+    (if (fboundp 'called-interactively-p) ;; (> emacs-major-version 23)
+	`(called-interactively-p 'interactive)
+      `(interactive-p))))
 
 (declare-function vm-check-for-killed-summary "vm-misc" ())
 (declare-function vm-check-for-killed-presentation "vm-misc" ())
@@ -183,48 +180,8 @@ current-buffer in `vm-user-interaction-buffer'."
 	((featurep 'xemacs) 'no-conversion)
 	(t 'raw-text)))
 
-;;; can't use defsubst where quoting is needed in some places but
+;; can't use defsubst where quoting is needed in some places but
 ;; not others.
-
-;; save-restriction flubs restoring the clipping region if you
-;; (widen) and modify text outside the old region.
-;; This should do it right.
-(defmacro vm-save-restriction (&rest forms)
-  (let ((vm-sr-clip (make-symbol "vm-sr-clip"))
-	(vm-sr-min (make-symbol "vm-sr-min"))
-	(vm-sr-max (make-symbol "vm-sr-max")))
-    `(let ((,vm-sr-clip (> (buffer-size) (- (point-max) (point-min))))
-	   ;; this shouldn't be necessary but the
-	   ;; byte-compiler turns these into interned symbols
-	   ;; which utterly defeats the purpose of the
-	   ;; make-symbol calls above.  Soooo, until the compiler
-	   ;; is fixed, these must be made into (let ...)
-	   ;; temporaries so that nested calls to this macros
-	   ;; won't misbehave.
-	   ,vm-sr-min ,vm-sr-max)
-	  (and ,vm-sr-clip
-	       (setq ,vm-sr-min (set-marker (make-marker) (point-min)))
-	       (setq ,vm-sr-max (set-marker (make-marker) (point-max))))
-	  (unwind-protect
-	      (progn ,@forms)
-	    (widen)
-	    (and ,vm-sr-clip
-		 (progn
-		   (narrow-to-region ,vm-sr-min ,vm-sr-max)
-		   (set-marker ,vm-sr-min nil)
-		   (set-marker ,vm-sr-max nil)))))))
-
-(put 'vm-save-restriction 'edebug-form-spec t)
-
-(defmacro vm-save-buffer-excursion (&rest forms)
-  `(let ((vm-sbe-buffer (current-buffer)))
-    (unwind-protect
-	(progn ,@forms)
-      (and (not (eq vm-sbe-buffer (current-buffer)))
-	   (buffer-name vm-sbe-buffer)
-	   (set-buffer vm-sbe-buffer)))))
-
-(put 'vm-save-buffer-excursion 'edebug-form-spec t)
 
 (defmacro vm-assert (expression)
   (list 'or 'vm-assertion-checking-off
@@ -309,4 +266,5 @@ vm-buffer-types stack."
     (sleep-for 1)))
 
 
+(provide 'vm-macro)
 ;;; vm-macro.el ends here
