@@ -60,10 +60,6 @@
 (defvar enable-multibyte-characters)
 
 ;; vm-xemacs.el is a non-existent file to fool the Emacs 23 compiler
-(declare-function vm-xemacs-set-face-foreground "vm-xemacs.el" 
-		  (face color &optional locale tag-set how-to-add))
-(declare-function vm-xemacs-set-face-background "vm-xemacs.el" 
-		  (face color &optional locale tag-set how-to-add))
 (declare-function get-coding-system "vm-xemacs.el" (name))
 (declare-function find-face "vm-xemacs.el" (face-or-name))
 

@@ -381,7 +381,6 @@ creation). If DRAFT is non-nil, then do not delete the draft message."
       (make-local-variable 'vm-message-pointer)
       (setq vm-message-pointer vmp)
       (unless draft
-	(vm-make-local-hook 'mail-send-hook)
 	(add-hook 'mail-send-hook 'vm-delete-postponed-message t t))
       (erase-buffer)
 
@@ -795,7 +794,6 @@ configuration."
           ((equal action 'visit)
            (funcall visit vm-postponed-folder)
            (vm-select-folder-buffer-and-validate 0 (vm-interactive-p))
-	   (vm-make-local-hook 'vm-quit-hook)
            (add-hook 'vm-quit-hook 'vm-expunge-folder nil t)
 	   (when vm-auto-expunge-postponed-folder
 	     (vm-expunge-folder))
@@ -845,7 +843,6 @@ If set to nil it will never save them nor it will ask."
   :group 'vm-pine)
 
 (defun vm-add-save-killed-message-hook ()
-  (vm-make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'vm-save-killed-message-hook nil t))
 
 (defun vm-remove-save-killed-message-hook ()

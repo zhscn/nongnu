@@ -4100,7 +4100,7 @@ Same as \\[vm-recover-folder]."
 ;;;###autoload
 (defun vm-spool-move-mail (source destination)
   (let ((handler (and (fboundp 'find-file-name-handler)
-		      (vm-find-file-name-handler source 'vm-spool-move-mail)))
+		      (find-file-name-handler source 'vm-spool-move-mail)))
 	status error-buffer)
     (if handler
 	(funcall handler 'vm-spool-move-mail source destination)
@@ -4284,7 +4284,7 @@ Same as \\[vm-recover-folder]."
     triples ))
 
 (defun vm-spool-check-mail (source)
-  (let ((handler (vm-find-file-name-handler source 'vm-spool-check-mail)))
+  (let ((handler (find-file-name-handler source 'vm-spool-check-mail)))
     (if handler
 	(funcall handler 'vm-spool-check-mail source)
       (let ((size (nth 7 (file-attributes source)))
@@ -4987,7 +4987,6 @@ folder-access-data should be preserved."
   (use-local-map vm-mode-map)
   ;; if the user saves after M-x recover-file, let them get new
   ;; mail again.
-  (vm-make-local-hook 'after-save-hook)
   (add-hook 'after-save-hook 'vm-unblock-new-mail nil t)
   (when (vm-menu-support-possible-p)
     (vm-menu-install-menus))
