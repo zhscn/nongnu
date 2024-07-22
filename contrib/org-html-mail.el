@@ -1,4 +1,4 @@
-;; Copyright © 2008  Eric Schulte
+;; Copyright © 2008  Eric Schulte  -*- lexical-binding: t; -*-
 ;;
 ;; WYSWYG, html mail composition using orgmode
 ;;
@@ -28,6 +28,11 @@
 
 (require 'org-macs)
 (require 'vm-misc)
+
+(defvar orgstruct-mode)
+(defvar org-export-skip-text-before-1st-heading)
+(defvar org-export-preserve-breaks)
+(defvar org-local-vars)
 
 (defun orgstruct-hijacker-command-21 (arg)
   "In Structure, run `org-ctrl-c-ctrl-c'. Outside of Structure

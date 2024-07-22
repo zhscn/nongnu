@@ -1,7 +1,6 @@
-;;; org-vm.el --- Support for links to VM messages from within Org-mode
+;;; org-vm.el --- Support for links to VM messages from within Org-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2024  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;	   Uday S Reddy <reddyuday at launchpad dot net>

@@ -1,4 +1,4 @@
-;;; vm-w3m.el --- additional functions to make VM use emacs-w3m for HTML mails
+;;; vm-w3m.el --- additional functions to make VM use emacs-w3m for HTML mails  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -121,7 +121,10 @@ This keymap will be bound only when Emacs 20 is running and overwritten
 by the minor-mode-keymap for emacs-w3m text, as determined by
 `vm-presentation-minor-modes'.")))
 
-(defun vm-w3m-cid-retrieve (url &rest args)
+(defvar w3m-display-inline-images)
+(defvar w3m-safe-url-regexp)
+
+(defun vm-w3m-cid-retrieve (url &rest _args)
   "Insert a content of URL."
   (let ((message (with-current-buffer w3m-current-buffer                   (car vm-message-pointer)))
         part
@@ -156,7 +159,7 @@ by the minor-mode-keymap for emacs-w3m text, as determined by
 		    vm-w3m-mode-map)))))))
 
 ;;;###autoload
-(defun vm-mime-display-internal-emacs-w3m-text/html (start end layout)
+(defun vm-mime-display-internal-emacs-w3m-text/html (start end _layout)
   "Use emacs-w3m to inline HTML mails in the VM presentation buffer."
   (let ((w3m-display-inline-images vm-w3m-display-inline-images)
         (w3m-safe-url-regexp vm-w3m-safe-url-regexp))

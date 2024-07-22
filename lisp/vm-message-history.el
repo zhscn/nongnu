@@ -1,9 +1,8 @@
-;;; vm-message-history.el --- Move backward & forward through selected messages
-;; -*-unibyte: t; coding: iso-8859-1;-*-
+;;; vm-message-history.el --- Move backward & forward through selected messages  -*- lexical-binding: t; -*-
 ;;
 ;; This file is an add-on for VM
 
-;; Copyright © 2003 Kevin Rodgers, 2008 Robert Widhopf-Fenk
+;; Copyright Â© 2003 Kevin Rodgers, 2008 Robert Widhopf-Fenk
 
 ;; Author: Kevin Rodgers <ihs_4664@yahoo.com>
 ;; Created: 6 Oct 2003

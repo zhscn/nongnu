@@ -1,4 +1,4 @@
-;;; vcard.el --- vcard parsing and display routines
+;;; vcard.el --- vcard parsing and display routines  -*- lexical-binding: t; -*-
 ;;
 ;; This file is not part of VM; it is a utility used there.
 ;;
@@ -424,7 +424,7 @@ that element should never be deleted since it is the primary key."
 ;; useless for interoperability between MUAs.
 ;;
 ;; This filter does a very rudimentary job.
-(defun vcard-filter-html (proplist values)
+(defun vcard-filter-html (_proplist values)
   "Remove HTML tags from attribute values."
   (save-match-data
     (while values

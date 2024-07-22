@@ -1,4 +1,4 @@
-;;; tapestry.el --- Tools to configure your GNU Emacs windows
+;;; tapestry.el --- Tools to configure your GNU Emacs windows  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;

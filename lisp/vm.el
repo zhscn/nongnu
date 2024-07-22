@@ -1,4 +1,4 @@
-;;; vm.el --- Entry points for VM
+;;; vm.el --- Entry points for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -1000,7 +1000,7 @@ non-virtual folders should be returned."
 
 (put 'vm-virtual-mode 'mode-class 'special)
 
-(defun vm-virtual-mode (&rest ignored)
+(defun vm-virtual-mode (&rest _ignored)
   "Mode for reading multiple mail folders as one folder.
 
 The commands available are the same commands that are found in
@@ -1313,7 +1313,7 @@ summary buffer to select a folder."
 ;;;###autoload
 (defun vm-compose-mail (&optional to subject other-headers continue
 		        switch-function yank-action
-			send-actions return-action &rest ignored)
+			send-actions return-action &rest _ignored)
   (interactive)
   (vm-session-initialization)
   (require 'vm-reply)

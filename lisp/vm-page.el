@@ -1,4 +1,4 @@
-;;; vm-page.el ---  Commands to move around within a VM message
+;;; vm-page.el ---  Commands to move around within a VM message  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;
@@ -79,7 +79,7 @@ Prefix argument N means scroll forward N lines."
     (when vm-presentation-buffer
       (set-buffer vm-presentation-buffer))
     ;; We are either in the Presentation buffer or the Folder buffer
-    (let ((point (point))
+    (let (;; (point (point))
 	  (w (vm-get-visible-buffer-window (current-buffer))))
       (unless (and w (vm-frame-totally-visible-p (vm-window-frame w)))
 	(vm-display (current-buffer) t
@@ -228,6 +228,8 @@ Prefix argument N means scroll forward N lines."
 	       (set-window-point w (point))
 	       'end-of-message)))))))
 
+(defvar scroll-in-place-replace-original) ;; FIXME: Unknown var.  XEmacs?
+
 ;; exploratory scrolling, what a concept.
 ;;
 ;; we do this because pos-visible-in-window-p checks the current
@@ -367,7 +369,7 @@ Negative arg means scroll forward."
       (setq search-pairs (list (cons (point-min) (point-max)))))
     (let (e)
       (vm-map-extents (function
-		       (lambda (e ignore)
+		       (lambda (e _ignore)
 			 (when (vm-extent-property e 'vm-url)
 			   (vm-delete-extent e))
 			 nil))
@@ -497,7 +499,7 @@ Negative arg means scroll forward."
 (defun vm-display-xface-xemacs ()
   (let ((case-fold-search t) e g h)
     (if (map-extents (function
-		      (lambda (e ignore)
+		      (lambda (e _ignore)
 			(if (vm-extent-property e 'vm-xface)
 			    t
 			  nil)))
@@ -611,7 +613,7 @@ Negative arg means scroll forward."
 		    ':data (buffer-string))))
 	(and work-buffer (kill-buffer work-buffer))))))
 
-(defun vm-url-help (object)
+(defun vm-url-help (_object)
   (format
    "Use mouse button 2 to send the URL to %s.
 Use mouse button 3 to choose a Web browser for the URL."

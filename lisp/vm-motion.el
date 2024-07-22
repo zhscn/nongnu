@@ -1,4 +1,4 @@
-;;; vm-motion.el --- Commands to move around in a VM folder
+;;; vm-motion.el --- Commands to move around in a VM folder  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;

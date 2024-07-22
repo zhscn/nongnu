@@ -1,4 +1,4 @@
-;;; vm-rfaddons.el --- a collections of various useful VM helper functions
+;;; vm-rfaddons.el --- a collections of various useful VM helper functions  -*- lexical-binding: t; -*-
 ;;
 ;; This file is an add-on for VM
 ;; 
@@ -111,6 +111,16 @@
   :group 'vm-ext)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Sometimes it's handy to fake a date.
+;; I overwrite the standard function by a slightly different version.
+(defcustom vm-mail-mode-fake-date-p t
+  "Non-nil means `vm-mail-mode-insert-date-maybe' keeps an existing date header.
+Otherwise, overwrite existing date headers (Rob F)"
+  :group 'vm-rfaddons
+  :type '(boolean))
+
 (defmacro vm-rfaddons-check-option (option option-list &rest body)
   "Evaluate body if option is in OPTION-LIST or OPTION-LIST is
 nil. (Rob F)"
@@ -521,14 +531,14 @@ Use `vm-rmail-toggle' to switch between normal and this mode. (Rob F)"
                 (list this-command))
     (vm-update-summary-and-mode-line)))
   
-(defun vm-toggle-mark (count &optional m)
+(defun vm-toggle-mark (count &optional _m)
   (interactive "p")
   (vm-do-with-message
    count
    (lambda (m) (vm-set-mark-of m (not (vm-mark-of m))))
    '(vm-toggle-mark vm-mark-message marking-message)))
 
-(defun vm-toggle-deleted (count &optional m)
+(defun vm-toggle-deleted (count &optional _m)
   (interactive "p")
   (vm-do-with-message
    count
@@ -1193,7 +1203,7 @@ headers. (Rob F)"
   (vm-shrunken-headers-toggle-this))
 
 ;;;###autoload
-(defun vm-shrunken-headers-toggle-this-widget (widget &rest event)
+(defun vm-shrunken-headers-toggle-this-widget (widget &rest _event)
   (goto-char (widget-get widget :to))
   (end-of-line)
   (vm-shrunken-headers-toggle-this))
@@ -1466,7 +1476,7 @@ and add an \"%0UA\" to your `vm-summary-format'. (Rob F)"
     (setq msg (vm-real-message-of msg))
     (vm-mime-action-on-all-attachments
      nil
-     (lambda (msg layout type file)
+     (lambda (_msg _layout _type _file)
        (setq attachments (1+ attachments)))
      vm-summary-attachment-mime-types
      vm-summary-attachment-mime-type-exceptions
@@ -1819,15 +1829,6 @@ not end the comment.  Blank lines do not get comments. (Rob F)"
                 (insert ce)))
             (search-forward "\n" nil 'move)))))))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Sometimes it's handy to fake a date.
-;; I overwrite the standard function by a slightly different version.
-(defcustom vm-mail-mode-fake-date-p t
-  "Non-nil means `vm-mail-mode-insert-date-maybe' keeps an existing date header.
-Otherwise, overwrite existing date headers (Rob F)"
-  :group 'vm-rfaddons
-  :type '(boolean))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

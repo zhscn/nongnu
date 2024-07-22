@@ -1,4 +1,4 @@
-;;; vm-pine.el --- draft handling and other neat functions for VM
+;;; vm-pine.el --- draft handling and other neat functions for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is an add-on for VM
 ;; 
@@ -270,7 +270,7 @@ This is only for internal use of vm-pine.el!!!")
       (if mid
           (if f
               (setcdr f (cons mid (cdr f)))
-            (add-to-list 'midlist (list folder mid))))
+            (push (list folder mid) midlist)))
       (setq mlist (cdr mlist)))
     midlist))
   
@@ -311,6 +311,9 @@ MSGIDLIST is a list as returned by `vm-get-persistent-message-ids-for'."
                       (setq mp (cdr mp)))))))))
         (setq msgidlist (cdr msgidlist))))
     vm-message-pointers))
+
+(defvar mail-mode-hook)
+(defvar mail-setup-hook)
 
 ;;-----------------------------------------------------------------------------
 ;;;###autoload

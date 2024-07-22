@@ -1,4 +1,4 @@
-;;; vm-pop.el --- Simple POP (RFC 1939) client for VM
+;;; vm-pop.el --- Simple POP (RFC 1939) client for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -119,7 +119,7 @@ a POP server, find its cache file on the file system"
 	(msgid (list nil (vm-popdrop-sans-password source) 'uidl))
 	(pop-retrieved-messages vm-pop-retrieved-messages)
 	auto-expunge x
-	mailbox-count mailbox-size message-size response
+	mailbox-count message-size response;; mailbox-size
 	n (retrieved 0) retrieved-bytes process-buffer uidl)
     (setq auto-expunge 
 	  (cond ((setq x (assoc source vm-pop-auto-expunge-alist))
@@ -150,7 +150,8 @@ a POP server, find its cache file on the file system"
 	    (vm-pop-send-command process "STAT")
 	    (setq response (vm-pop-read-stat-response process)
 		  mailbox-count (nth 0 response)
-		  mailbox-size (nth 1 response))
+		  ;; mailbox-size (nth 1 response)
+		  )
 	    ;; forget it if the command fails
 	    ;; or if there are no messages present.
 	    (if (or (null mailbox-count)
@@ -443,8 +444,8 @@ Returns the process or nil if the session could not be created."
 	(use-ssh nil)
 	(session-name "POP")
 	(process-connection-type nil)
-	greeting timestamp ssh-process
-	protocol host port auth user pass authinfo
+	greeting timestamp ;; ssh-process
+	protocol host port auth user pass ;; authinfo
 	source-list pop-buffer source-nopwd)
     ;; parse the maildrop
     (setq source-list (vm-pop-parse-spec-to-list source)
@@ -905,8 +906,8 @@ killed as well."
 
 (defun vm-pop-ask-about-no-uidl (popdrop)
   (let ((work-buffer nil)
-	(pop-buffer (current-buffer))
-	start end)
+	;; (pop-buffer (current-buffer))
+	) ;; start end
     (unwind-protect
 	(save-excursion
 	  (save-window-excursion
@@ -934,7 +935,7 @@ popdrop
       (let* ((opoint (point))
 	     (func
 	      (function
-	       (lambda (beg end len)
+	       (lambda (_beg end _len)
 		 (if vm-pop-read-point
 		     (progn
 		       (vm-set-pop-stat-x-got statblob (- end start))
@@ -987,6 +988,7 @@ popdrop
 	;; the CRLF or the LF newline convention is used on the inbox
 	;; associated with this crashbox.  This setting assumes the LF
 	;; newline convention is used.
+	(defvar buffer-file-type) ;; FIXME: Removed in Emacs-24.4.
 	(let ((buffer-file-type t)
 	      (selective-display nil))
 	  (write-region start end target t 0))
@@ -1088,9 +1090,9 @@ LOCAL-EXPUNGE-LIST: A list of message descriptors for messages in the
   ;; If the argument DO-RETRIEVES is 'full, then all the messages that
   ;; are not presently in cache are retrieved.  Otherwise, the
   ;; messages previously retrieved are ignored.
-  (let ((here (make-vector 67 0))
+  (let ((here (obarray-make))
 	(there (vm-pop-get-uidl-data))
-	(process (vm-folder-pop-process))
+	;; (process (vm-folder-pop-process))
 	retrieve-list local-expunge-list uid 
 	mp)
     (setq mp vm-message-list)

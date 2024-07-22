@@ -1,4 +1,4 @@
-;;; vm-user.el --- Interface functions to VM internal data
+;;; vm-user.el --- Interface functions to VM internal data  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;

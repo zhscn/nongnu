@@ -1,4 +1,4 @@
-;;; vm-ps-print.el --- PS-printing functions for VM
+;;; vm-ps-print.el --- PS-printing functions for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -167,7 +167,7 @@ See `vm-summary-format' for a description of the conversion specifiers."
   :type 'string)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun vm-ps-print-message-internal (filename each folder-name mcount msg)
+(defun vm-ps-print-message-internal (filename each _folder-name _mcount _msg)
   "This function does the actual call to the ps-printing function.
 This is not a function to call interactively!
 
@@ -179,6 +179,7 @@ the header line and MCOUNT is the number of messages to print, while
 MSG is a VM message pointer.
 
 See:	`vm-ps-print-message-function'"
+  (defvar dd-mon-yyyy) ;; FIXME: Namespace!
   (let* ((dd-mon-yyyy (format-time-string "%d %b %Y   %T" (current-time)))
 	 (ps-left-header (if each (eval vm-ps-print-each-message-left-header)
 			   (eval vm-ps-print-message-left-header)))

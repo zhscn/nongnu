@@ -1,4 +1,4 @@
-;;; vm-biff.el --- a xlbiff like tool for VM
+;;; vm-biff.el --- a xlbiff like tool for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is an add-on for VM
 ;; 

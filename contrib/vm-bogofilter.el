@@ -1,4 +1,4 @@
-;;; vm-bogofilter.el version 1.1.4
+;;; vm-bogofilter.el version 1.1.4  -*- lexical-binding: t; -*-
 ;;
 ;; An interface between the VM mail reader and the bogofilter spam filter.
 ;;
@@ -361,8 +361,7 @@ vm-retrieved-spooled-mail-hook."
 	      (vm-inform 6 "%s: Message re-classified as %s, updating tag."
 			 (buffer-name) text)
 	      ))
-	(let ((buffer-read-only nil)
-	      (buffer (get-buffer-create "*Shell Command Output*")))
+	(let ((buffer-read-only nil))
 	  (call-process-region (point-min) (point-max)
 			       (or shell-file-name "sh")
 			       nil t nil shell-command-switch

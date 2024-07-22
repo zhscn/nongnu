@@ -1,4 +1,4 @@
-;; $Header: /home/jcb/Source/Emacs/RCS/vm-sumurg.el,v 1.30 2011/12/19 14:55:59 jcb Exp $
+;; $Header: /home/jcb/Source/Emacs/RCS/vm-sumurg.el,v 1.30 2011/12/19 14:55:59 jcb Exp $  -*- lexical-binding: t; -*-
 ;;; vm-sumurg.el -- Adding urgency indicators to summary
 ;; 
 ;; This file is an add-on for VM
@@ -106,11 +106,13 @@
 
 ; assuming that m is a message, highlight it in yellow, orange or red
 ; according as it has a *, **, or *** label.
-(defun vm-sumurg-highlight-message (&rest _)
+(defun vm-sumurg--highlight-message (m)
   (vm-sumurg-add-highlights (string-to-number (vm-number-of m))
 			    (vm-su-start-of m) (vm-su-end-of m)
 			    (vm-sumurg-level-of m) 
 			    ))
+(defun vm-sumurg-highlight-message (&rest _)
+  (vm-sumurg--highlight-message m)) ;FIXME: dynbind!
 
 (advice-add 'vm-summary-highlight-region :after #'vm-sumurg-highlight-message)
 
@@ -478,7 +480,9 @@
 ;; hook into vm mode to set the modeline format
 (defun vm-sumurg-vm-mode-hook-fn ()
   (setq vm-ml-sumurg-extent (make-extent nil nil))
-  (setq modeline-format (vm-sumurg-munge-modeline modeline-format)))
+  (if (boundp 'modeline-format) ;; FIXME: XEmacs?
+      (setq modeline-format (vm-sumurg-munge-modeline modeline-format))
+    (setq mode-line-format (vm-sumurg-munge-modeline mode-line-format))))
 
 (add-hook 'vm-mode-hook ' vm-sumurg-vm-mode-hook-fn)
 (add-hook 'vm-presentation-mode-hook ' vm-sumurg-vm-mode-hook-fn)
@@ -529,7 +533,7 @@
 	    (aset vm-sumurg-urgency-array i 0))
 	  (setq i (1+ i)))
 	(mapcar (lambda (m) 
-		  (vm-sumurg-check-future m) (vm-sumurg-highlight-message))
+		  (vm-sumurg-check-future m) (vm-sumurg--highlight-message m))
 		m-list)))))
   
 (add-hook 'vm-summary-update-hook 'vm-sumurg-highlight-message)
@@ -541,7 +545,7 @@
 (defvar vm-sumurg-blinker-blink nil)
 (defvar vm-sumurg-blinker-timeout-id nil)
 (defvar vm-sumurg-blinker-in-focus nil)
-(defun vm-sumurg-blinker-callback (junk)
+(defun vm-sumurg-blinker-callback (_junk)
   (if vm-sumurg-blinker-in-focus
       (if vm-sumurg-blinker-blink
 	  (progn (setq vm-sumurg-blinker-blink nil)
@@ -722,7 +726,7 @@ happens later.)"
 ;    (let ((m (car vm-message-pointer)))
 ;      (save-excursion
 ;	(set-buffer vm-summary-buffer)
-;	(vm-sumurg-highlight-message))))
+;	(vm-sumurg--highlight-message m))))
 ;    (let ((modified (buffer-modified-p)))
 ;      (set-buffer-modified-p t)
 ;      (vm-do-needed-mode-line-update)
@@ -734,7 +738,8 @@ happens later.)"
   "Make a virtual folder containing messages whose urgency is greater
 than or equal to the given value (prompted for, when interactive)."
   (interactive "nUrgency level (1-4): ")
-  (if (or (< level 1) (> level 4)) (error "%d is not a known urgency level"))
+  (if (or (< level 1) (> level 4))
+      (error "%d is not a known urgency level" level))
   (vm-select-folder-buffer)
   (vm-check-for-killed-summary)
   (vm-error-if-folder-empty)

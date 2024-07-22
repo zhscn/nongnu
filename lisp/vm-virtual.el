@@ -1,4 +1,4 @@
-;;; vm-virtual.el --- Virtual folders for VM
+;;; vm-virtual.el --- Virtual folders for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -48,6 +48,8 @@
 		  (folder))
 
 
+(defvar inhibit-local-variables) ;; FIXME: Unknown var.  XEmacs?
+
 ;;;###autoload
 (defun vm-build-virtual-message-list (new-messages &optional dont-finalize)
   "Builds a list of messages matching the virtual folder definition
@@ -84,7 +86,7 @@ all the real folder buffers involved."
 	(new-message-list nil)
 	virtual location-vector
 	message folders folder buffer
-	selectors sel-list selector arglist i
+	selectors i ;; sel-list selector arglist
 	real-buffers-used components)
     (if dont-finalize
 	nil
@@ -827,7 +829,7 @@ by a Lisp EXPRESSION.  The EXPRESSION should use the variable
   (let ((vm-virtual-message (car selectors)))
     (eval (cadr selectors))))
 
-(defun vm-vs-any (m) 
+(defun vm-vs-any (_m) 
   "Virtual selector that always selects any message."
   t)
 
@@ -902,7 +904,7 @@ insignificant characters.  (See `vm-subject-ignored-prefix',
 than a given DATE.  The DATE is specified in the format
           \"31 Dec 1999 23:59:59 GMT\"
 but you can leave out any part of it to get a sensible default."
-  (condition-case error
+  (condition-case _error
       (string< (vm-so-sortable-datestring m)
 	       (vm-timezone-make-date-sortable date))
     (error t)))
@@ -912,7 +914,7 @@ but you can leave out any part of it to get a sensible default."
 than a given DATE.  The DATE is specified in the format
           \"31 Dec 1999 23:59:59 GMT\"
 but you can leave out any part of it to get a sensible default."
-  (condition-case error
+  (condition-case _error
       (string< (vm-timezone-make-date-sortable date)
 	       (vm-so-sortable-datestring m))
     	(error t)))
@@ -922,7 +924,7 @@ but you can leave out any part of it to get a sensible default."
 given DAYS ago.  (Today is considered 0 days ago, and yesterday is
 1 day ago.)"
   (let ((date (vm-su-datestring m)))
-    (condition-case error
+    (condition-case _error
         (> (days-between (current-time-string) date) days)
       (error t))))
 
@@ -931,7 +933,7 @@ given DAYS ago.  (Today is considered 0 days ago, and yesterday is
 given DAYS ago.  (Today is considered 0 days ago, and yesterday is
 1 day ago.)"
   (let ((date (vm-su-datestring m)))
-    (condition-case error
+    (condition-case _error
         (<= (days-between (current-time-string) date) days)
       (error t))))
 
@@ -1331,7 +1333,7 @@ real or virtual)."
     (setq vm-real-buffers (vm-delete 'buffer-name vm-real-buffers t))
     (dolist (real-buf vm-real-buffers)
       (set-buffer real-buf)
-      (condition-case error-data
+      (condition-case _error-data
 	  (vm-get-new-mail)
 	;; handlers
 	(folder-read-only

@@ -1,4 +1,4 @@
-;;; vm-folder.el --- VM folder related functions
+;;; vm-folder.el --- VM folder related functions  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -1757,7 +1757,7 @@ Supports version 4 format of attribute storage, for backward compatibility."
 (defun vm-gobble-last-modified ()
   (let ((case-fold-search t)
 	(time nil)
-	time lim oldpoint)
+	lim oldpoint)
     (save-excursion
       (save-restriction
        (widen)
@@ -2018,7 +2018,7 @@ Supports version 4 format of attribute storage, for backward compatibility."
 
 (defun vm-has-message-order ()
   (let ((case-fold-search t)
-	lim order)
+	lim) ;; order
     (save-excursion
       (save-restriction
 	(widen)
@@ -3243,7 +3243,7 @@ thread are affected."
   (interactive "p")
   (or count (setq count 1))
   (let ((used-marks (eq last-command 'vm-next-command-uses-marks))
-        (del-count 0))
+        ) ;; (del-count 0)
     (vm-follow-summary-cursor)
     (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
     (let ((mlist (vm-select-operable-messages
@@ -3276,9 +3276,9 @@ Buffer Menu."
   (if (not (memq major-mode '(vm-mode vm-virtual-mode)))
       (error "%s must be invoked from a VM buffer." this-command))
 
-  (let ((virtual (eq major-mode 'vm-virtual-mode))
-	(no-expunge t)
-	(no-change nil))
+  (vm--dlet ((virtual (eq major-mode 'vm-virtual-mode))
+	     (no-expunge t)
+	     (no-change nil))
     (save-excursion (run-hooks 'vm-quit-hook)))
 
   (vm-garbage-collect-message)
@@ -3305,9 +3305,9 @@ The folder is not altered and Emacs is still visiting it."
   (if (not (memq major-mode '(vm-mode vm-virtual-mode)))
       (error "%s must be invoked from a VM buffer." this-command))
 
-  (let ((virtual (eq major-mode 'vm-virtual-mode))
-	(no-expunge t)
-	(no-change nil))
+  (vm--dlet ((virtual (eq major-mode 'vm-virtual-mode))
+	     (no-expunge t)
+	     (no-change nil))
     (save-excursion (run-hooks 'vm-quit-hook)))
 
   (vm-garbage-collect-message)
@@ -3478,7 +3478,7 @@ changes should be discarded."
   (cond ((and (not (natnump vm-flush-interval))
 	      (not (natnump vm-auto-get-new-mail))
 	      (not (natnump vm-mail-check-interval))))
-	((condition-case data
+	((condition-case _data
 	     (progn (require 'itimer) t)
 	   (error nil))
 	 (when (and (natnump vm-flush-interval) (not (get-itimer "vm-flush")))
@@ -3494,7 +3494,7 @@ changes should be discarded."
 		    (not (get-itimer "vm-check-mail")))
 	   (start-itimer "vm-check-mail" 'vm-check-mail-itimer-function
 			 vm-mail-check-interval nil)))
-	((condition-case data
+	((condition-case _data
 	     (progn (require 'timer) t)
 	   (error nil))
 	 (let (timer)
@@ -3811,7 +3811,7 @@ folder."
   (if (eq major-mode 'vm-virtual-mode)
       (vm-virtual-save-folder prefix)
     (if (buffer-modified-p)
-	(let (mp (newlist nil) (buffer-undo-list t))
+	(let ((buffer-undo-list t)) ;; (mp nil) (newlist nil)
 	  (when vm-expunge-before-save
 	    (vm-expunge-folder))
 	  (cond ((eq vm-folder-access-method 'pop)
@@ -3924,6 +3924,8 @@ run `vm-expunge-folder' followed by `vm-save-folder'."
 	(vm-inform 6 "%s: Expunging..." (buffer-name))
 	(vm-expunge-folder :quiet t)))
   (vm-save-folder prefix))
+
+(defvar inhibit-local-variables) ;; FIXME: Unknown var.  XEmacs, maybe?
 
 ;;;###autoload
 (defun vm-read-folder (folder &optional remote-spec folder-name)
@@ -4424,7 +4426,7 @@ interactive queries to the user.  The possible values are t,
 	  (vm-imap-ok-to-ask interactive)
 	  ;; for string-match calls below
 	  (case-fold-search nil)
-	  non-file-maildrop crash in safe-maildrop maildrop popdrop
+	  non-file-maildrop crash in safe-maildrop maildrop ;; popdrop
 	  retrieval-function
 	  (got-mail nil))
       (if (and (not (verify-visited-file-modtime (current-buffer)))
@@ -5076,7 +5078,7 @@ Interactively TYPE will be read from the minibuffer."
 	(n 0)
 	;; Just for laughs, make the update interval vary.
 	(modulus (+ (% (vm-abs (random)) 11) 5))
-	text-end opoint)
+	text-end) ;; opoint
     (save-excursion
       (save-restriction
        (widen)
@@ -5085,7 +5087,7 @@ Interactively TYPE will be read from the minibuffer."
        (vm-convert-folder-header old-type type)
        (while mp
 	 (goto-char (vm-start-of (car mp)))
-	 (setq opoint (point))
+	 ;; (setq opoint (point))
 	 (insert (vm-leading-message-separator type (car mp)))
 	 (if (> (vm-headers-of (car mp)) (vm-start-of (car mp)))
 	     (delete-region (point) (vm-headers-of (car mp)))
@@ -5297,9 +5299,9 @@ thread are loaded."
   (when (null count) (setq count 1))
   (let ((mlist (vm-select-operable-messages
 		count (vm-interactive-p) "Load"))
-	(errors 0)
+	;; (errors 0)
 	(n 0)
-	fetch-method
+	;; fetch-method
 	m mm
 	(need-refresh (not (vm-body-retrieved-of (vm-current-message)))))
     (setq count 0)
@@ -5364,11 +5366,11 @@ thread are retrieved."
   (save-current-buffer
     (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
     (when (null count) (setq count 1))
-    (let ((used-marks (eq last-command 'vm-next-command-uses-marks))
+    (let (;; (used-marks (eq last-command 'vm-next-command-uses-marks))
 	  (vm-external-fetched-message-limit nil)
-	  (errors 0)
+	  ;; (errors 0)
 	  (n 0)
-	  fetch-method
+	  ;; fetch-method
 	  m mm)
       ;;     (if (not used-marks) 
       ;; 	(setq mlist (list (car vm-message-pointer))))
@@ -5511,7 +5513,7 @@ the folder is saved."
   (let ((mlist (vm-select-operable-messages
 		count (vm-interactive-p) "Unload"))
 	(buffer-undo-list t)
-	(errors 0)
+	;; (errors 0)
 	m mm)
     (save-excursion
       (setq count 0)

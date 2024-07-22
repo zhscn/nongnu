@@ -1,4 +1,4 @@
-;;; vm-avirtual.el --- additional functions for virtual folder selectors
+;;; vm-avirtual.el --- additional functions for virtual folder selectors  -*- lexical-binding: t; -*-
 ;;
 ;; This file is an add-on for VM
 ;; 
@@ -146,6 +146,8 @@
       (setq feature-list (cdr feature-list)))))
 
 (defvar bbdb-get-addresses-headers)	; dummy declaration
+(defvar bbdb-user-mail-names)
+(defvar bbdb-get-only-first-address-p)
 
 ;;----------------------------------------------------------------------------
 (defvar vm-mail-virtual-selector-function-alist
@@ -490,7 +492,7 @@ in BBDB."
     (not result)))
 
 ;; return just nil for those selectors not known for mail-mode
-(defun vm-mail-vs-unknown (&optional arg)
+(defun vm-mail-vs-unknown (&optional _arg)
   nil)
 
 (defun vm-mail-vs-any ()

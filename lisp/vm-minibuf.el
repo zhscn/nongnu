@@ -1,4 +1,4 @@
-;;; vm-minibuf.el --- Minibuffer read functions for VM
+;;; vm-minibuf.el --- Minibuffer read functions for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;

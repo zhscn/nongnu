@@ -1,4 +1,4 @@
-;;; vm-reply.el --- Mailing, forwarding, and replying commands
+;;; vm-reply.el --- Mailing, forwarding, and replying commands  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -140,7 +140,7 @@ messages of the folder are involved in this reply."
   (let ((mlist (vm-select-operable-messages
 		count (vm-interactive-p) "Reply to"))
         (dir default-directory)
-        (message-pointer vm-message-pointer)
+        ;; (message-pointer vm-message-pointer)
         (case-fold-search t)
         to cc subject in-reply-to references
         mp tmp tmp2 newsgroups)
@@ -152,12 +152,12 @@ messages of the folder are involved in this reply."
     (while mp
       (cond ((setq tmp (vm-get-header-contents (car mp) "Reply-To:" ", "))
              (unless (vm-ignored-reply-to tmp)
-                 (add-to-list 'to tmp t)))
+               (cl-pushnew tmp to :test #'equal)))
             ((setq tmp (vm-get-header-contents (car mp) "From:" ", "))
-             (add-to-list 'to tmp t))
+             (cl-pushnew tmp to :test #'equal))
             ;; bad, but better than nothing for some
             ((setq tmp (vm-grok-From_-author (car mp)))
-             (add-to-list 'to tmp t))
+             (cl-pushnew tmp to :test #'equal))
             (t (error "No From: or Reply-To: header in message")))
       (let ((this-subject (vm-get-header-contents (car mp) "Subject:"))
             (this-reply-to (and vm-in-reply-to-format
@@ -202,12 +202,7 @@ messages of the folder are involved in this reply."
       (setq mp (cdr mp)))
 
     (when to
-      (setq tmp (car to))
-      (setq to (cdr to))
-      (while to
-        (setq tmp (concat tmp ", " (car to)))
-        (setq to (cdr to)))
-      (setq to tmp))
+      (setq to (mapconcat #'identity (nreverse to) ", ")))
 
     (when vm-strip-reply-headers
       (let ((mail-use-rfc822 t))
@@ -268,7 +263,7 @@ messages of the folder are involved in this reply."
 
 (defun vm-strip-ignored-addresses (addresses)
   (setq addresses (copy-sequence addresses))
-  (let (re-list list addr-list)
+  (let (re-list addr-list) ;; list
     (setq re-list vm-reply-ignored-addresses)
     (while re-list
       (setq addr-list addresses)
@@ -288,6 +283,8 @@ messages of the folder are involved in this reply."
 	      (setq result t re-list nil)
 	    (setq re-list (cdr re-list))))
 	result)))
+
+(defvar zmacs-regions) ;; XEmacs.
 
 (defun vm-mail-yank-default (&optional message)
   "The default message yank handler when `mail-citation-hook' is set to nil."
@@ -551,7 +548,7 @@ specified by `vm-included-text-headers' and
 
 (defun vm-yank-message-text (message layout)
   ;; This is the original code for included text
-  (let (new-layout type alternatives parts res insert-start)
+  (let (new-layout alternatives parts res insert-start) ;; type
     (if (null (vectorp (vm-mm-layout message)))
 	(let ((b (current-buffer)))
 	  (set-buffer (vm-buffer-of message))
@@ -562,7 +559,7 @@ specified by `vm-included-text-headers' and
 	    (append-to-buffer b (vm-headers-of message)
 			      (vm-text-end-of message))
 	    (set-buffer b)))
-      (setq type (car (vm-mm-layout-type layout)))
+      ;; (setq type (car (vm-mm-layout-type layout)))
       (setq parts (list layout))
       (setq alternatives 0)
 
@@ -625,7 +622,7 @@ specified by `vm-included-text-headers' and
 	       (setq alternatives (1- alternatives))
 	       (setq parts (cdr parts))))))))
 
-(defun vm-mail-send-and-exit (&rest ignored)
+(defun vm-mail-send-and-exit (&rest _ignored)
   "Send message and maybe delete the composition buffer.
 The value of `vm-keep-sent-mesages' determines whether the composition buffer
 is deleted.  If the composition is a reply to a message in a currently visited
@@ -732,24 +729,26 @@ folder, that message is marked as having been replied to."
 
 (defun vm-mail-mode-remove-message-id-maybe ()
   (if vm-mail-header-insert-message-id
-      (let ((resent nil))
+      (let () ;; (resent nil)
 	(if (or (vm-mail-mode-get-header-contents "Resent-To:")
 		(vm-mail-mode-get-header-contents "Resent-Cc:")
 		(vm-mail-mode-get-header-contents "Resent-Bcc:"))
 	    (progn
 	      (vm-mail-mode-remove-header "Resent-Message-ID:")
-	      (setq resent t))
+	      ;; (setq resent t)
+	      t)
 	  (vm-mail-mode-remove-header "Message-ID:")))))
 
 (defun vm-mail-mode-remove-date-maybe ()
   (if vm-mail-header-insert-date
-      (let ((resent nil))
+      (let ();; (resent nil)
 	(if (or (vm-mail-mode-get-header-contents "Resent-To:")
 		(vm-mail-mode-get-header-contents "Resent-Cc:")
 		(vm-mail-mode-get-header-contents "Resent-Bcc:"))
 	    (progn
 	      (vm-mail-mode-remove-header "Resent-Date:")
-	      (setq resent t))
+	      ;; (setq resent t)
+	      t)
 	  (vm-mail-mode-remove-header "Date:")))))
 
 ;;;###autoload
@@ -799,6 +798,7 @@ This function is a variant of `vm-get-header-contents'."
 (defvar select-safe-coding-system-function)
 
 (defvar coding-system-for-write)
+(defvar mail-send-nonascii)
 
 (defun vm-mail-send ()
   "Just like mail-send except that VM flags the appropriate message(s)
@@ -1371,8 +1371,8 @@ included in the digest."
   (vm-select-folder-buffer-and-validate 1 (vm-interactive-p))
   (let ((dir default-directory)
 	(miming (and vm-send-using-mime (equal vm-digest-send-type "mime")))
-	mp mail-buffer work-buffer b
-	ms start header-end boundary)
+	mp mail-buffer work-buffer ;; b
+	start header-end boundary) ;; ms
     (unless mlist
       ;; prefix arg doesn't have "normal" meaning here, so only call
       ;; vm-select-operable-messages for marks or threads.
@@ -1480,7 +1480,8 @@ included in the digest."
 	(while mp
 	  (let ((vm-summary-uninteresting-senders nil))
 	    (insert (vm-summary-sprintf vm-digest-preamble-format
-					(car mp)) "\n"))
+					(car mp))
+		    "\n"))
 	  (if vm-digest-center-preamble
 	      (progn
 		(forward-char -1)
@@ -1575,7 +1576,14 @@ command can be invoked from external agents via an emacsclient."
 	(if (member header '("subject" "in-reply-to" "cc"
 			     "references" "newsgroups" "body"))
 	    ;; set the variable let-bound above
-	    (set (intern header) value)
+	    (setf (pcase header
+	           ("subject"     subject)
+	           ("in-reply-to" in-reply-to)
+	           ("cc"          cc)
+		   ("references"  references)
+		   ("newsgroups"  newsgroups)
+		   ("body"        body))
+		  value)
 	  ;; we'll insert the header later
 	  (setq header-list (cons header (cons value header-list)))))
       (setq list (cdr list)))
@@ -2013,7 +2021,7 @@ message."
   (let ((temp-buffer nil)
 	(mail-buffer (current-buffer))
 	(enriched (and (boundp 'enriched-mode) enriched-mode))
-	e-list)
+	) ;; e-list
     (unwind-protect
 	(progn
 	  (setq temp-buffer (generate-new-buffer "composition preview"))
@@ -2115,7 +2123,7 @@ With a prefix arg, call `vm-mail-mode-show-headers' instead."
   (let ((case-fold-search t)
         (header-regexp (regexp-opt vm-mail-mode-hidden-headers))
         (header-end (save-excursion (mail-text) (point)))
-        start end o)
+        start end) ;; o
     (setq header-regexp (concat "^" header-regexp))
     (setq line-move-ignore-invisible t)
     (save-excursion
@@ -2131,7 +2139,7 @@ With a prefix arg, call `vm-mail-mode-show-headers' instead."
             (overlay-put o 'read-only t)))))))
 
 ;;;###autoload
-(defun vm-dnd-attach-file (uri action)
+(defun vm-dnd-attach-file (uri _action)
   "Insert a drag and drop file as a MIME attachment in a VM
 composition buffer.  URI is the url of the file as described in
 `dnd-protocol-alist'.  ACTION is ignored."

@@ -1,4 +1,4 @@
-;;; vm-license.el --- Code to show VM's warranty and copying restrictions
+;;; vm-license.el --- Code to show VM's warranty and copying restrictions  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;

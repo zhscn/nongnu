@@ -1,4 +1,4 @@
-;;; vm-smime.el ---  MIME support functions
+;;; vm-smime.el ---  MIME support functions  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -124,7 +124,7 @@ smime code always asks for a password so this might mess up your
 normal flow"
   (let ((start (point)) end
 	(buffer-read-only nil)
-	msg sub-layout retval
+	msg sub-layout ;; retval
 	(real-content-type (vm-mm-layout-type layout)))
     ;; find the most appropriate key for this mail. First search in
     ;; smime keys for a recipient then fall back to user-mail-address,

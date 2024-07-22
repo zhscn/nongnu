@@ -1,4 +1,4 @@
-;;; vm-summary.el --- Summary gathering and formatting routines for VM
+;;; vm-summary.el --- Summary gathering and formatting routines for VM  -*- lexical-binding: t; -*-
 ;;
 ;; This file is part of VM
 ;;
@@ -311,7 +311,9 @@ the messages in the current folder."
 	      (setq mp (cdr mp))))
 	  (set-buffer-modified-p modified))
 
-	(run-hooks 'vm-summary-redo-hook)))
+	;; FIXME: sumurg's hook function uses `m-list' via dynbind!
+	(vm--dlet ((m-list m-list))
+	  (run-hooks 'vm-summary-redo-hook))))
 
     (if (>= n modulus)
 	(unless vm-summary-debug 
@@ -452,7 +454,7 @@ of action."
       (set-buffer vm-summary-buffer)
       (let ((buffer-read-only nil)
 	    (msg (vm-summary-message-at-point))
-	    root next)
+	    root) ;; next
 	(when msg
 	  (setq root (vm-thread-root msg))
 	  (if (vm-expanded-root-p root)
@@ -488,14 +490,14 @@ buffer by a regenerated summary line."
   (if (and (buffer-name (vm-buffer-of m)) ; ignore deleted folders and
 	   (markerp (vm-su-start-of m))	  ; markers into deleted buffers
 	   (marker-buffer (vm-su-start-of m)))
-      (let ((modified (buffer-modified-p)) ; Folder or Presentation
+      (let (;; (modified (buffer-modified-p)) ; Folder or Presentation
 	    (do-mouse-track
 	     (or (and vm-mouse-track-summary
 		      (vm-mouse-support-possible-p))
 		 vm-summary-enable-faces))
-	    summary)
+	    ) ;; summary
 	(with-current-buffer (marker-buffer (vm-su-start-of m))
-	  (setq summary (vm-su-summary m))
+	  ;; (setq summary (vm-su-summary m))
 	  (let ((buffer-read-only nil)
 		s e i
 		(selected nil)
@@ -544,7 +546,9 @@ buffer by a regenerated summary line."
 		      (insert vm-summary-=>)))
 		  (vm-tokenized-summary-insert m (vm-su-summary m))
 	          (delete-char 1)	; delete "z"
-		  (run-hooks 'vm-summary-update-hook)
+	          ;; FIXME: sumurg's hook function uses `m' via dynbind!
+	          (vm--dlet ((m m))
+		    (run-hooks 'vm-summary-update-hook))
 		  (when do-mouse-track
 		    (vm-mouse-set-mouse-track-highlight
 		     (vm-su-start-of m)
@@ -554,9 +558,11 @@ buffer by a regenerated summary line."
 		      (vm-summary-faces-add m)
 		    (if (and selected 
 			     (facep vm-summary-highlight-face))
-			(vm-summary-highlight-region 
-			 (vm-su-start-of m) (point)
-			 vm-summary-highlight-face))))
+			;; FIXME: sumurg's advice uses `m' via dynbind!
+			(vm--dlet ((m m))
+			  (vm-summary-highlight-region 
+			   (vm-su-start-of m) (point)
+			   vm-summary-highlight-face)))))
 	      (when s
 		(put-text-property s e 'vm-message m)
 		(put-text-property s e 'invisible i))
@@ -1168,7 +1174,7 @@ attachments.  					USR, 2010-05-13."
     (vm-mime-operate-on-attachments
      nil
      :action
-     (lambda (msg layout type file)
+     (lambda (_msg _layout _type _file)
        (setq attachments (1+ attachments)))
      :included vm-summary-attachment-mime-types
      :excluded vm-summary-attachment-mime-type-exceptions
@@ -1453,7 +1459,7 @@ cached-data-vector."
   (when (and (vm-su-weekday m) (vm-su-month m) (vm-su-monthday m)
 	     (vm-su-hour m) (vm-su-year m))
     (format "%s %s %s %s %s"
-	    (condition-case error
+	    (condition-case _error
 		(substring (vm-su-weekday m) 0 3)
 	      (error "Sun"))		; make up a valid weekday
 	    (substring (vm-su-month m) 0 3)
@@ -1846,7 +1852,7 @@ mime-decoded string with text properties.  USR 2010-05-13"
        m
        (let ((subject (vm-decode-mime-encoded-words-in-string
                        (or (vm-get-header-contents m "Subject:") "")))
-	     (i nil))
+	     ) ;; (i nil)
 	 (while (string-match "\n[ \t]*" subject)
 	   (setq subject (replace-match " " nil t subject)))
 	 subject ))))
@@ -1863,7 +1869,7 @@ necessary.  It is a mime-decoded string with text properties.
        m
        (let ((subject (vm-decode-mime-encoded-words-in-string
                        (or (vm-get-header-contents m "Subject:") "")))
-	     (i nil))
+	     ) ;; (i nil)
 	 (setq subject (vm-su-trim-subject subject))
 	 (while (string-match "\n[ \t]*" subject)
 	   (setq subject (replace-match " " nil t subject)))
@@ -2063,7 +2069,7 @@ Call this function if you made changes to `vm-summary-format'."
 	   nil )))
 
 (defun vm-get-folder-totals (folder)
-  (let ((default "(0 0 0 0)") fs db key data)
+  (let ((default "(0 0 0 0)") db key data) ;; fs
     (catch 'done
       (if (null vm-folders-summary-database)
 	  (throw 'done (read default)))
@@ -2117,13 +2123,13 @@ Call this function if you made changes to `vm-summary-format'."
 	  (throw 'done nil))
       (setq totals (read totals))
       (cond ((eq action 'arrived)
-	     (let ((arrived (car objects)) c n)
+	     (let ((arrived (car objects)) c) ;; n
 	       (setcar totals (+ (car totals) arrived))
 	       (setq c (cdr totals))
 	       (setcar c (+ (car c) arrived))))
 	    ((eq action 'saved)
 	     (let ((arrived (car objects))
-		   (m (nth 1 objects)) c n)
+		   (m (nth 1 objects)) c) ;; n
 	       (setcar totals (+ (car totals) arrived))
 	       ;; increment new and unread counts if necessary.
 	       ;; messages are never saved with the deleted flag
@@ -2284,7 +2290,7 @@ Call this function if you made changes to `vm-summary-format'."
 	     (or (and vm-mouse-track-summary
 		      (vm-mouse-support-possible-p))
 		 vm-summary-enable-faces))
-	    summary)
+	    ) ;;summary
 	(with-current-buffer (marker-buffer (vm-fs-start-of fs))
 	  (let ((buffer-read-only nil))
 	    (unwind-protect
