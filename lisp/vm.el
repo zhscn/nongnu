@@ -158,15 +158,12 @@ deleted messages.  Use `###' to expunge deleted messages."
       (cond ((bufferp folder)	    ; may be unnecessary. USR, 2010-01
 	     (setq access-method vm-folder-access-method))
 	    ((and (stringp folder) (vm-imap-folder-spec-p folder))
-	     (setq access-method 'imap)
-	     (setq vm-last-visit-imap-folder folder))
+	     (setq access-method 'imap))
 	    ((and (stringp folder) (vm-pop-folder-spec-p folder))
-	     (setq access-method 'pop)
-	     (setq vm-last-visit-pop-folder folder))
+	     (setq access-method 'pop))
 	    ((stringp folder)
 	     (setq folder 
-		   (expand-file-name folder vm-folder-directory))
-	     (setq vm-last-visit-folder folder))))
+		   (expand-file-name folder vm-folder-directory)))))
 
     ;; [2] Set up control variables that decide what needs to be done
     ;;    (not yet fully understood.  USR, 2012-02)
