@@ -1387,6 +1387,8 @@ summary buffer to select a folder."
     (setq varlist (apropos-internal "^\\(vm\\|vmpc\\)-" 'custom-variable-p))
     (setq varlist (vm-delete
 		   (lambda (v)
+		     ;; FIXME: `standard-value' stores an *expression*
+                     ;; whose value is the default value!
 		     (equal (symbol-value v) (car (get v 'standard-value))))
 		   varlist))
     (setq varlist (sort varlist
