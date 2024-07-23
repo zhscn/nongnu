@@ -373,7 +373,7 @@ Negative arg means scroll forward."
 			 (when (vm-extent-property e 'vm-url)
 			   (vm-delete-extent e))
 			 nil))
-		      (current-buffer)
+		      ;; (current-buffer)
 		      ;; (point-min) (point-max)
 		      )
       (if clean-only (vm-inform 1 "Energy from urls removed!")
