@@ -319,11 +319,12 @@ NO-TOOT means we are not calling from a toot buffer."
       (with-current-buffer "*new toot*"
         (mastodon-toot--update-status-fields)))))
 
-(defun mastodon-toot--action-success (marker byline-region remove)
+(defun mastodon-toot--action-success (marker byline-region remove &optional json)
   "Insert/remove the text MARKER with `success' face in byline.
 BYLINE-REGION is a cons of start and end pos of the byline to be
 modified.
-Remove MARKER if REMOVE is non-nil, otherwise add it."
+Remove MARKER if REMOVE is non-nil, otherwise add it.
+JSON is added to the string as its item-json."
   (let ((inhibit-read-only t)
         (bol (car byline-region))
         (eol (cdr byline-region))
@@ -342,7 +343,8 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
           (format "(%s) "
                   (propertize marker
                               'face 'success))
-          'cursor-face 'mastodon-cursor-highlight-face))))
+          'cursor-face 'mastodon-cursor-highlight-face
+          'item-json json)))) ;; for (un)folding items
     (when at-byline-p
       ;; leave point after the marker:
       (unless remove
@@ -422,7 +424,7 @@ TYPE is a symbol, either `favourite' or `boost.'"
                       (mastodon-toot--action-success (if boost-p
                                                          (mastodon-tl--symbol 'boost)
                                                        (mastodon-tl--symbol 'favourite))
-                                                     byline-region remove))
+                                                     byline-region remove item-json))
                     (message (format "%s #%s" (if boost-p msg action) id)))))))
            (message (format "Nothing to %s here?!?" action-string))))))))
 
