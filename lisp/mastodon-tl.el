@@ -1566,7 +1566,8 @@ When DOMAIN, force inclusion of user's domain in their handle."
       (mastodon-media--inline-images start-pos (point)))))
 
 (defun mastodon-tl--fold-body-maybe (body &optional unfolded)
-  "Fold toot BODY if it is very long."
+  "Fold toot BODY if it is very long.
+Folding decided by `mastodon-tl--fold-toots-at-length'."
   (if (or unfolded
           (eq nil mastodon-tl--fold-toots-at-length)
           (length< body mastodon-tl--fold-toots-at-length))
@@ -1581,30 +1582,37 @@ When DOMAIN, force inclusion of user's domain in their handle."
       (propertize display
                   'read-more body))))
 
-(defun mastodon-tl--unfold-post ()
+(defun mastodon-tl--unfold-post (&optional fold)
   "Unfold the toot at point if it is folded (read-more)."
   (interactive)
   ;; if at byline, must search backwards:
   (let* ((byline (mastodon-tl--property 'byline :no-move))
          (read-more-p (mastodon-tl--find-property-range
                        'read-more (point) byline)))
-    (if (not read-more-p)
+    (if (and (not fold)
+             (not read-more-p))
         (user-error "No folded item at point?")
       (let* ((inhibit-read-only t)
-             (range (mastodon-tl--find-property-range
-                     'item-json (point)))
+             (range (mastodon-tl--find-property-range 'item-json (point)))
              (toot (mastodon-tl--property 'item-json)))
-        ;; `replace-region-contents' is much to slow, our hack from fedi.el
-        ;; is much simpler and much faster
+        ;; `replace-region-contents' is much to slow, our hack from fedi.el is
+        ;; much simpler and much faster
         (let ((beg (car range))
               (end (cdr range)))
           (save-excursion
             (goto-char beg)
             (delete-region beg end)
-            (mastodon-tl--toot toot nil nil nil :unfolded))
+            (mastodon-tl--toot toot nil nil nil
+                               (when (not fold) :unfolded)))
           ;; move point to line where text formerly ended:
-          (goto-char end)
-          (beginning-of-line))))))
+          (unless fold
+            (goto-char end)
+            (beginning-of-line)))))))
+
+(defun mastodon-tl--fold-post ()
+  "Fold post at point, if it is too long."
+  (interactive)
+  (mastodon-tl--unfold-post :fold))
 
 ;; from mastodon-alt.el:
 (defun mastodon-tl--toot-for-stats (&optional toot)
