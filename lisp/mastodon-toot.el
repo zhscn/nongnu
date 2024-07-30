@@ -1863,17 +1863,17 @@ Added to `after-change-functions' in new toot buffers."
 (defun mastodon-toot--delete-draft-toot ()
   "Prompt for a draft toot and delete it."
   (interactive)
-  (if (multisession-value mastodon-toot-draft-toots-list)
-      (let ((draft (completing-read
-                    "Select draft to delete: "
-                    (multisession-value mastodon-toot-draft-toots-list)
-                    nil t)))
-        (setf (multisession-value mastodon-toot-draft-toots-list)
-              (cl-delete draft
-                         (multisession-value mastodon-toot-draft-toots-list)
-                         :test #'equal))
-        (message "Draft deleted!"))
-    (message "No drafts to delete.")))
+  (if (not (multisession-value mastodon-toot-draft-toots-list))
+      (message "No drafts to delete.")
+    (let ((draft (completing-read
+                  "Select draft to delete: "
+                  (multisession-value mastodon-toot-draft-toots-list)
+                  nil t)))
+      (setf (multisession-value mastodon-toot-draft-toots-list)
+            (cl-delete draft
+                       (multisession-value mastodon-toot-draft-toots-list)
+                       :test #'equal))
+      (message "Draft deleted!"))))
 
 (defun mastodon-toot--delete-all-drafts ()
   "Delete all drafts."
