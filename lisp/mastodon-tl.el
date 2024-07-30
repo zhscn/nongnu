@@ -2030,11 +2030,14 @@ view all branches of a thread."
     (let ((id (mastodon-tl--property 'base-item-id)))
       (mastodon-tl--thread id))))
 
-(defun mastodon-tl--thread (&optional id)
-  "Open thread buffer for toot at point or with ID."
+(defun mastodon-tl--thread (&optional thread-id)
+  "Open thread buffer for toot at point or with THREAD-ID."
   (interactive)
   (mastodon-toot--with-toot-item
-   (let* ((id (or id (mastodon-tl--property 'base-item-id :no-move)))
+   ;; this function's var must not be id as the above macro binds id and even
+   ;; if we provide the arg (e.g. url-lookup), the macro definition overrides
+   ;; it, making the optional arg unusable!
+   (let* ((id (or thread-id (mastodon-tl--property 'base-item-id :no-move)))
           (type (mastodon-tl--field 'type (mastodon-tl--property 'item-json :no-move))))
      (if (or (string= type "follow_request")
              (string= type "follow")) ; no can thread these
