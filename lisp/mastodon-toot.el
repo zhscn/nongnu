@@ -434,7 +434,7 @@ ACTION is a symbol, either `favourite' or `boost.'"
                     (mastodon-toot--action-success (if boost-p
                                                        (mastodon-tl--symbol 'boost)
                                                      (mastodon-tl--symbol 'favourite))
-                                                   byline-region remove))
+                                                   byline-region remove item-json))
                   (message "%s #%s" (if boost-p msg action) id)))))))))))
 
 (defun mastodon-toot--inc-or-dec (count subtract)
@@ -499,7 +499,8 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
               (message (if bookmarked-p
                            "Bookmark removed!"
                          "Toot bookmarked!"))
-              (remove (when bookmarked-p t)))
+              (remove (when bookmarked-p t))
+              (item-json (mastodon-tl--property 'item-json)))
          (if (not byline-region)
              (user-error "Nothing to %s here?!?" action)
            (mastodon-toot--action
@@ -510,7 +511,7 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
                                      (cdr byline-region)
                                      (list 'bookmarked-p (not bookmarked-p))))
               (mastodon-toot--action-success bookmark-str
-                                             byline-region remove)
+                                             byline-region remove item-json)
               (message "%s #%s" message id)))))))))
 
 (defun mastodon-toot--list-toot-boosters ()
