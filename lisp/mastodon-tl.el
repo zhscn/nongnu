@@ -1619,6 +1619,17 @@ Folding decided by `mastodon-tl--fold-toots-at-length'."
   (interactive)
   (mastodon-tl--unfold-post :fold))
 
+(defun mastodon-tl--fold-post-toggle ()
+  "Toggle the folding status of the toot at point."
+  (interactive)
+  (let* ((byline-p (mastodon-tl--property 'byline))
+         (read-more-p (save-excursion
+                        (when byline-p
+                          (previous-line)
+                          (beginning-of-line))
+                        (mastodon-tl--property 'read-more))))
+    (mastodon-tl--unfold-post (if (not read-more-p) :fold))))
+
 ;; from mastodon-alt.el:
 (defun mastodon-tl--toot-for-stats (&optional toot)
   "Return the TOOT on which we want to extract stats.
