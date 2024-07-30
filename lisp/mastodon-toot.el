@@ -611,7 +611,7 @@ Uses `lingva.el'."
          (msg (if pinned-p "unpinned" "pinned"))
          (msg-y-or-n (if pinned-p "Unpin" "Pin")))
     (if (not pinnable-p)
-        (user-error "You can only pin your own toots.")
+        (user-error "You can only pin your own toots")
       (when (y-or-n-p (format "%s this toot? " msg-y-or-n))
         (mastodon-toot--action action
                                (lambda (_)
@@ -641,7 +641,7 @@ NO-REDRAFT means delete toot only."
          (reply-id (alist-get 'in_reply_to_id toot))
          (pos (point)))
     (if (not (mastodon-toot--own-toot-p toot))
-        (user-error "You can only delete (and redraft) your own toots.")
+        (user-error "You can only delete (and redraft) your own toots")
       (when (y-or-n-p (if no-redraft
                           (format "Delete this toot? ")
                         (format "Delete and redraft this toot? ")))
@@ -787,7 +787,7 @@ To use the downloaded emoji, run `mastodon-toot--enable-custom-emoji'."
          (custom-emoji (mastodon-http--get-json url))
          (mastodon-custom-emoji-dir (mastodon-toot--emoji-dir)))
     (if (not (file-directory-p emojify-emojis-dir))
-        (user-error "Looks like you need to set up emojify first.")
+        (user-error "Looks like you need to set up emojify first")
       (unless (file-directory-p mastodon-custom-emoji-dir)
         (make-directory mastodon-custom-emoji-dir nil)) ; no add parent
       (mapc (lambda (x)
@@ -913,13 +913,13 @@ instance to edit a toot."
                 (or (not args-media)
                     (not (= (length mastodon-toot--media-attachments)
                             (length mastodon-toot--media-attachment-ids)))))
-           (user-error "Something is wrong with your uploads. Wait for them to complete or try again."))
+           (user-error "Something is wrong with your uploads. Wait for them to complete or try again"))
           ((and mastodon-toot--max-toot-chars
                 (> (mastodon-toot--count-toot-chars toot mastodon-toot--content-warning)
                    mastodon-toot--max-toot-chars))
-           (user-error "Looks like your toot (inc. CW) is longer than that maximum allowed length."))
+           (user-error "Looks like your toot (inc. CW) is longer than that maximum allowed length"))
           ((mastodon-toot--empty-p)
-           (user-error "Empty toot. Cowardly refusing to post this."))
+           (user-error "Empty toot. Cowardly refusing to post this"))
           (t
            (let ((response (if edit-id ; we are sending an edit:
                                (mastodon-http--put endpoint args)
@@ -955,22 +955,22 @@ instance to edit a toot."
   "Edit the user's toot at point."
   (interactive)
   (mastodon-toot--with-toot-item
-   (mastodon-tl--with-toot-item
-    (if (not (mastodon-toot--own-toot-p toot))
-        (user-error "You can only edit your own toots.")
-      (let* ((source (mastodon-toot--get-toot-source id))
-             (content (alist-get 'text source))
-             (source-cw (alist-get 'spoiler_text source)))
-        (let-alist toot
-          (when (y-or-n-p "Edit this toot? ")
-            (mastodon-toot--compose-buffer nil .in_reply_to_id nil
-                                           content :edit)
-            (goto-char (point-max))
-            ;; adopt reply-to-id, visibility, CW, language, and media:
-            (mastodon-toot--set-toot-properties .in_reply_to_id .visibility
-                                                source-cw .language nil nil
-                                                .media_attachments .poll)
-            (setq mastodon-toot--edit-item-id id))))))))
+   (let ((toot (mastodon-tl--property 'base-toot)))
+     (if (not (mastodon-toot--own-toot-p toot))
+         (user-error "You can only edit your own toots")
+       (let* ((source (mastodon-toot--get-toot-source id))
+              (content (alist-get 'text source))
+              (source-cw (alist-get 'spoiler_text source)))
+         (let-alist toot
+           (when (y-or-n-p "Edit this toot? ")
+             (mastodon-toot--compose-buffer nil .in_reply_to_id nil
+                                            content :edit)
+             (goto-char (point-max))
+             ;; adopt reply-to-id, visibility, CW, language, and media:
+             (mastodon-toot--set-toot-properties .in_reply_to_id .visibility
+                                                 source-cw .language nil nil
+                                                 .media_attachments .poll)
+             (setq mastodon-toot--edit-item-id id))))))))
 
 (defun mastodon-toot--get-toot-source (id)
   "Fetch the source JSON of toot with ID."
@@ -1233,7 +1233,7 @@ prefixed by >."
   "Change the current visibility to the next valid value."
   (interactive)
   (if (mastodon-tl--buffer-type-eq 'edit-toot)
-      (user-error "You can't change visibility when editing toots.")
+      (user-error "You can't change visibility when editing toots")
     (setq mastodon-toot--visibility
           (cond ((string= mastodon-toot--visibility "public")
                  "unlisted")
@@ -1277,7 +1277,7 @@ File is actually attached to the toot upon posting."
     ;; Only a max. of 4 attachments are allowed, so pop the oldest one.
     (pop mastodon-toot--media-attachments))
   (if (file-directory-p file)
-      (user-error "Looks like you chose a directory not a file.")
+      (user-error "Looks like you chose a directory not a file")
     (setq mastodon-toot--media-attachments
           (nconc mastodon-toot--media-attachments
                  `(((:contents . ,(mastodon-http--read-file-as-string file))
@@ -1416,7 +1416,7 @@ LENGTH is the maximum character length allowed for a poll option."
          (longest (apply #'max (mapcar #'length choices))))
     (if (> longest length)
         (progn
-          (user-error "looks like you went over the max length. Try again.")
+          (user-error "Looks like you went over the max length. Try again")
           (sleep-for 2)
           (mastodon-toot--read-poll-options count length))
       choices)))
@@ -1484,10 +1484,10 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
   ;; https://codeberg.org/martianh/mastodon.el/issues/285
   (interactive)
   (cond ((mastodon-tl--buffer-type-eq 'edit-toot)
-         (user-error "You can't schedule toots you're editing."))
+         (user-error "You can't schedule toots you're editing"))
         ((not (or (mastodon-tl--buffer-type-eq 'new-toot)
                   (mastodon-tl--buffer-type-eq 'scheduled-statuses)))
-         (user-error "You can only schedule toots from the compose buffer or scheduled toots view."))
+         (user-error "You can only schedule toots from the compose buffer or scheduled toots view"))
         (t
          (let* ((id (when reschedule (mastodon-tl--property 'id :no-move)))
                 (ts (when reschedule
