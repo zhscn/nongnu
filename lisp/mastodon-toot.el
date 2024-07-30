@@ -559,8 +559,7 @@ base toot."
 
 (defun mastodon-toot--toot-url ()
   "Return the URL of the base toot at point."
-  (let* ((toot (or (mastodon-tl--property 'base-toot)
-                   (mastodon-tl--property 'item-json))))
+  (let* ((toot (mastodon-toot--base-toot-or-item-json)))
     (if (mastodon-tl--field 'reblog toot)
         (alist-get 'url (alist-get 'reblog toot))
       (alist-get 'url toot))))
@@ -570,8 +569,7 @@ base toot."
 If the toot is a fave/boost notification, copy the text of the
 base toot."
   (interactive)
-  (let* ((toot (or (mastodon-tl--property 'base-toot)
-                   (mastodon-tl--property 'item-json))))
+  (let* ((toot (mastodon-toot--base-toot-or-item-json)))
     (kill-new (mastodon-tl--content toot))
     (message "Toot content copied to the clipboard.")))
 
@@ -603,8 +601,7 @@ Uses `lingva.el'."
 (defun mastodon-toot--pin-toot-toggle ()
   "Pin or unpin user's toot at point."
   (interactive)
-  (let* ((toot (or (mastodon-tl--property 'base-toot) ;fave/boost notifs
-                   (mastodon-tl--property 'item-json)))
+  (let* ((toot (mastodon-toot--base-toot-or-item-json))
          (pinnable-p (mastodon-toot--own-toot-p toot))
          (pinned-p (equal (alist-get 'pinned toot) t))
          (action (if pinned-p "unpin" "pin"))
@@ -632,8 +629,7 @@ Uses `lingva.el'."
   "Delete and redraft user's toot at point synchronously.
 NO-REDRAFT means delete toot only."
   (interactive)
-  (let* ((toot (or (mastodon-tl--property 'base-toot) ;fave/boost notifs
-                   (mastodon-tl--property 'item-json)))
+  (let* ((toot (mastodon-toot--base-toot-or-item-json))
          (id (mastodon-tl--as-string (mastodon-tl--item-id toot)))
          (url (mastodon-http--api (format "statuses/%s" id)))
          (toot-cw (alist-get 'spoiler_text toot))
@@ -955,7 +951,7 @@ instance to edit a toot."
   "Edit the user's toot at point."
   (interactive)
   (mastodon-toot--with-toot-item
-   (let ((toot (mastodon-tl--property 'base-toot)))
+   (let ((toot (mastodon-toot--base-toot-or-item-json)))
      (if (not (mastodon-toot--own-toot-p toot))
          (user-error "You can only edit your own toots")
        (let* ((source (mastodon-toot--get-toot-source id))
