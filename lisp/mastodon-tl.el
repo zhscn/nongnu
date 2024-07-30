@@ -1573,9 +1573,8 @@ Folding decided by `mastodon-tl--fold-toots-at-length'."
           (length< body mastodon-tl--fold-toots-at-length))
       body
     (let* ((heading (mastodon-search--format-heading
-                     (mastodon-tl--make-link
-                      "READ MORE"
-                      'read-more)))
+                     (mastodon-tl--make-link "READ MORE" 'read-more)
+                     nil :no-newline))
            (display (concat (substring body 0
                                        mastodon-tl--fold-toots-at-length)
                             heading)))

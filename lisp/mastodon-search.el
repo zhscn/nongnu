@@ -128,14 +128,14 @@ Optionally add string TYPE after HEADING."
   (insert
    (mastodon-search--format-heading str type)))
 
-(defun mastodon-search--format-heading (str &optional type)
+(defun mastodon-search--format-heading (str &optional type no-newline)
   "Format STR as a heading.
 Optionally add string TYPE after HEADING."
   (mastodon-tl--set-face
    (concat "\n " mastodon-tl--horiz-bar "\n "
            (upcase str) " "
            (if type (upcase type) "") "\n"
-           " " mastodon-tl--horiz-bar "\n")
+           " " mastodon-tl--horiz-bar (unless no-newline "\n"))
    'success))
 
 (defvar mastodon-search-types
