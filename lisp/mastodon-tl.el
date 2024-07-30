@@ -1597,24 +1597,27 @@ Folding decided by `mastodon-tl--fold-toots-at-length'."
         ;; `replace-region-contents' is much to slow, our hack from fedi.el is
         ;; much simpler and much faster
         (let ((beg (car range))
-              (end (cdr range)))
+              (end (cdr range))
+              (last-point (point)))
           (save-excursion
             (goto-char beg)
             (delete-region beg end)
             (delete-char 1) ;; prevent newlines accumulating
             (mastodon-tl--toot toot nil nil nil
                                (when (not fold) :unfolded)))
-          ;; move point to line where text formerly ended:
-          (unless fold
-            (goto-char end)
-            (beginning-of-line)))))))
+          (cond ((or fold byline)
+                 ;; if folding, or if point was at byline already:
+                 ;; FIXME: ideally we could goto last-point if folding but
+                 ;; point was not in now hidden area)
+                 (mastodon-tl--goto-next-item))
+                (t
+                 (goto-char last-point)
+                 (beginning-of-line))))))))
 
 (defun mastodon-tl--fold-post ()
   "Fold post at point, if it is too long."
   (interactive)
-  (mastodon-tl--unfold-post :fold)
-  ;; inserting leaves us at beg of toot, so let's leave point at byline:
-  (mastodon-tl--goto-next-item))
+  (mastodon-tl--unfold-post :fold))
 
 ;; from mastodon-alt.el:
 (defun mastodon-tl--toot-for-stats (&optional toot)
