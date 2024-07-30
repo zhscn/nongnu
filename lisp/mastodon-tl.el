@@ -1602,6 +1602,7 @@ Folding decided by `mastodon-tl--fold-toots-at-length'."
           (save-excursion
             (goto-char beg)
             (delete-region beg end)
+            (delete-char 1) ;; prevent newlines accumulating
             (mastodon-tl--toot toot nil nil nil
                                (when (not fold) :unfolded)))
           ;; move point to line where text formerly ended:
@@ -1612,7 +1613,9 @@ Folding decided by `mastodon-tl--fold-toots-at-length'."
 (defun mastodon-tl--fold-post ()
   "Fold post at point, if it is too long."
   (interactive)
-  (mastodon-tl--unfold-post :fold))
+  (mastodon-tl--unfold-post :fold)
+  ;; inserting leaves us at beg of toot, so let's leave point at byline:
+  (mastodon-tl--goto-next-item))
 
 ;; from mastodon-alt.el:
 (defun mastodon-tl--toot-for-stats (&optional toot)
