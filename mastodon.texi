@@ -344,6 +344,8 @@ For a full list of commands and variables, see @uref{mastodon-index.org, mastodo
 @tab delete your toot at point, and reload current timeline
 @item @samp{D}
 @tab delete and redraft toot at point, preserving reply/CW/visibility
+@item @samp{!}
+@tab toggle folding of toot at point
 @item (@samp{S-C-}) @samp{W}, @samp{M}, @samp{B}
 @tab (un)follow, (un)mute, (un)block author of toot at point
 @item 
@@ -691,7 +693,7 @@ to your translator function as its text argument. Here's what
 @node Bookmarks and @samp{mastodonel}
 @subsection Bookmarks and @samp{mastodon.el}
 
-@samp{mastodon.el} implements a basic bookmark record and handler. Currently, this means that you can bookmark a post item and later load it in thread view. This could be expanded to any item with an id, but probably not to things like timeline views. If you want to be able to bookmark something, open an issue and ask, it's trivial to expand the bookmarking code.
+@samp{mastodon.el} implements a basic bookmark record and handler. Currently, this means that you can bookmark a post item and later load it in thread view. This could be expanded to any item with an id, but probably not to things like timeline views. If you want to be able to bookmark something, open an issue and ask, as it's trivial to expand the bookmarking code.
 
 @node Dependencies
 @section Dependencies

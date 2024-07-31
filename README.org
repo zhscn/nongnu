@@ -185,6 +185,7 @@ For a full list of commands and variables, see [[file:mastodon-index.org][mastod
 | =i=              | (un)pin your toot at point                                                      |
 | =d=              | delete your toot at point, and reload current timeline                          |
 | =D=              | delete and redraft toot at point, preserving reply/CW/visibility                |
+| =!=              | toggle folding of toot at point                                                 |
 | (=S-C-=) =W=, =M=, =B= | (un)follow, (un)mute, (un)block author of toot at point                         |
 |----------------+---------------------------------------------------------------------------------|
 |                | *Profile view*                                                                    |
@@ -414,7 +415,7 @@ to your translator function as its text argument. Here's what
 
 *** Bookmarks and =mastodon.el=
 
-=mastodon.el= implements a basic bookmark record and handler. Currently, this means that you can bookmark a post item and later load it in thread view. This could be expanded to any item with an id, but probably not to things like timeline views. If you want to be able to bookmark something, open an issue and ask, it's trivial to expand the bookmarking code.
+=mastodon.el= implements a basic bookmark record and handler. Currently, this means that you can bookmark a post item and later load it in thread view. This could be expanded to any item with an id, but probably not to things like timeline views. If you want to be able to bookmark something, open an issue and ask, as it's trivial to expand the bookmarking code.
 
 ** Dependencies
 

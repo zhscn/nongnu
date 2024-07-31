@@ -302,6 +302,7 @@ your ‘mastodon-token-file’ does not contain ‘:client_id’ and
      ‘i’                      (un)pin your toot at point
      ‘d’                      delete your toot at point, and reload current timeline
      ‘D’                      delete and redraft toot at point, preserving reply/CW/visibility
+     ‘!’                      toggle folding of toot at point
      (‘S-C-’) ‘W’, ‘M’, ‘B’   (un)follow, (un)mute, (un)block author of toot at point
                               *Profile view*
      ‘C-c C-c’                cycle between statuses, statuses without boosts, followers, and following
@@ -584,7 +585,7 @@ File: mastodon.info,  Node: Bookmarks and mastodonel,  Prev: Translating toots, 
 Currently, this means that you can bookmark a post item and later load
 it in thread view.  This could be expanded to any item with an id, but
 probably not to things like timeline views.  If you want to be able to
-bookmark something, open an issue and ask, it’s trivial to expand the
+bookmark something, open an issue and ask, as it’s trivial to expand the
 bookmarking code.
 
 
@@ -755,27 +756,27 @@ Node: Usage4164
 Node: Logging in to your instance4607
 Node: Timelines5604
 Ref: Keybindings6079
-Ref: Toot byline legend10853
-Node: Composing toots11162
-Ref: Keybindings (1)12714
-Ref: Autocompletion of mentions tags and emoji13249
-Ref: Draft toots14174
-Node: Other commands and account settings14645
-Node: Customization17812
-Node: Commands and variables index18690
-Node: Alternative timeline layout19206
-Node: Live-updating timelines mastodon-async-mode19611
-Node: Translating toots20463
-Node: Bookmarks and mastodonel21645
-Node: Dependencies22184
-Node: Network compatibility22867
-Node: Contributing23749
-Node: Bug reports24245
-Node: Fixes and features25156
-Node: Coding style25657
-Node: Supporting mastodonel26281
-Node: Contributors26848
-Node: screenshots27283
+Ref: Toot byline legend10919
+Node: Composing toots11228
+Ref: Keybindings (1)12780
+Ref: Autocompletion of mentions tags and emoji13315
+Ref: Draft toots14240
+Node: Other commands and account settings14711
+Node: Customization17878
+Node: Commands and variables index18756
+Node: Alternative timeline layout19272
+Node: Live-updating timelines mastodon-async-mode19677
+Node: Translating toots20529
+Node: Bookmarks and mastodonel21711
+Node: Dependencies22253
+Node: Network compatibility22936
+Node: Contributing23818
+Node: Bug reports24314
+Node: Fixes and features25225
+Node: Coding style25726
+Node: Supporting mastodonel26350
+Node: Contributors26917
+Node: screenshots27352
 
 End Tag Table
 

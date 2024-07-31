@@ -101,6 +101,7 @@
 |                  | mastodon-search--trending-statuses                | Display a list of statuses trending on your instance.                          |
 |                  | mastodon-search--trending-tags                    | Display a list of tags trending on your instance.                              |
 |                  | mastodon-search-mode                              | Toggle mastodon search minor mode.                                             |
+| /                | mastodon-switch-to-buffer                         | Switch to a live mastodon buffer.                                              |
 | B                | mastodon-tl--block-user                           | Query for USER-HANDLE from current status and block that user.                 |
 | <mouse-2>        | mastodon-tl--click-image-or-video                 | Click to play video with `mpv.el'.                                             |
 |                  | mastodon-tl--copy-image-caption                   | Copy the caption of the image at point.                                        |
@@ -110,6 +111,8 @@
 |                  | mastodon-tl--do-link-action-at-point              | Do the action of the link at POSITION.                                         |
 |                  | mastodon-tl--enable-notify-user-posts             | Query for USER-HANDLE and enable notifications when they post.                 |
 |                  | mastodon-tl--filter-user-user-posts-by-language   | Query for USER-HANDLE and filter display of their posts by language.           |
+|                  | mastodon-tl--fold-post                            | Fold post at point, if it is too long.                                         |
+| !                | mastodon-tl--fold-post-toggle                     | Toggle the folding status of the toot at point.                                |
 |                  | mastodon-tl--follow-tag                           | Prompt for a tag (from post at point) and follow it.                           |
 | W                | mastodon-tl--follow-user                          | Query for USER-HANDLE from current status and follow that user.                |
 |                  | mastodon-tl--follow-user-disable-boosts           | Prompt for a USER-HANDLE, and disable display of boosts in home timeline.      |
@@ -134,7 +137,7 @@
 | SPC              | mastodon-tl--scroll-up-command                    | Call `scroll-up-command', loading more toots if necessary.                     |
 |                  | mastodon-tl--single-toot                          | View toot at point in separate buffer.                                         |
 |                  | mastodon-tl--some-followed-tags-timeline          | Prompt for some tags, and open a timeline for them.                            |
-| RET, T           | mastodon-tl--thread                               | Open thread buffer for toot at point or with ID.                               |
+| RET, T           | mastodon-tl--thread                               | Open thread buffer for toot at point or with THREAD-ID.                        |
 |                  | mastodon-tl--toggle-sensitive-image               | Toggle dislay of sensitive image at point.                                     |
 |                  | mastodon-tl--toggle-spoiler-in-thread             | Toggler content warning for all posts in current thread.                       |
 | c                | mastodon-tl--toggle-spoiler-text-in-toot          | Toggle the visibility of the spoiler text in the current toot.                 |
@@ -177,13 +180,13 @@
 |                  | mastodon-toot--save-draft                         | Save the current compose toot text as a draft.                                 |
 | C-c C-s          | mastodon-toot--schedule-toot                      | Read a date (+ time) in the minibuffer and schedule the current toot.          |
 | C-c C-c          | mastodon-toot--send                               | POST contents of new-toot buffer to fediverse instance and kill buffer.        |
+| C-c C-w          | mastodon-toot--set-content-warning                | Set a content warning for the current toot.                                    |
 |                  | mastodon-toot--set-default-visibility             | Set the default visibility for toots on the server.                            |
 | C-c C-l          | mastodon-toot--set-toot-language                  | Prompt for a language and set `mastodon-toot--language'.                       |
 | k                | mastodon-toot--toggle-bookmark                    | Bookmark or unbookmark toot at point.                                          |
 | b                | mastodon-toot--toggle-boost                       | Boost/unboost toot at `point'.                                                 |
 | f                | mastodon-toot--toggle-favourite                   | Favourite/unfavourite toot at `point'.                                         |
 | C-c C-n          | mastodon-toot--toggle-nsfw                        | Toggle `mastodon-toot--content-nsfw'.                                          |
-| C-c C-w          | mastodon-toot--toggle-warning                     | Toggle `mastodon-toot--content-warning'.                                       |
 | a                | mastodon-toot--translate-toot-text                | Translate text of toot at point.                                               |
 | E                | mastodon-toot--view-toot-edits                    | View editing history of the toot at point in a popup buffer.                   |
 |                  | mastodon-turn-on-discover                         | Turns on discover support                                                      |
