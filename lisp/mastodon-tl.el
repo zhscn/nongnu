@@ -1605,10 +1605,11 @@ Folding decided by `mastodon-tl--fold-toots-at-length'."
             (delete-char 1) ;; prevent newlines accumulating
             (mastodon-tl--toot toot nil nil nil
                                (when (not fold) :unfolded)))
-          (cond ((or fold byline)
-                 ;; if folding, or if point was at byline already:
-                 ;; FIXME: ideally we could goto last-point if folding but
-                 ;; point was not in now hidden area)
+          (cond ((or byline
+                     (and fold
+                          ;; if point was in area now folded:
+                          (> last-point
+                             (+ beg mastodon-tl--fold-toots-at-length))))
                  (mastodon-tl--goto-next-item))
                 (t
                  (goto-char last-point)
