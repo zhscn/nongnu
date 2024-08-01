@@ -1588,14 +1588,28 @@ Folding decided by `mastodon-tl--fold-toots-at-length'."
   (let* ((byline (mastodon-tl--property 'byline :no-move))
          (read-more-p (mastodon-tl--find-property-range
                        'read-more (point) byline)))
+    ;; FIXME: handle any point of the item body and byline
+    ;; ie if we are inbetween, try moving up or down (and check again?)
     (if (and (not fold)
              (not read-more-p))
         (user-error "No folded item at point?")
       (let* ((inhibit-read-only t)
              (range (mastodon-tl--find-property-range 'item-json (point)))
+             ;; FIXME: we need to reload toot data if we want
+             ;; fave/boost/bookmark stats to display correctly. ie if we do
+             ;; an action then (un)fold, stats/(*)/etc display incorrectly.
+
+             ;; another option may be to check favourited-p/boosted-p prop,
+             ;; and then call toot--action-success again with the relevant
+             ;; symbol (to insert it after re-display)? as per
+             ;; `mastodon-toot--toggle-boost-or-favourite' callback?
+
+             ;; or, is it simpler to just not replace the byline? to do that,
+             ;; we need to call `mastodont-tl--insert-status' without
+             ;; inserting a byline, so that props are all correct...
              (toot (mastodon-tl--property 'item-json)))
-        ;; `replace-region-contents' is much to slow, our hack from fedi.el is
-        ;; much simpler and much faster
+        ;; `replace-region-contents' is much too slow, our hack from fedi.el
+        ;; is much simpler and much faster:
         (let ((beg (car range))
               (end (cdr range))
               (last-point (point)))

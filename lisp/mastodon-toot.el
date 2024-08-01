@@ -376,7 +376,7 @@ JSON is added to the string as its item-json."
         (mastodon-tl--goto-next-item)))))
 
 (defun mastodon-toot--action (action callback)
-  "Take ACTION on toot at point, then execute CALLBACK.
+  "Take ACTION, a string, on toot at point, then execute CALLBACK.
 Makes a POST request to the server. Used for favouriting,
 boosting, or bookmarking toots."
   (let* ((id (mastodon-tl--property 'base-item-id))
