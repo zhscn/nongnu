@@ -386,56 +386,57 @@ boosting, or bookmarking toots."
     (mastodon-http--triage response callback)))
 
 (defun mastodon-toot--toggle-boost-or-favourite (action)
-  "Toggle boost or favourite of toot at `point'.
+  "Toggle boost or favourite of toot at point.
 ACTION is a symbol, either `favourite' or `boost.'"
   (mastodon-toot--with-toot-item
-   (let ((n-type (mastodon-tl--property 'notification-type :no-move)))
-     (if (or (equal n-type "follow")
-             (equal n-type "follow_request"))
-         (user-error (format "Can't do action on %s notifications." n-type))
-       (let* ((boost-p (equal action 'boost))
-              (byline-region
-               (mastodon-tl--find-property-range 'byline (point)))
-              (boosted (when byline-region
+   (let* ((n-type (mastodon-tl--property 'notification-type :no-move))
+          (byline-region (mastodon-tl--find-property-range 'byline (point)))
+          (boost-p (eq action 'boost))
+          (action-str (symbol-name action))
+          (item-json (mastodon-tl--property 'item-json))
+          (vis (mastodon-tl--field 'vis item-json)))
+     (cond
+      ((not byline-region)
+       (user-error "Nothing to %s here?!?" action-str))
+      ;; there's nothing wrong with faving/boosting own toots
+      ;; & nothing wrong with faving/boosting own toots from notifs,
+      ;; it boosts/faves the base toot, not the notif status
+      ((or (equal n-type "follow")
+           (equal n-type "follow_request"))
+       (user-error "Can't %s %s notifications" action n-type))
+      ((and boost-p
+            (or (equal vis "direct")
+                (equal vis "private")))
+       (user-error "Can't boost posts with visibility: %s" vis))
+      (t
+       (let* ((boosted (when byline-region
                          (get-text-property (car byline-region) 'boosted-p)))
               (faved (when byline-region
                        (get-text-property (car byline-region) 'favourited-p)))
-              (action (if boost-p
-                          (if boosted "unreblog" "reblog")
-                        (if faved "unfavourite" "favourite")))
-              (msg (if boosted "unboosted" "boosted"))
-              (action-string (if boost-p "boost" "favourite"))
-              (remove (if boost-p (when boosted t) (when faved t)))
-              (item-json (mastodon-tl--property 'item-json))
-              (visibility (mastodon-tl--field 'visibility item-json)))
-         (if (not byline-region)
-             (user-error "Nothing to %s here?!?" action-string)
-           (if (and (or (equal visibility "direct")
-                        (equal visibility "private"))
-                    boost-p)
-               (user-error "You cant boost posts with visibility: %s"
-                           visibility)
-             ;; there's nothing wrong with faving/boosting own toots
-             ;; & nothing wrong with faving/boosting own toots from notifs,
-             ;; it boosts/faves the base toot, not the notif status
-             (if (and (equal "private" visibility)
-                      (eq action 'boost))
-                 (user-error "You can't boost private toots")
-               (mastodon-toot--action
-                action
-                (lambda (_)
-                  (let ((inhibit-read-only t))
-                    (add-text-properties (car byline-region)
-                                         (cdr byline-region)
-                                         (if boost-p
-                                             (list 'boosted-p (not boosted))
-                                           (list 'favourited-p (not faved))))
-                    (mastodon-toot--update-stats-on-action action remove)
-                    (mastodon-toot--action-success (if boost-p
-                                                       (mastodon-tl--symbol 'boost)
-                                                     (mastodon-tl--symbol 'favourite))
-                                                   byline-region remove item-json))
-                  (message "%s #%s" (if boost-p msg action) id)))))))))))
+              (str-api (if boost-p "reblog" action-str))
+              (action-str-api (mastodon-toot--str-negify str-api faved boosted))
+              (action-pp (concat (mastodon-toot--str-negify action-str faved boosted)
+                                 (if boost-p "ed" "d")))
+              (remove (if boost-p (when boosted t) (when faved t))))
+         (mastodon-toot--action
+          action-str-api
+          (lambda (_)
+            (let ((inhibit-read-only t))
+              (add-text-properties (car byline-region)
+                                   (cdr byline-region)
+                                   (if boost-p
+                                       (list 'boosted-p (not boosted))
+                                     (list 'favourited-p (not faved))))
+              (mastodon-toot--update-stats-on-action action remove)
+              (mastodon-toot--action-success (mastodon-tl--symbol action)
+                                             byline-region remove item-json))
+            (message "%s #%s" action-pp id)))))))))
+
+(defun mastodon-toot--str-negify (str faved boosted)
+  "Add \"un\" to STR if FAVED or BOOSTED is non-nil."
+  (if (or faved boosted)
+      (concat "un" str)
+    str))
 
 (defun mastodon-toot--inc-or-dec (count subtract)
   "If SUBTRACT, decrement COUNT, else increment."
