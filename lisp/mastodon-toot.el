@@ -481,39 +481,32 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
   "Bookmark or unbookmark toot at point."
   (interactive)
   (mastodon-toot--with-toot-item
-   (let ((n-type (mastodon-tl--property 'notification-type :no-move)))
-     (if (or (equal n-type "follow")
-             (equal n-type "follow_request"))
-         (user-error (format "Can't bookmark %s notifications." n-type))
-       (let* ((bookmarked-p (mastodon-tl--property
-                             'bookmarked-p
-                             (if (mastodon-tl--property 'byline :no-move)
-                                 ;; no move if not in byline, the idea being
-                                 ;; if in body, we do move forward to byline
-                                 ;; to toggle correctly. alternatively we
-                                 ;; could bookmarked-p whole posts.
-                                 :no-move)))
-              (byline-region (when id
-                               (mastodon-tl--find-property-range 'byline (point))))
-              (action (if bookmarked-p "unbookmark" "bookmark"))
-              (bookmark-str (mastodon-tl--symbol 'bookmark))
-              (message (if bookmarked-p
-                           "Bookmark removed!"
-                         "Toot bookmarked!"))
-              (remove (when bookmarked-p t))
-              (item-json (mastodon-tl--property 'item-json)))
-         (if (not byline-region)
-             (user-error "Nothing to %s here?!?" action)
-           (mastodon-toot--action
-            action
-            (lambda (_)
-              (let ((inhibit-read-only t))
-                (add-text-properties (car byline-region)
-                                     (cdr byline-region)
-                                     (list 'bookmarked-p (not bookmarked-p))))
-              (mastodon-toot--action-success bookmark-str
-                                             byline-region remove item-json)
-              (message "%s #%s" message id)))))))))
+   (let* ((n-type (mastodon-tl--property 'notification-type :no-move))
+          (byline-region (mastodon-tl--find-property-range 'byline (point)))
+          (bookmarked-p (when byline-region
+                          (get-text-property (car byline-region) 'bookmarked-p)))
+          (action (if bookmarked-p "unbookmark" "bookmark")))
+     (cond ((or (equal n-type "follow")
+                (equal n-type "follow_request"))
+            (user-error "Can't bookmark %s notifications" n-type))
+           ((not byline-region)
+            (user-error "Nothing to %s here?!?" action))
+           (t
+            (let* ((bookmark-str (mastodon-tl--symbol 'bookmark))
+                   (message (if bookmarked-p
+                                "Bookmark removed!"
+                              "Toot bookmarked!"))
+                   (item-json (mastodon-tl--property 'item-json)))
+              (mastodon-toot--action
+               action
+               (lambda (_)
+                 (let ((inhibit-read-only t))
+                   (add-text-properties (car byline-region)
+                                        (cdr byline-region)
+                                        (list 'bookmarked-p (not bookmarked-p)))
+                   (mastodon-toot--action-success bookmark-str
+                                                  byline-region bookmarked-p item-json)
+                   (message "%s #%s" message id))))))))))
 
 (defun mastodon-toot--list-toot-boosters ()
   "List the boosters of toot at point."
