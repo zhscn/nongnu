@@ -1506,7 +1506,8 @@ Runs `mastodon-tl--render-text' and fetches poll or media."
     (string= reply-to-id prev-id)))
 
 (defun mastodon-tl--insert-status (toot body author-byline action-byline
-                                        &optional id base-toot detailed-p thread domain unfolded)
+                                        &optional id base-toot detailed-p
+                                        thread domain unfolded no-byline)
   "Display the content and byline of timeline element TOOT.
 BODY will form the section of the toot above the byline.
 AUTHOR-BYLINE is an optional function for adding the author
@@ -1523,32 +1524,46 @@ JSON of the toot responded to.
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client.
 THREAD means the status will be displayed in a thread view.
-When DOMAIN, force inclusion of user's domain in their handle."
+When DOMAIN, force inclusion of user's domain in their handle.
+UNFOLDED is a boolean meaning whether to unfold or fold item if foldable.
+NO-BYLINE means just insert toot body, used for folding."
   (let* ((start-pos (point))
          (reply-to-id (alist-get 'in_reply_to_id toot))
          (after-reply-status-p
           (when (and thread reply-to-id)
             (mastodon-tl--after-reply-status reply-to-id)))
-         (type (alist-get 'type toot)))
-    ;; body:
+         (type (alist-get 'type toot))
+         (toot-foldable
+          (and mastodon-tl--fold-toots-at-length
+               (length> body mastodon-tl--fold-toots-at-length))))
     (insert
      (propertize
       (concat
-       "\n"
-       (if (and after-reply-status-p thread)
-           (concat (mastodon-tl--symbol 'replied)
-                   "\n")
-         "")
-       (let ((bar (mastodon-tl--symbol 'reply-bar))
-             (body (mastodon-tl--fold-body-maybe body unfolded)))
+       (propertize
+        (concat
+         "\n"
+         ;; relpy symbol (broken):
          (if (and after-reply-status-p thread)
-             (propertize body
-                         'line-prefix bar
-                         'wrap-prefix bar)
-           body))
-       " \n"
+             (concat (mastodon-tl--symbol 'replied)
+                     "\n")
+           "")
+         ;; actual body:
+         (let ((bar (mastodon-tl--symbol 'reply-bar))
+               (body (if (and toot-foldable (not unfolded))
+                         (mastodon-tl--fold-body body)
+                       body)))
+           (if (and after-reply-status-p thread)
+               (propertize body
+                           'line-prefix bar
+                           'wrap-prefix bar)
+             body)))
+        'toot-body t) ;; includes newlines etc. for folding
        ;; byline:
-       (mastodon-tl--byline toot author-byline action-byline detailed-p domain))
+       "\n"
+       (if no-byline
+           ""
+         (mastodon-tl--byline toot author-byline action-byline
+                              detailed-p domain)))
       'item-type    'toot
       'item-id      (or id ; notification's own id
                         (alist-get 'id toot)) ; toot id
@@ -1560,90 +1575,86 @@ When DOMAIN, force inclusion of user's domain in their handle."
       'item-json    toot
       'base-toot    base-toot
       'cursor-face 'mastodon-cursor-highlight-face
-      'notification-type type)
-     "\n")
+      'notification-type type
+      'toot-foldable toot-foldable
+      'toot-folded (and toot-foldable (not unfolded)))
+     (if no-byline "" "\n"))
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
 
-(defun mastodon-tl--fold-body-maybe (body &optional unfolded)
+(defun mastodon-tl--fold-body (body)
   "Fold toot BODY if it is very long.
 Folding decided by `mastodon-tl--fold-toots-at-length'."
-  (if (or unfolded
-          (eq nil mastodon-tl--fold-toots-at-length)
-          (length< body mastodon-tl--fold-toots-at-length))
-      body
-    (let* ((heading (mastodon-search--format-heading
-                     (mastodon-tl--make-link "READ MORE" 'read-more)
-                     nil :no-newline))
-           (display (concat (substring body 0
-                                       mastodon-tl--fold-toots-at-length)
-                            heading)))
-      (propertize display
-                  'read-more body))))
+  (let* ((heading (mastodon-search--format-heading
+                   (mastodon-tl--make-link "READ MORE" 'read-more)
+                   nil :no-newline))
+         (display (concat (substring body 0
+                                     mastodon-tl--fold-toots-at-length)
+                          heading)))
+    (propertize display
+                'read-more body)))
 
 (defun mastodon-tl--unfold-post (&optional fold)
-  "Unfold the toot at point if it is folded (read-more)."
+  "Unfold the toot at point if it is folded (read-more).
+FOLD means to fold it instead"
   (interactive)
-  ;; if at byline, must search backwards:
-  (let* ((byline (mastodon-tl--property 'byline :no-move))
-         (read-more-p (mastodon-tl--find-property-range
-                       'read-more (point) byline)))
-    ;; FIXME: handle any point of the item body and byline
-    ;; ie if we are inbetween, try moving up or down (and check again?)
-    (if (and (not fold)
-             (not read-more-p))
-        (user-error "No folded item at point?")
+  (let ((at-byline (mastodon-tl--property 'byline :no-move)))
+    (if (save-excursion
+          (when (not at-byline)
+            (mastodon-tl--goto-next-item))
+          (not (mastodon-tl--property 'toot-foldable :no-move)))
+        (user-error "No foldable item at point?")
       (let* ((inhibit-read-only t)
-             (range (mastodon-tl--find-property-range 'item-json (point)))
-             ;; FIXME: we need to reload toot data if we want
-             ;; fave/boost/bookmark stats to display correctly. ie if we do
-             ;; an action then (un)fold, stats/(*)/etc display incorrectly.
+             (body-range (mastodon-tl--find-property-range 'toot-body
+                                                           (point) :backward))
+             (toot (mastodon-tl--property 'item-json :no-move))
+             ;; `replace-region-contents' is much too slow, our hack from
+             ;; fedi.el is much simpler and much faster:
+             (beg (car body-range))
+             (end (cdr body-range))
+             (last-point (point))
+             (point-after-fold (> last-point
+                                  (+ beg mastodon-tl--fold-toots-at-length))))
+        ;; save-excursion here useless actually:
 
-             ;; another option may be to check favourited-p/boosted-p prop,
-             ;; and then call toot--action-success again with the relevant
-             ;; symbol (to insert it after re-display)? as per
-             ;; `mastodon-toot--toggle-boost-or-favourite' callback?
-
-             ;; or, is it simpler to just not replace the byline? to do that,
-             ;; we need to call `mastodont-tl--insert-status' without
-             ;; inserting a byline, so that props are all correct...
-             (toot (mastodon-tl--property 'item-json)))
-        ;; `replace-region-contents' is much too slow, our hack from fedi.el
-        ;; is much simpler and much faster:
-        (let ((beg (car range))
-              (end (cdr range))
-              (last-point (point)))
-          (save-excursion
-            (goto-char beg)
-            (delete-region beg end)
-            (delete-char 1) ;; prevent newlines accumulating
-            (mastodon-tl--toot toot nil nil nil
-                               (when (not fold) :unfolded)))
-          (cond ((or byline
-                     (and fold
-                          ;; if point was in area now folded:
-                          (> last-point
-                             (+ beg mastodon-tl--fold-toots-at-length))))
-                 (mastodon-tl--goto-next-item))
-                (t
-                 (goto-char last-point)
-                 (beginning-of-line))))))))
+        ;; FIXME: because point goes to top of item, the screen gets scrolled
+        ;; by insertion
+        (goto-char beg)
+        (delete-region beg end)
+        (delete-char 1) ;; prevent newlines accumulating
+        ;; insert toot body:
+        (mastodon-tl--toot toot nil nil nil
+                           (not fold) ;; (if fold :folded :unfolded)
+                           :no-byline)
+        ;; set toot-folded prop on entire toot (not just body):
+        (let ((toot-range ;; post fold action range:
+               (mastodon-tl--find-property-range 'item-json
+                                                 (point) :backward)))
+          (add-text-properties (car toot-range)
+                               (cdr toot-range)
+                               `(toot-folded ,fold)))
+        ;; try to leave point somewhere sane:
+        (cond ((or at-byline
+                   (and fold
+                        point-after-fold)) ;; point was in area now folded
+               (ignore-errors (forward-line -1)) ;; in case we are btw
+               (mastodon-tl--goto-next-item)) ;; goto byline
+              (t
+               (goto-char last-point)
+               (when point-after-fold ;; point was in READ MORE heading:
+                 (beginning-of-line))))
+        (message (format "%s" (if fold "Fold" "Unfold")))))))
 
 (defun mastodon-tl--fold-post ()
   "Fold post at point, if it is too long."
   (interactive)
-  (mastodon-tl--unfold-post :fold))
+  (mastodon-tl--unfold-post t))
 
 (defun mastodon-tl--fold-post-toggle ()
   "Toggle the folding status of the toot at point."
   (interactive)
-  (let* ((byline-p (mastodon-tl--property 'byline))
-         (read-more-p (save-excursion
-                        (when byline-p
-                          (previous-line)
-                          (beginning-of-line))
-                        (mastodon-tl--property 'read-more))))
-    (mastodon-tl--unfold-post (if (not read-more-p) :fold))))
+  (let* ((folded (mastodon-tl--property 'toot-folded :no-move)))
+    (mastodon-tl--unfold-post (not folded))))
 
 ;; from mastodon-alt.el:
 (defun mastodon-tl--toot-for-stats (&optional toot)
@@ -1705,19 +1716,22 @@ To disable showing the stats, customize
   (and (null (mastodon-tl--field 'in_reply_to_id toot))
        (not (mastodon-tl--field 'rebloged toot))))
 
-(defun mastodon-tl--toot (toot &optional detailed-p thread domain unfolded)
+(defun mastodon-tl--toot (toot &optional detailed-p thread domain
+                               unfolded no-byline)
   "Format TOOT and insert it into the buffer.
 DETAILED-P means display more detailed info. For now
 this just means displaying toot client.
 THREAD means the status will be displayed in a thread view.
-When DOMAIN, force inclusion of user's domain in their handle."
+When DOMAIN, force inclusion of user's domain in their handle.
+UNFOLDED is a boolean meaning whether to unfold or fold item if foldable.
+NO-BYLINE means just insert toot body, used for folding."
   (mastodon-tl--insert-status
    toot
    (mastodon-tl--clean-tabs-and-nl (if (mastodon-tl--has-spoiler toot)
                                        (mastodon-tl--spoiler toot)
                                      (mastodon-tl--content toot)))
    'mastodon-tl--byline-author 'mastodon-tl--byline-boosted
-   nil nil detailed-p thread domain unfolded))
+   nil nil detailed-p thread domain unfolded no-byline))
 
 (defun mastodon-tl--timeline (toots &optional thread domain)
   "Display each toot in TOOTS.
