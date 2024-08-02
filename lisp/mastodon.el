@@ -414,24 +414,27 @@ not, just browse the URL in the normal fashion."
   "Check if QUERY resembles a fediverse URL."
   ;; calqued off https://github.com/tuskyapp/Tusky/blob/c8fc2418b8f5458a817bba221d025b822225e130/app/src/main/java/com/keylesspalace/tusky/BottomSheetActivity.kt
   ;; thx to Conny Duck!
+  ;; mastodon at least seems to allow only [a-z0-9_] for usernames, plus "."
+  ;; but not at beginning or end, see https://github.com/mastodon/mastodon/issues/6830
+  ;; objects may have - in them
   (let* ((uri-parsed (url-generic-parse-url query))
          (query (url-filename uri-parsed)))
     (save-match-data
       (or (string-match "^/@[^/]+$" query)
           (string-match "^/@[^/]+/[[:digit:]]+$" query)
-          (string-match "^/user[s]?/@?[[:alnum:]]+$" query) ; @: pleroma or soapbox
+          (string-match "^/user[s]?/@?[[:alnum:]_]+$" query) ; @: pleroma or soapbox
           (string-match "^/notice/[[:alnum:]]+$" query)
           (string-match "^/objects/[-a-f0-9]+$" query)
           (string-match "^/notes/[a-z0-9]+$" query)
           (string-match "^/display/[-a-f0-9]+$" query)
-          (string-match "^/profile/[[:alpha:]]+$" query)
-          (string-match "^/p/[[:alpha:]]+/[[:digit:]]+$" query)
-          (string-match "^/[[:alpha:]]+$" query)
-          (string-match "^/u/[[:alpha:]]+$" query)
-          (string-match "^/c/[[:alnum:]]+$" query)
+          (string-match "^/profile/[[:alpha:]_]+$" query)
+          (string-match "^/p/[[:alpha:]_]+/[[:digit:]]+$" query)
+          (string-match "^/[[:alpha:]_]+$" query)
+          (string-match "^/u/[[:alpha:]_]+$" query)
+          (string-match "^/c/[[:alnum:]_]+$" query)
           (string-match "^/post/[[:digit:]]+$" query)
           (string-match "^/comment/[[:digit:]]+$" query) ; lemmy
-          (string-match "^/user[s]?/[[:alnum:]]+/statuses/[[:digit:]]+$" query) ; hometown
+          (string-match "^/user[s]?/[[:alnum:]_]+/statuses/[[:digit:]]+$" query) ; hometown
           (string-match "^/notes/[[:alnum:]]+$" query))))) ; misskey post
 
 (defun mastodon-live-buffers ()
