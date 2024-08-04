@@ -40,6 +40,7 @@
 (defvar emojify-user-emojis)
 
 (require 'cl-lib)
+(require 'persist)
 (require 'mastodon-iso)
 (require 'facemenu)
 (require 'text-property-search)
@@ -222,8 +223,8 @@ Takes its form from `window-configuration-to-register'.")
 (defvar mastodon-toot-current-toot-text nil
   "The text of the toot being composed.")
 
-(define-multisession-variable mastodon-toot-draft-toots-list nil
-  "A list of toots that have been saved as drafts.
+(persist-defvar mastodon-toot-draft-toots-list nil
+                "A list of toots that have been saved as drafts.
 For the moment we just put all composed toots in here, as we want
 to also capture toots that are \"sent\" but that don't successfully
 send.")
@@ -713,10 +714,8 @@ CANCEL means the toot was not sent, so we save the toot text as a draft."
   (let ((prev-window-config mastodon-toot-previous-window-config))
     (unless (eq mastodon-toot-current-toot-text nil)
       (when cancel
-        (setf (multisession-value mastodon-toot-draft-toots-list)
-              (cl-pushnew mastodon-toot-current-toot-text
-                          (multisession-value mastodon-toot-draft-toots-list)
-                          :test 'equal))))
+        (cl-pushnew mastodon-toot-current-toot-text
+                    mastodon-toot-draft-toots-list :test 'equal)))
     ;; prevent some weird bug when cancelling a non-empty toot:
     (delete #'mastodon-toot--save-toot-text after-change-functions)
     (quit-window 'kill)
@@ -738,10 +737,8 @@ Pushes `mastodon-toot-current-toot-text' to
 `mastodon-toot-draft-toots-list'."
   (interactive)
   (unless (eq mastodon-toot-current-toot-text nil)
-    (setf (multisession-value mastodon-toot-draft-toots-list)
-          (cl-pushnew mastodon-toot-current-toot-text
-                      (multisession-value mastodon-toot-draft-toots-list)
-                      :test 'equal))
+    (cl-pushnew mastodon-toot-current-toot-text
+                mastodon-toot-draft-toots-list :test 'equal)
     (message "Draft saved!")))
 
 (defun mastodon-toot--empty-p (&optional text-only)
@@ -1825,18 +1822,16 @@ Added to `after-change-functions' in new toot buffers."
 (defun mastodon-toot--open-draft-toot ()
   "Prompt for a draft and compose a toot with it."
   (interactive)
-  (if (multisession-value mastodon-toot-draft-toots-list)
-      (let ((text (completing-read
-                   "Select draft toot: "
-                   (multisession-value mastodon-toot-draft-toots-list)
-                   nil t)))
+  (if mastodon-toot-draft-toots-list
+      (let ((text (completing-read "Select draft toot: "
+                                   mastodon-toot-draft-toots-list
+                                   nil t)))
         (if (not (mastodon-toot--compose-buffer-p))
             (mastodon-toot--compose-buffer nil nil nil text)
           (when (and (not (mastodon-toot--empty-p :text-only))
                      (y-or-n-p "Replace current text with draft?"))
-            (setf (multisession-value mastodon-toot-draft-toots-list)
-                  (cl-pushnew mastodon-toot-current-toot-text
-                              (multisession-value mastodon-toot-draft-toots-list)))
+            (cl-pushnew mastodon-toot-current-toot-text
+                        mastodon-toot-draft-toots-list)
             (goto-char
              (cdr (mastodon-tl--find-property-range 'toot-post-header
                                                     (point-min))))
@@ -1851,22 +1846,19 @@ Added to `after-change-functions' in new toot buffers."
 (defun mastodon-toot--delete-draft-toot ()
   "Prompt for a draft toot and delete it."
   (interactive)
-  (if (not (multisession-value mastodon-toot-draft-toots-list))
-      (message "No drafts to delete.")
-    (let ((draft (completing-read
-                  "Select draft to delete: "
-                  (multisession-value mastodon-toot-draft-toots-list)
-                  nil t)))
-      (setf (multisession-value mastodon-toot-draft-toots-list)
-            (cl-delete draft
-                       (multisession-value mastodon-toot-draft-toots-list)
-                       :test #'equal))
+  (if (not mastodon-toot-draft-toots-list)
+      (user-error "No drafts to delete")
+    (let ((draft (completing-read "Select draft to delete: "
+                                  mastodon-toot-draft-toots-list
+                                  nil t)))
+      (setq mastodon-toot-draft-toots-list
+            (cl-delete draft mastodon-toot-draft-toots-list :test #'equal))
       (message "Draft deleted!"))))
 
 (defun mastodon-toot--delete-all-drafts ()
   "Delete all drafts."
   (interactive)
-  (setf (multisession-value mastodon-toot-draft-toots-list) nil)
+  (setq mastodon-toot-draft-toots-list nil)
   (message "All drafts deleted!"))
 
 
