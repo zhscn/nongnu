@@ -24,6 +24,7 @@ README
 * Contributing::
 * Supporting ‘mastodon.el’: Supporting mastodonel.
 * Contributors::
+* screenshots::
 
 Installation
 
@@ -76,6 +77,7 @@ have it installed you should be able to browse this readme inside emacs.
 * Contributing::
 * Supporting ‘mastodon.el’: Supporting mastodonel.
 * Contributors::
+* screenshots::
 
 
 File: mastodon.info,  Node: Installation,  Next: Usage,  Up: README
@@ -150,10 +152,13 @@ File: mastodon.info,  Node: Emoji,  Next: Discover,  Prev: Repo,  Up: Installati
 1.1.4 Emoji
 -----------
 
-‘mastodon-mode’ will enable Emojify
-(https://github.com/iqbalansari/emacs-emojify) if it is loaded in your
-Emacs environment, so there’s no need to write your own hook anymore.
-‘emojify-mode’ is not required.
+Since Emacs 28, it has builtin emoji support with ‘emoji.el’.  If you
+prefer to use Emojify (https://github.com/iqbalansari/emacs-emojify),
+‘require’ it and set ‘mastodon-use-emojify’ to non-nil to display emoji
+in timelines and to use it when composing toots.  ‘Emoji.el’ is the
+better option, but for now only ‘emojify’ supports downloading and using
+custom emoji from your instance.  From personal experience, ‘emojify’
+also tends to result in less TOFU.
 
 
 File: mastodon.info,  Node: Discover,  Prev: Emoji,  Up: Installation
@@ -297,6 +302,7 @@ your ‘mastodon-token-file’ does not contain ‘:client_id’ and
      ‘i’                      (un)pin your toot at point
      ‘d’                      delete your toot at point, and reload current timeline
      ‘D’                      delete and redraft toot at point, preserving reply/CW/visibility
+     ‘!’                      toggle folding of toot at point
      (‘S-C-’) ‘W’, ‘M’, ‘B’   (un)follow, (un)mute, (un)block author of toot at point
                               *Profile view*
      ‘C-c C-c’                cycle between statuses, statuses without boosts, followers, and following
@@ -361,7 +367,7 @@ is as follows:
   1. Keybindings
 
      Key          Action
-     --------------------------------------------------
+     ---------------------------------------------
      ‘C-c C-c’    Send toot
      ‘C-c C-k’    Cancel toot
      ‘C-c C-w’    Add content warning
@@ -369,7 +375,7 @@ is as follows:
      ‘C-c C-n’    Add sensitive media/nsfw flag
      ‘C-c C-a’    Upload attachment(s)
      ‘C-c !’      Remove all attachments
-     ‘C-c C-e’    Add emoji (if ‘emojify’ installed)
+     ‘C-c C-e’    Insert emoji
      ‘C-c C-p’    Create a poll
      ‘C-c C-l’    Set toot language
      ‘-C-c C-s’   Schedule toot
@@ -381,7 +387,8 @@ is as follows:
      ‘mastodon-toot--enable-completion’ is enabled by default.
 
      To trigger completion, type a prefix followed by a few letters, ‘@’
-     for mentions, ‘#’ for tags, and ‘:’ for emoji.
+     for mentions, ‘#’ for tags, and ‘:’ for emoji (for now this only
+     works when using ‘emojify.el’).
 
      If you want to enable ‘company-mode’ in the toot compose buffer,
      set ‘mastodon-toot--use-company-for-completion’ to ‘t’.
@@ -574,11 +581,12 @@ File: mastodon.info,  Node: Bookmarks and mastodonel,  Prev: Translating toots, 
 1.2.10 Bookmarks and ‘mastodon.el’
 ----------------------------------
 
-‘mastodon.el’ doesn’t currently implement its own bookmark record and
-handler, which means that emacs bookmarks will not work as is.  Until we
-implement them, you can get bookmarks going immediately by using
-bookmark+.el
-(https://github.com/emacsmirror/emacswiki.org/blob/master/bookmark%2b.el).
+‘mastodon.el’ implements a basic bookmark record and handler.
+Currently, this means that you can bookmark a post item and later load
+it in thread view.  This could be expanded to any item with an id, but
+probably not to things like timeline views.  If you want to be able to
+bookmark something, open an issue and ask, as it’s trivial to expand the
+bookmarking code.
 
 
 File: mastodon.info,  Node: Dependencies,  Next: Network compatibility,  Prev: Usage,  Up: README
@@ -589,10 +597,11 @@ File: mastodon.info,  Node: Dependencies,  Next: Network compatibility,  Prev: U
 Hard dependencies (should all install with ‘mastodon.el’):
    • ‘request’ (for uploading attachments), emacs-request
      (https://github.com/tkf/emacs-request)
-   • ‘persist’ for storing some settings across sessions
+   • ‘persist’ for storing some settings across sessions (we now use
+     ‘multisession.el’ for this)
 
    Optional dependencies (install yourself, ‘mastodon.el’ can use them):
-   • ‘emojify’ for inserting and viewing emojis
+   • ‘emojify’ to use custom emoji (else we use builtin ‘emoji.el’)
    • ‘mpv’ and ‘mpv.el’ for viewing videos and gifs
    • ‘lingva.el’ for translating toots
 
@@ -701,7 +710,7 @@ I can provide IBAN or other bank account details.
 out.
 
 
-File: mastodon.info,  Node: Contributors,  Prev: Supporting mastodonel,  Up: README
+File: mastodon.info,  Node: Contributors,  Next: screenshots,  Prev: Supporting mastodonel,  Up: README
 
 1.7 Contributors
 ================
@@ -716,41 +725,58 @@ File: mastodon.info,  Node: Contributors,  Prev: Supporting mastodonel,  Up: REA
    • <https://github.com/hdurer>
    • <https://codeberg.org/Red_Starfish>
 
+
+File: mastodon.info,  Node: screenshots,  Prev: Contributors,  Up: README
+
+1.8 screenshots
+===============
+
+Here’s a (federated) timeline:
+
+ [image src="screenshot-tl.png" ]
+
+
+   Here’s a notifcations view plus a compose buffer:
+
+ [image src="screenshot-notifs+compose.png" ]
+
+
 
 
 Tag Table:
 Node: Top210
-Node: README962
-Node: Installation1596
-Node: ELPA1885
-Node: MELPA2113
-Node: Repo2493
-Node: Emoji2986
-Node: Discover3317
-Node: Usage3869
-Node: Logging in to your instance4312
-Node: Timelines5309
-Ref: Keybindings5784
-Ref: Toot byline legend10558
-Node: Composing toots10867
-Ref: Keybindings (1)12419
-Ref: Autocompletion of mentions tags and emoji12985
-Ref: Draft toots13851
-Node: Other commands and account settings14322
-Node: Customization17489
-Node: Commands and variables index18367
-Node: Alternative timeline layout18883
-Node: Live-updating timelines mastodon-async-mode19288
-Node: Translating toots20140
-Node: Bookmarks and mastodonel21322
-Node: Dependencies21794
-Node: Network compatibility22404
-Node: Contributing23286
-Node: Bug reports23782
-Node: Fixes and features24693
-Node: Coding style25194
-Node: Supporting mastodonel25818
-Node: Contributors26385
+Node: README978
+Node: Installation1628
+Node: ELPA1917
+Node: MELPA2145
+Node: Repo2525
+Node: Emoji3018
+Node: Discover3612
+Node: Usage4164
+Node: Logging in to your instance4607
+Node: Timelines5604
+Ref: Keybindings6079
+Ref: Toot byline legend10919
+Node: Composing toots11228
+Ref: Keybindings (1)12780
+Ref: Autocompletion of mentions tags and emoji13315
+Ref: Draft toots14240
+Node: Other commands and account settings14711
+Node: Customization17878
+Node: Commands and variables index18756
+Node: Alternative timeline layout19272
+Node: Live-updating timelines mastodon-async-mode19677
+Node: Translating toots20529
+Node: Bookmarks and mastodonel21711
+Node: Dependencies22253
+Node: Network compatibility22936
+Node: Contributing23818
+Node: Bug reports24314
+Node: Fixes and features25225
+Node: Coding style25726
+Node: Supporting mastodonel26350
+Node: Contributors26917
+Node: screenshots27352
 
 End Tag Table
 

@@ -31,6 +31,8 @@
 ;;; Code:
 (eval-when-compile (require 'subr-x))
 
+
+(defvar mastodon-use-emojify)
 (require 'emojify nil :noerror)
 (declare-function emojify-insert-emoji "emojify")
 (declare-function emojify-set-emoji-data "emojify")
@@ -76,7 +78,6 @@
 (autoload 'mastodon-tl--as-string "mastodon-tl")
 (autoload 'mastodon-tl--buffer-type-eq "mastodon-tl")
 (autoload 'mastodon-tl--clean-tabs-and-nl "mastodon-tl")
-(autoload 'mastodon-tl--do-if-item-strict "mastodon-tl")
 (autoload 'mastodon-tl--field "mastodon-tl")
 (autoload 'mastodon-tl--find-property-range "mastodon-tl")
 (autoload 'mastodon-tl--find-property-range "mastodon-tl")
@@ -159,11 +160,6 @@ If the original toot visibility is different we use the more restricted one."
   "Whether to enable your instance's custom emoji by default."
   :type 'boolean)
 
-(defcustom mastodon-toot--emojify-in-compose-buffer t
-  "Whether to enable `emojify-mode' in the compose buffer.
-We only attempt to enable it if its bound."
-  :type 'boolean)
-
 (defcustom mastodon-toot--proportional-fonts-compose nil
   "Nonnil to enable using proportional fonts in the compose buffer.
 By default fixed width fonts are used."
@@ -171,10 +167,7 @@ By default fixed width fonts are used."
 width fonts"))
 
 (defvar-local mastodon-toot--content-warning nil
-  "A flag whether the toot should be marked with a content warning.")
-
-(defvar-local mastodon-toot--content-warning-from-reply-or-redraft nil
-  "The content warning of the toot being replied to.")
+  "The content warning of the current toot.")
 
 (defvar-local mastodon-toot--content-nsfw nil
   "A flag indicating whether the toot should be marked as NSFW.")
@@ -267,17 +260,47 @@ send.")
    "\\>")) ; boundary end
 
 
+;;; UTILS
+
+(defun mastodon-toot--base-toot-or-item-json ()
+  "Return the JSON data of either base-toot or item-json property.
+The former is for boost or favourite notifications, returning
+data about the item boosted or favourited."
+  (or (mastodon-tl--property 'base-toot :no-move) ; fave/boost notifs
+      (mastodon-tl--property 'item-json)))
+
+
+;;; MACRO
+
+(defmacro mastodon-toot--with-toot-item (&rest body)
+  "Execute BODY if we have a toot object at point.
+Includes boosts, and notifications that display toots.
+This macro makes the local variable ID available."
+  (declare (debug t))
+  `(if (not (equal 'toot (mastodon-tl--property 'item-type :no-move)))
+       (user-error "Looks like there's no toot at point?")
+     (mastodon-tl--with-toot-helper
+      (lambda (id)
+        ,@body))))
+
+(defun mastodon-tl--with-toot-helper (body-fun)
+  "Helper function for `mastodon-tl--with-toot-item'.
+Extract any common variables needed, such as base-item-id
+property, and call BODY-FUN on them."
+  (let ((id (mastodon-tl--property 'base-item-id)))
+    (funcall body-fun id)))
+
+
 ;;; MODE MAP
 
 (defvar mastodon-toot-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") #'mastodon-toot--send)
     (define-key map (kbd "C-c C-k") #'mastodon-toot--cancel)
-    (define-key map (kbd "C-c C-w") #'mastodon-toot--toggle-warning)
+    (define-key map (kbd "C-c C-w") #'mastodon-toot--set-content-warning)
     (define-key map (kbd "C-c C-n") #'mastodon-toot--toggle-nsfw)
     (define-key map (kbd "C-c C-v") #'mastodon-toot--change-visibility)
-    (when (require 'emojify nil :noerror)
-      (define-key map (kbd "C-c C-e") #'mastodon-toot--insert-emoji))
+    (define-key map (kbd "C-c C-e") #'mastodon-toot--insert-emoji)
     (define-key map (kbd "C-c C-a") #'mastodon-toot--attach-media)
     (define-key map (kbd "C-c !") #'mastodon-toot--clear-all-attachments)
     (define-key map (kbd "C-c C-p") #'mastodon-toot--create-poll)
@@ -318,11 +341,12 @@ NO-TOOT means we are not calling from a toot buffer."
       (with-current-buffer "*new toot*"
         (mastodon-toot--update-status-fields)))))
 
-(defun mastodon-toot--action-success (marker byline-region remove)
+(defun mastodon-toot--action-success (marker byline-region remove &optional json)
   "Insert/remove the text MARKER with `success' face in byline.
 BYLINE-REGION is a cons of start and end pos of the byline to be
 modified.
-Remove MARKER if REMOVE is non-nil, otherwise add it."
+Remove MARKER if REMOVE is non-nil, otherwise add it.
+JSON is added to the string as its item-json."
   (let ((inhibit-read-only t)
         (bol (car byline-region))
         (eol (cdr byline-region))
@@ -333,7 +357,7 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
         (beginning-of-line) ;; The marker is not part of the byline
         (if (search-forward (format "(%s) " marker) eol t)
             (replace-match "")
-          (message "Oops: could not find marker '(%s)'" marker)))
+          (user-error "Oops: could not find marker '(%s)'" marker)))
       (unless remove
         (goto-char bol)
         (insert
@@ -341,7 +365,8 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
           (format "(%s) "
                   (propertize marker
                               'face 'success))
-          'cursor-face 'mastodon-cursor-highlight-face))))
+          'cursor-face 'mastodon-cursor-highlight-face
+          'item-json json)))) ;; for (un)folding items
     (when at-byline-p
       ;; leave point after the marker:
       (unless remove
@@ -352,7 +377,7 @@ Remove MARKER if REMOVE is non-nil, otherwise add it."
         (mastodon-tl--goto-next-item)))))
 
 (defun mastodon-toot--action (action callback)
-  "Take ACTION on toot at point, then execute CALLBACK.
+  "Take ACTION, a string, on toot at point, then execute CALLBACK.
 Makes a POST request to the server. Used for favouriting,
 boosting, or bookmarking toots."
   (let* ((id (mastodon-tl--property 'base-item-id))
@@ -361,69 +386,58 @@ boosting, or bookmarking toots."
          (response (mastodon-http--post url)))
     (mastodon-http--triage response callback)))
 
-(defun mastodon-toot--toggle-boost-or-favourite (type)
-  "Toggle boost or favourite of toot at `point'.
-TYPE is a symbol, either `favourite' or `boost.'"
-  (mastodon-tl--do-if-item-strict
-   (let ((n-type (mastodon-tl--property 'notification-type :no-move)))
-     (if (or (equal n-type "follow")
-             (equal n-type "follow_request"))
-         (user-error (format "Can't do action on %s notifications." n-type))
-       (let* ((boost-p (equal type 'boost))
-              ;;   (has-id (mastodon-tl--property 'base-item-id))
-              (byline-region ;(when has-id
-               (mastodon-tl--find-property-range 'byline (point)))
-              (id (when byline-region
-                    (mastodon-tl--as-string (mastodon-tl--property 'base-item-id))))
-              (boosted (when byline-region
+(defun mastodon-toot--toggle-boost-or-favourite (action)
+  "Toggle boost or favourite of toot at point.
+ACTION is a symbol, either `favourite' or `boost.'"
+  (mastodon-toot--with-toot-item
+   (let* ((n-type (mastodon-tl--property 'notification-type :no-move))
+          (byline-region (mastodon-tl--find-property-range 'byline (point)))
+          (boost-p (eq action 'boost))
+          (action-str (symbol-name action))
+          (item-json (mastodon-tl--property 'item-json))
+          (vis (mastodon-tl--field 'vis item-json)))
+     (cond
+      ((not byline-region)
+       (user-error "Nothing to %s here?!?" action-str))
+      ;; there's nothing wrong with faving/boosting own toots
+      ;; & nothing wrong with faving/boosting own toots from notifs,
+      ;; it boosts/faves the base toot, not the notif status
+      ((or (equal n-type "follow")
+           (equal n-type "follow_request"))
+       (user-error "Can't %s %s notifications" action n-type))
+      ((and boost-p
+            (or (equal vis "direct")
+                (equal vis "private")))
+       (user-error "Can't boost posts with visibility: %s" vis))
+      (t
+       (let* ((boosted (when byline-region
                          (get-text-property (car byline-region) 'boosted-p)))
               (faved (when byline-region
                        (get-text-property (car byline-region) 'favourited-p)))
-              (action (if boost-p
-                          (if boosted "unreblog" "reblog")
-                        (if faved "unfavourite" "favourite")))
-              (msg (if boosted "unboosted" "boosted"))
-              (action-string (if boost-p "boost" "favourite"))
-              (remove (if boost-p (when boosted t) (when faved t)))
-              (item-json (mastodon-tl--property 'item-json))
-              (toot-type (alist-get 'type item-json))
-              (visibility (mastodon-tl--field 'visibility item-json)))
-         (if byline-region
-             (if (and (or (equal visibility "direct")
-                          (equal visibility "private"))
-                      boost-p)
-                 (message "You cant boost posts with visibility: %s" visibility)
-               (cond ;; actually there's nothing wrong with faving/boosting own toots!
-                ;;((mastodon-toot--own-toot-p (mastodon-tl--property 'item-json))
-                ;;(error "You can't %s your own toots" action-string))
-                ;; & nothing wrong with faving/boosting own toots from notifs:
-                ;; this boosts/faves the base toot, not the notif status
-                ((and (equal "reblog" toot-type)
-                      (not (mastodon-tl--buffer-type-eq 'notifications)))
-                 (user-error "You can't %s boosts" action-string))
-                ((and (equal "favourite" toot-type)
-                      (not (mastodon-tl--buffer-type-eq 'notifications)))
-                 (user-error "You can't %s favourites" action-string))
-                ((and (equal "private" visibility)
-                      (equal type 'boost))
-                 (user-error "You can't boost private toots"))
-                (t
-                 (mastodon-toot--action
-                  action
-                  (lambda (_)
-                    (let ((inhibit-read-only t))
-                      (add-text-properties (car byline-region)
-                                           (cdr byline-region)
-                                           (if boost-p
-                                               (list 'boosted-p (not boosted))
-                                             (list 'favourited-p (not faved))))
-                      (mastodon-toot--update-stats-on-action type remove)
-                      (mastodon-toot--action-success (if boost-p
-                                                         (mastodon-tl--symbol 'boost)
-                                                       (mastodon-tl--symbol 'favourite))
-                                                     byline-region remove))
-                    (message (format "%s #%s" (if boost-p msg action) id)))))))
-           (message (format "Nothing to %s here?!?" action-string))))))))
+              (str-api (if boost-p "reblog" action-str))
+              (action-str-api (mastodon-toot--str-negify str-api faved boosted))
+              (action-pp (concat (mastodon-toot--str-negify action-str faved boosted)
+                                 (if boost-p "ed" "d")))
+              (remove (if boost-p (when boosted t) (when faved t))))
+         (mastodon-toot--action
+          action-str-api
+          (lambda (_)
+            (let ((inhibit-read-only t))
+              (add-text-properties (car byline-region)
+                                   (cdr byline-region)
+                                   (if boost-p
+                                       (list 'boosted-p (not boosted))
+                                     (list 'favourited-p (not faved))))
+              (mastodon-toot--update-stats-on-action action remove)
+              (mastodon-toot--action-success (mastodon-tl--symbol action)
+                                             byline-region remove item-json))
+            (message "%s #%s" action-pp id)))))))))
+
+(defun mastodon-toot--str-negify (str faved boosted)
+  "Add \"un\" to STR if FAVED or BOOSTED is non-nil."
+  (if (or faved boosted)
+      (concat "un" str)
+    str))
 
 (defun mastodon-toot--inc-or-dec (count subtract)
   "If SUBTRACT, decrement COUNT, else increment."
@@ -467,40 +481,33 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
 (defun mastodon-toot--toggle-bookmark ()
   "Bookmark or unbookmark toot at point."
   (interactive)
-  (mastodon-tl--do-if-item-strict
-   (let ((n-type (mastodon-tl--property 'notification-type :no-move)))
-     (if (or (equal n-type "follow")
-             (equal n-type "follow_request"))
-         (user-error (format "Can't do action on %s notifications." n-type))
-       (let* ((id (mastodon-tl--property 'base-item-id))
-              (bookmarked-p
-               (mastodon-tl--property
-                'bookmarked-p
-                (if (mastodon-tl--property 'byline :no-move)
-                    ;; no move if not in byline, the idea being if in body, we do
-                    ;; move forward to byline to toggle correctly.
-                    ;; alternatively we could bookmarked-p whole posts.
-                    :no-move)))
-              (byline-region (when id
-                               (mastodon-tl--find-property-range 'byline (point))))
-              (action (if bookmarked-p "unbookmark" "bookmark"))
-              (bookmark-str (mastodon-tl--symbol 'bookmark))
-              (message (if bookmarked-p
-                           "Bookmark removed!"
-                         "Toot bookmarked!"))
-              (remove (when bookmarked-p t)))
-         (if byline-region
-             (mastodon-toot--action
-              action
-              (lambda (_)
-                (let ((inhibit-read-only t))
-                  (add-text-properties (car byline-region)
-                                       (cdr byline-region)
-                                       (list 'bookmarked-p (not bookmarked-p))))
-                (mastodon-toot--action-success bookmark-str
-                                               byline-region remove)
-                (message (format "%s #%s" message id))))
-           (message (format "Nothing to %s here?!?" action))))))))
+  (mastodon-toot--with-toot-item
+   (let* ((n-type (mastodon-tl--property 'notification-type :no-move))
+          (byline-region (mastodon-tl--find-property-range 'byline (point)))
+          (bookmarked-p (when byline-region
+                          (get-text-property (car byline-region) 'bookmarked-p)))
+          (action (if bookmarked-p "unbookmark" "bookmark")))
+     (cond ((or (equal n-type "follow")
+                (equal n-type "follow_request"))
+            (user-error "Can't bookmark %s notifications" n-type))
+           ((not byline-region)
+            (user-error "Nothing to %s here?!?" action))
+           (t
+            (let* ((bookmark-str (mastodon-tl--symbol 'bookmark))
+                   (message (if bookmarked-p
+                                "Bookmark removed!"
+                              "Toot bookmarked!"))
+                   (item-json (mastodon-tl--property 'item-json)))
+              (mastodon-toot--action
+               action
+               (lambda (_)
+                 (let ((inhibit-read-only t))
+                   (add-text-properties (car byline-region)
+                                        (cdr byline-region)
+                                        (list 'bookmarked-p (not bookmarked-p)))
+                   (mastodon-toot--action-success bookmark-str
+                                                  byline-region bookmarked-p item-json)
+                   (message "%s #%s" message id))))))))))
 
 (defun mastodon-toot--list-toot-boosters ()
   "List the boosters of toot at point."
@@ -515,23 +522,21 @@ SUBTRACT means we are un-favouriting or unboosting, so we decrement."
 (defun mastodon-toot--list-toot-boosters-or-favers (&optional favourite)
   "List the favouriters or boosters of toot at point.
 With FAVOURITE, list favouriters, else list boosters."
-  (mastodon-tl--do-if-item-strict
-   (let* ((base-toot (mastodon-tl--property 'base-item-id))
-          (endpoint (if favourite "favourited_by" "reblogged_by"))
-          (url (mastodon-http--api (format "statuses/%s/%s" base-toot endpoint)))
+  (mastodon-toot--with-toot-item
+   (let* ((endpoint (if favourite "favourited_by" "reblogged_by"))
+          (url (mastodon-http--api (format "statuses/%s/%s" id endpoint)))
           (params '(("limit" . "80")))
           (json (mastodon-http--get-json url params)))
      (if (eq (caar json) 'error)
-         (user-error "%s (Status does not exist or is private)" (alist-get 'error json))
+         (user-error "%s (Status does not exist or is private)"
+                     (alist-get 'error json))
        (let ((handles (mastodon-tl--map-alist 'acct json))
              (type-string (if favourite "Favouriters" "Boosters")))
          (if (not handles)
              (user-error "Looks like this toot has no %s" type-string)
            (let ((choice (completing-read
                           (format "%s (enter to view profile): " type-string)
-                          handles
-                          nil
-                          t)))
+                          handles nil t)))
              (mastodon-profile--show-user choice))))))))
 
 (defun mastodon-toot--copy-toot-url ()
@@ -550,8 +555,7 @@ base toot."
 
 (defun mastodon-toot--toot-url ()
   "Return the URL of the base toot at point."
-  (let* ((toot (or (mastodon-tl--property 'base-toot)
-                   (mastodon-tl--property 'item-json))))
+  (let* ((toot (mastodon-toot--base-toot-or-item-json)))
     (if (mastodon-tl--field 'reblog toot)
         (alist-get 'url (alist-get 'reblog toot))
       (alist-get 'url toot))))
@@ -561,8 +565,7 @@ base toot."
 If the toot is a fave/boost notification, copy the text of the
 base toot."
   (interactive)
-  (let* ((toot (or (mastodon-tl--property 'base-toot)
-                   (mastodon-tl--property 'item-json))))
+  (let* ((toot (mastodon-toot--base-toot-or-item-json)))
     (kill-new (mastodon-tl--content toot))
     (message "Toot content copied to the clipboard.")))
 
@@ -578,10 +581,10 @@ Uses `lingva.el'."
                                 (when mastodon-tl--enable-proportional-fonts
                                   t))
             (void-function
-             (message "Looks like you need to install lingva.el. Error: %s"
-                      (error-message-string x))))
-        (message "No toot to translate?"))
-    (message "No mastodon buffer?")))
+             (user-error "Looks like you need to install lingva.el. Error: %s"
+                         (error-message-string x))))
+        (user-error "No toot to translate?"))
+    (user-error "No mastodon buffer?")))
 
 (defun mastodon-toot--own-toot-p (toot)
   "Check if TOOT is user's own, for deleting, editing, or pinning it."
@@ -594,15 +597,14 @@ Uses `lingva.el'."
 (defun mastodon-toot--pin-toot-toggle ()
   "Pin or unpin user's toot at point."
   (interactive)
-  (let* ((toot (or (mastodon-tl--property 'base-toot) ;fave/boost notifs
-                   (mastodon-tl--property 'item-json)))
+  (let* ((toot (mastodon-toot--base-toot-or-item-json))
          (pinnable-p (mastodon-toot--own-toot-p toot))
          (pinned-p (equal (alist-get 'pinned toot) t))
          (action (if pinned-p "unpin" "pin"))
          (msg (if pinned-p "unpinned" "pinned"))
          (msg-y-or-n (if pinned-p "Unpin" "Pin")))
     (if (not pinnable-p)
-        (message "You can only pin your own toots.")
+        (user-error "You can only pin your own toots")
       (when (y-or-n-p (format "%s this toot? " msg-y-or-n))
         (mastodon-toot--action action
                                (lambda (_)
@@ -623,8 +625,7 @@ Uses `lingva.el'."
   "Delete and redraft user's toot at point synchronously.
 NO-REDRAFT means delete toot only."
   (interactive)
-  (let* ((toot (or (mastodon-tl--property 'base-toot) ;fave/boost notifs
-                   (mastodon-tl--property 'item-json)))
+  (let* ((toot (mastodon-toot--base-toot-or-item-json))
          (id (mastodon-tl--as-string (mastodon-tl--item-id toot)))
          (url (mastodon-http--api (format "statuses/%s" id)))
          (toot-cw (alist-get 'spoiler_text toot))
@@ -632,7 +633,7 @@ NO-REDRAFT means delete toot only."
          (reply-id (alist-get 'in_reply_to_id toot))
          (pos (point)))
     (if (not (mastodon-toot--own-toot-p toot))
-        (message "You can only delete (and redraft) your own toots.")
+        (user-error "You can only delete (and redraft) your own toots")
       (when (y-or-n-p (if no-redraft
                           (format "Delete this toot? ")
                         (format "Delete and redraft this toot? ")))
@@ -654,8 +655,7 @@ NO-REDRAFT means delete toot only."
   "Set content warning to CW if it is non-nil."
   (unless (or (null cw) ; cw is nil for `mastodon-tl--dm-user'
               (string-empty-p cw))
-    (setq mastodon-toot--content-warning t)
-    (setq mastodon-toot--content-warning-from-reply-or-redraft cw)))
+    (setq mastodon-toot--content-warning cw)))
 
 
 ;;; REDRAFT
@@ -754,9 +754,12 @@ TEXT-ONLY means don't check for attachments or polls."
 
 ;;; EMOJIS
 
-(defalias 'mastodon-toot--insert-emoji
-  #'emojify-insert-emoji
-  "Prompt to insert an emoji.")
+(defun mastodon-toot--insert-emoji ()
+  "Prompt to insert an emoji."
+  (interactive)
+  (if mastodon-use-emojify
+      (emojify-insert-emoji)
+    (emoji-search)))
 
 (defun mastodon-toot--emoji-dir ()
   "Return the file path for the mastodon custom emojis directory."
@@ -772,7 +775,7 @@ To use the downloaded emoji, run `mastodon-toot--enable-custom-emoji'."
          (custom-emoji (mastodon-http--get-json url))
          (mastodon-custom-emoji-dir (mastodon-toot--emoji-dir)))
     (if (not (file-directory-p emojify-emojis-dir))
-        (message "Looks like you need to set up emojify first.")
+        (user-error "Looks like you need to set up emojify first")
       (unless (file-directory-p mastodon-custom-emoji-dir)
         (make-directory mastodon-custom-emoji-dir nil)) ; no add parent
       (mapc (lambda (x)
@@ -852,13 +855,6 @@ to `emojify-user-emojis', and the emoji data is updated."
    `(("poll[multiple]" . ,(symbol-name (plist-get mastodon-toot-poll :multi))))
    `(("poll[hide_totals]" . ,(symbol-name (plist-get mastodon-toot-poll :hide))))))
 
-(defun mastodon-toot--read-cw-string ()
-  "Read a content warning from the minibuffer."
-  (when (and (not (mastodon-toot--empty-p))
-             mastodon-toot--content-warning)
-    (read-string "Warning: "
-                 mastodon-toot--content-warning-from-reply-or-redraft)))
-
 
 ;;; SEND TOOT FUNCTION
 
@@ -876,13 +872,12 @@ instance to edit a toot."
          (endpoint (if edit-id ; we are sending an edit:
                        (mastodon-http--api (format "statuses/%s" edit-id))
                      (mastodon-http--api "statuses")))
-         (cw (mastodon-toot--read-cw-string))
          (args-no-media (append `(("status" . ,toot)
                                   ("in_reply_to_id" . ,mastodon-toot--reply-to-id)
                                   ("visibility" . ,mastodon-toot--visibility)
                                   ("sensitive" . ,(when mastodon-toot--content-nsfw
                                                     (symbol-name t)))
-                                  ("spoiler_text" . ,cw)
+                                  ("spoiler_text" . ,mastodon-toot--content-warning)
                                   ("language" . ,mastodon-toot--language))
                                 ;; Pleroma instances can't handle null-valued
                                 ;; scheduled_at args, so only add if non-nil
@@ -906,12 +901,13 @@ instance to edit a toot."
                 (or (not args-media)
                     (not (= (length mastodon-toot--media-attachments)
                             (length mastodon-toot--media-attachment-ids)))))
-           (message "Something is wrong with your uploads. Wait for them to complete or try again."))
+           (user-error "Something is wrong with your uploads. Wait for them to complete or try again"))
           ((and mastodon-toot--max-toot-chars
-                (> (mastodon-toot--count-toot-chars toot cw) mastodon-toot--max-toot-chars))
-           (message "Looks like your toot (inc. CW) is longer than that maximum allowed length."))
+                (> (mastodon-toot--count-toot-chars toot mastodon-toot--content-warning)
+                   mastodon-toot--max-toot-chars))
+           (user-error "Looks like your toot (inc. CW) is longer than that maximum allowed length"))
           ((mastodon-toot--empty-p)
-           (message "Empty toot. Cowardly refusing to post this."))
+           (user-error "Empty toot. Cowardly refusing to post this"))
           (t
            (let ((response (if edit-id ; we are sending an edit:
                                (mastodon-http--put endpoint args)
@@ -921,9 +917,7 @@ instance to edit a toot."
               (lambda (_)
                 ;; kill buffer:
                 (mastodon-toot--kill)
-                (if scheduled
-                    (message "Toot scheduled!")
-                  (message "Toot toot!"))
+                (message "Toot %s!" (if scheduled "scheduled" "toot"))
                 ;; cancel scheduled toot if we were editing it:
                 (when scheduled-id
                   (mastodon-views--cancel-scheduled-toot
@@ -948,28 +942,23 @@ instance to edit a toot."
 (defun mastodon-toot--edit-toot-at-point ()
   "Edit the user's toot at point."
   (interactive)
-  (mastodon-tl--do-if-item-strict
-   (let ((toot (or (mastodon-tl--property 'base-toot) ; fave/boost notifs
-                   (mastodon-tl--property 'item-json))))
+  (mastodon-toot--with-toot-item
+   (let ((toot (mastodon-toot--base-toot-or-item-json)))
      (if (not (mastodon-toot--own-toot-p toot))
-         (message "You can only edit your own toots.")
-       (let* ((id (mastodon-tl--as-string (mastodon-tl--item-id toot)))
-              (source (mastodon-toot--get-toot-source id))
+         (user-error "You can only edit your own toots")
+       (let* ((source (mastodon-toot--get-toot-source id))
               (content (alist-get 'text source))
-              (source-cw (alist-get 'spoiler_text source))
-              (toot-visibility (alist-get 'visibility toot))
-              (toot-language (alist-get 'language toot))
-              (reply-id (alist-get 'in_reply_to_id toot))
-              (media (alist-get 'media_attachments toot))
-              (poll (alist-get 'poll toot)))
-         (when (y-or-n-p "Edit this toot? ")
-           (mastodon-toot--compose-buffer nil reply-id nil content :edit)
-           (goto-char (point-max))
-           ;; adopt reply-to-id, visibility, CW, language, and media:
-           (mastodon-toot--set-toot-properties reply-id toot-visibility
-                                               source-cw toot-language nil
-                                               nil media poll)
-           (setq mastodon-toot--edit-item-id id)))))))
+              (source-cw (alist-get 'spoiler_text source)))
+         (let-alist toot
+           (when (y-or-n-p "Edit this toot? ")
+             (mastodon-toot--compose-buffer nil .in_reply_to_id nil
+                                            content :edit)
+             (goto-char (point-max))
+             ;; adopt reply-to-id, visibility, CW, language, and media:
+             (mastodon-toot--set-toot-properties .in_reply_to_id .visibility
+                                                 source-cw .language nil nil
+                                                 .media_attachments .poll)
+             (setq mastodon-toot--edit-item-id id))))))))
 
 (defun mastodon-toot--get-toot-source (id)
   "Fetch the source JSON of toot with ID."
@@ -1032,7 +1021,7 @@ Remove empty string (self) from result and joins the sequence with whitespace."
   "Add domain to local ACCT and replace the curent user name with \"\".
 Mastodon requires the full @user@domain, even in the case of local accts.
 eg. \"user\" -> \"@user@local.social\" (when local.social is the domain of the
-mastodon-instance-url).
+`mastodon-instance-url').
 eg. \"yourusername\" -> \"\"
 eg. \"feduser@fed.social\" -> \"@feduser@fed.social\"."
   (cond ((string-match-p "@" acct) (concat "@" acct)) ; federated acct
@@ -1174,18 +1163,16 @@ text of the toot being replied to in the compose buffer.
 If the region is active, inject it into the reply buffer,
 prefixed by >."
   (interactive)
-  (mastodon-tl--do-if-item-strict
+  (mastodon-toot--with-toot-item
    (let* ((quote (when (region-active-p)
                    (buffer-substring (region-beginning)
                                      (region-end))))
-          (toot (mastodon-tl--property 'item-json))
           ;; no-move arg for base toot: don't try next toot
-          (base-toot (mastodon-tl--property 'base-toot :no-move)) ; for new notifs handling
-          (id (mastodon-tl--as-string (mastodon-tl--field 'id (or base-toot toot))))
+          (toot (mastodon-toot--base-toot-or-item-json))
           (account (mastodon-tl--field 'account toot))
           (user (alist-get 'acct account))
-          (mentions (mastodon-toot--mentions (or base-toot toot)))
-          (boosted (mastodon-tl--field 'reblog (or base-toot toot)))
+          (mentions (mastodon-toot--mentions toot))
+          (boosted (mastodon-tl--field 'reblog toot))
           (booster (when boosted
                      (alist-get 'acct
                                 (alist-get 'account toot)))))
@@ -1209,17 +1196,17 @@ prefixed by >."
             ;; user in mentions already:
             (mastodon-toot--mentions-to-string (copy-sequence mentions)))))
       id
-      (or base-toot toot)
+      toot
       quote))))
 
 
 ;;; COMPOSE TOOT SETTINGS
 
-(defun mastodon-toot--toggle-warning ()
-  "Toggle `mastodon-toot--content-warning'."
+(defun mastodon-toot--set-content-warning ()
+  "Set a content warning for the current toot."
   (interactive)
   (setq mastodon-toot--content-warning
-        (not mastodon-toot--content-warning))
+        (read-string "Warning: " mastodon-toot--content-warning))
   (mastodon-toot--update-status-fields))
 
 (defun mastodon-toot--toggle-nsfw ()
@@ -1234,7 +1221,7 @@ prefixed by >."
   "Change the current visibility to the next valid value."
   (interactive)
   (if (mastodon-tl--buffer-type-eq 'edit-toot)
-      (message "You can't change visibility when editing toots.")
+      (user-error "You can't change visibility when editing toots")
     (setq mastodon-toot--visibility
           (cond ((string= mastodon-toot--visibility "public")
                  "unlisted")
@@ -1278,7 +1265,7 @@ File is actually attached to the toot upon posting."
     ;; Only a max. of 4 attachments are allowed, so pop the oldest one.
     (pop mastodon-toot--media-attachments))
   (if (file-directory-p file)
-      (message "Looks like you chose a directory not a file.")
+      (user-error "Looks like you chose a directory not a file")
     (setq mastodon-toot--media-attachments
           (nconc mastodon-toot--media-attachments
                  `(((:contents . ,(mastodon-http--read-file-as-string file))
@@ -1417,7 +1404,7 @@ LENGTH is the maximum character length allowed for a poll option."
          (longest (apply #'max (mapcar #'length choices))))
     (if (> longest length)
         (progn
-          (message "looks like you went over the max length. Try again.")
+          (user-error "Looks like you went over the max length. Try again")
           (sleep-for 2)
           (mastodon-toot--read-poll-options count length))
       choices)))
@@ -1485,10 +1472,10 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
   ;; https://codeberg.org/martianh/mastodon.el/issues/285
   (interactive)
   (cond ((mastodon-tl--buffer-type-eq 'edit-toot)
-         (message "You can't schedule toots you're editing."))
+         (user-error "You can't schedule toots you're editing"))
         ((not (or (mastodon-tl--buffer-type-eq 'new-toot)
                   (mastodon-tl--buffer-type-eq 'scheduled-statuses)))
-         (message "You can only schedule toots from the compose buffer or scheduled toots view."))
+         (user-error "You can only schedule toots from the compose buffer or scheduled toots view"))
         (t
          (let* ((id (when reschedule (mastodon-tl--property 'id :no-move)))
                 (ts (when reschedule
@@ -1532,7 +1519,7 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
 ;;; DISPLAY KEYBINDINGS
 
 (defun mastodon-toot--get-mode-kbinds ()
-  "Get a list of the keybindings in the mastodon-toot-mode."
+  "Get a list of the keybindings in the `mastodon-toot-mode'."
   (let* ((binds (copy-tree mastodon-toot-mode-map))
          (prefix (car (cadr binds)))
          (bindings (remove nil (mapcar (lambda (i)
@@ -1545,7 +1532,7 @@ With RESCHEDULE, reschedule the scheduled toot at point without editing."
 
 (defun mastodon-toot--format-kbind-command (cmd)
   "Format CMD to be more readable.
-e.g. mastodon-toot--send -> Send."
+e.g. `mastodon-toot--send' -> Send."
   (let* ((str (symbol-name cmd))
          (re "--\\(.*\\)$")
          (str2 (save-match-data
@@ -1601,7 +1588,7 @@ LONGEST is the length of the longest binding."
 ;;; DISPLAY DOCS
 
 (defun mastodon-toot--make-mode-docs ()
-  "Create formatted documentation text for the mastodon-toot-mode."
+  "Create formatted documentation text for the `mastodon-toot-mode'."
   (let* ((kbinds (mastodon-toot--get-mode-kbinds))
          (longest-kbind (mastodon-toot--formatted-kbinds-longest
                          (mastodon-toot--format-kbinds kbinds))))
@@ -1795,8 +1782,9 @@ REPLY-REGION is a string to be injected into the buffer."
        (prin1-to-string mastodon-toot-poll))
       (mastodon-toot--apply-fields-props
        cw-region
-       (if mastodon-toot--content-warning
-           "CW"
+       (if (and mastodon-toot--content-warning
+                (not (equal "" mastodon-toot--content-warning)))
+           (format "CW: %s" mastodon-toot--content-warning)
          "  ") ;; hold the blank space
        'mastodon-cw-face))))
 
@@ -1838,19 +1826,19 @@ Added to `after-change-functions' in new toot buffers."
       (let ((text (completing-read "Select draft toot: "
                                    mastodon-toot-draft-toots-list
                                    nil t)))
-        (if (mastodon-toot--compose-buffer-p)
-            (when (and (not (mastodon-toot--empty-p :text-only))
-                       (y-or-n-p "Replace current text with draft?"))
-              (cl-pushnew mastodon-toot-current-toot-text
-                          mastodon-toot-draft-toots-list)
-              (goto-char
-               (cdr (mastodon-tl--find-property-range 'toot-post-header
-                                                      (point-min))))
-              (kill-region (point) (point-max))
-              ;; to not save to kill-ring:
-              ;; (delete-region (point) (point-max))
-              (insert text))
-          (mastodon-toot--compose-buffer nil nil nil text)))
+        (if (not (mastodon-toot--compose-buffer-p))
+            (mastodon-toot--compose-buffer nil nil nil text)
+          (when (and (not (mastodon-toot--empty-p :text-only))
+                     (y-or-n-p "Replace current text with draft?"))
+            (cl-pushnew mastodon-toot-current-toot-text
+                        mastodon-toot-draft-toots-list)
+            (goto-char
+             (cdr (mastodon-tl--find-property-range 'toot-post-header
+                                                    (point-min))))
+            (kill-region (point) (point-max))
+            ;; to not save to kill-ring:
+            ;; (delete-region (point) (point-max))
+            (insert text))))
     (unless (mastodon-toot--compose-buffer-p)
       (mastodon-toot--compose-buffer))
     (message "No drafts available.")))
@@ -1858,14 +1846,14 @@ Added to `after-change-functions' in new toot buffers."
 (defun mastodon-toot--delete-draft-toot ()
   "Prompt for a draft toot and delete it."
   (interactive)
-  (if mastodon-toot-draft-toots-list
-      (let ((draft (completing-read "Select draft to delete: "
-                                    mastodon-toot-draft-toots-list
-                                    nil t)))
-        (setq mastodon-toot-draft-toots-list
-              (cl-delete draft mastodon-toot-draft-toots-list :test #'equal))
-        (message "Draft deleted!"))
-    (message "No drafts to delete.")))
+  (if (not mastodon-toot-draft-toots-list)
+      (user-error "No drafts to delete")
+    (let ((draft (completing-read "Select draft to delete: "
+                                  mastodon-toot-draft-toots-list
+                                  nil t)))
+      (setq mastodon-toot-draft-toots-list
+            (cl-delete draft mastodon-toot-draft-toots-list :test #'equal))
+      (message "Draft deleted!"))))
 
 (defun mastodon-toot--delete-all-drafts ()
   "Delete all drafts."
@@ -2013,7 +2001,7 @@ EDIT means we are editing an existing toot, not composing a new one."
     (setq mastodon-toot-previous-window-config previous-window-config)
     (when mastodon-toot--proportional-fonts-compose
       (facemenu-set-face 'variable-pitch))
-    (when (and mastodon-toot--emojify-in-compose-buffer
+    (when (and mastodon-use-emojify
                ;; emojify loaded but poss not enabled in our buffer:
                (boundp 'emojify-mode))
       (emojify-mode))

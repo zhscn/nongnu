@@ -38,6 +38,7 @@ README
 * Contributing::
 * Supporting @samp{mastodon.el}: Supporting @samp{mastodonel}. 
 * Contributors::
+* screenshots::
 
 Installation
 
@@ -85,6 +86,7 @@ NB: @samp{mastodon.el} now ships this readme as an .info file, so if you have it
 * Contributing::
 * Supporting @samp{mastodon.el}: Supporting @samp{mastodonel}. 
 * Contributors::
+* screenshots::
 @end menu
 
 @node Installation
@@ -150,8 +152,7 @@ it shouldn't be very hard to get it working.
 @node Emoji
 @subsection Emoji
 
-@samp{mastodon-mode} will enable @uref{https://github.com/iqbalansari/emacs-emojify, Emojify} if it is loaded in your Emacs environment, so
-there's no need to write your own hook anymore. @samp{emojify-mode} is not required.
+Since Emacs 28, it has builtin emoji support with @samp{emoji.el}. If you prefer to use @uref{https://github.com/iqbalansari/emacs-emojify, Emojify}, @samp{require} it and set @samp{mastodon-use-emojify} to non-nil to display emoji in timelines and to use it when composing toots. @samp{Emoji.el} is the better option, but for now only @samp{emojify} supports downloading and using custom emoji from your instance. From personal experience, @samp{emojify} also tends to result in less TOFU@.
 
 @node Discover
 @subsection Discover
@@ -343,6 +344,8 @@ For a full list of commands and variables, see @uref{mastodon-index.org, mastodo
 @tab delete your toot at point, and reload current timeline
 @item @samp{D}
 @tab delete and redraft toot at point, preserving reply/CW/visibility
+@item @samp{!}
+@tab toggle folding of toot at point
 @item (@samp{S-C-}) @samp{W}, @samp{M}, @samp{B}
 @tab (un)follow, (un)mute, (un)block author of toot at point
 @item 
@@ -418,7 +421,7 @@ value of that hook is as follows:
 @anchor{Keybindings (1)}Keybindings
 
 
-@multitable {aaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@multitable {aaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem Key
 @tab Action
 @item @samp{C-c C-c}
@@ -436,7 +439,7 @@ value of that hook is as follows:
 @item @samp{C-c !}
 @tab Remove all attachments
 @item @samp{C-c C-e}
-@tab Add emoji (if @samp{emojify} installed)
+@tab Insert emoji
 @item @samp{C-c C-p}
 @tab Create a poll
 @item @samp{C-c C-l}
@@ -454,7 +457,7 @@ Autocompletion of mentions, tags, and emojis is provided by
 @samp{mastodon-toot--enable-completion} is enabled by default.
 
 To trigger completion, type a prefix followed by a few letters, @samp{@@} for
-mentions, @samp{#} for tags, and @samp{:} for emoji.
+mentions, @samp{#} for tags, and @samp{:} for emoji (for now this only works when using @samp{emojify.el}).
 
 If you want to enable @samp{company-mode} in the toot compose buffer, set
 @samp{mastodon-toot--use-company-for-completion} to @samp{t}. (@samp{mastodon.el} used to run its
@@ -690,9 +693,7 @@ to your translator function as its text argument. Here's what
 @node Bookmarks and @samp{mastodonel}
 @subsection Bookmarks and @samp{mastodon.el}
 
-@samp{mastodon.el} doesn’t currently implement its own bookmark record and handler,
-which means that emacs bookmarks will not work as is. Until we implement them,
-you can get bookmarks going immediately by using @uref{https://github.com/emacsmirror/emacswiki.org/blob/master/bookmark%2b.el, bookmark+.el}.
+@samp{mastodon.el} implements a basic bookmark record and handler. Currently, this means that you can bookmark a post item and later load it in thread view. This could be expanded to any item with an id, but probably not to things like timeline views. If you want to be able to bookmark something, open an issue and ask, as it's trivial to expand the bookmarking code.
 
 @node Dependencies
 @section Dependencies
@@ -702,13 +703,13 @@ Hard dependencies (should all install with @samp{mastodon.el}):
 @item
 @samp{request} (for uploading attachments), @uref{https://github.com/tkf/emacs-request, emacs-request}
 @item
-@samp{persist} for storing some settings across sessions
+@samp{persist} for storing some settings across sessions (we now use @samp{multisession.el} for this)
 @end itemize
 
 Optional dependencies (install yourself, @samp{mastodon.el} can use them):
 @itemize
 @item
-@samp{emojify} for inserting and viewing emojis
+@samp{emojify} to use custom emoji (else we use builtin @samp{emoji.el})
 @item
 @samp{mpv} and @samp{mpv.el} for viewing videos and gifs
 @item
@@ -825,5 +826,16 @@ Some significant contributors are:
 @item
 @uref{https://codeberg.org/Red_Starfish}
 @end itemize
+
+@node screenshots
+@section screenshots
+
+Here's a (federated) timeline:
+
+@image{screenshot-tl,,,,png}
+
+Here's a notifcations view plus a compose buffer:
+
+@image{screenshot-notifs+compose,,,,png}
 
 @bye

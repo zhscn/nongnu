@@ -32,8 +32,8 @@
 ;; mastodon.el is a client for fediverse services that implement the Mastodon
 ;; API. See <https://github.com/mastodon/mastodon>.
 
-;; See the readme file at https://codeberg.org/martianh/mastodon.el for set up
-;; and usage details.
+;; For set up and usage details, see the Info documentation, or the readme
+;; file at https://codeberg.org/martianh/mastodon.el.
 
 ;;; Code:
 (require 'cl-lib) ; for `cl-some' call in mastodon
@@ -144,6 +144,11 @@ The default value \"%F %T\" prints ISO8601-style YYYY-mm-dd HH:MM:SS.
 Use. e.g. \"%c\" for your locale's date and time format."
   :type 'string)
 
+(defcustom mastodon-use-emojify nil
+  "Whether to use emojify.el to display emojis.
+From version 28, Emacs can display emojis natively. But
+currently, it doesn't seem to have a way to handle custom emoji,
+while emojify,el has this feature and mastodon.el implements it.")
 
 (defun mastodon-kill-window ()
   "Quit window and delete helper."
@@ -229,6 +234,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
     (define-key map (kbd "G") #'mastodon-views--view-follow-suggestions)
     (define-key map (kbd "X") #'mastodon-views--view-lists)
     (define-key map (kbd "SPC") #'mastodon-tl--scroll-up-command)
+    (define-key map (kbd "!") #'mastodon-tl--fold-post-toggle)
     (define-key map (kbd "z") #'bury-buffer)
     map)
   "Keymap for `mastodon-mode'.")
@@ -408,24 +414,27 @@ not, just browse the URL in the normal fashion."
   "Check if QUERY resembles a fediverse URL."
   ;; calqued off https://github.com/tuskyapp/Tusky/blob/c8fc2418b8f5458a817bba221d025b822225e130/app/src/main/java/com/keylesspalace/tusky/BottomSheetActivity.kt
   ;; thx to Conny Duck!
+  ;; mastodon at least seems to allow only [a-z0-9_] for usernames, plus "."
+  ;; but not at beginning or end, see https://github.com/mastodon/mastodon/issues/6830
+  ;; objects may have - in them
   (let* ((uri-parsed (url-generic-parse-url query))
          (query (url-filename uri-parsed)))
     (save-match-data
       (or (string-match "^/@[^/]+$" query)
           (string-match "^/@[^/]+/[[:digit:]]+$" query)
-          (string-match "^/user[s]?/@?[[:alnum:]]+$" query) ; @: pleroma or soapbox
+          (string-match "^/user[s]?/@?[[:alnum:]_]+$" query) ; @: pleroma or soapbox
           (string-match "^/notice/[[:alnum:]]+$" query)
           (string-match "^/objects/[-a-f0-9]+$" query)
           (string-match "^/notes/[a-z0-9]+$" query)
           (string-match "^/display/[-a-f0-9]+$" query)
-          (string-match "^/profile/[[:alpha:]]+$" query)
-          (string-match "^/p/[[:alpha:]]+/[[:digit:]]+$" query)
-          (string-match "^/[[:alpha:]]+$" query)
-          (string-match "^/u/[[:alpha:]]+$" query)
-          (string-match "^/c/[[:alnum:]]+$" query)
+          (string-match "^/profile/[[:alpha:]_]+$" query)
+          (string-match "^/p/[[:alpha:]_]+/[[:digit:]]+$" query)
+          (string-match "^/[[:alpha:]_]+$" query)
+          (string-match "^/u/[[:alpha:]_]+$" query)
+          (string-match "^/c/[[:alnum:]_]+$" query)
           (string-match "^/post/[[:digit:]]+$" query)
           (string-match "^/comment/[[:digit:]]+$" query) ; lemmy
-          (string-match "^/user[s]?/[[:alnum:]]+/statuses/[[:digit:]]+$" query) ; hometown
+          (string-match "^/user[s]?/[[:alnum:]_]+/statuses/[[:digit:]]+$" query) ; hometown
           (string-match "^/notes/[[:alnum:]]+$" query))))) ; misskey post
 
 (defun mastodon-live-buffers ()
@@ -464,7 +473,8 @@ Calls `mastodon-tl--get-buffer-type', which see."
 
 (defun mastodon-mode-hook-fun ()
   "Function to add to `mastodon-mode-hook'."
-  (when (require 'emojify nil :noerror)
+  (when (and mastodon-use-emojify
+             (require 'emojify nil :noerror))
     (emojify-mode t)
     (when mastodon-toot--enable-custom-instance-emoji
       (mastodon-toot--enable-custom-emoji)))
