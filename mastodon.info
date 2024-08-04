@@ -597,8 +597,7 @@ File: mastodon.info,  Node: Dependencies,  Next: Network compatibility,  Prev: U
 Hard dependencies (should all install with ‘mastodon.el’):
    • ‘request’ (for uploading attachments), emacs-request
      (https://github.com/tkf/emacs-request)
-   • ‘persist’ for storing some settings across sessions (we now use
-     ‘multisession.el’ for this)
+   • ‘persist’ for storing some settings across sessions
 
    Optional dependencies (install yourself, ‘mastodon.el’ can use them):
    • ‘emojify’ to use custom emoji (else we use builtin ‘emoji.el’)
@@ -769,14 +768,14 @@ Node: Live-updating timelines mastodon-async-mode19677
 Node: Translating toots20529
 Node: Bookmarks and mastodonel21711
 Node: Dependencies22253
-Node: Network compatibility22936
-Node: Contributing23818
-Node: Bug reports24314
-Node: Fixes and features25225
-Node: Coding style25726
-Node: Supporting mastodonel26350
-Node: Contributors26917
-Node: screenshots27352
+Node: Network compatibility22887
+Node: Contributing23769
+Node: Bug reports24265
+Node: Fixes and features25176
+Node: Coding style25677
+Node: Supporting mastodonel26301
+Node: Contributors26868
+Node: screenshots27303
 
 End Tag Table
 
