@@ -1951,9 +1951,7 @@ EDIT means we are editing an existing toot, not composing a new one."
     (mastodon-toot-mode t)
     ;; set visibility:
     (setq mastodon-toot--visibility
-          (or (plist-get
-               (multisession-value mastodon-profile-account-settings)
-               'privacy)
+          (or (plist-get mastodon-profile-account-settings 'privacy)
               ;; use toot visibility setting from the server:
               (mastodon-profile--get-source-value 'privacy)
               "public")) ; fallback
